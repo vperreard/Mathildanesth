@@ -1,0 +1,151 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Nouveaux rôles/niveaux d'accès
+enum Role {
+  ADMIN_TOTAL // Peut tout faire
+  ADMIN_PARTIEL // Peut gérer utilisateurs/planning mais pas la configuration avancée ? (à définir)
+  USER // Utilisateur standard (MAR/IADE)
+}
+
+// Statut des utilisateurs/chirurgiens
+enum UserStatus {
+  ACTIF
+  INACTIF
+}
+
+// Rôles professionnels
+enum ProfessionalRole {
+  MAR
+  IADE
+  SECRETAIRE
+  // Ajouter d'autres rôles si nécessaire
+}
+
+// <<< Nouveaux Enums pour le pattern de travail >>>
+enum WorkPatternType {
+  FULL_TIME
+  ALTERNATING_WEEKS // Semaines paires/impaires
+  ALTERNATING_MONTHS // Mois pairs/impairs
+  SPECIFIC_DAYS // Jours spécifiques (peut varier selon semaine paire/impaire)
+}
+
+enum WeekType {
+  EVEN // Paire
+  ODD  // Impaire
+  ALL  // Toutes
+}
+
+// Modèle renommé et mis à jour
+model User {
+  id               Int              @id @default(autoincrement())
+  nom              String
+  prenom           String
+  login            String           @unique // Ajout du login unique
+  email            String           @unique
+  alias            String?          // <<< Ajout du champ alias/surnom (optionnel)
+  phoneNumber      String? // Ajout du numéro de téléphone (optionnel)
+  password         String // Stockera le hash du mot de passe
+  role             Role // Utilisation du nouvel enum Role
+  professionalRole ProfessionalRole // Rôle professionnel
+
+  // Nouveaux champs pour le profil utilisateur
+  tempsPartiel            Boolean   @default(false)
+  pourcentageTempsPartiel Float? // Optionnel, pertinent si tempsPartiel est true
+  // joursTravailles         String? // <<< Ancien champ, commenté pour l'instant
+  dateEntree              DateTime? // Optionnel
+  dateSortie              DateTime? // Optionnel
+  actif                   Boolean   @default(true) // Pour la désactivation
+
+  // <<< Nouveaux champs pour le pattern de travail >>>
+  workPattern             WorkPatternType @default(FULL_TIME)
+  // workOnWeekType          WeekType? // Plus nécessaire avec les champs spécifiques ci-dessous
+  // workOnMonthType         WeekType? // Conservé pour ALTERNATING_MONTHS
+  workOnMonthType         WeekType? 
+  // Suppression des booléens individuels
+  // workMonday              Boolean @default(true)
+  // workTuesday             Boolean @default(true)
+  // workWednesday           Boolean @default(true)
+  // workThursday            Boolean @default(true)
+  // workFriday              Boolean @default(true)
+  // workSaturday            Boolean @default(false)
+  // workSunday              Boolean @default(false)
+
+  // Nouveaux champs pour les jours spécifiques par type de semaine
+  joursTravaillesSemainePaire Json @default("[]") // Stocker comme un tableau JSON
+  joursTravaillesSemaineImpaire Json @default("[]") // Stocker comme un tableau JSON
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation avec les logs de connexion
+  loginLogs LoginLog[]
+
+  // Relation optionnelle vers le profil chirurgien
+  surgeonProfile Surgeon? // Un utilisateur peut être lié à 0 ou 1 profil chirurgien
+
+  // Indicateur pour forcer le changement de mot de passe
+  mustChangePassword Boolean @default(true)
+}
+
+// Nouveau modèle pour gérer la liste des spécialités
+model Specialty {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique // Nom unique pour chaque spécialité
+  isPediatric Boolean @default(false) // Nouveau champ pour indiquer si la spécialité est pédiatrique
+
+  // Relation Many-to-Many avec Surgeon
+  surgeons Surgeon[]
+}
+
+// Nouveau modèle pour les Chirurgiens
+model Surgeon {
+  id          Int          @id @default(autoincrement())
+  nom         String
+  prenom      String
+  email       String?      @unique
+  phoneNumber String?
+  googleSheetName String?  // <<< Ajout du champ pour la correspondance Google Sheet
+  status      UserStatus   @default(ACTIF) // Utilisation de l'enum UserStatus
+  userId      Int?         @unique // Lien vers l'utilisateur (optionnel)
+  user        User?        @relation(fields: [userId], references: [id])
+  specialties   Specialty[] // Décommenté
+  preferences SurgeonPreference[]
+
+  @@map("surgeons")
+}
+
+// Renommé en SurgeonPreference pour éliminer la référence circulaire
+model SurgeonPreference {
+  id        Int     @id @default(autoincrement())
+  name      String // Nom de la préférence (exemple)
+  value     String // Valeur de la préférence (exemple)
+  surgeonId Int
+  surgeon   Surgeon @relation(fields: [surgeonId], references: [id])
+
+  @@map("preferences")
+}
+
+// Nouveau modèle pour enregistrer les connexions
+model LoginLog {
+  id        Int      @id @default(autoincrement())
+  timestamp DateTime @default(now())
+  userId    Int // Clé étrangère vers l'utilisateur
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId]) // Ajouter un index sur userId pour la performance
+}

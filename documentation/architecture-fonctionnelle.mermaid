@@ -1,0 +1,74 @@
+flowchart TD
+    subgraph "Interface Utilisateur"
+        A1[Interface Web] --- A2[Interface Mobile]
+        A3[Module d'administration] --- A1
+    end
+    
+    subgraph "Modules Fonctionnels"
+        B1[Module de gestion des profils]
+        B2[Module de gestion des congés]
+        B3[Module de planification des gardes/astreintes]
+        B4[Module de planification des consultations]
+        B5[Module de planification du bloc opératoire]
+        B6[Module de suivi statistique]
+        B7[Module de gestion des notifications]
+    end
+    
+    subgraph "Moteur de génération"
+        C1[Algorithme de répartition]
+        C2[Vérificateur de règles]
+        C3[Optimiseur de planning]
+    end
+    
+    subgraph "Intégrations Externes"
+        D1[Import Google Sheets]
+        D2[Import Plannings IADE]
+        D3[Future connexion HM bloc/Planif]
+    end
+    
+    subgraph "Stockage de données"
+        E1[Données utilisateurs]
+        E2[Données plannings]
+        E3[Données congés]
+        E4[Trames et configurations]
+        E5[Statistiques et compteurs]
+    end
+    
+    %% Flux de données
+    A1 & A2 & A3 <--> B1 & B2 & B3 & B4 & B5 & B6 & B7
+    
+    B1 --> E1
+    B2 --> E3
+    B3 & B4 & B5 --> E2
+    B6 --> E5
+    
+    B3 --> C1
+    B4 --> C1
+    B5 --> C1
+    
+    C1 --> C2 --> C3
+    C3 --> B3 & B4 & B5
+    
+    D1 --> B5
+    D2 --> B5
+    D3 -.-> B5
+    
+    %% Flux spécifiques
+    E1 ---> C1
+    E3 ---> C1
+    E4 ---> C1
+    
+    B7 ---> A1 & A2
+    
+    %% Styles
+    classDef interface fill:#f9f9ff,stroke:#6666cc,stroke-width:2px;
+    classDef module fill:#e6f3ff,stroke:#3399ff,stroke-width:2px;
+    classDef engine fill:#fff2e6,stroke:#ff9933,stroke-width:2px;
+    classDef integration fill:#f0fff0,stroke:#66cc66,stroke-width:2px;
+    classDef storage fill:#fff0f5,stroke:#cc6699,stroke-width:2px;
+    
+    class A1,A2,A3 interface;
+    class B1,B2,B3,B4,B5,B6,B7 module;
+    class C1,C2,C3 engine;
+    class D1,D2,D3 integration;
+    class E1,E2,E3,E4,E5 storage;
