@@ -98,3 +98,6 @@ pnpm-lock.yaml
 # IDE specific files
 .idea/
 *.iml
+
+# Seed data (contains sensitive information like initial passwords)
+prisma/seed_data/
