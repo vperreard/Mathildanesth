@@ -82,8 +82,18 @@ const LeavesList: React.FC<LeavesListProps> = ({
 
             try {
                 if (field === 'user') {
-                    aValue = a.user ? `${a.user.prenom ?? ''} ${a.user.nom ?? ''}`.trim().toLowerCase() : '';
-                    bValue = b.user ? `${b.user.prenom ?? ''} ${b.user.nom ?? ''}`.trim().toLowerCase() : '';
+                    // Vérifier les deux possibilités (firstName/lastName ou prenom/nom)
+                    // @ts-ignore - Support de la double structure de nommage
+                    const aFirstName = a.user?.firstName || a.user?.prenom || '';
+                    // @ts-ignore - Support de la double structure de nommage
+                    const aLastName = a.user?.lastName || a.user?.nom || '';
+                    // @ts-ignore - Support de la double structure de nommage
+                    const bFirstName = b.user?.firstName || b.user?.prenom || '';
+                    // @ts-ignore - Support de la double structure de nommage
+                    const bLastName = b.user?.lastName || b.user?.nom || '';
+
+                    aValue = `${aFirstName} ${aLastName}`.trim().toLowerCase();
+                    bValue = `${bFirstName} ${bLastName}`.trim().toLowerCase();
                 } else if (field === 'startDate' || field === 'endDate') {
                     aValue = a[field] ? new Date(a[field]) : null;
                     bValue = b[field] ? new Date(b[field]) : null;
@@ -127,7 +137,12 @@ const LeavesList: React.FC<LeavesListProps> = ({
                 let leaveValue: string = '';
                 try {
                     if (key === 'user') {
-                        leaveValue = leave.user ? `${leave.user.prenom ?? ''} ${leave.user.nom ?? ''}`.trim().toLowerCase() : '';
+                        // Vérifier les deux possibilités (firstName/lastName ou prenom/nom)
+                        // @ts-ignore - Support de la double structure de nommage
+                        const firstName = leave.user?.firstName || leave.user?.prenom || '';
+                        // @ts-ignore - Support de la double structure de nommage
+                        const lastName = leave.user?.lastName || leave.user?.nom || '';
+                        leaveValue = `${firstName} ${lastName}`.trim().toLowerCase();
                     } else if (key === 'startDate' || key === 'endDate') {
                         const date = leave[key];
                         if (date) {

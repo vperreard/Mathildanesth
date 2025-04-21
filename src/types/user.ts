@@ -37,6 +37,9 @@ export interface User {
     id: number;
     nom: string;
     prenom: string;
+    // Champs de compatibilité pour s'adapter aux différentes nomenclatures
+    firstName?: string;
+    lastName?: string;
     login: string;
     email: string;
     alias?: string | null;

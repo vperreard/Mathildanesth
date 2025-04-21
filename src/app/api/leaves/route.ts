@@ -25,6 +25,9 @@ interface LeaveWithUserFrontend {
         id: number;
         firstName: string;
         lastName: string;
+        // Ajout des champs pour compatibilité
+        prenom?: string;
+        nom?: string;
     };
 }
 
@@ -88,6 +91,19 @@ export async function GET(request: NextRequest) {
             },
         });
 
+        // Fonction adaptateur pour uniformiser les champs nom/prenom
+        const adaptUserFields = (user: any) => {
+            if (!user) return null;
+
+            return {
+                ...user,
+                firstName: user.firstName || user.prenom,
+                lastName: user.lastName || user.nom,
+                prenom: user.prenom || user.firstName,
+                nom: user.nom || user.lastName
+            };
+        };
+
         // Mapper les résultats directement vers le type final
         const formattedLeaves: LeaveWithUserFrontend[] = leaves
             .map(leave => {
@@ -96,9 +112,12 @@ export async function GET(request: NextRequest) {
                     return null; // Marquer pour filtrage
                 }
 
+                // Adapter les données utilisateur
+                const adaptedUser = adaptUserFields(leave.user);
+
                 // S'assurer que les valeurs de nom et prénom ne sont jamais undefined
-                const firstName = leave.user.prenom || '(Prénom non défini)';
-                const lastName = leave.user.nom || '(Nom non défini)';
+                const firstName = adaptedUser.firstName || adaptedUser.prenom || '(Prénom non défini)';
+                const lastName = adaptedUser.lastName || adaptedUser.nom || '(Nom non défini)';
 
                 // Créer l'objet formaté
                 const formattedLeave: LeaveWithUserFrontend = {
@@ -114,9 +133,12 @@ export async function GET(request: NextRequest) {
                     updatedAt: leave.updatedAt.toISOString(),
                     userId: leave.userId,
                     user: {
-                        id: leave.user.id,
+                        id: adaptedUser.id,
                         firstName: firstName,
                         lastName: lastName,
+                        // Ajouter également les noms originaux pour compatibilité
+                        prenom: firstName,
+                        nom: lastName
                     }
                 };
                 return formattedLeave;
@@ -218,9 +240,25 @@ export async function POST(request: NextRequest) {
                 userData: newLeave.user
             }, null, 2));
 
+            // Adapter les données utilisateur pour s'assurer de la cohérence firstName/lastName
+            const adaptUserFields = (user: any) => {
+                if (!user) return null;
+
+                return {
+                    ...user,
+                    firstName: user.firstName || user.prenom,
+                    lastName: user.lastName || user.nom,
+                    prenom: user.prenom || user.firstName,
+                    nom: user.nom || user.lastName
+                };
+            };
+
             // S'assurer que les valeurs de nom et prénom ne sont jamais undefined
-            const firstName = newLeave.user?.prenom || '(Prénom non défini)';
-            const lastName = newLeave.user?.nom || '(Nom non défini)';
+            const adaptedUser = adaptUserFields(newLeave.user);
+            console.log('[API /leaves POST] Utilisateur adapté:', JSON.stringify(adaptedUser, null, 2));
+
+            const firstName = adaptedUser?.prenom || adaptedUser?.firstName || '(Prénom non défini)';
+            const lastName = adaptedUser?.nom || adaptedUser?.lastName || '(Nom non défini)';
 
             // Retourner une réponse formatée
             const formattedLeave = {
@@ -235,13 +273,16 @@ export async function POST(request: NextRequest) {
                 updatedAt: newLeave.updatedAt.toISOString(),
                 userId: newLeave.userId,
                 user: {
-                    id: newLeave.user?.id || userIdInt,
+                    id: adaptedUser?.id || userIdInt,
                     firstName,
                     lastName,
+                    // Ajouter également les noms originaux pour compatibilité complète
+                    prenom: firstName,
+                    nom: lastName
                 }
             };
 
-            console.log('[API /leaves POST] Congé créé avec succès:', formattedLeave);
+            console.log('[API /leaves POST] Congé créé avec succès:', JSON.stringify(formattedLeave, null, 2));
             return NextResponse.json(formattedLeave, { status: 201 }); // 201 Created
         } catch (error) {
             console.error('[API /leaves POST] Erreur lors de la création du congé:', error);
