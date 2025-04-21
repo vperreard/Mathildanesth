@@ -1,0 +1,145 @@
+erDiagram
+    UTILISATEUR ||--o{ AFFECTATION : a
+    UTILISATEUR ||--o{ CONGE : demande
+    UTILISATEUR {
+        int id PK
+        string nom
+        string prenom
+        string login
+        string email
+        string alias
+        string phoneNumber
+        string mot_de_passe
+        enum type "MAR, IADE, Admin"
+        enum niveau_acces "Admin complet, Admin partiel, Utilisateur"
+        bool tempsPartiel
+        float pourcentageTempsPartiel
+        enum workPattern "FULL_TIME, ALTERNATING_WEEKS, ALTERNATING_MONTHS, SPECIFIC_DAYS"
+        enum workOnMonthType "EVEN, ODD, ALL"
+        json joursTravaillesSemainePaire "Array of days"
+        json joursTravaillesSemaineImpaire "Array of days"
+        date dateEntree
+        date dateSortie
+        bool actif
+        bool mustChangePassword
+        int droits_conges
+        date date_creation
+    }
+    
+    CHIRURGIEN ||--o{ AFFECTATION : intervient_dans
+    CHIRURGIEN {
+        int id PK
+        string nom
+        string prenom
+        string email
+        string phoneNumber
+        enum status "ACTIF, INACTIF"
+        string googleSheetName
+        int userId FK "Optionnel"
+    }
+    
+    SPECIALITE ||--o{ CHIRURGIEN : pratique
+    SPECIALITE {
+        int id PK
+        string name
+        bool isPediatric
+    }
+    
+    SALLE ||--o{ AFFECTATION : lieu_de
+    SALLE {
+        int id PK
+        string nom
+        int numero
+        enum type "Chirurgie, Ophtalmo, Endoscopie, Césarienne"
+        string secteur "Hyperaseptique, 5-8, 9-12B, etc."
+        string code_couleur
+        json regles_supervision "Règles spécifiques au secteur"
+    }
+    
+    AFFECTATION {
+        int id PK
+        int utilisateur_id FK
+        int salle_id FK "Si bloc"
+        int chirurgien_id FK "Si applicable"
+        date date
+        enum demi_journee "Matin, Après-midi"
+        enum type "Garde, Astreinte, Consultation, Bloc-anesthésie, Bloc-supervision"
+        string specialite "Spécialité pratiquée"
+        enum statut "Généré auto, Validé, Modifié manuellement"
+        bool situation_exceptionnelle
+        string commentaire
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    CONGE {
+        int id PK
+        int utilisateur_id FK
+        date date_debut
+        date date_fin
+        enum type "CA, Maladie, Formation, Récupération"
+        enum statut "Demandé, Approuvé, Refusé"
+        string commentaire
+        bool decompte "Oui/Non selon règles"
+        string justificatif "Chemin du fichier si applicable"
+    }
+    
+    COMPTEUR ||--|| UTILISATEUR : appartient_a
+    COMPTEUR {
+        int id PK
+        int utilisateur_id FK
+        int annee
+        int conges_pris
+        int conges_restants
+        int heures_supplementaires
+        json stats_specialites "Nombre d'affectations par spécialité"
+        json stats_gardes "Statistiques gardes/astreintes/consultations"
+    }
+    
+    TRAME ||--o{ AFFECTATION : genere
+    TRAME {
+        int id PK
+        string nom
+        enum type "Bloc, Consultation, Garde"
+        enum configuration "Semaine paire/impaire"
+        date date_debut_validite
+        date date_fin_validite
+        json details "Configuration complète structurée"
+    }
+    
+    NOTIFICATION ||--o{ UTILISATEUR : destinee_a
+    NOTIFICATION {
+        int id PK
+        int utilisateur_id FK
+        date date_creation
+        enum type "Validation congé, Refus congé, Nouveau planning, Demande changement"
+        string message
+        bool lue
+        int priority
+        string action_requise
+    }
+
+    PLANNING_RULE {
+        int id PK
+        string category "GARDE, CONSULTATION, BLOC, SUPERVISION"
+        string name
+        string description
+        bool isActive
+        int priority
+        json conditionJSON
+        json parameterJSON
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    OPERATING_ROOM_CONFIG {
+        int id PK
+        string name
+        string number
+        string sector
+        string colorCode
+        bool isActive
+        json supervisionRules
+        datetime createdAt
+        datetime updatedAt
+    }

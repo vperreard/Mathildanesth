@@ -25,6 +25,8 @@ export default function Header() {
                             <nav className="hidden md:flex space-x-8">
                                 <Link href="/" className="text-gray-600 hover:text-indigo-600 transition-colors font-medium">Accueil</Link>
                                 <Link href="/planning" className="text-gray-600 hover:text-indigo-600 transition-colors font-medium">Planning</Link>
+                                <Link href="/calendar" className="text-gray-600 hover:text-indigo-600 transition-colors font-medium">Calendrier</Link>
+                                <Link href="/leaves" className="text-gray-600 hover:text-indigo-600 transition-colors font-medium">Congés</Link>
                                 <Link href="/statistiques" className="text-gray-600 hover:text-indigo-600 transition-colors font-medium">Statistiques</Link>
                                 {isAdmin && (
                                     <Link href="/parametres" className="text-gray-600 hover:text-indigo-600 transition-colors font-medium">Paramètres</Link>
@@ -36,7 +38,7 @@ export default function Header() {
                                 <div className="h-8 w-20 bg-gray-200 rounded animate-pulse"></div>
                             ) : user ? (
                                 <div className="flex items-center space-x-4">
-                                    <span className="text-sm text-gray-700">Bonjour, {user.prenom}</span>
+                                    <span className="text-sm text-gray-700">Connecté : {user.prenom} {user.nom}</span>
                                     <Link href="/profil" className="text-sm text-gray-500 hover:text-indigo-600">Profil</Link>
                                     <button
                                         onClick={logout}

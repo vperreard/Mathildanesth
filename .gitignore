@@ -101,3 +101,6 @@ pnpm-lock.yaml
 
 # Seed data (contains sensitive information like initial passwords)
 prisma/seed_data/
+
+# Seed data (contains sensitive information like initial passwords)
+prisma/seed_data/

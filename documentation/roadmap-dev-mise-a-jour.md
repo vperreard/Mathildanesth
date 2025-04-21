@@ -98,6 +98,13 @@ Cette feuille de route détaille les étapes, jalons et livrables pour le dével
 - [ ] Tests de performance et d'optimisation
 - [ ] Annotations et commentaires contextuels
 
+#### Semaine 17-18: Module d'administration des règles de planification
+- [ ] Développement des modèles de données pour les règles configurables
+- [ ] Interface d'administration CRUD pour les règles
+- [ ] Intégration de l'éditeur visuel de règles
+- [ ] Vérification de cohérence et validation des règles
+
+
 #### Semaine 19-20: Système de Collaboration
 - [ ] Mise en place du système de messagerie contextuelle
 - [ ] Développement des fonctionnalités d'échange de gardes

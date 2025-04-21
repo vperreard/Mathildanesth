@@ -1,7 +1,7 @@
 nom,prenom,email,phoneNumber,status,specialtyNames,googleSheetName
 ADAM,"Jacques-Marie",jmadam@yahoo.fr,"0673478524",ACTIF,Orthopédie,"ADAM JM"
 RIFAI,Yasser,yasser.rifai@hotmail.fr,"+33603628817",ACTIF,Orthopédie,RIFAI
-BERNARD-CLARAN,Alan,alanbc@hotmail.fr,"0662228841",ACTIF,Orthopédie,"BERNARD CL"
+BERNARD-CUISINIER,Alan,alanbc@hotmail.fr,"0662228841",ACTIF,Orthopédie,"BERNARD CUISINIER"
 MALEKPOUR,Louis,louismalekp@hotmail.fr,"0633311793",ACTIF,Orthopédie,MALEKPOUR
 RAHALI,Said,said.rahali@gmail.com,"0669751169",ACTIF,Orthopédie,"RAHALI S"
 ABU AMARA,Saad,dr.abuamara@gmail.com,"0664042493",ACTIF,"Orthopédie Pédiatrique","ABU AMARA"
@@ -47,7 +47,7 @@ AZOUZI,Olfa,,,ACTIF,Ophtalmologie,AZOUZI
 MASSY,Jérôme,,,ACTIF,Ophtalmologie,MASSY
 HUBAULT,Denis,,,ACTIF,Ophtalmologie,HUBAULT
 SIAHMED,Kamal,,,ACTIF,Ophtalmologie,SIAHMED
-LECLEIRE-COLLET,Amélie,,,ACTIF,Ophtalmologie,"LECLERE COLLET"
+LECLEIRE-COLLET,Amélie,,,ACTIF,Ophtalmologie,"LECLEIRE COLLET"
 MENARD,Laure,,,ACTIF,Ophtalmologie,"MENARD L"
 ISCAR,Claire,,,ACTIF,Ophtalmologie,ISCAR
 LUCE,Alexandra,,,ACTIF,"Ophtalmologie;Ophtalmologie",LUCE

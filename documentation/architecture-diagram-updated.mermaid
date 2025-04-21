@@ -1,91 +1,72 @@
 graph TD
     subgraph "Frontend"
-        A[Application Web - Next.js] --> |Utilise| A1[Interface utilisateur - TailwindUI/HeadlessUI]
+        A[Application Web - React/Next.js] --> |Utilise| A1[Interface utilisateur - Tailwind UI]
         A --> |Intègre| A2[Visualisation - Chart.js/D3.js]
-        A --> |Utilise| A3[Gestion d'état - Zustand/Jotai]
-        A --> |Documentation| A4[Storybook]
+        A --> |État global| A3[Zustand/Jotai]
         B[Application Mobile - React Native] --> |Utilise| B1[UI Mobile - React Native Paper]
         B --> |Intègre| B2[Notifications Push]
-        B --> |Mode| B3[Mode hors-ligne]
+        B --> |Mode Hors-ligne| B3[Cache local]
     end
     
     subgraph "Backend"
-        C[API RESTful/GraphQL - Node.js/NestJS] --> |Gère| C1[Authentification - JWT/2FA]
+        C[API RESTful - Next.js API Routes] --> |Gère| C1[Authentification - JWT]
         C --> |Implémente| C2[Logique métier]
-        C --> |Exécute| C3[Moteur d'algorithmes]
-        C --> |Intègre| C4[API externes]
-        
-        C3 --> C3a[Générateur de planning]
-        C3 --> C3b[Moteur de règles]
-        C3 --> C3c[Optimisateur]
-        C3 --> C3d[Module d'apprentissage]
+        C --> |Exécute| C3[Algorithme de planning]
+        C --> |Intègre| C4[API Google Sheets]
+        C3 --> |Utilise| C5[Moteur de règles dynamiques]
+        C5 --> |Charge| C6[Règles de planification]
     end
     
     subgraph "Base de données"
-        D[PostgreSQL + TimescaleDB] --> |Stocke| D1[Utilisateurs]
-        D --> |Stocke| D2[Plannings]
+        D[PostgreSQL] --> |Stocke| D1[Utilisateurs]
+        D --> |Stocke| D2[Plannings/Affectations]
         D --> |Stocke| D3[Congés]
         D --> |Stocke| D4[Statistiques]
-        D --> |ORM| D5[Prisma]
+        D --> |Stocke| D5[Règles de planification]
+        D --> |Stocke| D6[Configuration des salles]
         E[Redis] --> |Cache| E1[Données fréquentes]
         E --> |Gère| E2[Sessions]
-        E --> |Queue| E3[Tâches asynchrones]
     end
     
     subgraph "Déploiement"
-        F[Docker + Docker Compose] --> |Containerise| F1[Services]
+        F[Docker] --> |Containerise| F1[Application Web]
+        F --> |Containerise| F2[API Backend]
+        F --> |Containerise| F3[Base de données]
         G[Cloud - AWS/GCP/Azure] --> |Héberge| G1[Serveurs de production]
-        G --> |Stocke| G2[Sauvegardes et archives]
-        H[CI/CD - GitHub Actions] --> |Automatise| H1[Tests et déploiement]
-        I[Monitoring] --> |Surveille| I1[Performance]
-        I --> |Alerte| I2[Incidents]
-    end
-    
-    subgraph "Sécurité et Qualité"
-        J[Audit et Logging] --> |Enregistre| J1[Actions utilisateurs]
-        J --> |Trace| J2[Modifications]
-        K[Tests automatisés] --> K1[Tests unitaires - Jest]
-        K --> K2[Tests E2E - Cypress/Playwright]
-        K --> K3[Tests d'intégration]
-        L[Analyse de code] --> L1[ESLint/TypeScript]
-        L --> L2[SonarQube]
+        H[CI/CD - GitHub Actions] --> |Automatise| H1[Déploiement]
+        H --> |Exécute| H2[Tests automatisés]
     end
     
     subgraph "Intégrations externes"
-        M[Google Sheets API] --> |Importe| M1[Disponibilités chirurgiens]
-        N[Import Excel] --> |Importe| N1[Planning IADE]
-        O[Future intégration] --> |Connecte| O1[HM bloc/Planif]
-        P[Export] --> P1[PDF/Excel]
-        P --> P2[API externe]
+        I[Google Sheets API] --> |Importe| I1[Disponibilités chirurgiens]
+        J[Import Excel] --> |Importe| J1[Planning IADE]
+        K[Future intégration] --> |Connecte| K1[HM bloc/Planif]
     end
     
-    %% Connexions principales
-    A <--> |API Calls| C
-    B <--> |API Calls| C
-    C <--> |Persiste| D
-    C <--> |Cache| E
-    C <--> |Intègre| M & N & O
-    C --> |Génère| P
+    %% Connexions entre composants %%
+    A <--> |Communique via| C
+    B <--> |Communique via| C
+    C <--> |Interroge| D
+    C <--> |Utilise| E
+    C <--> |Intègre| I
+    C <--> |Intègre| J
+    C <--> |Intègre future| K
     
-    %% Connexions secondaires
-    F -.-> A & B & C & D & E
-    H -.-> F
-    I -.-> A & C
-    J -.-> C
-    K -.-> C
-    L -.-> A & B & C
+    %% Flux de données pour les règles dynamiques %%
+    D5 --> C5
+    D6 --> C3
     
-    %% Styles
-    classDef frontend fill:#e6f7ff,stroke:#1890ff,stroke-width:2px;
-    classDef backend fill:#f6ffed,stroke:#52c41a,stroke-width:2px;
-    classDef database fill:#fff2e8,stroke:#fa8c16,stroke-width:2px;
-    classDef deployment fill:#f9f0ff,stroke:#722ed1,stroke-width:2px;
-    classDef security fill:#fff0f6,stroke:#eb2f96,stroke-width:2px;
-    classDef integration fill:#f0f5ff,stroke:#2f54eb,stroke-width:2px;
+    %% Style des composants %%
+    classDef frontend fill:#f9f9ff,stroke:#6666cc,stroke-width:2px;
+    classDef backend fill:#e6f3ff,stroke:#3399ff,stroke-width:2px;
+    classDef database fill:#fff0f5,stroke:#cc6699,stroke-width:2px;
+    classDef deployment fill:#f0fff0,stroke:#66cc66,stroke-width:2px;
+    classDef integration fill:#fffbe6,stroke:#cccc00,stroke-width:2px;
+    classDef rules fill:#ffe6e6,stroke:#cc0000,stroke-width:2px;
     
-    class A,A1,A2,A3,A4,B,B1,B2,B3 frontend;
-    class C,C1,C2,C3,C3a,C3b,C3c,C3d,C4 backend;
-    class D,D1,D2,D3,D4,D5,E,E1,E2,E3 database;
-    class F,F1,G,G1,G2,H,H1,I,I1,I2 deployment;
-    class J,J1,J2,K,K1,K2,K3,L,L1,L2 security;
-    class M,M1,N,N1,O,O1,P,P1,P2 integration;
+    class A,A1,A2,A3,B,B1,B2,B3 frontend;
+    class C,C1,C2,C3,C4,C5,C6 backend;
+    class D,D1,D2,D3,D4,D5,D6,E,E1,E2 database;
+    class F,F1,F2,F3,G,G1,H,H1,H2 deployment;
+    class I,I1,J,J1,K,K1 integration;
+    class C5,C6,D5,D6 rules;

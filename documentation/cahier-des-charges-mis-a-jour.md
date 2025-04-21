@@ -372,6 +372,33 @@ L'application sera développée selon une architecture moderne en trois couches 
 - API pour intégration avec autres systèmes hospitaliers
 - Rapports automatisés et tableaux de bord
 
+## 4.10 Gestion des règles de planification
+
+### 4.10.1 Interface d'administration des règles
+- Interface dédiée pour CRUD des règles de planification
+- Catégorisation des règles (gardes, consultations, bloc, supervision)
+- Système de vérification des contradictions entre règles
+- Historique des modifications des règles
+
+### 4.10.2 Types de règles configurables
+- **Règles temporelles**: Espacement entre affectations, nombre maximum par période
+- **Règles d'équité**: Distribution équitable selon divers critères
+- **Règles de supervision**: Qui peut superviser quelles salles et combien
+- **Règles de contraintes géographiques**: Configuration des secteurs et salles
+- **Règles de priorité**: En cas de conflit entre différentes contraintes
+
+### 4.10.3 Éditeur visuel de règles
+- Interface intuitive type "Drag and Drop" ou formulaire guidé
+- Possibilité de tester les règles sur des données historiques
+- Prévisualisation de l'impact des règles sur les plannings existants
+- Alertes sur les conflits potentiels avec d'autres règles
+
+### 4.10.4 Import/Export des règles
+- Sauvegarde et restauration de jeux de règles complets
+- Migration des règles entre environnements
+- Modèles prédéfinis pour accélérer la configuration initiale
+
+
 ## 5. Interfaces utilisateur
 
 ### 5.1 Application web

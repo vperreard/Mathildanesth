@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../node_modules/.prisma/client"
@@ -14,138 +8,328 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Nouveaux rôles/niveaux d'accès
-enum Role {
-  ADMIN_TOTAL // Peut tout faire
-  ADMIN_PARTIEL // Peut gérer utilisateurs/planning mais pas la configuration avancée ? (à définir)
-  USER // Utilisateur standard (MAR/IADE)
-}
-
-// Statut des utilisateurs/chirurgiens
-enum UserStatus {
-  ACTIF
-  INACTIF
-}
-
-// Rôles professionnels
-enum ProfessionalRole {
-  MAR
-  IADE
-  SECRETAIRE
-  // Ajouter d'autres rôles si nécessaire
-}
-
-// <<< Nouveaux Enums pour le pattern de travail >>>
-enum WorkPatternType {
-  FULL_TIME
-  ALTERNATING_WEEKS // Semaines paires/impaires
-  ALTERNATING_MONTHS // Mois pairs/impairs
-  SPECIFIC_DAYS // Jours spécifiques (peut varier selon semaine paire/impaire)
-}
-
-enum WeekType {
-  EVEN // Paire
-  ODD  // Impaire
-  ALL  // Toutes
-}
-
-// Modèle renommé et mis à jour
 model User {
-  id               Int              @id @default(autoincrement())
-  nom              String
-  prenom           String
-  login            String           @unique // Ajout du login unique
-  email            String           @unique
-  alias            String?          // <<< Ajout du champ alias/surnom (optionnel)
-  phoneNumber      String? // Ajout du numéro de téléphone (optionnel)
-  password         String // Stockera le hash du mot de passe
-  role             Role // Utilisation du nouvel enum Role
-  professionalRole ProfessionalRole // Rôle professionnel
-
-  // Nouveaux champs pour le profil utilisateur
-  tempsPartiel            Boolean   @default(false)
-  pourcentageTempsPartiel Float? // Optionnel, pertinent si tempsPartiel est true
-  // joursTravailles         String? // <<< Ancien champ, commenté pour l'instant
-  dateEntree              DateTime? // Optionnel
-  dateSortie              DateTime? // Optionnel
-  actif                   Boolean   @default(true) // Pour la désactivation
-
-  // <<< Nouveaux champs pour le pattern de travail >>>
-  workPattern             WorkPatternType @default(FULL_TIME)
-  // workOnWeekType          WeekType? // Plus nécessaire avec les champs spécifiques ci-dessous
-  // workOnMonthType         WeekType? // Conservé pour ALTERNATING_MONTHS
-  workOnMonthType         WeekType? 
-  // Suppression des booléens individuels
-  // workMonday              Boolean @default(true)
-  // workTuesday             Boolean @default(true)
-  // workWednesday           Boolean @default(true)
-  // workThursday            Boolean @default(true)
-  // workFriday              Boolean @default(true)
-  // workSaturday            Boolean @default(false)
-  // workSunday              Boolean @default(false)
-
-  // Nouveaux champs pour les jours spécifiques par type de semaine
-  joursTravaillesSemainePaire Json @default("[]") // Stocker comme un tableau JSON
-  joursTravaillesSemaineImpaire Json @default("[]") // Stocker comme un tableau JSON
-
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relation avec les logs de connexion
-  loginLogs LoginLog[]
-
-  // Relation optionnelle vers le profil chirurgien
-  surgeonProfile Surgeon? // Un utilisateur peut être lié à 0 ou 1 profil chirurgien
-
-  // Indicateur pour forcer le changement de mot de passe
-  mustChangePassword Boolean @default(true)
+  id                            Int              @id @default(autoincrement())
+  nom                           String
+  prenom                        String
+  login                         String           @unique
+  email                         String           @unique
+  password                      String
+  role                          Role
+  professionalRole              ProfessionalRole
+  tempsPartiel                  Boolean          @default(false)
+  pourcentageTempsPartiel       Float?
+  dateEntree                    DateTime?
+  dateSortie                    DateTime?
+  actif                         Boolean          @default(true)
+  createdAt                     DateTime         @default(now())
+  updatedAt                     DateTime         @updatedAt
+  mustChangePassword            Boolean          @default(true)
+  phoneNumber                   String?
+  alias                         String?
+  workOnMonthType               WeekType?
+  workPattern                   WorkPatternType  @default(FULL_TIME)
+  joursTravaillesSemaineImpaire Json             @default("[]")
+  joursTravaillesSemainePaire   Json             @default("[]")
+  loginLogs                     LoginLog[]
+  createdRules                  Rule[]           @relation("CreatedRules")
+  updatedRules                  Rule[]           @relation("UpdatedRules")
+  surgeonProfile                Surgeon?
+  leaves                        Leave[]          // Relation inverse pour les congés
+  duties                        Duty[]           // Relation inverse pour les gardes
+  onCalls                       OnCall[]         // Relation inverse pour les astreintes
+  assignments                   Assignment[]     // Relation inverse pour les affectations
+  approvedLeaves                Leave[]          @relation("ApprovedLeaves") // Relation inverse pour les congés approuvés par cet utilisateur
 }
 
-// Nouveau modèle pour gérer la liste des spécialités
 model Specialty {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique // Nom unique pour chaque spécialité
-  isPediatric Boolean @default(false) // Nouveau champ pour indiquer si la spécialité est pédiatrique
-
-  // Relation Many-to-Many avec Surgeon
-  surgeons Surgeon[]
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  isPediatric Boolean   @default(false)
+  surgeons    Surgeon[] @relation("SpecialtyToSurgeon")
+  assignments Assignment[] // Relation inverse pour les affectations
 }
 
-// Nouveau modèle pour les Chirurgiens
 model Surgeon {
-  id          Int          @id @default(autoincrement())
-  nom         String
-  prenom      String
-  email       String?      @unique
-  phoneNumber String?
-  googleSheetName String?  // <<< Ajout du champ pour la correspondance Google Sheet
-  status      UserStatus   @default(ACTIF) // Utilisation de l'enum UserStatus
-  userId      Int?         @unique // Lien vers l'utilisateur (optionnel)
-  user        User?        @relation(fields: [userId], references: [id])
-  specialties   Specialty[] // Décommenté
-  preferences SurgeonPreference[]
+  id              Int                 @id @default(autoincrement())
+  nom             String
+  prenom          String
+  email           String?             @unique
+  phoneNumber     String?
+  status          UserStatus          @default(ACTIF)
+  userId          Int?                @unique
+  googleSheetName String?
+  preferences     SurgeonPreference[]
+  user            User?               @relation(fields: [userId], references: [id])
+  specialties     Specialty[]         @relation("SpecialtyToSurgeon")
 
   @@map("surgeons")
 }
 
-// Renommé en SurgeonPreference pour éliminer la référence circulaire
 model SurgeonPreference {
   id        Int     @id @default(autoincrement())
-  name      String // Nom de la préférence (exemple)
-  value     String // Valeur de la préférence (exemple)
+  name      String
+  value     String
   surgeonId Int
   surgeon   Surgeon @relation(fields: [surgeonId], references: [id])
 
   @@map("preferences")
 }
 
-// Nouveau modèle pour enregistrer les connexions
 model LoginLog {
   id        Int      @id @default(autoincrement())
   timestamp DateTime @default(now())
-  userId    Int // Clé étrangère vers l'utilisateur
+  userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId]) // Ajouter un index sur userId pour la performance
+  @@index([userId])
+}
+
+model PlanningRule {
+  id            Int      @id @default(autoincrement())
+  category      String
+  name          String
+  description   String?
+  isActive      Boolean  @default(true)
+  priority      Int      @default(1)
+  conditionJSON Json
+  parameterJSON Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model OperatingRoomConfig {
+  id               Int      @id @default(autoincrement())
+  name             String
+  number           String
+  sector           String
+  colorCode        String?
+  isActive         Boolean  @default(true)
+  supervisionRules Json
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Rule {
+  id            String         @id @default(uuid())
+  name          String
+  description   String?
+  type          RuleType
+  priority      RulePriority   @default(MEDIUM)
+  isActive      Boolean        @default(false)
+  validFrom     DateTime
+  validTo       DateTime?
+  configuration Json
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  createdBy     Int
+  updatedBy     Int?
+  createdByUser User           @relation("CreatedRules", fields: [createdBy], references: [id])
+  updatedByUser User?          @relation("UpdatedRules", fields: [updatedBy], references: [id])
+  conflicts     RuleConflict[] @relation("RuleToConflict")
+}
+
+model RuleConflict {
+  id                String       @id @default(uuid())
+  description       String
+  severity          RuleSeverity @default(MEDIUM)
+  detectedAt        DateTime     @default(now())
+  resolvedAt        DateTime?
+  resolution        String?
+  resolutionDetails String?
+  rules             Rule[]       @relation("RuleToConflict")
+}
+
+model Location {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  sector   String?   // Ex: Bloc opératoire, Consultations, etc.
+  isActive Boolean   @default(true)
+  duties   Duty[]    // Relation avec les gardes
+  onCalls  OnCall[]  // Relation avec les astreintes
+  assignments Assignment[] // Relation avec les affectations
+}
+
+model LeaveTypeSetting {
+  id        String   @id @default(cuid())
+  code      String   @unique // Code unique interne (ex: ANNUAL, SICK, MATERNITY)
+  label     String   // Libellé affiché à l'utilisateur (ex: "Congé annuel")
+  description String?  // Description optionnelle
+
+  // Champ JSON pour stocker les règles spécifiques
+  // Exemple: { "countingMethod": "WEEKDAYS_ONLY", "applicableToRoles": ["DOCTOR"], "minNoticeDays": 14 }
+  rules     Json?
+
+  isActive         Boolean  @default(true) // Peut être désactivé sans le supprimer
+  isUserSelectable Boolean  @default(true) // Peut être sélectionné par l'utilisateur dans le formulaire
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("leave_type_settings")
+}
+
+model Leave {
+  id        String    @id @default(cuid())
+  userId    Int       // Doit être Int pour correspondre à User.id
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  startDate DateTime // Date de début (stockée en UTC)
+  endDate   DateTime // Date de fin (stockée en UTC)
+
+  // Nouveau champ pour le code du type de congé (lien vers LeaveTypeSetting.code)
+  typeCode  String
+  // Ancien champ - à conserver temporairement pour la migration
+  type      LeaveType
+
+  status    LeaveStatus
+  reason    String?
+  comment   String?   // Commentaire admin lors de l'approbation/rejet
+
+  requestDate   DateTime @default(now()) // Date de la demande
+  approvalDate  DateTime? // Date de l'approbation/rejet
+  approvedById  Int?      // Doit être Int? pour correspondre à User.id (et optionnel)
+  approvedBy    User?     @relation("ApprovedLeaves", fields: [approvedById], references: [id])
+
+  // Nombre de jours décomptés (sera recalculé en fonction des règles de typeCode)
+  countedDays   Float // Utiliser Float pour les demi-journées éventuelles
+
+  calculationDetails Json? // Stocker les détails du calcul si nécessaire
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relation vers les conflits (si modélisé)
+  // conflicts   LeaveConflict[]
+
+  @@index([userId])
+  @@index([startDate, endDate])
+  @@index([typeCode]) // Ajouter un index sur le nouveau champ
+  @@map("leaves")
+}
+
+model Duty {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date       DateTime  // Date de la garde (souvent une journée entière)
+  locationId Int?      // Lieu de la garde (optionnel)
+  location   Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([date])
+  @@index([locationId])
+}
+
+model OnCall {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startDate  DateTime
+  endDate    DateTime
+  locationId Int?      // Lieu de l'astreinte (optionnel)
+  location   Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([locationId])
+}
+
+model Assignment {
+  id          Int        @id @default(autoincrement())
+  userId      Int
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime   // Date de l'affectation
+  locationId  Int        // Lieu d'affectation
+  location    Location   @relation(fields: [locationId], references: [id], onDelete: Restrict) // Affectation doit avoir un lieu
+  specialtyId Int?       // Spécialité concernée (optionnel)
+  specialty   Specialty? @relation(fields: [specialtyId], references: [id], onDelete: SetNull)
+  description String?    // Détails de l'affectation
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([date])
+  @@index([locationId])
+  @@index([specialtyId])
+}
+
+enum Role {
+  ADMIN_TOTAL
+  ADMIN_PARTIEL
+  USER
+}
+
+enum UserStatus {
+  ACTIF
+  INACTIF
+}
+
+enum ProfessionalRole {
+  MAR
+  IADE
+  SECRETAIRE
+}
+
+enum WorkPatternType {
+  FULL_TIME
+  ALTERNATING_WEEKS
+  ALTERNATING_MONTHS
+  SPECIFIC_DAYS
+}
+
+enum WeekType {
+  EVEN
+  ODD
+  ALL
+}
+
+enum RuleType {
+  LEAVE
+  DUTY
+  SUPERVISION
+  ASSIGNMENT
+  ON_CALL
+}
+
+enum RulePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RuleSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum RotationStrategy {
+  ROUND_ROBIN
+  LEAST_RECENTLY_ASSIGNED
+  BALANCED_LOAD
+}
+
+enum LeaveType {
+  ANNUAL
+  RECOVERY
+  TRAINING
+  SICK
+  MATERNITY
+  SPECIAL
+  UNPAID
+  OTHER
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
 }

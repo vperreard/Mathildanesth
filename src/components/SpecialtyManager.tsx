@@ -14,6 +14,16 @@ type SpecialtyWithSurgeons = Specialty & {
 // Type for form data (subset of Specialty)
 type SpecialtyFormData = Pick<Specialty, 'name' | 'isPediatric'>;
 
+// Définition d'un type pour les chirurgiens
+type Surgeon = {
+    id: number;
+    nom: string;
+    prenom: string;
+    specialty1Id?: number;
+    specialty2Id?: number;
+    specialties?: { id: number; name: string }[];
+};
+
 export default function SpecialtyManager() {
     const [specialties, setSpecialties] = useState<SpecialtyWithSurgeons[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -24,6 +34,9 @@ export default function SpecialtyManager() {
     const [formData, setFormData] = useState<SpecialtyFormData>({ name: '', isPediatric: false });
     const [formError, setFormError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+    // Ajout d'un état pour stocker la liste des chirurgiens
+    const [surgeons, setSurgeons] = useState<Surgeon[]>([]);
 
     // Fetch specialties function
     const fetchSpecialties = useCallback(async () => {
@@ -45,6 +58,19 @@ export default function SpecialtyManager() {
     useEffect(() => {
         fetchSpecialties();
     }, [fetchSpecialties]);
+
+    // Fetch surgeons function
+    useEffect(() => {
+        const fetchSurgeons = async () => {
+            try {
+                const response = await axios.get<Surgeon[]>('/api/surgeons');
+                setSurgeons(response.data);
+            } catch (err: any) {
+                console.error('Fetch surgeons error:', err);
+            }
+        };
+        fetchSurgeons();
+    }, []);
 
     // Handle form input changes
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,11 +220,28 @@ export default function SpecialtyManager() {
                                         }
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {(spec.surgeons && spec.surgeons.length > 0) ? (
-                                            spec.surgeons.map(s => `${s.prenom} ${s.nom}`).join(', ')
-                                        ) : (
-                                            <span className="text-gray-400 italic">Aucun</span>
-                                        )}
+                                        {(() => {
+                                            console.log("SpecialtyManager - specialtyId:", spec.id, "| surgeons:", surgeons);
+
+                                            // Nouvelle logique qui vérifie d'abord si le chirurgien a un tableau de spécialités
+                                            const linkedSurgeons = surgeons.filter(surgeon => {
+                                                // Si le chirurgien a un tableau specialties, on vérifie s'il contient la spécialité en cours
+                                                if (surgeon.specialties && Array.isArray(surgeon.specialties)) {
+                                                    return surgeon.specialties.some(s => s.id === spec.id);
+                                                }
+                                                // Sinon, on retombe sur l'ancienne logique avec specialty1Id et specialty2Id
+                                                return (surgeon.specialty1Id != null && surgeon.specialty1Id === spec.id) ||
+                                                    (surgeon.specialty2Id != null && surgeon.specialty2Id === spec.id);
+                                            });
+
+                                            return linkedSurgeons.length > 0 ? (
+                                                linkedSurgeons.map(surgeon => (
+                                                    <div key={surgeon.id}>{surgeon.nom} {surgeon.prenom}</div>
+                                                ))
+                                            ) : (
+                                                <span className="text-gray-400 italic">Aucun</span>
+                                            );
+                                        })()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                                         <button

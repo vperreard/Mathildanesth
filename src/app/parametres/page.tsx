@@ -56,19 +56,17 @@ function SettingsPageContent() {
                         </div>
                     </Link>
 
-                    {/* Placeholder pour une autre carte de paramètres */}
-                    {/*
-                     <Link href="/autre-parametre" className="block group">
+                    {/* Carte Panneau de configuration */}
+                    <Link href="/parametres/configuration" className="block group">
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl hover:border-indigo-200 transition-all duration-300 h-full flex flex-col">
-                           <div className="flex items-center space-x-4 mb-3">
-                                <SlidersHorizontal className="h-8 w-8 text-teal-600 group-hover:text-teal-700 transition-colors" />
-                                <h2 className="text-xl font-semibold text-gray-900 group-hover:text-teal-700 transition-colors">Paramètres Généraux</h2>
+                            <div className="flex items-center space-x-4 mb-3">
+                                <Settings className="h-8 w-8 text-indigo-600 group-hover:text-indigo-700 transition-colors" />
+                                <h2 className="text-xl font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">Panneau de Configuration</h2>
                             </div>
-                            <p className="text-gray-600 text-sm flex-grow">Configuration générale de l'application (ex: thèmes, notifications...)</p>
-                            <span className="mt-4 text-sm font-medium text-teal-600 group-hover:underline">Configurer →</span>
+                            <p className="text-gray-600 text-sm flex-grow">Gérer toutes les configurations (Types de congés, Règles de planning, etc.).</p>
+                            <span className="mt-4 text-sm font-medium text-indigo-600 group-hover:underline">Accéder →</span>
                         </div>
                     </Link>
-                    */}
 
                 </div>
             </motion.div>
