@@ -1,0 +1,221 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Modèles de données basés sur la documentation
+
+enum UserType {
+  MAR
+  IADE
+  Admin
+}
+
+enum AccessLevel {
+  AdminComplet
+  AdminPartiel
+  Utilisateur
+}
+
+enum AffectationType {
+  Garde
+  Astreinte
+  Consultation
+  BlocAnesthesie
+  BlocSupervision
+}
+
+enum HalfDay {
+  Matin
+  ApresMidi
+}
+
+enum AffectationStatus {
+  GenereAuto
+  Valide
+  ModifieManuel
+}
+
+enum LeaveType {
+  CA
+  Maladie
+  Formation
+  Recuperation
+}
+
+enum LeaveStatus {
+  Demande
+  Approuve
+  Refuse
+}
+
+enum NotificationType {
+  ValidationConge
+  RefusConge
+  NouveauPlanning
+  DemandeChangement
+}
+
+enum FrameType {
+  Bloc
+  Consultation
+  Garde
+}
+
+enum FrameConfiguration {
+  SemainePaire
+  SemaineImpaire
+}
+
+// Utilisateurs (MARs, IADEs, Admins)
+model User {
+  id                   Int         @id @default(autoincrement())
+  nom                  String
+  prenom               String
+  email                String      @unique
+  motDePasse           String
+  type                 UserType
+  niveauAcces          AccessLevel
+  configurationTravail Json // Temps plein/mi-temps, jours travaillés
+  droitsConges         Int
+  specialites          Json? // Liste des spécialités maîtrisées
+  dateCreation         DateTime    @default(now())
+
+  // Relations
+  affectations  Affectation[]
+  conges        Leave[]
+  compteur      Counter?
+  notifications Notification[]
+
+  @@map("utilisateurs")
+}
+
+// Chirurgiens
+model Surgeon {
+  id                Int     @id @default(autoincrement())
+  nom               String
+  prenom            String
+  specialites       Json // Liste des spécialités pratiquées
+  actif             Boolean @default(true)
+  reglesSpecifiques Json? // Règles particulières (pédiatrie, etc.)
+
+  // Relations
+  affectations Affectation[]
+
+  @@map("chirurgiens")
+}
+
+// Salles
+model Room {
+  id                Int    @id @default(autoincrement())
+  nom               String
+  numero            Int
+  type              String // "Chirurgie, Ophtalmo, Endoscopie, Césarienne"
+  secteur           String // "Hyperaseptique, 5-8, 9-12B, etc."
+  codeCouleur       String
+  reglesSupervision Json? // Règles spécifiques au secteur
+
+  // Relations
+  affectations Affectation[]
+
+  @@map("salles")
+}
+
+// Affectations (plannings)
+model Affectation {
+  id                      Int               @id @default(autoincrement())
+  date                    DateTime
+  demiJournee             HalfDay
+  type                    AffectationType
+  specialite              String // Spécialité pratiquée
+  statut                  AffectationStatus
+  situationExceptionnelle Boolean           @default(false)
+
+  // Relations
+  utilisateurId Int
+  utilisateur   User     @relation(fields: [utilisateurId], references: [id])
+  salleId       Int?
+  salle         Room?    @relation(fields: [salleId], references: [id])
+  chirurgienId  Int?
+  chirurgien    Surgeon? @relation(fields: [chirurgienId], references: [id])
+  trameId       Int?
+  trame         Frame?   @relation(fields: [trameId], references: [id])
+
+  @@map("affectations")
+}
+
+// Congés et absences
+model Leave {
+  id          Int         @id @default(autoincrement())
+  dateDebut   DateTime
+  dateFin     DateTime
+  type        LeaveType
+  statut      LeaveStatus
+  commentaire String?
+  decompte    Boolean     @default(true) // Oui/Non selon règles
+
+  // Relations
+  utilisateurId Int
+  utilisateur   User @relation(fields: [utilisateurId], references: [id])
+
+  @@map("conges")
+}
+
+// Compteurs
+model Counter {
+  id                    Int   @id @default(autoincrement())
+  annee                 Int
+  congesPris            Int   @default(0)
+  congesRestants        Int   @default(0)
+  heuresSupplementaires Int   @default(0)
+  statsSpecialites      Json? // Nombre d'affectations par spécialité
+  statsGardes           Json? // Statistiques gardes/astreintes/consultations
+
+  // Relations
+  utilisateurId Int  @unique
+  utilisateur   User @relation(fields: [utilisateurId], references: [id])
+
+  @@map("compteurs")
+}
+
+// Trames (templates pour planning)
+model Frame {
+  id                Int                 @id @default(autoincrement())
+  nom               String
+  type              FrameType
+  configuration     FrameConfiguration?
+  dateDebutValidite DateTime
+  dateFinValidite   DateTime?
+  details           Json // Configuration complète structurée
+
+  // Relations
+  affectations Affectation[]
+
+  @@map("trames")
+}
+
+// Notifications
+model Notification {
+  id           Int              @id @default(autoincrement())
+  dateCreation DateTime         @default(now())
+  type         NotificationType
+  message      String
+  lue          Boolean          @default(false)
+
+  // Relations
+  utilisateurId Int
+  utilisateur   User @relation(fields: [utilisateurId], references: [id])
+
+  @@map("notifications")
+}
