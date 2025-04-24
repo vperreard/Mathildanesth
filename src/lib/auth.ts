@@ -1,5 +1,12 @@
 import * as jose from 'jose';
+import type { NextAuthOptions } from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
+const prisma = new PrismaClient();
+
+// Configuration JWT existante
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
@@ -14,6 +21,87 @@ interface TokenPayload {
     role: string; // Ou utilisez l'enum Prisma.Role si importé ici
     // Ajoutez d'autres données si nécessaire
 }
+
+// Fonction simple pour vérifier le mot de passe
+async function comparePasswords(plainPassword: string, hashedPassword: string): Promise<boolean> {
+    try {
+        // Si bcrypt est utilisé, sinon utiliser votre logique de comparaison
+        return await bcrypt.compare(plainPassword, hashedPassword);
+    } catch (error) {
+        console.error("Erreur lors de la comparaison des mots de passe:", error);
+        return false;
+    }
+}
+
+// Configuration NextAuth
+export const authOptions: NextAuthOptions = {
+    session: {
+        strategy: 'jwt',
+        maxAge: 24 * 60 * 60, // 24 heures
+    },
+    providers: [
+        CredentialsProvider({
+            name: 'Credentials',
+            credentials: {
+                login: { label: "Login", type: "text" },
+                password: { label: "Mot de passe", type: "password" }
+            },
+            async authorize(credentials) {
+                if (!credentials?.login || !credentials?.password) {
+                    return null;
+                }
+
+                try {
+                    const user = await prisma.user.findUnique({
+                        where: { login: credentials.login }
+                    });
+
+                    if (!user || !user.password) {
+                        return null;
+                    }
+
+                    const isPasswordValid = await comparePasswords(credentials.password, user.password);
+
+                    if (!isPasswordValid) {
+                        return null;
+                    }
+
+                    return {
+                        id: user.id.toString(),
+                        name: `${user.prenom} ${user.nom}`,
+                        email: user.email,
+                        // @ts-ignore - ajouter des champs personnalisés
+                        role: user.role
+                    };
+                } catch (error) {
+                    console.error("Erreur d'authentification:", error);
+                    return null;
+                }
+            }
+        })
+    ],
+    callbacks: {
+        async jwt({ token, user }: any) {
+            if (user) {
+                token.userId = parseInt(user.id);
+                token.role = user.role;
+            }
+            return token;
+        },
+        async session({ session, token }: any) {
+            if (session.user && token) {
+                session.user.id = token.userId;
+                session.user.role = token.role;
+            }
+            return session;
+        }
+    },
+    pages: {
+        signIn: '/login',
+        error: '/login',
+    },
+    secret: JWT_SECRET,
+};
 
 /**
  * Crée un token JWT signé.

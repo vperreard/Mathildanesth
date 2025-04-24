@@ -3,7 +3,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Specialty } from '@prisma/client';
 import axios from 'axios';
-import { PlusIcon, PencilIcon, TrashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'; // Using Heroicons for icons
+import { PlusIcon, PencilIcon, TrashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import {
+    Button,
+    Input,
+    Badge,
+    Table,
+    TableHeader,
+    TableBody,
+    TableRow,
+    TableHead,
+    TableCell,
+    Card,
+    CardContent
+} from '@/components/ui';
 
 // Type élargi pour inclure les chirurgiens optionnels
 // Prisma inclut les relations dans le type de base si elles sont fetchées
@@ -136,59 +149,61 @@ export default function SpecialtyManager() {
     };
 
     return (
-        <div className="bg-white shadow-md rounded-lg p-6">
+        <div>
             {/* Add/Edit Form Section */}
-            <form onSubmit={handleSubmit} className="mb-8 p-4 border border-gray-200 rounded-md bg-gray-50">
-                <h2 className="text-xl font-semibold mb-4 text-gray-700">
-                    {isEditing ? 'Modifier la Spécialité' : 'Ajouter une Spécialité'}
-                </h2>
-                {formError && <p className="text-red-500 text-sm mb-3">{formError}</p>}
-                <div className="flex flex-col md:flex-row md:items-end gap-4">
-                    <div className="flex-grow">
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
-                        <input
-                            type="text"
-                            id="name"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                            required
-                            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            placeholder="Ex: Orthopédie"
-                        />
-                    </div>
-                    <div className="flex items-center pt-4 md:pt-0 md:pb-1">
-                        <input
-                            type="checkbox"
-                            id="isPediatric"
-                            name="isPediatric"
-                            checked={formData.isPediatric}
-                            onChange={handleInputChange}
-                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                        />
-                        <label htmlFor="isPediatric" className="ml-2 block text-sm font-medium text-gray-700">Pédiatrique</label>
-                    </div>
-                    <div className="flex items-end space-x-2">
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                        >
-                            {isSubmitting ? 'En cours...' : (isEditing ? <CheckIcon className="h-5 w-5" /> : <PlusIcon className="h-5 w-5" />)}
-                            <span className="ml-2">{isEditing ? 'Enregistrer' : 'Ajouter'}</span>
-                        </button>
-                        {isEditing && (
-                            <button
-                                type="button"
-                                onClick={resetForm}
-                                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            >
-                                <XMarkIcon className="h-5 w-5 mr-1" /> Annuler
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </form>
+            <Card className="mb-8">
+                <CardContent className="pt-6">
+                    <h2 className="text-xl font-semibold mb-4 text-gray-700">
+                        {isEditing ? 'Modifier la Spécialité' : 'Ajouter une Spécialité'}
+                    </h2>
+                    {formError && <p className="text-red-500 text-sm mb-3">{formError}</p>}
+                    <form onSubmit={handleSubmit}>
+                        <div className="flex flex-col md:flex-row md:items-end gap-4">
+                            <div className="flex-grow">
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    label="Nom"
+                                    placeholder="Ex: Orthopédie"
+                                    error={formError && !formData.name.trim() ? "Le nom est requis" : undefined}
+                                />
+                            </div>
+                            <div className="flex items-center pt-4 md:pt-0 md:pb-1">
+                                <input
+                                    type="checkbox"
+                                    id="isPediatric"
+                                    name="isPediatric"
+                                    checked={formData.isPediatric}
+                                    onChange={handleInputChange}
+                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                />
+                                <label htmlFor="isPediatric" className="ml-2 block text-sm font-medium text-gray-700">Pédiatrique</label>
+                            </div>
+                            <div className="flex items-end space-x-2">
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    isLoading={isSubmitting}
+                                >
+                                    {!isSubmitting && (isEditing ? <CheckIcon className="h-5 w-5 mr-1" /> : <PlusIcon className="h-5 w-5 mr-1" />)}
+                                    {isEditing ? 'Enregistrer' : 'Ajouter'}
+                                </Button>
+                                {isEditing && (
+                                    <Button
+                                        type="button"
+                                        onClick={resetForm}
+                                        variant="secondary"
+                                    >
+                                        <XMarkIcon className="h-5 w-5 mr-1" /> Annuler
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
 
             {/* Display List Section */}
             <h2 className="text-xl font-semibold mb-4 text-gray-700">Liste des Spécialités</h2>
@@ -199,72 +214,55 @@ export default function SpecialtyManager() {
             ) : specialties.length === 0 ? (
                 <p className="text-gray-500">Aucune spécialité ajoutée pour le moment.</p>
             ) : (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pédiatrique</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chirurgiens Liés</th>
-                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {specialties.map((spec) => (
-                                <tr key={spec.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{spec.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {spec.isPediatric ?
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Oui</span> :
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Non</span>
-                                        }
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {(() => {
-                                            console.log("SpecialtyManager - specialtyId:", spec.id, "| surgeons:", surgeons);
-
-                                            // Nouvelle logique qui vérifie d'abord si le chirurgien a un tableau de spécialités
-                                            const linkedSurgeons = surgeons.filter(surgeon => {
-                                                // Si le chirurgien a un tableau specialties, on vérifie s'il contient la spécialité en cours
-                                                if (surgeon.specialties && Array.isArray(surgeon.specialties)) {
-                                                    return surgeon.specialties.some(s => s.id === spec.id);
-                                                }
-                                                // Sinon, on retombe sur l'ancienne logique avec specialty1Id et specialty2Id
-                                                return (surgeon.specialty1Id != null && surgeon.specialty1Id === spec.id) ||
-                                                    (surgeon.specialty2Id != null && surgeon.specialty2Id === spec.id);
-                                            });
-
-                                            return linkedSurgeons.length > 0 ? (
-                                                linkedSurgeons.map(surgeon => (
-                                                    <div key={surgeon.id}>{surgeon.nom} {surgeon.prenom}</div>
-                                                ))
-                                            ) : (
-                                                <span className="text-gray-400 italic">Aucun</span>
-                                            );
-                                        })()}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                        <button
-                                            onClick={() => handleEditClick(spec)}
-                                            disabled={isEditing === spec.id}
-                                            className="text-indigo-600 hover:text-indigo-900 disabled:text-gray-400 disabled:cursor-not-allowed p-1 rounded-md hover:bg-indigo-50 disabled:hover:bg-transparent"
-                                            title="Modifier"
+                <Table bordered hover striped>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Nom</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Chirurgiens</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {specialties.map(specialty => (
+                            <TableRow key={specialty.id}>
+                                <TableCell className="font-medium">{specialty.name}</TableCell>
+                                <TableCell>
+                                    <Badge variant={specialty.isPediatric ? "info" : "secondary"}>
+                                        {specialty.isPediatric ? 'Pédiatrique' : 'Adulte'}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    {specialty.surgeons && specialty.surgeons.length > 0 ? (
+                                        <span className="text-sm">
+                                            {specialty.surgeons.length} chirurgien{specialty.surgeons.length > 1 ? 's' : ''}
+                                        </span>
+                                    ) : (
+                                        <span className="text-gray-400 text-sm">Aucun</span>
+                                    )}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <div className="flex justify-end gap-2">
+                                        <Button
+                                            onClick={() => handleEditClick(specialty)}
+                                            variant="secondary"
+                                            size="sm"
                                         >
-                                            <PencilIcon className="h-5 w-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteClick(spec.id)}
-                                            className="text-red-600 hover:text-red-900 p-1 rounded-md hover:bg-red-50"
-                                            title="Supprimer"
+                                            <PencilIcon className="h-4 w-4 mr-1" /> Modifier
+                                        </Button>
+                                        <Button
+                                            onClick={() => handleDeleteClick(specialty.id)}
+                                            variant="danger"
+                                            size="sm"
                                         >
-                                            <TrashIcon className="h-5 w-5" />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                            <TrashIcon className="h-4 w-4 mr-1" /> Supprimer
+                                        </Button>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
             )}
         </div>
     );

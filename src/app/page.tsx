@@ -2,127 +2,282 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { Calendar, BarChart3, Settings, Users, Terminal, ClipboardList } from 'lucide-react';
+import AdminRequestsDashboard from '@/components/AdminRequestsDashboard';
+import { useAuth } from '@/context/AuthContext';
 
 export default function HomePage() {
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+    const [mounted, setMounted] = useState(false);
+    const { user, isLoading } = useAuth();
 
-            {/* Hero Section */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-                <div className="text-center">
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6"
-                    >
-                        Bienvenue sur Mathildanesth
-                    </motion.h1>
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                        className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto"
-                    >
-                        Votre solution complète pour la gestion des anesthésistes et du planning hospitalier
-                    </motion.p>
+    // Déterminer si l'utilisateur est un admin (total ou partiel)
+    const isAdmin = user && (user.role === 'ADMIN_TOTAL' || user.role === 'ADMIN_PARTIEL');
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const fadeIn = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+    };
+
+    const staggerContainer = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const cardHover = {
+        rest: { scale: 1 },
+        hover: { scale: 1.03, transition: { duration: 0.3 } }
+    };
+
+    const featureCards = [
+        {
+            title: "Planning",
+            description: "Organisez et visualisez le planning des anesthésistes",
+            icon: <Calendar className="w-6 h-6 text-white" />,
+            href: "/planning/hebdomadaire",
+            gradient: "from-primary-500 to-secondary-500",
+            color: "text-primary-600",
+            delay: 0.1
+        },
+        {
+            title: "Statistiques",
+            description: "Analysez les données et les tendances d'activité",
+            icon: <BarChart3 className="w-6 h-6 text-white" />,
+            href: "/statistiques",
+            gradient: "from-secondary-500 to-tertiary-500",
+            color: "text-secondary-600",
+            delay: 0.2
+        },
+        {
+            title: "Paramètres",
+            description: "Personnalisez les paramètres du système selon vos besoins",
+            icon: <Settings className="w-6 h-6 text-white" />,
+            href: "/parametres",
+            gradient: "from-tertiary-500 to-rose-500",
+            color: "text-tertiary-600",
+            delay: 0.3
+        },
+        {
+            title: "Utilisateurs",
+            description: "Gérez les utilisateurs et leurs permissions",
+            icon: <Users className="w-6 h-6 text-white" />,
+            href: "/utilisateurs",
+            gradient: "from-rose-500 to-orange-500",
+            color: "text-rose-600",
+            delay: 0.4
+        }
+    ];
+
+    const otherFeatures = [
+        {
+            title: "Diagnostic",
+            description: "Vérifiez le bon fonctionnement du système",
+            icon: <Terminal className="w-5 h-5" />,
+            href: "/diagnostic",
+            delay: 0.3
+        },
+        {
+            title: "Congés",
+            description: "Gérez les congés et les absences",
+            icon: <ClipboardList className="w-5 h-5" />,
+            href: "/leaves",
+            delay: 0.4
+        }
+    ];
+
+    if (!mounted) return null;
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50">
+            {/* Hero Section - Afficher uniquement si l'utilisateur n'est pas connecté */}
+            {!user && (
+                <div className="relative overflow-hidden">
+                    <div className="absolute inset-0 z-0 opacity-20">
+                        <div className="absolute top-0 -left-10 w-72 h-72 bg-primary-400 rounded-full mix-blend-multiply filter blur-2xl opacity-30 animate-blob"></div>
+                        <div className="absolute top-0 -right-10 w-72 h-72 bg-secondary-400 rounded-full mix-blend-multiply filter blur-2xl opacity-30 animate-blob animation-delay-2000"></div>
+                        <div className="absolute -bottom-10 left-20 w-72 h-72 bg-tertiary-400 rounded-full mix-blend-multiply filter blur-2xl opacity-30 animate-blob animation-delay-4000"></div>
+                    </div>
+
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 relative z-10">
+                        <div className="text-center max-w-3xl mx-auto">
+                            <motion.div
+                                initial="hidden"
+                                animate="visible"
+                                variants={fadeIn}
+                            >
+                                <h1 className="text-5xl md:text-6xl font-display font-bold bg-gradient-to-r from-primary-600 via-secondary-600 to-tertiary-600 bg-clip-text text-transparent mb-6">
+                                    Bienvenue sur Mathildanesth
+                                </h1>
+                                <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
+                                    Votre solution complète pour la gestion des anesthésistes et du planning hospitalier
+                                </p>
+                                <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
+                                    <Link href="/planning/hebdomadaire" className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-primary-500 to-secondary-600 text-white rounded-xl shadow-soft hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 font-medium">
+                                        Explorer le planning
+                                        <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                        </svg>
+                                    </Link>
+                                    <Link href="/login" className="inline-flex items-center justify-center px-6 py-3 border border-primary-200 bg-white text-primary-600 rounded-xl shadow-sm hover:shadow-md hover:border-primary-300 transition-all duration-300 transform hover:-translate-y-1 font-medium">
+                                        Connexion
+                                    </Link>
+                                </div>
+                            </motion.div>
+                        </div>
+                    </div>
                 </div>
+            )}
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Si l'utilisateur est connecté et n'a pas de section Hero, ajouter un espacement en haut */}
+                {user && <div className="py-8"></div>}
+
+                {/* Section Admin - Gestion des requêtes */}
+                {!isLoading && isAdmin && (
+                    <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        variants={fadeIn}
+                    >
+                        <AdminRequestsDashboard />
+                    </motion.div>
+                )}
 
                 {/* Features Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-16">
+                <div className={`${user ? 'py-8' : 'py-16'}`}>
                     <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-gray-100"
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: "-100px" }}
+                        variants={staggerContainer}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
                     >
-                        <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-4">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Planning</h3>
-                        <p className="text-gray-600">Organisez et visualisez le planning des anesthésistes</p>
-                        <a href="/planning" className="mt-4 inline-flex items-center text-purple-600 hover:text-purple-800 font-medium">
-                            Accéder
-                            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </a>
+                        {featureCards.map((card, idx) => (
+                            <motion.div
+                                key={idx}
+                                variants={fadeIn}
+                                custom={idx}
+                                whileHover="hover"
+                                initial="rest"
+                                animate="rest"
+                                className="group"
+                            >
+                                <motion.div
+                                    variants={cardHover}
+                                    className="h-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-soft p-6 border border-gray-100 flex flex-col"
+                                >
+                                    <div className={`w-12 h-12 bg-gradient-to-r ${card.gradient} rounded-xl flex items-center justify-center mb-5 shadow-sm group-hover:shadow-md transition-all duration-300`}>
+                                        {card.icon}
+                                    </div>
+                                    <h3 className={`text-lg font-semibold ${card.color} mb-3`}>{card.title}</h3>
+                                    <p className="text-gray-600 mb-5">{card.description}</p>
+                                    <div className="mt-auto">
+                                        <Link
+                                            href={card.href}
+                                            className={`inline-flex items-center ${card.color} hover:opacity-80 font-medium text-sm`}
+                                        >
+                                            Accéder
+                                            <svg className="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </Link>
+                                    </div>
+                                </motion.div>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </div>
+
+                {/* Other Features */}
+                <div className="py-16">
+                    <motion.div
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: "-100px" }}
+                        variants={fadeIn}
+                        className="text-center mb-12"
+                    >
+                        <h2 className="text-3xl font-display font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-4">
+                            Autres fonctionnalités
+                        </h2>
+                        <p className="text-gray-600 max-w-2xl mx-auto">
+                            Découvrez toutes les fonctionnalités disponibles pour optimiser la gestion de votre équipe
+                        </p>
                     </motion.div>
 
                     <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-gray-100"
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: "-100px" }}
+                        variants={staggerContainer}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto"
                     >
-                        <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg flex items-center justify-center mb-4">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Statistiques</h3>
-                        <p className="text-gray-600">Analysez les données et les tendances d'activité</p>
-                        <a href="/statistiques" className="mt-4 inline-flex items-center text-pink-600 hover:text-pink-800 font-medium">
-                            Accéder
-                            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </a>
-                    </motion.div>
-
-                    <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-gray-100"
-                    >
-                        <div className="w-12 h-12 bg-gradient-to-r from-rose-500 to-orange-500 rounded-lg flex items-center justify-center mb-4">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Paramètres</h3>
-                        <p className="text-gray-600">Personnalisez les paramètres du système selon vos besoins</p>
-                        <a href="/parametres" className="mt-4 inline-flex items-center text-rose-600 hover:text-rose-800 font-medium">
-                            Accéder
-                            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </a>
+                        {otherFeatures.map((feature, idx) => (
+                            <motion.div
+                                key={idx}
+                                variants={fadeIn}
+                                whileHover="hover"
+                                initial="rest"
+                                animate="rest"
+                            >
+                                <motion.div variants={cardHover}>
+                                    <Link
+                                        href={feature.href}
+                                        className="group flex items-start p-6 border border-gray-100 rounded-xl hover:bg-white hover:shadow-soft transition-all duration-300"
+                                    >
+                                        <div className="mr-4 mt-1 p-2 bg-primary-50 rounded-lg text-primary-600 group-hover:bg-primary-100 transition-colors duration-300">
+                                            {feature.icon}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-semibold text-gray-900 group-hover:text-primary-600 transition-colors duration-300 mb-2">
+                                                {feature.title}
+                                            </h3>
+                                            <p className="text-gray-600">
+                                                {feature.description}
+                                            </p>
+                                        </div>
+                                    </Link>
+                                </motion.div>
+                            </motion.div>
+                        ))}
                     </motion.div>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold mb-6">
-                        Autres fonctionnalités
-                    </h2>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
-                    <Link href="/utilisateurs" className="group p-6 border rounded-lg hover:bg-gray-100 transition-colors">
-                        <h2 className="mb-3 text-2xl font-semibold group-hover:text-blue-600">
-                            Gestion des utilisateurs
-                        </h2>
-                        <p className="text-gray-600">
-                            Créer, modifier et gérer les utilisateurs du système.
-                        </p>
-                    </Link>
-
-                    <Link href="/diagnostic" className="group p-6 border rounded-lg hover:bg-gray-100 transition-colors">
-                        <h2 className="mb-3 text-2xl font-semibold group-hover:text-blue-600">
-                            Diagnostic
-                        </h2>
-                        <p className="text-gray-600">
-                            Vérifier le bon fonctionnement du système et résoudre les problèmes.
-                        </p>
-                    </Link>
-                </div>
-            </div>
-
-            <div className="mt-8 text-center">
-                <p className="text-sm text-gray-500">
+            {/* Version Info */}
+            <div className="text-center pb-20">
+                <p className="text-sm text-gray-400">
                     Version 0.1.0 - Environnement: {process.env.NODE_ENV}
                 </p>
             </div>
+
+            {/* Add CSS for the blob animation */}
+            <style jsx global>{`
+                @keyframes blob {
+                    0% { transform: translate(0px, 0px) scale(1); }
+                    33% { transform: translate(30px, -30px) scale(1.1); }
+                    66% { transform: translate(-20px, 20px) scale(0.9); }
+                    100% { transform: translate(0px, 0px) scale(1); }
+                }
+                .animate-blob {
+                    animation: blob 10s infinite;
+                }
+                .animation-delay-2000 {
+                    animation-delay: 2s;
+                }
+                .animation-delay-4000 {
+                    animation-delay: 4s;
+                }
+            `}</style>
         </div>
     );
 }

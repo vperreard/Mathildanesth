@@ -1,0 +1,304 @@
+/* Styles généraux du calendrier */
+.calendar-container {
+    position: relative;
+    height: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --fc-border-color: rgba(229, 231, 235, 0.8);
+    /* gray-200 avec transparence */
+    --fc-page-bg-color: #fff;
+    --fc-neutral-bg-color: #f9fafb;
+    /* gray-50 */
+    --fc-list-event-hover-bg-color: #f3f4f6;
+    /* gray-100 */
+    --fc-today-bg-color: rgba(219, 234, 254, 0.3);
+    /* blue-100 avec transparence */
+    --fc-event-bg-color: #3b82f6;
+    /* blue-500 */
+    --fc-event-border-color: #3b82f6;
+    /* blue-500 */
+    --fc-event-text-color: #fff;
+    --fc-event-selected-overlay-color: rgba(0, 0, 0, 0.2);
+}
+
+/* En-têtes de jour */
+.calendar-day-header {
+    background-color: #f9fafb;
+    /* gray-50 */
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: capitalize;
+    padding: 8px 0 !important;
+    border-radius: 6px;
+}
+
+/* Cases de jour */
+.calendar-day-cell {
+    border-radius: 6px;
+    min-height: 120px;
+    transition: background-color 0.2s ease;
+}
+
+.calendar-day-cell:hover {
+    background-color: #f3f4f6;
+    /* gray-100 */
+}
+
+/* Section "toute la journée" */
+.calendar-all-day {
+    background-color: #f9fafb;
+    /* gray-50 */
+    border-bottom: 1px solid var(--fc-border-color);
+}
+
+/* Lien "plus d'événements" */
+.calendar-more-link {
+    background-color: #e5e7eb;
+    /* gray-200 */
+    color: #4b5563;
+    /* gray-600 */
+    font-size: 0.8rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    margin-top: 2px;
+    opacity: 0.9;
+    transition: all 0.2s ease;
+}
+
+.calendar-more-link:hover {
+    background-color: #d1d5db;
+    /* gray-300 */
+    opacity: 1;
+}
+
+/* Indicateur d'heure actuelle */
+.calendar-now-indicator {
+    border-color: #ef4444;
+    /* red-500 */
+    border-width: 2px;
+    z-index: 5;
+}
+
+/* Étiquettes d'heures dans la vue semaine/jour */
+.calendar-slot-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #6b7280;
+    /* gray-500 */
+}
+
+/* Lignes de temps dans la vue semaine/jour */
+.calendar-slot-lane {
+    background-color: #fcfcfc;
+}
+
+/* Styles pour les événements dans différentes vues */
+
+/* Événements dans la vue liste */
+.event-list-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin: 2px 0;
+    background-color: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.event-list-item:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.event-list-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.event-list-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Événements dans les vues grille (mois, semaine, jour) */
+.event-grid-item {
+    padding: 4px 6px;
+    margin: 2px 0;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.event-grid-item:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px) scale(1.01);
+    z-index: 10;
+}
+
+.event-grid-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Titre de l'événement */
+.event-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Nom de l'utilisateur */
+.event-user {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Icône de statut */
+.event-status-icon {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 0.9rem;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Styles spécifiques aux statuts */
+.event-approved {
+    border-left: 3px solid #10b981;
+    /* emerald-500 */
+}
+
+.event-pending {
+    border-left: 3px solid #f59e0b;
+    /* amber-500 */
+}
+
+.event-rejected {
+    border-left: 3px solid #ef4444;
+    /* red-500 */
+    opacity: 0.8;
+}
+
+.event-cancelled {
+    border-left: 3px solid #6b7280;
+    /* gray-500 */
+    opacity: 0.7;
+    text-decoration: line-through;
+}
+
+/* Overlay de chargement */
+.calendar-loading-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    backdrop-filter: blur(2px);
+}
+
+.calendar-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid rgba(99, 102, 241, 0.2);
+    /* indigo-500 avec transparence */
+    border-top-color: #6366f1;
+    /* indigo-500 */
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Amélioration des boutons du calendrier */
+.fc-button-primary {
+    background-color: #f3f4f6 !important;
+    /* gray-100 */
+    border-color: #e5e7eb !important;
+    /* gray-200 */
+    color: #4b5563 !important;
+    /* gray-600 */
+    font-weight: 500 !important;
+    text-transform: none !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.fc-button-primary:hover {
+    background-color: #e5e7eb !important;
+    /* gray-200 */
+    color: #1f2937 !important;
+    /* gray-800 */
+}
+
+.fc-button-primary:not(:disabled).fc-button-active,
+.fc-button-primary:not(:disabled):active {
+    background-color: #6366f1 !important;
+    /* indigo-500 */
+    border-color: #6366f1 !important;
+    /* indigo-500 */
+    color: white !important;
+}
+
+.fc-button-primary:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}
+
+/* Titre du calendrier */
+.fc-toolbar-title {
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    color: #111827 !important;
+    /* gray-900 */
+    text-transform: capitalize !important;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+    .calendar-day-cell {
+        min-height: 80px;
+    }
+
+    .event-title {
+        font-size: 0.75rem;
+    }
+
+    .event-user {
+        display: none;
+    }
+
+    .fc-toolbar-title {
+        font-size: 1rem !important;
+    }
+}

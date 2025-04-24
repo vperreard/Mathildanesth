@@ -1,15 +1,15 @@
-    services:
-      postgres:
-        image: postgres:15 # Utilise une image PostgreSQL récente
-        container_name: mathildanesth_postgres
-        environment:
-          POSTGRES_USER: mathildanesth_user
-          POSTGRES_PASSWORD: mathildanesth_password
-          POSTGRES_DB: mathildanesth_db
-        ports:
-          - "5432:5432" # Rend la base de données accessible sur le port 5432 de votre Mac
-        volumes:
-          - postgres_data:/var/lib/postgresql/data # Stocke les données pour qu'elles persistent
-
+services:
+  postgres:
+    image: postgres:14
+    container_name: mathildanesth_postgres
+    environment:
+      POSTGRES_USER: mathildanesth_user
+      POSTGRES_PASSWORD: mathildanesth_password
+      POSTGRES_DB: mathildanesth_db
+    ports:
+      - "5432:5432" # Rend la base de données accessible sur le port 5432 de votre Mac
     volumes:
-      postgres_data: # Définit le volume pour stocker les données
+      - postgres_data:/var/lib/postgresql/data # Stocke les données pour qu'elles persistent
+
+volumes:
+  postgres_data: # Définit le volume pour stocker les données

@@ -4,7 +4,14 @@ import { NextResponse } from 'next/server';
 let configStore = {
     defaultLeaveDuration: 10,
     maxOverlaps: 2,
-    notificationEmail: 'admin@example.com'
+    notificationEmail: 'admin@example.com',
+    header: {
+        showOverlappingRequests: true,
+        showUserDetails: true,
+        highlightOverlappingCount: 3,
+        groupRequestsByDate: false,
+        showWarningWhenOverlapping: true
+    }
 };
 
 // Gestion de la méthode GET

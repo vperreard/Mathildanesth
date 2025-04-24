@@ -1,63 +1,36 @@
-import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
-    const headersList = headers();
-
-    // Vérifier l'authentification directement dans la route
-    const authResult = await verifyAuthToken();
-
-    if (!authResult.authenticated) {
-        // L'utilisateur n'est pas authentifié
-        return NextResponse.json(
-            {
-                error: 'Non authentifié',
-                message: authResult.error || 'Session invalide ou expirée',
-                middlewareExecuted: false, // pour compatibilité avec le code antérieur
-                headers: Object.fromEntries(headersList.entries())
-            },
-            { status: 401 }
-        );
-    }
-
-    // Si l'utilisateur est authentifié, récupérer ses infos depuis la BD
+export async function GET(request: NextRequest) {
     try {
-        const user = await prisma.user.findUnique({
-            where: { id: authResult.user.id },
-            select: {
-                id: true,
-                nom: true,
-                prenom: true,
-                login: true,
-                email: true,
-                role: true,
-                professionalRole: true,
-                tempsPartiel: true,
-                pourcentageTempsPartiel: true,
-                dateEntree: true,
-                dateSortie: true,
-                actif: true,
-                createdAt: true,
-                updatedAt: true,
-            }
-        });
+        console.log("DEBUG /api/auth/me: JWT_SECRET =", process.env.JWT_SECRET);
+        const cookieStore = cookies();
+        const token = cookieStore.get('auth_token')?.value;
+        console.log("DEBUG /api/auth/me: token existe =", !!token);
 
-        if (!user) {
-            return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
+        // Utiliser notre système de JWT personnalisé
+        const authResult = await verifyAuthToken(request);
+        console.log("DEBUG /api/auth/me: résultat verifyAuthToken =", JSON.stringify(authResult));
+
+        if (authResult.authenticated) {
+            return NextResponse.json({
+                authenticated: true,
+                user: authResult.user
+            });
         }
 
-        return NextResponse.json({
-            ...user,
-            // Ajouter des champs diagnostiques pour suivre le fonctionnement
-            authMethod: 'direct-route-auth'
-        });
+        // Aucune authentification valide
+        return NextResponse.json(
+            { authenticated: false, error: 'Non authentifié' },
+            { status: 401 }
+        );
     } catch (error) {
-        console.error("Erreur GET /api/auth/me:", error);
-        // Supprimer le cookie en cas d'erreur grave
-        cookies().delete('auth_token');
-        return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+        console.error('Erreur lors de la vérification de l\'authentification:', error);
+        return NextResponse.json(
+            { authenticated: false, error: 'Erreur serveur' },
+            { status: 500 }
+        );
     }
 } 

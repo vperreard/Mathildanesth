@@ -12,6 +12,9 @@ import {
     CalendarViewType
 } from '../types/event';
 
+// Styles personnalisés pour le calendrier
+import './calendar.css';
+
 interface EventRenderProps {
     event: {
         id: string;
@@ -76,7 +79,8 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
             ...event
         },
         color: getEventColor(event.type),
-        textColor: getEventTextColor(event.type)
+        textColor: getEventTextColor(event.type),
+        borderColor: getEventBorderColor(event.type, event.type === CalendarEventType.LEAVE ? event.status : undefined)
     }));
 
     // Gestionnaire de clic sur un événement
@@ -135,21 +139,30 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
         const { event, view } = info;
         const eventType = event.extendedProps.type;
         const status = event.extendedProps.status;
+        const userName = event.extendedProps.user ?
+            `${event.extendedProps.user.prenom} ${event.extendedProps.user.nom}` : '';
 
         // Classes CSS en fonction du type d'événement et du statut
-        let className = 'py-1 px-2 rounded';
         let statusClass = '';
+        let statusIcon = '';
 
         if (status) {
             switch (status) {
                 case 'APPROVED':
-                    statusClass = 'border-l-4 border-green-500';
+                    statusClass = 'event-approved';
+                    statusIcon = '✓';
                     break;
                 case 'PENDING':
-                    statusClass = 'border-l-4 border-yellow-500';
+                    statusClass = 'event-pending';
+                    statusIcon = '⧖';
                     break;
                 case 'REJECTED':
-                    statusClass = 'border-l-4 border-red-500';
+                    statusClass = 'event-rejected';
+                    statusIcon = '✕';
+                    break;
+                case 'CANCELLED':
+                    statusClass = 'event-cancelled';
+                    statusIcon = '⊘';
                     break;
                 default:
                     statusClass = '';
@@ -159,29 +172,35 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
         // Contenu différent selon la vue
         if (view.type === 'listWeek') {
             return (
-                <div className={`${className} ${statusClass} flex items-center gap-2`}>
-                    <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: getEventColor(eventType) }}
-                    ></div>
-                    <span>{event.title}</span>
+                <div className={`event-list-item ${statusClass}`}>
+                    <div className="event-list-indicator" style={{ backgroundColor: getEventColor(eventType) }}></div>
+                    <div className="event-list-content">
+                        <span className="event-title">{event.title}</span>
+                        {userName && <span className="event-user">{userName}</span>}
+                    </div>
+                    {statusIcon && <span className="event-status-icon">{statusIcon}</span>}
                 </div>
             );
         }
 
+        // Pour les vues grid
         return (
-            <div className={`${className} ${statusClass}`}>
-                <div className="text-xs font-semibold">{event.title}</div>
+            <div className={`event-grid-item ${statusClass}`}>
+                <div className="event-grid-content">
+                    <div className="event-title">{event.title}</div>
+                    {userName && <div className="event-user">{userName}</div>}
+                </div>
+                {statusIcon && <span className="event-status-icon">{statusIcon}</span>}
             </div>
         );
     }, []);
 
     return (
-        <div className="relative h-full">
+        <div className="calendar-container">
             {/* Indicateur de chargement */}
             {loading && (
-                <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                <div className="calendar-loading-overlay">
+                    <div className="calendar-loading-spinner"></div>
                 </div>
             )}
 
@@ -220,6 +239,22 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
                 datesSet={handleDatesSet}
                 eventContent={renderEvent}
                 viewDidMount={handleViewChange}
+                dayHeaderClassNames="calendar-day-header"
+                dayHeaderFormat={{ weekday: 'short', day: 'numeric' }}
+                allDayClassNames="calendar-all-day"
+                dayCellClassNames="calendar-day-cell"
+                moreLinkClassNames="calendar-more-link"
+                nowIndicatorClassNames="calendar-now-indicator"
+                eventClassNames="calendar-event"
+                slotLabelClassNames="calendar-slot-label"
+                slotLaneClassNames="calendar-slot-lane"
+                buttonText={{
+                    today: "Aujourd'hui",
+                    month: 'Mois',
+                    week: 'Semaine',
+                    day: 'Jour',
+                    list: 'Liste'
+                }}
             />
         </div>
     );
@@ -229,19 +264,37 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
 function getEventColor(eventType: string): string {
     switch (eventType) {
         case CalendarEventType.LEAVE:
-            return '#3B82F6'; // blue-500
+            return 'rgba(59, 130, 246, 0.8)'; // blue-500 avec transparence
         case CalendarEventType.DUTY:
-            return '#10B981'; // emerald-500
+            return 'rgba(16, 185, 129, 0.8)'; // emerald-500 avec transparence
         case CalendarEventType.ON_CALL:
-            return '#6366F1'; // indigo-500
+            return 'rgba(99, 102, 241, 0.8)'; // indigo-500 avec transparence
         case CalendarEventType.ASSIGNMENT:
-            return '#EC4899'; // pink-500
+            return 'rgba(236, 72, 153, 0.8)'; // pink-500 avec transparence
         default:
-            return '#9CA3AF'; // gray-400
+            return 'rgba(156, 163, 175, 0.8)'; // gray-400 avec transparence
     }
 }
 
-// Fonction utilitaire pour obtenir la couleur du texte d'un événement en fonction de son type
+// Fonction utilitaire pour obtenir la couleur du texte d'un événement
 function getEventTextColor(eventType: string): string {
-    return '#FFFFFF'; // white
+    return '#FFFFFF'; // white pour tous les types
+}
+
+// Fonction utilitaire pour obtenir la couleur de bordure des événements (indicateur de statut)
+function getEventBorderColor(eventType: string, status?: string): string {
+    if (!status) return getEventColor(eventType);
+
+    switch (status) {
+        case 'APPROVED':
+            return '#10B981'; // emerald-500
+        case 'PENDING':
+            return '#F59E0B'; // amber-500
+        case 'REJECTED':
+            return '#EF4444'; // red-500
+        case 'CANCELLED':
+            return '#6B7280'; // gray-500
+        default:
+            return getEventColor(eventType);
+    }
 } 

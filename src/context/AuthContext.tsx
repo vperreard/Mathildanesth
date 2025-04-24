@@ -4,6 +4,45 @@ import React, { createContext, useState, useContext, useEffect, ReactNode, useCa
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { User } from '@/types/user'; // Importer le type User
+import Cookies from 'js-cookie';
+
+// Configuration de l'intercepteur Axios pour ajouter le token d'authentification
+// à toutes les requêtes sortantes
+axios.interceptors.request.use(
+    config => {
+        // Ne pas ajouter d'en-têtes pour les requêtes vers d'autres domaines (CORS)
+        if (config.url && (config.url.startsWith('/api/') || config.url.startsWith('api/'))) {
+            // Le token est déjà envoyé via les cookies sécurisés par le navigateur
+            // Ajoutons des entêtes supplémentaires pour le debug
+            config.headers['X-Requested-With'] = 'XMLHttpRequest';
+
+            // Ajoutons un timestamp pour éviter les problèmes de cache
+            const timestamp = new Date().getTime();
+            config.url += config.url.includes('?') ? `&_t=${timestamp}` : `?_t=${timestamp}`;
+        }
+        return config;
+    },
+    error => {
+        return Promise.reject(error);
+    }
+);
+
+// Intercepteur pour gérer les erreurs d'authentification globalement
+axios.interceptors.response.use(
+    response => response,
+    error => {
+        // Si nous recevons une erreur 401, l'utilisateur n'est pas authentifié
+        if (error.response && error.response.status === 401) {
+            console.log("Intercepteur Axios: Erreur 401 détectée");
+            // Rediriger vers la page de connexion seulement si nous ne sommes pas déjà sur la page de connexion
+            const currentPath = window.location.pathname;
+            if (currentPath !== '/auth/login' && currentPath !== '/login') {
+                window.location.href = '/auth/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
 
 interface AuthContextType {
     user: User | null;
@@ -27,16 +66,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const fetchCurrentUser = useCallback(async () => {
         setIsLoading(true);
         try {
-            // Appeler l'API pour obtenir l'utilisateur basé sur le cookie
-            const response = await axios.get<User>('/api/auth/me');
-            setUser(response.data);
-        } catch (error) {
-            // Si erreur (pas de cookie, token invalide...), l'utilisateur n'est pas connecté
-            setUser(null);
-            // Ne pas logger l'erreur 401 comme une vraie erreur d'application
-            if (axios.isAxiosError(error) && error.response?.status !== 401) {
-                console.error("Erreur lors de la récupération de l'utilisateur:", error);
+            console.log("AuthContext: Tentative de récupération de l'utilisateur courant");
+            const response = await axios.get('/api/auth/me');
+            console.log("AuthContext: Réponse de l'API:", response.data);
+
+            // Vérifier si la réponse contient la structure attendue
+            if (response.data.authenticated && response.data.user) {
+                // Extraire l'utilisateur de la réponse qui a la structure {authenticated: true, user: {...}}
+                console.log("AuthContext: Utilisateur récupéré avec succès", response.data.user);
+                setUser(response.data.user);
+            } else if (response.data.id) {
+                // Si l'API renvoie directement l'utilisateur sans structure englobante
+                console.log("AuthContext: Utilisateur récupéré avec succès (format direct)", response.data);
+                setUser(response.data);
+            } else {
+                console.log("AuthContext: Format de réponse inattendu", response.data);
+                setUser(null);
             }
+        } catch (error) {
+            console.error("AuthContext: Erreur lors de la récupération de l'utilisateur", error);
+            setUser(null);
         } finally {
             setIsLoading(false);
         }
@@ -78,7 +127,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
             await axios.post('/api/auth/logout');
             setUser(null);
-            router.push('/login'); // Rediriger vers la page de login après déconnexion
+            router.push('/auth/login'); // Rediriger vers la page de login après déconnexion
         } catch (error) {
             console.error("Erreur lors de la déconnexion:", error);
             // Gérer l'erreur si nécessaire

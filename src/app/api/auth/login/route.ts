@@ -7,6 +7,9 @@ import { cookies } from 'next/headers';
 export async function POST(request: Request) {
     try {
         const { login, password } = await request.json();
+        console.log("DEBUG: DATABASE_URL =", process.env.DATABASE_URL);
+        console.log("DEBUG: JWT_SECRET =", process.env.JWT_SECRET);
+        console.log("DEBUG: login API called for login =", login);
 
         if (!login || !password) {
             return NextResponse.json({ error: 'Login et mot de passe requis' }, { status: 400 });
@@ -17,12 +20,14 @@ export async function POST(request: Request) {
         });
 
         if (!user) {
+            console.log(`DEBUG: Utilisateur non trouvé pour login: ${login}`);
             return NextResponse.json({ error: 'Login ou mot de passe incorrect' }, { status: 401 });
         }
 
         const passwordMatch = await bcrypt.compare(password, user.password);
 
         if (!passwordMatch) {
+            console.log(`DEBUG: Mot de passe incorrect pour login: ${login}`);
             return NextResponse.json({ error: 'Login ou mot de passe incorrect' }, { status: 401 });
         }
 
@@ -42,17 +47,31 @@ export async function POST(request: Request) {
         // --- FIN ENREGISTREMENT LOG ---
 
         // Créer le token JWT
-        const token = await createToken({ userId: user.id, login: user.login, role: user.role });
+        let token;
+        try {
+            console.log("DEBUG: Création du token JWT avec payload:", { userId: user.id, login: user.login, role: user.role });
+            token = await createToken({ userId: user.id, login: user.login, role: user.role });
+            console.log("DEBUG: Token créé avec succès");
+        } catch (e) {
+            console.error("DEBUG: Erreur lors de la création du token JWT:", e);
+            return NextResponse.json({ error: 'Erreur interne du serveur lors de la création du token' }, { status: 500 });
+        }
 
         // Définir le cookie HTTPOnly
-        const cookieStore = cookies();
-        cookieStore.set('auth_token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 60 * 60 * 24 * 7, // 7 jours
-            path: '/',
-            sameSite: 'lax',
-        });
+        try {
+            const cookieStore = cookies();
+            cookieStore.set('auth_token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 60 * 60 * 24 * 7, // 7 jours
+                path: '/',
+                sameSite: 'lax',
+            });
+            console.log("DEBUG: Cookie auth_token défini avec succès");
+        } catch (cookieError) {
+            console.error("DEBUG: Erreur lors de la définition du cookie:", cookieError);
+            return NextResponse.json({ error: 'Erreur lors de la définition du cookie d\'authentification' }, { status: 500 });
+        }
 
         // Renvoyer les informations utilisateur (sans le mot de passe, mais avec le flag)
         const { password: _, ...userWithoutPassword } = user; // Inclut mustChangePassword par défaut

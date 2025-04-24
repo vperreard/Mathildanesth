@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { BaseCalendar } from './BaseCalendar';
@@ -6,19 +6,30 @@ import { CalendarFiltersComponent } from './CalendarFilters';
 import { CalendarLegend } from './CalendarLegend';
 import { CalendarExport } from './CalendarExport';
 import { useCalendar } from '../hooks/useCalendar';
-import { AnyCalendarEvent, CalendarEventType, CalendarViewType } from '../types/event';
+import { AnyCalendarEvent, CalendarEventType, CalendarViewType, LeaveStatusType, LeaveEvent } from '../types/event';
 import { User } from '../../../types/user';
+import { LeaveDetailsModal } from './LeaveDetailsModal';
+import { useAuth } from '@/context/AuthContext';
+import { UserRole } from '@prisma/client';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 interface CollectiveCalendarProps {
     onEventClick?: (eventId: string, eventType: string) => void;
+    title?: string;
+    description?: string;
 }
 
 export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
     onEventClick,
+    title = 'Calendrier collectif',
+    description = 'Vue d\'ensemble des congés et absences de l\'équipe'
 }) => {
     // Gérer l'événement sélectionné et le modal
-    const [selectedEvent, setSelectedEvent] = useState<AnyCalendarEvent | null>(null);
+    const [selectedEvent, setSelectedEvent] = useState<LeaveEvent | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const { user } = useAuth();
+    const isAdmin = user?.role === UserRole.ADMIN;
 
     // Filtres par défaut pour le calendrier collectif (focus sur les congés)
     const defaultFilters = {
@@ -42,37 +53,32 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
         navigateToToday
     } = useCalendar(defaultFilters);
 
+    // Filtrer les congés refusés (REJECTED) et garder les autres types d'événements
+    const filteredEvents = events.filter(event => {
+        // Si c'est un congé avec statut REJECTED, on ne l'affiche pas
+        if (event.type === CalendarEventType.LEAVE && event.status === 'REJECTED') {
+            return false;
+        }
+        // Sinon on garde l'événement
+        return true;
+    });
+
     // Gestionnaire de clic sur un événement
     const handleEventClick = useCallback((eventId: string, eventType: string) => {
-        // Trouver l'événement sélectionné
-        const event = events.find(e => e.id === eventId);
-
-        // Si l'événement est trouvé, ouvrir le modal
-        if (event) {
-            // Extraire le vrai ID (suppression du préfixe)
-            const realId = eventId.includes('-') ? eventId.split('-')[1] : eventId;
-
-            // Créer les données d'événement
-            const eventData = {
-                ...event,
-                id: realId,
-                user: {
-                    id: event.userId,
-                    firstName: event.user?.firstName || '',
-                    lastName: event.user?.lastName || '',
-                } as User,
-                userId: event.userId,
-                ...event
-            };
-
-            setSelectedEvent(eventData);
-            setIsModalOpen(true);
-
-            if (onEventClick) {
-                onEventClick(realId, eventType);
+        if (eventType === CalendarEventType.LEAVE) {
+            const leaveEvent = events.find(event => event.id === eventId) as LeaveEvent;
+            if (leaveEvent) {
+                setSelectedEvent(leaveEvent);
+                setIsModalOpen(true);
             }
         }
-    }, [events, onEventClick]);
+        // Pour les autres types d'événements, on peut ajouter une logique spécifique
+    }, [events]);
+
+    const handleCloseModal = useCallback(() => {
+        setIsModalOpen(false);
+        setSelectedEvent(null);
+    }, []);
 
     // Formatage du titre de la plage de dates
     const getDateRangeTitle = () => {
@@ -96,13 +102,60 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
         right: '' // Géré par nos propres boutons
     };
 
+    // Formatage de la plage de dates actuelle pour l'affichage
+    const formatDateRange = useCallback(() => {
+        const { start, end } = currentRange;
+        const options = { locale: fr };
+
+        switch (view) {
+            case 'dayGridMonth':
+                return format(start, 'MMMM yyyy', options);
+            case 'timeGridWeek':
+                return `${format(start, 'dd MMMM', options)} - ${format(end, 'dd MMMM yyyy', options)}`;
+            case 'timeGridDay':
+                return format(start, 'EEEE dd MMMM yyyy', options);
+            default:
+                return format(start, 'MMMM yyyy', options);
+        }
+    }, [currentRange, view]);
+
+    // Fonction pour approuver un congé
+    const handleApproveLeave = useCallback(async (leaveId: string) => {
+        if (!isAdmin || !leaveId) return;
+
+        try {
+            await axios.put(`/api/leaves/${leaveId}/approve`);
+            toast.success('Congé approuvé avec succès');
+            updateFilters({}); // Rafraîchir le calendrier
+            handleCloseModal();
+        } catch (error) {
+            console.error('Erreur lors de l\'approbation du congé:', error);
+            toast.error('Erreur lors de l\'approbation du congé');
+        }
+    }, [isAdmin, updateFilters, handleCloseModal]);
+
+    // Fonction pour refuser un congé
+    const handleRejectLeave = useCallback(async (leaveId: string) => {
+        if (!isAdmin || !leaveId) return;
+
+        try {
+            await axios.put(`/api/leaves/${leaveId}/reject`);
+            toast.success('Congé refusé avec succès');
+            updateFilters({}); // Rafraîchir le calendrier
+            handleCloseModal();
+        } catch (error) {
+            console.error('Erreur lors du refus du congé:', error);
+            toast.error('Erreur lors du refus du congé');
+        }
+    }, [isAdmin, updateFilters, handleCloseModal]);
+
     return (
         <div className="space-y-4">
             {/* En-tête avec titre et contrôles */}
             <div className="bg-white shadow rounded-lg p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <h2 className="text-xl font-semibold text-gray-900 mb-2 sm:mb-0">
-                        Calendrier des congés
+                        {title}
                     </h2>
 
                     <div className="flex flex-wrap gap-2 justify-end">
@@ -211,7 +264,7 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
                 {/* Calendrier (3/4 de la largeur) */}
                 <div className="lg:col-span-3">
                     <BaseCalendar
-                        events={events}
+                        events={filteredEvents}
                         view={view}
                         settings={settings}
                         loading={loading}
@@ -238,87 +291,15 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
             </div>
 
             {/* Modal de détail d'événement */}
-            {isModalOpen && selectedEvent && (
-                <div className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-y-auto">
-                        <div className="p-4 border-b border-gray-200">
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-lg font-medium text-gray-900">{selectedEvent.title}</h3>
-                                <button
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="text-gray-400 hover:text-gray-500"
-                                >
-                                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="p-4">
-                            <div className="space-y-3">
-                                <div>
-                                    <span className="text-sm font-medium text-gray-500">Utilisateur:</span>
-                                    <span className="ml-2">{selectedEvent.user?.firstName} {selectedEvent.user?.lastName}</span>
-                                </div>
-
-                                <div>
-                                    <span className="text-sm font-medium text-gray-500">Type:</span>
-                                    <span className="ml-2">
-                                        {selectedEvent.type === CalendarEventType.LEAVE && (
-                                            <span>{selectedEvent['leaveType'] || 'Congé'}</span>
-                                        )}
-                                    </span>
-                                </div>
-
-                                <div>
-                                    <span className="text-sm font-medium text-gray-500">Date:</span>
-                                    <span className="ml-2">
-                                        Du {format(new Date(selectedEvent.start), 'dd/MM/yyyy')} au {format(new Date(selectedEvent.end), 'dd/MM/yyyy')}
-                                    </span>
-                                </div>
-
-                                {selectedEvent.type === CalendarEventType.LEAVE && selectedEvent['status'] && (
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">Statut:</span>
-                                        <span className={`ml-2 px-2 py-1 rounded-full text-xs 
-                      ${selectedEvent['status'] === 'APPROVED' ? 'bg-green-100 text-green-800' : ''}
-                      ${selectedEvent['status'] === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : ''}
-                      ${selectedEvent['status'] === 'REJECTED' ? 'bg-red-100 text-red-800' : ''}
-                    `}>
-                                            {selectedEvent['status'] === 'APPROVED' && 'Approuvé'}
-                                            {selectedEvent['status'] === 'PENDING' && 'En attente'}
-                                            {selectedEvent['status'] === 'REJECTED' && 'Refusé'}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {selectedEvent.type === CalendarEventType.LEAVE && selectedEvent['countedDays'] !== undefined && (
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">Jours comptabilisés:</span>
-                                        <span className="ml-2">{selectedEvent['countedDays']}</span>
-                                    </div>
-                                )}
-
-                                {selectedEvent.description && (
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">Description:</span>
-                                        <p className="mt-1 text-sm text-gray-600">{selectedEvent.description}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="p-4 border-t border-gray-200 flex justify-end">
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                Fermer
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            {selectedEvent && (
+                <LeaveDetailsModal
+                    isOpen={isModalOpen}
+                    onClose={handleCloseModal}
+                    leave={selectedEvent}
+                    showApprovalButtons={isAdmin && selectedEvent.status === 'PENDING'}
+                    onApprove={() => handleApproveLeave(selectedEvent.id)}
+                    onReject={() => handleRejectLeave(selectedEvent.id)}
+                />
             )}
         </div>
     );

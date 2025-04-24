@@ -3,11 +3,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { LeaveTypeSetting } from '@prisma/client'; // Importer le type généré par Prisma
 import LeaveTypeFormModal from '@/components/admin/LeaveTypeFormModal'; // Importer le modal
+import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 
-// Importer des composants UI si vous utilisez une librairie (ex: Shadcn/ui)
-// import { Button } from "@/components/ui/button";
-// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-// import { PlusCircle } from "lucide-react";
+// Importer les composants UI
+import {
+    Button,
+    Table,
+    TableHeader,
+    TableBody,
+    TableRow,
+    TableHead,
+    TableCell,
+    Badge,
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent
+} from '@/components/ui';
 
 // Utiliser Partial pour plus de flexibilité
 interface LeaveTypeSettingData extends Partial<LeaveTypeSetting> {
@@ -98,79 +110,88 @@ export default function ManageLeaveTypesPage() {
     // --- Rendu ---
     return (
         <div className="container mx-auto p-4 md:p-6">
-            <h1 className="text-2xl font-bold mb-4">Gestion des Types de Congés</h1>
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <CardTitle>Gestion des Types de Congés</CardTitle>
+                        <Button
+                            onClick={handleAddNew}
+                            size="sm"
+                        >
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Ajouter un type
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {isLoading && <p className="text-center py-4 text-gray-500">Chargement des types de congés...</p>}
+                    {error && <p className="text-center py-4 text-red-600 bg-red-50 rounded-md">{error}</p>}
 
-            <div className="mb-4 flex justify-end">
-                {/* Utiliser Button de Shadcn/ui si disponible */}
-                <button
-                    onClick={handleAddNew}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-                >
-                    {/* <PlusCircle className="mr-2 h-4 w-4" /> */}
-                    Ajouter un type
-                </button>
-            </div>
-
-            {isLoading && <p>Chargement des types de congés...</p>}
-            {error && <p className="text-red-500">Erreur: {error}</p>}
-
-            {!isLoading && !error && (
-                <div className="overflow-x-auto shadow rounded-lg">
-                    {/* Utiliser Table de Shadcn/ui si disponible */}
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Libellé</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                                <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actif</th>
-                                <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Sélectionnable</th>
-                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {leaveTypes.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Aucun type de congé trouvé.</td>
-                                </tr>
-                            ) : (
-                                leaveTypes.map((type) => (
-                                    <tr key={type.id}>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{type.code}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{type.label}</td>
-                                        <td className="px-6 py-4 whitespace-normal text-sm text-gray-500 max-w-xs truncate">{type.description}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${type.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                {type.isActive ? 'Oui' : 'Non'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${type.isUserSelectable ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                                {type.isUserSelectable ? 'Oui' : 'Non'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                            {/* Boutons Modifier/Supprimer - Utiliser Button de Shadcn/ui si disponible */}
-                                            <button
-                                                onClick={() => handleEdit(type)}
-                                                className="text-indigo-600 hover:text-indigo-900"
-                                            >
-                                                Modifier
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(type.id, type.label)}
-                                                className="text-red-600 hover:text-red-900"
-                                            >
-                                                Supprimer
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                    {!isLoading && !error && (
+                        <Table hover striped bordered>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Code</TableHead>
+                                    <TableHead>Libellé</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead className="text-center">Actif</TableHead>
+                                    <TableHead className="text-center">Sélectionnable</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {leaveTypes.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center">Aucun type de congé trouvé.</TableCell>
+                                    </TableRow>
+                                ) : (
+                                    leaveTypes.map((type) => (
+                                        <TableRow key={type.id}>
+                                            <TableCell className="font-medium">{type.code}</TableCell>
+                                            <TableCell>{type.label}</TableCell>
+                                            <TableCell className="max-w-xs truncate">{type.description}</TableCell>
+                                            <TableCell className="text-center">
+                                                <Badge
+                                                    variant={type.isActive ? "success" : "danger"}
+                                                >
+                                                    {type.isActive ? 'Oui' : 'Non'}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <Badge
+                                                    variant={type.isUserSelectable ? "success" : "gray"}
+                                                >
+                                                    {type.isUserSelectable ? 'Oui' : 'Non'}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <Button
+                                                        onClick={() => handleEdit(type)}
+                                                        variant="secondary"
+                                                        size="sm"
+                                                    >
+                                                        <Edit className="h-4 w-4 mr-1" />
+                                                        Modifier
+                                                    </Button>
+                                                    <Button
+                                                        onClick={() => handleDelete(type.id!, type.label!)}
+                                                        variant="danger"
+                                                        size="sm"
+                                                    >
+                                                        <Trash2 className="h-4 w-4 mr-1" />
+                                                        Supprimer
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
 
             {/* --- Modal/Formulaire pour Ajout/Modification --- */}
             {showFormModal && (
@@ -181,7 +202,6 @@ export default function ManageLeaveTypesPage() {
                     initialData={editingLeaveType}
                 />
             )}
-
         </div>
     );
 } 

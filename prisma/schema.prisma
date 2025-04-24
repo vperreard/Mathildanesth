@@ -259,6 +259,17 @@ model Assignment {
   @@index([specialtyId])
 }
 
+model OperatingSector {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  colorCode   String   @default("#000000")
+  isActive    Boolean  @default(true)
+  description String?
+  rules       Json     @default("{\"maxRoomsPerSupervisor\": 2}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 enum Role {
   ADMIN_TOTAL
   ADMIN_PARTIEL

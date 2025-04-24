@@ -108,6 +108,34 @@ async function main() {
     let usersCreated = 0;
     let usersUpdated = 0;
 
+    // 2.b Ajout manuel d'un super admin (admin/admin)
+    const adminLogin = 'admin';
+    const adminPassword = 'admin';
+    const adminEmail = 'admin@example.local';
+    const adminExists = await prisma.user.findUnique({ where: { login: adminLogin } });
+    if (!adminExists) {
+        const hashedAdminPassword = await bcrypt.hash(adminPassword, saltRounds);
+        await prisma.user.create({
+            data: {
+                nom: 'Super',
+                prenom: 'Admin',
+                login: adminLogin,
+                email: adminEmail,
+                password: hashedAdminPassword,
+                role: 'ADMIN_TOTAL',
+                professionalRole: 'MAR',
+                actif: true,
+                mustChangePassword: false,
+                tempsPartiel: false,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            }
+        });
+        console.log('Super admin (admin/admin) créé.');
+    } else {
+        console.log('Super admin déjà existant, non recréé.');
+    }
+
     for (const userData of usersData) {
         if (!userData.login || !userData.password || !userData.role || !userData.professionalRole) {
             console.warn(`WARN: Skipping user row due to missing essential data (login, password, role, professionalRole):`, userData);

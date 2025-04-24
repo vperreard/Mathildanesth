@@ -6,6 +6,8 @@ import { CollectiveCalendar } from '@/modules/calendar/components/CollectiveCale
 import { PersonalCalendar } from '@/modules/calendar/components/PersonalCalendar'; // Utiliser alias
 import { AllocationCalendar } from '@/modules/calendar/components/AllocationCalendar'; // Utiliser alias
 import { useAuth } from '@/context/AuthContext';
+import { motion } from 'framer-motion';
+import AdminRequestsBanner from '@/components/AdminRequestsBanner';
 
 // Type pour les onglets du calendrier
 type CalendarTab = 'collective' | 'personal' | 'allocation';
@@ -14,7 +16,7 @@ type CalendarTab = 'collective' | 'personal' | 'allocation';
 export default function CalendarPage() {
     const router = useRouter();
     const searchParams = useSearchParams(); // Hook pour lire les paramètres URL
-    const { user } = useAuth();
+    const { user, isLoading } = useAuth();
 
     // Déterminer si l'utilisateur est un admin (total ou partiel)
     const isAdmin = user && (user.role === 'ADMIN_TOTAL' || user.role === 'ADMIN_PARTIEL');
@@ -24,110 +26,152 @@ export default function CalendarPage() {
 
     // Lire l'onglet depuis l'URL au chargement et lors des changements
     useEffect(() => {
-        const tabParam = searchParams.get('tab') as CalendarTab;
+        const tabParam = searchParams?.get('tab') as CalendarTab | null;
         if (tabParam && ['collective', 'personal', 'allocation'].includes(tabParam)) {
             setActiveTab(tabParam);
-        } else {
-            // Si l'onglet n'est pas valide ou absent, définir sur 'personal' par défaut
-            // et mettre à jour l'URL sans recharger la page
-            setActiveTab('personal');
-            router.replace('/calendar?tab=personal');
         }
-    }, [searchParams, router]);
+    }, [searchParams]);
 
-    // Changer d'onglet (met à jour l'URL)
-    const handleTabChange = (newTab: CalendarTab) => {
-        setActiveTab(newTab);
-        // Met à jour l'URL sans navigation complète
-        router.push(`/calendar?tab=${newTab}`);
+    // Gérer le changement d'onglet
+    const handleTabChange = (tab: CalendarTab) => {
+        setActiveTab(tab);
+        // Mettre à jour l'URL sans rechargement de la page pour faciliter le partage
+        router.push(`/calendar?tab=${tab}`, { scroll: false });
     };
 
-    // Gestionnaire de clic sur un événement
+    // Gérer le clic sur un événement du calendrier
     const handleEventClick = (eventId: string, eventType: string) => {
-        // Rediriger vers la page appropriée en fonction du type d'événement
-        if (eventType === 'LEAVE') {
-            router.push(`/leaves/${eventId}`);
-        } else if (eventType === 'ASSIGNMENT') {
-            router.push(`/assignments/${eventId}`);
-        } else if (eventType === 'DUTY') {
-            router.push(`/duties/${eventId}`);
-        } else if (eventType === 'ON_CALL') {
-            router.push(`/on-calls/${eventId}`);
-        }
+        console.log(`Événement cliqué: ${eventId} de type ${eventType}`);
+        // Implémenter la logique d'affichage des détails de l'événement
+        // Par exemple, naviguer vers une page de détail
     };
 
-    // Si l'utilisateur n'est pas connecté, afficher un message
-    if (!user) {
+    // Animations
+    const fadeIn = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { duration: 0.4 } }
+    };
+
+    const tabAnimation = {
+        hidden: { y: 10, opacity: 0 },
+        visible: { y: 0, opacity: 1, transition: { duration: 0.3 } }
+    };
+
+    // Si en cours de chargement, afficher un indicateur
+    if (isLoading) {
         return (
-            <div className="container mx-auto px-4 py-8">
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md">
-                    <p className="text-yellow-700">Vous devez être connecté pour accéder au calendrier.</p>
-                </div>
+            <div className="flex justify-center items-center h-64 w-full">
+                <div className="calendar-loading-spinner" />
             </div>
         );
     }
 
+    // Si l'utilisateur n'est pas connecté, afficher un message
+    if (!user) {
+        return (
+            <motion.div
+                className="max-w-screen-2xl mx-auto px-2 py-8 w-full"
+                initial="hidden"
+                animate="visible"
+                variants={fadeIn}
+            >
+                <div className="bg-amber-50 border-l-4 border-amber-400 p-6 rounded-lg shadow-sm">
+                    <h2 className="text-lg font-semibold text-amber-700 mb-2">Accès restreint</h2>
+                    <p className="text-amber-600">Vous devez être connecté pour accéder au calendrier.</p>
+                </div>
+            </motion.div>
+        );
+    }
+
     return (
-        <div className="container mx-auto px-4 py-8">
-            {/* Onglets */}
-            <div className="mb-6 border-b border-gray-200">
-                <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                    <button
-                        onClick={() => handleTabChange('personal')}
-                        className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'personal'
-                            ? 'border-blue-500 text-blue-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
-                    >
-                        Mon calendrier
-                    </button>
+        <>
+            {isAdmin && <AdminRequestsBanner />}
 
-                    <button
-                        onClick={() => handleTabChange('collective')}
-                        className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'collective'
-                            ? 'border-blue-500 text-blue-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
+            <motion.div
+                className="max-w-screen-2xl mx-auto px-2 py-4 w-full"
+                initial="hidden"
+                animate="visible"
+                variants={fadeIn}
+            >
+                {/* En-tête de la page */}
+                <div className="mb-6">
+                    <motion.h1
+                        className="text-2xl font-bold text-gray-800 mb-1"
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
                     >
-                        Calendrier des congés
-                    </button>
+                        Calendrier
+                    </motion.h1>
+                    <p className="text-gray-600 text-sm">Consultez et gérez vos événements dans notre calendrier interactif.</p>
+                </div>
 
-                    {/* Onglet d'affectations visible uniquement pour les admins */}
-                    {isAdmin && (
+                {/* Onglets */}
+                <div className="mb-4 border-b border-gray-200">
+                    <nav className="-mb-px flex gap-1" aria-label="Tabs">
                         <button
-                            onClick={() => handleTabChange('allocation')}
-                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'allocation'
-                                ? 'border-blue-500 text-blue-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            onClick={() => handleTabChange('personal')}
+                            className={`px-5 py-2 rounded-t-lg font-medium text-sm transition-all duration-200 ${activeTab === 'personal'
+                                ? 'bg-white text-indigo-600 border-b-2 border-indigo-500 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                                 }`}
                         >
-                            Affectations
+                            Mon calendrier
                         </button>
+
+                        <button
+                            onClick={() => handleTabChange('collective')}
+                            className={`px-5 py-2 rounded-t-lg font-medium text-sm transition-all duration-200 ${activeTab === 'collective'
+                                ? 'bg-white text-indigo-600 border-b-2 border-indigo-500 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                                }`}
+                        >
+                            Calendrier des congés
+                        </button>
+
+                        {/* Onglet d'affectations visible uniquement pour les admins */}
+                        {isAdmin && (
+                            <button
+                                onClick={() => handleTabChange('allocation')}
+                                className={`px-5 py-2 rounded-t-lg font-medium text-sm transition-all duration-200 ${activeTab === 'allocation'
+                                    ? 'bg-white text-indigo-600 border-b-2 border-indigo-500 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                                    }`}
+                            >
+                                Affectations
+                            </button>
+                        )}
+                    </nav>
+                </div>
+
+                {/* Contenu de l'onglet actif */}
+                <motion.div
+                    key={activeTab}
+                    initial="hidden"
+                    animate="visible"
+                    variants={tabAnimation}
+                    className="bg-white rounded-lg shadow-sm p-3 w-full"
+                >
+                    {activeTab === 'personal' && user && (
+                        <PersonalCalendar
+                            userId={user.id.toString()}
+                            onEventClick={handleEventClick}
+                        />
                     )}
-                </nav>
-            </div>
 
-            {/* Contenu de l'onglet actif */}
-            <div>
-                {activeTab === 'personal' && user && (
-                    <PersonalCalendar
-                        userId={user.id.toString()}
-                        onEventClick={handleEventClick}
-                    />
-                )}
+                    {activeTab === 'collective' && (
+                        <CollectiveCalendar
+                            onEventClick={handleEventClick}
+                        />
+                    )}
 
-                {activeTab === 'collective' && (
-                    <CollectiveCalendar
-                        onEventClick={handleEventClick}
-                    />
-                )}
-
-                {activeTab === 'allocation' && isAdmin && (
-                    <AllocationCalendar
-                        onEventClick={handleEventClick}
-                    />
-                )}
-            </div>
-        </div>
+                    {activeTab === 'allocation' && isAdmin && (
+                        <AllocationCalendar
+                            onEventClick={handleEventClick}
+                        />
+                    )}
+                </motion.div>
+            </motion.div>
+        </>
     );
 } 

@@ -39,12 +39,32 @@ export async function verifyAuthToken(req?: NextRequest) {
         // Vérifier et décoder le token
         const { payload } = await jose.jwtVerify<UserJWTPayload>(token, secret);
 
+        // Récupérer l'utilisateur complet depuis la base de données
+        const { PrismaClient } = await import('@prisma/client');
+        const prisma = new PrismaClient();
+
+        const user = await prisma.user.findUnique({
+            where: { id: payload.userId }
+        });
+
+        await prisma.$disconnect();
+
+        if (!user) {
+            return {
+                authenticated: false,
+                error: 'Utilisateur non trouvé'
+            };
+        }
+
         return {
             authenticated: true,
             user: {
-                id: payload.userId,
-                login: payload.login,
-                role: payload.role
+                id: user.id,
+                login: user.login,
+                role: user.role,
+                prenom: user.prenom,
+                nom: user.nom,
+                email: user.email
             }
         };
     } catch (error) {
@@ -60,10 +80,10 @@ export async function verifyAuthToken(req?: NextRequest) {
 export async function checkUserRole(allowedRoles: UserRole[]) {
     const authResult = await verifyAuthToken();
 
-    if (!authResult.authenticated) {
+    if (!authResult.authenticated || !authResult.user) {
         return {
             hasRequiredRole: false,
-            error: authResult.error
+            error: authResult.error || 'Utilisateur non authentifié'
         };
     }
 
