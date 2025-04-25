@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
+import { Prisma } from '@prisma/client';
 
 // Helper pour vérifier les rôles admin
 const hasRequiredRole = (): boolean => {
@@ -12,13 +13,27 @@ const hasRequiredRole = (): boolean => {
 // --- GET : Lister toutes les salles opératoires ---
 export async function GET() {
     try {
-        const operatingRooms = await prisma.operatingRoomConfig.findMany({
-            orderBy: [
-                { sector: 'asc' },
-                { number: 'asc' }
-            ]
+        const operatingRooms = await prisma.operatingRoom.findMany({
+            include: {
+                sector: true // Inclure les informations du secteur lié
+            },
+            orderBy: {
+                // Optionnel: trier par nom de secteur puis par nom de salle?
+                // sector: {
+                //     name: 'asc'
+                // },
+                name: 'asc'
+            },
         });
-        return NextResponse.json(operatingRooms);
+
+        // Mapper les résultats pour inclure le nom du secteur directement
+        const formattedRooms = operatingRooms.map(room => ({
+            ...room,
+            sector: room.sector.name, // Remplacer l'objet secteur par son nom
+            sectorId: room.sectorId // Garder l'ID si besoin ailleurs
+        }));
+
+        return NextResponse.json(formattedRooms);
     } catch (error) {
         console.error("Erreur GET /api/operating-rooms:", error);
         return NextResponse.json(
@@ -29,53 +44,55 @@ export async function GET() {
 }
 
 // --- POST : Créer une nouvelle salle opératoire ---
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     // Seul un admin peut créer
     if (!hasRequiredRole()) {
         return new NextResponse(JSON.stringify({ message: 'Accès non autorisé' }), { status: 403 });
     }
 
+    let data: any;
+
     try {
-        const body = await request.json();
-        const { name, number, sector, colorCode, isActive, supervisionRules } = body;
+        data = await request.json();
 
-        if (!name || typeof name !== 'string' || name.trim() === '') {
-            return new NextResponse(JSON.stringify({ message: 'Le nom de la salle est obligatoire.' }), { status: 400 });
+        if (!data.name || !data.number || !data.sectorId) {
+            return NextResponse.json({ error: 'Nom, numéro et ID de secteur requis' }, { status: 400 });
         }
 
-        if (!number || typeof number !== 'string' || number.trim() === '') {
-            return new NextResponse(JSON.stringify({ message: 'Le numéro de la salle est obligatoire.' }), { status: 400 });
-        }
-
-        if (!sector || typeof sector !== 'string' || sector.trim() === '') {
-            return new NextResponse(JSON.stringify({ message: 'Le secteur de la salle est obligatoire.' }), { status: 400 });
-        }
-
-        // Vérifier si une salle avec ce numéro existe déjà
-        const existingRoom = await prisma.operatingRoomConfig.findFirst({
-            where: {
-                number: number.trim()
-            }
+        const existingRoom = await prisma.operatingRoom.findFirst({
+            where: { number: data.number }
         });
 
         if (existingRoom) {
-            return new NextResponse(JSON.stringify({ message: 'Une salle avec ce numéro existe déjà.' }), { status: 409 });
+            return NextResponse.json({ error: `Une salle avec le numéro ${data.number} existe déjà.` }, { status: 409 });
         }
 
-        const newRoom = await prisma.operatingRoomConfig.create({
+        const newRoom = await prisma.operatingRoom.create({
             data: {
-                name: name.trim(),
-                number: number.trim(),
-                sector: sector.trim(),
-                colorCode: colorCode || null,
-                isActive: isActive === undefined ? true : isActive,
-                supervisionRules: supervisionRules || {},
+                name: data.name,
+                number: data.number,
+                sectorId: data.sectorId,
+                colorCode: data.colorCode,
+                isActive: data.isActive !== undefined ? data.isActive : true,
+                supervisionRules: data.supervisionRules || {},
             },
         });
         return new NextResponse(JSON.stringify(newRoom), { status: 201 });
 
-    } catch (error) {
-        console.error("Erreur POST /api/operating-rooms:", error);
+    } catch (error: any) {
+        console.error('Erreur lors de la création de la salle:', error);
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            if (error.code === 'P2002') {
+                return NextResponse.json({ error: `Une salle avec ce numéro existe déjà.` }, { status: 409 });
+            } else if (error.code === 'P2003') {
+                let fieldName = error.meta?.field_name;
+                let failedValue = 'inconnue';
+                if (typeof fieldName === 'string' && data && data[fieldName]) {
+                    failedValue = data[fieldName];
+                }
+                return NextResponse.json({ error: `La valeur fournie pour le champ '${fieldName || 'inconnu'}' (valeur: ${failedValue}) n'est pas valide ou n'existe pas.` }, { status: 400 });
+            }
+        }
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
     }
 } 

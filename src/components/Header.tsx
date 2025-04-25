@@ -3,13 +3,15 @@
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X, Loader2 } from 'lucide-react';
 import AdminRequestsBanner from './AdminRequestsBanner';
+import { usePathname } from 'next/navigation';
 
 export default function Header() {
     const { user, logout, isLoading, login } = useAuth();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const pathname = usePathname();
 
     // États pour le formulaire de connexion
     const [loginInput, setLoginInput] = useState('');
@@ -130,7 +132,7 @@ export default function Header() {
                                     </div>
 
                                     {/* Menu déroulant au survol */}
-                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden transform scale-95 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 z-50 border border-gray-100">
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden transform scale-95 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 z-50 border border-gray-100 pointer-events-none group-hover:pointer-events-auto">
                                         <div className="py-2">
                                             <Link
                                                 href="/profil"

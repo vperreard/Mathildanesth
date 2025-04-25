@@ -31,6 +31,7 @@ model User {
   workPattern                   WorkPatternType  @default(FULL_TIME)
   joursTravaillesSemaineImpaire Json             @default("[]")
   joursTravaillesSemainePaire   Json             @default("[]")
+  displayPreferences            Json?            // Préférences d'affichage JSON
   loginLogs                     LoginLog[]
   createdRules                  Rule[]           @relation("CreatedRules")
   updatedRules                  Rule[]           @relation("UpdatedRules")
@@ -98,16 +99,19 @@ model PlanningRule {
   updatedAt     DateTime @updatedAt
 }
 
-model OperatingRoomConfig {
+model OperatingRoom {
   id               Int      @id @default(autoincrement())
   name             String
-  number           String
-  sector           String
+  number           String   @unique
+  sectorId         Int
+  sector           OperatingSector @relation(fields: [sectorId], references: [id])
   colorCode        String?
   isActive         Boolean  @default(true)
   supervisionRules Json
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  @@index([sectorId])
 }
 
 model Rule {
@@ -268,6 +272,7 @@ model OperatingSector {
   rules       Json     @default("{\"maxRoomsPerSupervisor\": 2}")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  operatingRooms OperatingRoom[]
 }
 
 enum Role {

@@ -1,42 +1,94 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-// Importer les types nécessaires (ajuster les chemins si besoin)
-import { LeaveTypeSetting, Prisma, ProfessionalRole, Role as AdminRole } from '@prisma/client';
+// Importer les types nécessaires
+import { LeaveTypeSetting, ProfessionalRole, Role } from '@prisma/client';
+import { JsonValue } from 'type-fest';
 
 // --- Constantes et Types ---
 const ALL_ROLES: ProfessionalRole[] = [ProfessionalRole.MAR, ProfessionalRole.IADE, ProfessionalRole.SECRETAIRE];
-const ADMIN_ROLES: AdminRole[] = [AdminRole.ADMIN_TOTAL, AdminRole.ADMIN_PARTIEL];
+const ADMIN_ROLES: Role[] = [Role.ADMIN_TOTAL, Role.ADMIN_PARTIEL];
 const COUNTING_METHODS = [
-    { value: 'WEEKDAYS_IF_WORKING', label: 'Jours Ouvrés (Lu-Ve, si travaillé)' },
-    { value: 'MONDAY_TO_SATURDAY', label: 'Jours Ouvrés (Lu-Sa)' },
-    { value: 'CONTINUOUS_ALL_DAYS', label: 'Jours Calendaires Continus' },
+    { value: 'WEEKDAYS_IF_WORKING', label: 'Jours ouvrés si travaillés' },
+    { value: 'MONDAY_TO_SATURDAY', label: 'Du lundi au samedi' },
+    { value: 'CONTINUOUS_ALL_DAYS', label: 'Tous les jours en continu' },
     { value: 'NONE', label: 'Non Décompté' },
-];
+] as const;
+
+type CountingMethod = typeof COUNTING_METHODS[number]['value'];
+
+interface LeaveType {
+    id: string;
+    code: string;
+    label: string;
+    description: string | null;
+    rules: JsonValue;
+    isActive: boolean;
+    isUserSelectable: boolean;
+    displayOrder: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
 
 // Props du composant
 interface LeaveTypeFormModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
-    initialData: Partial<LeaveTypeSetting> | null;
+    initialData?: Partial<LeaveType & {
+        rules: {
+            counting?: {
+                method?: string;
+                excludePublicHolidays?: boolean;
+            };
+            balance?: {
+                deducts?: boolean;
+                annual?: {
+                    defaultDaysByRole?: Record<string, number>;
+                    seniorityBonus?: {
+                        enabled?: boolean;
+                        yearsRequired?: number;
+                        bonusDaysPerThreshold?: number;
+                        maxBonusDays?: number;
+                        applicableRoles?: string[];
+                    };
+                };
+            };
+            eligibility?: {
+                roles?: string[];
+                minSeniorityMonths?: number;
+            };
+            request?: {
+                minNoticeDays?: number;
+                requiresReason?: boolean;
+                allowHalfDays?: boolean;
+            };
+            approval?: {
+                autoApprove?: boolean;
+                requiredRole?: string;
+            };
+            conflicts?: {
+                checkMaxOverlap?: boolean;
+                maxOverlapSameRole?: number;
+            };
+        };
+    }>;
 }
 
-// Type pour les données du formulaire (incluant les règles décomposées)
-type FormData = {
+// Type pour les données du formulaire
+interface FormData {
     code: string;
     label: string;
     description: string;
     isActive: boolean;
     isUserSelectable: boolean;
-    // --- Règles décomposées ---
-    // Counting
-    counting_method: string;
+    displayOrder: number;
+    eligibility_roles: ProfessionalRole[];
+    approval_requiredRole: Role | '';
+    counting_method: typeof COUNTING_METHODS[number]['value'];
     counting_excludePublicHolidays: boolean;
-    // Balance
     balance_deducts: boolean;
-    // Balance - Annual Specific (seulement si code commence par ANNUAL)
-    balance_annual_enabled: boolean; // Pour afficher/masquer la section
+    balance_annual_enabled: boolean;
     balance_annual_defaultDays_MAR: number;
     balance_annual_defaultDays_IADE: number;
     balance_annual_defaultDays_SECRETAIRE: number;
@@ -45,39 +97,99 @@ type FormData = {
     balance_annual_seniorityBonus_bonusDaysPerThreshold: number;
     balance_annual_seniorityBonus_maxBonusDays: number;
     balance_annual_seniorityBonus_applicableRoles: ProfessionalRole[];
-    // Eligibility
-    eligibility_roles: ProfessionalRole[] | null; // null signifie tous
     eligibility_minSeniorityMonths: number;
-    // Request
     request_minNoticeDays: number;
     request_requiresReason: boolean;
     request_allowHalfDays: boolean;
-    // Approval
     approval_autoApprove: boolean;
-    approval_requiredRole: AdminRole | ''; // Rôle admin requis si pas auto
-    // Conflicts
     conflicts_checkMaxOverlap: boolean;
     conflicts_maxOverlapSameRole: number;
-};
+}
 
 // Valeurs par défaut pour un nouveau type
 const getDefaultFormData = (): FormData => ({
-    code: '', label: '', description: '', isActive: true, isUserSelectable: true,
-    // Règles par défaut
-    counting_method: 'WEEKDAYS_IF_WORKING', counting_excludePublicHolidays: true,
+    code: '',
+    label: '',
+    description: '',
+    isActive: true,
+    isUserSelectable: true,
+    displayOrder: 0,
+    eligibility_roles: [],
+    approval_requiredRole: '',
+    counting_method: 'WEEKDAYS_IF_WORKING',
+    counting_excludePublicHolidays: true,
     balance_deducts: true,
-    balance_annual_enabled: false, balance_annual_defaultDays_MAR: 0, balance_annual_defaultDays_IADE: 0, balance_annual_defaultDays_SECRETAIRE: 0,
-    balance_annual_seniorityBonus_enabled: false, balance_annual_seniorityBonus_yearsRequired: 0, balance_annual_seniorityBonus_bonusDaysPerThreshold: 0, balance_annual_seniorityBonus_maxBonusDays: 0, balance_annual_seniorityBonus_applicableRoles: [],
-    eligibility_roles: null, eligibility_minSeniorityMonths: 0,
-    request_minNoticeDays: 0, request_requiresReason: false, request_allowHalfDays: false,
-    approval_autoApprove: false, approval_requiredRole: '',
-    conflicts_checkMaxOverlap: false, conflicts_maxOverlapSameRole: 1,
+    balance_annual_enabled: false,
+    balance_annual_defaultDays_MAR: 0,
+    balance_annual_defaultDays_IADE: 0,
+    balance_annual_defaultDays_SECRETAIRE: 0,
+    balance_annual_seniorityBonus_enabled: false,
+    balance_annual_seniorityBonus_yearsRequired: 5,
+    balance_annual_seniorityBonus_bonusDaysPerThreshold: 1,
+    balance_annual_seniorityBonus_maxBonusDays: 5,
+    balance_annual_seniorityBonus_applicableRoles: [],
+    eligibility_minSeniorityMonths: 0,
+    request_minNoticeDays: 0,
+    request_requiresReason: false,
+    request_allowHalfDays: true,
+    approval_autoApprove: false,
+    conflicts_checkMaxOverlap: false,
+    conflicts_maxOverlapSameRole: 0,
 });
 
+const transformInitialDataToFormData = (initialData: LeaveTypeFormModalProps['initialData']): FormData => {
+    if (!initialData) return getDefaultFormData();
 
-export default function LeaveTypeFormModal({ isOpen, onClose, onSuccess, initialData }: LeaveTypeFormModalProps) {
+    const rules = initialData.rules || {};
+    const counting = rules.counting || {};
+    const balance = rules.balance || {};
+    const annual = balance.annual || {};
+    const seniorityBonus = annual.seniorityBonus || {};
+    const eligibility = rules.eligibility || {};
+    const request = rules.request || {};
+    const approval = rules.approval || {};
+    const conflicts = rules.conflicts || {};
+
+    return {
+        ...getDefaultFormData(),
+        code: initialData.code || '',
+        label: initialData.label || '',
+        description: initialData.description || '',
+        isActive: initialData.isActive ?? true,
+        isUserSelectable: initialData.isUserSelectable ?? true,
+        displayOrder: initialData.displayOrder ?? 0,
+        counting_method: (counting.method as CountingMethod) || 'WEEKDAYS_IF_WORKING',
+        counting_excludePublicHolidays: counting.excludePublicHolidays ?? true,
+        balance_deducts: balance.deducts ?? true,
+        balance_annual_enabled: !!annual,
+        balance_annual_defaultDays_MAR: annual.defaultDaysByRole?.MAR ?? 0,
+        balance_annual_defaultDays_IADE: annual.defaultDaysByRole?.IADE ?? 0,
+        balance_annual_defaultDays_SECRETAIRE: annual.defaultDaysByRole?.SECRETAIRE ?? 0,
+        balance_annual_seniorityBonus_enabled: seniorityBonus.enabled ?? false,
+        balance_annual_seniorityBonus_yearsRequired: seniorityBonus.yearsRequired ?? 5,
+        balance_annual_seniorityBonus_bonusDaysPerThreshold: seniorityBonus.bonusDaysPerThreshold ?? 1,
+        balance_annual_seniorityBonus_maxBonusDays: seniorityBonus.maxBonusDays ?? 5,
+        balance_annual_seniorityBonus_applicableRoles: (seniorityBonus.applicableRoles || []) as ProfessionalRole[],
+        eligibility_roles: (eligibility.roles || []) as ProfessionalRole[],
+        eligibility_minSeniorityMonths: eligibility.minSeniorityMonths ?? 0,
+        request_minNoticeDays: request.minNoticeDays ?? 0,
+        request_requiresReason: request.requiresReason ?? false,
+        request_allowHalfDays: request.allowHalfDays ?? true,
+        approval_autoApprove: approval.autoApprove ?? false,
+        approval_requiredRole: (approval.requiredRole || '') as Role | '',
+        conflicts_checkMaxOverlap: conflicts.checkMaxOverlap ?? false,
+        conflicts_maxOverlapSameRole: conflicts.maxOverlapSameRole ?? 0,
+    };
+};
+
+const LeaveTypeFormModal: React.FC<LeaveTypeFormModalProps> = ({
+    isOpen,
+    onClose,
+    onSuccess,
+    initialData
+}) => {
     const [formData, setFormData] = useState<FormData>(getDefaultFormData());
-    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const isEditing = !!initialData?.id;
@@ -85,53 +197,10 @@ export default function LeaveTypeFormModal({ isOpen, onClose, onSuccess, initial
     // Pré-remplir/Réinitialiser le formulaire
     useEffect(() => {
         if (isOpen) {
-            if (isEditing && initialData) {
-                const rules = (initialData.rules as any) ?? {}; // Utiliser any temporairement pour accès flexible
-                const counting = rules.counting ?? {};
-                const balance = rules.balance ?? {};
-                const annual = balance.annualAllowance ?? {};
-                const seniority = annual.seniorityBonus ?? {};
-                const eligibility = rules.eligibility ?? {};
-                const request = rules.request ?? {};
-                const approval = rules.approval ?? {};
-                const conflicts = rules.conflicts ?? {};
-
-                setFormData({
-                    code: initialData.code || '',
-                    label: initialData.label || '',
-                    description: initialData.description || '',
-                    isActive: initialData.isActive ?? true,
-                    isUserSelectable: initialData.isUserSelectable ?? true,
-                    // --- Règles ---
-                    counting_method: counting.method || 'WEEKDAYS_IF_WORKING',
-                    counting_excludePublicHolidays: counting.excludePublicHolidays ?? true,
-                    balance_deducts: balance.deducts ?? true,
-                    balance_annual_enabled: !!balance.annualAllowance, // Déduit de la présence de l'objet
-                    balance_annual_defaultDays_MAR: annual.defaultDaysByRole?.MAR ?? 0,
-                    balance_annual_defaultDays_IADE: annual.defaultDaysByRole?.IADE ?? 0,
-                    balance_annual_defaultDays_SECRETAIRE: annual.defaultDaysByRole?.SECRETAIRE ?? 0,
-                    balance_annual_seniorityBonus_enabled: seniority.enabled ?? false,
-                    balance_annual_seniorityBonus_yearsRequired: seniority.yearsRequired ?? 0,
-                    balance_annual_seniorityBonus_bonusDaysPerThreshold: seniority.bonusDaysPerThreshold ?? 0,
-                    balance_annual_seniorityBonus_maxBonusDays: seniority.maxBonusDays ?? 0,
-                    balance_annual_seniorityBonus_applicableRoles: seniority.applicableRoles ?? [],
-                    eligibility_roles: eligibility.roles === undefined ? null : eligibility.roles, // Gérer null explicitement vs undefined
-                    eligibility_minSeniorityMonths: eligibility.minSeniorityMonths ?? 0,
-                    request_minNoticeDays: request.minNoticeDays ?? 0,
-                    request_requiresReason: request.requiresReason ?? false,
-                    request_allowHalfDays: request.allowHalfDays ?? false,
-                    approval_autoApprove: approval.autoApprove ?? false,
-                    approval_requiredRole: approval.requiredRole ?? '',
-                    conflicts_checkMaxOverlap: conflicts.checkMaxOverlap ?? false,
-                    conflicts_maxOverlapSameRole: conflicts.maxOverlapSameRole ?? 1,
-                });
-            } else {
-                // Réinitialiser pour l'ajout
-                setFormData(getDefaultFormData());
-            }
+            setFormData(transformInitialDataToFormData(initialData));
+            setError(null);
         }
-        setError(null); // Toujours effacer l'erreur à l'ouverture/changement
-    }, [initialData, isEditing, isOpen]);
+    }, [isOpen, initialData]);
 
     // Handler générique pour la plupart des champs
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -157,66 +226,39 @@ export default function LeaveTypeFormModal({ isOpen, onClose, onSuccess, initial
         }
     };
 
-    // Handler spécifique pour les checkboxes de rôles (multi-sélection)
-    const handleRoleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: keyof FormData) => {
+    // Gestionnaire unifié pour les changements de rôles
+    const handleRoleChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: keyof FormData) => {
         const { value, checked } = e.target;
-        const role = value as ProfessionalRole; // ou AdminRole selon le champ
-        const currentRoles = formData[fieldName] as ProfessionalRole[] | null; // Peut être null pour eligibility_roles
+        const role = value as ProfessionalRole;
 
-        let updatedRoles: ProfessionalRole[] | null = null; // Initialiser à null
-
-        if (fieldName === 'eligibility_roles') {
-            const allPossibleRoles = ALL_ROLES; // Utiliser ALL_ROLES pour éligibilité
-
-            if (checked) {
-                // Ajouter le rôle coché
-                if (currentRoles === null) {
-                    // Si on coche alors que "tous" est sélectionné, cela n'a pas de sens, on reste à "tous".
-                    updatedRoles = null;
-                } else {
-                    // Ajouter le rôle à la liste existante
-                    const rolesSet = new Set(currentRoles);
-                    rolesSet.add(role);
-                    updatedRoles = Array.from(rolesSet);
-                    // Si tous les rôles sont maintenant cochés, repasser à null (signifie "tous")
-                    if (updatedRoles.length === allPossibleRoles.length) {
-                        updatedRoles = null;
-                    }
-                }
-            } else {
-                // Retirer le rôle décoché
-                if (currentRoles === null) {
-                    // Si on décoche depuis l'état "tous", sélectionner explicitement tous les *autres* rôles.
-                    updatedRoles = allPossibleRoles.filter(r => r !== role);
-                } else {
-                    // Si on décoche depuis une sélection partielle, retirer simplement le rôle.
-                    updatedRoles = currentRoles.filter(r => r !== role);
-                    // Si la liste devient vide après avoir décoché, cela signifie qu'aucun rôle spécifique n'est sélectionné.
-                    // Selon notre convention (null = tous), une liste vide n'a pas de sens ici. 
-                    // On pourrait soit interdire de tout décocher, soit revenir à null (tous).
-                    // Pour l'instant, on laisse la possibilité d'avoir un tableau vide (signifiant aucun rôle éligible dans ce cas).
-                    // ATTENTION: vérifier si la logique backend interprète bien [] comme "aucun" et null comme "tous".
-                    // Si on veut que décocher la dernière case = revenir à null (tous), décommenter la ligne suivante :
-                    // if (updatedRoles.length === 0) { updatedRoles = null; }
-                }
-            }
-        } else if (fieldName === 'balance_annual_seniorityBonus_applicableRoles') {
-            // Logique pour les rôles du bonus (ne peut pas être null, commence par [])
-            const currentBonusRoles = formData.balance_annual_seniorityBonus_applicableRoles ?? [];
-            if (checked) {
-                // Utiliser un Set pour éviter les doublons si jamais
-                const rolesSet = new Set(currentBonusRoles);
-                rolesSet.add(role as ProfessionalRole);
-                updatedRoles = Array.from(rolesSet);
-            } else {
-                updatedRoles = currentBonusRoles.filter(r => r !== role);
-            }
-        }
-
-        // Mettre à jour l'état
-        setFormData(prev => ({ ...prev, [fieldName]: updatedRoles }));
+        setFormData(prev => ({
+            ...prev,
+            [fieldName]: checked
+                ? [...(prev[fieldName] as ProfessionalRole[]), role]
+                : (prev[fieldName] as ProfessionalRole[]).filter(r => r !== role)
+        }));
     };
 
+    // Gestionnaire de changement pour les rôles d'approbation
+    const handleApprovalRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const { value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            approval_requiredRole: value as Role | ''
+        }));
+    };
+
+    // Gestionnaire de changement pour les rôles de bonus d'ancienneté
+    const handleSeniorityRoleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { value, checked } = e.target;
+        const role = value as ProfessionalRole;
+        setFormData(prev => ({
+            ...prev,
+            balance_annual_seniorityBonus_applicableRoles: checked
+                ? [...prev.balance_annual_seniorityBonus_applicableRoles, role]
+                : prev.balance_annual_seniorityBonus_applicableRoles.filter(r => r !== role)
+        }));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -282,6 +324,7 @@ export default function LeaveTypeFormModal({ isOpen, onClose, onSuccess, initial
                 description: formData.description,
                 isActive: formData.isActive,
                 isUserSelectable: formData.isUserSelectable,
+                displayOrder: formData.displayOrder,
                 rules: rules // Envoyer l'objet rules reconstruit
             };
         } else {
@@ -291,6 +334,7 @@ export default function LeaveTypeFormModal({ isOpen, onClose, onSuccess, initial
                 description: formData.description,
                 isActive: formData.isActive,
                 isUserSelectable: formData.isUserSelectable,
+                displayOrder: formData.displayOrder,
                 rules: rules
             };
         }
@@ -344,13 +388,17 @@ export default function LeaveTypeFormModal({ isOpen, onClose, onSuccess, initial
                     {/* --- Informations Générales --- */}
                     <fieldset className="space-y-4 border p-4 rounded">
                         <legend className="text-lg font-medium px-1">Informations Générales</legend>
-                        {/* Code (non modifiable en édition) */}
-                        <div>
-                            <label htmlFor="code" className="block text-sm font-medium text-gray-700">Code <span className="text-red-500">*</span></label>
-                            <input type="text" id="code" name="code" value={formData.code} onChange={handleChange} required disabled={isEditing}
-                                className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 sm:text-sm ${isEditing ? 'bg-gray-100' : 'border-gray-300'}`}
-                                pattern="[A-Z0-9_]+" title="Majuscules, chiffres, underscores (_)." />
-                            {!isEditing && <p className="text-xs text-gray-500 mt-1">Identifiant unique (ANNUAL_MAR, SICK...). Non modifiable.</p>}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="code" className="block text-sm font-medium text-gray-700">Code</label>
+                                <input type="text" id="code" name="code" value={formData.code} onChange={handleChange}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
+                            </div>
+                            <div>
+                                <label htmlFor="displayOrder" className="block text-sm font-medium text-gray-700">Ordre d'affichage</label>
+                                <input type="number" id="displayOrder" name="displayOrder" value={formData.displayOrder} onChange={handleChange}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
+                            </div>
                         </div>
                         {/* Libellé */}
                         <div>
@@ -433,7 +481,7 @@ export default function LeaveTypeFormModal({ isOpen, onClose, onSuccess, initial
                                                     <div key={role} className="flex items-center">
                                                         <input type="checkbox" id={`bonusRole_${role}`} name="balance_annual_seniorityBonus_applicableRoles" value={role}
                                                             checked={formData.balance_annual_seniorityBonus_applicableRoles.includes(role)}
-                                                            onChange={(e) => handleRoleCheckboxChange(e, 'balance_annual_seniorityBonus_applicableRoles')}
+                                                            onChange={(e) => handleRoleChange(e, 'balance_annual_seniorityBonus_applicableRoles')}
                                                             className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
                                                         <label htmlFor={`bonusRole_${role}`} className="ml-2 text-sm text-gray-600">{role}</label>
                                                     </div>
@@ -446,29 +494,45 @@ export default function LeaveTypeFormModal({ isOpen, onClose, onSuccess, initial
                         )}
                     </fieldset>
 
-
                     {/* --- Règles d'Éligibilité --- */}
                     <fieldset className="space-y-4 border p-4 rounded">
                         <legend className="text-lg font-medium px-1">Éligibilité</legend>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Rôles autorisés à demander</label>
-                            <div className="flex space-x-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Rôles professionnels éligibles
+                            </label>
+                            <div className="space-y-2">
                                 {ALL_ROLES.map(role => (
                                     <div key={role} className="flex items-center">
-                                        <input type="checkbox" id={`eligRole_${role}`} name="eligibility_roles" value={role}
-                                            checked={formData.eligibility_roles === null || formData.eligibility_roles.includes(role)}
-                                            onChange={(e) => handleRoleCheckboxChange(e, 'eligibility_roles')}
-                                            className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                                        <label htmlFor={`eligRole_${role}`} className="ml-2 text-sm text-gray-600">{role}</label>
+                                        <input
+                                            type="checkbox"
+                                            id={`role-${role}`}
+                                            name="eligibility_roles"
+                                            value={role}
+                                            checked={formData.eligibility_roles.includes(role)}
+                                            onChange={(e) => handleRoleChange(e, 'eligibility_roles')}
+                                            className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                        />
+                                        <label htmlFor={`role-${role}`} className="ml-2 block text-sm text-gray-900">
+                                            {role}
+                                        </label>
                                     </div>
                                 ))}
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Si aucune case n'est cochée, tous les rôles sont autorisés.</p>
                         </div>
                         <div>
-                            <label htmlFor="eligibility_minSeniorityMonths" className="block text-sm font-medium text-gray-700">Ancienneté minimale requise (mois)</label>
-                            <input type="number" id="eligibility_minSeniorityMonths" name="eligibility_minSeniorityMonths" value={formData.eligibility_minSeniorityMonths} onChange={handleChange} min="0"
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
+                            <label htmlFor="eligibility_minSeniorityMonths" className="block text-sm font-medium text-gray-700">
+                                Ancienneté minimale requise (mois)
+                            </label>
+                            <input
+                                type="number"
+                                id="eligibility_minSeniorityMonths"
+                                name="eligibility_minSeniorityMonths"
+                                value={formData.eligibility_minSeniorityMonths}
+                                onChange={handleChange}
+                                min="0"
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm"
+                            />
                         </div>
                     </fieldset>
 
@@ -476,70 +540,140 @@ export default function LeaveTypeFormModal({ isOpen, onClose, onSuccess, initial
                     <fieldset className="space-y-4 border p-4 rounded">
                         <legend className="text-lg font-medium px-1">Règles de Demande</legend>
                         <div>
-                            <label htmlFor="request_minNoticeDays" className="block text-sm font-medium text-gray-700">Délai de prévenance minimum (jours)</label>
-                            <input type="number" id="request_minNoticeDays" name="request_minNoticeDays" value={formData.request_minNoticeDays} onChange={handleChange} min="0"
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
+                            <label htmlFor="request_minNoticeDays" className="block text-sm font-medium text-gray-700">
+                                Délai de prévenance minimum (jours)
+                            </label>
+                            <input
+                                type="number"
+                                id="request_minNoticeDays"
+                                name="request_minNoticeDays"
+                                value={formData.request_minNoticeDays}
+                                onChange={handleChange}
+                                min="0"
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm"
+                            />
                         </div>
                         <div className="flex space-x-4">
                             <div className="flex items-center">
-                                <input id="request_requiresReason" name="request_requiresReason" type="checkbox" checked={formData.request_requiresReason} onChange={handleChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                                <label htmlFor="request_requiresReason" className="ml-2 block text-sm text-gray-900">Motif obligatoire</label>
+                                <input
+                                    id="request_requiresReason"
+                                    name="request_requiresReason"
+                                    type="checkbox"
+                                    checked={formData.request_requiresReason}
+                                    onChange={handleChange}
+                                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                />
+                                <label htmlFor="request_requiresReason" className="ml-2 block text-sm text-gray-900">
+                                    Motif obligatoire
+                                </label>
                             </div>
                             <div className="flex items-center">
-                                <input id="request_allowHalfDays" name="request_allowHalfDays" type="checkbox" checked={formData.request_allowHalfDays} onChange={handleChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                                <label htmlFor="request_allowHalfDays" className="ml-2 block text-sm text-gray-900">Autoriser les demi-journées</label>
+                                <input
+                                    id="request_allowHalfDays"
+                                    name="request_allowHalfDays"
+                                    type="checkbox"
+                                    checked={formData.request_allowHalfDays}
+                                    onChange={handleChange}
+                                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                />
+                                <label htmlFor="request_allowHalfDays" className="ml-2 block text-sm text-gray-900">
+                                    Autoriser les demi-journées
+                                </label>
                             </div>
                         </div>
                     </fieldset>
-
 
                     {/* --- Règles d'Approbation --- */}
                     <fieldset className="space-y-4 border p-4 rounded">
                         <legend className="text-lg font-medium px-1">Approbation</legend>
                         <div className="flex items-center">
-                            <input id="approval_autoApprove" name="approval_autoApprove" type="checkbox" checked={formData.approval_autoApprove} onChange={handleChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                            <label htmlFor="approval_autoApprove" className="ml-2 block text-sm text-gray-900">Approbation Automatique</label>
+                            <input
+                                type="checkbox"
+                                id="approval_autoApprove"
+                                name="approval_autoApprove"
+                                checked={formData.approval_autoApprove}
+                                onChange={handleChange}
+                                className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                            />
+                            <label htmlFor="approval_autoApprove" className="ml-2 block text-sm text-gray-900">
+                                Approbation automatique
+                            </label>
                         </div>
                         {!formData.approval_autoApprove && (
                             <div>
-                                <label htmlFor="approval_requiredRole" className="block text-sm font-medium text-gray-700">Rôle requis pour approbation manuelle</label>
-                                <select id="approval_requiredRole" name="approval_requiredRole" value={formData.approval_requiredRole} onChange={handleChange}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm">
-                                    <option value="">-- Sélectionner un rôle --</option>
-                                    {ADMIN_ROLES.map(role => <option key={role} value={role}>{role}</option>)}
+                                <label htmlFor="approval_requiredRole" className="block text-sm font-medium text-gray-700">
+                                    Rôle requis pour approbation
+                                </label>
+                                <select
+                                    id="approval_requiredRole"
+                                    name="approval_requiredRole"
+                                    value={formData.approval_requiredRole}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm"
+                                >
+                                    <option value="">Non spécifié</option>
+                                    {Object.values(Role).map(role => (
+                                        <option key={role} value={role}>{role}</option>
+                                    ))}
                                 </select>
                             </div>
                         )}
                     </fieldset>
 
-                    {/* --- Règles de Conflits --- */}
+                    {/* --- Règles de Conflit --- */}
                     <fieldset className="space-y-4 border p-4 rounded">
-                        <legend className="text-lg font-medium px-1">Conflits d'effectif</legend>
+                        <legend className="text-lg font-medium px-1">Règles de Conflit</legend>
                         <div className="flex items-center">
-                            <input id="conflicts_checkMaxOverlap" name="conflicts_checkMaxOverlap" type="checkbox" checked={formData.conflicts_checkMaxOverlap} onChange={handleChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                            <label htmlFor="conflicts_checkMaxOverlap" className="ml-2 block text-sm text-gray-900">Vérifier le nombre maximum d'absents simultanés (même rôle)</label>
+                            <input
+                                type="checkbox"
+                                id="conflicts_checkMaxOverlap"
+                                name="conflicts_checkMaxOverlap"
+                                checked={formData.conflicts_checkMaxOverlap}
+                                onChange={handleChange}
+                                className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                            />
+                            <label htmlFor="conflicts_checkMaxOverlap" className="ml-2 block text-sm text-gray-900">
+                                Vérifier le nombre maximal de personnes absentes en même temps
+                            </label>
                         </div>
                         {formData.conflicts_checkMaxOverlap && (
                             <div>
-                                <label htmlFor="conflicts_maxOverlapSameRole" className="block text-sm font-medium text-gray-700">Nombre maximum d'absents autorisés</label>
-                                <input type="number" id="conflicts_maxOverlapSameRole" name="conflicts_maxOverlapSameRole" value={formData.conflicts_maxOverlapSameRole} onChange={handleChange} min="0"
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
+                                <label htmlFor="conflicts_maxOverlapSameRole" className="block text-sm font-medium text-gray-700">
+                                    Nombre maximal de personnes du même rôle absentes simultanément
+                                </label>
+                                <input
+                                    type="number"
+                                    id="conflicts_maxOverlapSameRole"
+                                    name="conflicts_maxOverlapSameRole"
+                                    value={formData.conflicts_maxOverlapSameRole}
+                                    onChange={handleChange}
+                                    min="0"
+                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm"
+                                />
                             </div>
                         )}
-                        {/* Note: La vérification d'effectif minimum (checkMinStaff) n'est pas incluse ici pour simplifier, mais pourrait être ajoutée */}
                     </fieldset>
 
-
-                    {/* Affichage Erreur Générale */}
-                    {error && (<p className="text-sm text-red-600">{error}</p>)}
-
                     {/* Boutons d'action */}
-                    <div className="flex justify-end space-x-3 pt-4">
-                        <button type="button" onClick={onClose} disabled={isSubmitting} className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded disabled:opacity-50">Annuler</button>
-                        <button type="submit" disabled={isSubmitting} className={`bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 ${isSubmitting ? 'animate-pulse' : ''}`}> {isSubmitting ? 'Enregistrement...' : (isEditing ? 'Mettre à jour' : 'Créer')} </button>
+                    <div className="flex justify-end space-x-3 pt-6">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                        >
+                            {isEditing ? 'Mettre à jour' : 'Créer'}
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     );
-} 
+}
+
+export default LeaveTypeFormModal; 

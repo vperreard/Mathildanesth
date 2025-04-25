@@ -7,7 +7,13 @@ import { PersonalCalendar } from '@/modules/calendar/components/PersonalCalendar
 import { AllocationCalendar } from '@/modules/calendar/components/AllocationCalendar'; // Utiliser alias
 import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
-import AdminRequestsBanner from '@/components/AdminRequestsBanner';
+import { CalendarEventType } from '@/modules/calendar/types/event';
+
+// Définition du type CalendarEvent pour l'utiliser avec handleEventClick
+interface CalendarEvent {
+    id: string;
+    type: string;
+}
 
 // Type pour les onglets du calendrier
 type CalendarTab = 'collective' | 'personal' | 'allocation';
@@ -40,10 +46,17 @@ export default function CalendarPage() {
     };
 
     // Gérer le clic sur un événement du calendrier
-    const handleEventClick = (eventId: string, eventType: string) => {
-        console.log(`Événement cliqué: ${eventId} de type ${eventType}`);
-        // Implémenter la logique d'affichage des détails de l'événement
-        // Par exemple, naviguer vers une page de détail
+    const handleEventClick = (event: CalendarEvent) => {
+        // Rediriger vers la page de détails selon le type d'événement
+        if (event.type === 'LEAVE') {
+            router.push(`/leaves/${event.id}`);
+        }
+        // Gérer d'autres types d'événements si nécessaire
+    };
+
+    // Gérer le clic sur le bouton "Demander un congé"
+    const handleRequestLeave = () => {
+        router.push('/leaves/new');
     };
 
     // Animations
@@ -85,7 +98,8 @@ export default function CalendarPage() {
 
     return (
         <>
-            {isAdmin && <AdminRequestsBanner />}
+            {/* Supprimer l'affichage de AdminRequestsBanner pour éviter la duplication */}
+            {/* {isAdmin && <AdminRequestsBanner />} */}
 
             <motion.div
                 className="max-w-screen-2xl mx-auto px-2 py-4 w-full"
@@ -108,10 +122,10 @@ export default function CalendarPage() {
 
                 {/* Onglets */}
                 <div className="mb-4 border-b border-gray-200">
-                    <nav className="-mb-px flex gap-1" aria-label="Tabs">
+                    <nav className="-mb-px flex flex-wrap gap-1" aria-label="Tabs">
                         <button
                             onClick={() => handleTabChange('personal')}
-                            className={`px-5 py-2 rounded-t-lg font-medium text-sm transition-all duration-200 ${activeTab === 'personal'
+                            className={`px-3 sm:px-5 py-2 rounded-t-lg font-medium text-xs sm:text-sm transition-all duration-200 ${activeTab === 'personal'
                                 ? 'bg-white text-indigo-600 border-b-2 border-indigo-500 shadow-sm'
                                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                                 }`}
@@ -121,7 +135,7 @@ export default function CalendarPage() {
 
                         <button
                             onClick={() => handleTabChange('collective')}
-                            className={`px-5 py-2 rounded-t-lg font-medium text-sm transition-all duration-200 ${activeTab === 'collective'
+                            className={`px-3 sm:px-5 py-2 rounded-t-lg font-medium text-xs sm:text-sm transition-all duration-200 ${activeTab === 'collective'
                                 ? 'bg-white text-indigo-600 border-b-2 border-indigo-500 shadow-sm'
                                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                                 }`}
@@ -133,7 +147,7 @@ export default function CalendarPage() {
                         {isAdmin && (
                             <button
                                 onClick={() => handleTabChange('allocation')}
-                                className={`px-5 py-2 rounded-t-lg font-medium text-sm transition-all duration-200 ${activeTab === 'allocation'
+                                className={`px-3 sm:px-5 py-2 rounded-t-lg font-medium text-xs sm:text-sm transition-all duration-200 ${activeTab === 'allocation'
                                     ? 'bg-white text-indigo-600 border-b-2 border-indigo-500 shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                                     }`}
@@ -150,25 +164,25 @@ export default function CalendarPage() {
                     initial="hidden"
                     animate="visible"
                     variants={tabAnimation}
-                    className="bg-white rounded-lg shadow-sm p-3 w-full"
+                    className="bg-white rounded-lg shadow-sm p-2 sm:p-3 w-full"
                 >
                     {activeTab === 'personal' && user && (
                         <PersonalCalendar
                             userId={user.id.toString()}
-                            onEventClick={handleEventClick}
+                            onEventClick={(eventId, eventType) => handleEventClick({ id: eventId, type: eventType })}
+                            onRequestLeave={handleRequestLeave}
                         />
                     )}
 
                     {activeTab === 'collective' && (
                         <CollectiveCalendar
-                            onEventClick={handleEventClick}
+                            onEventClick={(eventId, eventType) => handleEventClick({ id: eventId, type: eventType })}
+                            onRequestLeave={handleRequestLeave}
                         />
                     )}
 
                     {activeTab === 'allocation' && isAdmin && (
-                        <AllocationCalendar
-                            onEventClick={handleEventClick}
-                        />
+                        <AllocationCalendar />
                     )}
                 </motion.div>
             </motion.div>

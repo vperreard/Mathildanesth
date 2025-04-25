@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import {
     PlusIcon,
@@ -8,7 +8,8 @@ import {
     TrashIcon,
     CheckIcon,
     XMarkIcon,
-    ArrowsUpDownIcon as HeroArrowsUpDownIcon
+    ArrowsUpDownIcon as HeroArrowsUpDownIcon,
+    ArrowsUpDownIcon
 } from '@heroicons/react/24/outline';
 import { AlertTriangle } from 'lucide-react';
 import {
@@ -20,7 +21,91 @@ import {
     DialogFooter,
     DialogClose
 } from "@/components/ui"; // Assurez-vous que ces composants existent
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+
+// Style global pour les animations
+const globalStyles = `
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.room-item {
+  cursor: move;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  z-index: 1;
+}
+
+.room-item.dragging {
+  opacity: 0.7;
+  transform: scale(0.98) rotate(1deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.drop-target {
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  min-height: 50px;
+}
+
+.drop-target.drag-over {
+  background-color: #dbeafe;
+  border: 2px dashed #93c5fd;
+  padding: 8px;
+  transform: scale(1.005);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+}
+
+.dark .drop-target.drag-over {
+  background-color: #1e3a8a;
+  border-color: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+}
+
+.drop-above {
+  position: relative;
+  border-top: 3px solid #3B82F6 !important;
+  margin-top: -1px;
+  z-index: 5;
+}
+
+.drop-below {
+  position: relative;
+  border-bottom: 3px solid #3B82F6 !important;
+  margin-bottom: -1px;
+  z-index: 5;
+}
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.room-item-new {
+  animation: appear 0.5s ease-out forwards;
+}
+`;
+
+// --- Custom Hook pour vérifier le montage client ---
+function useIsMounted() {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+    return mounted;
+}
+// -------------------------------------------------
+
+// Fonction utilitaire pour générer des IDs stables
+function safeId(prefix: string, id: string | number): string {
+    return `${prefix}-${id}`.replace(/\s+/g, '-');
+}
 
 // Types pour les salles opératoires
 type OperatingRoom = {
@@ -28,6 +113,7 @@ type OperatingRoom = {
     name: string;
     number: string;
     sector: string;
+    roomType?: string;
     colorCode: string | null;
     isActive: boolean;
     supervisionRules: any;
@@ -35,26 +121,35 @@ type OperatingRoom = {
     updatedAt: string;
 };
 
-// Type pour l'ordre des salles (adapté pour les ID numériques)
+// Type pour l'ordre des salles (adapté pour les ID numériques ET par secteur)
+// type RoomOrderConfig = {
+//     orderedRoomIds: number[];
+// };
+// Nouvelle structure pour l'ordre par secteur
 type RoomOrderConfig = {
-    orderedRoomIds: number[];
+    orderedRoomIdsBySector: { [sectorName: string]: number[] };
 };
 
-// Type pour le RoomOrderPanel (utilise des ID string pour le DND)
-type RoomOrderPanelRoom = {
-    id: string;
+// Type pour un secteur (simplifié pour ce composant)
+type Sector = {
+    id: number;
     name: string;
-    sector: string;
-}
+    colorCode: string;
+};
 
-type OperatingRoomFormData = {
+// Type pour une salle avec le nom du secteur
+type OperatingRoomWithSector = OperatingRoom & {
+    sector: string; // Garder le nom du secteur venant de l'API pour l'instant
+};
+
+interface OperatingRoomFormData {
     name: string;
     number: string;
     sector: string;
     colorCode: string;
     isActive: boolean;
     supervisionRules: any;
-};
+}
 
 // Liste des secteurs prédéfinis
 const SECTORS = [
@@ -76,8 +171,30 @@ const SECTOR_COLORS = {
 
 const OperatingRoomsConfigPanel: React.FC = () => {
     const [rooms, setRooms] = useState<OperatingRoom[]>([]);
+    const [initialRooms, setInitialRooms] = useState<OperatingRoom[]>([]);
+    const [sectors, setSectors] = useState<Sector[]>([]); // Nouvel état pour les secteurs
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const isMounted = useIsMounted();
+
+    // État pour le drag and drop
+    const [draggingRoomId, setDraggingRoomId] = useState<number | null>(null);
+    const [dragOverSector, setDragOverSector] = useState<string | null>(null);
+    const [dragOverRoomId, setDragOverRoomId] = useState<number | null>(null);
+    const [isReordering, setIsReordering] = useState<boolean>(false);
+
+    // Injecter les styles globaux
+    useEffect(() => {
+        // Créer et injecter la balise style
+        const styleElement = document.createElement('style');
+        styleElement.innerHTML = globalStyles;
+        document.head.appendChild(styleElement);
+
+        // Nettoyer lors du démontage
+        return () => {
+            document.head.removeChild(styleElement);
+        };
+    }, []);
 
     // États pour le formulaire et la modale
     const [isEditing, setIsEditing] = useState<number | null>(null);
@@ -96,47 +213,102 @@ const OperatingRoomsConfigPanel: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [showSuccess, setShowSuccess] = useState<boolean>(false);
 
-    // Nouveaux états pour la réorganisation des salles
-    const [showRoomOrderPanel, setShowRoomOrderPanel] = useState<boolean>(false);
-    const [roomOrder, setRoomOrder] = useState<RoomOrderConfig>({ orderedRoomIds: [] });
+    // État pour l'ordre des salles (adapté par secteur)
+    // const [roomOrder, setRoomOrder] = useState<RoomOrderConfig>({ orderedRoomIds: [] });
+    const [roomOrder, setRoomOrder] = useState<RoomOrderConfig>({ orderedRoomIdsBySector: {} });
     const [saveMessage, setSaveMessage] = useState('');
 
-    // Récupération des salles
-    const fetchRooms = useCallback(async () => {
+    // Charger les données initiales (salles ET secteurs)
+    const fetchData = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await axios.get<OperatingRoom[]>('/api/operating-rooms');
-            setRooms(response.data);
+            // Utiliser Promise.all pour charger en parallèle
+            const [roomsResponse, sectorsResponse] = await Promise.all([
+                axios.get<OperatingRoom[]>('/api/operating-rooms'),
+                axios.get<Sector[]>('/api/sectors') // Charger les secteurs
+            ]);
+
+            console.log("Données brutes salles:", roomsResponse.data);
+            console.log("Données brutes secteurs:", sectorsResponse.data);
+
+            // Assurer que les salles ont une propriété 'sector'
+            const roomsData = roomsResponse.data.map(room => ({ ...room, sector: room.sector || 'Non défini' }));
+
+            setInitialRooms(roomsData);
+            setRooms(roomsData);
+            setSectors(sectorsResponse.data || []); // Stocker les secteurs
+
         } catch (err: any) {
-            console.error("Erreur lors du chargement des salles:", err);
-            setError(err.response?.data?.message || err.message || 'Impossible de charger les salles opératoires.');
+            console.error("Erreur lors du chargement des données:", err);
+            setError(err.response?.data?.message || err.message || 'Impossible de charger les données de configuration.');
         } finally {
             setIsLoading(false);
         }
     }, []);
 
-    // Chargement initial des données
     useEffect(() => {
-        fetchRooms();
-    }, [fetchRooms]);
+        fetchData();
+    }, [fetchData]);
 
     // Charger l'ordre des salles depuis le localStorage au démarrage
     useEffect(() => {
+        // Fonction pour définir l'état à la valeur par défaut et nettoyer localStorage
+        const setDefaultOrder = () => {
+            localStorage.removeItem('operatingRoomOrderConfig');
+            setRoomOrder({ orderedRoomIdsBySector: {} });
+        };
+
         if (typeof window !== 'undefined') {
             const savedRoomOrder = localStorage.getItem('operatingRoomOrderConfig');
             if (savedRoomOrder) {
                 try {
-                    const parsedOrder = JSON.parse(savedRoomOrder) as RoomOrderConfig;
-                    parsedOrder.orderedRoomIds = parsedOrder.orderedRoomIds.map(id => Number(id));
-                    setRoomOrder(parsedOrder);
+                    const parsedData = JSON.parse(savedRoomOrder);
+
+                    // VALIDER la structure principale
+                    if (parsedData && typeof parsedData.orderedRoomIdsBySector === 'object' && parsedData.orderedRoomIdsBySector !== null) {
+                        const validatedOrder: RoomOrderConfig = { orderedRoomIdsBySector: {} };
+                        let hasValidData = false;
+
+                        // VALIDER chaque entrée de secteur
+                        for (const sector in parsedData.orderedRoomIdsBySector) {
+                            if (Object.prototype.hasOwnProperty.call(parsedData.orderedRoomIdsBySector, sector)) {
+                                const ids = parsedData.orderedRoomIdsBySector[sector];
+                                // Vérifier si c'est un tableau de nombres
+                                if (Array.isArray(ids) && ids.every((id: any) => typeof id === 'number')) {
+                                    validatedOrder.orderedRoomIdsBySector[sector] = ids;
+                                    hasValidData = true; // Marquer qu'on a trouvé au moins une entrée valide
+                                } else {
+                                    console.warn(`Données d'ordre invalides pour le secteur '${sector}' dans localStorage. Ignoré.`);
+                                }
+                            }
+                        }
+
+                        // Appliquer l'état seulement si on a trouvé des données valides
+                        if (hasValidData) {
+                            setRoomOrder(validatedOrder);
+                            console.log("Ordre des salles valide chargé depuis localStorage:", validatedOrder);
+                        } else {
+                            console.warn("Aucune donnée d'ordre valide trouvée après validation. Réinitialisation.");
+                            setDefaultOrder();
+                        }
+
+                    } else {
+                        // Structure principale incorrecte (ou ancienne version)
+                        console.warn("La structure de l'ordre des salles dans localStorage est incorrecte ou ancienne. Réinitialisation.");
+                        setDefaultOrder();
+                    }
                 } catch (e) {
-                    console.error('Erreur lors de la lecture de l\'ordre des salles :', e);
-                    localStorage.removeItem('operatingRoomOrderConfig');
+                    console.error('Erreur lors de la lecture ou validation de l\'ordre des salles depuis localStorage: ', e);
+                    setDefaultOrder();
                 }
+            } else {
+                // Aucun ordre sauvegardé, l'état initial est déjà correct
+                console.log("Aucun ordre de salles trouvé dans localStorage. Utilisation de l'ordre par défaut.");
+                // setRoomOrder({ orderedRoomIdsBySector: {} }); // Pas nécessaire car état initial
             }
         }
-    }, []);
+    }, []); // Le tableau vide assure que ça ne tourne qu'au montage
 
     // Gestion des changements de formulaire
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -210,15 +382,15 @@ const OperatingRoomsConfigPanel: React.FC = () => {
     // Soumission du formulaire (Ajout ou Modification)
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!formData.name.trim()) {
+        if (!formData.name?.trim()) {
             setFormError('Le nom de la salle est obligatoire.');
             return;
         }
-        if (!formData.number.trim()) {
+        if (!formData.number?.trim()) {
             setFormError('Le numéro de la salle est obligatoire.');
             return;
         }
-        if (!formData.sector.trim()) {
+        if (!formData.sector?.trim()) {
             setFormError('Le secteur de la salle est obligatoire.');
             return;
         }
@@ -230,7 +402,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
         try {
             await axios({ method, url, data: formData });
-            await fetchRooms();
+            await fetchData();
             resetFormAndCloseModal();
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
@@ -259,42 +431,374 @@ const OperatingRoomsConfigPanel: React.FC = () => {
         }
     };
 
-    // Fonction pour sauvegarder l'ordre des salles
-    const handleSaveRoomOrder = (orderedRoomIdsAsString: string[]) => {
-        const orderedRoomIds = orderedRoomIdsAsString.map(id => Number(id));
-        setRoomOrder({ orderedRoomIds });
-
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('operatingRoomOrderConfig', JSON.stringify({ orderedRoomIds }));
+    // Fonction pour sauvegarder l'ordre des salles par secteur
+    const saveRoomOrderToStorage = (newOrder: RoomOrderConfig) => {
+        // Vérifier que l'ordre est valide avant de continuer
+        if (!newOrder || !newOrder.orderedRoomIdsBySector) {
+            console.error("Tentative de sauvegarde d'un ordre invalide:", newOrder);
+            return;
         }
 
-        setSaveMessage('L\'ordre des salles a été enregistré avec succès');
-        setTimeout(() => setSaveMessage(''), 3000);
+        try {
+            // Met à jour l'état local avec la nouvelle structure d'ordre
+            setRoomOrder(newOrder);
 
-        setShowRoomOrderPanel(false);
+            if (typeof window !== 'undefined') {
+                // Convertir l'objet en JSON et le sauvegarder
+                const orderJSON = JSON.stringify(newOrder);
+                localStorage.setItem('operatingRoomOrderConfig', orderJSON);
+                console.log("Ordre des salles sauvegardé dans localStorage:", orderJSON);
+            }
+
+            setSaveMessage('Ordre des salles mis à jour (localement)');
+            setTimeout(() => setSaveMessage(''), 3000);
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde de l'ordre des salles:", error);
+            setError("Impossible de sauvegarder l'ordre des salles. Veuillez réessayer.");
+        }
     };
 
-    // Préparer les données pour le RoomOrderPanel (convertir ID en string)
-    const roomsForPanel: RoomOrderPanelRoom[] = rooms.map(room => ({
-        id: String(room.id),
-        name: room.name,
-        sector: room.sector
-    }));
+    // Simplifier les gestionnaires d'événements pour le drag & drop
+    const handleDragStart = (e: React.DragEvent, roomId: number) => {
+        if (!isReordering) return;
 
-    // Préparer l'ordre pour le RoomOrderPanel (convertir ID en string)
-    const roomOrderForPanel: { orderedRoomIds: string[] } = {
-        orderedRoomIds: roomOrder.orderedRoomIds.map(id => String(id))
+        // Stocker l'ID de la salle en cours de déplacement
+        setDraggingRoomId(roomId);
+
+        // Stocker l'ID dans l'événement de transfert
+        e.dataTransfer.setData('text/plain', roomId.toString());
+        e.dataTransfer.effectAllowed = 'move';
+
+        // Ajouter la classe de style pour l'élément en cours de déplacement
+        if (e.currentTarget instanceof HTMLElement) {
+            e.currentTarget.classList.add('dragging');
+        }
     };
+
+    const handleDragEnd = (e: React.DragEvent) => {
+        // Nettoyer l'état de déplacement
+        setDraggingRoomId(null);
+        setDragOverSector(null);
+
+        // Supprimer la classe de style
+        if (e.currentTarget instanceof HTMLElement) {
+            e.currentTarget.classList.remove('dragging');
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent, sectorName: string) => {
+        if (!isReordering) return;
+
+        // Prévenir le comportement par défaut pour permettre le drop
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = 'move';
+
+        // Mettre à jour le secteur survolé
+        setDragOverSector(sectorName);
+
+        // Ajouter une classe CSS pour indiquer la zone de drop
+        if (e.currentTarget instanceof HTMLElement) {
+            e.currentTarget.classList.add('drag-over');
+        }
+    };
+
+    const handleRoomDragOver = (e: React.DragEvent, roomId: number) => {
+        e.preventDefault();
+        e.stopPropagation(); // Empêcher la propagation vers le secteur parent
+
+        // Ne pas marquer si c'est la même salle qui est survolée
+        if (roomId === draggingRoomId) return;
+
+        const roomElement = e.currentTarget as HTMLElement;
+        const rect = roomElement.getBoundingClientRect();
+        const mouseY = e.clientY;
+
+        // Déterminer si on est sur la moitié supérieure ou inférieure de l'élément
+        const relativeMousePos = mouseY - rect.top;
+        const isTopHalf = relativeMousePos < rect.height / 2;
+
+        // Enlever toutes les classes de survol existantes
+        document.querySelectorAll('.drop-above, .drop-below').forEach(el => {
+            el.classList.remove('drop-above', 'drop-below');
+        });
+
+        // Ajouter la classe appropriée
+        if (isTopHalf) {
+            roomElement.classList.add('drop-above');
+        } else {
+            roomElement.classList.add('drop-below');
+        }
+    };
+
+    const handleRoomDragLeave = (e: React.DragEvent) => {
+        try {
+            // Utiliser setTimeout pour éviter les clignotements lors du passage
+            // d'une partie à l'autre de l'élément
+            setTimeout(() => {
+                const element = e.currentTarget as HTMLElement;
+                if (!element) return;
+
+                const roomId = element.getAttribute('data-room-id');
+                if (!roomId) return;
+
+                // Vérifier si l'élément est toujours survolé avant de supprimer la classe
+                if (!document.querySelector(`:hover.room-item[data-room-id="${roomId}"]`)) {
+                    element.classList.remove('drop-above', 'drop-below');
+                }
+            }, 50);
+        } catch (err) {
+            console.log("Erreur dans handleRoomDragLeave:", err);
+        }
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        // Supprimer la classe CSS
+        if (e.currentTarget instanceof HTMLElement) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+        setDragOverSector(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, targetSectorName: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        try {
+            // Nettoyer les classes de survol au début
+            const dropClasses = document.querySelectorAll('.drop-above, .drop-below');
+
+            // Récupérer l'ID de la salle depuis l'événement de transfert
+            const draggedRoomId = parseInt(e.dataTransfer.getData('text/plain'));
+
+            // Vérifier si on a une salle en cours de glisser
+            if (!draggedRoomId || isNaN(draggedRoomId)) {
+                console.warn("Aucun ID de salle valide n'est en cours de glisser");
+                return;
+            }
+
+            // Récupérer la salle et le secteur source
+            const sourceRoom = rooms.find(r => r.id === draggedRoomId);
+            if (!sourceRoom) {
+                console.error("Salle introuvable:", draggedRoomId);
+                throw new Error("Salle introuvable");
+            }
+
+            const sourceSector = sourceRoom.sector;
+            const destSector = targetSectorName;
+
+            // Vérifier si on a un élément avec la classe drop-above ou drop-below
+            const sectorContainer = e.currentTarget as HTMLElement;
+            const dropTarget = sectorContainer.querySelector('.drop-above, .drop-below');
+            const isDropAbove = dropTarget?.classList.contains('drop-above');
+            const targetRoomId = dropTarget?.getAttribute('data-room-id');
+
+            console.log(`Déplacement de la salle ${draggedRoomId} ${sourceSector !== destSector ?
+                `du secteur ${sourceSector} vers ${destSector}` :
+                "à l'intérieur de son secteur"}`);
+
+            // Créer une copie de l'ordre actuel
+            const newOrderedRoomIdsBySector = { ...roomOrder.orderedRoomIdsBySector };
+
+            // Initialiser la liste pour le secteur de destination s'il n'existe pas
+            if (!newOrderedRoomIdsBySector[destSector]) {
+                newOrderedRoomIdsBySector[destSector] = [];
+            }
+
+            // Retirer la salle de son secteur d'origine
+            if (sourceSector && newOrderedRoomIdsBySector[sourceSector]) {
+                newOrderedRoomIdsBySector[sourceSector] = newOrderedRoomIdsBySector[sourceSector].filter(id => id !== draggedRoomId);
+            }
+
+            // Placer la salle au bon endroit dans le secteur de destination
+            if (dropTarget && targetRoomId) {
+                // On a une cible précise (position au dessus/en dessous d'une salle)
+                const targetId = parseInt(targetRoomId);
+                const targetIndex = newOrderedRoomIdsBySector[destSector].indexOf(targetId);
+
+                if (targetIndex !== -1) {
+                    // Insérer avant ou après selon la position
+                    const insertIndex = isDropAbove ? targetIndex : targetIndex + 1;
+                    newOrderedRoomIdsBySector[destSector].splice(insertIndex, 0, draggedRoomId);
+                    console.log(`Salle positionnée ${isDropAbove ? 'avant' : 'après'} la salle ${targetId}`);
+                } else {
+                    // Si l'id cible n'est pas trouvé, ajouter à la fin
+                    newOrderedRoomIdsBySector[destSector].push(draggedRoomId);
+                    console.log(`Salle ajoutée à la fin du secteur (cible introuvable)`);
+                }
+            } else {
+                // Pas de cible précise, ajouter à la fin du secteur
+                newOrderedRoomIdsBySector[destSector].push(draggedRoomId);
+                console.log(`Salle ajoutée à la fin du secteur ${destSector}`);
+            }
+
+            // Mettre à jour l'état local si changement de secteur
+            if (sourceSector !== destSector) {
+                setRooms(prevRooms => prevRooms.map(r =>
+                    r.id === draggedRoomId ? { ...r, sector: destSector } : r
+                ));
+            }
+
+            // Mettre à jour l'état avec le nouvel ordre
+            setRoomOrder({ orderedRoomIdsBySector: newOrderedRoomIdsBySector });
+
+            // Sauvegarder dans le localStorage
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('operatingRoomOrderConfig', JSON.stringify({
+                    orderedRoomIdsBySector: newOrderedRoomIdsBySector
+                }));
+            }
+
+            // Mode simulation - pas d'API call qui échoue, mais simulation de mise à jour
+            if (sourceSector !== destSector) {
+                setSaveMessage('Salle déplacée vers un nouveau secteur (mode simulation)');
+            } else {
+                setSaveMessage('Ordre des salles mis à jour');
+            }
+            setTimeout(() => setSaveMessage(''), 3000);
+
+            // Réinitialiser l'état de déplacement
+            setDraggingRoomId(null);
+
+            // Nettoyer toutes les classes de survol
+            dropClasses.forEach(el => {
+                el.classList.remove('drop-above', 'drop-below');
+            });
+        } catch (error) {
+            console.error("Erreur lors du drag & drop:", error);
+            setError('Une erreur est survenue pendant le déplacement de la salle.');
+        }
+    };
+
+    // Version simulée qui ne fait pas d'appels API
+    const updateRoomSector = (roomId: number, destSector: string) => {
+        // Cette fonction est maintenant juste un stub pour compatibilité
+        // Elle n'est plus appelée directement
+        return Promise.resolve();
+    };
+
+    // --- Regroupement et Tri des salles par secteur pour l'affichage ---
+    const roomsBySector = useMemo(() => {
+        // Si rooms est vide, retourner un objet vide pour éviter des problèmes
+        if (!rooms.length) {
+            return {};
+        }
+
+        // Créer un objet pour stocker les salles groupées par secteur
+        const grouped: { [key: string]: OperatingRoom[] } = {};
+
+        // Initialiser les groupes pour tous les secteurs connus (même vides)
+        sectors.forEach(sector => {
+            grouped[sector.name] = [];
+        });
+
+        // Préparer un set des noms de secteurs définis (mémoisation)
+        const definedSectorNames = new Set(sectors.map(s => s.name));
+
+        // Grouper les salles
+        rooms.forEach(room => {
+            // Vérifier que la salle a un ID valide
+            if (!room || typeof room.id !== 'number') {
+                console.warn("Salle invalide trouvée:", room);
+                return; // Skip cette salle
+            }
+
+            // Utiliser 'Salles non assignées' si le secteur n'existe pas ou est null/vide
+            const sectorName = (room.sector && definedSectorNames.has(room.sector)) ? room.sector : 'Salles non assignées';
+            if (!grouped[sectorName]) {
+                grouped[sectorName] = []; // Créer le groupe 'Salles non assignées' si nécessaire
+            }
+            grouped[sectorName].push(room);
+        });
+
+        // Trier les salles DANS CHAQUE groupe selon l'ordre sauvegardé
+        Object.keys(grouped).forEach(sectorName => {
+            const orderedIds = roomOrder.orderedRoomIdsBySector[sectorName];
+            if (orderedIds) {
+                grouped[sectorName].sort((a, b) => {
+                    const indexA = orderedIds.indexOf(a.id);
+                    const indexB = orderedIds.indexOf(b.id);
+                    // Les salles connues dans l'ordre viennent en premier
+                    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                    // Les salles inconnues (nouvelles) viennent après
+                    if (indexA !== -1) return -1;
+                    if (indexB !== -1) return 1;
+                    // Garder l'ordre relatif pour les salles inconnues (par ID pour stabilité)
+                    return a.id - b.id;
+                });
+            }
+        });
+
+        // S'assurer que le groupe 'Salles non assignées' existe s'il y a des salles concernées,
+        // même s'il n'y avait pas de secteur 'Salles non assignées' défini initialement.
+        if (rooms.some(r => !r.sector || !definedSectorNames.has(r.sector)) && !grouped['Salles non assignées']) {
+            grouped['Salles non assignées'] = rooms.filter(r => !r.sector || !definedSectorNames.has(r.sector));
+            // Trier aussi ce groupe par sécurité (nouvelles salles)
+            const orderedIds = roomOrder.orderedRoomIdsBySector['Salles non assignées'];
+            if (orderedIds) {
+                grouped['Salles non assignées'].sort((a, b) => {
+                    const indexA = orderedIds.indexOf(a.id);
+                    const indexB = orderedIds.indexOf(b.id);
+                    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                    if (indexA !== -1) return -1;
+                    if (indexB !== -1) return 1;
+                    return a.id - b.id;
+                });
+            }
+        }
+
+        return grouped;
+    }, [rooms, sectors, roomOrder]); // Dépendances: données des salles, secteurs et ordre
+
+    // Liste ordonnée des noms de secteurs pour l'affichage
+    const orderedSectorNames = useMemo(() => {
+        const names = sectors.map(s => s.name);
+        // Ajouter 'Salles non assignées' s'il y a des salles sans secteur
+        if (rooms.some(r => !r.sector || !sectors.find(s => s.name === r.sector))) {
+            if (!names.includes('Salles non assignées')) {
+                names.push('Salles non assignées');
+            }
+        }
+        // TODO: Utiliser l'ordre sauvegardé des secteurs s'il existe
+        return names;
+    }, [sectors, rooms]);
 
     return (
         <div className="bg-white rounded-lg shadow p-6">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Configuration du Bloc Opératoire</h2>
-                <Button onClick={handleAddClick} className="flex items-center">
-                    <PlusIcon className="h-5 w-5 mr-2" />
-                    Ajouter une Salle
-                </Button>
+                <div className="flex space-x-4">
+                    <Button onClick={handleAddClick} className="flex items-center">
+                        <PlusIcon className="h-5 w-5 mr-2" />
+                        Ajouter une Salle
+                    </Button>
+                    <Button
+                        onClick={() => setIsReordering(prev => !prev)}
+                        variant={isReordering ? "danger" : "outline"}
+                        className="flex items-center"
+                    >
+                        {isReordering ? (
+                            <CheckIcon className="h-5 w-5 mr-2" />
+                        ) : (
+                            <ArrowsUpDownIcon className="h-5 w-5 mr-2" />
+                        )}
+                        {isReordering ? "Terminer la réorganisation" : "Réorganiser les salles"}
+                    </Button>
+                </div>
             </div>
+
+            {isReordering && (
+                <div className="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md animate-fadeIn">
+                    <div className="flex">
+                        <div className="ml-3">
+                            <p className="text-sm text-blue-700">
+                                <strong>Mode réorganisation activé</strong> - Glissez-déposez les salles pour les réorganiser.
+                                Vous pouvez déplacer une salle d'un secteur à un autre en la déposant dans la section cible.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {error && (
                 <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
@@ -457,362 +961,119 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Liste des salles */}
-            <div className="mt-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium text-gray-700">Liste des Salles</h3>
-                    <Button
-                        variant="outline"
-                        onClick={() => setShowRoomOrderPanel(true)}
-                        className="flex items-center gap-1 text-sm"
-                        disabled={isLoading || rooms.length < 2}
-                    >
-                        <HeroArrowsUpDownIcon className="h-4 w-4" />
-                        Réorganiser les salles
-                    </Button>
-                </div>
-
+            {/* Table des salles d'opération simplifiée avec drag and drop HTML5 natif */}
+            <div className="bg-white dark:bg-gray-800 shadow px-4 md:px-10 pt-4 md:pt-7 pb-5 overflow-y-auto">
+                {error && <p className="text-red-500">{error}</p>}
                 {isLoading ? (
-                    <div className="text-center py-6">
-                        <div className="inline-block h-6 w-6 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin"></div>
-                        <p className="mt-2 text-sm text-gray-500">Chargement des salles...</p>
-                    </div>
-                ) : rooms.length === 0 ? (
-                    <p className="text-center py-8 text-gray-500 italic">Aucune salle configurée</p>
+                    <p>Chargement des salles...</p>
                 ) : (
-                    <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                        <table className="min-w-full divide-y divide-gray-300">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
-                                        Nom
-                                    </th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                        Numéro
-                                    </th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                        Secteur
-                                    </th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                        Couleur
-                                    </th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                        Statut
-                                    </th>
-                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                        Max. Supervision
-                                    </th>
-                                    <th scope="col" className="relative py-3.5 pl-3 pr-4 text-right">
-                                        <span className="sr-only">Actions</span>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 bg-white">
-                                {rooms.map((room) => (
-                                    <tr key={room.id} className="hover:bg-gray-50">
-                                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
-                                            {room.name}
-                                        </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            {room.number}
-                                        </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            {room.sector}
-                                        </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            {room.colorCode ? (
-                                                <span className="inline-flex items-center space-x-2">
-                                                    <span
-                                                        className="h-4 w-4 rounded-full border border-gray-300"
-                                                        style={{ backgroundColor: room.colorCode }}
-                                                    ></span>
-                                                    <span>{room.colorCode}</span>
-                                                </span>
-                                            ) : (
-                                                <span className="text-gray-400 italic">N/A</span>
-                                            )}
-                                        </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm">
-                                            {room.isActive ? (
-                                                <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">
-                                                    Active
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800">
-                                                    Inactive
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                            {room.supervisionRules?.maxRoomsPerSupervisor || 'N/A'}
-                                        </td>
-                                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium">
-                                            <button
-                                                onClick={() => handleEditClick(room)} // Ouvre la modale ici
-                                                className="text-blue-600 hover:text-blue-800 mr-3"
-                                                title="Modifier"
-                                            >
-                                                <PencilIcon className="h-5 w-5" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteClick(room.id)}
-                                                className="text-red-600 hover:text-red-800"
-                                                title="Supprimer"
-                                            >
-                                                <TrashIcon className="h-5 w-5" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <div>
+                        {orderedSectorNames.map((sectorName) => {
+                            const sectorRooms = roomsBySector[sectorName] || [];
+                            return (
+                                <div
+                                    key={safeId('sector', sectorName)}
+                                    className={`mb-8 border-b pb-4 ${dragOverSector === sectorName ? 'drop-target drag-over' : 'drop-target'}`}
+                                    onDragOver={(e) => handleDragOver(e, sectorName)}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={(e) => handleDrop(e, sectorName)}
+                                >
+                                    <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200">
+                                        {sectorName}
+                                    </h3>
+
+                                    {/* En-tête des colonnes */}
+                                    <div className="grid grid-cols-5 gap-2 py-2 text-sm text-gray-600 border-b mb-2">
+                                        <div className="font-medium pl-4">Nom</div>
+                                        <div className="font-medium">Secteur</div>
+                                        <div className="font-medium">Type</div>
+                                        <div className="font-medium">Couleur</div>
+                                        <div className="font-medium text-right pr-4">Actions</div>
+                                    </div>
+
+                                    {sectorRooms.length > 0 ? (
+                                        <div>
+                                            {sectorRooms.map((room) => (
+                                                <div
+                                                    key={safeId('room', room.id)}
+                                                    className={`grid grid-cols-5 gap-2 items-center p-2 mb-1 rounded room-item
+                                                        ${room.id === draggingRoomId ? 'dragging' : ''}
+                                                        ${isReordering ? 'cursor-grab active:cursor-grabbing' : ''}
+                                                        ${room.sector !== sectorName ? 'room-item-new' : ''}
+                                                        bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
+                                                        hover:bg-gray-50 dark:hover:bg-gray-700
+                                                    `}
+                                                    draggable={isReordering}
+                                                    onDragStart={(e) => handleDragStart(e, room.id)}
+                                                    onDragEnd={handleDragEnd}
+                                                    onDragOver={(e) => handleRoomDragOver(e, room.id)}
+                                                    onDragLeave={handleRoomDragLeave}
+                                                    data-room-id={room.id}
+                                                >
+                                                    <div className="pl-4 truncate">{room.name}</div>
+                                                    <div className="truncate">{room.sector || 'N/A'}</div>
+                                                    <div className="truncate">{room.roomType || 'N/A'}</div>
+                                                    <div className="flex items-center">
+                                                        <span
+                                                            className="inline-block w-4 h-4 rounded-full mr-2"
+                                                            style={{ backgroundColor: room.colorCode || '#cccccc' }}
+                                                            title={room.colorCode || 'Pas de couleur'}
+                                                        />
+                                                        <span className="truncate">{room.colorCode || 'N/A'}</span>
+                                                    </div>
+                                                    <div className="flex justify-end pr-4 space-x-2">
+                                                        <button
+                                                            onClick={() => handleEditClick(room)}
+                                                            className={`p-1 ${isReordering
+                                                                    ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
+                                                                    : 'text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400'
+                                                                }`}
+                                                            disabled={isReordering}
+                                                            title={isReordering ? "Modification désactivée en mode réorganisation" : "Modifier"}
+                                                        >
+                                                            <PencilIcon className="w-5 h-5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteClick(room.id)}
+                                                            className={`p-1 ${isReordering
+                                                                    ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
+                                                                    : 'text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400'
+                                                                }`}
+                                                            disabled={isReordering}
+                                                            title={isReordering ? "Suppression désactivée en mode réorganisation" : "Supprimer"}
+                                                        >
+                                                            <TrashIcon className="w-5 h-5" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 italic ml-4 py-2">
+                                            Aucune salle dans ce secteur.
+                                        </p>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </div>
 
             {saveMessage && (
-                <div className="mt-6 bg-green-50 border-l-4 border-green-400 p-4 rounded-md">
-                    <div className="flex">
-                        <div className="ml-3">
+                <div className="mt-6 bg-green-50 border-l-4 border-green-400 p-4 rounded-md animate-fadeIn">
+                    <div className="flex items-center">
+                        {saveMessage.includes('en cours') ? (
+                            <span className="inline-block h-4 w-4 mr-3 rounded-full border-2 border-green-400 border-t-transparent animate-spin"></span>
+                        ) : (
+                            <CheckIcon className="h-5 w-5 mr-3 text-green-500" />
+                        )}
+                        <div>
                             <p className="text-sm text-green-700">{saveMessage}</p>
                         </div>
                     </div>
                 </div>
             )}
-
-            {showRoomOrderPanel && (
-                <RoomOrderPanel
-                    rooms={roomsForPanel}
-                    roomOrder={roomOrderForPanel}
-                    onSave={handleSaveRoomOrder}
-                    onClose={() => setShowRoomOrderPanel(false)}
-                />
-            )}
-        </div>
-    );
-};
-
-interface RoomOrderPanelProps {
-    rooms: RoomOrderPanelRoom[];
-    roomOrder: { orderedRoomIds: string[] };
-    onSave: (orderedRoomIds: string[]) => void;
-    onClose: () => void;
-}
-
-const RoomOrderPanel: React.FC<RoomOrderPanelProps> = ({
-    rooms,
-    roomOrder,
-    onSave,
-    onClose
-}) => {
-    const [sectorRooms, setSectorRooms] = useState<{ [sector: string]: RoomOrderPanelRoom[] }>({});
-    const [orderedSectors, setOrderedSectors] = useState<string[]>([]);
-
-    useEffect(() => {
-        const groupedRooms: { [sector: string]: RoomOrderPanelRoom[] } = {};
-        const initialOrderedSectors: string[] = [];
-
-        // Utiliser l'ordre existant dans roomOrder.orderedRoomIds pour déterminer l'ordre initial des secteurs et des salles
-        const orderedRoomIds = roomOrder.orderedRoomIds;
-        const roomMap = new Map(rooms.map(r => [r.id, r]));
-
-        orderedRoomIds.forEach(roomId => {
-            const room = roomMap.get(roomId);
-            if (room) {
-                if (!groupedRooms[room.sector]) {
-                    groupedRooms[room.sector] = [];
-                    initialOrderedSectors.push(room.sector);
-                }
-                groupedRooms[room.sector].push(room);
-                roomMap.delete(roomId); // Marquer comme traité
-            }
-        });
-
-        // Ajouter les salles restantes (non présentes dans l'ordre sauvegardé)
-        roomMap.forEach(room => {
-            if (!groupedRooms[room.sector]) {
-                groupedRooms[room.sector] = [];
-                initialOrderedSectors.push(room.sector);
-            }
-            groupedRooms[room.sector].push(room);
-        });
-
-        // S'assurer que toutes les salles dans chaque secteur sont triées selon l'ordre global si possible
-        Object.keys(groupedRooms).forEach(sector => {
-            groupedRooms[sector].sort((a, b) => {
-                const indexA = orderedRoomIds.indexOf(a.id);
-                const indexB = orderedRoomIds.indexOf(b.id);
-                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-                if (indexA !== -1) return -1;
-                if (indexB !== -1) return 1;
-                return a.name.localeCompare(b.name); // Fallback
-            });
-        });
-
-        setSectorRooms(groupedRooms);
-        setOrderedSectors(initialOrderedSectors);
-    }, [rooms, roomOrder]);
-
-    const handleDragEnd = (result: any) => {
-        console.log('Drag End Result:', result);
-        const { source, destination, draggableId, type } = result;
-
-        if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
-            return;
-        }
-
-        // --- Déplacement d'un SECTEUR --- (Identifié par type="SECTOR" sur le Droppable source/destination)
-        if (type === 'SECTOR') {
-            // draggableId est le nom du secteur
-            const newOrderedSectors = Array.from(orderedSectors);
-            // On retire l'élément à l'index source (l'index correspond à l'ordre des secteurs)
-            newOrderedSectors.splice(source.index, 1);
-            // On insère l'élément (draggableId = nom du secteur) à l'index de destination
-            newOrderedSectors.splice(destination.index, 0, draggableId);
-            setOrderedSectors(newOrderedSectors);
-            return;
-        }
-
-        // --- Déplacement d'une SALLE --- (Identifié par type="ROOM")
-        if (type === 'ROOM') {
-            const startSector = source.droppableId;
-            const endSector = destination.droppableId;
-
-            // Si déplacement dans le même secteur
-            if (startSector === endSector) {
-                const currentRooms = sectorRooms[startSector] || [];
-                const updatedRooms = Array.from(currentRooms);
-                const [movedRoom] = updatedRooms.splice(source.index, 1);
-                updatedRooms.splice(destination.index, 0, movedRoom);
-
-                setSectorRooms(prev => ({
-                    ...prev,
-                    [startSector]: updatedRooms
-                }));
-            } else {
-                // Déplacement inter-secteurs (optionnel, non implémenté)
-                // console.log("Déplacement inter-secteurs non géré pour le moment");
-            }
-        }
-    };
-
-    const saveRoomOrder = () => {
-        const finalOrderedRoomIds: string[] = [];
-
-        orderedSectors.forEach(sector => {
-            if (sectorRooms[sector]) {
-                sectorRooms[sector].forEach(room => {
-                    finalOrderedRoomIds.push(room.id);
-                });
-            }
-        });
-
-        onSave(finalOrderedRoomIds);
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-11/12 max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                        Réorganisation des salles de bloc
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                <div className="mb-4 flex items-center text-gray-600 dark:text-gray-300">
-                    <HeroArrowsUpDownIcon className="h-5 w-5 mr-2" />
-                    <span>Faire glisser les secteurs ou les salles pour réorganiser leur ordre d'affichage</span>
-                </div>
-
-                <DragDropContext onDragEnd={handleDragEnd}>
-                    <Droppable droppableId="all-sectors" type="SECTOR">
-                        {(provided) => (
-                            <div {...provided.droppableProps} ref={provided.innerRef}>
-                                {orderedSectors.map((sector, index) => (
-                                    <Draggable key={sector} draggableId={sector} index={index}>
-                                        {(providedSector, snapshotSector) => (
-                                            <div
-                                                ref={providedSector.innerRef}
-                                                {...providedSector.draggableProps}
-                                                className={`mb-6 border rounded-md ${snapshotSector.isDragging ? 'border-blue-300 shadow-lg' : 'border-gray-200 dark:border-gray-700'}`}
-                                            >
-                                                <div
-                                                    {...providedSector.dragHandleProps}
-                                                    className={`flex items-center text-lg font-medium mb-0 text-gray-800 dark:text-gray-200 p-2 rounded-t-md cursor-grab ${snapshotSector.isDragging ? 'bg-blue-100 dark:bg-blue-800' : 'bg-gray-100 dark:bg-gray-700'}`}
-                                                >
-                                                    <HeroArrowsUpDownIcon className="h-5 w-5 mr-2 text-gray-500 dark:text-gray-400" />
-                                                    {sector}
-                                                </div>
-
-                                                <Droppable droppableId={sector} type="ROOM">
-                                                    {(providedRoomList) => (
-                                                        <div
-                                                            {...providedRoomList.droppableProps}
-                                                            ref={providedRoomList.innerRef}
-                                                            className={`bg-gray-50 dark:bg-gray-800 rounded-b-md p-2 min-h-[50px] ${snapshotSector.isDragging ? 'opacity-50' : ''}`}
-                                                        >
-                                                            {(sectorRooms[sector] || []).map((room, roomIndex) => (
-                                                                <Draggable
-                                                                    key={room.id}
-                                                                    draggableId={room.id}
-                                                                    index={roomIndex}
-                                                                    isDragDisabled={snapshotSector.isDragging}
-                                                                >
-                                                                    {(providedRoom, snapshotRoom) => (
-                                                                        <div
-                                                                            ref={providedRoom.innerRef}
-                                                                            {...providedRoom.draggableProps}
-                                                                            {...providedRoom.dragHandleProps}
-                                                                            className={`p-3 mb-2 rounded-md flex justify-between items-center shadow-sm ${snapshotRoom.isDragging
-                                                                                ? "bg-blue-100 dark:bg-blue-900 border border-blue-300 dark:border-blue-700 scale-105"
-                                                                                : "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
-                                                                                } ${snapshotSector.isDragging ? 'cursor-not-allowed' : 'cursor-grab'}`}
-                                                                        >
-                                                                            <span className="font-medium text-gray-800 dark:text-gray-200">
-                                                                                {room.name}
-                                                                            </span>
-                                                                            <HeroArrowsUpDownIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-                                                                        </div>
-                                                                    )}
-                                                                </Draggable>
-                                                            ))}
-                                                            {providedRoomList.placeholder}
-                                                        </div>
-                                                    )}
-                                                </Droppable>
-                                            </div>
-                                        )}
-                                    </Draggable>
-                                ))}
-                                {provided.placeholder}
-                            </div>
-                        )}
-                    </Droppable>
-                </DragDropContext>
-
-                <div className="flex justify-end mt-6 space-x-3">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                    >
-                        Annuler
-                    </button>
-                    <button
-                        onClick={saveRoomOrder}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                        Enregistrer l'ordre
-                    </button>
-                </div>
-            </div>
         </div>
     );
 };

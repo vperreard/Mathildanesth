@@ -301,4 +301,65 @@
     .fc-toolbar-title {
         font-size: 1rem !important;
     }
+
+    /* Réduire les boutons sur mobile */
+    .fc-button-primary {
+        padding: 4px 8px !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Ajuster l'espacement des en-têtes de jour */
+    .calendar-day-header {
+        font-size: 0.75rem;
+        padding: 4px 0 !important;
+    }
+
+    /* Ajuster la hauteur des événements sur mobile */
+    .event-grid-item {
+        padding: 2px 4px;
+        margin: 1px 0;
+    }
+
+    /* Optimiser la hauteur des cellules de jour */
+    .calendar-day-cell {
+        min-height: 60px;
+    }
+}
+
+/* Très petits écrans */
+@media (max-width: 480px) {
+    .calendar-day-cell {
+        min-height: 50px;
+    }
+
+    .fc-toolbar-title {
+        font-size: 0.85rem !important;
+    }
+
+    /* Masquer les icônes de statut sur très petits écrans */
+    .event-status-icon {
+        display: none;
+    }
+
+    /* Simplifier les événements */
+    .event-grid-item {
+        padding: 1px 2px;
+    }
+
+    .event-title {
+        font-size: 0.7rem;
+        margin-bottom: 0;
+    }
+
+    /* Réduire davantage les en-têtes de jour */
+    .calendar-day-header {
+        font-size: 0.7rem;
+        padding: 2px 0 !important;
+    }
+
+    /* Optimiser les boutons pour très petits écrans */
+    .fc-button-primary {
+        padding: 2px 6px !important;
+        font-size: 0.75rem !important;
+    }
 }

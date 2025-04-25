@@ -22,6 +22,7 @@ import SectorsConfigPanel from './SectorsConfigPanel';
 import PlanningRulesConfigPanel from './PlanningRulesConfigPanel';
 import AssignmentsConfigPanel from './AssignmentsConfigPanel';
 import WeeklyPlanningConfigPanel from './WeeklyPlanningConfigPanel';
+import LeaveManagementPanel from './LeaveManagementPanel';
 
 // Importer les composants UI
 import {
@@ -49,6 +50,13 @@ const ConfigurationPanelPage: React.FC = () => {
             icon: <Calendar className="h-5 w-5" />,
             color: 'bg-blue-600',
             hoverColor: 'hover:bg-blue-100'
+        },
+        {
+            id: 'leave-management',
+            label: 'Gestion des Congés Annuels',
+            icon: <FileText className="h-5 w-5" />,
+            color: 'bg-purple-600',
+            hoverColor: 'hover:bg-purple-100'
         },
         {
             id: 'specialties',
@@ -126,6 +134,8 @@ const ConfigurationPanelPage: React.FC = () => {
                 return <AssignmentsConfigPanel />;
             case 'weekly-planning':
                 return <WeeklyPlanningConfigPanel />;
+            case 'leave-management':
+                return <LeaveManagementPanel />;
             case 'others':
                 return (
                     <Card>

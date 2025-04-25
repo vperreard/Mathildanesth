@@ -2,7 +2,7 @@ export type UserRole = 'MAR' | 'IADE' | 'SURGEON';
 
 export type DisplayMode = 'normal' | 'condensed';
 
-export type PersonnelFormat = 'nom' | 'nomPrenom' | 'prenom-nom' | 'nom-specialite' | 'initiale-nom' | 'full' | 'lastName' | 'firstName' | 'initials' | 'firstInitial-lastName';
+export type PersonnelFormat = 'nom' | 'nomPrenom' | 'prenom-nom' | 'nom-specialite' | 'initiale-nom' | 'alias' | 'full' | 'lastName' | 'firstName' | 'initials' | 'firstInitial-lastName';
 
 export type TextStyle = 'normal' | 'bold' | 'italic' | 'boldItalic';
 
@@ -23,7 +23,7 @@ export type PersonnelDisplayConfig = {
         casse: TextCase;
         fontSize: FontSize;
         colorCode: string;
-
+        showRolePrefix?: boolean;
     };
     mar: {
         format: PersonnelFormat;
@@ -31,6 +31,7 @@ export type PersonnelDisplayConfig = {
         casse: TextCase;
         fontSize: FontSize;
         colorCode: string;
+        showRolePrefix?: boolean;
     };
     iade: {
         format: PersonnelFormat;
@@ -38,6 +39,7 @@ export type PersonnelDisplayConfig = {
         casse: TextCase;
         fontSize: FontSize;
         colorCode: string;
+        showRolePrefix?: boolean;
     };
 };
 
@@ -58,7 +60,6 @@ export type DisplayConfig = {
     borderStyle: BorderStyle;
     borderWidth: BorderWidth;
     cardStyle: CardStyle;
-    showRole: boolean;
 };
 
 // Types compatibles avec la page principale
@@ -68,6 +69,7 @@ export type User = {
     prenom: string;
     role: UserRole;
     specialty?: string;
+    alias?: string;
     // Pour la compatibilité avec la page principale
     firstName?: string;
     lastName?: string;

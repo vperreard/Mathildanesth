@@ -24,6 +24,7 @@ import {
     Edit,
     AlertTriangle
 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface LeaveBalance {
     totalDays: number;
@@ -45,6 +46,7 @@ type SortableFilterableKeys = keyof LeaveWithUser | 'user' | 'type' | 'startDate
 
 export default function LeavesPage() {
     const { user, isLoading: authLoading } = useAuth();
+    const searchParams = useSearchParams();
     const [balance, setBalance] = useState<LeaveBalance | null>(null);
     const [loadingBalance, setLoadingBalance] = useState(true);
     const [errorBalance, setErrorBalance] = useState<string | null>(null);
@@ -74,6 +76,8 @@ export default function LeavesPage() {
     const [mounted, setMounted] = useState(false);
 
     const currentYear = new Date().getFullYear();
+
+    const router = useRouter();
 
     // Récupérer les congés
     const fetchLeaves = useCallback(async () => {
@@ -145,6 +149,16 @@ export default function LeavesPage() {
         setLeaveToEdit(null);
         setIsModalOpen(true);
     };
+
+    // Vérifier si nous devons ouvrir automatiquement le formulaire de demande
+    useEffect(() => {
+        const newRequest = searchParams?.get('newRequest');
+        if (newRequest === 'true' && !isModalOpen) {
+            handleNewLeaveClick();
+            // Supprimer le paramètre newRequest de l'URL pour éviter la réouverture
+            router.replace('/leaves', { scroll: false });
+        }
+    }, [searchParams, isModalOpen, router]);
 
     const handleEditLeaveClick = (leave: LeaveToModify) => {
         setLeaveToEdit(leave);

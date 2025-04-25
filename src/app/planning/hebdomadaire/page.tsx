@@ -15,7 +15,17 @@ import { motion } from "framer-motion";
 
 // Import du panneau de configuration
 import DisplayConfigPanel, { defaultDisplayConfig } from "./DisplayConfigPanel";
-import { DisplayConfig, Room as RoomType, RoomOrderConfig } from "./types";
+import {
+    Room as RoomType,
+    RoomOrderConfig,
+    User as ConfigUser,
+    Surgeon as ConfigSurgeon,
+    PersonnelDisplayConfig,
+    PersonnelFormat,
+    TextStyle,
+    TextCase,
+    FontSize
+} from "./types";
 
 // Types
 type Role = "SURGEON" | "MAR" | "IADE";
@@ -26,6 +36,7 @@ type User = {
     lastName: string;
     role: Role;
     specialty?: string;
+    alias?: string;
 };
 
 type Room = {
@@ -47,6 +58,64 @@ type DayAssignment = {
 
 type SectorColors = {
     [key: string]: string;
+};
+
+// Type mis à jour pour DisplayConfig
+type DisplayConfig = {
+    personnel: {
+        chirurgien?: {
+            format?: string;
+            style?: string;
+            casse?: string;
+            fontSize?: string;
+            colorCode?: string;
+            showRolePrefix?: boolean;
+            showFirstName?: boolean;
+            showLastName?: boolean;
+            showSpecialty?: boolean;
+            showAlias?: boolean;
+        };
+        mar?: {
+            format?: string;
+            style?: string;
+            casse?: string;
+            fontSize?: string;
+            colorCode?: string;
+            showRolePrefix?: boolean;
+            showFirstName?: boolean;
+            showLastName?: boolean;
+            showSpecialty?: boolean;
+            showAlias?: boolean;
+        };
+        iade?: {
+            format?: string;
+            style?: string;
+            casse?: string;
+            fontSize?: string;
+            colorCode?: string;
+            showRolePrefix?: boolean;
+            showFirstName?: boolean;
+            showLastName?: boolean;
+            showSpecialty?: boolean;
+            showAlias?: boolean;
+        };
+    };
+    couleurs: {
+        chirurgiens: Record<string, string>;
+    };
+    backgroundOpacity?: number;
+    borderStyle?: string;
+    borderWidth?: string;
+    cardStyle?: string;
+    vacation?: {
+        matin: string;
+        apresmidi: string;
+        full: string;
+        conflit: string;
+        recent: string;
+        vide: string;
+        border: string;
+    };
 };
 
 // Mock data
@@ -154,16 +223,10 @@ export default function WeeklyPlanningPage() {
 
     // État pour le panneau de configuration
     const [showConfigPanel, setShowConfigPanel] = useState(false);
-    const [displayConfig, setDisplayConfig] = useState<DisplayConfig>(defaultDisplayConfig);
+    const [displayConfig, setDisplayConfig] = useState<DisplayConfig | null>(null);
 
     // État pour l'ordre personnalisé des salles
     const [roomOrderConfig, setRoomOrderConfig] = useState<RoomOrderConfig>({ orderedRoomIds: [] });
-
-    // Paramètres d'affichage étendus - à supprimer après migration vers DisplayConfig
-    const [nameFormat, setNameFormat] = useState<'full' | 'lastName' | 'firstName' | 'initials' | 'firstInitial-lastName' | 'nom' | 'nomPrenom' | 'prenom-nom' | 'nom-specialite' | 'initiale-nom'>('full');
-    const [fontStyle, setFontStyle] = useState<'normal' | 'bold' | 'italic' | 'bold-italic'>('normal');
-    const [fontSize, setFontSize] = useState('14px');
-    const [showRoles, setShowRoles] = useState(true);
 
     // État pour stocker la configuration active
     const [activeConfigId, setActiveConfigId] = useState<string | null>(null);
@@ -183,98 +246,79 @@ export default function WeeklyPlanningPage() {
 
     // Load data
     useEffect(() => {
-        setIsLoading(true);
-
-        // Simuler un appel API pour les préférences de configuration
-        const loadConfigPreferences = async () => {
-            // Dans une implémentation réelle, cette données viendrait d'une API
-            // Simulons pour le moment une configuration par défaut
-
-            // Récupérer la configuration par défaut (on simule la récupération)
-            const defaultConfig = {
-                id: "1",
-                roomIds: [] as string[], // vide = toutes les salles
-                personnelIds: [] as string[], // vide = tout le personnel
-                displaySettings: {
-                    compactView: false,
-                    nameFormat: 'full' as const,
-                    fontStyle: 'normal' as const,
-                    fontSize: '14px',
-                    showRoles: true
-                }
-            };
-
-            setActiveConfigId(defaultConfig.id);
-            setVisibleRoomIds(defaultConfig.roomIds);
-            setVisiblePersonnelIds(defaultConfig.personnelIds);
-
-            // Appliquer les paramètres d'affichage
-            setCompactView(defaultConfig.displaySettings.compactView);
-            setNameFormat(defaultConfig.displaySettings.nameFormat);
-            setFontStyle(defaultConfig.displaySettings.fontStyle);
-            setFontSize(defaultConfig.displaySettings.fontSize);
-            setShowRoles(defaultConfig.displaySettings.showRoles);
-        };
-
         const fetchDataAndConfig = async () => {
+            setIsLoading(true);
             try {
-                // Charger la configuration d'affichage
-                await loadConfigPreferences();
+                // Charger la configuration d'affichage depuis l'API
+                const configRes = await fetch('/api/user/preferences');
+                if (configRes.ok) {
+                    const configData = await configRes.json();
+                    setDisplayConfig(configData as DisplayConfig);
+                } else {
+                    console.error("Erreur lors du chargement de la config d'affichage:", configRes.statusText);
+                    setDisplayConfig(defaultDisplayConfig); // Fallback sur défaut
+                }
 
-                // Charger les données
+                // Charger les autres données (users, rooms, assignments)
+                // La partie mock data actuelle est conservée pour l'instant
                 const fetchedUsers = getMockUsers();
                 setUsers(fetchedUsers);
 
                 const fetchedRooms = getMockRooms();
 
                 // Appliquer l'ordre personnalisé des salles si disponible
+                const savedRoomOrder = localStorage.getItem('roomOrderConfig');
+                let currentRoomOrderConfig = { orderedRoomIds: [] as (string | number)[] };
+                if (savedRoomOrder) {
+                    try {
+                        currentRoomOrderConfig = JSON.parse(savedRoomOrder) as RoomOrderConfig;
+                        setRoomOrderConfig(currentRoomOrderConfig);
+                    } catch (e) {
+                        console.error('Erreur lecture roomOrderConfig:', e);
+                    }
+                }
+
                 const orderedRooms = fetchedRooms.map(room => {
-                    // Si la salle est dans l'ordre personnalisé, lui donner cet ordre
-                    const orderIndex = roomOrderConfig.orderedRoomIds.indexOf(room.id);
+                    const orderIndex = currentRoomOrderConfig.orderedRoomIds.indexOf(room.id);
                     if (orderIndex !== -1) {
-                        return {
-                            ...room,
-                            order: orderIndex
-                        };
+                        return { ...room, order: orderIndex };
                     }
                     return room;
                 });
 
-                // Trier les salles par ordre si défini, ou par secteur/nom par défaut
                 const sortedRooms = [...orderedRooms].sort((a, b) => {
-                    // Si les deux salles ont un ordre défini, les comparer
                     if (a.order !== undefined && b.order !== undefined) {
                         return a.order - b.order;
                     }
-                    // Si seulement a a un ordre, le placer avant
                     if (a.order !== undefined) {
                         return -1;
                     }
-                    // Si seulement b a un ordre, le placer avant
                     if (b.order !== undefined) {
                         return 1;
                     }
-                    // Sinon, trier par secteur puis par nom
                     if (a.sector !== b.sector) {
                         return a.sector.localeCompare(b.sector);
                     }
                     return a.name.localeCompare(b.name);
                 });
-
                 setRooms(sortedRooms);
 
                 const fetchedAssignments = getMockAssignments(currentWeekStart);
                 setAssignments(fetchedAssignments);
 
-                setIsLoading(false);
             } catch (error) {
                 console.error('Erreur lors du chargement des données:', error);
+                // En cas d'erreur majeure (ex: API down), utiliser config par défaut
+                if (displayConfig === null) {
+                    setDisplayConfig(defaultDisplayConfig);
+                }
+            } finally {
                 setIsLoading(false);
             }
         };
 
         fetchDataAndConfig();
-    }, [currentWeekStart, roomOrderConfig.orderedRoomIds]);
+    }, [currentWeekStart]); // Retirer roomOrderConfig des dépendances ici, géré séparément
 
     // Fonction pour sauvegarder l'ordre des salles
     const handleSaveRoomOrder = (orderedRoomIds: (string | number)[]) => {
@@ -293,8 +337,14 @@ export default function WeeklyPlanningPage() {
         alert('L\'ordre des salles a été sauvegardé avec succès !');
     };
 
-    // Récupérer l'ordre des salles depuis le localStorage au chargement initial
+    // Déplacer les setState qui sont dans le corps principal du composant vers des useEffect
+    // Par exemple, remplacer un code comme:
+    // if (someCondition) {
+    //   setState(newValue);
+    // }
+    // par:
     useEffect(() => {
+        // Nettoyer les roomOrderConfig et fetchDataAndConfig pour éviter les setState pendant le rendu
         if (typeof window !== 'undefined') {
             const savedRoomOrder = localStorage.getItem('roomOrderConfig');
             if (savedRoomOrder) {
@@ -304,6 +354,8 @@ export default function WeeklyPlanningPage() {
                 } catch (e) {
                     console.error('Erreur lors de la lecture de l\'ordre des salles :', e);
                 }
+            } else {
+                console.log("Aucun ordre de salles trouvé dans localStorage. Utilisation de l'ordre par défaut.");
             }
         }
     }, []);
@@ -336,49 +388,134 @@ export default function WeeklyPlanningPage() {
         return roomVisible && surgeonVisible;
     });
 
-    // Fonction pour formater le nom selon le format choisi
-    const formatName = (firstName: string, lastName: string, format: typeof nameFormat, specialty?: string): string => {
-        // Support pour les anciens formats (à conserver pendant la migration)
-        switch (format) {
-            case 'full':
-                return `${firstName} ${lastName}`;
-            case 'lastName':
-                return lastName;
-            case 'firstName':
-                return firstName;
-            case 'initials':
-                return `${firstName.charAt(0)}.${lastName.charAt(0)}.`;
-            case 'firstInitial-lastName':
-                return `${firstName.charAt(0)}. ${lastName}`;
-            // Support pour les nouveaux formats du DisplayConfigPanel
-            case 'nom':
-                return lastName;
-            case 'nomPrenom':
-                return `${lastName} ${firstName}`;
-            case 'prenom-nom':
-                return `${firstName} ${lastName}`;
-            case 'nom-specialite':
-                return `${lastName}${specialty ? ` (${specialty})` : ''}`;
-            case 'initiale-nom':
-                return `${firstName.charAt(0)}. ${lastName}`;
-            default:
-                return `${firstName} ${lastName}`;
+    // ========= Nouvelles fonctions utilitaires utilisant displayConfig =========
+
+    const formatNameWithConfig = (person: User | null, role: 'chirurgien' | 'mar' | 'iade'): string => {
+        if (!person || !displayConfig || !displayConfig.personnel || !displayConfig.personnel[role]) {
+            return person ? `${person.firstName} ${person.lastName}` : '';
+        }
+
+        // Adapter le type User local au type attendu par la logique de formatage
+        const configPerson: ConfigUser = {
+            id: person.id,
+            nom: person.lastName,
+            prenom: person.firstName,
+            role: person.role,
+            specialty: person.specialty,
+            alias: person.alias
+        };
+
+        const config = displayConfig.personnel[role];
+
+        let name = '';
+        const { prenom, nom, alias, specialty } = configPerson;
+
+        // Définir le format de nom en fonction de la configuration disponible
+        if (config.format) {
+            // Utiliser le format spécifié directement
+            switch (config.format) {
+                case 'nom': name = nom; break;
+                case 'nomPrenom': name = `${nom} ${prenom}`; break;
+                case 'prenom-nom': name = `${prenom} ${nom}`; break;
+                case 'nom-specialite': name = `${nom}${specialty ? ` (${specialty})` : ''}`; break;
+                case 'initiale-nom': name = prenom && prenom.length > 0 ? `${prenom.charAt(0)}. ${nom}` : nom; break;
+                case 'alias':
+                    if (alias && alias.trim() !== '') {
+                        name = alias;
+                    } else {
+                        name = prenom && prenom.length > 0 ? `${prenom.charAt(0)}. ${nom}` : nom;
+                    }
+                    break;
+                case 'full': name = `${prenom} ${nom}`; break;
+                case 'lastName': name = nom; break;
+                case 'firstName': name = prenom; break;
+                case 'initials': name = prenom && nom && prenom.length > 0 && nom.length > 0 ? `${prenom.charAt(0)}.${nom.charAt(0)}.` : nom; break;
+                case 'firstInitial-lastName': name = prenom && prenom.length > 0 ? `${prenom.charAt(0)}. ${nom}` : nom; break;
+                default: name = nom;
+            }
+        } else {
+            // Construire le nom en fonction des propriétés individuelles (nouvelle structure)
+            const nameParts: string[] = [];
+            if (config.showFirstName) nameParts.push(prenom);
+            if (config.showLastName !== false) nameParts.push(nom); // Par défaut, montrer le nom
+            if (config.showSpecialty && specialty) nameParts.push(`(${specialty})`);
+            if (config.showAlias && alias && alias.trim() !== '') {
+                return alias;
+            }
+
+            name = nameParts.join(' ');
+            if (!name) name = nom; // Fallback au nom de famille si rien n'est sélectionné
+        }
+
+        // Appliquer le style de casse si configuré
+        if (config.casse) {
+            switch (config.casse) {
+                case 'uppercase': name = name.toUpperCase(); break;
+                case 'lowercase': name = name.toLowerCase(); break;
+                case 'capitalize': name = name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '); break;
+                default: break;
+            }
+        }
+
+        // Ajouter le préfixe de rôle si configuré
+        if (config.showRolePrefix) {
+            let rolePrefix = '';
+            switch (role) {
+                case 'chirurgien': rolePrefix = 'Chir: '; break;
+                case 'mar': rolePrefix = 'MAR: '; break;
+                case 'iade': rolePrefix = 'IADE: '; break;
+            }
+            return `${rolePrefix}${name}`;
+        } else {
+            return name;
         }
     };
 
-    // Fonction pour obtenir la classe CSS pour le style de police
-    const getFontStyleClass = (style: typeof fontStyle): string => {
-        switch (style) {
-            case 'bold':
-                return 'font-bold';
-            case 'italic':
-                return 'italic';
-            case 'bold-italic':
-                return 'font-bold italic';
-            default:
-                return '';
+    // Fonction utilitaire pour déterminer la couleur du texte en fonction de la couleur d'arrière-plan
+    const getTextColorForBackground = (backgroundColor: string): string => {
+        // Convertir la couleur hex en RGB
+        let hex = backgroundColor.replace('#', '');
+        if (hex.length === 3) {
+            hex = hex.split('').map(char => char + char).join('');
         }
+
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+
+        // Calculer la luminosité (formule standard)
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+        // Si la luminance est élevée (couleur claire), utiliser du texte foncé, sinon du texte clair
+        return luminance > 0.5 ? '#000000' : '#ffffff';
     };
+
+    const getStyleWithConfig = (assignment: DayAssignment | null | undefined): React.CSSProperties => {
+        if (!assignment) {
+            return {
+                backgroundColor: "#e5e7eb", // Couleur grise par défaut
+                color: "#374151"
+            };
+        }
+
+        const surgeonId = assignment.surgeonId;
+        if (!surgeonId || !displayConfig || !displayConfig.couleurs || !displayConfig.couleurs.chirurgiens) {
+            return {
+                backgroundColor: "#e5e7eb",
+                color: "#374151"
+            }; // Style par défaut si pas de configuration
+        }
+
+        const surgeonColorMap = displayConfig.couleurs.chirurgiens;
+        const color = surgeonColorMap[surgeonId] || "#e5e7eb"; // Couleur par défaut si pas de correspondance
+
+        return {
+            backgroundColor: color,
+            color: getTextColorForBackground(color)
+        };
+    };
+
+    // =====================================================================
 
     // Navigation functions
     const goToPreviousWeek = () => {
@@ -428,41 +565,46 @@ export default function WeeklyPlanningPage() {
         const iade = assignment.iadeId ? getUserById(assignment.iadeId) : null;
         const room = getRoomById(assignment.roomId);
 
+        // Vérifier si les données essentielles sont présentes
         if (!surgeon || !room) return null;
 
-        // Extraction du nom de couleur du secteur pour l'utiliser dans les classes d'opacité
-        const sectorColorMatch = sectors[room.sector].match(/(bg-\w+-\d+)/);
-        const sectorColor = sectorColorMatch ? sectorColorMatch[1] : '';
+        // Styles et formatage depuis displayConfig (avec vérification de sécurité)
+        const surgeonStyle = getStyleWithConfig(assignment);
+        const marStyle = getStyleWithConfig(assignment);
+        const iadeStyle = getStyleWithConfig(assignment);
 
-        // Classe CSS pour le style de police
-        const nameStyleClass = getFontStyleClass(fontStyle);
+        const sectorColorMatch = sectors[room.sector]?.match(/(bg-\w+-\d+)/);
+        const sectorColor = sectorColorMatch ? sectorColorMatch[1] : 'bg-gray-100'; // Fallback color
+
+        // Appliquer l'opacité de fond configurée avec vérification de sécurité
+        const opacityValue = displayConfig?.backgroundOpacity ? Math.round(displayConfig.backgroundOpacity * 100) : 50;
+        const cardBgStyle = assignment.period === "MORNING"
+            ? sectors[room.sector]
+            : `${sectorColor} bg-opacity-${opacityValue} dark:bg-opacity-${opacityValue}`;
 
         return (
             <div
                 key={assignment.id}
-                className={`p-2 mb-1 rounded border ${assignment.period === "MORNING"
-                    ? `${sectors[room.sector]} border-l-4`
-                    : `${sectorColor} bg-opacity-40 dark:bg-opacity-30 border-r-4 border-${room.sector.toLowerCase()}`
-                    }`}
+                className={`p-2 mb-1 rounded border ${cardBgStyle}`}
             >
-                <div className={`font-semibold text-sm ${nameStyleClass}`} style={{ fontSize }}>
-                    {formatName(surgeon.firstName, surgeon.lastName, nameFormat, surgeon.specialty)}
+                {/* Chirurgien */}
+                <div style={surgeonStyle}>
+                    {formatNameWithConfig(surgeon, 'chirurgien')}
                 </div>
 
-                {showRoles && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                        {mar && (
-                            <span className={`text-xs px-1 rounded ${roleColors.MAR} ${nameStyleClass}`} style={{ fontSize: `calc(${fontSize} - 2px)` }}>
-                                MAR: {formatName(mar.firstName, mar.lastName, nameFormat, mar.specialty)}
-                            </span>
-                        )}
-                        {iade && (
-                            <span className={`text-xs px-1 rounded ${roleColors.IADE} ${nameStyleClass}`} style={{ fontSize: `calc(${fontSize} - 2px)` }}>
-                                IADE: {formatName(iade.firstName, iade.lastName, nameFormat, iade.specialty)}
-                            </span>
-                        )}
-                    </div>
-                )}
+                {/* MAR et IADE */}
+                <div className="flex flex-wrap gap-1 mt-1">
+                    {mar && (
+                        <span style={marStyle}>
+                            {formatNameWithConfig(mar, 'mar')}
+                        </span>
+                    )}
+                    {iade && (
+                        <span style={iadeStyle} className={mar ? 'ml-2' : ''}> {/* Ajoute marge si MAR présent */}
+                            {formatNameWithConfig(iade, 'iade')}
+                        </span>
+                    )}
+                </div>
             </div>
         );
     };
@@ -534,20 +676,30 @@ export default function WeeklyPlanningPage() {
 
         if (!surgeon || !room) return null;
 
-        // Extraction du nom de couleur du secteur pour l'utiliser dans les classes d'opacité
-        const sectorColorMatch = sectors[room.sector].match(/(bg-\w+-\d+)/);
-        const sectorColor = sectorColorMatch ? sectorColorMatch[1] : '';
+        // Utiliser la config pour le style (partiellement ou totalement)
+        const surgeonStyle = getStyleWithConfig(assignment);
+
+        // Pour la vue compacte, on peut choisir de forcer une petite taille
+        // ou utiliser celle de la config. Utilisons celle de la config pour l'instant.
+        // surgeonStyle.fontSize = '0.75rem'; // Forcer taille xs
+
+        const sectorColorMatch = sectors[room.sector]?.match(/(bg-\w+-\d+)/);
+        const sectorColor = sectorColorMatch ? sectorColorMatch[1] : 'bg-gray-100';
+
+        // Appliquer l'opacité configurée (avec vérification de sécurité)
+        const opacityValue = displayConfig?.backgroundOpacity ? Math.round(displayConfig.backgroundOpacity * 100) : 50;
+        const cardBgStyle = assignment.period === "MORNING"
+            ? sectors[room.sector]
+            : `${sectorColor} bg-opacity-${opacityValue} dark:bg-opacity-${opacityValue}`;
 
         return (
             <div
                 key={assignment.id}
-                className={`p-1 mb-1 rounded border text-xs ${assignment.period === "MORNING"
-                    ? `${sectors[room.sector]} border-l-2`
-                    : `${sectorColor} bg-opacity-40 dark:bg-opacity-30 border-r-2 border-${room.sector.toLowerCase()}`
-                    }`}
+                className={`p-1 mb-1 rounded border text-xs ${cardBgStyle}`}
             >
-                <div className="font-medium text-xs truncate">
-                    {surgeon.firstName.charAt(0)}. {surgeon.lastName}
+                {/* Utiliser le style et format configurés */}
+                <div style={surgeonStyle} className="truncate">
+                    {formatNameWithConfig(surgeon, 'chirurgien')}
                 </div>
             </div>
         );
@@ -555,6 +707,15 @@ export default function WeeklyPlanningPage() {
 
     const renderSurgeonView = () => {
         const weekDays = getWeekDays();
+
+        // Ajout de la condition pour retourner early
+        if (!displayConfig) {
+            return (
+                <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+                    Chargement de la configuration...
+                </div>
+            );
+        }
 
         return (
             <div className={`mt-4 overflow-x-auto ${compactView ? 'scale-compact' : ''}`}>
@@ -577,10 +738,10 @@ export default function WeeklyPlanningPage() {
                         {filteredSurgeons.map((surgeon) => (
                             <tr key={surgeon.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                                 <td className={`py-2 px-3 border border-gray-300 dark:border-gray-700 font-medium ${compactView ? 'compact-cell' : ''}`}>
-                                    <div className={compactView ? 'text-xs' : ''}>{surgeon.firstName} {surgeon.lastName}</div>
-                                    {surgeon.specialty && !compactView && (
-                                        <div className="text-xs text-gray-600 dark:text-gray-400">{surgeon.specialty}</div>
-                                    )}
+                                    {/* Formater nom chirurgien avec config */}
+                                    <div style={getStyleWithConfig(null)}>
+                                        {formatNameWithConfig(surgeon, 'chirurgien')}
+                                    </div>
                                 </td>
                                 {weekDays.map((day) => {
                                     const surgeonAssignments = getSurgeonDailyAssignments(day, surgeon.id);
@@ -593,25 +754,38 @@ export default function WeeklyPlanningPage() {
                                                 <div className="flex-1">
                                                     {morningAssignments.map(assignment => {
                                                         const room = getRoomById(assignment.roomId);
+                                                        const mar = assignment.marId ? getUserById(assignment.marId) : null;
+                                                        const iade = assignment.iadeId ? getUserById(assignment.iadeId) : null;
 
                                                         if (!room) return null;
+
+                                                        const cardBgStyle = sectors[room.sector];
+                                                        const roomStyle = { /* Pourrait utiliser config générale */ };
+                                                        const marStyle = getStyleWithConfig(assignment);
+                                                        const iadeStyle = getStyleWithConfig(assignment);
 
                                                         return compactView ? (
                                                             <div
                                                                 key={assignment.id}
-                                                                className={`p-1 mb-1 rounded border text-xs ${sectors[room.sector]} border-l-2`}
+                                                                className={`p-1 mb-1 rounded border text-xs ${cardBgStyle} border-l-2`}
+                                                                style={roomStyle}
                                                             >
                                                                 <div className="font-medium text-xs truncate">{room.name}</div>
+                                                                {/* Optionnel: afficher MAR/IADE en compact ? */}
                                                             </div>
                                                         ) : (
                                                             <div
                                                                 key={assignment.id}
-                                                                className={`p-2 mb-1 rounded border ${sectors[room.sector]} border-l-4`}
+                                                                className={`p-2 mb-1 rounded border ${cardBgStyle} border-l-4`}
+                                                                style={roomStyle}
                                                             >
                                                                 <div className="font-semibold text-sm">{room.name}</div>
                                                                 <div className="text-xs text-gray-700 dark:text-gray-300">
                                                                     Matin
                                                                 </div>
+                                                                {/* Afficher MAR/IADE avec config */}
+                                                                {mar && <div style={marStyle}>{formatNameWithConfig(mar, 'mar')}</div>}
+                                                                {iade && <div style={iadeStyle}>{formatNameWithConfig(iade, 'iade')}</div>}
                                                             </div>
                                                         );
                                                     })}
@@ -619,29 +793,42 @@ export default function WeeklyPlanningPage() {
                                                 <div className="flex-1">
                                                     {afternoonAssignments.map(assignment => {
                                                         const room = getRoomById(assignment.roomId);
+                                                        const mar = assignment.marId ? getUserById(assignment.marId) : null;
+                                                        const iade = assignment.iadeId ? getUserById(assignment.iadeId) : null;
 
                                                         if (!room) return null;
 
-                                                        // Extraction du nom de couleur pour l'utiliser dans les classes d'opacité
-                                                        const sectorColorMatch = sectors[room.sector].match(/(bg-\w+-\d+)/);
-                                                        const sectorColor = sectorColorMatch ? sectorColorMatch[1] : '';
+                                                        const sectorColorMatch = sectors[room.sector]?.match(/(bg-\w+-\d+)/);
+                                                        const sectorColor = sectorColorMatch ? sectorColorMatch[1] : 'bg-gray-100';
+                                                        // Vérification de sécurité pour displayConfig
+                                                        const opacityValue = displayConfig?.backgroundOpacity ? Math.round(displayConfig.backgroundOpacity * 100) : 50;
+                                                        const cardBgStyle = `${sectorColor} bg-opacity-${opacityValue} dark:bg-opacity-${opacityValue}`;
+                                                        const roomStyle = { /* Pourrait utiliser config générale */ };
+                                                        const marStyle = getStyleWithConfig(assignment);
+                                                        const iadeStyle = getStyleWithConfig(assignment);
 
                                                         return compactView ? (
                                                             <div
                                                                 key={assignment.id}
-                                                                className={`p-1 mb-1 rounded border text-xs ${sectorColor} bg-opacity-40 dark:bg-opacity-30 border-r-2 border-${room.sector.toLowerCase()}`}
+                                                                className={`p-1 mb-1 rounded border text-xs ${cardBgStyle} border-r-2`}
+                                                                style={roomStyle}
                                                             >
                                                                 <div className="font-medium text-xs truncate">{room.name}</div>
+                                                                {/* Optionnel: afficher MAR/IADE en compact ? */}
                                                             </div>
                                                         ) : (
                                                             <div
                                                                 key={assignment.id}
-                                                                className={`p-2 mb-1 rounded border ${sectorColor} bg-opacity-40 dark:bg-opacity-30 border-r-4 border-${room.sector.toLowerCase()}`}
+                                                                className={`p-2 mb-1 rounded border ${cardBgStyle} border-r-4`}
+                                                                style={roomStyle}
                                                             >
                                                                 <div className="font-semibold text-sm">{room.name}</div>
                                                                 <div className="text-xs text-gray-700 dark:text-gray-300">
                                                                     Après-midi
                                                                 </div>
+                                                                {/* Afficher MAR/IADE avec config */}
+                                                                {mar && <div style={marStyle}>{formatNameWithConfig(mar, 'mar')}</div>}
+                                                                {iade && <div style={iadeStyle}>{formatNameWithConfig(iade, 'iade')}</div>}
                                                             </div>
                                                         );
                                                     })}
@@ -752,15 +939,96 @@ export default function WeeklyPlanningPage() {
             });
     };
 
-    // Mise à jour de la configuration d'affichage
-    const handleConfigChange = (newConfig: DisplayConfig) => {
+    // Mise à jour de la configuration d'affichage via API
+    const handleConfigChange = async (newConfig: DisplayConfig) => {
+        // Mettre à jour l'état local immédiatement pour la réactivité
         setDisplayConfig(newConfig);
 
-        // Sauvegarder dans le localStorage
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('displayConfig', JSON.stringify(newConfig));
+        // Sauvegarder via l'API PUT
+        try {
+            const response = await fetch('/api/user/preferences', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newConfig),
+            });
+
+            if (!response.ok) {
+                console.error("Erreur lors de la sauvegarde de la config:", response.statusText);
+                // Optionnel: Afficher un message d'erreur à l'utilisateur
+                // Optionnel: Revenir à la config précédente ?
+            } else {
+                console.log("Configuration d'affichage sauvegardée via API.");
+            }
+        } catch (error) {
+            console.error("Erreur réseau lors de la sauvegarde de la config:", error);
+            // Optionnel: Afficher un message d'erreur à l'utilisateur
         }
     };
+
+    // Correction du problème setState during render en déplaçant les logiques de setState dans des useEffect
+    // Création d'un nouvel useEffect pour initialiser les états après le chargement des données
+    useEffect(() => {
+        // Ne faire ces traitements que si les données sont chargées
+        if (!isLoading && rooms.length > 0) {
+            // Initialiser les salles visibles (toutes les salles par défaut)
+            if (visibleRoomIds.length === 0) {
+                setVisibleRoomIds(rooms.map(room => room.id));
+            }
+
+            // Initialiser les personnels visibles (tous les chirurgiens par défaut)
+            if (visiblePersonnelIds.length === 0) {
+                const surgeonIds = users
+                    .filter(user => user.role === "SURGEON")
+                    .map(user => user.id);
+                setVisiblePersonnelIds(surgeonIds);
+            }
+        }
+    }, [isLoading, rooms, users, visibleRoomIds.length, visiblePersonnelIds.length]);
+
+    // Modification de useEffect pour le chargement de la config d'affichage
+    useEffect(() => {
+        const loadDefaultConfig = () => {
+            if (!displayConfig) {
+                console.log("Chargement de la configuration par défaut");
+                setDisplayConfig(defaultDisplayConfig);
+            }
+        };
+
+        // Si l'API échoue, charger la config par défaut après un délai
+        const timer = setTimeout(loadDefaultConfig, 3000);
+
+        // Nettoyer le timer si le composant est démonté ou si displayConfig est chargé entre-temps
+        return () => clearTimeout(timer);
+    }, [displayConfig]);
+
+    // Ajouter un useEffect séparé pour la gestion du thème (pour éviter les setState during render)
+    useEffect(() => {
+        const handleThemeChange = (e: MediaQueryListEvent) => {
+            setTheme(e.matches ? 'dark' : 'light');
+        };
+
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+        // Écouter les changements de thème du système
+        if (mediaQuery.addEventListener) {
+            mediaQuery.addEventListener('change', handleThemeChange);
+        } else {
+            // Fallback pour les anciens navigateurs
+            mediaQuery.addListener(handleThemeChange);
+        }
+
+        // Cleanup
+        return () => {
+            if (mediaQuery.removeEventListener) {
+                mediaQuery.removeEventListener('change', handleThemeChange);
+            } else {
+                // Fallback pour les anciens navigateurs
+                mediaQuery.removeListener(handleThemeChange);
+            }
+        };
+    }, []);
 
     return (
         <motion.div
@@ -889,7 +1157,7 @@ export default function WeeklyPlanningPage() {
             {showLegend && renderLegend()}
 
             {/* Panneau de configuration */}
-            {showConfigPanel && (
+            {showConfigPanel && displayConfig && (
                 <DisplayConfigPanel
                     config={displayConfig}
                     onConfigChange={handleConfigChange}
@@ -908,13 +1176,6 @@ export default function WeeklyPlanningPage() {
                             prenom: s.firstName,
                             specialite: s.specialty || '',
                         }))}
-                    rooms={rooms.map(r => ({
-                        id: r.id,
-                        name: r.name,
-                        sector: r.sector,
-                        order: r.order,
-                    }))}
-                    onSaveRoomOrder={handleSaveRoomOrder}
                 />
             )}
 

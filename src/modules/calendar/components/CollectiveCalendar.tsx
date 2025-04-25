@@ -6,30 +6,31 @@ import { CalendarFiltersComponent } from './CalendarFilters';
 import { CalendarLegend } from './CalendarLegend';
 import { CalendarExport } from './CalendarExport';
 import { useCalendar } from '../hooks/useCalendar';
-import { AnyCalendarEvent, CalendarEventType, CalendarViewType, LeaveStatusType, LeaveEvent } from '../types/event';
+import { AnyCalendarEvent, CalendarEventType, CalendarViewType, LeaveCalendarEvent } from '../types/event';
 import { User } from '../../../types/user';
 import { LeaveDetailsModal } from './LeaveDetailsModal';
 import { useAuth } from '@/context/AuthContext';
-import { UserRole } from '@prisma/client';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
 interface CollectiveCalendarProps {
     onEventClick?: (eventId: string, eventType: string) => void;
+    onRequestLeave?: () => void;
     title?: string;
     description?: string;
 }
 
 export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
     onEventClick,
+    onRequestLeave,
     title = 'Calendrier collectif',
     description = 'Vue d\'ensemble des congés et absences de l\'équipe'
 }) => {
     // Gérer l'événement sélectionné et le modal
-    const [selectedEvent, setSelectedEvent] = useState<LeaveEvent | null>(null);
+    const [selectedEvent, setSelectedEvent] = useState<LeaveCalendarEvent | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const { user } = useAuth();
-    const isAdmin = user?.role === UserRole.ADMIN;
+    const isAdmin = user?.role === 'ADMIN_TOTAL' || user?.role === 'ADMIN_PARTIEL';
 
     // Filtres par défaut pour le calendrier collectif (focus sur les congés)
     const defaultFilters = {
@@ -66,7 +67,7 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
     // Gestionnaire de clic sur un événement
     const handleEventClick = useCallback((eventId: string, eventType: string) => {
         if (eventType === CalendarEventType.LEAVE) {
-            const leaveEvent = events.find(event => event.id === eventId) as LeaveEvent;
+            const leaveEvent = events.find(event => event.id === eventId) as LeaveCalendarEvent;
             if (leaveEvent) {
                 setSelectedEvent(leaveEvent);
                 setIsModalOpen(true);
@@ -163,27 +164,27 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
                         <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
                             <button
                                 onClick={navigateToPrevious}
-                                className="p-2 hover:bg-gray-100"
+                                className="p-1 sm:p-2 hover:bg-gray-100"
                                 aria-label="Période précédente"
                             >
-                                <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
 
                             <button
                                 onClick={navigateToToday}
-                                className="px-3 py-2 hover:bg-gray-100 border-l border-r border-gray-300 text-sm"
+                                className="px-2 py-1 sm:px-3 sm:py-2 hover:bg-gray-100 border-l border-r border-gray-300 text-xs sm:text-sm"
                             >
                                 Aujourd'hui
                             </button>
 
                             <button
                                 onClick={navigateToNext}
-                                className="p-2 hover:bg-gray-100"
+                                className="p-1 sm:p-2 hover:bg-gray-100"
                                 aria-label="Période suivante"
                             >
-                                <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
@@ -193,35 +194,68 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
                         <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
                             <button
                                 onClick={() => handleViewChange(CalendarViewType.MONTH)}
-                                className={`px-3 py-2 text-sm ${view === CalendarViewType.MONTH ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                                className={`px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm ${view === CalendarViewType.MONTH ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
                             >
                                 Mois
                             </button>
 
                             <button
                                 onClick={() => handleViewChange(CalendarViewType.WEEK)}
-                                className={`px-3 py-2 text-sm border-l border-gray-300 ${view === CalendarViewType.WEEK ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                                className={`px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm border-l border-gray-300 ${view === CalendarViewType.WEEK ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
                             >
-                                Semaine
+                                Sem.
                             </button>
 
                             <button
                                 onClick={() => handleViewChange(CalendarViewType.DAY)}
-                                className={`px-3 py-2 text-sm border-l border-gray-300 ${view === CalendarViewType.DAY ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                                className={`px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm border-l border-gray-300 ${view === CalendarViewType.DAY ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
                             >
                                 Jour
                             </button>
 
                             <button
                                 onClick={() => handleViewChange(CalendarViewType.LIST)}
-                                className={`px-3 py-2 text-sm border-l border-gray-300 ${view === CalendarViewType.LIST ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
+                                className={`px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm border-l border-gray-300 ${view === CalendarViewType.LIST ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100'}`}
                             >
                                 Liste
                             </button>
                         </div>
 
+                        {/* Bouton de demande de congé */}
+                        {onRequestLeave ? (
+                            <button
+                                onClick={onRequestLeave}
+                                className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                                <svg
+                                    className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Demander un congé
+                            </button>
+                        ) : (
+                            <a
+                                href="/leaves/new"
+                                className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                                <svg
+                                    className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Demander un congé
+                            </a>
+                        )}
+
                         {/* Export */}
-                        <CalendarExport events={events} currentRange={currentRange} />
+                        <CalendarExport events={filteredEvents} currentRange={currentRange} />
                     </div>
                 </div>
 
@@ -261,8 +295,8 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                {/* Calendrier (3/4 de la largeur) */}
-                <div className="lg:col-span-3">
+                {/* Calendrier (pleine largeur sur mobile, 3/4 sur desktop) */}
+                <div className="lg:col-span-3 order-2 lg:order-1">
                     <BaseCalendar
                         events={filteredEvents}
                         view={view}
@@ -277,8 +311,8 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
                     />
                 </div>
 
-                {/* Légende (1/4 de la largeur) */}
-                <div>
+                {/* Légende (première sur mobile, côté droit sur desktop) */}
+                <div className="order-1 lg:order-2 mb-4 lg:mb-0">
                     <CalendarLegend
                         showEventTypes={true}
                         showStatuses={true}

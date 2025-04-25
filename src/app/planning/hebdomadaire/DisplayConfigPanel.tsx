@@ -37,21 +37,24 @@ export const defaultDisplayConfig: DisplayConfig = {
             style: 'bold',
             casse: 'uppercase',
             fontSize: 'sm',
-            colorCode: '#4F46E5' // indigo-600
+            colorCode: '#4F46E5', // indigo-600
+            showRolePrefix: true // Valeur par défaut
         },
         mar: {
             format: 'initiale-nom',
             style: 'normal',
             casse: 'default',
             fontSize: 'xs',
-            colorCode: '#2563EB' // blue-600
+            colorCode: '#2563EB', // blue-600
+            showRolePrefix: true // Valeur par défaut
         },
         iade: {
             format: 'nomPrenom',
             style: 'italic',
             casse: 'default',
             fontSize: 'xs',
-            colorCode: '#059669' // emerald-600
+            colorCode: '#059669', // emerald-600
+            showRolePrefix: true // Valeur par défaut
         }
     },
     vacation: {
@@ -67,7 +70,7 @@ export const defaultDisplayConfig: DisplayConfig = {
     borderStyle: 'solid',
     borderWidth: 'medium',
     cardStyle: 'shadowed',
-    showRole: true
+    // showRole: true // Supprimé
 };
 
 const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
@@ -143,13 +146,15 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
     const formatPersonnelName = (
         person: User | Surgeon,
         config: PersonnelDisplayConfig['chirurgien'] | PersonnelDisplayConfig['mar'] | PersonnelDisplayConfig['iade'],
-        role?: 'MAR' | 'IADE'
+        personRole: 'chirurgien' | 'mar' | 'iade'
     ): string => {
         if (!person) return '';
 
         // Déterminer le format à utiliser
         let name = '';
-        const { prenom, nom } = person;
+        const prenom = 'prenom' in person ? person.prenom : '';
+        const nom = 'nom' in person ? person.nom : '';
+        const alias = 'alias' in person ? person.alias : undefined;
         const specialite = 'specialite' in person ? person.specialite : '';
 
         switch (config.format) {
@@ -166,7 +171,14 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
                 name = `${nom}${specialite ? ` (${specialite})` : ''}`;
                 break;
             case 'initiale-nom':
-                name = `${prenom.charAt(0)}. ${nom}`;
+                name = prenom.length > 0 ? `${prenom.charAt(0)}. ${nom}` : nom;
+                break;
+            case 'alias':
+                if (alias && alias.trim() !== '') {
+                    name = alias;
+                } else {
+                    name = prenom.length > 0 ? `${prenom.charAt(0)}. ${nom}` : nom;
+                }
                 break;
             default:
                 name = nom;
@@ -186,11 +198,21 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
                 ).join(' ');
                 break;
             default:
-                // Laisser tel quel
                 break;
         }
 
-        return role ? `${role}: ${name}` : name;
+        // Afficher le rôle si l'option est activée DANS LA CONFIG SPECIFIQUE AU ROLE
+        if (config.showRolePrefix) { // Utilise le flag spécifique
+            let rolePrefix = '';
+            switch (personRole) {
+                case 'chirurgien': rolePrefix = 'Chir: '; break;
+                case 'mar': rolePrefix = 'MAR: '; break;
+                case 'iade': rolePrefix = 'IADE: '; break;
+            }
+            return `${rolePrefix}${name}`;
+        } else {
+            return name;
+        }
     };
 
     // Rendu de l'aperçu
@@ -226,17 +248,17 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
                 <div style={vacationStyle}>
                     {/* Chirurgien */}
                     <div style={getPersonStyle('chirurgien')} className="mb-1">
-                        {formatPersonnelName(exampleSurgeon, tempConfig.personnel.chirurgien)}
+                        {formatPersonnelName(exampleSurgeon, tempConfig.personnel.chirurgien, 'chirurgien')}
                     </div>
 
                     {/* MAR */}
                     <div style={getPersonStyle('mar')} className="mb-1">
-                        {formatPersonnelName(exampleMAR, tempConfig.personnel.mar, 'MAR')}
+                        {formatPersonnelName(exampleMAR, tempConfig.personnel.mar, 'mar')}
                     </div>
 
                     {/* IADE */}
                     <div style={getPersonStyle('iade')}>
-                        {formatPersonnelName(exampleIADE, tempConfig.personnel.iade, 'IADE')}
+                        {formatPersonnelName(exampleIADE, tempConfig.personnel.iade, 'iade')}
                     </div>
                 </div>
             </div>
@@ -361,19 +383,6 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
                                     <span>100%</span>
                                 </div>
                             </div>
-
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    type="checkbox"
-                                    id="showRole"
-                                    checked={tempConfig.showRole}
-                                    onChange={(e) => handleGeneralConfigChange('showRole', e.target.checked)}
-                                    className="h-4 w-4 text-blue-600 rounded"
-                                />
-                                <label htmlFor="showRole" className="text-sm font-medium text-gray-700">
-                                    Afficher le rôle du personnel
-                                </label>
-                            </div>
                         </div>
                     )}
 
@@ -394,6 +403,7 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
                                     <option value="prenom-nom">Prénom Nom</option>
                                     <option value="nom-specialite">Nom (Spécialité)</option>
                                     <option value="initiale-nom">Initiale. Nom</option>
+                                    <option value="alias">Alias (ou P. Nom si vide)</option>
                                 </select>
                             </div>
 
@@ -460,21 +470,220 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
                                     </span>
                                 </div>
                             </div>
+
+                            <div className="flex items-center space-x-2 pt-2">
+                                <input
+                                    type="checkbox"
+                                    id="showRoleChirurgien"
+                                    checked={tempConfig.personnel.chirurgien.showRolePrefix ?? true}
+                                    onChange={(e) => handlePersonnelConfigChange('chirurgien', 'showRolePrefix', e.target.checked)}
+                                    className="h-4 w-4 text-blue-600 rounded"
+                                />
+                                <label htmlFor="showRoleChirurgien" className="text-sm font-medium text-gray-700">
+                                    Afficher le préfixe du rôle (ex: "Chir:")
+                                </label>
+                            </div>
                         </div>
                     )}
 
                     {/* Onglets MAR et IADE - structure similaire à l'onglet chirurgien */}
                     {activeTab === 'mar' && (
                         <div className="space-y-4">
-                            {/* Contenu similaire à l'onglet chirurgien mais pour les MAR */}
-                            {/* ... */}
+                            {/* Copier/adapter les champs de l'onglet chirurgien */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Format d'affichage (MAR)
+                                </label>
+                                <select
+                                    value={tempConfig.personnel.mar.format}
+                                    onChange={(e) => handlePersonnelConfigChange('mar', 'format', e.target.value)}
+                                    className="block w-full p-2 border rounded"
+                                >
+                                    {/* Options de format (peuvent être les mêmes ou différentes) */}
+                                    <option value="nom">Nom uniquement</option>
+                                    <option value="nomPrenom">Nom Prénom</option>
+                                    <option value="prenom-nom">Prénom Nom</option>
+                                    <option value="initiale-nom">Initiale. Nom</option>
+                                    <option value="alias">Alias (ou P. Nom si vide)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Style du texte (MAR)
+                                </label>
+                                <select
+                                    value={tempConfig.personnel.mar.style}
+                                    onChange={(e) => handlePersonnelConfigChange('mar', 'style', e.target.value)}
+                                    className="block w-full p-2 border rounded"
+                                >
+                                    <option value="normal">Normal</option>
+                                    <option value="bold">Gras</option>
+                                    <option value="italic">Italique</option>
+                                    <option value="boldItalic">Gras Italique</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Casse du texte (MAR)
+                                </label>
+                                <select
+                                    value={tempConfig.personnel.mar.casse}
+                                    onChange={(e) => handlePersonnelConfigChange('mar', 'casse', e.target.value)}
+                                    className="block w-full p-2 border rounded"
+                                >
+                                    <option value="default">Par défaut</option>
+                                    <option value="uppercase">MAJUSCULES</option>
+                                    <option value="lowercase">minuscules</option>
+                                    <option value="capitalize">Majuscules Initiales</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Taille du texte (MAR)
+                                </label>
+                                <select
+                                    value={tempConfig.personnel.mar.fontSize}
+                                    onChange={(e) => handlePersonnelConfigChange('mar', 'fontSize', e.target.value)}
+                                    className="block w-full p-2 border rounded"
+                                >
+                                    <option value="xs">Petit</option>
+                                    <option value="sm">Moyen</option>
+                                    <option value="base">Grand</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Couleur du texte (MAR)
+                                </label>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="color"
+                                        value={tempConfig.personnel.mar.colorCode}
+                                        onChange={(e) => handlePersonnelConfigChange('mar', 'colorCode', e.target.value)}
+                                        className="h-8 w-8 rounded"
+                                    />
+                                    <span className="text-sm text-gray-500">
+                                        {tempConfig.personnel.mar.colorCode}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center space-x-2 pt-2">
+                                <input
+                                    type="checkbox"
+                                    id="showRoleMar"
+                                    checked={tempConfig.personnel.mar.showRolePrefix ?? true}
+                                    onChange={(e) => handlePersonnelConfigChange('mar', 'showRolePrefix', e.target.checked)}
+                                    className="h-4 w-4 text-blue-600 rounded"
+                                />
+                                <label htmlFor="showRoleMar" className="text-sm font-medium text-gray-700">
+                                    Afficher le préfixe du rôle (ex: "MAR:")
+                                </label>
+                            </div>
                         </div>
                     )}
 
                     {activeTab === 'iade' && (
                         <div className="space-y-4">
-                            {/* Contenu similaire à l'onglet chirurgien mais pour les IADE */}
-                            {/* ... */}
+                            {/* Copier/adapter les champs de l'onglet chirurgien */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Format d'affichage (IADE)
+                                </label>
+                                <select
+                                    value={tempConfig.personnel.iade.format}
+                                    onChange={(e) => handlePersonnelConfigChange('iade', 'format', e.target.value)}
+                                    className="block w-full p-2 border rounded"
+                                >
+                                    {/* Options de format */}
+                                    <option value="nom">Nom uniquement</option>
+                                    <option value="nomPrenom">Nom Prénom</option>
+                                    <option value="prenom-nom">Prénom Nom</option>
+                                    <option value="initiale-nom">Initiale. Nom</option>
+                                    <option value="alias">Alias (ou P. Nom si vide)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Style du texte (IADE)
+                                </label>
+                                <select
+                                    value={tempConfig.personnel.iade.style}
+                                    onChange={(e) => handlePersonnelConfigChange('iade', 'style', e.target.value)}
+                                    className="block w-full p-2 border rounded"
+                                >
+                                    <option value="normal">Normal</option>
+                                    <option value="bold">Gras</option>
+                                    <option value="italic">Italique</option>
+                                    <option value="boldItalic">Gras Italique</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Casse du texte (IADE)
+                                </label>
+                                <select
+                                    value={tempConfig.personnel.iade.casse}
+                                    onChange={(e) => handlePersonnelConfigChange('iade', 'casse', e.target.value)}
+                                    className="block w-full p-2 border rounded"
+                                >
+                                    <option value="default">Par défaut</option>
+                                    <option value="uppercase">MAJUSCULES</option>
+                                    <option value="lowercase">minuscules</option>
+                                    <option value="capitalize">Majuscules Initiales</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Taille du texte (IADE)
+                                </label>
+                                <select
+                                    value={tempConfig.personnel.iade.fontSize}
+                                    onChange={(e) => handlePersonnelConfigChange('iade', 'fontSize', e.target.value)}
+                                    className="block w-full p-2 border rounded"
+                                >
+                                    <option value="xs">Petit</option>
+                                    <option value="sm">Moyen</option>
+                                    <option value="base">Grand</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Couleur du texte (IADE)
+                                </label>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="color"
+                                        value={tempConfig.personnel.iade.colorCode}
+                                        onChange={(e) => handlePersonnelConfigChange('iade', 'colorCode', e.target.value)}
+                                        className="h-8 w-8 rounded"
+                                    />
+                                    <span className="text-sm text-gray-500">
+                                        {tempConfig.personnel.iade.colorCode}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center space-x-2 pt-2">
+                                <input
+                                    type="checkbox"
+                                    id="showRoleIade"
+                                    checked={tempConfig.personnel.iade.showRolePrefix ?? true}
+                                    onChange={(e) => handlePersonnelConfigChange('iade', 'showRolePrefix', e.target.checked)}
+                                    className="h-4 w-4 text-blue-600 rounded"
+                                />
+                                <label htmlFor="showRoleIade" className="text-sm font-medium text-gray-700">
+                                    Afficher le préfixe du rôle (ex: "IADE:")
+                                </label>
+                            </div>
                         </div>
                     )}
 

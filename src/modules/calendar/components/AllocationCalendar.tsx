@@ -202,8 +202,8 @@ export const AllocationCalendar: React.FC<AllocationCalendarProps> = ({
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                {/* Calendrier (3/4 de la largeur) */}
-                <div className="lg:col-span-3">
+                {/* Calendrier (pleine largeur sur mobile, 3/4 sur desktop) */}
+                <div className="lg:col-span-3 order-2 lg:order-1">
                     <BaseCalendar
                         events={events}
                         view={view}
@@ -218,8 +218,8 @@ export const AllocationCalendar: React.FC<AllocationCalendarProps> = ({
                     />
                 </div>
 
-                {/* Légende (1/4 de la largeur) */}
-                <div>
+                {/* Légende (première sur mobile, côté droit sur desktop) */}
+                <div className="order-1 lg:order-2 mb-4 lg:mb-0">
                     <CalendarLegend
                         showEventTypes={true}
                         showLocations={true}

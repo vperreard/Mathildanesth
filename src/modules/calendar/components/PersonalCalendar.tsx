@@ -6,16 +6,18 @@ import { CalendarFiltersComponent } from './CalendarFilters';
 import { CalendarLegend } from './CalendarLegend';
 import { CalendarExport } from './CalendarExport';
 import { useCalendar } from '../hooks/useCalendar';
-import { AnyCalendarEvent, CalendarEventType, CalendarViewType } from '../types/event';
+import { AnyCalendarEvent, CalendarEventType, CalendarViewType, LeaveCalendarEvent } from '../types/event';
 
 interface PersonalCalendarProps {
     userId: string;
     onEventClick?: (eventId: string, eventType: string) => void;
+    onRequestLeave?: () => void;
 }
 
 export const PersonalCalendar: React.FC<PersonalCalendarProps> = ({
     userId,
     onEventClick,
+    onRequestLeave,
 }) => {
     // Gérer l'événement sélectionné et le modal
     const [selectedEvent, setSelectedEvent] = useState<AnyCalendarEvent | null>(null);
@@ -44,21 +46,28 @@ export const PersonalCalendar: React.FC<PersonalCalendarProps> = ({
         navigateToToday
     } = useCalendar(defaultFilters);
 
+    // Filtrer les congés refusés (REJECTED) et garder les autres types d'événements
+    const filteredEvents = events.filter(event => {
+        // Si c'est un congé avec statut REJECTED, on ne l'affiche pas
+        if (event.type === CalendarEventType.LEAVE && event.status === 'REJECTED') {
+            return false;
+        }
+        // Sinon on garde l'événement
+        return true;
+    });
+
     // Gestionnaire de clic sur un événement
     const handleEventClick = useCallback((eventId: string, eventType: string) => {
-        // Trouver l'événement sélectionné
-        const event = events.find(e => e.id === eventId);
-
-        // Si l'événement est trouvé, ouvrir le modal
-        if (event) {
-            // Extraire le vrai ID (suppression du préfixe)
-            const realId = eventId.includes('-') ? eventId.split('-')[1] : eventId;
-
-            setSelectedEvent(event);
-            setIsModalOpen(true);
-
+        if (eventType === CalendarEventType.LEAVE) {
+            // Extraire l'ID réel du congé (supprimer le préfixe 'leave-')
+            const leaveId = eventId.replace('leave-', '');
+            const leaveEvent = events.find(event => event.id === eventId) as LeaveCalendarEvent;
+            if (leaveEvent) {
+                setSelectedEvent(leaveEvent);
+                setIsModalOpen(true);
+            }
             if (onEventClick) {
-                onEventClick(realId, eventType);
+                onEventClick(leaveId, eventType);
             }
         }
     }, [events, onEventClick]);
@@ -157,20 +166,37 @@ export const PersonalCalendar: React.FC<PersonalCalendarProps> = ({
                         </div>
 
                         {/* Bouton de demande de congé */}
-                        <a
-                            href="/leaves/new"
-                            className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                            <svg
-                                className="mr-2 h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
+                        {onRequestLeave ? (
+                            <button
+                                onClick={onRequestLeave}
+                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            Demander un congé
-                        </a>
+                                <svg
+                                    className="mr-2 h-4 w-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Demander un congé
+                            </button>
+                        ) : (
+                            <a
+                                href="/leaves/new"
+                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                                <svg
+                                    className="mr-2 h-4 w-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Demander un congé
+                            </a>
+                        )}
 
                         {/* Export */}
                         <CalendarExport events={events} currentRange={currentRange} />
@@ -213,10 +239,10 @@ export const PersonalCalendar: React.FC<PersonalCalendarProps> = ({
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                {/* Calendrier (3/4 de la largeur) */}
-                <div className="lg:col-span-3">
+                {/* Calendrier (pleine largeur sur mobile, 3/4 sur desktop) */}
+                <div className="lg:col-span-3 order-2 lg:order-1">
                     <BaseCalendar
-                        events={events}
+                        events={filteredEvents}
                         view={view}
                         settings={settings}
                         loading={loading}
@@ -229,8 +255,8 @@ export const PersonalCalendar: React.FC<PersonalCalendarProps> = ({
                     />
                 </div>
 
-                {/* Légende (1/4 de la largeur) */}
-                <div>
+                {/* Légende (première sur mobile, côté droit sur desktop) */}
+                <div className="order-1 lg:order-2 mb-4 lg:mb-0">
                     <CalendarLegend
                         showEventTypes={true}
                         showStatuses={true}
