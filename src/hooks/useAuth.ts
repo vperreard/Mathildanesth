@@ -17,7 +17,7 @@ export const useAuth = () => {
             // Pour l'instant, simulation d'une requête
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            if (username === 'mathilda' && password === 'password') {
+            if (username === 'admin' && password === 'password') {
                 return true;
             }
 
