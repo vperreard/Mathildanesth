@@ -40,25 +40,36 @@ export interface InputProps
     error?: string;
     label?: string;
     icon?: React.ReactNode;
+    ariaDescribedBy?: string;
+    required?: boolean;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-    ({ className, variant, size, fullWidth, disabled, error, label, icon, ...props }, ref) => {
+    ({ className, variant, size, fullWidth, disabled, error, label, icon, ariaDescribedBy, required, ...props }, ref) => {
         // Si une erreur est présente, utilisez la variante d'erreur
         const variantToUse = error ? "error" : variant;
+        const errorId = props.id ? `${props.id}-error` : undefined;
+        const describedBy = [ariaDescribedBy, errorId].filter(Boolean).join(' ') || undefined;
 
         // Wrapper pour formulaire
         return (
             <div className="flex flex-col gap-1">
                 {label && (
-                    <label htmlFor={props.id} className="block text-sm font-medium text-gray-700">
+                    <label
+                        htmlFor={props.id}
+                        className="block text-sm font-medium text-gray-700"
+                    >
                         {label}
+                        {required && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
                     </label>
                 )}
 
                 <div className="relative">
                     {icon && (
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <div
+                            className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                            aria-hidden="true"
+                        >
                             {icon}
                         </div>
                     )}
@@ -76,12 +87,21 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                         )}
                         ref={ref}
                         disabled={disabled}
+                        aria-invalid={error ? "true" : "false"}
+                        aria-describedby={describedBy}
+                        aria-required={required}
                         {...props}
                     />
                 </div>
 
                 {error && (
-                    <p className="mt-1 text-sm text-red-600">{error}</p>
+                    <p
+                        id={errorId}
+                        className="mt-1 text-sm text-red-600"
+                        role="alert"
+                    >
+                        {error}
+                    </p>
                 )}
             </div>
         );

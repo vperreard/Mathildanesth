@@ -9,10 +9,12 @@ interface TableProps extends HTMLAttributes<HTMLTableElement> {
     hover?: boolean;
     bordered?: boolean;
     compact?: boolean;
+    ariaLabel?: string;
+    ariaDescribedBy?: string;
 }
 
 const Table = forwardRef<HTMLTableElement, TableProps>(
-    ({ className, striped = false, hover = false, bordered = false, compact = false, ...props }, ref) => {
+    ({ className, striped = false, hover = false, bordered = false, compact = false, ariaLabel, ariaDescribedBy, ...props }, ref) => {
         return (
             <div className="w-full overflow-auto">
                 <table
@@ -22,6 +24,9 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
                         bordered && "border-collapse border border-gray-200",
                         className
                     )}
+                    aria-label={ariaLabel}
+                    aria-describedby={ariaDescribedBy}
+                    role="grid"
                     {...props}
                 />
             </div>
@@ -40,6 +45,7 @@ const TableHeader = forwardRef<HTMLTableSectionElement, TableHeaderProps>(
             <thead
                 ref={ref}
                 className={cn("bg-gray-50", className)}
+                role="rowgroup"
                 {...props}
             />
         );
@@ -65,6 +71,7 @@ const TableBody = forwardRef<HTMLTableSectionElement, TableBodyProps>(
                     hover && "[&>tr:hover]:bg-gray-100",
                     className
                 )}
+                role="rowgroup"
                 {...props}
             />
         );
@@ -87,6 +94,8 @@ const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
                     selected && "bg-primary-50",
                     className
                 )}
+                role="row"
+                aria-selected={selected}
                 {...props}
             />
         );
@@ -103,6 +112,8 @@ interface TableHeadProps extends ThHTMLAttributes<HTMLTableCellElement> {
 
 const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
     ({ className, sortable = false, sorted = false, ...props }, ref) => {
+        const ariaSort = sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : undefined;
+
         return (
             <th
                 ref={ref}
@@ -113,6 +124,8 @@ const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
                     sorted === 'desc' && "text-primary-600 [&>svg]:rotate-180",
                     className
                 )}
+                role="columnheader"
+                aria-sort={ariaSort}
                 {...props}
             >
                 <div className="flex items-center space-x-1">
@@ -127,6 +140,7 @@ const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
+                            aria-hidden="true"
                         >
                             <path
                                 strokeLinecap="round"
@@ -159,6 +173,7 @@ const TableCell = forwardRef<HTMLTableCellElement, TableCellProps>(
                     compact && "px-4 py-2",
                     className
                 )}
+                role="cell"
                 {...props}
             />
         );
@@ -176,6 +191,7 @@ const TableFooter = forwardRef<HTMLTableSectionElement, TableFooterProps>(
             <tfoot
                 ref={ref}
                 className={cn("bg-gray-50 border-t border-gray-200", className)}
+                role="rowgroup"
                 {...props}
             />
         );

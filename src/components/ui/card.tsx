@@ -33,15 +33,21 @@ export const cardVariants = cva(
 
 export interface CardProps
     extends HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof cardVariants> { }
+    VariantProps<typeof cardVariants> {
+    ariaLabel?: string;
+    ariaDescribedBy?: string;
+}
 
 // Composant Card
 const Card = forwardRef<HTMLDivElement, CardProps>(
-    ({ className, variant, size, fullWidth, children, ...props }, ref) => {
+    ({ className, variant, size, fullWidth, children, ariaLabel, ariaDescribedBy, ...props }, ref) => {
         return (
             <div
                 className={cn(cardVariants({ variant, size, fullWidth, className }))}
                 ref={ref}
+                role="article"
+                aria-label={ariaLabel}
+                aria-describedby={ariaDescribedBy}
                 {...props}
             >
                 {children}
@@ -58,13 +64,13 @@ interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> { }
 const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
     ({ className, children, ...props }, ref) => {
         return (
-            <div
+            <header
                 className={cn("mb-4", className)}
                 ref={ref}
                 {...props}
             >
                 {children}
-            </div>
+            </header>
         );
     }
 );
@@ -115,13 +121,13 @@ interface CardContentProps extends HTMLAttributes<HTMLDivElement> { }
 const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
     ({ className, children, ...props }, ref) => {
         return (
-            <div
+            <main
                 className={cn("py-2", className)}
                 ref={ref}
                 {...props}
             >
                 {children}
-            </div>
+            </main>
         );
     }
 );
@@ -134,13 +140,13 @@ interface CardFooterProps extends HTMLAttributes<HTMLDivElement> { }
 const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
     ({ className, children, ...props }, ref) => {
         return (
-            <div
+            <footer
                 className={cn("pt-4 flex justify-end items-center gap-2", className)}
                 ref={ref}
                 {...props}
             >
                 {children}
-            </div>
+            </footer>
         );
     }
 );
