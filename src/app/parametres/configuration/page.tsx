@@ -12,7 +12,8 @@ import {
     Share2,
     Layout,
     Map,
-    TableProperties
+    TableProperties,
+    Users
 } from 'lucide-react';
 import TypesCongesPage from '../types-conges/page';
 import HeaderConfigPanel from './HeaderConfigPanel';
@@ -23,6 +24,7 @@ import PlanningRulesConfigPanel from './PlanningRulesConfigPanel';
 import AssignmentsConfigPanel from './AssignmentsConfigPanel';
 import WeeklyPlanningConfigPanel from './WeeklyPlanningConfigPanel';
 import LeaveManagementPanel from './LeaveManagementPanel';
+import ProfessionalRoleManagementPanel from './ProfessionalRoleManagementPanel';
 
 // Importer les composants UI
 import {
@@ -57,6 +59,13 @@ const ConfigurationPanelPage: React.FC = () => {
             icon: <FileText className="h-5 w-5" />,
             color: 'bg-purple-600',
             hoverColor: 'hover:bg-purple-100'
+        },
+        {
+            id: 'professional-roles',
+            label: 'Rôles Professionnels',
+            icon: <Users className="h-5 w-5" />,
+            color: 'bg-green-600',
+            hoverColor: 'hover:bg-green-100'
         },
         {
             id: 'specialties',
@@ -136,6 +145,8 @@ const ConfigurationPanelPage: React.FC = () => {
                 return <WeeklyPlanningConfigPanel />;
             case 'leave-management':
                 return <LeaveManagementPanel />;
+            case 'professional-roles':
+                return <ProfessionalRoleManagementPanel />;
             case 'others':
                 return (
                     <Card>

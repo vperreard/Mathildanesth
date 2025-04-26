@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'; // Import nommé
 import bcrypt from 'bcrypt';
 import { checkUserRole, UserRole } from '@/lib/auth-utils';
 import { headers } from 'next/headers';
-import { Prisma } from '@prisma/client';
+import { Role as PrismaRole, ProfessionalRole, Prisma } from '@prisma/client';
 // Importer les types d'erreurs spécifiques
 import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/library';
 
@@ -12,12 +12,6 @@ enum Role {
     ADMIN_TOTAL = 'ADMIN_TOTAL',
     ADMIN_PARTIEL = 'ADMIN_PARTIEL',
     USER = 'USER'
-}
-
-enum ProfessionalRole {
-    MAR = 'MAR',
-    IADE = 'IADE',
-    SECRETAIRE = 'SECRETAIRE'
 }
 
 // const prisma = new PrismaClient(); // Supprimé
@@ -86,8 +80,8 @@ export async function POST(request: Request) {
         if (!nom || !prenom || !email || !role || !professionalRole || !password) {
             return new NextResponse(JSON.stringify({ message: 'Nom, prénom, email, rôle, rôle pro et mot de passe sont obligatoires.' }), { status: 400 });
         }
-        if (!Object.values(Role).includes(role) || !Object.values(ProfessionalRole).includes(professionalRole)) {
-            return new NextResponse(JSON.stringify({ message: 'Rôle ou Rôle Professionnel invalide' }), { status: 400 });
+        if (!Object.values(PrismaRole).includes(role) || !Object.values(ProfessionalRole).includes(professionalRole)) {
+            return new NextResponse(JSON.stringify({ message: 'Rôle invalide' }), { status: 400 });
         }
         if (tempsPartiel && (pourcentageTempsPartiel === null || pourcentageTempsPartiel === undefined)) {
             return new NextResponse(JSON.stringify({ message: 'Le pourcentage est requis si temps partiel est coché.' }), { status: 400 });

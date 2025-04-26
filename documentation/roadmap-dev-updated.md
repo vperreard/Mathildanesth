@@ -1,183 +1,227 @@
-# Feuille de Route de Développement Mise à Jour
-## Application de Planning pour Équipe d'Anesthésie
+# Feuille de Route de Développement Définitive
+## Application Mathildanesth - Planning pour Équipe d'Anesthésie
 
-Cette feuille de route détaille les étapes, jalons et livrables pour le développement de l'application sur une période de 6 mois.
+Cette feuille de route détaille les étapes, jalons et livrables pour le développement de l'application, intégrant les priorités techniques et fonctionnelles.
 
-### Phase 1: Fondations (Mois 1) - COMPLÉTÉE
+## Phase 1 : Refactorisation Critique (3 semaines + 1 semaine tampon)
 
-#### Semaine 1-2: Setup & Architecture
-- [x] Définition de l'architecture technique
-- [x] Mise en place de l'environnement de développement
-- [x] Création du repository Git et structure du projet
-- [x] Configuration de la CI/CD
-- [x] Setup de la base de données
-- [x] Configuration des environnements (dev, test, prod)
+### Semaine 1 : Fondations et Composants Critiques
+- Refactorisation du composant Header
+- Mise en place d'un système de validation des dates robuste
+- Amélioration de la gestion des erreurs (logging, messages utilisateurs, récupération)
+- Implémentation de tests unitaires pour les composants refactorisés (couverture ≥ 70%)
+- Feedback visuel immédiat pour les interactions utilisateur critiques
 
-#### Semaine 3-4: Core & Auth
-- [x] Développement du système d'authentification
-- [x] Création des modèles de données de base
-- [x] Développement des APIs RESTful essentielles
-- [x] Création de l'interface utilisateur minimale
-- [x] Tests unitaires pour les fonctionnalités core
+### Semaine 2 : Composants de Gestion des Congés
+- Refactorisation du composant Leaves
+- Finalisation de la gestion des demandes de congés
+- Implémentation du système de validation et décompte des congés
+- Amélioration de la gestion des conflits
+- Implémentation d'un système de notification basique
+- Documentation de l'architecture refactorisée
 
-**Livrables Phase 1:**
-- [x] Infrastructure technique opérationnelle
-- [x] Système d'authentification fonctionnel
-- [x] APIs de base et documentation
-- [x] Modèles de données implémentés
-- [x] Dashboard minimal avec navigation
+### Semaine 3 : Composants de Calendrier
+- Refactorisation du composant Calendar
+- Division en sous-composants réutilisables
+- Implémentation d'un système de cache simple
+- Amélioration de la gestion des états
+- Finalisation de l'interface de calendrier des gardes et astreintes
 
-### Phase 2: Fonctionnalités Prioritaires (Mois 2-3) - EN COURS
+### Semaine 4 : Validation et Stabilisation
+- Tests utilisateurs internes sur les composants refactorisés
+- Corrections basées sur les retours
+- Revue de code complète
+- Finalisation de la documentation technique
+- Métriques de performance baseline
 
-#### Semaine 5-6: Gestion des profils et congés
-- [x] Module de gestion des profils utilisateurs
-- [x] Configuration des profils MAR et IADE
-- [x] Système de temps de travail personnalisé
-- [-] Gestion des demandes de congés (partiellement implémentée)
-- [ ] Validation et décompte des congés selon règles
+**Livrables Phase 1 :**
+- Code base plus stable et maintenable (réduction de 50% de la complexité cyclomatique)
+- Composants clés refactorisés avec tests unitaires
+- Système de gestion des congés complet et fonctionnel
+- Documentation technique à jour
+- Base solide pour l'ajout de nouvelles fonctionnalités
 
-#### Semaine 7-10: Planification des gardes et astreintes
-- [-] Interface de calendrier des gardes et astreintes (wireframe préparé)
-- [ ] Définition des règles de répartition
-- [ ] Développement de l'algorithme de génération
-- [ ] Système d'indisponibilités et exceptions
-- [ ] Interface de validation/modification manuelle
-- [ ] Tests d'intégration de l'algorithme
+**KPIs Phase 1 :**
+- Couverture de tests ≥ 70% pour les composants refactorisés
+- Réduction du temps de chargement des composants de 30%
+- Diminution des bugs liés aux dates/états de 80%
 
-**Livrables Phase 2:**
-- [-] Module de gestion des profils complet (presque terminé)
-- [-] Système de gestion des congés fonctionnel (partiellement implémenté)
-- [ ] Module de planification des gardes et astreintes opérationnel
-- [ ] Premier prototype utilisable pour tests internes
-- [ ] Documentation utilisateur initiale
+## Phase 2 : Fonctionnalités Prioritaires (2 mois + 2 semaines tampon)
 
-#### Semaine 11-12: Module de règles dynamiques
-- [ ] Création des modèles de données pour les règles configurables
-- [ ] Interface CRUD pour les règles de planification
-- [ ] Système de vérification des contradictions entre règles
-- [ ] Intégration de l'algorithme avec les règles dynamiques
+### Semaine 5-6 : Module de Planification MVP
+- Développement du module de règles dynamiques (MVP)
+- Implémentation des règles de base pour la répartition des gardes
+- Système d'indisponibilités simple
+- Interface de validation/modification manuelle
+- Gestion des jours fériés (version basique)
 
-**Livrables additionnels Phase 2:**
-- [ ] Modèle de données pour les règles de planification
-- [ ] Interface d'administration des règles
-- [ ] Algorithme utilisant les règles dynamiques
+### Semaine 7-8 : Système de Remplacements et Extensions
+- Système de remplacements
+- Complétion des règles de répartition
+- Gestion des exceptions
+- Tests d'intégration des règles
+- Documentation utilisateur des fonctionnalités
 
-### Phase 3: Fonctionnalités Avancées (Mois 3-4)
+### Semaine 9-10 : Algorithme de Génération
+- Développement de l'algorithme de génération des plannings (version 1)
+- Tests d'intégration de l'algorithme
+- Optimisations de performance
+- Gestion de validation des plannings générés
 
-#### Semaine 13-14: Planification des consultations
-- [ ] Configuration des slots de consultation
-- [ ] Interface de gestion des créneaux
-- [ ] Intégration avec le module de gardes/congés
-- [ ] Règles de répartition équitable
+### Semaine 11-12 : Analytics et Bêta-Test
+- Mise en place d'un tableau de bord analytique basique
+- Développement des rapports essentiels
+- Lancement d'une phase bêta avec utilisateurs clés
+- Collecte et analyse des retours
+- Corrections prioritaires basées sur les retours
 
-#### Semaine 15-18: Planification du bloc opératoire
-- [ ] Définition des salles et secteurs
-- [ ] Règles de supervision par secteur
-- [ ] Intégration Google Sheets pour chirurgiens
-- [ ] Trame hebdomadaire du bloc
-- [ ] Interface planning bloc
-- [ ] Algorithme d'affectation MAR/IADE
-- [ ] Tests de performance et d'optimisation
+**Livrables Phase 2 :**
+- Module de planification des gardes et astreintes opérationnel
+- Algorithme de génération fonctionnel
+- Tableau de bord analytique basique
+- Documentation utilisateur pour les fonctionnalités implémentées
+- Version bêta testée par les utilisateurs
 
-#### Semaine 19-20: Améliorations UX et tableaux de données
-- [ ] Tri et pagination avancés pour les listes de données
-- [ ] Filtres multicritères pour toutes les listes
-- [ ] Amélioration de l'accessibilité
-- [ ] Optimisation des formulaires pour l'expérience utilisateur
+**KPIs Phase 2 :**
+- Satisfaction utilisateur ≥ 7/10 pour les fonctionnalités clés
+- Génération de planning 80% conforme aux règles métier
+- Temps de génération < 5 secondes pour un planning mensuel
 
-**Livrables Phase 3:**
-- [ ] Module de planification des consultations
-- [ ] Module de planification du bloc opératoire
-- [ ] Interface web complète et optimisée
-- [ ] Algorithme de génération multi-niveaux
-- [ ] Import/Export de données de base
-- [ ] Module de règles dynamiques fonctionnel
+## Phase 3 : Améliorations UX et Fonctionnalités Avancées (2 mois + 2 semaines tampon)
 
-### Phase 4: Finalisation (Mois 5-6)
+### Semaine 13-14 : Améliorations UX Prioritaires
+- Système de filtrage avancé
+- Feedback visuel pour toutes les actions
+- Transitions fluides entre les vues
+- Système de recherche avancé
+- Tests utilisateurs des améliorations UX
 
-#### Semaine 21-22: Applications mobiles
-- [ ] Développement de l'application React Native
-- [ ] Adaptation de l'interface
-- [ ] Système de notifications push
-- [ ] Mode hors-ligne pour consultation du planning
-- [ ] Tests sur iOS et Android
+### Semaine 15-16 : Adaptation Mobile et UX Suite
+- Adaptation responsive de l'interface web
+- Optimisations pour tablettes
+- Améliorations basées sur les retours UX
+- Documentation des patterns UI/UX
 
-#### Semaine 23-24: Statistiques et reporting
-- [ ] Tableaux de bord personnalisés
-- [ ] Visualisations graphiques
-- [ ] Exportation des données
-- [ ] Calcul des indicateurs clés
-- [ ] Analyses de tendances et prédictions
+### Semaine 17-18 : Module de Consultations MVP
+- Planification des consultations (version MVP)
+- Interface de gestion des créneaux
+- Règles de répartition basiques
+- Intégration avec le module de gardes/congés
 
-#### Semaine 25-26: Tests et optimisations
-- [ ] Tests utilisateurs
-- [ ] Ajustements selon retours
-- [ ] Optimisation des performances
-- [ ] Tests de sécurité
-- [ ] Documentation technique
-- [ ] Ajout des tests automatisés
+### Semaine 19-20 : Finalisation Consultations et Tests
+- Complétion des règles de répartition des consultations
+- Amélioration des interfaces basée sur retours
+- Tests d'intégration complets
+- Préparation de la documentation utilisateur finalisée
 
-#### Semaine 27-28: Déploiement et formation
-- [ ] Déploiement en production
-- [ ] Migration des données initiales
-- [ ] Formation des utilisateurs
-- [ ] Support post-déploiement
-- [ ] Documentation finalisée
+**Livrables Phase 3 :**
+- Interface utilisateur optimisée et intuitive
+- Module de planification des consultations
+- Version web responsive adaptée aux mobiles
+- Documentation utilisateur complète
 
-**Livrables Phase 4:**
-- [ ] Applications mobiles Android/iOS
-- [ ] Module de statistiques et reporting
-- [ ] Documentation complète (technique et utilisateur)
-- [ ] Application déployée en production
-- [ ] Support et maintenance en place
+**KPIs Phase 3 :**
+- Réduction de 50% du temps nécessaire pour les tâches courantes
+- Satisfaction utilisateur ≥ 8/10 pour l'interface
+- Amélioration de 40% du temps de chargement sur mobile
 
-## Jalons clés
+## Phase 4 : Module de Bloc Opératoire et Finalisation (2 mois + 2 semaines tampon)
 
-1. **T0 + 1 mois**: Infrastructure et fondations techniques ✓
-2. **T0 + 3 mois**: Module de gestion des gardes/astreintes opérationnel avec règles dynamiques
-3. **T0 + 4 mois**: Planification complète (consultations + bloc)
-4. **T0 + 5 mois**: Applications web et mobile en version beta
-5. **T0 + 6 mois**: Déploiement en production
+### Semaine 21-22 : Fondations Bloc Opératoire
+- Définition des salles et secteurs
+- Modèles de données bloc opératoire
+- Règles de supervision par secteur (version MVP)
+- Interface planning bloc (première version)
 
-## Ressources nécessaires
+### Semaine 23-24 : Intégrations et Extensions Bloc
+- Intégration Google Sheets pour chirurgiens
+- Trame hebdomadaire du bloc
+- Complétion des règles de supervision
+- Tests d'intégration bloc opératoire
 
-### Équipe de développement
-- 1 Chef de projet technique
-- 2 Développeurs full-stack (web)
-- 1 Développeur mobile
-- 1 Designer UI/UX
-- 1 QA Tester
+### Semaine 25-26 : Sécurité et Performance
+- Audit de sécurité complet
+- Optimisations de performance
+- Implémentation de cache avancé
+- Tests de charge
 
-### Environnement technique
-- Serveur de développement
-- Serveur de test
-- Serveur de production
-- Outils CI/CD
-- Licences développeur
+### Semaine 27-28 : Finalisation et Formation
+- Documentation complète (technique et utilisateur)
+- Formation des utilisateurs clés
+- Corrections finales
+- Préparation au déploiement
 
-### Post-déploiement
-- Support technique niveau 1 et 2
-- Maintenance évolutive
-- Formation utilisateurs
+**Livrables Phase 4 :**
+- Module de planification du bloc opératoire
+- Application complète et sécurisée
+- Documentation complète
+- Utilisateurs formés prêts pour le déploiement
 
-## Risques identifiés et mitigations
+**KPIs Phase 4 :**
+- Application sécurisée avec score de 90/100 à l'audit
+- Temps de réponse < 200ms pour 95% des requêtes
+- 100% des utilisateurs clés formés
+
+## Phase 5 : Applications Mobiles et Évolutions (3 mois + 3 semaines tampon)
+
+### Semaine 29-32 : Application Mobile MVP
+- Développement React Native de l'application mobile (MVP)
+- Fonctionnalités essentielles (consultation planning, congés)
+- Système de notifications push
+- Tests utilisateurs préliminaires
+
+### Semaine 33-36 : Application Mobile Complète
+- Fonctionnalités complètes sur mobile
+- Mode hors-ligne
+- Optimisations UI/UX mobiles
+- Tests sur iOS et Android
+
+### Semaine 37-40 : Évolutions et Intégrations
+- Intégrations avec systèmes externes
+- Améliorations basées sur les retours utilisateurs
+- Optimisations avancées
+- Formation finale des utilisateurs
+
+**Livrables Phase 5 :**
+- Applications mobiles iOS/Android fonctionnelles
+- Intégrations externes
+- Application complète déployée en production
+
+**KPIs Phase 5 :**
+- Utilisation mobile par 70% des utilisateurs
+- Satisfaction globale ≥ 8.5/10
+- Réduction de 60% du temps de gestion administrative
+
+## Amélioration Continue (En parallèle)
+
+Ces tâches seront réalisées en parallèle des phases principales :
+- Optimisations de performance progressives
+- Amélioration du système de cache
+- Extension de la couverture des tests
+- Monitoring et analytics
+- Corrections de bugs et améliorations mineures
+- Documentation mise à jour régulièrement
+
+## Méthodologie et Revues
+
+- Revue de sprint hebdomadaire
+- Démos aux utilisateurs toutes les 2 semaines
+- Tests utilisateurs après chaque phase majeure
+- Revue de code pour toutes les fonctionnalités
+- Rétrospectives mensuelles pour améliorer le processus
+
+## Gestion des Risques
 
 | Risque | Impact | Probabilité | Mitigation |
 |--------|--------|-------------|------------|
-| Complexité de l'algorithme de génération | Élevé | Moyenne | Approche incrémentale, tests précoces, utilisation de règles dynamiques |
-| Adaptation utilisateurs | Moyen | Élevée | Formation progressive, implication utilisateurs tôt |
-| Intégration externe (Google Sheets, HM bloc) | Moyen | Moyenne | Prototypes d'intégration précoces |
-| Performance avec données volumineuses | Moyen | Faible | Tests de charge, optimisation BDD, pagination |
-| Évolutions des règles métier | Moyen | Moyenne | Architecture modulaire, règles dynamiques configurables |
-| Conflits entre règles de planification | Élevé | Moyenne | Système de priorité, vérification des contradictions |
+| Retards dans la refactorisation | Élevé | Moyenne | Phases tampons, MVP fonctionnel |
+| Complexité de l'algorithme | Élevé | Élevée | Approche itérative, règles simplifiées d'abord |
+| Résistance au changement | Moyen | Élevée | Implication utilisateurs, formation progressive |
+| Intégrations externes complexes | Moyen | Moyenne | Isolation par interface, tests précoces |
+| Performance dégradée | Élevé | Faible | Monitoring continu, optimisations régulières |
 
-## Évolutions futures (Post V1)
+Cette feuille de route sera révisée trimestriellement pour s'adapter aux retours utilisateurs et aux évolutions du projet.
 
-- **V1.1**: Intégration directe avec HM Bloc/Planif
-- **V1.2**: Algorithme d'apprentissage pour optimisation
-- **V1.3**: Module de gestion des compétences
-- **V2.0**: Extension multi-services et multi-établissements
-- **V2.1**: Intégration avec l'écosystème médical élargi
-- **V2.2**: Intelligence artificielle avancée pour optimisation prédictive
+---
 
-Cette feuille de route sera ajustée en fonction de l'avancement réel du projet et des retours des utilisateurs lors des phases de test.
+*Dernière mise à jour: Avril 2025*

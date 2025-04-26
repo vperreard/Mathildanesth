@@ -127,4 +127,24 @@ export interface CalendarSettings {
     slotLabelFormat: any;
     slotMinTime: string;
     slotMaxTime: string;
+}
+
+export interface ColorScheme {
+    leave: string;
+    duty: string;
+    onCall: string;
+    assignment: string;
+    default: string;
+    textColor: string;
+    approved: string;
+    pending: string;
+    rejected: string;
+}
+
+export interface UserCalendarSettings {
+    startWeekOn: 'monday' | 'sunday';
+    showWeekends: boolean;
+    showRejectedLeaves: boolean;
+    timeFormat: '12h' | '24h';
+    colorScheme: ColorScheme;
 } 

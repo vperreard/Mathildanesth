@@ -163,4 +163,17 @@ export interface LeaveAllowanceCheckResult {
     requestedDays: number;
     exceededDays: number;
     message?: string;
+}
+
+/**
+ * Type pour la modification d'un congé
+ */
+export interface LeaveToModify {
+    id: string;
+    startDate: Date;
+    endDate: Date;
+    type: LeaveType;
+    status: LeaveStatus;
+    comment?: string;
+    userId: string;
 } 

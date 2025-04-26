@@ -35,11 +35,12 @@ import {
     UserMinusIcon
 } from '@heroicons/react/24/outline';
 import { UserIcon } from 'lucide-react';
+import { ProfessionalRole } from '@prisma/client';
 
 // Types pour les règles de congés
 type LeaveRules = {
     id: number;
-    professionalRole: string;
+    professionalRole: ProfessionalRole;
     annualLeaveCount: number;
     maxConsecutiveDays: number;
     isActive: boolean;
@@ -52,7 +53,7 @@ type UserLeaveData = {
     id: number;
     userId: number;
     userName: string;
-    userRole: string;
+    userRole: ProfessionalRole;
     annualLeavesTotal: number;
     annualLeavesUsed: number;
     annualLeavesRemaining: number;
@@ -64,7 +65,7 @@ type UserLeaveData = {
 
 // Type pour le formulaire de règles de congés
 type LeaveRulesFormData = {
-    professionalRole: string;
+    professionalRole: ProfessionalRole;
     annualLeaveCount: number;
     maxConsecutiveDays: number;
     isActive: boolean;
@@ -99,7 +100,7 @@ const LeaveManagementPanel: React.FC = () => {
     const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
     const [isEditingRule, setIsEditingRule] = useState<number | null>(null);
     const [rulesFormData, setRulesFormData] = useState<LeaveRulesFormData>({
-        professionalRole: 'MAR',
+        professionalRole: ProfessionalRole.MAR,
         annualLeaveCount: 25,
         maxConsecutiveDays: 15,
         isActive: true
@@ -117,12 +118,9 @@ const LeaveManagementPanel: React.FC = () => {
 
     // Options pour les rôles professionnels
     const professionalRoleOptions = [
-        { value: 'MAR', label: 'Médecin Anesthésiste Réanimateur' },
-        { value: 'IADE', label: 'Infirmier Anesthésiste' },
-        { value: 'IDE', label: 'Infirmier' },
-        { value: 'AS', label: 'Aide-Soignant' },
-        { value: 'ASH', label: 'Agent de Service Hospitalier' },
-        { value: 'ADMIN', label: 'Personnel Administratif' }
+        { value: ProfessionalRole.MAR, label: 'Médecin Anesthésiste Réanimateur' },
+        { value: ProfessionalRole.IADE, label: 'Infirmier Anesthésiste' },
+        { value: ProfessionalRole.SECRETAIRE, label: 'Secrétaire' }
     ];
 
     // Chargement des règles de congés
@@ -140,7 +138,7 @@ const LeaveManagementPanel: React.FC = () => {
                 const mockRules = [
                     {
                         id: 1,
-                        professionalRole: 'MAR',
+                        professionalRole: ProfessionalRole.MAR,
                         annualLeaveCount: 25,
                         maxConsecutiveDays: 15,
                         isActive: true,
@@ -149,7 +147,7 @@ const LeaveManagementPanel: React.FC = () => {
                     },
                     {
                         id: 2,
-                        professionalRole: 'IADE',
+                        professionalRole: ProfessionalRole.IADE,
                         annualLeaveCount: 25,
                         maxConsecutiveDays: 15,
                         isActive: true,
@@ -158,7 +156,7 @@ const LeaveManagementPanel: React.FC = () => {
                     },
                     {
                         id: 3,
-                        professionalRole: 'IDE',
+                        professionalRole: ProfessionalRole.SECRETAIRE,
                         annualLeaveCount: 25,
                         maxConsecutiveDays: 10,
                         isActive: true,
@@ -193,7 +191,7 @@ const LeaveManagementPanel: React.FC = () => {
                         id: 1,
                         userId: 101,
                         userName: "Dupont Marie",
-                        userRole: "MAR",
+                        userRole: ProfessionalRole.MAR,
                         annualLeavesTotal: 25,
                         annualLeavesUsed: 10,
                         annualLeavesRemaining: 15,
@@ -206,7 +204,7 @@ const LeaveManagementPanel: React.FC = () => {
                         id: 2,
                         userId: 102,
                         userName: "Martin Pierre",
-                        userRole: "IADE",
+                        userRole: ProfessionalRole.IADE,
                         annualLeavesTotal: 25,
                         annualLeavesUsed: 15,
                         annualLeavesRemaining: 10,
@@ -219,7 +217,7 @@ const LeaveManagementPanel: React.FC = () => {
                         id: 3,
                         userId: 103,
                         userName: "Bernard Sophie",
-                        userRole: "IDE",
+                        userRole: ProfessionalRole.SECRETAIRE,
                         annualLeavesTotal: 25,
                         annualLeavesUsed: 20,
                         annualLeavesRemaining: 5,
@@ -294,7 +292,7 @@ const LeaveManagementPanel: React.FC = () => {
     const handleAddRule = () => {
         setIsEditingRule(null);
         setRulesFormData({
-            professionalRole: 'MAR',
+            professionalRole: ProfessionalRole.MAR,
             annualLeaveCount: 25,
             maxConsecutiveDays: 15,
             isActive: true
@@ -492,8 +490,8 @@ const LeaveManagementPanel: React.FC = () => {
                         {({ selected }) => (
                             <button
                                 className={`w-full py-2.5 text-sm font-medium rounded-lg focus:outline-none ${selected
-                                        ? 'bg-white text-blue-700 shadow'
-                                        : 'text-gray-600 hover:bg-white/[0.25] hover:text-blue-700'
+                                    ? 'bg-white text-blue-700 shadow'
+                                    : 'text-gray-600 hover:bg-white/[0.25] hover:text-blue-700'
                                     }`}
                             >
                                 Règles des Congés
@@ -504,8 +502,8 @@ const LeaveManagementPanel: React.FC = () => {
                         {({ selected }) => (
                             <button
                                 className={`w-full py-2.5 text-sm font-medium rounded-lg focus:outline-none ${selected
-                                        ? 'bg-white text-blue-700 shadow'
-                                        : 'text-gray-600 hover:bg-white/[0.25] hover:text-blue-700'
+                                    ? 'bg-white text-blue-700 shadow'
+                                    : 'text-gray-600 hover:bg-white/[0.25] hover:text-blue-700'
                                     }`}
                             >
                                 Congés par Personnel

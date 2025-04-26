@@ -13,6 +13,12 @@ import { CalendarEventType } from '@/modules/calendar/types/event';
 interface CalendarEvent {
     id: string;
     type: string;
+    startDate: Date;
+    endDate: Date;
+    leaveType?: string;
+    status?: string;
+    comment?: string;
+    userId?: string;
 }
 
 // Type pour les onglets du calendrier
@@ -23,12 +29,12 @@ export default function CalendarPage() {
     const router = useRouter();
     const searchParams = useSearchParams(); // Hook pour lire les paramètres URL
     const { user, isLoading } = useAuth();
+    const [activeTab, setActiveTab] = useState<CalendarTab>('personal');
+    const [leaveToEdit, setLeaveToEdit] = useState<CalendarEvent | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Déterminer si l'utilisateur est un admin (total ou partiel)
     const isAdmin = user && (user.role === 'ADMIN_TOTAL' || user.role === 'ADMIN_PARTIEL');
-
-    // État pour l'onglet actif
-    const [activeTab, setActiveTab] = useState<CalendarTab>('personal');
 
     // Lire l'onglet depuis l'URL au chargement et lors des changements
     useEffect(() => {
@@ -46,12 +52,28 @@ export default function CalendarPage() {
     };
 
     // Gérer le clic sur un événement du calendrier
-    const handleEventClick = (event: CalendarEvent) => {
-        // Rediriger vers la page de détails selon le type d'événement
-        if (event.type === 'LEAVE') {
-            router.push(`/leaves/${event.id}`);
+    const handleEventClick = (event: any) => {
+        if (!event || !event.extendedProps) {
+            console.warn('Événement invalide reçu:', event);
+            return;
         }
-        // Gérer d'autres types d'événements si nécessaire
+
+        const { type, id, start, end, leaveType, status, comment, userId } = event.extendedProps;
+
+        if (type === 'leave') {
+            const leave: CalendarEvent = {
+                id,
+                type,
+                startDate: new Date(start),
+                endDate: new Date(end),
+                leaveType,
+                status,
+                comment: comment || '',
+                userId
+            };
+            setLeaveToEdit(leave);
+            setIsModalOpen(true);
+        }
     };
 
     // Gérer le clic sur le bouton "Demander un congé"
@@ -156,6 +178,58 @@ export default function CalendarPage() {
                             </button>
                         )}
                     </nav>
+
+                    {/* Boutons d'action supplémentaires */}
+                    <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                            onClick={() => router.push('/leaves/history')}
+                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                            <span className="flex items-center">
+                                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Historique
+                            </span>
+                        </button>
+
+                        <button
+                            onClick={() => router.push('/leaves/stats')}
+                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                            <span className="flex items-center">
+                                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                                Statistiques
+                            </span>
+                        </button>
+
+                        <button
+                            onClick={() => router.push('/calendar/export')}
+                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                            <span className="flex items-center">
+                                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Exporter
+                            </span>
+                        </button>
+
+                        <button
+                            onClick={() => router.push('/calendar/settings')}
+                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                            <span className="flex items-center">
+                                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Paramètres
+                            </span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Contenu de l'onglet actif */}
@@ -169,14 +243,14 @@ export default function CalendarPage() {
                     {activeTab === 'personal' && user && (
                         <PersonalCalendar
                             userId={user.id.toString()}
-                            onEventClick={(eventId, eventType) => handleEventClick({ id: eventId, type: eventType })}
+                            onEventClick={handleEventClick}
                             onRequestLeave={handleRequestLeave}
                         />
                     )}
 
                     {activeTab === 'collective' && (
                         <CollectiveCalendar
-                            onEventClick={(eventId, eventType) => handleEventClick({ id: eventId, type: eventType })}
+                            onEventClick={handleEventClick}
                             onRequestLeave={handleRequestLeave}
                         />
                     )}
@@ -188,4 +262,4 @@ export default function CalendarPage() {
             </motion.div>
         </>
     );
-} 
+}

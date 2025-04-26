@@ -4,6 +4,10 @@ import React, { useState, useEffect } from 'react';
 // Importer les types nécessaires
 import { LeaveTypeSetting, ProfessionalRole, Role } from '@prisma/client';
 import { JsonValue } from 'type-fest';
+import { Modal, Form, Input, InputNumber, Select, Switch, Checkbox, Space, Divider, Row, Col } from 'antd';
+import type { SelectProps } from 'antd';
+
+const { Option } = Select;
 
 // --- Constantes et Types ---
 const ALL_ROLES: ProfessionalRole[] = [ProfessionalRole.MAR, ProfessionalRole.IADE, ProfessionalRole.SECRETAIRE];
@@ -84,7 +88,7 @@ interface FormData {
     isUserSelectable: boolean;
     displayOrder: number;
     eligibility_roles: ProfessionalRole[];
-    approval_requiredRole: Role | '';
+    approval_requiredRole: Role | null;
     counting_method: typeof COUNTING_METHODS[number]['value'];
     counting_excludePublicHolidays: boolean;
     balance_deducts: boolean;
@@ -115,7 +119,7 @@ const getDefaultFormData = (): FormData => ({
     isUserSelectable: true,
     displayOrder: 0,
     eligibility_roles: [],
-    approval_requiredRole: '',
+    approval_requiredRole: null,
     counting_method: 'WEEKDAYS_IF_WORKING',
     counting_excludePublicHolidays: true,
     balance_deducts: true,
@@ -176,7 +180,7 @@ const transformInitialDataToFormData = (initialData: LeaveTypeFormModalProps['in
         request_requiresReason: request.requiresReason ?? false,
         request_allowHalfDays: request.allowHalfDays ?? true,
         approval_autoApprove: approval.autoApprove ?? false,
-        approval_requiredRole: (approval.requiredRole || '') as Role | '',
+        approval_requiredRole: approval.requiredRole ? (approval.requiredRole as Role) : null,
         conflicts_checkMaxOverlap: conflicts.checkMaxOverlap ?? false,
         conflicts_maxOverlapSameRole: conflicts.maxOverlapSameRole ?? 0,
     };
@@ -188,19 +192,20 @@ const LeaveTypeFormModal: React.FC<LeaveTypeFormModalProps> = ({
     onSuccess,
     initialData
 }) => {
+    const [form] = Form.useForm();
     const [formData, setFormData] = useState<FormData>(getDefaultFormData());
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const isEditing = !!initialData?.id;
 
-    // Pré-remplir/Réinitialiser le formulaire
     useEffect(() => {
         if (isOpen) {
-            setFormData(transformInitialDataToFormData(initialData));
+            const data = transformInitialDataToFormData(initialData);
+            setFormData(data);
+            form.setFieldsValue(data);
             setError(null);
         }
-    }, [isOpen, initialData]);
+    }, [isOpen, initialData, form]);
 
     // Handler générique pour la plupart des champs
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -218,7 +223,7 @@ const LeaveTypeFormModal: React.FC<LeaveTypeFormModalProps> = ({
 
         // Gérer la visibilité des champs liés à l'approbation manuelle
         if (name === 'approval_autoApprove' && (e.target as HTMLInputElement).checked) {
-            setFormData(prev => ({ ...prev, approval_requiredRole: '' })); // Effacer si autoApprove
+            setFormData(prev => ({ ...prev, approval_requiredRole: null })); // Effacer si autoApprove
         }
         // Gérer la visibilité des champs liés aux conflits
         if (name === 'conflicts_checkMaxOverlap' && !(e.target as HTMLInputElement).checked) {
@@ -227,24 +232,10 @@ const LeaveTypeFormModal: React.FC<LeaveTypeFormModalProps> = ({
     };
 
     // Gestionnaire unifié pour les changements de rôles
-    const handleRoleChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: keyof FormData) => {
-        const { value, checked } = e.target;
-        const role = value as ProfessionalRole;
-
+    const handleRoleChange = (value: string) => {
         setFormData(prev => ({
             ...prev,
-            [fieldName]: checked
-                ? [...(prev[fieldName] as ProfessionalRole[]), role]
-                : (prev[fieldName] as ProfessionalRole[]).filter(r => r !== role)
-        }));
-    };
-
-    // Gestionnaire de changement pour les rôles d'approbation
-    const handleApprovalRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const { value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            approval_requiredRole: value as Role | ''
+            approval_requiredRole: value ? (value as Role) : null
         }));
     };
 
@@ -362,318 +353,307 @@ const LeaveTypeFormModal: React.FC<LeaveTypeFormModalProps> = ({
         }
     };
 
-    if (!isOpen) return null;
-
-    // --- Rendu JSX --- 
     return (
-        // Backdrop:
-        <div style={{
-            position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex', /* alignItems: 'center', // Retiré */ justifyContent: 'center',
-            zIndex: 1000,
-            padding: '2rem 0' // Ajout padding vertical pour l'espacement
-            // overflowY: 'auto' // Retiré du backdrop
-        }}>
-            {/* Conteneur du Modal Blanc: */}
-            <div style={{
-                background: 'white', padding: '2rem',
-                borderRadius: '8px', width: '90%', maxWidth: '600px',
-                overflowY: 'auto', // Ajout du scroll sur le modal lui-même
-                maxHeight: '90vh' // Limite la hauteur à 90% de la vue
-            }}>
-                <h2 className="text-xl font-bold mb-6">{isEditing ? 'Modifier le Type de Congé' : 'Ajouter un Type de Congé'}</h2>
+        <Modal
+            title={isEditing ? 'Modifier le Type de Congé' : 'Ajouter un Type de Congé'}
+            open={isOpen}
+            onCancel={onClose}
+            onOk={handleSubmit}
+            width={800}
+            confirmLoading={isSubmitting}
+        >
+            <Form
+                form={form}
+                layout="vertical"
+                initialValues={formData}
+                onValuesChange={(_, allValues) => setFormData(allValues as FormData)}
+            >
+                <Space direction="vertical" style={{ width: '100%' }} size="large">
+                    {/* Section Informations Générales */}
+                    <div>
+                        <Divider orientation="left">Informations Générales</Divider>
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="code"
+                                    label="Code"
+                                    rules={[{ required: true, message: 'Le code est requis' }]}
+                                >
+                                    <Input disabled={isEditing} />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="displayOrder"
+                                    label="Ordre d'affichage"
+                                >
+                                    <InputNumber style={{ width: '100%' }} />
+                                </Form.Item>
+                            </Col>
+                        </Row>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                        <Form.Item
+                            name="label"
+                            label="Libellé"
+                            rules={[{ required: true, message: 'Le libellé est requis' }]}
+                        >
+                            <Input />
+                        </Form.Item>
 
-                    {/* --- Informations Générales --- */}
-                    <fieldset className="space-y-4 border p-4 rounded">
-                        <legend className="text-lg font-medium px-1">Informations Générales</legend>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Form.Item
+                            name="description"
+                            label="Description"
+                        >
+                            <Input.TextArea rows={4} />
+                        </Form.Item>
+
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="isActive"
+                                    valuePropName="checked"
+                                >
+                                    <Switch checkedChildren="Actif" unCheckedChildren="Inactif" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="isUserSelectable"
+                                    valuePropName="checked"
+                                >
+                                    <Switch checkedChildren="Sélectionnable" unCheckedChildren="Non sélectionnable" />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                    </div>
+
+                    {/* Section Règles de Décompte */}
+                    <div>
+                        <Divider orientation="left">Règles de Décompte</Divider>
+                        <Form.Item
+                            name="counting_method"
+                            label="Méthode de décompte"
+                        >
+                            <Select>
+                                {COUNTING_METHODS.map(opt => (
+                                    <Select.Option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </Select.Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
+                        <Form.Item
+                            name="counting_excludePublicHolidays"
+                            valuePropName="checked"
+                        >
+                            <Checkbox>Exclure les jours fériés du décompte</Checkbox>
+                        </Form.Item>
+                    </div>
+
+                    {/* Section Règles de Solde */}
+                    <div>
+                        <Divider orientation="left">Règles de Solde</Divider>
+                        <Form.Item
+                            name="balance_deducts"
+                            valuePropName="checked"
+                        >
+                            <Checkbox>Ce congé déduit d'un solde</Checkbox>
+                        </Form.Item>
+
+                        {formData.balance_deducts && formData.code.startsWith('ANNUAL') && (
                             <div>
-                                <label htmlFor="code" className="block text-sm font-medium text-gray-700">Code</label>
-                                <input type="text" id="code" name="code" value={formData.code} onChange={handleChange}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
-                            </div>
-                            <div>
-                                <label htmlFor="displayOrder" className="block text-sm font-medium text-gray-700">Ordre d'affichage</label>
-                                <input type="number" id="displayOrder" name="displayOrder" value={formData.displayOrder} onChange={handleChange}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
-                            </div>
-                        </div>
-                        {/* Libellé */}
-                        <div>
-                            <label htmlFor="label" className="block text-sm font-medium text-gray-700">Libellé <span className="text-red-500">*</span></label>
-                            <input type="text" id="label" name="label" value={formData.label} onChange={handleChange} required
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
-                            <p className="text-xs text-gray-500 mt-1">Nom affiché.</p>
-                        </div>
-                        {/* Description */}
-                        <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-                            <textarea id="description" name="description" rows={2} value={formData.description} onChange={handleChange}
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
-                        </div>
-                        {/* Checkboxes Actif / Sélectionnable */}
-                        <div className="flex space-x-4">
-                            <div className="flex items-center">
-                                <input id="isActive" name="isActive" type="checkbox" checked={formData.isActive} onChange={handleChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                                <label htmlFor="isActive" className="ml-2 block text-sm text-gray-900">Actif</label>
-                            </div>
-                            <div className="flex items-center">
-                                <input id="isUserSelectable" name="isUserSelectable" type="checkbox" checked={formData.isUserSelectable} onChange={handleChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                                <label htmlFor="isUserSelectable" className="ml-2 block text-sm text-gray-900">Sélectionnable par l'utilisateur</label>
-                            </div>
-                        </div>
-                    </fieldset>
+                                <Divider orientation="left" plain>Configuration Solde Annuel</Divider>
+                                <Row gutter={16}>
+                                    <Col span={8}>
+                                        <Form.Item
+                                            name="balance_annual_defaultDays_MAR"
+                                            label="MAR"
+                                        >
+                                            <InputNumber style={{ width: '100%' }} />
+                                        </Form.Item>
+                                    </Col>
+                                    <Col span={8}>
+                                        <Form.Item
+                                            name="balance_annual_defaultDays_IADE"
+                                            label="IADE"
+                                        >
+                                            <InputNumber style={{ width: '100%' }} />
+                                        </Form.Item>
+                                    </Col>
+                                    <Col span={8}>
+                                        <Form.Item
+                                            name="balance_annual_defaultDays_SECRETAIRE"
+                                            label="SEC"
+                                        >
+                                            <InputNumber style={{ width: '100%' }} />
+                                        </Form.Item>
+                                    </Col>
+                                </Row>
 
-                    {/* --- Règles de Décompte --- */}
-                    <fieldset className="space-y-4 border p-4 rounded">
-                        <legend className="text-lg font-medium px-1">Règles de Décompte</legend>
-                        <div>
-                            <label htmlFor="counting_method" className="block text-sm font-medium text-gray-700">Méthode de décompte</label>
-                            <select id="counting_method" name="counting_method" value={formData.counting_method} onChange={handleChange}
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm">
-                                {COUNTING_METHODS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                            </select>
-                        </div>
-                        <div className="flex items-center">
-                            <input id="counting_excludePublicHolidays" name="counting_excludePublicHolidays" type="checkbox" checked={formData.counting_excludePublicHolidays} onChange={handleChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                            <label htmlFor="counting_excludePublicHolidays" className="ml-2 block text-sm text-gray-900">Exclure les jours fériés du décompte</label>
-                        </div>
-                    </fieldset>
+                                <Form.Item
+                                    name="balance_annual_seniorityBonus_enabled"
+                                    valuePropName="checked"
+                                >
+                                    <Checkbox>Activer Bonus Ancienneté</Checkbox>
+                                </Form.Item>
 
-                    {/* --- Règles de Solde --- */}
-                    <fieldset className="space-y-4 border p-4 rounded">
-                        <legend className="text-lg font-medium px-1">Règles de Solde</legend>
-                        <div className="flex items-center">
-                            <input id="balance_deducts" name="balance_deducts" type="checkbox" checked={formData.balance_deducts} onChange={handleChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                            <label htmlFor="balance_deducts" className="ml-2 block text-sm text-gray-900">Ce congé déduit d'un solde</label>
-                        </div>
-
-                        {/* Section Spécifique Annuel (Conditionnelle) */}
-                        {formData.code.startsWith('ANNUAL') && (
-                            <div className="border-t pt-4 mt-4 space-y-4">
-                                <p className="text-sm font-medium text-gray-600">Configuration Solde Annuel</p>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Jours annuels par défaut par rôle</label>
-                                    <div className="grid grid-cols-3 gap-2 mt-1">
-                                        <div><label htmlFor="balance_annual_defaultDays_MAR" className="text-xs">MAR</label><input type="number" id="balance_annual_defaultDays_MAR" name="balance_annual_defaultDays_MAR" value={formData.balance_annual_defaultDays_MAR} onChange={handleChange} className="w-full border-gray-300 rounded-md sm:text-sm" /></div>
-                                        <div><label htmlFor="balance_annual_defaultDays_IADE" className="text-xs">IADE</label><input type="number" id="balance_annual_defaultDays_IADE" name="balance_annual_defaultDays_IADE" value={formData.balance_annual_defaultDays_IADE} onChange={handleChange} className="w-full border-gray-300 rounded-md sm:text-sm" /></div>
-                                        <div><label htmlFor="balance_annual_defaultDays_SECRETAIRE" className="text-xs">SEC</label><input type="number" id="balance_annual_defaultDays_SECRETAIRE" name="balance_annual_defaultDays_SECRETAIRE" value={formData.balance_annual_defaultDays_SECRETAIRE} onChange={handleChange} className="w-full border-gray-300 rounded-md sm:text-sm" /></div>
-                                    </div>
-                                </div>
-                                {/* Bonus Ancienneté */}
-                                <div className="flex items-center pt-2">
-                                    <input id="balance_annual_seniorityBonus_enabled" name="balance_annual_seniorityBonus_enabled" type="checkbox" checked={formData.balance_annual_seniorityBonus_enabled} onChange={handleChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                                    <label htmlFor="balance_annual_seniorityBonus_enabled" className="ml-2 block text-sm font-medium text-gray-900">Activer Bonus Ancienneté</label>
-                                </div>
                                 {formData.balance_annual_seniorityBonus_enabled && (
-                                    <div className="pl-6 space-y-3 border-l ml-2">
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <div><label htmlFor="balance_annual_seniorityBonus_yearsRequired" className="text-xs">Années Req.</label><input type="number" id="balance_annual_seniorityBonus_yearsRequired" name="balance_annual_seniorityBonus_yearsRequired" value={formData.balance_annual_seniorityBonus_yearsRequired} onChange={handleChange} className="w-full border-gray-300 rounded-md sm:text-sm" /></div>
-                                            <div><label htmlFor="balance_annual_seniorityBonus_bonusDaysPerThreshold" className="text-xs">Jours / Palier</label><input type="number" id="balance_annual_seniorityBonus_bonusDaysPerThreshold" name="balance_annual_seniorityBonus_bonusDaysPerThreshold" value={formData.balance_annual_seniorityBonus_bonusDaysPerThreshold} onChange={handleChange} className="w-full border-gray-300 rounded-md sm:text-sm" /></div>
-                                            <div><label htmlFor="balance_annual_seniorityBonus_maxBonusDays" className="text-xs">Bonus Max</label><input type="number" id="balance_annual_seniorityBonus_maxBonusDays" name="balance_annual_seniorityBonus_maxBonusDays" value={formData.balance_annual_seniorityBonus_maxBonusDays} onChange={handleChange} className="w-full border-gray-300 rounded-md sm:text-sm" /></div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Rôles concernés par le bonus</label>
-                                            <div className="flex space-x-4">
-                                                {[ProfessionalRole.IADE, ProfessionalRole.SECRETAIRE].map(role => (
-                                                    <div key={role} className="flex items-center">
-                                                        <input type="checkbox" id={`bonusRole_${role}`} name="balance_annual_seniorityBonus_applicableRoles" value={role}
-                                                            checked={formData.balance_annual_seniorityBonus_applicableRoles.includes(role)}
-                                                            onChange={(e) => handleRoleChange(e, 'balance_annual_seniorityBonus_applicableRoles')}
-                                                            className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                                                        <label htmlFor={`bonusRole_${role}`} className="ml-2 text-sm text-gray-600">{role}</label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
+                                    <div style={{ paddingLeft: 24, borderLeft: '1px solid #f0f0f0' }}>
+                                        <Row gutter={16}>
+                                            <Col span={8}>
+                                                <Form.Item
+                                                    name="balance_annual_seniorityBonus_yearsRequired"
+                                                    label="Années Requises"
+                                                >
+                                                    <InputNumber style={{ width: '100%' }} />
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={8}>
+                                                <Form.Item
+                                                    name="balance_annual_seniorityBonus_bonusDaysPerThreshold"
+                                                    label="Jours / Palier"
+                                                >
+                                                    <InputNumber style={{ width: '100%' }} />
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={8}>
+                                                <Form.Item
+                                                    name="balance_annual_seniorityBonus_maxBonusDays"
+                                                    label="Bonus Max"
+                                                >
+                                                    <InputNumber style={{ width: '100%' }} />
+                                                </Form.Item>
+                                            </Col>
+                                        </Row>
+
+                                        <Form.Item
+                                            name="balance_annual_seniorityBonus_applicableRoles"
+                                            label="Rôles concernés par le bonus"
+                                        >
+                                            <Checkbox.Group>
+                                                <Row>
+                                                    {ALL_ROLES.map(role => (
+                                                        <Col span={8} key={role}>
+                                                            <Checkbox value={role}>{role}</Checkbox>
+                                                        </Col>
+                                                    ))}
+                                                </Row>
+                                            </Checkbox.Group>
+                                        </Form.Item>
                                     </div>
                                 )}
                             </div>
                         )}
-                    </fieldset>
-
-                    {/* --- Règles d'Éligibilité --- */}
-                    <fieldset className="space-y-4 border p-4 rounded">
-                        <legend className="text-lg font-medium px-1">Éligibilité</legend>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Rôles professionnels éligibles
-                            </label>
-                            <div className="space-y-2">
-                                {ALL_ROLES.map(role => (
-                                    <div key={role} className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            id={`role-${role}`}
-                                            name="eligibility_roles"
-                                            value={role}
-                                            checked={formData.eligibility_roles.includes(role)}
-                                            onChange={(e) => handleRoleChange(e, 'eligibility_roles')}
-                                            className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                                        />
-                                        <label htmlFor={`role-${role}`} className="ml-2 block text-sm text-gray-900">
-                                            {role}
-                                        </label>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div>
-                            <label htmlFor="eligibility_minSeniorityMonths" className="block text-sm font-medium text-gray-700">
-                                Ancienneté minimale requise (mois)
-                            </label>
-                            <input
-                                type="number"
-                                id="eligibility_minSeniorityMonths"
-                                name="eligibility_minSeniorityMonths"
-                                value={formData.eligibility_minSeniorityMonths}
-                                onChange={handleChange}
-                                min="0"
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm"
-                            />
-                        </div>
-                    </fieldset>
-
-                    {/* --- Règles de Demande --- */}
-                    <fieldset className="space-y-4 border p-4 rounded">
-                        <legend className="text-lg font-medium px-1">Règles de Demande</legend>
-                        <div>
-                            <label htmlFor="request_minNoticeDays" className="block text-sm font-medium text-gray-700">
-                                Délai de prévenance minimum (jours)
-                            </label>
-                            <input
-                                type="number"
-                                id="request_minNoticeDays"
-                                name="request_minNoticeDays"
-                                value={formData.request_minNoticeDays}
-                                onChange={handleChange}
-                                min="0"
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm"
-                            />
-                        </div>
-                        <div className="flex space-x-4">
-                            <div className="flex items-center">
-                                <input
-                                    id="request_requiresReason"
-                                    name="request_requiresReason"
-                                    type="checkbox"
-                                    checked={formData.request_requiresReason}
-                                    onChange={handleChange}
-                                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                                />
-                                <label htmlFor="request_requiresReason" className="ml-2 block text-sm text-gray-900">
-                                    Motif obligatoire
-                                </label>
-                            </div>
-                            <div className="flex items-center">
-                                <input
-                                    id="request_allowHalfDays"
-                                    name="request_allowHalfDays"
-                                    type="checkbox"
-                                    checked={formData.request_allowHalfDays}
-                                    onChange={handleChange}
-                                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                                />
-                                <label htmlFor="request_allowHalfDays" className="ml-2 block text-sm text-gray-900">
-                                    Autoriser les demi-journées
-                                </label>
-                            </div>
-                        </div>
-                    </fieldset>
-
-                    {/* --- Règles d'Approbation --- */}
-                    <fieldset className="space-y-4 border p-4 rounded">
-                        <legend className="text-lg font-medium px-1">Approbation</legend>
-                        <div className="flex items-center">
-                            <input
-                                type="checkbox"
-                                id="approval_autoApprove"
-                                name="approval_autoApprove"
-                                checked={formData.approval_autoApprove}
-                                onChange={handleChange}
-                                className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                            />
-                            <label htmlFor="approval_autoApprove" className="ml-2 block text-sm text-gray-900">
-                                Approbation automatique
-                            </label>
-                        </div>
-                        {!formData.approval_autoApprove && (
-                            <div>
-                                <label htmlFor="approval_requiredRole" className="block text-sm font-medium text-gray-700">
-                                    Rôle requis pour approbation
-                                </label>
-                                <select
-                                    id="approval_requiredRole"
-                                    name="approval_requiredRole"
-                                    value={formData.approval_requiredRole}
-                                    onChange={handleChange}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm"
-                                >
-                                    <option value="">Non spécifié</option>
-                                    {Object.values(Role).map(role => (
-                                        <option key={role} value={role}>{role}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-                    </fieldset>
-
-                    {/* --- Règles de Conflit --- */}
-                    <fieldset className="space-y-4 border p-4 rounded">
-                        <legend className="text-lg font-medium px-1">Règles de Conflit</legend>
-                        <div className="flex items-center">
-                            <input
-                                type="checkbox"
-                                id="conflicts_checkMaxOverlap"
-                                name="conflicts_checkMaxOverlap"
-                                checked={formData.conflicts_checkMaxOverlap}
-                                onChange={handleChange}
-                                className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                            />
-                            <label htmlFor="conflicts_checkMaxOverlap" className="ml-2 block text-sm text-gray-900">
-                                Vérifier le nombre maximal de personnes absentes en même temps
-                            </label>
-                        </div>
-                        {formData.conflicts_checkMaxOverlap && (
-                            <div>
-                                <label htmlFor="conflicts_maxOverlapSameRole" className="block text-sm font-medium text-gray-700">
-                                    Nombre maximal de personnes du même rôle absentes simultanément
-                                </label>
-                                <input
-                                    type="number"
-                                    id="conflicts_maxOverlapSameRole"
-                                    name="conflicts_maxOverlapSameRole"
-                                    value={formData.conflicts_maxOverlapSameRole}
-                                    onChange={handleChange}
-                                    min="0"
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm"
-                                />
-                            </div>
-                        )}
-                    </fieldset>
-
-                    {/* Boutons d'action */}
-                    <div className="flex justify-end space-x-3 pt-6">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                        >
-                            Annuler
-                        </button>
-                        <button
-                            type="submit"
-                            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-                        >
-                            {isEditing ? 'Mettre à jour' : 'Créer'}
-                        </button>
                     </div>
-                </form>
-            </div>
-        </div>
+
+                    {/* Section Éligibilité */}
+                    <div>
+                        <Divider orientation="left">Éligibilité</Divider>
+                        <Form.Item
+                            name="eligibility_roles"
+                            label="Rôles professionnels éligibles"
+                        >
+                            <Checkbox.Group>
+                                <Space direction="vertical">
+                                    {ALL_ROLES.map(role => (
+                                        <Checkbox key={role} value={role}>{role}</Checkbox>
+                                    ))}
+                                </Space>
+                            </Checkbox.Group>
+                        </Form.Item>
+
+                        <Form.Item
+                            name="eligibility_minSeniorityMonths"
+                            label="Ancienneté minimale requise (mois)"
+                        >
+                            <InputNumber min={0} style={{ width: '100%' }} />
+                        </Form.Item>
+                    </div>
+
+                    {/* Section Règles de Demande */}
+                    <div>
+                        <Divider orientation="left">Règles de Demande</Divider>
+                        <Form.Item
+                            name="request_minNoticeDays"
+                            label="Délai de prévenance minimum (jours)"
+                        >
+                            <InputNumber min={0} style={{ width: '100%' }} />
+                        </Form.Item>
+
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="request_requiresReason"
+                                    valuePropName="checked"
+                                >
+                                    <Checkbox>Motif obligatoire</Checkbox>
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="request_allowHalfDays"
+                                    valuePropName="checked"
+                                >
+                                    <Checkbox>Autoriser les demi-journées</Checkbox>
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                    </div>
+
+                    {/* Section Approbation */}
+                    <div>
+                        <Divider orientation="left">Approbation</Divider>
+                        <Form.Item
+                            name="approval_autoApprove"
+                            valuePropName="checked"
+                        >
+                            <Checkbox>Approbation automatique</Checkbox>
+                        </Form.Item>
+
+                        {!formData.approval_autoApprove && (
+                            <Form.Item
+                                name="approval_requiredRole"
+                                label="Rôle requis pour approbation"
+                            >
+                                <Select>
+                                    <Select.Option value="">Aucun rôle requis</Select.Option>
+                                    {ADMIN_ROLES.map(role => (
+                                        <Select.Option key={role} value={role}>{role}</Select.Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+                        )}
+                    </div>
+
+                    {/* Section Règles de Conflit */}
+                    <div>
+                        <Divider orientation="left">Règles de Conflit</Divider>
+                        <Form.Item
+                            name="conflicts_checkMaxOverlap"
+                            valuePropName="checked"
+                        >
+                            <Checkbox>Vérifier le nombre maximal de personnes absentes en même temps</Checkbox>
+                        </Form.Item>
+
+                        {formData.conflicts_checkMaxOverlap && (
+                            <Form.Item
+                                name="conflicts_maxOverlapSameRole"
+                                label="Nombre maximal de personnes du même rôle absentes simultanément"
+                            >
+                                <InputNumber min={0} style={{ width: '100%' }} />
+                            </Form.Item>
+                        )}
+                    </div>
+
+                    {error && (
+                        <div className="text-red-500 mt-4">
+                            {error}
+                        </div>
+                    )}
+                </Space>
+            </Form>
+        </Modal>
     );
-}
+};
 
 export default LeaveTypeFormModal; 

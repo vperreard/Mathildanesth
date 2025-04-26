@@ -1,15 +1,19 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, FC } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
+import { EventInput } from '@fullcalendar/core';
 import {
     AnyCalendarEvent,
     CalendarEventType,
     CalendarSettings,
-    CalendarViewType
+    CalendarViewType,
+    UserCalendarSettings,
+    CalendarEvent,
+    ColorScheme
 } from '../types/event';
 
 // Styles personnalisés pour le calendrier
@@ -33,13 +37,15 @@ interface BaseCalendarProps {
     events: AnyCalendarEvent[];
     view: CalendarViewType;
     settings: CalendarSettings;
+    options?: Partial<CalendarSettings>;
+    userSettings?: UserCalendarSettings;
     loading?: boolean;
     editable?: boolean;
     selectable?: boolean;
-    onEventClick?: (eventId: string, eventType: string) => void;
+    onEventClick?: (event: AnyCalendarEvent) => void;
     onEventDrop?: (eventId: string, newStart: Date, newEnd: Date) => void;
     onEventResize?: (eventId: string, newStart: Date, newEnd: Date) => void;
-    onDateSelect?: (start: Date, end: Date, allDay: boolean) => void;
+    onDateSelect?: (start: Date, end: Date) => void;
     onViewChange?: (view: CalendarViewType) => void;
     onDateRangeChange?: (start: Date, end: Date) => void;
     headerToolbar?: {
@@ -49,10 +55,12 @@ interface BaseCalendarProps {
     };
 }
 
-export const BaseCalendar: React.FC<BaseCalendarProps> = ({
+export const BaseCalendar: FC<BaseCalendarProps> = ({
     events,
     view,
     settings,
+    options,
+    userSettings,
     loading = false,
     editable = false,
     selectable = false,
@@ -68,27 +76,35 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
         right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
     }
 }) => {
+    // Filtrer les événements en fonction des paramètres utilisateur
+    const filteredEvents = events.filter(event => {
+        // Ne pas afficher les congés refusés si le paramètre est désactivé
+        if (!userSettings?.showRejectedLeaves &&
+            event.type === CalendarEventType.LEAVE &&
+            'status' in event &&
+            event.status === 'REJECTED') {
+            return false;
+        }
+        return true;
+    });
+
     // Formater les événements pour FullCalendar
-    const formattedEvents = events.map(event => ({
+    const formattedEvents = filteredEvents.map(event => ({
         id: event.id,
         title: event.title,
         start: event.start,
         end: event.end,
-        allDay: event.allDay !== undefined ? event.allDay : true,
-        extendedProps: {
-            ...event
-        },
-        color: getEventColor(event.type),
-        textColor: getEventTextColor(event.type),
-        borderColor: getEventBorderColor(event.type, event.type === CalendarEventType.LEAVE ? event.status : undefined)
+        allDay: event.allDay,
+        backgroundColor: getEventBackgroundColor(event, userSettings?.colorScheme),
+        borderColor: getEventBorderColor(event, userSettings?.colorScheme),
+        textColor: userSettings?.colorScheme?.textColor || '#000000',
+        extendedProps: { originalEvent: event }
     }));
 
     // Gestionnaire de clic sur un événement
     const handleEventClick = useCallback((info: any) => {
-        if (onEventClick) {
-            const eventId = info.event.id;
-            const eventType = info.event.extendedProps.type;
-            onEventClick(eventId, eventType);
+        if (onEventClick && info.event.extendedProps) {
+            onEventClick(info.event.extendedProps as AnyCalendarEvent);
         }
     }, [onEventClick]);
 
@@ -115,7 +131,7 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
     // Gestionnaire de sélection d'une plage de dates
     const handleDateSelect = useCallback((info: any) => {
         if (onDateSelect) {
-            onDateSelect(info.start, info.end, info.allDay);
+            onDateSelect(info.start, info.end);
         }
     }, [onDateSelect]);
 
@@ -173,7 +189,7 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
         if (view.type === 'listWeek') {
             return (
                 <div className={`event-list-item ${statusClass}`}>
-                    <div className="event-list-indicator" style={{ backgroundColor: getEventColor(eventType) }}></div>
+                    <div className="event-list-indicator" style={{ backgroundColor: getEventBackgroundColor(event, userSettings?.colorScheme) }}></div>
                     <div className="event-list-content">
                         <span className="event-title">{event.title}</span>
                         {userName && <span className="event-user">{userName}</span>}
@@ -193,7 +209,7 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
                 {statusIcon && <span className="event-status-icon">{statusIcon}</span>}
             </div>
         );
-    }, []);
+    }, [userSettings]);
 
     return (
         <div className="calendar-container">
@@ -208,7 +224,7 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
                 plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
                 initialView={view}
                 locale={frLocale}
-                firstDay={settings.firstDay}
+                firstDay={userSettings?.startWeekOn === 'monday' ? 1 : 0}
                 businessHours={settings.businessHours}
                 nowIndicator={settings.nowIndicator}
                 snapDuration={settings.snapDuration}
@@ -223,11 +239,11 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
                 selectable={selectable}
                 selectMirror={true}
                 dayMaxEvents={true}
-                weekends={true}
+                weekends={userSettings?.showWeekends ?? true}
                 eventTimeFormat={{
                     hour: '2-digit',
                     minute: '2-digit',
-                    hour12: false
+                    hour12: userSettings?.timeFormat === '12h'
                 }}
                 height="auto"
                 contentHeight="auto"
@@ -255,46 +271,77 @@ export const BaseCalendar: React.FC<BaseCalendarProps> = ({
                     day: 'Jour',
                     list: 'Liste'
                 }}
+                {...options}
             />
         </div>
     );
 };
 
-// Fonction utilitaire pour obtenir la couleur d'un événement en fonction de son type
-function getEventColor(eventType: string): string {
-    switch (eventType) {
+const formatEvents = (
+    events: AnyCalendarEvent[],
+    userSettings?: UserCalendarSettings
+): EventInput[] => {
+    return events
+        .filter(event => {
+            if (!userSettings?.showRejectedLeaves &&
+                event.type === CalendarEventType.LEAVE &&
+                'status' in event &&
+                event.status === 'REJECTED') {
+                return false;
+            }
+            return true;
+        })
+        .map((event): EventInput => ({
+            id: event.id,
+            title: event.title,
+            start: event.start,
+            end: event.end,
+            allDay: event.allDay,
+            backgroundColor: getEventBackgroundColor(event, userSettings?.colorScheme),
+            borderColor: getEventBorderColor(event, userSettings?.colorScheme),
+            textColor: userSettings?.colorScheme?.textColor || '#000000',
+            extendedProps: { originalEvent: event }
+        }));
+};
+
+const getEventBackgroundColor = (
+    event: AnyCalendarEvent,
+    colorScheme?: ColorScheme
+): string => {
+    if (!colorScheme) return '#E2E8F0';
+
+    switch (event.type) {
         case CalendarEventType.LEAVE:
-            return 'rgba(59, 130, 246, 0.8)'; // blue-500 avec transparence
+            return colorScheme.leave;
         case CalendarEventType.DUTY:
-            return 'rgba(16, 185, 129, 0.8)'; // emerald-500 avec transparence
+            return colorScheme.duty;
         case CalendarEventType.ON_CALL:
-            return 'rgba(99, 102, 241, 0.8)'; // indigo-500 avec transparence
+            return colorScheme.onCall;
         case CalendarEventType.ASSIGNMENT:
-            return 'rgba(236, 72, 153, 0.8)'; // pink-500 avec transparence
+            return colorScheme.assignment;
         default:
-            return 'rgba(156, 163, 175, 0.8)'; // gray-400 avec transparence
+            return colorScheme.default;
     }
-}
+};
 
-// Fonction utilitaire pour obtenir la couleur du texte d'un événement
-function getEventTextColor(eventType: string): string {
-    return '#FFFFFF'; // white pour tous les types
-}
+const getEventBorderColor = (
+    event: AnyCalendarEvent,
+    colorScheme?: ColorScheme
+): string => {
+    if (!colorScheme) return '#CBD5E0';
 
-// Fonction utilitaire pour obtenir la couleur de bordure des événements (indicateur de statut)
-function getEventBorderColor(eventType: string, status?: string): string {
-    if (!status) return getEventColor(eventType);
-
-    switch (status) {
-        case 'APPROVED':
-            return '#10B981'; // emerald-500
-        case 'PENDING':
-            return '#F59E0B'; // amber-500
-        case 'REJECTED':
-            return '#EF4444'; // red-500
-        case 'CANCELLED':
-            return '#6B7280'; // gray-500
-        default:
-            return getEventColor(eventType);
+    if (event.type === CalendarEventType.LEAVE && 'status' in event) {
+        switch (event.status) {
+            case 'APPROVED':
+                return colorScheme.approved;
+            case 'PENDING':
+                return colorScheme.pending;
+            case 'REJECTED':
+                return colorScheme.rejected;
+            default:
+                return colorScheme.default;
+        }
     }
-} 
+
+    return colorScheme.default;
+}; 

@@ -9,46 +9,47 @@ datasource db {
 }
 
 model User {
-  id                            Int              @id @default(autoincrement())
+  id                            Int                   @id @default(autoincrement())
   nom                           String
   prenom                        String
-  login                         String           @unique
-  email                         String           @unique
+  login                         String                @unique
+  email                         String                @unique
   password                      String
   role                          Role
   professionalRole              ProfessionalRole
-  tempsPartiel                  Boolean          @default(false)
+  tempsPartiel                  Boolean               @default(false)
   pourcentageTempsPartiel       Float?
   dateEntree                    DateTime?
   dateSortie                    DateTime?
-  actif                         Boolean          @default(true)
-  createdAt                     DateTime         @default(now())
-  updatedAt                     DateTime         @updatedAt
-  mustChangePassword            Boolean          @default(true)
+  actif                         Boolean               @default(true)
+  createdAt                     DateTime              @default(now())
+  updatedAt                     DateTime              @updatedAt
+  mustChangePassword            Boolean               @default(true)
   phoneNumber                   String?
   alias                         String?
   workOnMonthType               WeekType?
-  workPattern                   WorkPatternType  @default(FULL_TIME)
-  joursTravaillesSemaineImpaire Json             @default("[]")
-  joursTravaillesSemainePaire   Json             @default("[]")
-  displayPreferences            Json?            // Préférences d'affichage JSON
+  workPattern                   WorkPatternType       @default(FULL_TIME)
+  joursTravaillesSemaineImpaire Json                  @default("[]")
+  joursTravaillesSemainePaire   Json                  @default("[]")
+  displayPreferences            Json?
+  assignments                   Assignment[]
+  duties                        Duty[]
   loginLogs                     LoginLog[]
-  createdRules                  Rule[]           @relation("CreatedRules")
-  updatedRules                  Rule[]           @relation("UpdatedRules")
+  onCalls                       OnCall[]
+  createdRules                  Rule[]                @relation("CreatedRules")
+  updatedRules                  Rule[]                @relation("UpdatedRules")
+  approvedLeaves                Leave[]               @relation("ApprovedLeaves")
+  leaves                        Leave[]
   surgeonProfile                Surgeon?
-  leaves                        Leave[]          // Relation inverse pour les congés
-  duties                        Duty[]           // Relation inverse pour les gardes
-  onCalls                       OnCall[]         // Relation inverse pour les astreintes
-  assignments                   Assignment[]     // Relation inverse pour les affectations
-  approvedLeaves                Leave[]          @relation("ApprovedLeaves") // Relation inverse pour les congés approuvés par cet utilisateur
+  calendarSettings              UserCalendarSettings?
 }
 
 model Specialty {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  isPediatric Boolean   @default(false)
-  surgeons    Surgeon[] @relation("SpecialtyToSurgeon")
-  assignments Assignment[] // Relation inverse pour les affectations
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  isPediatric Boolean      @default(false)
+  assignments Assignment[]
+  surgeons    Surgeon[]    @relation("SpecialtyToSurgeon")
 }
 
 model Surgeon {
@@ -100,16 +101,16 @@ model PlanningRule {
 }
 
 model OperatingRoom {
-  id               Int      @id @default(autoincrement())
+  id               Int             @id @default(autoincrement())
   name             String
-  number           String   @unique
+  number           String          @unique
   sectorId         Int
-  sector           OperatingSector @relation(fields: [sectorId], references: [id])
   colorCode        String?
-  isActive         Boolean  @default(true)
+  isActive         Boolean         @default(true)
   supervisionRules Json
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  sector           OperatingSector @relation(fields: [sectorId], references: [id])
 
   @@index([sectorId])
 }
@@ -145,82 +146,64 @@ model RuleConflict {
 }
 
 model Location {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique
-  sector   String?   // Ex: Bloc opératoire, Consultations, etc.
-  isActive Boolean   @default(true)
-  duties   Duty[]    // Relation avec les gardes
-  onCalls  OnCall[]  // Relation avec les astreintes
-  assignments Assignment[] // Relation avec les affectations
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  sector      String?
+  isActive    Boolean      @default(true)
+  assignments Assignment[]
+  duties      Duty[]
+  onCalls     OnCall[]
 }
 
 model LeaveTypeSetting {
-  id        String   @id @default(cuid())
-  code      String   @unique // Code unique interne (ex: ANNUAL, SICK, MATERNITY)
-  label     String   // Libellé affiché à l'utilisateur (ex: "Congé annuel")
-  description String?  // Description optionnelle
-
-  // Champ JSON pour stocker les règles spécifiques
-  // Exemple: { "countingMethod": "WEEKDAYS_ONLY", "applicableToRoles": ["DOCTOR"], "minNoticeDays": 14 }
-  rules     Json?
-
-  isActive         Boolean  @default(true) // Peut être désactivé sans le supprimer
-  isUserSelectable Boolean  @default(true) // Peut être sélectionné par l'utilisateur dans le formulaire
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(cuid())
+  code             String   @unique
+  label            String
+  description      String?
+  rules            Json?
+  isActive         Boolean  @default(true)
+  isUserSelectable Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@map("leave_type_settings")
 }
 
 model Leave {
-  id        String    @id @default(cuid())
-  userId    Int       // Doit être Int pour correspondre à User.id
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  startDate DateTime // Date de début (stockée en UTC)
-  endDate   DateTime // Date de fin (stockée en UTC)
-
-  // Nouveau champ pour le code du type de congé (lien vers LeaveTypeSetting.code)
-  typeCode  String
-  // Ancien champ - à conserver temporairement pour la migration
-  type      LeaveType
-
-  status    LeaveStatus
-  reason    String?
-  comment   String?   // Commentaire admin lors de l'approbation/rejet
-
-  requestDate   DateTime @default(now()) // Date de la demande
-  approvalDate  DateTime? // Date de l'approbation/rejet
-  approvedById  Int?      // Doit être Int? pour correspondre à User.id (et optionnel)
-  approvedBy    User?     @relation("ApprovedLeaves", fields: [approvedById], references: [id])
-
-  // Nombre de jours décomptés (sera recalculé en fonction des règles de typeCode)
-  countedDays   Float // Utiliser Float pour les demi-journées éventuelles
-
-  calculationDetails Json? // Stocker les détails du calcul si nécessaire
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  // Relation vers les conflits (si modélisé)
-  // conflicts   LeaveConflict[]
+  id                 String      @id @default(cuid())
+  userId             Int
+  startDate          DateTime
+  endDate            DateTime
+  typeCode           String
+  type               LeaveType
+  status             LeaveStatus
+  reason             String?
+  comment            String?
+  requestDate        DateTime    @default(now())
+  approvalDate       DateTime?
+  approvedById       Int?
+  countedDays        Float
+  calculationDetails Json?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  approvedBy         User?       @relation("ApprovedLeaves", fields: [approvedById], references: [id])
+  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([startDate, endDate])
-  @@index([typeCode]) // Ajouter un index sur le nouveau champ
+  @@index([typeCode])
   @@map("leaves")
 }
 
 model Duty {
   id         Int       @id @default(autoincrement())
   userId     Int
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date       DateTime  // Date de la garde (souvent une journée entière)
-  locationId Int?      // Lieu de la garde (optionnel)
-  location   Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  date       DateTime
+  locationId Int?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+  location   Location? @relation(fields: [locationId], references: [id])
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([date])
@@ -230,13 +213,13 @@ model Duty {
 model OnCall {
   id         Int       @id @default(autoincrement())
   userId     Int
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   startDate  DateTime
   endDate    DateTime
-  locationId Int?      // Lieu de l'astreinte (optionnel)
-  location   Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  locationId Int?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+  location   Location? @relation(fields: [locationId], references: [id])
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([startDate])
@@ -247,15 +230,15 @@ model OnCall {
 model Assignment {
   id          Int        @id @default(autoincrement())
   userId      Int
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date        DateTime   // Date de l'affectation
-  locationId  Int        // Lieu d'affectation
-  location    Location   @relation(fields: [locationId], references: [id], onDelete: Restrict) // Affectation doit avoir un lieu
-  specialtyId Int?       // Spécialité concernée (optionnel)
-  specialty   Specialty? @relation(fields: [specialtyId], references: [id], onDelete: SetNull)
-  description String?    // Détails de l'affectation
+  date        DateTime
+  locationId  Int
+  specialtyId Int?
+  description String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  location    Location   @relation(fields: [locationId], references: [id])
+  specialty   Specialty? @relation(fields: [specialtyId], references: [id])
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([date])
@@ -264,15 +247,44 @@ model Assignment {
 }
 
 model OperatingSector {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  colorCode   String   @default("#000000")
-  isActive    Boolean  @default(true)
-  description String?
-  rules       Json     @default("{\"maxRoomsPerSupervisor\": 2}")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             Int             @id @default(autoincrement())
+  name           String          @unique
+  colorCode      String          @default("#000000")
+  isActive       Boolean         @default(true)
+  description    String?
+  rules          Json            @default("{\"maxRoomsPerSupervisor\": 2}")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   operatingRooms OperatingRoom[]
+}
+
+model UserCalendarSettings {
+  id                 String   @id @default(cuid())
+  userId             Int      @unique
+  defaultView        String   @default("month")
+  showWeekends       Boolean  @default(true)
+  showHolidays       Boolean  @default(true)
+  showRejectedLeaves Boolean  @default(false)
+  colorScheme        String   @default("default")
+  startWeekOn        String   @default("monday")
+  timeFormat         String   @default("24h")
+  notifications      Json     @default("{\"email\": true, \"sound\": false, \"browser\": true}")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id])
+
+  @@map("user_calendar_settings")
+}
+
+model ProfessionalRoleConfig {
+  id                 String   @id
+  code               String   @unique
+  label              String
+  description        String?
+  isActive           Boolean  @default(true)
+  displayPreferences Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 enum Role {

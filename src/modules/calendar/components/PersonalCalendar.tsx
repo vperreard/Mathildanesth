@@ -62,12 +62,14 @@ export const PersonalCalendar: React.FC<PersonalCalendarProps> = ({
             // Extraire l'ID réel du congé (supprimer le préfixe 'leave-')
             const leaveId = eventId.replace('leave-', '');
             const leaveEvent = events.find(event => event.id === eventId) as LeaveCalendarEvent;
+
             if (leaveEvent) {
                 setSelectedEvent(leaveEvent);
                 setIsModalOpen(true);
-            }
-            if (onEventClick) {
-                onEventClick(leaveId, eventType);
+
+                if (onEventClick) {
+                    onEventClick(leaveId, eventType);
+                }
             }
         }
     }, [events, onEventClick]);
