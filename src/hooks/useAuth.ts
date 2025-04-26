@@ -8,7 +8,7 @@ export const useAuth = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<AuthError | null>(null);
 
-    const login = async (email: string, password: string) => {
+    const login = async (username: string, password: string) => {
         setIsLoading(true);
         setError(null);
 
@@ -17,7 +17,7 @@ export const useAuth = () => {
             // Pour l'instant, simulation d'une requête
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            if (email === 'test@example.com' && password === 'password') {
+            if (username === 'mathilda' && password === 'password') {
                 return true;
             }
 
