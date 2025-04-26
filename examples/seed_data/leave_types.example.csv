@@ -1,0 +1,2 @@
+code,label,description,isActive,isUserSelectable,rules
+"ANNUAL","Congés annuels","Description","true","true","{""maxDaysPerYear"": 25}" 

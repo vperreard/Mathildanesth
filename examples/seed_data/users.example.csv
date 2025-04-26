@@ -1,0 +1,2 @@
+nom,prenom,login,email,alias,phoneNumber,password,role,professionalRole,tempsPartiel,pourcentageTempsPartiel,joursTravailles,dateEntree,dateSortie,actif,mustChangePassword
+"Nom","Prenom","login","email@example.com","alias","0600000000","password","USER","MAR","false","","","","","true","true" 

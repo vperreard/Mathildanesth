@@ -1,0 +1,2 @@
+name,number,sectorId,colorCode,isActive,supervisionRules
+"Salle 1","1","1","#FF0000","true","{""maxSimultaneousSupervisions"": 2}" 

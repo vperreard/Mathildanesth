@@ -1,69 +1,71 @@
 nom,prenom,email,phoneNumber,status,specialtyNames,googleSheetName
-ADAM,"Jacques-Marie",jmadam@yahoo.fr,"0673478524",ACTIF,Orthopédie,"ADAM JM"
-RIFAI,Yasser,yasser.rifai@hotmail.fr,"+33603628817",ACTIF,Orthopédie,RIFAI
-BERNARD-CUISINIER,Alan,alanbc@hotmail.fr,"0662228841",ACTIF,Orthopédie,"BERNARD CUISINIER"
-MALEKPOUR,Louis,louismalekp@hotmail.fr,"0633311793",ACTIF,Orthopédie,MALEKPOUR
-RAHALI,Said,said.rahali@gmail.com,"0669751169",ACTIF,Orthopédie,"RAHALI S"
-ABU AMARA,Saad,dr.abuamara@gmail.com,"0664042493",ACTIF,"Orthopédie Pédiatrique","ABU AMARA"
-LEROUX,Julien,dr.julien.leroux@gmail.com,"0661114762",ACTIF,"Orthopédie pédiatrique",LEROUX
-BAILLEUX-MOISSANT,Marion,,,ACTIF,"Chirurgie vasculaire","BAILLEUX MOISSANT"
-ROUX,Nicolas,,,ACTIF,"Chirurgie vasculaire",ROUX
-LECA,"Jean-Baptiste",,,ACTIF,"Chirurgie plastique",LECA
-GUILLEM,Isabelle,,,ACTIF,"ORL pédiatrique",GUILLEM
-LECLER-SCARCELLA,Véronique,,,ACTIF,"ORL pédiatrique","LECLER SCARCELLA"
-DELAS,Benoît,,,ACTIF,ORL,DELAS
-HARDY/GUICHARD,Hubert,,,ACTIF,"Chirurgie maxillo-faciale","HARDY/GUICHARD/DELAS"
-MERET,Elise,,,ACTIF,ORL,MERET
-BON-MARDION,Nicolas,,,ACTIF,"ORL;ORL pédiatrique","BON-MARDION"
-MAILHE-LOUGES,"Marie-Anne",,,ACTIF,"ORL;ORL pédiatrique","MAILHE-LOUGES"
-MOREL,François,,,ACTIF,"Chirurgie maxillo-faciale",MOREL
-BASTIEN,"Anne-Victoire",,,ACTIF,"Chirurgie maxillo-faciale",BASTIEN
-PEIGNON,Kévin,,,ACTIF,"Chirurgie dentaire pédiatrique",PEIGNON
-PIOT,Thierry,,,ACTIF,"ORL pédiatrique",PIOT
-BARON,Marc,,,ACTIF,"Chirurgie gynécologique",BARON
-RESCH,Benoît,,,ACTIF,"Chirurgie gynécologique",RESCH
-SCHMIED,Rémy,,,ACTIF,"Chirurgie gynécologique",SCHMIED
-SANGUIN,Sophie,,,ACTIF,"Chirurgie gynécologique",SANGUIN
-JOUTEL,Nicolas,,,ACTIF,"Chirurgie gynécologique",JOUTEL
-DURAND-REVILLE,Marc,,,ACTIF,"Chirurgie gynécologique","DURAND REVILLE"
-ROUSSEL,Estelle,,,ACTIF,"Chirurgie gynécologique",ROUSSEL
-FIV,Service,,,ACTIF,"Procréation médicalement assistée",FIV
-LE DEM,Nicolas,,,ACTIF,"Chirurgie digestive","LE DEM"
-ROGER,Vianney,,,ACTIF,"Chirurgie digestive",ROGER
-PASQUIER,Geoffroy,,,ACTIF,"Chirurgie urologique",PASQUIER
-NAVARRA,Stéphane,,,ACTIF,"Chirurgie urologique",NAVARRA
-TAMARELLE,Blandine,,,ACTIF,"Chirurgie urologique",TAMARELLE
-KANSO,Chaker,,,ACTIF,"Chirurgie urologique",KANSO
-GULERYUZ,Kerem,,,ACTIF,"Chirurgie urologique",GULERYUZ
-COMTE,Diane,,,ACTIF,"Chirurgie urologique pédiatrique",COMTE
-RAHALI,Héla,,,ACTIF,Ophtalmologie,"RAHALI H"
-ADAM,"Pierre-Alexandre",,,ACTIF,Ophtalmologie,"ADAM PA"
-FRANCK,Olivier,,,ACTIF,Ophtalmologie,FRANCK
-DE FONDEVILLE,Éléonore,,,ACTIF,Ophtalmologie,"DE FONDEVILLE"
-SAAD,Charles,,,ACTIF,Ophtalmologie,SAAD
-STAMATIADES,Elie,,,ACTIF,Ophtalmologie,STAMATIADES
-CHANAOUI,Badreddine,,,ACTIF,Ophtalmologie,CHANAOUI
-AZOUZI,Olfa,,,ACTIF,Ophtalmologie,AZOUZI
-MASSY,Jérôme,,,ACTIF,Ophtalmologie,MASSY
-HUBAULT,Denis,,,ACTIF,Ophtalmologie,HUBAULT
-SIAHMED,Kamal,,,ACTIF,Ophtalmologie,SIAHMED
-LECLEIRE-COLLET,Amélie,,,ACTIF,Ophtalmologie,"LECLEIRE COLLET"
-MENARD,Laure,,,ACTIF,Ophtalmologie,"MENARD L"
-ISCAR,Claire,,,ACTIF,Ophtalmologie,ISCAR
-LUCE,Alexandra,,,ACTIF,"Ophtalmologie;Ophtalmologie",LUCE
-VERMUSO,Laura,,,ACTIF,"Ophtalmologie;Ophtalmologie",VERMUSO
-UZZAN,Joël,,,ACTIF,Ophtalmologie,UZZAN
-BOUSIGUE,Isabelle,,,ACTIF,Ophtalmologie,BOUSIGUE
-GARDEA,Étienne,,,ACTIF,Ophtalmologie,GARDEA
-POPTOMOVA,Daniela,,,ACTIF,Ophtalmologie,POPTOMOVA
-MARIE,Olivier,,,ACTIF,Ophtalmologie,MARIE
-HADDOUCHE,Baya,,,ACTIF,"Endoscopies digestives",HADDOUCHE
-GILBERT,Thierry,,,ACTIF,"Endoscopies digestives",GILBERT
-BOIVIN,Éléonore,,,ACTIF,"Endoscopies digestives",BOIVIN
-MORIN,Mathilde,,,ACTIF,"Endoscopies digestives",MORIN
-ASWAD,Fathe,,,ACTIF,"Endoscopies digestives",ASWAD
-VANNIER,Élise,,,ACTIF,"Endoscopies digestives",VANNIER
-BENGUIGUI,Corinne,,,ACTIF,"Endoscopies digestives",BENGUIGUI
-DEMMANE,Sabri,,,ACTIF,"Endoscopies digestives",DEMMANE
-BENET,Vincent,,,ACTIF,"Endoscopies digestives",BENET
-AL HAMEEDI,Raied,,,ACTIF,"Endoscopie digestive;Endoscopie interventionnelle","AL HAMEEDI" 
+"ADAM","Jacques-Marie","jmadam@yahoo.fr","0673478524","ACTIF","Orthopédie","ADAM JM"
+"RIFAI","Yasser","yasser.rifai@hotmail.fr","+33603628817","ACTIF","Orthopédie","RIFAI"
+"BERNARD-CUISINIER","Alan","alanbc@hotmail.fr","0662228841","ACTIF","Orthopédie","BERNARD CUISINIER"
+"MALEKPOUR","Louis","louismalekp@hotmail.fr","0633311793","ACTIF","Orthopédie","MALEKPOUR"
+"RAHALI","Said","said.rahali@gmail.com","0669751169","ACTIF","Orthopédie","RAHALI S"
+"ABU AMARA","Saad","dr.abuamara@gmail.com","0664042493","ACTIF","Orthopédie Pédiatrique","ABU AMARA"
+"LEROUX","Julien","dr.julien.leroux@gmail.com","0661114762","ACTIF","Orthopédie pédiatrique","LEROUX"
+"BAILLEUX-MOISSANT","Marion","","","ACTIF","Chirurgie vasculaire","BAILLEUX MOISSANT"
+"ROUX","Nicolas","","","ACTIF","Chirurgie vasculaire","ROUX"
+"LECA","Jean-Baptiste","","","ACTIF","Chirurgie plastique","LECA"
+"GUILLEM","Isabelle","","","ACTIF","ORL pédiatrique","GUILLEM"
+"LECLER-SCARCELLA","Véronique","","","ACTIF","ORL pédiatrique","LECLER SCARCELLA"
+"DELAS","Benoît","","","ACTIF","ORL","DELAS"
+"HARDY/GUICHARD","Hubert","","","ACTIF","Chirurgie maxillo-faciale","HARDY/GUICHARD/DELAS"
+"MERET","Elise","","","ACTIF","ORL","MERET"
+"BON-MARDION","Nicolas","","","ACTIF","ORL;ORL pédiatrique","BON-MARDION"
+"MAILHE-LOUGES","Marie-Anne","","","ACTIF","ORL;ORL pédiatrique","MAILHE-LOUGES"
+"MOREL","François","","","ACTIF","Chirurgie maxillo-faciale","MOREL"
+"BASTIEN","Anne-Victoire","","","ACTIF","Chirurgie maxillo-faciale","BASTIEN"
+"PEIGNON","Kévin","","","ACTIF","Chirurgie dentaire pédiatrique","PEIGNON"
+"PIOT","Thierry","","","ACTIF","ORL pédiatrique","PIOT"
+"BARON","Marc","","","ACTIF","Chirurgie gynécologique","BARON"
+"RESCH","Benoît","","","ACTIF","Chirurgie gynécologique","RESCH"
+"SCHMIED","Rémy","","","ACTIF","Chirurgie gynécologique","SCHMIED"
+"SANGUIN","Sophie","","","ACTIF","Chirurgie gynécologique","SANGUIN"
+"JOUTEL","Nicolas","","","ACTIF","Chirurgie gynécologique","JOUTEL"
+"DURAND-REVILLE","Marc","","","ACTIF","Chirurgie gynécologique","DURAND REVILLE"
+"ROUSSEL","Estelle","","","ACTIF","Chirurgie gynécologique","ROUSSEL"
+"FIV","Service","","","ACTIF","Procréation médicalement assistée","FIV"
+"LE DEM","Nicolas","","","ACTIF","Chirurgie digestive","LE DEM"
+"ROGER","Vianney","","","ACTIF","Chirurgie digestive","ROGER"
+"PASQUIER","Geoffroy","","","ACTIF","Chirurgie urologique","PASQUIER"
+"NAVARRA","Stéphane","","","ACTIF","Chirurgie urologique","NAVARRA"
+"TAMARELLE","Blandine","","","ACTIF","Chirurgie urologique","TAMARELLE"
+"KANSO","Chaker","","","ACTIF","Chirurgie urologique","KANSO"
+"GULERYUZ","Kerem","","","ACTIF","Chirurgie urologique","GULERYUZ"
+"COMTE","Diane","","","ACTIF","Chirurgie urologique pédiatrique","COMTE"
+"RAHALI","Héla","","","ACTIF","Ophtalmologie","RAHALI H"
+"ADAM","Pierre-Alexandre","","","ACTIF","Ophtalmologie","ADAM PA"
+"FRANCK","Olivier","","","ACTIF","Ophtalmologie","FRANCK"
+"DE FONDEVILLE","Éléonore","","","ACTIF","Ophtalmologie","DE FONDEVILLE"
+"SAAD","Charles","","","ACTIF","Ophtalmologie","SAAD"
+"STAMATIADES","Elie","","","ACTIF","Ophtalmologie","STAMATIADES"
+"CHANAOUI","Badreddine","","","ACTIF","Ophtalmologie","CHANAOUI"
+"AZOUZI","Olfa","","","ACTIF","Ophtalmologie","AZOUZI"
+"MASSY","Jérôme","","","ACTIF","Ophtalmologie","MASSY"
+"HUBAULT","Denis","","","ACTIF","Ophtalmologie","HUBAULT"
+"SIAHMED","Kamal","","","ACTIF","Ophtalmologie","SIAHMED"
+"LECLEIRE-COLLET","Amélie","","","ACTIF","Ophtalmologie","LECLEIRE COLLET"
+"MENARD","Laure","","","ACTIF","Ophtalmologie","MENARD L"
+"ISCAR","Claire","","","ACTIF","Ophtalmologie","ISCAR"
+"LUCE","Alexandra","","","ACTIF","Ophtalmologie;Ophtalmologie pédiatrique","LUCE"
+"VERMUSO","Laura","","","ACTIF","Ophtalmologie;Ophtalmologie pédiatrique","VERMUSO"
+"UZZAN","Joël","","","ACTIF","Ophtalmologie","UZZAN"
+"BOUSIGUE","Isabelle","","","ACTIF","Ophtalmologie","BOUSIGUE"
+"GARDEA","Étienne","","","ACTIF","Ophtalmologie","GARDEA"
+"POPTOMOVA","Daniela","","","ACTIF","Ophtalmologie","POPTOMOVA"
+"MARIE","Olivier","","","ACTIF","Ophtalmologie","MARIE"
+"HADDOUCHE","Baya","","","ACTIF","Endoscopies digestives","HADDOUCHE"
+"GILBERT","Thierry","","","ACTIF","Endoscopies digestives","GILBERT"
+"BOIVIN","Éléonore","","","ACTIF","Endoscopies digestives","BOIVIN"
+"MORIN","Mathilde","","","ACTIF","Endoscopies digestives","MORIN"
+"ASWAD","Fathe","","","ACTIF","Endoscopies digestives","ASWAD"
+"VANNIER","Élise","","","ACTIF","Endoscopies digestives","VANNIER"
+"BENGUIGUI","Corinne","","","ACTIF","Endoscopies digestives","BENGUIGUI"
+"DEMMANE","Sabri","","","ACTIF","Endoscopies digestives","DEMMANE"
+"BENET","Vincent","","","ACTIF","Endoscopies digestives","BENET"
+"AL HAMEEDI","Raied","","","ACTIF","Endoscopie digestive;Endoscopie interventionnelle","AL HAMEEDI"
+"Dupont","Jean","jean.dupont@chir.example.local","0600000000","ACTIF","Chirurgie digestive;Chirurgie vasculaire","DUPONT J"
+"Martin","Sophie","sophie.martin@chir.example.local","0600000000","ACTIF","Chirurgie plastique;ORL","MARTIN S" 

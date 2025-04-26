@@ -13,17 +13,18 @@ LAVABRE,Olivier,olavabre,olavabre@gmx.fr,,,olavabre,USER,MAR,false,,,,,true,true
 LOGEAY,Mathilde,mlogeay,mathildeld@gmail.com,,,mlogeay,USER,MAR,true,50,"lundis- mardis toutes les semai...",,,true,true
 MAILHÉ,Alexandre,amailhe,mailhe.alexandre@gmail.com,,,amailhe,USER,MAR,true,50,"jeudis- vendredis-toutes les sem...",,,true,true
 NAFEH,Samer,snafeh,samnaf67@yahoo.fr,,,snafeh,USER,MAR,false,,,,,true,true
-PERREARD,Vincent,vperreard,vincent.perreard@outlook.fr,Vincent1,0681484691,Vincent1,ADMIN_TOTAL,MAR,false,,,,,true,false
+PERREARD,Vincent,vperreard,vincent.perreard@outlook.fr,"Vincent1",0681484691,Vincent1,ADMIN_TOTAL,MAR,false,,,,,true,false
 SACUTO,Yann,ysacuto,yann.sacuto@gmail.com,,,ysacuto,USER,MAR,false,,,,,true,true
 GASULL,Anais,agasull,,,,agasull,USER,SECRETAIRE,false,,,,,true,true
 EL MEKKAOUI,Samira,selmekkaoui,,,,selmekkaoui,USER,SECRETAIRE,false,,,,,true,true
 EL IDRISSI,Khadija,kelidrissi,,,,kelidrissi,USER,SECRETAIRE,false,,,,,true,true
-LACROIX,Alexandre,alacroix,alex.lacroix76@yahoo.fr,Alexandre,0778799364,alacroix,USER,IADE,false,,,,,true,true
-PERREARD-LENFANT,Barbara,bperreard,blenfant@hotmail.fr,Barbara,0634215511,bperreard,USER,IADE,false,,,,,true,true
-DELPECH,Cathy,cdelpech,kti76@orange.fr,Cathy,0647044807,cdelpech,USER,IADE,false,,,,,true,true
+LACROIX,Alexandre,alacroix,alex.lacroix76@yahoo.fr,"Alexandre",0778799364,alacroix,USER,IADE,false,,,,,true,true
+PERREARD-LENFANT,Barbara,bperreard,blenfant@hotmail.fr,"Barbara",0634215511,bperreard,USER,IADE,false,,,,,true,true
+DELPECH,Cathy,cdelpech,kti76@orange.fr,"Cathy",0647044807,cdelpech,USER,IADE,false,,,,,true,true
 BORGNET,Guillaume,gborgnet,g.borgnet@gmail.com,"Guil B.",0626332541,gborgnet,USER,IADE,false,,,,,true,true
 GICQUEL,Guillaume,ggicquel,famillegicquel@gmail.com,"Guil G.",0612595318,ggicquel,ADMIN_PARTIEL,IADE,false,,,,,true,true
-LEGAY,Marlène,mlegay,marlene.legay@dbmail.com,Marlou,0611032169,mlegay,USER,IADE,false,,,,,true,true
-JOMOTTE,Morgane,mjomotte,morganik2@hotmail.com,Morgane,0625029101,mjomotte,USER,IADE,false,,,,,true,true
-LAMAS,Nathalie,nlamas,lamas.nathalie@gmail.com,Nathalie,0635121500,nlamas,USER,IADE,false,,,,,true,true
-BOY,Vincent,vboy,vincetiboy@gmail.com,Vincent,0674015031,vboy,ADMIN_PARTIEL,IADE,false,,,,,true,true 
+LEGAY,Marlène,mlegay,marlene.legay@dbmail.com,"Marlou",0611032169,mlegay,USER,IADE,false,,,,,true,true
+JOMOTTE,Morgane,mjomotte,morganik2@hotmail.com,"Morgane",0625029101,mjomotte,USER,IADE,false,,,,,true,true
+LAMAS,Nathalie,nlamas,lamas.nathalie@gmail.com,"Nathalie",0635121500,nlamas,USER,IADE,false,,,,,true,true
+BOY,Vincent,vboy,vincetiboy@gmail.com,"Vincent",0674015031,vboy,ADMIN_PARTIEL,IADE,false,,,,,true,true
+Admin,System,admin,admin@mathildanesth.fr,"Admin",0000000000,admin,ADMIN_TOTAL,MAR,false,,,,,true,true 
