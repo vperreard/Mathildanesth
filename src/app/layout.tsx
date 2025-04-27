@@ -6,6 +6,9 @@ import Footer from '@/components/Footer';
 import { AuthProvider } from '@/context/AuthContext';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
+import { UnsavedChangesProvider } from '@/hooks/useUnsavedChanges';
+import { NotificationProvider } from '@/components/ui/notification';
+import { RuleViolationsProvider } from '@/hooks/useRuleViolations';
 
 // Police principale pour le texte
 const inter = Inter({
@@ -39,26 +42,32 @@ export default function RootLayout({
         <html lang="fr" className={`${inter.variable} ${montserrat.variable}`}>
             <body className={`${inter.className} flex flex-col min-h-screen bg-gray-50`}>
                 <AuthProvider>
-                    <div className="flex flex-col min-h-screen">
-                        <Header />
-                        <main className="flex-grow">
-                            {children}
-                            <ToastContainer
-                                position="top-right"
-                                autoClose={5000}
-                                hideProgressBar={false}
-                                newestOnTop={false}
-                                closeOnClick
-                                rtl={false}
-                                pauseOnFocusLoss
-                                draggable
-                                pauseOnHover
-                                theme="colored"
-                                toastClassName="rounded-lg shadow-md"
-                            />
-                        </main>
-                        <Footer />
-                    </div>
+                    <NotificationProvider>
+                        <UnsavedChangesProvider>
+                            <RuleViolationsProvider>
+                                <div className="flex flex-col min-h-screen">
+                                    <Header />
+                                    <main className="flex-grow">
+                                        {children}
+                                        <ToastContainer
+                                            position="top-right"
+                                            autoClose={5000}
+                                            hideProgressBar={false}
+                                            newestOnTop={false}
+                                            closeOnClick
+                                            rtl={false}
+                                            pauseOnFocusLoss
+                                            draggable
+                                            pauseOnHover
+                                            theme="colored"
+                                            toastClassName="rounded-lg shadow-md"
+                                        />
+                                    </main>
+                                    <Footer />
+                                </div>
+                            </RuleViolationsProvider>
+                        </UnsavedChangesProvider>
+                    </NotificationProvider>
                 </AuthProvider>
 
                 {/* Script pour vérifier le thème système */}

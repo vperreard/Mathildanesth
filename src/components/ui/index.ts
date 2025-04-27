@@ -19,4 +19,9 @@ export {
 } from './dialog';
 
 // Export des utilitaires UI
-export { cn } from '@/lib/utils'; 
+export { cn } from '@/lib/utils';
+
+// Exporter les nouveaux composants d'UI
+export * from './notification';
+export * from './UnsavedChangesIndicator';
+export * from './RuleViolationIndicator'; 

@@ -40,11 +40,44 @@ const nextConfig = {
                     }
                 ],
             },
+            {
+                source: '/documentation/:path*',
+                headers: [
+                    {
+                        key: 'Content-Type',
+                        value: 'text/markdown; charset=UTF-8'
+                    }
+                ]
+            },
+            {
+                source: '/api/docs/:path*',
+                headers: [
+                    {
+                        key: 'Content-Type',
+                        value: 'text/markdown; charset=UTF-8'
+                    }
+                ]
+            }
         ]
     },
     compiler: {
         removeConsole: process.env.NODE_ENV === 'production',
     },
+    async rewrites() {
+        return [
+            {
+                source: '/documentation/:path*',
+                destination: '/api/documentation/:path*'
+            },
+            {
+                source: '/docs/:path*',
+                destination: '/api/docs/:path*'
+            }
+        ]
+    },
+    webpack(config) {
+        return config;
+    }
 }
 
 module.exports = nextConfig 

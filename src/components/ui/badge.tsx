@@ -19,6 +19,7 @@ export const badgeVariants = cva(
                 danger: "bg-red-100 text-red-800",
                 outline: "bg-transparent border border-current",
                 gray: "bg-gray-100 text-gray-800",
+                destructive: "bg-red-100 text-red-800",
             },
             size: {
                 sm: "px-2 py-0.25 text-xs",

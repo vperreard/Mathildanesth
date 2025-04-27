@@ -10,6 +10,9 @@
         "lint": "next lint",
         "db:seed": "node prisma/seed.cjs",
         "test": "jest",
+        "test:rules": "jest --config jest.config.rules.js",
+        "test:rules:watch": "jest --config jest.config.rules.js --watch",
+        "test:rules:coverage": "jest --config jest.config.rules.js --coverage",
         "optimize-images": "node src/utils/optimizeImages.js"
     },
     "prisma": {
@@ -30,9 +33,13 @@
         "@mui/material": "^7.0.2",
         "@prisma/client": "^6.6.0",
         "@radix-ui/react-dialog": "^1.1.11",
+        "@radix-ui/react-select": "^2.2.2",
+        "@radix-ui/react-tabs": "^1.1.9",
         "@tippyjs/react": "^4.2.6",
         "@types/bcrypt": "^5.0.2",
         "@types/jsonwebtoken": "^9.0.9",
+        "@types/react-beautiful-dnd": "^13.1.8",
+        "@types/uuid": "^10.0.0",
         "antd": "^5.24.8",
         "axios": "^1.6.7",
         "bcrypt": "^5.1.1",
@@ -55,11 +62,17 @@
         "react-datepicker": "^8.3.0",
         "react-dom": "^18",
         "react-hot-toast": "^2.5.2",
+        "react-markdown": "^10.1.0",
         "react-toastify": "^11.0.5",
+        "recharts": "^2.15.3",
+        "rehype-raw": "^7.0.0",
+        "remark-gfm": "^4.0.1",
         "sharp": "^0.32.6",
         "tailwind-merge": "^3.2.0",
         "tippy.js": "^6.3.7",
-        "xlsx": "^0.18.5"
+        "uuid": "^11.1.0",
+        "xlsx": "^0.18.5",
+        "zustand": "^5.0.3"
     },
     "devDependencies": {
         "@testing-library/jest-dom": "^6.6.3",

@@ -15,6 +15,8 @@ export const buttonVariants = cva(
                 outline: "border border-primary-500 text-primary-600 hover:bg-primary-50",
                 ghost: "bg-transparent hover:bg-gray-100 text-gray-700",
                 danger: "bg-red-500 hover:bg-red-600 text-white",
+                default: "bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:shadow-md hover:-translate-y-0.5",
+                destructive: "bg-red-500 hover:bg-red-600 text-white",
             },
             size: {
                 sm: "px-3 py-1.5 text-xs",

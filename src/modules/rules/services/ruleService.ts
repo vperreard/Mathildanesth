@@ -1,422 +1,217 @@
-import {
-    AnyRule,
-    RuleType,
-    LeaveRule,
-    DutyRule,
-    SupervisionRule,
-    AssignmentRule,
-    OnCallRule,
-    RuleConflict,
-    RuleValidationResult,
-    RulePriority,
-    RuleSeverity,
-    RotationStrategy,
-    Rule
-} from '../types/rule';
+import { Rule, RuleType, RuleScope, RuleSeverity } from '../types/rule';
 
 /**
- * Service pour la gestion des règles de planning
+ * Service de gestion des règles (CRUD)
  */
 export class RuleService {
-    private API_BASE_URL = '/api/rules';
+    private rules: Rule[] = [];
+    private nextId = 1;
 
     /**
-     * Récupère toutes les règles avec filtres optionnels
+     * Récupère toutes les règles
      */
-    public async getAllRules(filters?: {
-        type?: RuleType | RuleType[];
-        priority?: RulePriority | RulePriority[];
-        isActive?: boolean;
-        search?: string;
-    }): Promise<AnyRule[]> {
-        try {
-            // Construire l'URL avec les filtres
-            const url = new URL(this.API_BASE_URL, window.location.origin);
-
-            // Ajouter les filtres à l'URL
-            if (filters) {
-                Object.entries(filters).forEach(([key, value]) => {
-                    if (value !== undefined) {
-                        if (Array.isArray(value)) {
-                            value.forEach(v => url.searchParams.append(key, String(v)));
-                        } else {
-                            url.searchParams.append(key, String(value));
-                        }
-                    }
-                });
-            }
-
-            const response = await fetch(url.toString());
-
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la récupération des règles: ${response.statusText}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erreur dans getAllRules:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Récupère les règles par type
-     */
-    public async getRulesByType(type: RuleType): Promise<AnyRule[]> {
-        return this.getAllRules({ type });
+    getAllRules(): Rule[] {
+        return [...this.rules];
     }
 
     /**
      * Récupère une règle par son ID
      */
-    public async getRuleById(ruleId: string): Promise<AnyRule> {
-        try {
-            const response = await fetch(`${this.API_BASE_URL}/${ruleId}`);
+    getRuleById(id: string): Rule | undefined {
+        return this.rules.find(rule => rule.id === id);
+    }
 
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la récupération de la règle: ${response.statusText}`);
+    /**
+     * Filtrer les règles selon différents critères
+     */
+    filterRules(filters: {
+        type?: RuleType | RuleType[];
+        scope?: RuleScope;
+        scopeValue?: string;
+        enabled?: boolean;
+    }): Rule[] {
+        return this.rules.filter(rule => {
+            // Filtrer par type
+            if (filters.type) {
+                if (Array.isArray(filters.type)) {
+                    if (!filters.type.includes(rule.type)) {
+                        return false;
+                    }
+                } else if (rule.type !== filters.type) {
+                    return false;
+                }
             }
 
-            return await response.json();
-        } catch (error) {
-            console.error(`Erreur dans getRuleById pour l'ID ${ruleId}:`, error);
-            throw error;
-        }
+            // Filtrer par portée
+            if (filters.scope && rule.scope !== filters.scope) {
+                return false;
+            }
+
+            // Filtrer par valeur de portée
+            if (filters.scopeValue) {
+                if (Array.isArray(rule.scopeValue)) {
+                    if (!rule.scopeValue.includes(filters.scopeValue)) {
+                        return false;
+                    }
+                } else if (rule.scopeValue !== filters.scopeValue) {
+                    return false;
+                }
+            }
+
+            // Filtrer par état d'activation
+            if (filters.enabled !== undefined && rule.enabled !== filters.enabled) {
+                return false;
+            }
+
+            return true;
+        });
     }
 
     /**
      * Crée une nouvelle règle
      */
-    public async createRule(rule: Omit<AnyRule, 'id' | 'createdAt' | 'updatedAt'>): Promise<AnyRule> {
-        try {
-            const response = await fetch(this.API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(rule),
-            });
+    createRule(ruleData: Omit<Rule, 'id' | 'createdAt' | 'updatedAt'>): Rule {
+        const now = new Date().toISOString();
 
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la création de la règle: ${response.statusText}`);
-            }
+        const rule: Rule = {
+            ...ruleData,
+            id: `rule_${this.nextId++}`,
+            createdAt: now,
+            updatedAt: now
+        };
 
-            return await response.json();
-        } catch (error) {
-            console.error('Erreur dans createRule:', error);
-            throw error;
-        }
+        this.rules.push(rule);
+        return rule;
     }
 
     /**
      * Met à jour une règle existante
      */
-    public async updateRule(ruleId: string, rule: Partial<AnyRule>): Promise<AnyRule> {
-        try {
-            const response = await fetch(`${this.API_BASE_URL}/${ruleId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(rule),
-            });
+    updateRule(id: string, ruleData: Partial<Omit<Rule, 'id' | 'createdAt' | 'updatedAt'>>): Rule | null {
+        const index = this.rules.findIndex(rule => rule.id === id);
 
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la mise à jour de la règle: ${response.statusText}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error(`Erreur dans updateRule pour l'ID ${ruleId}:`, error);
-            throw error;
+        if (index === -1) {
+            return null;
         }
-    }
 
-    /**
-     * Active ou désactive une règle
-     */
-    public async toggleRuleStatus(ruleId: string, isActive: boolean): Promise<AnyRule> {
-        try {
-            const response = await fetch(`${this.API_BASE_URL}/${ruleId}/toggle-status`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ isActive }),
-            });
+        const updatedRule: Rule = {
+            ...this.rules[index],
+            ...ruleData,
+            updatedAt: new Date().toISOString()
+        };
 
-            if (!response.ok) {
-                throw new Error(`Erreur lors du changement de statut de la règle: ${response.statusText}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error(`Erreur dans toggleRuleStatus pour l'ID ${ruleId}:`, error);
-            throw error;
-        }
+        this.rules[index] = updatedRule;
+        return updatedRule;
     }
 
     /**
      * Supprime une règle
      */
-    public async deleteRule(ruleId: string): Promise<void> {
-        try {
-            const response = await fetch(`${this.API_BASE_URL}/${ruleId}`, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la suppression de la règle: ${response.statusText}`);
-            }
-        } catch (error) {
-            console.error(`Erreur dans deleteRule pour l'ID ${ruleId}:`, error);
-            throw error;
-        }
+    deleteRule(id: string): boolean {
+        const initialLength = this.rules.length;
+        this.rules = this.rules.filter(rule => rule.id !== id);
+        return this.rules.length < initialLength;
     }
 
     /**
-     * Valide un ensemble de règles pour détecter des conflits potentiels
+     * Active ou désactive une règle
      */
-    public async validateRules(rules: AnyRule[]): Promise<RuleValidationResult> {
-        try {
-            const response = await fetch(`${this.API_BASE_URL}/validate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(rules),
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la validation des règles: ${response.statusText}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erreur dans validateRules:', error);
-            throw error;
-        }
+    toggleRuleStatus(id: string, enabled: boolean): Rule | null {
+        return this.updateRule(id, { enabled });
     }
 
     /**
-     * Récupère tous les conflits de règles
+     * Crée des règles de démonstration
      */
-    public async getAllConflicts(): Promise<RuleConflict[]> {
-        try {
-            const response = await fetch(`${this.API_BASE_URL}/conflicts`);
+    createDemoRules(): Rule[] {
+        // Vider les règles existantes
+        this.rules = [];
+        this.nextId = 1;
 
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la récupération des conflits: ${response.statusText}`);
-            }
+        // Créer quelques règles de démonstration
 
-            return await response.json();
-        } catch (error) {
-            console.error('Erreur dans getAllConflicts:', error);
-            throw error;
-        }
-    }
+        // 1. Règle de repos minimum après une garde
+        this.createRule({
+            name: 'Repos minimum après garde',
+            description: 'Période de repos minimum obligatoire après une garde de nuit',
+            type: RuleType.MIN_REST_PERIOD,
+            severity: RuleSeverity.ERROR,
+            scope: RuleScope.GLOBAL,
+            enabled: true,
+            parameters: {
+                minHours: 24,
+                shiftTypes: ['night'],
+            },
+            priority: 100
+        });
 
-    /**
-     * Résout un conflit de règles
-     */
-    public async resolveConflict(conflictId: string, resolution: {
-        actionType: 'MODIFY_RULES' | 'IGNORE_CONFLICT' | 'DELETE_RULES';
-        modifiedRules?: AnyRule[];
-        rulesToDelete?: string[];
-        ignoreReason?: string;
-    }): Promise<void> {
-        try {
-            const response = await fetch(`${this.API_BASE_URL}/conflicts/${conflictId}/resolve`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(resolution),
-            });
+        // 2. Règle de nombre maximum de gardes par semaine
+        this.createRule({
+            name: 'Maximum de gardes par semaine',
+            description: 'Limite le nombre de gardes attribuées par semaine',
+            type: RuleType.MAX_SHIFTS_PER_WEEK,
+            severity: RuleSeverity.ERROR,
+            scope: RuleScope.GLOBAL,
+            enabled: true,
+            parameters: {
+                maxShifts: 2,
+                period: 'week',
+                shiftTypes: ['day', 'night'],
+            },
+            priority: 90
+        });
 
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la résolution du conflit: ${response.statusText}`);
-            }
-        } catch (error) {
-            console.error(`Erreur dans resolveConflict pour l'ID ${conflictId}:`, error);
-            throw error;
-        }
-    }
+        // 3. Règle de préavis minimum pour les congés
+        this.createRule({
+            name: 'Préavis pour congés',
+            description: 'Délai minimal de demande pour les congés',
+            type: RuleType.MIN_ADVANCE_NOTICE,
+            severity: RuleSeverity.WARNING,
+            scope: RuleScope.GLOBAL,
+            enabled: true,
+            parameters: {
+                minAdvanceNoticeDays: 14,
+                leaveTypes: ['annual', 'unpaid'],
+            },
+            priority: 80
+        });
 
-    /**
-     * Crée une nouvelle règle de congé
-     */
-    public async createLeaveRule(rule: Omit<LeaveRule, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Promise<LeaveRule> {
-        const fullRule = {
-            ...rule,
-            type: RuleType.LEAVE,
-            validFrom: rule.validFrom || new Date(),
-            validTo: rule.validTo || null
-        };
+        // 4. Règle de quota de congés pendant l'été
+        this.createRule({
+            name: 'Quota été',
+            description: 'Limite le nombre de jours de congés en période estivale',
+            type: RuleType.SEASON_QUOTA,
+            severity: RuleSeverity.ERROR,
+            scope: RuleScope.GLOBAL,
+            enabled: true,
+            parameters: {
+                seasonStart: '07-01', // 1er juillet
+                seasonEnd: '08-31',   // 31 août
+                seasonQuota: 15,
+                leaveTypes: ['annual'],
+            },
+            priority: 85
+        });
 
-        return this.createRule(fullRule as unknown as Omit<AnyRule, 'id' | 'createdAt' | 'updatedAt'>) as unknown as LeaveRule;
-    }
+        // 5. Règle de qualification pour les gardes en réanimation
+        this.createRule({
+            name: 'Qualification réanimation',
+            description: 'Compétences requises pour les gardes en réanimation',
+            type: RuleType.SHIFT_QUALIFICATION,
+            severity: RuleSeverity.ERROR,
+            scope: RuleScope.SERVICE,
+            scopeValue: 'icu',
+            enabled: true,
+            parameters: {
+                qualifications: ['icu_certified', 'ventilation_trained'],
+                shiftTypes: ['day', 'night'],
+            },
+            priority: 95
+        });
 
-    /**
-     * Crée une nouvelle règle de garde
-     */
-    public async createDutyRule(rule: Omit<DutyRule, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Promise<DutyRule> {
-        const fullRule = {
-            ...rule,
-            type: RuleType.DUTY,
-            validFrom: rule.validFrom || new Date(),
-            validTo: rule.validTo || null
-        };
-
-        return this.createRule(fullRule as unknown as Omit<AnyRule, 'id' | 'createdAt' | 'updatedAt'>) as unknown as DutyRule;
-    }
-
-    /**
-     * Crée une nouvelle règle de supervision
-     */
-    public async createSupervisionRule(rule: Omit<SupervisionRule, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Promise<SupervisionRule> {
-        const fullRule = {
-            ...rule,
-            type: RuleType.SUPERVISION,
-            validFrom: rule.validFrom || new Date(),
-            validTo: rule.validTo || null
-        };
-
-        return this.createRule(fullRule as unknown as Omit<AnyRule, 'id' | 'createdAt' | 'updatedAt'>) as unknown as SupervisionRule;
-    }
-
-    /**
-     * Crée une nouvelle règle d'assignation
-     */
-    public async createAssignmentRule(rule: Omit<AssignmentRule, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Promise<AssignmentRule> {
-        const fullRule = {
-            ...rule,
-            type: RuleType.ASSIGNMENT,
-            validFrom: rule.validFrom || new Date(),
-            validTo: rule.validTo || null
-        };
-
-        return this.createRule(fullRule as unknown as Omit<AnyRule, 'id' | 'createdAt' | 'updatedAt'>) as unknown as AssignmentRule;
-    }
-
-    /**
-     * Crée une nouvelle règle d'astreinte
-     */
-    public async createOnCallRule(rule: Omit<OnCallRule, 'id' | 'type' | 'createdAt' | 'updatedAt'>): Promise<OnCallRule> {
-        const fullRule = {
-            ...rule,
-            type: RuleType.ON_CALL,
-            validFrom: rule.validFrom || new Date(),
-            validTo: rule.validTo || null
-        };
-
-        return this.createRule(fullRule as unknown as Omit<AnyRule, 'id' | 'createdAt' | 'updatedAt'>) as unknown as OnCallRule;
-    }
-
-    /**
-     * Obtient le libellé d'un type de règle
-     */
-    public getRuleTypeLabel(type: RuleType): string {
-        switch (type) {
-            case RuleType.LEAVE:
-                return 'Règle de congé';
-            case RuleType.DUTY:
-                return 'Règle de garde';
-            case RuleType.SUPERVISION:
-                return 'Règle de supervision';
-            case RuleType.ASSIGNMENT:
-                return 'Règle d\'assignation';
-            case RuleType.ON_CALL:
-                return 'Règle d\'astreinte';
-            default:
-                return 'Type inconnu';
-        }
-    }
-
-    /**
-     * Obtient le libellé de sévérité
-     */
-    public getRuleSeverityLabel(severity: RuleSeverity): string {
-        switch (severity) {
-            case RuleSeverity.LOW:
-                return 'Faible';
-            case RuleSeverity.MEDIUM:
-                return 'Moyenne';
-            case RuleSeverity.HIGH:
-                return 'Élevée';
-            default:
-                return 'Inconnue';
-        }
-    }
-
-    /**
-     * Obtient la couleur CSS associée à une sévérité
-     */
-    public getRuleSeverityColor(severity: RuleSeverity): string {
-        switch (severity) {
-            case RuleSeverity.LOW:
-                return 'bg-blue-100 text-blue-800';
-            case RuleSeverity.MEDIUM:
-                return 'bg-yellow-100 text-yellow-800';
-            case RuleSeverity.HIGH:
-                return 'bg-red-100 text-red-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    }
-
-    /**
-     * Obtient le libellé d'une priorité
-     */
-    public getRulePriorityLabel(priority: RulePriority): string {
-        switch (priority) {
-            case RulePriority.LOW:
-                return 'Basse';
-            case RulePriority.MEDIUM:
-                return 'Moyenne';
-            case RulePriority.HIGH:
-                return 'Haute';
-            case RulePriority.CRITICAL:
-                return 'Critique';
-            default:
-                return 'Inconnue';
-        }
-    }
-
-    /**
-     * Obtient la couleur CSS associée à une priorité
-     */
-    public getRulePriorityColor(priority: RulePriority): string {
-        switch (priority) {
-            case RulePriority.LOW:
-                return 'bg-blue-100 text-blue-800';
-            case RulePriority.MEDIUM:
-                return 'bg-yellow-100 text-yellow-800';
-            case RulePriority.HIGH:
-                return 'bg-orange-100 text-orange-800';
-            case RulePriority.CRITICAL:
-                return 'bg-red-100 text-red-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    }
-
-    /**
-     * Obtient le libellé d'une stratégie de rotation
-     */
-    public getRotationStrategyLabel(strategy: RotationStrategy): string {
-        switch (strategy) {
-            case RotationStrategy.ROUND_ROBIN:
-                return 'Tour de rôle';
-            case RotationStrategy.LEAST_RECENTLY_ASSIGNED:
-                return 'Moins récemment assigné';
-            case RotationStrategy.BALANCED_LOAD:
-                return 'Charge équilibrée';
-            default:
-                return 'Inconnue';
-        }
+        return this.rules;
     }
 }
 
-// Exporter une instance par défaut pour faciliter l'utilisation
-export const ruleService = new RuleService(); 
+// Exporter une instance unique du service
+export const ruleService = new RuleService();

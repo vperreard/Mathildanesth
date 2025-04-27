@@ -287,6 +287,36 @@ model ProfessionalRoleConfig {
   updatedAt          DateTime @updatedAt
 }
 
+model TeamConfiguration {
+  id             String    @id @default(cuid())
+  name           String
+  description    String?
+  isDefault      Boolean   @default(false)
+  isActive       Boolean   @default(true)
+  gardes         Json
+  consultations  Json
+  bloc           Json
+  conges         Json
+  fatigue        Json?
+  tempsPartiel   Json?
+  iades          Json?
+  remplacants    Json?
+  preferences    Json?
+  statistiques   Json?
+  horaires       Json?
+  affectations   Json?
+  transitions    Json?
+  equite         Json?
+  alertes        Json?
+  algorithme     Json?
+  rapports       Json?
+  audit          Json?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("team_configurations")
+}
+
 enum Role {
   ADMIN_TOTAL
   ADMIN_PARTIEL

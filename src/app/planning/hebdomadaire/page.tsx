@@ -12,6 +12,7 @@ import {
 import { format, addWeeks, startOfWeek, endOfWeek, isToday, isWeekend, eachDayOfInterval } from "date-fns";
 import { fr } from "date-fns/locale";
 import { motion } from "framer-motion";
+import { DragDropAssignmentEditor } from './components';
 
 // Import du panneau de configuration
 import DisplayConfigPanel, { defaultDisplayConfig } from "./DisplayConfigPanel";

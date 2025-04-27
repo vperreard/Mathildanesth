@@ -65,6 +65,15 @@ export default function AdminLayout({ children, title = 'Administration' }: Admi
             ),
         },
         {
+            name: 'Statistiques',
+            href: '/administration/statistiques',
+            icon: (
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                </svg>
+            ),
+        },
+        {
             name: 'Paramètres',
             href: '/administration/parametres',
             icon: (
@@ -118,8 +127,8 @@ export default function AdminLayout({ children, title = 'Administration' }: Admi
                                         key={item.name}
                                         href={item.href}
                                         className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${isActiveLink(item.href)
-                                                ? 'bg-blue-100 text-blue-600'
-                                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                            ? 'bg-blue-100 text-blue-600'
+                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                             }`}
                                     >
                                         <div className={`mr-4 ${isActiveLink(item.href) ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'}`}>
@@ -147,8 +156,8 @@ export default function AdminLayout({ children, title = 'Administration' }: Admi
                                             key={item.name}
                                             href={item.href}
                                             className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActiveLink(item.href)
-                                                    ? 'bg-blue-100 text-blue-600'
-                                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                                ? 'bg-blue-100 text-blue-600'
+                                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                                 }`}
                                         >
                                             <div className={`mr-3 ${isActiveLink(item.href) ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'}`}>
