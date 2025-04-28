@@ -2,9 +2,9 @@
  * Script principal pour exécuter tous les seeds
  */
 
-import { seedRules } from '../../scripts/seedRules';
-import { seedSpecialties } from './seedSpecialties';
-import { seedSurgeons } from './seedSurgeons';
+import { seedRules } from '../../scripts/seedRules.js';
+import { seedSpecialties } from './seedSpecialties.js';
+import { seedSurgeons } from './seedSurgeons.js';
 
 /**
  * Exécute tous les scripts de seed dans l'ordre approprié

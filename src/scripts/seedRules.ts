@@ -1,5 +1,5 @@
-import { connectToDatabase } from '@/lib/mongodb';
-import { defaultRules } from '@/modules/rules/seeds/defaultRules';
+import { connectToDatabase } from '../lib/mongodb.js';
+import { defaultRules } from '../modules/rules/seeds/defaultRules.js';
 
 /**
  * Script pour initialiser les règles par défaut dans la base de données

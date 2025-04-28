@@ -1,4 +1,4 @@
-import { connectToDatabase } from '@/lib/mongodb';
+import { connectToDatabase } from '../../lib/mongodb.js';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -236,11 +236,11 @@ export async function seedSurgeons() {
 
             for (const surgeon of surgeonsList) {
                 // Convertir les noms de spécialités en IDs
-                const specialtyIds = [];
+                const specialtyIds: string[] = [];
                 for (const specialtyName of surgeon.specialtyNames) {
                     const specialtyId = specialtiesMap.get(specialtyName);
                     if (specialtyId) {
-                        specialtyIds.push(specialtyId);
+                        specialtyIds.push(specialtyId.toString());
                     } else {
                         console.warn(`AVERTISSEMENT: Spécialité "${specialtyName}" non trouvée pour ${surgeon.prenom} ${surgeon.nom}`);
                     }
@@ -287,11 +287,11 @@ export async function seedSurgeons() {
             // Aucun chirurgien n'existe, ajouter tous les chirurgiens
             const surgeonsToInsert = surgeonsList.map(surgeon => {
                 // Convertir les noms de spécialités en IDs
-                const specialtyIds = [];
+                const specialtyIds: string[] = [];
                 for (const specialtyName of surgeon.specialtyNames) {
                     const specialtyId = specialtiesMap.get(specialtyName);
                     if (specialtyId) {
-                        specialtyIds.push(specialtyId);
+                        specialtyIds.push(specialtyId.toString());
                     } else {
                         console.warn(`AVERTISSEMENT: Spécialité "${specialtyName}" non trouvée pour ${surgeon.prenom} ${surgeon.nom}`);
                     }
