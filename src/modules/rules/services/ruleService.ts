@@ -1,4 +1,5 @@
 import { Rule, RuleType, RuleScope, RuleSeverity } from '../types/rule';
+import { defaultRules } from '../seeds/defaultRules';
 
 /**
  * Service de gestion des règles (CRUD)
@@ -8,17 +9,223 @@ export class RuleService {
     private nextId = 1;
 
     /**
+     * Initialise les règles par défaut si aucune règle n'existe
+     */
+    static async initializeDefaultRules(): Promise<void> {
+        try {
+            // Vérifier si des règles existent déjà
+            const existingRules = await this.getAllRules();
+
+            if (existingRules.length === 0) {
+                // Aucune règle existante, initialiser avec les règles par défaut
+                for (const rule of defaultRules) {
+                    await this.createRule(rule);
+                }
+                console.log('Règles par défaut initialisées avec succès');
+            }
+        } catch (error) {
+            console.error('Erreur lors de l\'initialisation des règles par défaut:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Récupère toutes les règles
      */
-    getAllRules(): Rule[] {
-        return [...this.rules];
+    static async getAllRules(): Promise<Rule[]> {
+        try {
+            const response = await fetch('/api/rules');
+            if (!response.ok) {
+                throw new Error(`Erreur lors de la récupération des règles: ${response.statusText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Erreur dans getAllRules:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Récupère les règles par type
+     */
+    static async getRulesByType(type: RuleType): Promise<Rule[]> {
+        try {
+            const response = await fetch(`/api/rules?type=${type}`);
+            if (!response.ok) {
+                throw new Error(`Erreur lors de la récupération des règles: ${response.statusText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error(`Erreur dans getRulesByType pour ${type}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Crée une nouvelle règle
+     */
+    static async createRule(rule: Rule): Promise<Rule> {
+        try {
+            const response = await fetch('/api/rules', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(rule)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erreur lors de la création de la règle: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erreur dans createRule:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Met à jour une règle existante
+     */
+    static async updateRule(rule: Rule): Promise<Rule> {
+        try {
+            const response = await fetch(`/api/rules/${rule.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(rule)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erreur lors de la mise à jour de la règle: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erreur dans updateRule:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Supprime une règle
+     */
+    static async deleteRule(ruleId: string): Promise<void> {
+        try {
+            const response = await fetch(`/api/rules/${ruleId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erreur lors de la suppression de la règle: ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error('Erreur dans deleteRule:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Exporte toutes les règles
+     */
+    static async exportRules(): Promise<string> {
+        try {
+            const rules = await this.getAllRules();
+            return JSON.stringify(rules, null, 2);
+        } catch (error) {
+            console.error('Erreur dans exportRules:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Importe des règles depuis un fichier JSON
+     */
+    static async importRules(rulesJson: string, replaceAll: boolean = false): Promise<void> {
+        try {
+            const rules = JSON.parse(rulesJson) as Rule[];
+
+            if (replaceAll) {
+                // Supprimer toutes les règles existantes (sauf les règles par défaut)
+                const existingRules = await this.getAllRules();
+                for (const rule of existingRules) {
+                    if (!rule.isDefault) {
+                        await this.deleteRule(rule.id);
+                    }
+                }
+            }
+
+            // Importer les nouvelles règles
+            for (const rule of rules) {
+                const existingRule = await this.getRuleById(rule.id);
+                if (existingRule) {
+                    await this.updateRule(rule);
+                } else {
+                    await this.createRule(rule);
+                }
+            }
+        } catch (error) {
+            console.error('Erreur dans importRules:', error);
+            throw error;
+        }
     }
 
     /**
      * Récupère une règle par son ID
      */
-    getRuleById(id: string): Rule | undefined {
-        return this.rules.find(rule => rule.id === id);
+    static async getRuleById(ruleId: string): Promise<Rule | null> {
+        try {
+            const response = await fetch(`/api/rules/${ruleId}`);
+
+            if (response.status === 404) {
+                return null;
+            }
+
+            if (!response.ok) {
+                throw new Error(`Erreur lors de la récupération de la règle: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erreur dans getRuleById:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Réinitialise une règle à sa configuration par défaut
+     */
+    static async resetRuleToDefault(ruleId: string): Promise<Rule | null> {
+        try {
+            // Trouver la règle par défaut correspondante
+            const existingRule = await this.getRuleById(ruleId);
+            if (!existingRule || !existingRule.isDefault) {
+                return null;
+            }
+
+            // Trouver la règle par défaut correspondante
+            const defaultRule = defaultRules.find(r =>
+                r.type === existingRule.type && r.name === existingRule.name
+            );
+
+            if (!defaultRule) {
+                return null;
+            }
+
+            // Réinitialiser la configuration
+            const updatedRule = {
+                ...existingRule,
+                configuration: JSON.parse(JSON.stringify(defaultRule.configuration)),
+                updatedAt: new Date()
+            };
+
+            return await this.updateRule(updatedRule);
+        } catch (error) {
+            console.error('Erreur dans resetRuleToDefault:', error);
+            throw error;
+        }
     }
 
     /**

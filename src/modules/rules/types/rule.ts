@@ -16,6 +16,20 @@ export enum RuleType {
 
     // Règles liées aux qualifications
     SHIFT_QUALIFICATION = 'SHIFT_QUALIFICATION',       // Qualifications requises pour une garde
+
+    // Règles liées au planning
+    PLANNING = 'PLANNING',                             // Règles spécifiques de planning
+
+    // Autres types
+    DUTY = 'DUTY',                                     // Règles de service de garde
+    CONSULTATION = 'CONSULTATION',                     // Règles de consultation
+    SUPERVISION = 'SUPERVISION',                       // Règles de supervision
+    LOCATION = 'LOCATION',                             // Règles de localisation
+    TEAM_CAPACITY = 'TEAM_CAPACITY',
+    SPECIALTY_CAPACITY = 'SPECIALTY_CAPACITY',
+    LEAVE_RESTRICTION = 'LEAVE_RESTRICTION',
+    DUTY_REST = 'DUTY_REST',
+    SCHEDULE_CONSTRAINT = 'SCHEDULE_CONSTRAINT'
 }
 
 /**
@@ -34,7 +48,10 @@ export enum RuleScope {
 export enum RuleSeverity {
     INFO = 'INFO',           // Information, peut être ignorée
     WARNING = 'WARNING',     // Avertissement, peut être contourné avec justification
-    ERROR = 'ERROR'          // Erreur, ne peut pas être contournée
+    ERROR = 'ERROR',          // Erreur, ne peut pas être contournée
+    LOW = 'LOW',
+    MEDIUM = 'MEDIUM',
+    HIGH = 'HIGH'
 }
 
 /**
@@ -43,7 +60,7 @@ export enum RuleSeverity {
 export interface Rule {
     id: string;                // Identifiant unique de la règle
     name: string;              // Nom de la règle
-    description: string;       // Description de la règle
+    description?: string;      // Description de la règle
     type: RuleType;            // Type de la règle
     severity: RuleSeverity;    // Gravité de la règle
     scope: RuleScope;          // Portée de la règle
@@ -51,8 +68,10 @@ export interface Rule {
     enabled: boolean;          // Si la règle est active
     parameters: any;           // Paramètres spécifiques à la règle
     priority: number;          // Priorité de la règle (plus le nombre est élevé, plus la priorité est haute)
-    createdAt: string;         // Date de création (ISO string)
-    updatedAt: string;         // Date de dernière mise à jour (ISO string)
+    configuration: any;         // Configuration spécifique à la règle
+    isDefault?: boolean;       // Si la règle est la valeur par défaut
+    createdAt: Date;           // Date de création (Date)
+    updatedAt: Date;           // Date de dernière mise à jour (Date)
 }
 
 /**
@@ -121,4 +140,80 @@ export interface RuleEvaluationResult {
     severity: RuleSeverity;    // Gravité de la règle
     message: string;           // Message explicatif
     details: any | null;       // Détails supplémentaires
-} 
+}
+
+/**
+ * Interface pour les règles de planification
+ */
+export interface PlanningRule extends Rule {
+    type: RuleType.PLANNING;
+    planningConfig: {
+        planningType: string;      // Type de planning (HEBDOMADAIRE, MENSUEL, JOURNALIER, etc.)
+        maxLimit?: number;         // Limite maximale d'affectations
+        periodType?: string;       // Type de période pour la limite maximale (DAY, WEEK, MONTH, etc.)
+        minLimit?: number;         // Limite minimale d'affectations
+        minPeriodType?: string;    // Type de période pour la limite minimale
+        applyToAllUsers?: boolean; // Si la règle s'applique à tous les utilisateurs
+        exceptions?: string;       // Exceptions (utilisateurs ou groupes)
+        strictEnforcement?: boolean; // Si la règle doit être strictement appliquée
+    };
+}
+
+/**
+ * Interface pour les règles de service de garde
+ */
+export interface DutyRule extends Rule {
+    type: RuleType.DUTY;
+    dutyConfig: {
+        minPersonnel: number;
+        maxConsecutiveDays: number;
+        minRestPeriodAfterDuty: number;
+        dutyPeriods: {
+            dayOfWeek: number;
+            startTime: string;
+            endTime: string;
+        }[];
+        specificRoles: string[];
+        rotationStrategy: 'SEQUENTIAL' | 'BALANCED' | 'CUSTOM';
+    };
+}
+
+/**
+ * Interface pour les règles de consultation
+ */
+export interface ConsultationRule extends Rule {
+    type: RuleType.CONSULTATION;
+    consultationConfig: {
+        // Configuration spécifique aux consultations
+    };
+}
+
+/**
+ * Interface pour les règles de supervision
+ */
+export interface SupervisionRule extends Rule {
+    type: RuleType.SUPERVISION;
+    supervisionConfig: {
+        // Configuration spécifique à la supervision
+    };
+}
+
+/**
+ * Interface pour les règles de localisation
+ */
+export interface LocationRule extends Rule {
+    type: RuleType.LOCATION;
+    locationConfig: {
+        // Configuration spécifique à la localisation
+    };
+}
+
+/**
+ * Type union pour toutes les règles
+ */
+export type AnyRule =
+    | PlanningRule
+    | DutyRule
+    | ConsultationRule
+    | SupervisionRule
+    | LocationRule; 
