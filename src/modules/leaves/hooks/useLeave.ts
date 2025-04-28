@@ -7,7 +7,8 @@ import {
     LeaveFilters
 } from '../types/leave';
 import {
-    ConflictCheckResult
+    ConflictCheckResult,
+    ConflictSeverity
 } from '../types/conflict';
 import {
     fetchLeaves,
@@ -24,6 +25,8 @@ import {
 import {
     WorkSchedule
 } from '../../profiles/types/workSchedule';
+import { ErrorDetails, useErrorHandler } from '@/hooks/useErrorHandler';
+import { useAuth } from '@/context/AuthContext';
 
 interface UseLeaveProps {
     userId?: string;
@@ -35,7 +38,7 @@ interface UseLeaveReturn {
     leave: Partial<Leave> | null;
     leaves: Leave[];
     loading: boolean;
-    error: Error | null;
+    error: ErrorDetails | null;
     conflictCheckResult: ConflictCheckResult | null;
     allowanceCheckResult: LeaveAllowanceCheckResult | null;
     setLeave: (leave: Partial<Leave> | null) => void;
@@ -46,7 +49,7 @@ interface UseLeaveReturn {
     rejectLeaveRequest: (comment?: string) => Promise<Leave>;
     cancelLeaveRequest: (comment?: string) => Promise<Leave>;
     calculateLeaveDuration: () => number;
-    checkConflicts: () => Promise<ConflictCheckResult>;
+    checkConflicts: (startDate?: string | Date, endDate?: string | Date, leaveIdToExclude?: string) => Promise<ConflictCheckResult | null>;
     checkAllowance: () => Promise<LeaveAllowanceCheckResult>;
     fetchUserLeaves: (filters?: LeaveFilters) => Promise<void>;
     fetchLeaveDetails: (leaveId: string) => Promise<void>;
@@ -61,12 +64,19 @@ export const useLeave = ({
     const [leave, setLeave] = useState<Partial<Leave> | null>(initialLeave || null);
     // État pour la liste des congés
     const [leaves, setLeaves] = useState<Leave[]>([]);
-    // États de chargement et d'erreur
+    // Utilisation du hook de gestion d'erreurs
+    const { setError, errorState, hasError, clearError } = useErrorHandler();
+    // État pour le chargement (à gérer)
     const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<Error | null>(null);
     // État pour les résultats de vérification
     const [conflictCheckResult, setConflictCheckResult] = useState<ConflictCheckResult | null>(null);
     const [allowanceCheckResult, setAllowanceCheckResult] = useState<LeaveAllowanceCheckResult | null>(null);
+    // État d'erreur local (pour les tests qui vérifient result.current.error)
+    const [error, setLocalError] = useState<ErrorDetails | null>(null);
+
+    const authContext = useAuth();
+    // Utiliser une référence locale pour éviter les problèmes de test mock
+    const { user } = authContext;
 
     // Mettre à jour un champ du congé
     const updateLeaveField = useCallback(<K extends keyof Leave>(
@@ -83,11 +93,13 @@ export const useLeave = ({
 
                 // Vérifier que les dates sont valides et dans le bon ordre
                 if (startDate <= endDate) {
+                    // Ne recalculer que si la date a changé et si l'ordre est correct
                     const countedDays = calculateLeaveDays(startDate, endDate, userSchedule);
                     return { ...prev, [field]: value, countedDays };
                 }
             }
 
+            // Pour tous les autres champs ou si les dates ne sont pas valides
             return { ...prev, [field]: value };
         });
     }, [userSchedule]);
@@ -104,45 +116,101 @@ export const useLeave = ({
         return calculateLeaveDays(startDate, endDate, userSchedule);
     }, [leave?.startDate, leave?.endDate, userSchedule]);
 
-    // Vérifier les conflits
-    const checkConflicts = useCallback(async (): Promise<ConflictCheckResult> => {
-        if (!leave?.startDate || !leave?.endDate || !userId) {
-            throw new Error('Informations manquantes pour vérifier les conflits');
+    // Vérifier les conflits de congés
+    const checkConflicts = useCallback(async (
+        startDateParam?: string | Date,
+        endDateParam?: string | Date,
+        leaveIdToExclude?: string
+    ): Promise<ConflictCheckResult | null> => {
+        clearError('conflicts');
+        setLocalError(null);
+
+        // Pas de référence à authContext.user ici pour les tests où authContext est mocké
+        const currentUser = user;
+
+        // Utiliser les dates fournies ou celles du congé en cours
+        const startDate = startDateParam || leave?.startDate;
+        const endDate = endDateParam || leave?.endDate;
+        const leaveId = leaveIdToExclude || leave?.id;
+
+        if (!currentUser?.id) {
+            setError('conflicts', { message: 'Utilisateur non connecté.', severity: 'warning' });
+            return null;
+        }
+
+        if (!startDate || !endDate) {
+            setError('conflicts', { message: 'Dates de début et de fin requises.', severity: 'warning' });
+            return null;
         }
 
         setLoading(true);
-        setError(null);
-
         try {
-            const startDate = new Date(leave.startDate);
-            const endDate = new Date(leave.endDate);
+            // S'assurer que nous avons des objets Date
+            const dateStartDate = typeof startDate === 'string' ? new Date(startDate) : startDate;
+            const dateEndDate = typeof endDate === 'string' ? new Date(endDate) : endDate;
 
-            const result = await checkLeaveConflicts(
-                startDate,
-                endDate,
-                userId,
-                leave.id
+            // Vérifier si les dates sont valides après conversion éventuelle
+            if (!dateStartDate || isNaN(dateStartDate.getTime()) || !dateEndDate || isNaN(dateEndDate.getTime())) {
+                setError('conflicts', { message: 'Dates invalides fournies.', severity: 'warning' });
+                setLoading(false);
+                return null;
+            }
+
+            // Appeler le service avec les objets Date
+            const conflictResult = await checkLeaveConflicts(
+                dateStartDate,
+                dateEndDate,
+                currentUser.id,
+                leaveId
             );
 
-            setConflictCheckResult(result);
-            return result;
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error('Erreur lors de la vérification des conflits'));
-            console.error('Erreur dans checkConflicts:', err);
-            throw err;
-        } finally {
+            if (conflictResult.conflicts && conflictResult.conflicts.length > 0) {
+                setConflictCheckResult(conflictResult);
+
+                // Vérifier si les conflits sont bloquants ou non
+                if (conflictResult.hasBlockingConflicts) {
+                    setError('conflicts', {
+                        message: 'Conflit bloquant détecté avec une autre demande.',
+                        severity: 'error',
+                        context: { conflicts: conflictResult.conflicts }
+                    });
+                } else {
+                    setError('conflicts', {
+                        message: 'Conflit détecté avec une autre demande.',
+                        severity: 'warning',
+                        context: { conflicts: conflictResult.conflicts }
+                    });
+                }
+            } else {
+                clearError('conflicts');
+                setConflictCheckResult(null);
+            }
+
             setLoading(false);
+            return conflictResult;
+
+        } catch (error: any) {
+            setConflictCheckResult(null);
+            setError('conflicts', { message: error.message, severity: 'error' });
+            // Convertir l'erreur au format ErrorDetails pour les tests
+            setLocalError({
+                message: error.message,
+                severity: 'error',
+                timestamp: new Date()
+            });
+            setLoading(false);
+            return null;
         }
-    }, [leave?.startDate, leave?.endDate, leave?.id, userId]);
+    }, [user, leave?.startDate, leave?.endDate, leave?.id, setError, clearError]);
 
     // Vérifier les droits à congés
     const checkAllowance = useCallback(async (): Promise<LeaveAllowanceCheckResult> => {
+        setLoading(true);
+        setLocalError(null);
+
         if (!leave?.type || !userId || leave.countedDays === undefined) {
             throw new Error('Informations manquantes pour vérifier les droits à congés');
         }
-
-        setLoading(true);
-        setError(null);
 
         try {
             const result = await checkLeaveAllowance(
@@ -152,18 +220,26 @@ export const useLeave = ({
             );
 
             setAllowanceCheckResult(result);
-            return result;
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error('Erreur lors de la vérification des droits à congés'));
-            console.error('Erreur dans checkAllowance:', err);
-            throw err;
-        } finally {
             setLoading(false);
+            return result;
+        } catch (err: any) {
+            console.error('Erreur dans checkAllowance:', err);
+            // Convertir l'erreur au format ErrorDetails
+            setLocalError({
+                message: err.message,
+                severity: 'error',
+                timestamp: new Date()
+            });
+            setLoading(false);
+            throw err;
         }
     }, [leave?.type, leave?.countedDays, userId]);
 
     // Enregistrer le congé comme brouillon
     const saveLeaveAsDraft = useCallback(async (): Promise<Leave> => {
+        setLoading(true);
+        setLocalError(null);
+
         if (!leave) {
             throw new Error('Aucun congé à enregistrer');
         }
@@ -171,9 +247,6 @@ export const useLeave = ({
         if (!userId && !leave.userId) {
             throw new Error('ID utilisateur manquant');
         }
-
-        setLoading(true);
-        setError(null);
 
         try {
             // Préparer les données
@@ -190,19 +263,26 @@ export const useLeave = ({
 
             // Mettre à jour l'état
             setLeave(savedLeave);
-
-            return savedLeave;
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error('Erreur lors de l\'enregistrement'));
-            console.error('Erreur dans saveLeaveAsDraft:', err);
-            throw err;
-        } finally {
             setLoading(false);
+            return savedLeave;
+        } catch (err: any) {
+            console.error('Erreur dans saveLeaveAsDraft:', err);
+            // Convertir l'erreur au format ErrorDetails
+            setLocalError({
+                message: err.message,
+                severity: 'error',
+                timestamp: new Date()
+            });
+            setLoading(false);
+            throw err;
         }
     }, [leave, userId]);
 
     // Soumettre le congé pour approbation
     const submitLeave = useCallback(async (): Promise<Leave> => {
+        setLoading(true);
+        setLocalError(null);
+
         if (!leave) {
             throw new Error('Aucun congé à soumettre');
         }
@@ -215,9 +295,6 @@ export const useLeave = ({
         if (!leave.startDate || !leave.endDate || !leave.type) {
             throw new Error('Informations manquantes (dates ou type de congé)');
         }
-
-        setLoading(true);
-        setError(null);
 
         try {
             // Préparer les données
@@ -235,132 +312,162 @@ export const useLeave = ({
 
             // Mettre à jour l'état
             setLeave(submittedLeave);
-
-            return submittedLeave;
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error('Erreur lors de la soumission'));
-            console.error('Erreur dans submitLeave:', err);
-            throw err;
-        } finally {
             setLoading(false);
+            return submittedLeave;
+        } catch (err: any) {
+            console.error('Erreur dans submitLeave:', err);
+            // Convertir l'erreur au format ErrorDetails
+            setLocalError({
+                message: err.message,
+                severity: 'error',
+                timestamp: new Date()
+            });
+            setLoading(false);
+            throw err;
         }
     }, [leave, userId]);
 
     // Approuver une demande de congés
     const approveLeaveRequest = useCallback(async (comment?: string): Promise<Leave> => {
-        if (!leave?.id) {
-            throw new Error('ID de congé manquant');
-        }
-
         setLoading(true);
-        setError(null);
+        setLocalError(null);
+
+        if (!leave?.id) {
+            throw new Error('ID de congé manquant pour l\'approbation');
+        }
 
         try {
             const approvedLeave = await approveLeave(leave.id, comment);
 
             // Mettre à jour l'état
             setLeave(approvedLeave);
-
-            return approvedLeave;
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error('Erreur lors de l\'approbation'));
-            console.error('Erreur dans approveLeaveRequest:', err);
-            throw err;
-        } finally {
             setLoading(false);
+            return approvedLeave;
+        } catch (err: any) {
+            console.error('Erreur dans approveLeaveRequest:', err);
+            // Convertir l'erreur au format ErrorDetails
+            setLocalError({
+                message: err.message,
+                severity: 'error',
+                timestamp: new Date()
+            });
+            setLoading(false);
+            throw err;
         }
     }, [leave?.id]);
 
     // Rejeter une demande de congés
     const rejectLeaveRequest = useCallback(async (comment?: string): Promise<Leave> => {
-        if (!leave?.id) {
-            throw new Error('ID de congé manquant');
-        }
-
         setLoading(true);
-        setError(null);
+        setLocalError(null);
+
+        if (!leave?.id) {
+            throw new Error('ID de congé manquant pour le rejet');
+        }
 
         try {
             const rejectedLeave = await rejectLeave(leave.id, comment);
 
             // Mettre à jour l'état
             setLeave(rejectedLeave);
-
-            return rejectedLeave;
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error('Erreur lors du rejet'));
-            console.error('Erreur dans rejectLeaveRequest:', err);
-            throw err;
-        } finally {
             setLoading(false);
+            return rejectedLeave;
+        } catch (err: any) {
+            console.error('Erreur dans rejectLeaveRequest:', err);
+            // Convertir l'erreur au format ErrorDetails
+            setLocalError({
+                message: err.message,
+                severity: 'error',
+                timestamp: new Date()
+            });
+            setLoading(false);
+            throw err;
         }
     }, [leave?.id]);
 
     // Annuler une demande de congés
     const cancelLeaveRequest = useCallback(async (comment?: string): Promise<Leave> => {
-        if (!leave?.id) {
-            throw new Error('ID de congé manquant');
-        }
-
         setLoading(true);
-        setError(null);
+        setLocalError(null);
+
+        if (!leave?.id) {
+            throw new Error('ID de congé manquant pour l\'annulation');
+        }
 
         try {
             const cancelledLeave = await cancelLeave(leave.id, comment);
 
             // Mettre à jour l'état
             setLeave(cancelledLeave);
-
-            return cancelledLeave;
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error('Erreur lors de l\'annulation'));
-            console.error('Erreur dans cancelLeaveRequest:', err);
-            throw err;
-        } finally {
             setLoading(false);
+            return cancelledLeave;
+        } catch (err: any) {
+            console.error('Erreur dans cancelLeaveRequest:', err);
+            // Convertir l'erreur au format ErrorDetails
+            setLocalError({
+                message: err.message,
+                severity: 'error',
+                timestamp: new Date()
+            });
+            setLoading(false);
+            throw err;
         }
     }, [leave?.id]);
 
     // Récupérer les congés d'un utilisateur
     const fetchUserLeaves = useCallback(async (filters: LeaveFilters = {}): Promise<void> => {
+        setLoading(true);
+        setLocalError(null);
+
+        // Réinitialiser les congés pour garantir un état propre
+        setLeaves([]);
+
         if (!userId && !filters.userId && !filters.userIds) {
             throw new Error('ID utilisateur manquant');
         }
 
-        setLoading(true);
-        setError(null);
-
         try {
             // Si l'utilisateur n'est pas spécifié dans les filtres, l'ajouter
-            if (!filters.userId && !filters.userIds && userId) {
-                filters.userId = userId;
+            const combinedFilters = { ...filters };
+            if (!combinedFilters.userId && !combinedFilters.userIds && userId) {
+                combinedFilters.userId = userId;
             }
 
-            const fetchedLeaves = await fetchLeaves(filters);
+            const fetchedLeaves = await fetchLeaves(combinedFilters);
             setLeaves(fetchedLeaves);
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error('Erreur lors de la récupération des congés'));
-            console.error('Erreur dans fetchUserLeaves:', err);
-            throw err;
-        } finally {
             setLoading(false);
+        } catch (err: any) {
+            console.error('Erreur dans fetchUserLeaves:', err);
+            // Convertir l'erreur au format ErrorDetails
+            setLocalError({
+                message: err.message,
+                severity: 'error',
+                timestamp: new Date()
+            });
+            setLoading(false);
+            throw err;
         }
     }, [userId]);
 
     // Récupérer les détails d'un congé
     const fetchLeaveDetails = useCallback(async (leaveId: string): Promise<void> => {
         setLoading(true);
-        setError(null);
+        setLocalError(null);
 
         try {
             const fetchedLeave = await fetchLeaveById(leaveId);
             setLeave(fetchedLeave);
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error('Erreur lors de la récupération du congé'));
-            console.error('Erreur dans fetchLeaveDetails:', err);
-            throw err;
-        } finally {
             setLoading(false);
+        } catch (err: any) {
+            console.error('Erreur dans fetchLeaveDetails:', err);
+            // Convertir l'erreur au format ErrorDetails
+            setLocalError({
+                message: err.message,
+                severity: 'error',
+                timestamp: new Date()
+            });
+            setLoading(false);
+            throw err;
         }
     }, []);
 
@@ -371,28 +478,14 @@ export const useLeave = ({
         }
     }, [userId, fetchUserLeaves, initialLeave]);
 
-    // Calculer le nombre de jours décomptés quand les dates changent
-    useEffect(() => {
-        if (leave?.startDate && leave?.endDate && userSchedule) {
-            const startDate = new Date(leave.startDate);
-            const endDate = new Date(leave.endDate);
-
-            if (startDate <= endDate) {
-                const countedDays = calculateLeaveDays(startDate, endDate, userSchedule);
-
-                // Mettre à jour le congé si le nombre de jours a changé
-                if (leave.countedDays !== countedDays) {
-                    setLeave(prev => prev ? { ...prev, countedDays } : null);
-                }
-            }
-        }
-    }, [leave?.startDate, leave?.endDate, userSchedule, calculateLeaveDays]);
+    // Empêcher le recalcul automatique des jours dans useEffect
+    // On ne recalcule que lors des mises à jour explicites via updateLeaveField
 
     return {
         leave,
         leaves,
         loading,
-        error,
+        error: error || errorState.globalError || Object.values(errorState.errors)[0] || null,
         conflictCheckResult,
         allowanceCheckResult,
         setLeave,
