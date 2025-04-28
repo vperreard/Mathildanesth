@@ -4,7 +4,7 @@ import { defaultRules } from '@/modules/rules/seeds/defaultRules';
 /**
  * Script pour initialiser les règles par défaut dans la base de données
  */
-async function seedRules() {
+export async function seedRules() {
     try {
         console.log('Démarrage de l\'initialisation des règles...');
 
@@ -17,26 +17,22 @@ async function seedRules() {
 
         if (existingRules > 0) {
             console.log(`${existingRules} règles existent déjà dans la base de données.`);
-            console.log('Voulez-vous uniquement ajouter les règles par défaut manquantes? (y/n)');
+            console.log('Vérification des règles manquantes...');
 
-            // Dans un script réel, vous utiliseriez une entrée utilisateur
-            // Pour cet exemple, nous supposons que la réponse est "y"
-            const onlyAddMissing = true;
+            // Récupérer toutes les règles existantes
+            const existingRulesData = await rulesCollection.find().toArray();
+            const existingRuleNames = existingRulesData.map(rule => rule.name);
 
-            if (onlyAddMissing) {
-                // Ajouter uniquement les règles par défaut qui n'existent pas déjà
-                for (const rule of defaultRules) {
-                    const existingRule = await rulesCollection.findOne({ name: rule.name, type: rule.type });
+            // Filtrer les règles à ajouter (celles qui n'existent pas encore)
+            const rulesToAdd = defaultRules.filter(
+                rule => !existingRuleNames.includes(rule.name)
+            );
 
-                    if (!existingRule) {
-                        await rulesCollection.insertOne(rule);
-                        console.log(`Règle ajoutée: ${rule.name}`);
-                    } else {
-                        console.log(`Règle ignorée (existe déjà): ${rule.name}`);
-                    }
-                }
+            if (rulesToAdd.length > 0) {
+                await rulesCollection.insertMany(rulesToAdd);
+                console.log(`${rulesToAdd.length} nouvelles règles ont été ajoutées.`);
             } else {
-                console.log('Opération annulée.');
+                console.log('Aucune nouvelle règle à ajouter.');
             }
         } else {
             // Aucune règle n'existe, ajouter toutes les règles par défaut
@@ -45,13 +41,19 @@ async function seedRules() {
         }
 
         console.log('Initialisation des règles terminée avec succès!');
+        return true;
     } catch (error) {
         console.error('Erreur lors de l\'initialisation des règles:', error);
-        process.exit(1);
-    } finally {
-        process.exit(0);
+        throw error;
     }
 }
 
-// Exécuter le script
-seedRules(); 
+// Exécuter si appelé directement
+if (require.main === module) {
+    seedRules()
+        .then(() => process.exit(0))
+        .catch(error => {
+            console.error('Erreur lors du seed des règles:', error);
+            process.exit(1);
+        });
+} 
