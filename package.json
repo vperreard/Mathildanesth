@@ -13,7 +13,11 @@
         "test:rules": "jest --config jest.config.rules.js",
         "test:rules:watch": "jest --config jest.config.rules.js --watch",
         "test:rules:coverage": "jest --config jest.config.rules.js --coverage",
-        "optimize-images": "node src/utils/optimizeImages.js"
+        "optimize-images": "node src/utils/optimizeImages.js",
+        "seed": "ts-node src/modules/seeds/seedAll.ts",
+        "seed:rules": "ts-node src/scripts/seedRules.ts",
+        "seed:surgeons": "ts-node src/modules/seeds/seedSurgeons.ts",
+        "seed:specialties": "ts-node src/modules/seeds/seedSpecialties.ts"
     },
     "prisma": {
         "seed": "node --loader ts-node/esm prisma/seed.ts"
