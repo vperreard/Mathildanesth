@@ -478,4 +478,69 @@ describe('useConflictDetection', () => {
             expect(result.current.error).toBeNull();
         });
     });
+});
+
+// Tests d'intégration
+describe('Integration useConflictDetection avec useDateValidation', () => {
+    const createDate = (year: number, month: number, day: number): Date => new Date(year, month - 1, day);
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('devrait vérifier les conflits et gérer la validation des dates', async () => {
+        // 1. Cas de test avec des dates valides
+        // Configurer le mock du hook useDateValidation pour renvoyer que les dates sont valides
+        (useDateValidation as jest.Mock).mockImplementation(() => ({
+            validateDate: jest.fn(() => true),
+            validateDateRange: jest.fn(() => true),
+            hasError: jest.fn(() => false),
+            getErrorMessage: jest.fn(() => null),
+            resetErrors: jest.fn()
+        }));
+
+        // Configurer le mock du service checkLeaveConflicts
+        (checkLeaveConflicts as jest.Mock).mockResolvedValue({
+            conflicts: [],
+            hasBlockingConflicts: false
+        });
+
+        // Rendre le hook
+        const { result } = renderHook(() => useConflictDetection({ userId }));
+
+        // Appeler la fonction checkConflicts
+        await act(async () => {
+            await result.current.checkConflicts(mockStartDate, mockEndDate);
+        });
+
+        // Vérifier que le service a été appelé
+        expect(checkLeaveConflicts).toHaveBeenCalledWith(
+            mockStartDate,
+            mockEndDate,
+            userId,
+            undefined
+        );
+
+        // 2. Tester la fonction validateDates directement
+        // Réinitialiser tous les mocks
+        jest.clearAllMocks();
+
+        // Simuler que validateDate renvoie false
+        (useDateValidation as jest.Mock).mockImplementation(() => ({
+            validateDate: jest.fn().mockReturnValueOnce(false),
+            validateDateRange: jest.fn(),
+            hasError: jest.fn().mockReturnValue(true),
+            getErrorMessage: jest.fn().mockReturnValue('Date invalide'),
+            resetErrors: jest.fn()
+        }));
+
+        // Rendu d'un nouveau hook
+        const { result: result2 } = renderHook(() => useConflictDetection({ userId }));
+
+        // Tester la fonction validateDates directement
+        const isValid = result2.current.validateDates(mockStartDate, mockEndDate);
+
+        // Valider le résultat
+        expect(isValid).toBe(false);
+    });
 }); 
