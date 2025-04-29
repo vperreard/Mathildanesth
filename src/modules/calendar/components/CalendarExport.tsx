@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CalendarEventType, CalendarExportFormat, ExportOptions } from '../types/event';
 import { exportCalendarEvents, downloadBlob } from '../services/calendarService';
-import { format } from 'date-fns';
+import { format as formatDate } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useDateValidation } from '../../../hooks/useDateValidation';
 
 interface CalendarExportProps {
     events: any[]; // Les événements à exporter
@@ -19,27 +20,49 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [exportFormat, setExportFormat] = useState<CalendarExportFormat>(CalendarExportFormat.PDF);
-    const [fileName, setFileName] = useState<string>(`calendrier_${format(new Date(), 'yyyy-MM-dd')}`);
+    const [fileName, setFileName] = useState<string>(`calendrier_${formatDate(new Date(), 'yyyy-MM-dd')}`);
     const [includeAllEvents, setIncludeAllEvents] = useState<boolean>(true);
     const [selectedEventTypes, setSelectedEventTypes] = useState<CalendarEventType[]>(Object.values(CalendarEventType));
     const [useCustomDateRange, setUseCustomDateRange] = useState<boolean>(false);
     const [customDateRange, setCustomDateRange] = useState<{ start: string, end: string }>({
-        start: format(currentRange.start, 'yyyy-MM-dd'),
-        end: format(currentRange.end, 'yyyy-MM-dd')
+        start: formatDate(currentRange.start, 'yyyy-MM-dd'),
+        end: formatDate(currentRange.end, 'yyyy-MM-dd')
     });
+    const [dateErrors, setDateErrors] = useState<{ start?: string, end?: string }>({});
+
+    // Intégration du hook de validation de dates
+    const {
+        validateDate,
+        validateDateRange,
+        getErrorMessage,
+        hasError,
+        resetErrors
+    } = useDateValidation();
+
+    // Mise à jour du customDateRange quand currentRange change (pour initialisation/réinitialisation)
+    useEffect(() => {
+        if (currentRange.start && currentRange.end) {
+            setCustomDateRange({
+                start: formatDate(currentRange.start, 'yyyy-MM-dd'),
+                end: formatDate(currentRange.end, 'yyyy-MM-dd')
+            });
+        }
+    }, [currentRange]);
 
     const handleOpenModal = () => {
         setIsModalOpen(true);
+        resetErrors();
+        setDateErrors({});
 
         // Réinitialiser les valeurs par défaut
         setExportFormat(CalendarExportFormat.PDF);
-        setFileName(`calendrier_${format(new Date(), 'yyyy-MM-dd')}`);
+        setFileName(`calendrier_${formatDate(new Date(), 'yyyy-MM-dd')}`);
         setIncludeAllEvents(true);
         setSelectedEventTypes(Object.values(CalendarEventType));
         setUseCustomDateRange(false);
         setCustomDateRange({
-            start: format(currentRange.start, 'yyyy-MM-dd'),
-            end: format(currentRange.end, 'yyyy-MM-dd')
+            start: formatDate(currentRange.start, 'yyyy-MM-dd'),
+            end: formatDate(currentRange.end, 'yyyy-MM-dd')
         });
     };
 
@@ -47,7 +70,68 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
         setIsModalOpen(false);
     };
 
+    const validateDates = (): boolean => {
+        if (!useCustomDateRange) return true;
+
+        resetErrors();
+        const errors: { start?: string, end?: string } = {};
+        let isValid = true;
+
+        // Valider la date de début
+        const startDate = new Date(customDateRange.start);
+        validateDate(startDate, 'exportStartDate', {
+            required: true,
+            allowPastDates: true
+        });
+
+        if (hasError('exportStartDate')) {
+            errors.start = getErrorMessage('exportStartDate') || 'Date de début invalide';
+            isValid = false;
+        }
+
+        // Valider la date de fin
+        const endDate = new Date(customDateRange.end);
+        validateDate(endDate, 'exportEndDate', {
+            required: true,
+            allowPastDates: true
+        });
+
+        if (hasError('exportEndDate')) {
+            errors.end = getErrorMessage('exportEndDate') || 'Date de fin invalide';
+            isValid = false;
+        }
+
+        // Valider la plage de dates
+        if (isValid) {
+            validateDateRange(
+                startDate,
+                endDate,
+                'exportStartDate',
+                'exportEndDate',
+                { required: true }
+            );
+
+            if (hasError('exportStartDate') || hasError('exportEndDate')) {
+                if (hasError('exportStartDate')) {
+                    errors.start = getErrorMessage('exportStartDate') || 'Plage de dates invalide';
+                }
+                if (hasError('exportEndDate')) {
+                    errors.end = getErrorMessage('exportEndDate') || 'Plage de dates invalide';
+                }
+                isValid = false;
+            }
+        }
+
+        setDateErrors(errors);
+        return isValid;
+    };
+
     const handleExport = async () => {
+        // Valider les dates si une plage personnalisée est utilisée
+        if (!validateDates()) {
+            return;
+        }
+
         try {
             setIsLoading(true);
 
@@ -113,7 +197,72 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
 
         // Mettre à jour l'extension du fichier si le nom de fichier est basique
         if (fileName.match(/^calendrier_\d{4}-\d{2}-\d{2}$/)) {
-            setFileName(`calendrier_${format(new Date(), 'yyyy-MM-dd')}`);
+            // Utiliser formatDate de date-fns pour éviter la confusion avec le nom de paramètre format
+            const currentDate = new Date();
+            const formattedDate = formatDate(currentDate, 'yyyy-MM-dd', { locale: fr });
+            setFileName(`calendrier_${formattedDate}`);
+        }
+    };
+
+    const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setCustomDateRange(prev => ({ ...prev, start: value }));
+
+        // Valider la date au changement
+        if (value) {
+            const startDate = new Date(value);
+            validateDate(startDate, 'exportStartDate', {
+                required: true,
+                allowPastDates: true
+            });
+
+            // Si la date de fin est déjà définie, valider la plage
+            if (customDateRange.end) {
+                validateDateRange(
+                    startDate,
+                    new Date(customDateRange.end),
+                    'exportStartDate',
+                    'exportEndDate',
+                    { required: true }
+                );
+            }
+
+            // Mettre à jour les erreurs d'affichage
+            setDateErrors(prev => ({
+                ...prev,
+                start: hasError('exportStartDate') ? getErrorMessage('exportStartDate') || 'Date invalide' : undefined
+            }));
+        }
+    };
+
+    const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setCustomDateRange(prev => ({ ...prev, end: value }));
+
+        // Valider la date au changement
+        if (value) {
+            const endDate = new Date(value);
+            validateDate(endDate, 'exportEndDate', {
+                required: true,
+                allowPastDates: true
+            });
+
+            // Si la date de début est déjà définie, valider la plage
+            if (customDateRange.start) {
+                validateDateRange(
+                    new Date(customDateRange.start),
+                    endDate,
+                    'exportStartDate',
+                    'exportEndDate',
+                    { required: true }
+                );
+            }
+
+            // Mettre à jour les erreurs d'affichage
+            setDateErrors(prev => ({
+                ...prev,
+                end: hasError('exportEndDate') ? getErrorMessage('exportEndDate') || 'Date invalide' : undefined
+            }));
         }
     };
 
@@ -168,8 +317,8 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
                                                         type="button"
                                                         onClick={() => handleFormatChange(CalendarExportFormat.PDF)}
                                                         className={`px-3 py-2 text-sm font-medium rounded-md ${exportFormat === CalendarExportFormat.PDF
-                                                                ? 'bg-blue-50 text-blue-700 border border-blue-300'
-                                                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                                            ? 'bg-blue-50 text-blue-700 border border-blue-300'
+                                                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                                                             }`}
                                                     >
                                                         PDF
@@ -179,8 +328,8 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
                                                         type="button"
                                                         onClick={() => handleFormatChange(CalendarExportFormat.EXCEL)}
                                                         className={`px-3 py-2 text-sm font-medium rounded-md ${exportFormat === CalendarExportFormat.EXCEL
-                                                                ? 'bg-blue-50 text-blue-700 border border-blue-300'
-                                                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                                            ? 'bg-blue-50 text-blue-700 border border-blue-300'
+                                                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                                                             }`}
                                                     >
                                                         Excel
@@ -190,8 +339,8 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
                                                         type="button"
                                                         onClick={() => handleFormatChange(CalendarExportFormat.CSV)}
                                                         className={`px-3 py-2 text-sm font-medium rounded-md ${exportFormat === CalendarExportFormat.CSV
-                                                                ? 'bg-blue-50 text-blue-700 border border-blue-300'
-                                                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                                            ? 'bg-blue-50 text-blue-700 border border-blue-300'
+                                                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                                                             }`}
                                                     >
                                                         CSV
@@ -201,8 +350,8 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
                                                         type="button"
                                                         onClick={() => handleFormatChange(CalendarExportFormat.ICS)}
                                                         className={`px-3 py-2 text-sm font-medium rounded-md ${exportFormat === CalendarExportFormat.ICS
-                                                                ? 'bg-blue-50 text-blue-700 border border-blue-300'
-                                                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                                            ? 'bg-blue-50 text-blue-700 border border-blue-300'
+                                                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                                                             }`}
                                                     >
                                                         iCalendar (.ics)
@@ -250,7 +399,7 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
                                                 {!includeAllEvents && (
                                                     <div className="mt-2 pl-7">
                                                         <p className="text-sm text-gray-500 mb-2">
-                                                            Sélectionnez les types d'événements à inclure:
+                                                            Sélectionnez les types d&#39;événements à inclure:
                                                         </p>
                                                         <div className="space-y-2">
                                                             {Object.values(CalendarEventType).map((type) => (
@@ -309,12 +458,16 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
                                                                     name="date-start"
                                                                     id="date-start"
                                                                     value={customDateRange.start}
-                                                                    onChange={(e) => setCustomDateRange({ ...customDateRange, start: e.target.value })}
-                                                                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                                                    onChange={handleStartDateChange}
+                                                                    className={`shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm ${dateErrors.start ? 'border-red-300' : 'border-gray-300'} rounded-md`}
                                                                 />
+                                                                {dateErrors.start && (
+                                                                    <p className="mt-1 text-sm text-red-600">
+                                                                        {dateErrors.start}
+                                                                    </p>
+                                                                )}
                                                             </div>
                                                         </div>
-
                                                         <div>
                                                             <label htmlFor="date-end" className="block text-sm font-medium text-gray-700">
                                                                 Date de fin
@@ -325,9 +478,14 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
                                                                     name="date-end"
                                                                     id="date-end"
                                                                     value={customDateRange.end}
-                                                                    onChange={(e) => setCustomDateRange({ ...customDateRange, end: e.target.value })}
-                                                                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                                                    onChange={handleEndDateChange}
+                                                                    className={`shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm ${dateErrors.end ? 'border-red-300' : 'border-gray-300'} rounded-md`}
                                                                 />
+                                                                {dateErrors.end && (
+                                                                    <p className="mt-1 text-sm text-red-600">
+                                                                        {dateErrors.end}
+                                                                    </p>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -344,8 +502,8 @@ export const CalendarExport: React.FC<CalendarExportProps> = ({
                                     onClick={handleExport}
                                     disabled={isLoading}
                                     className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 ${isLoading
-                                            ? 'bg-blue-300 text-white cursor-not-allowed'
-                                            : 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                                        ? 'bg-blue-300 text-white cursor-not-allowed'
+                                        : 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
                                         } sm:ml-3 sm:w-auto sm:text-sm`}
                                 >
                                     {isLoading ? (
