@@ -8,17 +8,17 @@
     ```typescript
     export enum ShiftType {
         // Consultations/Vacations (demi-journées)
-        MATIN = 'MATIN',                    // Vacation 8h-13h
-        APRES_MIDI = 'APRES_MIDI',          // Vacation 13h30-18h30
+        MATIN = 'MATIN',                    // Vacation 8h-13h (remplace MORNING)
+        APRES_MIDI = 'APRES_MIDI',          // Vacation 13h30-18h30 (remplace AFTERNOON)
 
         // Gardes (journées complètes)
         JOUR = 'JOUR',                      // Garde de jour (période standard)
-        NUIT = 'NUIT',                      // Garde de nuit
+        NUIT = 'NUIT',                      // Garde de nuit (remplace NIGHT)
         GARDE_24H = 'GARDE_24H',            // Garde 8h-8h+1 (24h continues)
         GARDE_WEEKEND = 'GARDE_WEEKEND',    // Garde spécifique au weekend
 
         // Astreintes
-        ASTREINTE = 'ASTREINTE',            // Astreinte générique
+        ASTREINTE = 'ASTREINTE',            // Astreinte générique (remplace ON_CALL)
         ASTREINTE_SEMAINE = 'ASTREINTE_SEMAINE', // Astreinte en semaine
         ASTREINTE_WEEKEND = 'ASTREINTE_WEEKEND', // Astreinte le weekend
 
@@ -582,17 +582,17 @@ L'application utilise l'énumération `ShiftType` centralisée dans `src/types/c
 ```typescript
 export enum ShiftType {
     // Consultations/Vacations (demi-journées)
-    MATIN = 'MATIN',                    // Vacation 8h-13h
-    APRES_MIDI = 'APRES_MIDI',          // Vacation 13h30-18h30
+    MATIN = 'MATIN',                    // Vacation 8h-13h (remplace MORNING)
+    APRES_MIDI = 'APRES_MIDI',          // Vacation 13h30-18h30 (remplace AFTERNOON)
 
     // Gardes (journées complètes)
     JOUR = 'JOUR',                      // Garde de jour (période standard)
-    NUIT = 'NUIT',                      // Garde de nuit
+    NUIT = 'NUIT',                      // Garde de nuit (remplace NIGHT)
     GARDE_24H = 'GARDE_24H',            // Garde 8h-8h+1 (24h continues)
     GARDE_WEEKEND = 'GARDE_WEEKEND',    // Garde spécifique au weekend
 
     // Astreintes
-    ASTREINTE = 'ASTREINTE',            // Astreinte générique
+    ASTREINTE = 'ASTREINTE',            // Astreinte générique (remplace ON_CALL)
     ASTREINTE_SEMAINE = 'ASTREINTE_SEMAINE', // Astreinte en semaine
     ASTREINTE_WEEKEND = 'ASTREINTE_WEEKEND', // Astreinte le weekend
 
@@ -602,7 +602,88 @@ export enum ShiftType {
 }
 ```
 
-Cette unification permet d'éviter les incohérences et de maintenir une définition unique à l'échelle du projet.
+Cette énumération remplace les définitions précédemment dupliquées dans:
+- `src/types/assignment.ts`
+- `src/types/shift.ts`
+
+La centralisation de l'énumération permet d'éviter les incohérences et de maintenir une définition unique à l'échelle du projet, facilitant ainsi la maintenance et les évolutions futures.
+
+### Hooks Fonctionnels
+
+L'application utilise des hooks personnalisés pour encapsuler des logiques complexes et réutilisables.
+
+#### Validation des Dates
+
+Le système centralisé de validation des dates est implémenté via le hook `useDateValidation` :
+
+```typescript
+// src/hooks/useDateValidation.ts
+export function useDateValidation(options?: DateValidationOptions) {
+  const {
+    // Fonctions de validation principales
+    validateDate,
+    validateDateRange,
+    
+    // État des validations
+    dateErrors,
+    rangeErrors,
+    
+    // Utilitaires
+    formatDate,
+    parseDateString,
+    
+    // Gestion d'état
+    clearErrors
+  } = useDateValidationState(options);
+  
+  return {
+    validateDate,
+    validateDateRange,
+    dateErrors,
+    rangeErrors,
+    formatDate,
+    parseDateString,
+    clearErrors,
+  };
+}
+```
+
+Ce hook est utilisé dans divers composants pour:
+- Valider les dates individuelles et les périodes
+- Garantir une validation cohérente (format, plage autorisée, jours ouvrables, etc.)
+- Centraliser la logique de validation et d'affichage des erreurs
+
+#### Gestion des Conflits
+
+Le hook `useConflictDetection` est intégré avec le système de validation de dates pour assurer que les validations de dates sont effectuées avant les vérifications de conflits :
+
+```typescript
+// src/modules/leaves/hooks/useConflictDetection.ts
+export function useConflictDetection({ userId }: UseConflictDetectionProps) {
+  // ...
+  
+  const checkConflicts = async (startDate: Date, endDate: Date, existingLeaveId?: string) => {
+    // Valider d'abord les dates avant de vérifier les conflits
+    const datesAreValid = validateDates(startDate, endDate);
+    
+    if (!datesAreValid) {
+      return { conflicts: [], hasBlockingConflicts: false };
+    }
+    
+    // Procéder à la vérification des conflits uniquement si les dates sont valides
+    try {
+      const result = await checkLeaveConflicts(userId, startDate, endDate, existingLeaveId);
+      // ...
+    } catch (error) {
+      // ...
+    }
+  };
+  
+  // ...
+}
+```
+
+Cette intégration garantit un flux de validation robuste et permet d'éviter des vérifications inutiles lorsque les données de base ne sont pas valides.
 
 ### Interfaces Principales
 
