@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Fragment } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Tab } from '@headlessui/react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
