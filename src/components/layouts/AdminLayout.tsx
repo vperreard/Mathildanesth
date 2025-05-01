@@ -1,3 +1,5 @@
+"use client";
+
 import React, { ReactNode, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
