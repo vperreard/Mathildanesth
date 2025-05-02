@@ -1,15 +1,10 @@
 /**
- * Les différents types de gardes médicales
+ * Importe les types depuis le fichier commun
  */
-export enum ShiftType {
-    JOUR = "JOUR",
-    NUIT = "NUIT",
-    GARDE_WEEKEND = "GARDE_WEEKEND",
-    ASTREINTE_SEMAINE = "ASTREINTE_SEMAINE",
-    ASTREINTE_WEEKEND = "ASTREINTE_WEEKEND",
-    URGENCE = "URGENCE",
-    CONSULTATION = "CONSULTATION",
-}
+import { ShiftType } from './common';
+
+// Export pour la compatibilité avec le code existant
+export { ShiftType };
 
 /**
  * Statut possible d'une garde

@@ -1,12 +1,16 @@
+import winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
+import path from 'path';
+
 /**
  * Niveaux de log supportés par le système
  */
 export enum LogLevel {
-    DEBUG = 'DEBUG',
-    INFO = 'INFO',
-    WARNING = 'WARNING',
-    ERROR = 'ERROR',
-    CRITICAL = 'CRITICAL'
+    ERROR = 'error',
+    WARN = 'warn',
+    INFO = 'info',
+    DEBUG = 'debug',
+    TRACE = 'trace'
 }
 
 /**
@@ -72,156 +76,88 @@ export interface LoggerConfig {
  * Implémentation du service de journalisation
  */
 export class LoggerService implements ILoggerService {
-    private config: LoggerConfig;
-    private logQueue: Array<{ level: LogLevel, message: string, timestamp: Date, context?: any }> = [];
+    private logger: winston.Logger;
 
-    constructor(config: Partial<LoggerConfig> = {}) {
-        // Configuration par défaut
-        this.config = {
-            minLevel: LogLevel.INFO,
-            enableConsole: true,
-            enableServer: process.env.NODE_ENV === 'production',
-            serverEndpoint: '/api/logs',
-            batchSize: 10,
-            ...config
-        };
-    }
+    constructor() {
+        const logDir = path.join(process.cwd(), 'logs');
 
-    /**
-     * Met à jour la configuration du logger
-     */
-    public updateConfig(config: Partial<LoggerConfig>): void {
-        this.config = { ...this.config, ...config };
-    }
+        this.logger = winston.createLogger({
+            level: process.env.LOG_LEVEL || 'info',
+            format: winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.json()
+            ),
+            transports: [
+                new DailyRotateFile({
+                    filename: path.join(logDir, 'error-%DATE%.log'),
+                    datePattern: 'YYYY-MM-DD',
+                    level: 'error',
+                    maxSize: '20m',
+                    maxFiles: '14d'
+                }),
+                new DailyRotateFile({
+                    filename: path.join(logDir, 'combined-%DATE%.log'),
+                    datePattern: 'YYYY-MM-DD',
+                    maxSize: '20m',
+                    maxFiles: '14d'
+                })
+            ]
+        });
 
-    /**
-     * Méthode principale de journalisation
-     */
-    public log(level: LogLevel, message: string, context?: any): void {
-        // Vérifier si le niveau est suffisant pour être journalisé
-        if (!this.shouldLog(level)) {
-            return;
-        }
-
-        const logEntry = {
-            level,
-            message,
-            timestamp: new Date(),
-            context
-        };
-
-        // Journalisation console si activée
-        if (this.config.enableConsole) {
-            this.logToConsole(logEntry);
-        }
-
-        // Ajouter à la file d'attente pour envoi au serveur
-        if (this.config.enableServer) {
-            this.logQueue.push(logEntry);
-
-            // Envoyer si la taille du batch est atteinte
-            if (this.logQueue.length >= (this.config.batchSize || 10)) {
-                this.flushLogs();
-            }
+        if (process.env.NODE_ENV !== 'production') {
+            this.logger.add(new winston.transports.Console({
+                format: winston.format.combine(
+                    winston.format.colorize(),
+                    winston.format.simple()
+                )
+            }));
         }
     }
 
     /**
      * Méthodes de journalisation par niveau
      */
-    public debug(message: string, context?: any): void {
-        this.log(LogLevel.DEBUG, message, context);
+    public error(message: string, meta?: any): void {
+        this.logger.error(message, { ...meta, timestamp: new Date().toISOString() });
     }
 
-    public info(message: string, context?: any): void {
-        this.log(LogLevel.INFO, message, context);
+    public warn(message: string, meta?: any): void {
+        this.logger.warn(message, { ...meta, timestamp: new Date().toISOString() });
     }
 
-    public warn(message: string, context?: any): void {
-        this.log(LogLevel.WARNING, message, context);
+    public info(message: string, meta?: any): void {
+        this.logger.info(message, { ...meta, timestamp: new Date().toISOString() });
     }
 
-    public error(message: string, context?: any): void {
-        this.log(LogLevel.ERROR, message, context);
+    public debug(message: string, meta?: any): void {
+        this.logger.debug(message, { ...meta, timestamp: new Date().toISOString() });
+    }
+
+    public trace(message: string, meta?: any): void {
+        this.logger.verbose(message, { ...meta, timestamp: new Date().toISOString() });
+    }
+
+    public log(level: LogLevel, message: string, context?: any): void {
+        switch (level) {
+            case LogLevel.ERROR:
+                this.error(message, context);
+                break;
+            case LogLevel.WARN:
+                this.warn(message, context);
+                break;
+            case LogLevel.INFO:
+                this.info(message, context);
+                break;
+            case LogLevel.DEBUG:
+                this.debug(message, context);
+                break;
+            case LogLevel.TRACE:
+                this.trace(message, context);
+                break;
+        }
     }
 
     public critical(message: string, context?: any): void {
-        this.log(LogLevel.CRITICAL, message, context);
-    }
-
-    /**
-     * Envoie immédiatement tous les logs en attente au serveur
-     */
-    public async flushLogs(): Promise<void> {
-        if (!this.config.enableServer || this.logQueue.length === 0) {
-            return;
-        }
-
-        const logsToSend = [...this.logQueue];
-        this.logQueue = [];
-
-        try {
-            const endpoint = this.config.serverEndpoint || '/api/logs';
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    logs: logsToSend,
-                    appVersion: process.env.APP_VERSION || 'unknown',
-                    environment: process.env.NODE_ENV || 'development'
-                })
-            });
-
-            if (!response.ok) {
-                // Remettre les logs dans la file d'attente en cas d'échec
-                this.logQueue.unshift(...logsToSend);
-                console.error(`Échec de l'envoi des logs au serveur: ${response.status} ${response.statusText}`);
-            }
-        } catch (error) {
-            // Remettre les logs dans la file d'attente en cas d'erreur
-            this.logQueue.unshift(...logsToSend);
-            console.error(`Erreur lors de l'envoi des logs au serveur:`, error);
-        }
-    }
-
-    /**
-     * Détermine si un niveau de log doit être journalisé
-     */
-    private shouldLog(level: LogLevel): boolean {
-        const levels = [LogLevel.DEBUG, LogLevel.INFO, LogLevel.WARNING, LogLevel.ERROR, LogLevel.CRITICAL];
-        const minLevelIndex = levels.indexOf(this.config.minLevel);
-        const currentLevelIndex = levels.indexOf(level);
-
-        return currentLevelIndex >= minLevelIndex;
-    }
-
-    /**
-     * Journalise dans la console avec la méthode appropriée
-     */
-    private logToConsole(logEntry: { level: LogLevel, message: string, timestamp: Date, context?: any }): void {
-        const { level, message, timestamp, context } = logEntry;
-        const formattedMessage = `[${timestamp.toISOString()}] [${level}] ${message}`;
-
-        switch (level) {
-            case LogLevel.DEBUG:
-                console.debug(formattedMessage, context || '');
-                break;
-            case LogLevel.INFO:
-                console.info(formattedMessage, context || '');
-                break;
-            case LogLevel.WARNING:
-                console.warn(formattedMessage, context || '');
-                break;
-            case LogLevel.ERROR:
-                console.error(formattedMessage, context || '');
-                break;
-            case LogLevel.CRITICAL:
-                console.error(`CRITICAL: ${formattedMessage}`, context || '');
-                break;
-            default:
-                console.log(formattedMessage, context || '');
-        }
+        this.error(`CRITICAL: ${message}`, context);
     }
 } 

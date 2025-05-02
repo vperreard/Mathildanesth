@@ -2,309 +2,319 @@
 
 Ce document présente l'architecture technique du système de validation des dates implémenté dans l'application Mathildanesth.
 
-## Vue d'Ensemble
+## Vue d'ensemble
 
-Le système de validation des dates est construit autour d'un hook React central (`useDateValidation`) qui encapsule toute la logique de validation, assurant une séparation des préoccupations et facilitant la réutilisation du code.
-
-```
-┌────────────────────────────────────────────────────────────────┐
-│                  Application Mathildanesth                      │
-└───────────────────────────────┬────────────────────────────────┘
-                                │
-┌───────────────────────────────▼────────────────────────────────┐
-│                 Hook useDateValidation                          │
-├────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐ │
-│  │ Validation  │    │ Validation  │    │ Validation          │ │
-│  │ de base des │    │ des congés  │    │ des gardes          │ │
-│  │ dates       │    │             │    │                     │ │
-│  └──────┬──────┘    └──────┬──────┘    └──────────┬──────────┘ │
-│         │                  │                      │            │
-│         └──────────────────┼──────────────────────┘            │
-│                            │                                   │
-│  ┌─────────────┐    ┌──────▼──────┐    ┌─────────────────────┐ │
-│  │ Utilitaires │    │ Gestion du  │    │ Détection des       │ │
-│  │ de dates    │◄───┤ contexte    │───►│ conflits            │ │
-│  │             │    │             │    │                     │ │
-│  └─────────────┘    └─────────────┘    └─────────────────────┘ │
-│                                                                 │
-└────────────────────────────────────────────────────────────────┘
-           │                  │                   │
-           ▼                  ▼                   ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────┐
-│   Composants    │  │ Formulaires de  │  │  Calendriers et     │
-│   d'interface   │  │   demandes      │  │  plannings          │
-└─────────────────┘  └─────────────────┘  └─────────────────────┘
-```
-
-## Architecture Détaillée
-
-### 1. Structure du Hook useDateValidation
-
-Le hook `useDateValidation` est structuré selon le principe de responsabilité unique, avec des fonctions dédiées à des aspects spécifiques de la validation:
+Le système de validation des dates est conçu comme une architecture modulaire centralisée, fournissant une API cohérente pour les vérifications et validations de dates à travers l'application.
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                       useDateValidation                         │
-├────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─ État (State) ─────────────────────────────────────────┐    │
-│  │                                                         │    │
-│  │  • errors: Stockage des erreurs par champ              │    │
-│  │  • validationContext: Contexte de validation           │    │
-│  │    (jours utilisés, restants, conflits, etc.)          │    │
-│  │                                                         │    │
-│  └─────────────────────────────────────────────────────────┘    │
-│                                                                 │
-│  ┌─ Fonctions principales ─────────────────────────────────┐    │
-│  │                                                         │    │
-│  │  • validateDate(): Validation d'une date unique         │    │
-│  │  • validateDateRange(): Validation d'une plage          │    │
-│  │  • validateLeaveRequest(): Validation des congés        │    │
-│  │  • validateShiftAssignment(): Validation des gardes     │    │
-│  │  • detectConflicts(): Détection des conflits            │    │
-│  │  • validateOverlap(): Vérification des chevauchements   │    │
-│  │                                                         │    │
-│  └─────────────────────────────────────────────────────────┘    │
-│                                                                 │
-│  ┌─ Fonctions utilitaires ────────────────────────────────┐    │
-│  │                                                         │    │
-│  │  • getErrorMessage(): Récupération des messages        │    │
-│  │  • getErrorType(): Récupération des types d'erreur     │    │
-│  │  • hasError(): Vérification de présence d'erreur       │    │
-│  │  • resetErrors(): Réinitialisation des erreurs         │    │
-│  │  • setContext(): Définition du contexte                │    │
-│  │  • resetContext(): Réinitialisation du contexte        │    │
-│  │  • resetAll(): Réinitialisation complète               │    │
-│  │                                                         │    │
-│  └─────────────────────────────────────────────────────────┘    │
-│                                                                 │
-└────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                  useDateValidation Hook                 │
+├─────────────┬─────────────┬──────────────┬─────────────┤
+│ Validation  │ Gestion des │ Gestion du   │ Validation  │
+│ de base     │ erreurs     │ contexte     │ métier      │
+└─────────────┴─────────────┴──────────────┴─────────────┘
+        │             │             │             │
+        ▼             ▼             ▼             ▼
+┌─────────────┐ ┌─────────────┐ ┌──────────────┐ ┌─────────────┐
+│ Fonctions   │ │ Types       │ │ Contexte de  │ │ Validations │
+│ utilitaires │ │ d'erreurs   │ │ validation   │ │ spécifiques │
+└─────────────┘ └─────────────┘ └──────────────┘ └─────────────┘
 ```
 
-### 2. Flux de Validation
+## Composants principaux
 
-Le processus de validation suit un flux bien défini:
+### 1. Hook principal `useDateValidation`
 
-```
-┌───────────┐     ┌───────────┐     ┌───────────┐     ┌───────────┐
-│Composant  │     │   Hook    │     │Validation │     │ Gestion   │
-│utilisateur│     │useDateVal.│     │ spécifique│     │des erreurs│
-└─────┬─────┘     └─────┬─────┘     └─────┬─────┘     └─────┬─────┘
-      │                 │                 │                 │
-      │ Appel fonction  │                 │                 │
-      │────────────────>│                 │                 │
-      │                 │ Validation de   │                 │
-      │                 │ premier niveau  │                 │
-      │                 │────────────────>│                 │
-      │                 │                 │ Validation      │
-      │                 │                 │ données         │
-      │                 │                 │─────────────────>
-      │                 │                 │                 │ Stockage
-      │                 │                 │                 │ erreurs
-      │                 │                 │<─────────────────
-      │                 │<────────────────│                 │
-      │<────────────────│                 │                 │
-      │                 │                 │                 │
-      │ Lecture erreurs │                 │                 │
-      │────────────────>│                 │                 │
-      │                 │ Récupération    │                 │
-      │                 │ erreurs         │                 │
-      │                 │─────────────────────────────────>│
-      │                 │                 │                 │
-      │                 │<─────────────────────────────────│
-      │<────────────────│                 │                 │
-      │                 │                 │                 │
-      │ Affichage       │                 │                 │
-      │ erreurs UI      │                 │                 │
-      │                 │                 │                 │
-      │                 │                 │                 │
+Le hook `useDateValidation` est le point d'entrée central du système. Il expose toutes les fonctions de validation et gère l'état des erreurs.
+
+```typescript
+export function useDateValidation() {
+    const [errors, setErrors] = useState<Record<string, DateValidationError>>({});
+    const [validationContext, setValidationContext] = useState<ValidationContext>({});
+    
+    // Fonctions exposées
+    const validateDate = useCallback((date, fieldName, options) => { /* ... */ }, []);
+    const validateDateRange = useCallback((startDate, endDate, startFieldName, endFieldName, options) => { /* ... */ }, []);
+    // ...
+    
+    return {
+        validateDate,
+        validateDateRange,
+        // ...autres fonctions
+    };
+}
 ```
 
-### 3. Modèle de Données
+### 2. Types et interfaces
 
-Le système utilise plusieurs interfaces TypeScript pour assurer la cohérence des données:
+Le système définit plusieurs types et interfaces pour assurer la cohérence:
 
-```
-┌─────────────────────────┐
-│   DateValidationOptions │
-├─────────────────────────┤
-│ • required              │
-│ • allowPastDates        │
-│ • allowFutureDates      │
-│ • minDate               │
-│ • maxDate               │
-│ • disallowWeekends      │
-│ • onlyBusinessDays      │
-│ • holidays              │
-│ • maxDuration           │
-│ • minDuration           │
-│ • format                │
-│ • minAdvanceNotice      │
-│ • maxAdvanceBooking     │
-│ • blackoutPeriods       │
-│ • availableDaysPerYear  │
-│ • businessDaysOnly      │
-└─────────────────────────┘
-          ▲
-          │
-          │
-┌─────────────────────────┐
-│   DateValidationError   │
-├─────────────────────────┤
-│ • type                  │
-│ • message               │
-│ • details               │
-└─────────────────────────┘
-          ▲
-          │
-          │
-┌─────────────────────────┐      ┌─────────────────────────┐
-│      DateRange          │      │   ValidationContext     │
-├─────────────────────────┤      ├─────────────────────────┤
-│ • start                 │      │ • usedDays              │
-│ • end                   │      │ • remainingDays         │
-│ • label                 │      │ • conflicts             │
-│ • type                  │      │ • businessDaysCount     │
-└─────────────────────────┘      │ • totalDaysCount        │
-                                 └─────────────────────────┘
+```typescript
+// Types d'erreurs
+export enum DateValidationErrorType {
+    REQUIRED = 'required',
+    PAST_DATE = 'past_date',
+    // ...
+}
+
+// Structure des erreurs
+export interface DateValidationError {
+    type: DateValidationErrorType;
+    message: string;
+    details?: any;
+}
+
+// Options de validation
+export interface DateValidationOptions {
+    required?: boolean;
+    allowPastDates?: boolean;
+    // ...
+}
+
+// Structure des plages de dates
+export interface DateRange {
+    start: Date;
+    end: Date;
+    label?: string;
+    type?: string;
+}
+
+// Contexte partagé
+export interface ValidationContext {
+    usedDays?: number;
+    remainingDays?: number;
+    conflicts?: DateRange[];
+    // ...
+}
 ```
 
-### 4. Intégration dans l'Application
+### 3. Fonctions utilitaires
 
-Le hook `useDateValidation` s'intègre aux différents modules de l'application Mathildanesth:
+Le système comprend de nombreuses fonctions utilitaires pures:
 
-```
-┌────────────────────────────────────────────────────────────┐
-│                   Application Mathildanesth                 │
-└───┬──────────────┬───────────────────────┬─────────────────┘
-    │              │                       │
-┌───▼───┐     ┌────▼────┐            ┌─────▼─────┐
-│Module │     │ Module  │            │  Module   │
-│Congés │     │ Gardes  │            │ Planning  │
-└───┬───┘     └────┬────┘            └─────┬─────┘
-    │              │                       │
-    │              │                       │
-┌───▼──────────────▼───────────────────────▼─────┐
-│             useDateValidation                   │
-└────────────────────────────────────────────────┘
-```
+```typescript
+// Normalisation des dates
+export function normalizeDate(date: Date | string | null | undefined): Date | null {
+    // ...
+}
 
-## Dépendances Externes
+// Vérification de chevauchement
+export function datesOverlap(range1: DateRange, range2: DateRange): boolean {
+    // ...
+}
 
-Le système s'appuie sur les bibliothèques externes suivantes:
+// Calcul de durée
+export function calculateDurationInDays(startDate: Date, endDate: Date): number {
+    // ...
+}
 
-- **date-fns**: Pour la manipulation et les calculs sur les dates
-- **React Hooks**: Pour la gestion de l'état et du cycle de vie des composants
-
-```
-┌────────────────────────────────────────────────────────────┐
-│                    useDateValidation                        │
-└─────────────────────────┬──────────────────────────────────┘
-                          │
-              ┌───────────┴───────────┐
-              │                       │
-    ┌─────────▼──────────┐   ┌────────▼─────────┐
-    │      date-fns      │   │   React Hooks    │
-    └────────────────────┘   └──────────────────┘
+// Vérification des périodes blackout
+export function isInBlackoutPeriod(date: Date, blackoutPeriods: DateRange[]): boolean {
+    // ...
+}
 ```
 
-## Communication entre Composants
+## Flux de données
 
-Le système facilite la communication entre les différents composants qui l'utilisent:
+Le système suit un flux de données unidirectionnel:
 
-```
-┌─────────────────┐     ┌──────────────────┐      ┌─────────────────────┐
-│   Formulaire    │     │  useDateValidation│      │  Affichage des      │
-│   de demande    │     │                  │      │  erreurs de         │
-│                 │     │                  │      │  validation          │
-└────────┬────────┘     └────────┬─────────┘      └──────────┬──────────┘
-         │                       │                           │
-         │ 1. Appel validateDate │                           │
-         │─────────────────────► │                           │
-         │                       │                           │
-         │                       │ 2. Stockage des erreurs   │
-         │                       │ dans l'état               │
-         │                       │                           │
-         │                       │                           │
-         │ 3. Appel hasError     │                           │
-         │─────────────────────► │                           │
-         │                       │                           │
-         │ 4. Résultat true/false│                           │
-         │◄──────────────────────│                           │
-         │                       │                           │
-         │                       │                           │
-         │                       │ 5. Appel getErrorMessage  │
-         │                       │◄──────────────────────────│
-         │                       │                           │
-         │                       │ 6. Message d'erreur       │
-         │                       │───────────────────────────►
-         │                       │                           │
-         │                       │                           │
-```
-
-## Évolutivité et Maintenance
-
-L'architecture est conçue pour être facilement extensible:
+1. **Entrée**: Dates et options de validation
+2. **Traitement**: Application des règles de validation
+3. **État**: Mise à jour de l'état des erreurs et du contexte
+4. **Sortie**: Résultat de validation (booléen) et informations d'erreur
 
 ```
-┌─ Évolutions futures possibles ──────────────────────────────┐
-│                                                             │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────┐ │
-│  │ Support des │    │ Règles de   │    │ Support des     │ │
-│  │ fuseaux     │    │ validation  │    │ événements      │ │
-│  │ horaires    │    │ personnalisées│   │ récurrents     │ │
-│  └─────────────┘    └─────────────┘    └─────────────────┘ │
-│                                                             │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────┐ │
-│  │ Intégration │    │ Validation  │    │ Optimisation    │ │
-│  │ calendriers │    │ côté        │    │ des             │ │
-│  │ externes    │    │ serveur     │    │ performances    │ │
-│  └─────────────┘    └─────────────┘    └─────────────────┘ │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+┌────────┐     ┌─────────────┐     ┌───────────────┐
+│ Entrée ├────►│ Traitement  ├────►│ Mise à jour   │
+└────────┘     │ des règles  │     │ de l'état     │
+                └─────────────┘     └───────┬───────┘
+                                           │
+┌────────┐                                 │
+│ Sortie │◄────────────────────────────────┘
+└────────┘
 ```
 
-## Sécurité et Validation côté Serveur
+## Intégration avec le système d'erreurs global
 
-Bien que le hook fournisse une validation côté client robuste, il est complété par une validation côté serveur:
+Le hook `useDateValidation` s'intègre avec le système de gestion d'erreurs global via `useErrorHandler`:
 
-```
-┌────────────────┐                              ┌─────────────────┐
-│    Client      │                              │     Serveur     │
-│                │                              │                 │
-│ ┌────────────┐ │      1. Demande validée     │ ┌─────────────┐ │
-│ │Formulaire  │ │       côté client           │ │  API de     │ │
-│ │utilisateur │ │ ─────────────────────────► │ │ validation  │ │
-│ └────────────┘ │                              │ └─────┬───────┘ │
-│                │                              │       │         │
-│                │                              │       │         │
-│                │                              │       ▼         │
-│                │                              │ ┌─────────────┐ │
-│                │                              │ │ Validation  │ │
-│                │                              │ │ serveur     │ │
-│                │                              │ └─────┬───────┘ │
-│                │                              │       │         │
-│                │                              │       │         │
-│                │                              │       ▼         │
-│                │                              │ ┌─────────────┐ │
-│                │                              │ │ Base de     │ │
-│                │                              │ │ données     │ │
-│                │      2. Réponse serveur      │ └─────────────┘ │
-│                │ ◄─────────────────────────── │                 │
-│                │                              │                 │
-└────────────────┘                              └─────────────────┘
+```typescript
+const { setError, clearError, clearAllErrors } = useErrorHandler();
+
+// Lors de la validation
+if (!isValid) {
+    setError(fieldName, {
+        severity: errorSeverity[errorType],
+        message: errorMessage,
+        code: `DATE_VALIDATION_${errorType.toUpperCase()}`
+    });
+}
 ```
 
-## Conclusion
+## Extensibilité
 
-L'architecture du système de validation des dates est conçue pour être:
+Le système est conçu pour être extensible:
 
-- **Modulaire**: Chaque fonction a une responsabilité unique
-- **Réutilisable**: Le hook peut être intégré dans n'importe quel composant
-- **Maintenable**: La séparation des préoccupations facilite les modifications
-- **Évolutive**: La structure permet d'ajouter facilement de nouvelles fonctionnalités
-- **Robuste**: La validation côté client est complétée par une validation côté serveur
+1. **Nouvelles règles**: Ajout facile de nouvelles règles via l'enum `DateValidationErrorType`
+2. **Options personnalisées**: Configuration via l'interface `DateValidationOptions`
+3. **Validations métier**: Fonctions spécifiques comme `validateLeaveRequest`
 
-Cette architecture garantit que le système peut évoluer avec les besoins changeants de l'application Mathildanesth tout en maintenant une haute qualité et une facilité d'utilisation. 
+## Stratégie d'erreurs
+
+Le système utilise une approche à deux niveaux pour la gestion des erreurs:
+
+1. **Erreurs locales**: Stockées dans l'état `errors` du hook
+2. **Erreurs globales**: Propagées via `useErrorHandler` pour les erreurs critiques
+
+Les erreurs sont identifiées par le nom du champ, permettant une gestion précise:
+
+```typescript
+{
+    "startDate": { 
+        type: DateValidationErrorType.PAST_DATE,
+        message: "Les dates passées ne sont pas autorisées"
+    },
+    "endDate": {
+        type: DateValidationErrorType.WEEKEND,
+        message: "Les week-ends ne sont pas autorisés"
+    }
+}
+```
+
+## Performance
+
+Le système intègre plusieurs optimisations de performance:
+
+1. **Mémoïsation**: Utilisation de `useCallback` pour les fonctions
+2. **Normalisation**: Traitement uniforme des formats de date
+3. **Validation sélective**: Validation uniquement des champs nécessaires
+4. **Mise en cache du contexte**: Partage des informations entre validations
+
+## Scénarios de validation complexes
+
+### Validation de congés
+
+```typescript
+validateLeaveRequest(startDate, endDate, userId, {
+    availableDaysPerYear: 25,
+    minAdvanceNotice: 3,
+    businessDaysOnly: true
+})
+```
+
+1. Vérifie que les dates sont valides et cohérentes
+2. Calcule la durée en jours ouvrables
+3. Vérifie le quota disponible
+4. Détecte les conflits avec d'autres événements
+
+### Validation d'affectation de garde
+
+```typescript
+validateShiftAssignment(date, shift, userId, {
+    blackoutPeriods: restPeriods
+})
+```
+
+1. Vérifie que la date est valide
+2. Vérifie que l'utilisateur a le repos requis
+3. Détecte les conflits avec d'autres gardes
+
+## Dépendances
+
+Le système dépend principalement de:
+
+1. **date-fns**: Manipulation et calculs de dates
+2. **React**: Hooks (`useState`, `useCallback`, `useEffect`)
+3. **useErrorHandler**: Gestion globale des erreurs
+
+## Exemple d'implémentation
+
+Voici un exemple simplifié de l'implémentation du système:
+
+```typescript
+export function useDateValidation() {
+    const [errors, setErrors] = useState<Record<string, DateValidationError>>({});
+    const [context, setContext] = useState<ValidationContext>({});
+    const { setError, clearError } = useErrorHandler();
+
+    const validateDate = useCallback((date, fieldName, options = {}) => {
+        // 1. Vérification des paramètres
+        if (!date && !options.required) return true;
+        if (!date && options.required) {
+            // Gérer erreur REQUIRED
+            return false;
+        }
+
+        // 2. Normalisation
+        const dateObj = normalizeDate(date);
+        if (!dateObj) {
+            // Gérer erreur INVALID_FORMAT
+            return false;
+        }
+
+        // 3. Validation des règles
+        if (!options.allowPastDates && isPastDate(dateObj)) {
+            // Gérer erreur PAST_DATE
+            return false;
+        }
+
+        // 4. Autres validations...
+
+        // 5. Si tout est valide
+        clearError(fieldName);
+        return true;
+    }, [errors, clearError]);
+
+    // Autres fonctions...
+
+    return {
+        validateDate,
+        validateDateRange,
+        // ...autres fonctions et états
+    };
+}
+```
+
+## Schéma du flux de validation
+
+```
+┌──────────────┐       ┌───────────────┐
+│ Composant UI │◄──────┤ Valider date  │
+└───────┬──────┘       └───────┬───────┘
+        │                      │
+        ▼                      ▼
+┌──────────────┐       ┌───────────────┐
+│ Appeler hook │       │ Normalisation │
+└───────┬──────┘       │ règles        │
+        │              └───────┬───────┘
+        │                      │
+        ▼                      ▼
+┌──────────────┐       ┌───────────────┐
+│ validateDate │       │ Appliquer     │
+└───────┬──────┘       │ règles        │
+        │              └───────┬───────┘
+        │                      │
+        ▼                      ▼
+┌────────────────────────────────────┐
+│         Mise à jour état           │
+└────────────────┬───────────────────┘
+                 │
+                 ▼
+┌────────────────────────────────────┐
+│         Afficher erreurs           │
+└────────────────────────────────────┘
+```
+
+## Recommandations d'implémentation
+
+1. **Nommage cohérent**: Utiliser des noms de champs cohérents dans tous les composants
+2. **Validation précoce**: Valider dès que l'utilisateur modifie une valeur
+3. **Feedback immédiat**: Afficher les erreurs dès qu'elles sont détectées
+4. **Validation finale**: Vérifier à nouveau avant la soumission du formulaire
+
+## Considérations pour le futur
+
+1. **Internationalisation**: Support pour les formats de date internationaux
+2. **Règles personnalisées**: Mécanisme pour ajouter des règles spécifiques
+3. **Validation asynchrone**: Support pour la validation côté serveur
+4. **Intégration avec les schémas**: Support pour Zod ou d'autres validateurs de schémas 

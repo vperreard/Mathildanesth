@@ -219,6 +219,59 @@ it('should maintain filters when changing sort criteria', () => {
 });
 ```
 
+### Gestion des congés et des conflits
+
+✅ **Utiliser le service de détection de conflits pour toutes les demandes**
+```typescript
+// Bon pattern : Vérification systématique des conflits
+async function submitLeaveRequest(request: LeaveRequest) {
+  const conflicts = await conflictDetectionService.checkConflicts(request);
+  
+  if (conflicts.hasBlockingConflicts()) {
+    return { success: false, conflicts: conflicts.getBlockingConflicts() };
+  }
+  
+  if (conflicts.hasWarnings()) {
+    // Gérer les avertissements
+  }
+  
+  // Continuer le traitement
+}
+```
+
+❌ **Implémenter des vérifications ad hoc pour les conflits**
+```typescript
+// Mauvais pattern : Logique de vérification dispersée
+async function submitLeaveRequest(request: LeaveRequest) {
+  // Vérifications de dates directement ici
+  // Vérifications d'équipe directement ici
+  // Autres vérifications spécifiques...
+}
+```
+
+✅ **Enrichir les règles de conflit via la configuration centrale**
+```typescript
+// Bon pattern : Configuration centralisée
+const conflictRules: ConflictRules = {
+  minimumTeamPresence: {
+    enabled: true,
+    threshold: 0.5,
+    severity: ConflictSeverity.WARNING
+  },
+  // Autres règles...
+};
+
+conflictDetectionService.setRules(conflictRules);
+```
+
+❌ **Hardcoder les seuils et règles de conflit**
+```typescript
+// Mauvais pattern : Valeurs en dur
+if (teamPresenceRatio < 0.5) {
+  // Logique en dur
+}
+```
+
 ## Anti-patterns à Éviter
 
 ### Gestion d'État

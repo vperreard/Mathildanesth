@@ -59,6 +59,7 @@ export default function AdminRequestsHeader({
 
     // Filtrer les requêtes qui se chevauchent avec la requête active
     const overlappingRequests = allRequests.filter(request => {
+        // Exclure la requête active et les requêtes qui ne sont pas des congés
         if (request.id === activeRequest.id || request.type !== 'congés' || !request.dates) {
             return false;
         }
@@ -69,47 +70,21 @@ export default function AdminRequestsHeader({
         const requestStart = new Date(request.dates.start);
         const requestEnd = new Date(request.dates.end);
 
+        // Vérifier si les dates se chevauchent et si la requête est approuvée ou en attente
         return (
             (requestStart <= activeEnd && requestEnd >= activeStart) &&
             (request.status === 'approuvée' || request.status === 'en-attente')
         );
     });
 
-    // Si la configuration dit de ne pas afficher les requêtes qui se chevauchent
-    if (!config.showOverlappingRequests && overlappingRequests.length === 0) {
-        return (
-            <div className="bg-slate-50 border-b border-slate-200 p-3 text-sm">
-                <div className="flex items-center justify-between">
-                    {config.showUserDetails && (
-                        <div className="flex items-center gap-2">
-                            <User size={16} className="text-slate-500" />
-                            <span className="font-medium">{activeRequest.userName}</span>
-                            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
-                                {activeRequest.type}
-                            </span>
-                            <div className="flex items-center ml-2">
-                                <Calendar size={14} className="mr-1 text-slate-500" />
-                                <span>{formatDateRange(activeRequest.dates.start, activeRequest.dates.end, 'short')}</span>
-                            </div>
-                        </div>
-                    )}
-
-                    {onClose && (
-                        <button
-                            onClick={onClose}
-                            className="text-slate-500 hover:text-slate-700"
-                        >
-                            ×
-                        </button>
-                    )}
-                </div>
-            </div>
-        );
-    }
+    // Dédupliquer les requêtes en utilisant un Set pour les IDs
+    const uniqueOverlappingRequests = Array.from(
+        new Map(overlappingRequests.map(request => [request.id, request])).values()
+    );
 
     // Séparer les requêtes approuvées et en attente
-    const approvedRequests = overlappingRequests.filter(r => r.status === 'approuvée');
-    const pendingRequests = overlappingRequests.filter(r => r.status === 'en-attente');
+    const approvedRequests = uniqueOverlappingRequests.filter(r => r.status === 'approuvée');
+    const pendingRequests = uniqueOverlappingRequests.filter(r => r.status === 'en-attente');
 
     const requestDateRange = formatDateRange(activeRequest.dates.start, activeRequest.dates.end, 'short');
 

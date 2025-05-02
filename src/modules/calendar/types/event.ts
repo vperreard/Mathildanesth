@@ -2,10 +2,14 @@ import { User } from '../../../types/user';
 
 // Types d'événements dans le calendrier
 export enum CalendarEventType {
+    ASSIGNMENT = 'ASSIGNMENT',
     LEAVE = 'LEAVE',
     DUTY = 'DUTY',
     ON_CALL = 'ON_CALL',
-    ASSIGNMENT = 'ASSIGNMENT'
+    TRAINING = 'TRAINING',
+    MEETING = 'MEETING',
+    HOLIDAY = 'HOLIDAY',
+    OTHER = 'OTHER'
 }
 
 // Types de vues du calendrier
@@ -18,47 +22,20 @@ export enum CalendarViewType {
 }
 
 // Base pour tous les événements du calendrier
-export interface CalendarEvent {
+export interface BaseCalendarEvent {
     id: string;
     title: string;
-    start: string;
-    end: string;
-    allDay?: boolean;
-    type: CalendarEventType;
-    userId: string;
-    user?: User;
+    start: string; // ISO date string
+    end: string; // ISO date string
     description?: string;
-}
-
-// Événement de congé
-export interface LeaveCalendarEvent extends CalendarEvent {
-    type: CalendarEventType.LEAVE;
-    leaveId: string;
-    leaveType: string;
-    status: string;
-    countedDays: number;
-}
-
-// Événement de garde
-export interface DutyCalendarEvent extends CalendarEvent {
-    type: CalendarEventType.DUTY;
-    dutyId: string;
-    locationId?: string;
-    locationName?: string;
-}
-
-// Événement d'astreinte
-export interface OnCallCalendarEvent extends CalendarEvent {
-    type: CalendarEventType.ON_CALL;
-    onCallId: string;
-    locationId?: string;
-    locationName?: string;
+    type: CalendarEventType;
+    allDay?: boolean;
+    color?: string;
 }
 
 // Événement d'affectation
-export interface AssignmentCalendarEvent extends CalendarEvent {
+export interface AssignmentEvent extends BaseCalendarEvent {
     type: CalendarEventType.ASSIGNMENT;
-    assignmentId: string;
     locationId?: string;
     locationName?: string;
     teamId?: string;
@@ -67,12 +44,67 @@ export interface AssignmentCalendarEvent extends CalendarEvent {
     specialtyName?: string;
 }
 
+// Événement de congé
+export interface LeaveEvent extends BaseCalendarEvent {
+    type: CalendarEventType.LEAVE;
+    leaveType?: string;
+    status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+    countedDays?: number;
+}
+
+// Événement de garde
+export interface DutyEvent extends BaseCalendarEvent {
+    type: CalendarEventType.DUTY;
+    locationId?: string;
+    locationName?: string;
+}
+
+// Événement d'astreinte
+export interface OnCallEvent extends BaseCalendarEvent {
+    type: CalendarEventType.ON_CALL;
+    locationId?: string;
+    locationName?: string;
+}
+
+// Événement de formation
+export interface TrainingEvent extends BaseCalendarEvent {
+    type: CalendarEventType.TRAINING;
+    trainingId?: string;
+    trainingName?: string;
+}
+
+// Événement de réunion
+export interface MeetingEvent extends BaseCalendarEvent {
+    type: CalendarEventType.MEETING;
+    meetingId?: string;
+    meetingRoom?: string;
+    attendees?: string[];
+}
+
+// Événement de jour férié
+export interface HolidayEvent extends BaseCalendarEvent {
+    type: CalendarEventType.HOLIDAY;
+    isNational: boolean;
+    regions?: string[];
+    country?: string;
+    isWorkingDay?: boolean;
+}
+
+// Événement d'autre type
+export interface OtherEvent extends BaseCalendarEvent {
+    type: CalendarEventType.OTHER;
+}
+
 // Type union pour tous les types d'événements
 export type AnyCalendarEvent =
-    | LeaveCalendarEvent
-    | DutyCalendarEvent
-    | OnCallCalendarEvent
-    | AssignmentCalendarEvent;
+    | AssignmentEvent
+    | LeaveEvent
+    | DutyEvent
+    | OnCallEvent
+    | TrainingEvent
+    | MeetingEvent
+    | HolidayEvent
+    | OtherEvent;
 
 // Filtres du calendrier
 export interface CalendarFilters {
@@ -134,6 +166,7 @@ export interface ColorScheme {
     duty: string;
     onCall: string;
     assignment: string;
+    holiday: string;
     default: string;
     textColor: string;
     approved: string;
@@ -145,6 +178,7 @@ export interface UserCalendarSettings {
     startWeekOn: 'monday' | 'sunday';
     showWeekends: boolean;
     showRejectedLeaves: boolean;
+    showPublicHolidays: boolean;
     timeFormat: '12h' | '24h';
     colorScheme: ColorScheme;
 } 

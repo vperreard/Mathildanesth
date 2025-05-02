@@ -1,0 +1,60 @@
+[
+    {
+        "id": "user-1",
+        "email": "admin@example.com",
+        "name": "Admin Test",
+        "password": "Test123!",
+        "role": "admin",
+        "createdAt": "2023-01-01T00:00:00.000Z",
+        "updatedAt": "2023-01-01T00:00:00.000Z",
+        "permissions": [
+            "manage_users",
+            "manage_planning",
+            "manage_leaves",
+            "view_reports"
+        ]
+    },
+    {
+        "id": "user-2",
+        "email": "medecin@example.com",
+        "name": "Dr Martin",
+        "password": "Test123!",
+        "role": "médecin",
+        "specialtyId": "specialty-1",
+        "createdAt": "2023-01-02T00:00:00.000Z",
+        "updatedAt": "2023-01-02T00:00:00.000Z",
+        "permissions": [
+            "view_planning",
+            "manage_own_leaves",
+            "view_own_reports"
+        ]
+    },
+    {
+        "id": "user-3",
+        "email": "iade@example.com",
+        "name": "Infirmier Anesthésiste",
+        "password": "Test123!",
+        "role": "IADE",
+        "createdAt": "2023-01-03T00:00:00.000Z",
+        "updatedAt": "2023-01-03T00:00:00.000Z",
+        "permissions": [
+            "view_planning",
+            "manage_own_leaves"
+        ]
+    },
+    {
+        "id": "user-4",
+        "email": "mar@example.com",
+        "name": "Médecin Anesthésiste",
+        "password": "Test123!",
+        "role": "MAR",
+        "specialtyId": "specialty-2",
+        "createdAt": "2023-01-04T00:00:00.000Z",
+        "updatedAt": "2023-01-04T00:00:00.000Z",
+        "permissions": [
+            "view_planning",
+            "manage_own_leaves",
+            "view_own_reports"
+        ]
+    }
+]

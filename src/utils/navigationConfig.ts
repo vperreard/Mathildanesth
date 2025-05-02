@@ -24,6 +24,7 @@ export const navigationGroups = [
             { href: '/parametres', label: 'Paramètres' },
             { href: '/statistiques', label: 'Statistiques' },
             { href: '/parametres/configuration', label: 'Panneau de configuration' },
+            { href: '/admin/bloc-operatoire', label: 'Bloc Opératoire' },
         ]
     }
 ];
@@ -39,6 +40,7 @@ export const adminLinks = [
     '/parametres',
     '/utilisateurs',
     '/parametres/configuration',
+    '/admin/bloc-operatoire',
 ];
 
 // Vérifier si un lien fait partie du groupe d'administration

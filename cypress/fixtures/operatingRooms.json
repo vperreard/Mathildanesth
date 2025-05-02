@@ -1,0 +1,74 @@
+[
+    {
+        "id": "room-1",
+        "name": "Salle 1",
+        "specialtyId": "specialty-1",
+        "specialtyName": "Orthopédie",
+        "sectorId": "sector-1",
+        "sectorName": "Bloc A",
+        "status": "active",
+        "features": [
+            "équipement orthopédique",
+            "robot chirurgical"
+        ],
+        "createdAt": "2023-01-01T00:00:00.000Z",
+        "updatedAt": "2023-01-01T00:00:00.000Z"
+    },
+    {
+        "id": "room-2",
+        "name": "Salle 2",
+        "specialtyId": "specialty-1",
+        "specialtyName": "Orthopédie",
+        "sectorId": "sector-1",
+        "sectorName": "Bloc A",
+        "status": "active",
+        "features": [
+            "équipement orthopédique"
+        ],
+        "createdAt": "2023-01-01T00:00:00.000Z",
+        "updatedAt": "2023-01-01T00:00:00.000Z"
+    },
+    {
+        "id": "room-3",
+        "name": "Salle 3",
+        "specialtyId": "specialty-2",
+        "specialtyName": "Anesthésie",
+        "sectorId": "sector-1",
+        "sectorName": "Bloc A",
+        "status": "active",
+        "features": [
+            "équipement d'anesthésie avancé"
+        ],
+        "createdAt": "2023-01-01T00:00:00.000Z",
+        "updatedAt": "2023-01-01T00:00:00.000Z"
+    },
+    {
+        "id": "room-4",
+        "name": "Salle 4",
+        "specialtyId": "specialty-3",
+        "specialtyName": "Chirurgie Générale",
+        "sectorId": "sector-2",
+        "sectorName": "Bloc B",
+        "status": "active",
+        "features": [
+            "équipement standard",
+            "imagerie médicale"
+        ],
+        "createdAt": "2023-01-01T00:00:00.000Z",
+        "updatedAt": "2023-01-01T00:00:00.000Z"
+    },
+    {
+        "id": "room-5",
+        "name": "Salle 5",
+        "specialtyId": "specialty-3",
+        "specialtyName": "Chirurgie Générale",
+        "sectorId": "sector-2",
+        "sectorName": "Bloc B",
+        "status": "maintenance",
+        "features": [
+            "équipement standard"
+        ],
+        "createdAt": "2023-01-01T00:00:00.000Z",
+        "updatedAt": "2023-01-01T00:00:00.000Z"
+    }
+]

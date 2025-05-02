@@ -5,6 +5,8 @@
 import { seedRules } from '../../scripts/seedRules.js';
 import { seedSpecialties } from './seedSpecialties.js';
 import { seedSurgeons } from './seedSurgeons.js';
+import { seedOperatingRooms } from './seedOperatingRooms.js';
+import { closeDatabase } from '../../lib/mongodb.js';
 
 /**
  * Exécute tous les scripts de seed dans l'ordre approprié
@@ -25,22 +27,27 @@ async function seedAll() {
         console.log('\n--- ÉTAPE 3: Initialisation des règles ---');
         await seedRules();
 
+        // 4. Seed de l'architecture du bloc opératoire
+        console.log('\n--- ÉTAPE 4: Initialisation de l\'architecture du bloc opératoire ---');
+        await seedOperatingRooms();
+
         console.log('\n=== SEED COMPLET TERMINÉ AVEC SUCCÈS ===');
     } catch (error) {
         console.error('\n!!! ERREUR LORS DU PROCESSUS DE SEED !!!', error);
         process.exit(1);
+    } finally {
+        // Fermer la connexion à la base de données
+        await closeDatabase();
     }
 }
 
 // Exécuter le script
-if (require.main === module) {
-    seedAll()
-        .then(() => {
-            console.log('Processus terminé, fermeture...');
-            process.exit(0);
-        })
-        .catch(error => {
-            console.error('Erreur non gérée:', error);
-            process.exit(1);
-        });
-} 
+seedAll()
+    .then(() => {
+        console.log('Processus terminé, fermeture...');
+        process.exit(0);
+    })
+    .catch(error => {
+        console.error('Erreur non gérée:', error);
+        process.exit(1);
+    }); 

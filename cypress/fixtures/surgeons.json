@@ -1,0 +1,72 @@
+[
+    {
+        "id": "surgeon-1",
+        "userId": "user-2",
+        "name": "Dr Martin",
+        "specialtyId": "specialty-1",
+        "specialty": "Orthopédie",
+        "status": "active",
+        "preferences": {
+            "daysOff": [
+                5,
+                6
+            ],
+            "maxVacationsPerWeek": 4,
+            "preferredRooms": [
+                "room-1",
+                "room-2"
+            ],
+            "preferredPeriods": [
+                "morning"
+            ]
+        },
+        "createdAt": "2023-01-01T00:00:00.000Z",
+        "updatedAt": "2023-01-01T00:00:00.000Z"
+    },
+    {
+        "id": "surgeon-2",
+        "userId": "user-4",
+        "name": "Dr Dubois",
+        "specialtyId": "specialty-2",
+        "specialty": "Anesthésie",
+        "status": "active",
+        "preferences": {
+            "daysOff": [
+                0,
+                6
+            ],
+            "maxVacationsPerWeek": 5,
+            "preferredRooms": [
+                "room-3"
+            ],
+            "preferredPeriods": [
+                "afternoon"
+            ]
+        },
+        "createdAt": "2023-01-02T00:00:00.000Z",
+        "updatedAt": "2023-01-02T00:00:00.000Z"
+    },
+    {
+        "id": "surgeon-3",
+        "userId": "user-3",
+        "name": "Dr Petit",
+        "specialtyId": "specialty-3",
+        "specialty": "Chirurgie Générale",
+        "status": "active",
+        "preferences": {
+            "daysOff": [
+                6
+            ],
+            "maxVacationsPerWeek": 4,
+            "preferredRooms": [
+                "room-4"
+            ],
+            "preferredPeriods": [
+                "morning",
+                "afternoon"
+            ]
+        },
+        "createdAt": "2023-01-03T00:00:00.000Z",
+        "updatedAt": "2023-01-03T00:00:00.000Z"
+    }
+]

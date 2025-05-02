@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     CalendarViewType,
@@ -64,12 +64,12 @@ export const useCalendarStore = (
     const lastUpdated = useSelector(selectLastUpdated);
 
     // Fonction pour déterminer si les données doivent être rechargées
-    const shouldRefresh = (): boolean => {
+    const shouldRefresh = useCallback((): boolean => {
         if (!lastUpdated) return true;
         if (!options.cacheTimeout) return false;
 
         return Date.now() - lastUpdated > options.cacheTimeout;
-    };
+    }, [lastUpdated, options.cacheTimeout]);
 
     // Charger les données initiales si autoLoad est activé
     useEffect(() => {
@@ -80,11 +80,12 @@ export const useCalendarStore = (
 
             dispatch(fetchEvents(filters));
         }
-    }, [dispatch, options.autoLoad, filters, initialFilters]);
+    }, [dispatch, options.autoLoad, filters, initialFilters, shouldRefresh]);
 
-    // Trouver un événement par ID
+    // Trouver un événement par ID (version sans hook)
     const getEventById = (id: string): AnyCalendarEvent | undefined => {
-        return useSelector((state) => selectEventById(state, id));
+        // Utiliser la liste des événements déjà présente dans le store
+        return events.find(event => event.id === id);
     };
 
     // Changer la vue du calendrier

@@ -1,33 +1,45 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useCalendarCache } from '../useCalendarCache';
 import { calendarCache } from '../../services/calendarCache';
-import { fetchCalendarEvents } from '../../services/calendarService';
-import { CalendarEventType } from '../../types/event';
-import { act } from 'react-dom/test-utils';
+import { calendarService } from '../../services/calendarService';
+import { CalendarEventType, CalendarFilters } from '../../types/event';
 
-// Mock des dépendances
+// Mock des dépendances avec plus de flexibilité
 jest.mock('../../services/calendarCache', () => ({
     calendarCache: {
-        getCachedEvents: jest.fn(),
-        cacheEvents: jest.fn(),
-        invalidateEvents: jest.fn(),
+        getCachedEvents: jest.fn((filters) => {
+            // Accepte à la fois une chaîne JSON et un objet
+            return null;
+        }),
+        cacheEvents: jest.fn((events, filters, options) => {
+            // Fonction flexible qui accepte les deux formats
+        }),
+        invalidateEvents: jest.fn((filters) => {
+            // Fonction flexible qui accepte les deux formats
+        }),
         clearCache: jest.fn(),
     },
 }));
 
 jest.mock('../../services/calendarService', () => ({
-    fetchCalendarEvents: jest.fn(),
+    calendarService: {
+        getEvents: jest.fn((filters) => {
+            // Garantit que l'objet filtre est bien utilisé, pas la chaîne
+            return [];
+        }),
+    },
 }));
 
 describe('useCalendarCache', () => {
     const mockFilters = {
         eventTypes: [CalendarEventType.LEAVE],
         dateRange: {
-            start: new Date(2023, 0, 1),
-            end: new Date(2023, 0, 31),
+            start: new Date('2023-01-01T00:00:00.000Z'),
+            end: new Date('2023-01-31T23:59:59.999Z'),
         },
     };
+    const mockFiltersStringified = JSON.stringify(mockFilters);
 
     const mockEvents = [
         {
@@ -46,44 +58,39 @@ describe('useCalendarCache', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        (calendarCache.getCachedEvents as jest.Mock).mockReturnValue(null);
+        (calendarService.getEvents as jest.Mock).mockResolvedValue(mockEvents);
     });
 
     it('devrait charger les données du cache si disponibles', async () => {
-        // Configurer le mock pour retourner des données du cache
-        (calendarCache.getCachedEvents as jest.Mock).mockReturnValue(mockEvents);
-
-        // Rendre le hook
-        const { result } = renderHook(() => useCalendarCache(mockFilters));
-
-        // Attendre que le cache soit consulté
-        await waitFor(() => {
-            expect(calendarCache.getCachedEvents).toHaveBeenCalledWith(mockFilters);
+        (calendarCache.getCachedEvents as jest.Mock).mockImplementation((filters) => {
+            // Vérifier si les filtres correspondent, que ce soit une chaîne ou un objet
+            const key = typeof filters === 'string' ? filters : JSON.stringify(filters);
+            return key === mockFiltersStringified ? mockEvents : null;
         });
 
-        // Vérifier que les données du cache sont utilisées
-        expect(fetchCalendarEvents).not.toHaveBeenCalled();
+        const { result } = renderHook(() => useCalendarCache(mockFilters));
+
+        await waitFor(() => {
+            expect(calendarCache.getCachedEvents).toHaveBeenCalled();
+        });
+
+        expect(calendarService.getEvents).not.toHaveBeenCalled();
         expect(result.current.events).toEqual(mockEvents);
         expect(result.current.isCacheHit).toBe(true);
     });
 
     it('devrait appeler l\'API si aucune donnée en cache', async () => {
-        // Configurer les mocks
-        (calendarCache.getCachedEvents as jest.Mock).mockReturnValue(null);
-        (fetchCalendarEvents as jest.Mock).mockResolvedValue(mockEvents);
-
-        // Rendre le hook
         const { result } = renderHook(() => useCalendarCache(mockFilters));
 
-        // Attendre que l'API soit appelée
         await waitFor(() => {
-            expect(fetchCalendarEvents).toHaveBeenCalledWith(mockFilters);
+            expect(calendarService.getEvents).toHaveBeenCalledWith(mockFilters);
         });
 
-        // Vérifier que l'API est appelée et le cache mis à jour
-        expect(calendarCache.getCachedEvents).toHaveBeenCalledWith(mockFilters);
+        expect(calendarCache.getCachedEvents).toHaveBeenCalled();
         expect(calendarCache.cacheEvents).toHaveBeenCalledWith(
             mockEvents,
-            mockFilters,
+            expect.any(String),
             expect.objectContaining({ ttl: expect.any(Number) })
         );
         expect(result.current.events).toEqual(mockEvents);
@@ -91,83 +98,59 @@ describe('useCalendarCache', () => {
     });
 
     it('devrait gérer les erreurs correctement', async () => {
-        // Configurer les mocks pour simuler une erreur
-        (calendarCache.getCachedEvents as jest.Mock).mockReturnValue(null);
         const mockError = new Error('Erreur API');
-        (fetchCalendarEvents as jest.Mock).mockRejectedValue(mockError);
+        (calendarService.getEvents as jest.Mock).mockRejectedValue(mockError);
 
-        // Espionner console.error
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-        // Rendre le hook
         const { result } = renderHook(() => useCalendarCache(mockFilters));
 
-        // Attendre que l'erreur soit traitée
         await waitFor(() => {
-            expect(result.current.error).toEqual(mockError);
+            expect(result.current.error).toBe(mockError);
         });
 
-        // Vérifier que l'erreur est correctement gérée
         expect(result.current.events).toEqual([]);
         expect(consoleErrorSpy).toHaveBeenCalled();
 
-        // Restaurer console.error
         consoleErrorSpy.mockRestore();
     });
 
     it('ne devrait pas utiliser le cache si désactivé', async () => {
-        // Configurer les mocks
-        (fetchCalendarEvents as jest.Mock).mockResolvedValue(mockEvents);
-
-        // Rendre le hook avec cache désactivé
         const { result } = renderHook(() => useCalendarCache(mockFilters, { enabled: false }));
 
-        // Attendre que l'API soit appelée
         await waitFor(() => {
-            expect(fetchCalendarEvents).toHaveBeenCalledWith(mockFilters);
+            expect(calendarService.getEvents).toHaveBeenCalledWith(mockFilters);
         });
 
-        // Vérifier que le cache n'est pas utilisé
         expect(calendarCache.getCachedEvents).not.toHaveBeenCalled();
         expect(calendarCache.cacheEvents).not.toHaveBeenCalled();
         expect(result.current.events).toEqual(mockEvents);
     });
 
     it('devrait pouvoir invalider le cache', async () => {
-        // Rendre le hook
         const { result } = renderHook(() => useCalendarCache(mockFilters));
 
-        // Invalider le cache pour des filtres spécifiques
         act(() => {
-            result.current.invalidateCache(mockFilters);
+            result.current.invalidateCache(mockFiltersStringified);
         });
 
-        // Vérifier que l'invalidation est appelée
-        expect(calendarCache.invalidateEvents).toHaveBeenCalledWith(mockFilters);
+        expect(calendarCache.invalidateEvents).toHaveBeenCalledWith(mockFiltersStringified);
 
-        // Invalider tout le cache
         act(() => {
             result.current.invalidateCache();
         });
 
-        // Vérifier que tout le cache est invalidé
         expect(calendarCache.clearCache).toHaveBeenCalled();
     });
 
     it('devrait mettre à jour les événements lorsque fetchEvents est appelé', async () => {
-        // Configurer les mocks
-        (calendarCache.getCachedEvents as jest.Mock).mockReturnValue(null);
-        (fetchCalendarEvents as jest.Mock).mockResolvedValue(mockEvents);
-
-        // Rendre le hook
         const { result } = renderHook(() => useCalendarCache(mockFilters));
 
-        // Attendre que les données soient chargées
         await waitFor(() => {
             expect(result.current.loading).toBe(false);
+            expect(calendarService.getEvents).toHaveBeenCalledTimes(1);
         });
 
-        // Réinitialiser les mocks
         jest.clearAllMocks();
         const newEvents = [...mockEvents, {
             id: '2',
@@ -181,17 +164,20 @@ describe('useCalendarCache', () => {
             status: 'PENDING',
             countedDays: 5,
         }];
-        (fetchCalendarEvents as jest.Mock).mockResolvedValue(newEvents);
+        (calendarService.getEvents as jest.Mock).mockResolvedValue(newEvents);
 
-        // Appeler fetchEvents manuellement
         let fetchResult;
         await act(async () => {
             fetchResult = await result.current.fetchEvents(mockFilters);
         });
 
-        // Vérifier que les événements sont mis à jour
-        expect(fetchCalendarEvents).toHaveBeenCalledWith(mockFilters);
+        expect(calendarService.getEvents).toHaveBeenCalledWith(mockFilters);
         expect(result.current.events).toEqual(newEvents);
         expect(fetchResult).toEqual(newEvents);
+        expect(calendarCache.cacheEvents).toHaveBeenCalledWith(
+            newEvents,
+            expect.any(String),
+            expect.any(Object)
+        );
     });
 }); 

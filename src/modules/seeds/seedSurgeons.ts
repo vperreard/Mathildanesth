@@ -223,8 +223,11 @@ export async function seedSurgeons() {
         const specialties = await specialtiesCollection.find().toArray();
         const specialtiesMap = new Map();
 
+        // Créer un map des spécialités avec leur nom en minuscules comme clé
         specialties.forEach(specialty => {
-            specialtiesMap.set(specialty.name, specialty.id || specialty._id);
+            const specialtyName = specialty.name.toLowerCase();
+            specialtiesMap.set(specialtyName, specialty._id);
+            console.log(`Spécialité mappée: ${specialtyName} -> ${specialty._id}`);
         });
 
         // Vérifier si des chirurgiens existent déjà
@@ -238,9 +241,10 @@ export async function seedSurgeons() {
                 // Convertir les noms de spécialités en IDs
                 const specialtyIds: string[] = [];
                 for (const specialtyName of surgeon.specialtyNames) {
-                    const specialtyId = specialtiesMap.get(specialtyName);
+                    const specialtyId = specialtiesMap.get(specialtyName.toLowerCase());
                     if (specialtyId) {
                         specialtyIds.push(specialtyId.toString());
+                        console.log(`Spécialité trouvée pour ${surgeon.prenom} ${surgeon.nom}: ${specialtyName} -> ${specialtyId}`);
                     } else {
                         console.warn(`AVERTISSEMENT: Spécialité "${specialtyName}" non trouvée pour ${surgeon.prenom} ${surgeon.nom}`);
                     }
@@ -265,7 +269,7 @@ export async function seedSurgeons() {
                             }
                         }
                     );
-                    console.log(`Chirurgien mis à jour: ${surgeon.prenom} ${surgeon.nom}`);
+                    console.log(`Chirurgien mis à jour: ${surgeon.prenom} ${surgeon.nom} avec ${specialtyIds.length} spécialités`);
                 } else {
                     // Créer un nouveau chirurgien
                     await surgeonsCollection.insertOne({
@@ -280,7 +284,7 @@ export async function seedSurgeons() {
                         createdAt: new Date(),
                         updatedAt: new Date()
                     });
-                    console.log(`Nouveau chirurgien ajouté: ${surgeon.prenom} ${surgeon.nom}`);
+                    console.log(`Nouveau chirurgien ajouté: ${surgeon.prenom} ${surgeon.nom} avec ${specialtyIds.length} spécialités`);
                 }
             }
         } else {
@@ -289,9 +293,10 @@ export async function seedSurgeons() {
                 // Convertir les noms de spécialités en IDs
                 const specialtyIds: string[] = [];
                 for (const specialtyName of surgeon.specialtyNames) {
-                    const specialtyId = specialtiesMap.get(specialtyName);
+                    const specialtyId = specialtiesMap.get(specialtyName.toLowerCase());
                     if (specialtyId) {
                         specialtyIds.push(specialtyId.toString());
+                        console.log(`Spécialité trouvée pour ${surgeon.prenom} ${surgeon.nom}: ${specialtyName} -> ${specialtyId}`);
                     } else {
                         console.warn(`AVERTISSEMENT: Spécialité "${specialtyName}" non trouvée pour ${surgeon.prenom} ${surgeon.nom}`);
                     }
@@ -324,7 +329,7 @@ export async function seedSurgeons() {
 }
 
 // Exécuter si appelé directement
-if (require.main === module) {
+if (import.meta.url === import.meta.resolve('./seedSurgeons.js')) {
     seedSurgeons()
         .then(() => process.exit(0))
         .catch(error => {

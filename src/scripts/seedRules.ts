@@ -49,7 +49,7 @@ export async function seedRules() {
 }
 
 // Exécuter si appelé directement
-if (require.main === module) {
+if (import.meta.url === import.meta.resolve('./seedRules.js')) {
     seedRules()
         .then(() => process.exit(0))
         .catch(error => {

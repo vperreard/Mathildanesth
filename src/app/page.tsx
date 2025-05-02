@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Calendar, BarChart3, Settings, Users, Terminal, ClipboardList } from 'lucide-react';
 import AdminRequestsDashboard from '@/components/AdminRequestsDashboard';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function HomePage() {
     const [mounted, setMounted] = useState(false);

@@ -1,0 +1,59 @@
+[
+    {
+        "id": "leave-1",
+        "userId": "user-2",
+        "startDate": "2024-06-01T00:00:00.000Z",
+        "endDate": "2024-06-14T23:59:59.999Z",
+        "type": "congés payés",
+        "status": "approved",
+        "notes": "Congés d'été",
+        "approvedById": "user-1",
+        "approvedAt": "2024-05-01T10:30:00.000Z",
+        "createdAt": "2024-04-15T09:00:00.000Z"
+    },
+    {
+        "id": "leave-2",
+        "userId": "user-3",
+        "startDate": "2024-07-01T00:00:00.000Z",
+        "endDate": "2024-07-07T23:59:59.999Z",
+        "type": "congés payés",
+        "status": "pending",
+        "notes": "Vacances d'été",
+        "createdAt": "2024-05-10T14:20:00.000Z"
+    },
+    {
+        "id": "leave-3",
+        "userId": "user-4",
+        "startDate": "2024-05-20T00:00:00.000Z",
+        "endDate": "2024-05-22T23:59:59.999Z",
+        "type": "formation",
+        "status": "approved",
+        "notes": "Congrès d'anesthésie",
+        "approvedById": "user-1",
+        "approvedAt": "2024-04-25T11:15:00.000Z",
+        "createdAt": "2024-04-10T08:30:00.000Z"
+    },
+    {
+        "id": "leave-4",
+        "userId": "user-2",
+        "startDate": "2024-08-15T00:00:00.000Z",
+        "endDate": "2024-08-31T23:59:59.999Z",
+        "type": "congés payés",
+        "status": "rejected",
+        "notes": "Demande tardive",
+        "rejectedById": "user-1",
+        "rejectedAt": "2024-08-01T16:45:00.000Z",
+        "rejectionReason": "Demande trop tardive et effectifs insuffisants",
+        "createdAt": "2024-07-30T18:00:00.000Z"
+    },
+    {
+        "id": "leave-5",
+        "userId": "user-3",
+        "startDate": "2024-12-24T00:00:00.000Z",
+        "endDate": "2024-12-26T23:59:59.999Z",
+        "type": "congés payés",
+        "status": "pending",
+        "notes": "Vacances de Noël",
+        "createdAt": "2024-09-01T10:00:00.000Z"
+    }
+]

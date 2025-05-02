@@ -1,4 +1,4 @@
-import React, { useCallback, FC } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -6,37 +6,30 @@ import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
 import { EventInput } from '@fullcalendar/core';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     AnyCalendarEvent,
     CalendarEventType,
     CalendarSettings,
     CalendarViewType,
-    UserCalendarSettings,
-    CalendarEvent,
-    ColorScheme
+    UserCalendarSettings
 } from '../types/event';
+import { useCalendarStore } from '../store/calendarStore';
+import { EventRenderer } from './events/EventRenderer';
+import { CalendarLoadingOverlay } from './ui/CalendarLoadingOverlay';
+import DayGridView from './views/DayGridView';
+import WeekGridView from './views/WeekGridView';
+import ListView from './views/ListView';
+import { holidayCalendarService } from '../services/holidayService';
+import { format } from 'date-fns';
 
 // Styles personnalisés pour le calendrier
 import './calendar.css';
 
-interface EventRenderProps {
-    event: {
-        id: string;
-        title: string;
-        start: Date;
-        end: Date;
-        allDay: boolean;
-        extendedProps: any;
-    };
-    view: {
-        type: string;
-    };
-}
-
 interface BaseCalendarProps {
-    events: AnyCalendarEvent[];
-    view: CalendarViewType;
-    settings: CalendarSettings;
+    events?: AnyCalendarEvent[];
+    view?: CalendarViewType;
+    settings?: CalendarSettings;
     options?: Partial<CalendarSettings>;
     userSettings?: UserCalendarSettings;
     loading?: boolean;
@@ -53,15 +46,26 @@ interface BaseCalendarProps {
         center: string;
         right: string;
     };
+    navigateToPrevious?: () => void;
+    navigateToNext?: () => void;
+    navigateToToday?: () => void;
 }
 
-export const BaseCalendar: FC<BaseCalendarProps> = ({
-    events,
-    view,
-    settings,
-    options,
-    userSettings,
-    loading = false,
+export const BaseCalendar: React.FC<BaseCalendarProps> = ({
+    events: propEvents = [],
+    view: propView = CalendarViewType.MONTH,
+    settings: propSettings = {
+        businessHours: true,
+        nowIndicator: true,
+        snapDuration: '00:15:00',
+        slotDuration: '00:30:00',
+        slotLabelInterval: '01:00:00',
+        slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+        slotMinTime: '00:00:00',
+        slotMaxTime: '24:00:00'
+    },
+    userSettings: propUserSettings,
+    loading: propLoading = false,
     editable = false,
     selectable = false,
     onEventClick,
@@ -74,12 +78,31 @@ export const BaseCalendar: FC<BaseCalendarProps> = ({
         left: 'prev,next today',
         center: 'title',
         right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-    }
+    },
+    navigateToPrevious = () => { },
+    navigateToNext = () => { },
+    navigateToToday = () => { }
 }) => {
+    // Utiliser les données du store ou des props selon ce qui est disponible
+    const {
+        events: storeEvents,
+        loading: storeLoading,
+        view: storeView,
+        settings: storeSettings,
+        userSettings: storeUserSettings
+    } = useCalendarStore();
+
+    // Priorité aux props sur les données du store
+    const finalEvents = propEvents || storeEvents;
+    const finalLoading = propLoading || storeLoading;
+    const finalView = propView || storeView;
+    const finalSettings = propSettings || storeSettings;
+    const finalUserSettings = propUserSettings || storeUserSettings;
+
     // Filtrer les événements en fonction des paramètres utilisateur
-    const filteredEvents = events.filter(event => {
+    const filteredEvents = finalEvents.filter(event => {
         // Ne pas afficher les congés refusés si le paramètre est désactivé
-        if (!userSettings?.showRejectedLeaves &&
+        if (!finalUserSettings?.showRejectedLeaves &&
             event.type === CalendarEventType.LEAVE &&
             'status' in event &&
             event.status === 'REJECTED') {
@@ -88,23 +111,64 @@ export const BaseCalendar: FC<BaseCalendarProps> = ({
         return true;
     });
 
+    // Ajout de l'état pour les jours fériés
+    const [holidayEvents, setHolidayEvents] = useState<AnyCalendarEvent[]>([]);
+    const [holidaysLoading, setHolidaysLoading] = useState(false);
+
+    // Fonction pour charger les jours fériés
+    const loadHolidays = useCallback(async (start: Date, end: Date) => {
+        if (!finalUserSettings?.showPublicHolidays) {
+            setHolidayEvents([]);
+            return;
+        }
+
+        setHolidaysLoading(true);
+        try {
+            const startDateStr = format(start, 'yyyy-MM-dd');
+            const endDateStr = format(end, 'yyyy-MM-dd');
+
+            const holidays = await holidayCalendarService.getHolidayEvents(startDateStr, endDateStr);
+            setHolidayEvents(holidays);
+        } catch (error) {
+            console.error('Erreur lors du chargement des jours fériés:', error);
+            setHolidayEvents([]);
+        } finally {
+            setHolidaysLoading(false);
+        }
+    }, [finalUserSettings?.showPublicHolidays]);
+
+    // Mise à jour du gestionnaire de changement de plage de dates
+    const handleDatesSet = useCallback((info: any) => {
+        if (onDateRangeChange) {
+            onDateRangeChange(info.view.currentStart, info.view.currentEnd);
+        }
+
+        // Charger les jours fériés pour la nouvelle plage de dates
+        loadHolidays(info.view.currentStart, info.view.currentEnd);
+    }, [onDateRangeChange, loadHolidays]);
+
+    // Combiner les événements réguliers avec les jours fériés
+    const allEvents = [...filteredEvents, ...holidayEvents];
+
     // Formater les événements pour FullCalendar
-    const formattedEvents = filteredEvents.map(event => ({
-        id: event.id,
-        title: event.title,
-        start: event.start,
-        end: event.end,
-        allDay: event.allDay,
-        backgroundColor: getEventBackgroundColor(event, userSettings?.colorScheme),
-        borderColor: getEventBorderColor(event, userSettings?.colorScheme),
-        textColor: userSettings?.colorScheme?.textColor || '#000000',
-        extendedProps: { originalEvent: event }
-    }));
+    const formattedEvents = useCallback(() => {
+        return allEvents.map(event => ({
+            id: event.id,
+            title: event.title,
+            start: event.start,
+            end: event.end,
+            allDay: event.allDay,
+            backgroundColor: getEventBackgroundColor(event, finalUserSettings?.colorScheme),
+            borderColor: getEventBorderColor(event, finalUserSettings?.colorScheme),
+            textColor: finalUserSettings?.colorScheme?.textColor || '#000000',
+            extendedProps: { ...event }
+        }));
+    }, [allEvents, finalUserSettings]);
 
     // Gestionnaire de clic sur un événement
     const handleEventClick = useCallback((info: any) => {
         if (onEventClick && info.event.extendedProps) {
-            onEventClick(info.event.extendedProps as AnyCalendarEvent);
+            onEventClick(info.event.extendedProps);
         }
     }, [onEventClick]);
 
@@ -143,205 +207,397 @@ export const BaseCalendar: FC<BaseCalendarProps> = ({
         }
     }, [onViewChange]);
 
-    // Gestionnaire de changement de plage de dates
-    const handleDatesSet = useCallback((info: any) => {
-        if (onDateRangeChange) {
-            onDateRangeChange(info.view.currentStart, info.view.currentEnd);
+    // Gestionnaire de navigation au clavier
+    const handleKeyDown = useCallback((event: KeyboardEvent) => {
+        const calendar = document.querySelector('.fc');
+        if (!calendar) return;
+
+        switch (event.key) {
+            case 'ArrowLeft':
+                navigateToPrevious();
+                break;
+            case 'ArrowRight':
+                navigateToNext();
+                break;
+            case 'ArrowUp':
+                // Navigation vers la semaine précédente
+                const currentDate = new Date();
+                currentDate.setDate(currentDate.getDate() - 7);
+                onDateRangeChange?.(currentDate, new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000));
+                break;
+            case 'ArrowDown':
+                // Navigation vers la semaine suivante
+                const nextDate = new Date();
+                nextDate.setDate(nextDate.getDate() + 7);
+                onDateRangeChange?.(nextDate, new Date(nextDate.getTime() + 7 * 24 * 60 * 60 * 1000));
+                break;
+            case ' ':
+            case 'Enter':
+                // Sélection de la date actuelle
+                navigateToToday();
+                break;
         }
-    }, [onDateRangeChange]);
+    }, [navigateToPrevious, navigateToNext, navigateToToday, onDateRangeChange]);
 
-    // Personnaliser le rendu des événements
-    const renderEvent = useCallback((info: EventRenderProps) => {
-        const { event, view } = info;
-        const eventType = event.extendedProps.type;
-        const status = event.extendedProps.status;
-        const userName = event.extendedProps.user ?
-            `${event.extendedProps.user.prenom} ${event.extendedProps.user.nom}` : '';
+    // Gestionnaire de raccourcis clavier
+    const handleShortcuts = useCallback((event: KeyboardEvent) => {
+        // Ignorer si l'utilisateur est en train de taper dans un champ de saisie
+        if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+            return;
+        }
 
-        // Classes CSS en fonction du type d'événement et du statut
-        let statusClass = '';
-        let statusIcon = '';
+        // Vérifier si la touche Ctrl/Cmd est pressée
+        const isCtrlPressed = event.ctrlKey || event.metaKey;
 
-        if (status) {
-            switch (status) {
-                case 'APPROVED':
-                    statusClass = 'event-approved';
-                    statusIcon = '✓';
+        if (isCtrlPressed) {
+            switch (event.key.toLowerCase()) {
+                case 'n':
+                    // Nouvel événement
+                    event.preventDefault();
+                    onDateSelect?.(new Date(), new Date());
                     break;
-                case 'PENDING':
-                    statusClass = 'event-pending';
-                    statusIcon = '⧖';
+                case 'f':
+                    // Focus sur la recherche
+                    event.preventDefault();
+                    const searchInput = document.querySelector('.calendar-search-input');
+                    if (searchInput instanceof HTMLElement) {
+                        searchInput.focus();
+                    }
                     break;
-                case 'REJECTED':
-                    statusClass = 'event-rejected';
-                    statusIcon = '✕';
+                case 'h':
+                    // Afficher/masquer les événements
+                    event.preventDefault();
+                    const eventTypes = document.querySelectorAll('.calendar-event-type');
+                    eventTypes.forEach((type) => {
+                        const checkbox = type.querySelector('input[type="checkbox"]');
+                        if (checkbox instanceof HTMLInputElement) {
+                            checkbox.checked = !checkbox.checked;
+                            checkbox.dispatchEvent(new Event('change'));
+                        }
+                    });
                     break;
-                case 'CANCELLED':
-                    statusClass = 'event-cancelled';
-                    statusIcon = '⊘';
+                case 't':
+                    // Aller à aujourd'hui
+                    event.preventDefault();
+                    navigateToToday();
                     break;
-                default:
-                    statusClass = '';
             }
         }
+    }, [onDateSelect, navigateToToday]);
 
-        // Contenu différent selon la vue
-        if (view.type === 'listWeek') {
-            return (
-                <div className={`event-list-item ${statusClass}`}>
-                    <div className="event-list-indicator" style={{ backgroundColor: getEventBackgroundColor(event, userSettings?.colorScheme) }}></div>
-                    <div className="event-list-content">
-                        <span className="event-title">{event.title}</span>
-                        {userName && <span className="event-user">{userName}</span>}
-                    </div>
-                    {statusIcon && <span className="event-status-icon">{statusIcon}</span>}
-                </div>
-            );
+    useEffect(() => {
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keydown', handleShortcuts);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keydown', handleShortcuts);
+        };
+    }, [handleKeyDown, handleShortcuts]);
+
+    // Gestionnaire de redimensionnement pour les breakpoints
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            const width = window.innerWidth;
+            setIsMobile(width < 640);
+            setIsTablet(width >= 640 && width < 1024);
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Configuration responsive du calendrier
+    const calendarConfig = {
+        headerToolbar: isMobile
+            ? {
+                left: 'prev,next',
+                center: 'title',
+                right: 'today'
+            }
+            : headerToolbar,
+        height: isMobile ? 'auto' : 'auto',
+        contentHeight: isMobile ? 'auto' : 'auto',
+        aspectRatio: isMobile ? 1.1 : isTablet ? 1.4 : 1.8,
+        dayMaxEventRows: isMobile ? 2 : undefined,
+        views: {
+            timeGridWeek: {
+                titleFormat: isMobile ? { month: 'short', day: 'numeric' } : { month: 'long', day: 'numeric' },
+                slotLabelFormat: isMobile ? { hour: '2-digit', minute: '2-digit', hour12: false } : { hour: '2-digit', minute: '2-digit', hour12: false }
+            },
+            timeGridDay: {
+                titleFormat: isMobile ? { month: 'short', day: 'numeric' } : { month: 'long', day: 'numeric' },
+                slotLabelFormat: isMobile ? { hour: '2-digit', minute: '2-digit', hour12: false } : { hour: '2-digit', minute: '2-digit', hour12: false }
+            }
         }
+    };
 
-        // Pour les vues grid
-        return (
-            <div className={`event-grid-item ${statusClass}`}>
-                <div className="event-grid-content">
-                    <div className="event-title">{event.title}</div>
-                    {userName && <div className="event-user">{userName}</div>}
-                </div>
-                {statusIcon && <span className="event-status-icon">{statusIcon}</span>}
-            </div>
-        );
-    }, [userSettings]);
+    // Configuration des tooltips
+    const tooltips = {
+        newEvent: 'Nouvel événement (Ctrl/Cmd + N)',
+        search: 'Rechercher (Ctrl/Cmd + F)',
+        toggleEvents: 'Afficher/Masquer les événements (Ctrl/Cmd + H)',
+        today: 'Aller à aujourd\'hui (Ctrl/Cmd + T)',
+        previous: 'Mois précédent (←)',
+        next: 'Mois suivant (→)',
+        up: 'Semaine précédente (↑)',
+        down: 'Semaine suivante (↓)'
+    };
+
+    // Rendu conditionnel de la vue
+    const renderView = () => {
+        switch (finalView) {
+            case CalendarViewType.DAY:
+                return (
+                    <DayGridView
+                        events={finalEvents}
+                        date={new Date()}
+                        onEventClick={onEventClick}
+                    />
+                );
+            case CalendarViewType.WEEK:
+                return (
+                    <WeekGridView
+                        events={finalEvents}
+                        startDate={new Date()}
+                        onEventClick={onEventClick}
+                    />
+                );
+            case CalendarViewType.LIST:
+                return (
+                    <ListView
+                        events={finalEvents}
+                        startDate={new Date()}
+                        endDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)}
+                        onEventClick={onEventClick}
+                    />
+                );
+            default:
+                return (
+                    <FullCalendar
+                        plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+                        initialView={finalView}
+                        locale={frLocale}
+                        firstDay={finalUserSettings?.startWeekOn === 'monday' ? 1 : 0}
+                        businessHours={finalSettings.businessHours}
+                        nowIndicator={finalSettings.nowIndicator}
+                        snapDuration={finalSettings.snapDuration}
+                        slotDuration={finalSettings.slotDuration}
+                        slotLabelInterval={finalSettings.slotLabelInterval}
+                        slotLabelFormat={finalSettings.slotLabelFormat}
+                        slotMinTime={finalSettings.slotMinTime}
+                        slotMaxTime={finalSettings.slotMaxTime}
+                        headerToolbar={headerToolbar}
+                        events={formattedEvents()}
+                        editable={editable}
+                        selectable={selectable}
+                        selectMirror={true}
+                        dayMaxEvents={finalView === CalendarViewType.MONTH ? true : undefined}
+                        weekends={finalUserSettings?.showWeekends ?? true}
+                        eventTimeFormat={{
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: finalUserSettings?.timeFormat === '12h'
+                        }}
+                        height="auto"
+                        contentHeight="auto"
+                        aspectRatio={window?.innerWidth > 1024 ? 1.8 : window?.innerWidth > 640 ? 1.4 : 1.1}
+                        expandRows={true}
+                        eventContent={EventRenderer}
+                        eventClick={handleEventClick}
+                        eventDrop={handleEventDrop}
+                        eventResize={handleEventResize}
+                        select={handleDateSelect}
+                        viewDidMount={handleViewChange}
+                        datesSet={handleDatesSet}
+                        stickyHeaderDates={true}
+                        dayMaxEventRows={window?.innerWidth < 640 ? 2 : undefined}
+                        moreLinkClick="week"
+                    />
+                );
+        }
+    };
 
     return (
-        <div className="calendar-container">
+        <motion.div
+            className="calendar-container relative w-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            tabIndex={0}
+            role="application"
+            aria-label="Calendrier"
+        >
             {/* Indicateur de chargement */}
-            {loading && (
-                <div className="calendar-loading-overlay">
-                    <div className="calendar-loading-spinner"></div>
-                </div>
-            )}
+            <AnimatePresence>
+                {finalLoading && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <CalendarLoadingOverlay />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-            <FullCalendar
-                plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
-                initialView={view}
-                locale={frLocale}
-                firstDay={userSettings?.startWeekOn === 'monday' ? 1 : 0}
-                businessHours={settings.businessHours}
-                nowIndicator={settings.nowIndicator}
-                snapDuration={settings.snapDuration}
-                slotDuration={settings.slotDuration}
-                slotLabelInterval={settings.slotLabelInterval}
-                slotLabelFormat={settings.slotLabelFormat}
-                slotMinTime={settings.slotMinTime}
-                slotMaxTime={settings.slotMaxTime}
-                headerToolbar={headerToolbar}
-                events={formattedEvents}
-                editable={editable}
-                selectable={selectable}
-                selectMirror={true}
-                dayMaxEvents={true}
-                weekends={userSettings?.showWeekends ?? true}
-                eventTimeFormat={{
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: userSettings?.timeFormat === '12h'
-                }}
-                height="auto"
-                contentHeight="auto"
-                expandRows={true}
-                eventClick={handleEventClick}
-                eventDrop={handleEventDrop}
-                eventResize={handleEventResize}
-                select={handleDateSelect}
-                datesSet={handleDatesSet}
-                eventContent={renderEvent}
-                viewDidMount={handleViewChange}
-                dayHeaderClassNames="calendar-day-header"
-                dayHeaderFormat={{ weekday: 'short', day: 'numeric' }}
-                allDayClassNames="calendar-all-day"
-                dayCellClassNames="calendar-day-cell"
-                moreLinkClassNames="calendar-more-link"
-                nowIndicatorClassNames="calendar-now-indicator"
-                eventClassNames="calendar-event"
-                slotLabelClassNames="calendar-slot-label"
-                slotLaneClassNames="calendar-slot-lane"
-                buttonText={{
-                    today: "Aujourd'hui",
-                    month: 'Mois',
-                    week: 'Semaine',
-                    day: 'Jour',
-                    list: 'Liste'
-                }}
-                {...options}
-            />
-        </div>
+            {renderView()}
+
+            <div className="calendar-tooltips">
+                <div className="tooltip-group">
+                    <button
+                        className="tooltip-button"
+                        onClick={() => onDateSelect?.(new Date(), new Date())}
+                        title={tooltips.newEvent}
+                    >
+                        <span className="tooltip-icon">+</span>
+                        <span className="tooltip-text">{tooltips.newEvent}</span>
+                    </button>
+
+                    <button
+                        className="tooltip-button"
+                        onClick={() => {
+                            const searchInput = document.querySelector('.calendar-search-input');
+                            if (searchInput instanceof HTMLElement) {
+                                searchInput.focus();
+                            }
+                        }}
+                        title={tooltips.search}
+                    >
+                        <span className="tooltip-icon">🔍</span>
+                        <span className="tooltip-text">{tooltips.search}</span>
+                    </button>
+
+                    <button
+                        className="tooltip-button"
+                        onClick={() => {
+                            const eventTypes = document.querySelectorAll('.calendar-event-type');
+                            eventTypes.forEach((type) => {
+                                const checkbox = type.querySelector('input[type="checkbox"]');
+                                if (checkbox instanceof HTMLInputElement) {
+                                    checkbox.checked = !checkbox.checked;
+                                    checkbox.dispatchEvent(new Event('change'));
+                                }
+                            });
+                        }}
+                        title={tooltips.toggleEvents}
+                    >
+                        <span className="tooltip-icon">👁️</span>
+                        <span className="tooltip-text">{tooltips.toggleEvents}</span>
+                    </button>
+
+                    <button
+                        className="tooltip-button"
+                        onClick={navigateToToday}
+                        title={tooltips.today}
+                    >
+                        <span className="tooltip-icon">📅</span>
+                        <span className="tooltip-text">{tooltips.today}</span>
+                    </button>
+                </div>
+            </div>
+
+            <style jsx>{`
+                .calendar-tooltips {
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    z-index: 1000;
+                }
+
+                .tooltip-group {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+
+                .tooltip-button {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 8px 12px;
+                    background: white;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+
+                .tooltip-button:hover {
+                    background: #f8fafc;
+                    transform: translateY(-2px);
+                }
+
+                .tooltip-icon {
+                    font-size: 1.2em;
+                }
+
+                .tooltip-text {
+                    font-size: 0.9em;
+                    color: #64748b;
+                }
+
+                @media (max-width: 640px) {
+                    .calendar-tooltips {
+                        bottom: 10px;
+                        right: 10px;
+                    }
+
+                    .tooltip-button {
+                        padding: 6px 10px;
+                    }
+
+                    .tooltip-text {
+                        display: none;
+                    }
+                }
+            `}</style>
+        </motion.div>
     );
 };
 
-const formatEvents = (
-    events: AnyCalendarEvent[],
-    userSettings?: UserCalendarSettings
-): EventInput[] => {
-    return events
-        .filter(event => {
-            if (!userSettings?.showRejectedLeaves &&
-                event.type === CalendarEventType.LEAVE &&
-                'status' in event &&
-                event.status === 'REJECTED') {
-                return false;
-            }
-            return true;
-        })
-        .map((event): EventInput => ({
-            id: event.id,
-            title: event.title,
-            start: event.start,
-            end: event.end,
-            allDay: event.allDay,
-            backgroundColor: getEventBackgroundColor(event, userSettings?.colorScheme),
-            borderColor: getEventBorderColor(event, userSettings?.colorScheme),
-            textColor: userSettings?.colorScheme?.textColor || '#000000',
-            extendedProps: { originalEvent: event }
-        }));
-};
-
+// Mise à jour des fonctions getEventBackgroundColor et getEventBorderColor
 const getEventBackgroundColor = (
     event: AnyCalendarEvent,
-    colorScheme?: ColorScheme
+    colorScheme?: any
 ): string => {
-    if (!colorScheme) return '#E2E8F0';
-
     switch (event.type) {
         case CalendarEventType.LEAVE:
-            return colorScheme.leave;
+            return colorScheme?.leave || '#4F46E5';
         case CalendarEventType.DUTY:
-            return colorScheme.duty;
+            return colorScheme?.duty || '#EF4444';
         case CalendarEventType.ON_CALL:
-            return colorScheme.onCall;
+            return colorScheme?.onCall || '#F59E0B';
         case CalendarEventType.ASSIGNMENT:
-            return colorScheme.assignment;
+            return colorScheme?.assignment || '#10B981';
+        case CalendarEventType.HOLIDAY:
+            return colorScheme?.holiday || '#8B5CF6';
         default:
-            return colorScheme.default;
+            return colorScheme?.default || '#6B7280';
     }
 };
 
 const getEventBorderColor = (
     event: AnyCalendarEvent,
-    colorScheme?: ColorScheme
+    colorScheme?: any
 ): string => {
-    if (!colorScheme) return '#CBD5E0';
-
-    if (event.type === CalendarEventType.LEAVE && 'status' in event) {
-        switch (event.status) {
-            case 'APPROVED':
-                return colorScheme.approved;
-            case 'PENDING':
-                return colorScheme.pending;
-            case 'REJECTED':
-                return colorScheme.rejected;
-            default:
-                return colorScheme.default;
-        }
+    switch (event.type) {
+        case CalendarEventType.LEAVE:
+            return colorScheme?.leave || '#4338CA';
+        case CalendarEventType.DUTY:
+            return colorScheme?.duty || '#B91C1C';
+        case CalendarEventType.ON_CALL:
+            return colorScheme?.onCall || '#D97706';
+        case CalendarEventType.ASSIGNMENT:
+            return colorScheme?.assignment || '#059669';
+        case CalendarEventType.HOLIDAY:
+            return colorScheme?.holiday || '#7C3AED';
+        default:
+            return colorScheme?.default || '#4B5563';
     }
-
-    return colorScheme.default;
 }; 

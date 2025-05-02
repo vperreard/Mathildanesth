@@ -1,0 +1,2115 @@
+{
+  "users": [
+    {
+      "id": 2,
+      "nom": "BEGHIN",
+      "prenom": "Charles-Edward",
+      "login": "cebeghin",
+      "email": "ce.beghin@gmail.com",
+      "role": "ADMIN_PARTIEL",
+      "professionalRole": "MAR",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 3,
+      "nom": "BITNER",
+      "prenom": "Arnaud",
+      "login": "abitner",
+      "email": "arnaudbitner@gmail.com",
+      "role": "ADMIN_PARTIEL",
+      "professionalRole": "MAR",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 4,
+      "nom": "BRIEL",
+      "prenom": "Anca",
+      "login": "abriel",
+      "email": "anca.briel@gmail.com",
+      "role": "ADMIN_PARTIEL",
+      "professionalRole": "MAR",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 5,
+      "nom": "DEHEDIN",
+      "prenom": "Bénédicte",
+      "login": "bdehedin",
+      "email": "benedehedin@yahoo.fr",
+      "role": "ADMIN_PARTIEL",
+      "professionalRole": "MAR",
+      "tempsPartiel": true,
+      "pourcentageTempsPartiel": 50,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": "ODD",
+      "workPattern": "SPECIFIC_DAYS",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 6,
+      "nom": "DELPECH",
+      "prenom": "Hervé",
+      "login": "hdelpech",
+      "email": "hdel76@orange.fr",
+      "role": "USER",
+      "professionalRole": "MAR",
+      "tempsPartiel": true,
+      "pourcentageTempsPartiel": 50,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "SPECIFIC_DAYS",
+      "joursTravaillesSemaineImpaire": [
+        "THURSDAY",
+        "FRIDAY"
+      ],
+      "joursTravaillesSemainePaire": [
+        "THURSDAY",
+        "FRIDAY"
+      ]
+    },
+    {
+      "id": 7,
+      "nom": "ELHOR",
+      "prenom": "Mustapha",
+      "login": "melhor",
+      "email": "m1elhor@gmail.com",
+      "role": "USER",
+      "professionalRole": "MAR",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 8,
+      "nom": "ELIE",
+      "prenom": "Thomas",
+      "login": "telie",
+      "email": "elie_6@hotmail.com",
+      "role": "USER",
+      "professionalRole": "MAR",
+      "tempsPartiel": true,
+      "pourcentageTempsPartiel": 50,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": "EVEN",
+      "workPattern": "SPECIFIC_DAYS",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 9,
+      "nom": "GIRARD",
+      "prenom": "Emmanuel",
+      "login": "egirard",
+      "email": "dge.anest@gmail.com",
+      "role": "ADMIN_PARTIEL",
+      "professionalRole": "MAR",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 10,
+      "nom": "HATAHET",
+      "prenom": "Ziad",
+      "login": "zhatahet",
+      "email": "zhatahet@hotmail.com",
+      "role": "USER",
+      "professionalRole": "MAR",
+      "tempsPartiel": true,
+      "pourcentageTempsPartiel": 50,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "SPECIFIC_DAYS",
+      "joursTravaillesSemaineImpaire": [
+        "MONDAY",
+        "TUESDAY"
+      ],
+      "joursTravaillesSemainePaire": [
+        "MONDAY",
+        "TUESDAY"
+      ]
+    },
+    {
+      "id": 11,
+      "nom": "LACROIX",
+      "prenom": "Boris",
+      "login": "blacroix",
+      "email": "blacroix@hotmail.fr",
+      "role": "USER",
+      "professionalRole": "MAR",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 12,
+      "nom": "LAVABRE",
+      "prenom": "Olivier",
+      "login": "olavabre",
+      "email": "olavabre@gmx.fr",
+      "role": "USER",
+      "professionalRole": "MAR",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 13,
+      "nom": "LOGEAY",
+      "prenom": "Mathilde",
+      "login": "mlogeay",
+      "email": "mathildeld@gmail.com",
+      "role": "USER",
+      "professionalRole": "MAR",
+      "tempsPartiel": true,
+      "pourcentageTempsPartiel": 50,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "SPECIFIC_DAYS",
+      "joursTravaillesSemaineImpaire": [
+        "MONDAY",
+        "TUESDAY"
+      ],
+      "joursTravaillesSemainePaire": [
+        "MONDAY",
+        "TUESDAY"
+      ]
+    },
+    {
+      "id": 14,
+      "nom": "MAILHÉ",
+      "prenom": "Alexandre",
+      "login": "amailhe",
+      "email": "mailhe.alexandre@gmail.com",
+      "role": "USER",
+      "professionalRole": "MAR",
+      "tempsPartiel": true,
+      "pourcentageTempsPartiel": 50,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "SPECIFIC_DAYS",
+      "joursTravaillesSemaineImpaire": [
+        "THURSDAY",
+        "FRIDAY"
+      ],
+      "joursTravaillesSemainePaire": [
+        "THURSDAY",
+        "FRIDAY"
+      ]
+    },
+    {
+      "id": 15,
+      "nom": "NAFEH",
+      "prenom": "Samer",
+      "login": "snafeh",
+      "email": "samnaf67@yahoo.fr",
+      "role": "USER",
+      "professionalRole": "MAR",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 16,
+      "nom": "PERREARD",
+      "prenom": "Vincent",
+      "login": "vperreard",
+      "email": "vincent.perreard@outlook.fr",
+      "role": "ADMIN_TOTAL",
+      "professionalRole": "MAR",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": false,
+      "phoneNumber": "0681484691",
+      "alias": "Vincent1",
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 17,
+      "nom": "SACUTO",
+      "prenom": "Yann",
+      "login": "ysacuto",
+      "email": "yann.sacuto@gmail.com",
+      "role": "USER",
+      "professionalRole": "MAR",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 18,
+      "nom": "GASULL",
+      "prenom": "Anais",
+      "login": "agasull",
+      "email": "agasull@mathildanesth.fr",
+      "role": "USER",
+      "professionalRole": "SECRETAIRE",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 19,
+      "nom": "EL MEKKAOUI",
+      "prenom": "Samira",
+      "login": "selmekkaoui",
+      "email": "selmekkaoui@mathildanesth.fr",
+      "role": "USER",
+      "professionalRole": "SECRETAIRE",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 20,
+      "nom": "EL IDRISSI",
+      "prenom": "Khadija",
+      "login": "kelidrissi",
+      "email": "kelidrissi@mathildanesth.fr",
+      "role": "USER",
+      "professionalRole": "SECRETAIRE",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": null,
+      "alias": null,
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 21,
+      "nom": "LACROIX",
+      "prenom": "Alexandre",
+      "login": "alacroix",
+      "email": "alex.lacroix76@yahoo.fr",
+      "role": "USER",
+      "professionalRole": "IADE",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": "0778799364",
+      "alias": "Alexandre",
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 22,
+      "nom": "PERREARD-LENFANT",
+      "prenom": "Barbara",
+      "login": "bperreard",
+      "email": "blenfant@hotmail.fr",
+      "role": "USER",
+      "professionalRole": "IADE",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": "0634215511",
+      "alias": "Barbara",
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 23,
+      "nom": "DELPECH",
+      "prenom": "Cathy",
+      "login": "cdelpech",
+      "email": "kti76@orange.fr",
+      "role": "USER",
+      "professionalRole": "IADE",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": "0647044807",
+      "alias": "Cathy",
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 24,
+      "nom": "BORGNET",
+      "prenom": "Guillaume",
+      "login": "gborgnet",
+      "email": "g.borgnet@gmail.com",
+      "role": "USER",
+      "professionalRole": "IADE",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": "0626332541",
+      "alias": "Guil B.",
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 25,
+      "nom": "GICQUEL",
+      "prenom": "Guillaume",
+      "login": "ggicquel",
+      "email": "famillegicquel@gmail.com",
+      "role": "ADMIN_PARTIEL",
+      "professionalRole": "IADE",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": "0612595318",
+      "alias": "Guil G.",
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 26,
+      "nom": "LEGAY",
+      "prenom": "Marlène",
+      "login": "mlegay",
+      "email": "marlene.legay@dbmail.com",
+      "role": "USER",
+      "professionalRole": "IADE",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": "0611032169",
+      "alias": "Marlou",
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 27,
+      "nom": "JOMOTTE",
+      "prenom": "Morgane",
+      "login": "mjomotte",
+      "email": "morganik2@hotmail.com",
+      "role": "USER",
+      "professionalRole": "IADE",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": "0625029101",
+      "alias": "Morgane",
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 28,
+      "nom": "LAMAS",
+      "prenom": "Nathalie",
+      "login": "nlamas",
+      "email": "lamas.nathalie@gmail.com",
+      "role": "USER",
+      "professionalRole": "IADE",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": "0635121500",
+      "alias": "Nathalie",
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 29,
+      "nom": "BOY",
+      "prenom": "Vincent",
+      "login": "vboy",
+      "email": "vincetiboy@gmail.com",
+      "role": "ADMIN_PARTIEL",
+      "professionalRole": "IADE",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": "0674015031",
+      "alias": "Vincent",
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    },
+    {
+      "id": 1,
+      "nom": "Admin",
+      "prenom": "System",
+      "login": "admin",
+      "email": "admin@mathildanesth.fr",
+      "role": "ADMIN_TOTAL",
+      "professionalRole": "MAR",
+      "tempsPartiel": false,
+      "pourcentageTempsPartiel": null,
+      "dateEntree": null,
+      "dateSortie": null,
+      "actif": true,
+      "mustChangePassword": true,
+      "phoneNumber": "0000000000",
+      "alias": "Admin",
+      "workOnMonthType": null,
+      "workPattern": "FULL_TIME",
+      "joursTravaillesSemaineImpaire": [],
+      "joursTravaillesSemainePaire": []
+    }
+  ],
+  "specialties": [
+    {
+      "id": 1,
+      "name": "Endoscopie digestive",
+      "isPediatric": false
+    },
+    {
+      "id": 2,
+      "name": "Endoscopies digestives",
+      "isPediatric": false
+    },
+    {
+      "id": 3,
+      "name": "Endoscopie interventionnelle",
+      "isPediatric": false
+    },
+    {
+      "id": 4,
+      "name": "Orthopédie",
+      "isPediatric": false
+    },
+    {
+      "id": 5,
+      "name": "Orthopédie Pédiatrique",
+      "isPediatric": true
+    },
+    {
+      "id": 6,
+      "name": "Orthopédie pédiatrique",
+      "isPediatric": true
+    },
+    {
+      "id": 7,
+      "name": "Chirurgie plastique",
+      "isPediatric": false
+    },
+    {
+      "id": 8,
+      "name": "Chirurgie vasculaire",
+      "isPediatric": false
+    },
+    {
+      "id": 9,
+      "name": "ORL",
+      "isPediatric": false
+    },
+    {
+      "id": 10,
+      "name": "ORL pédiatrique",
+      "isPediatric": true
+    },
+    {
+      "id": 11,
+      "name": "Chirurgie dentaire",
+      "isPediatric": false
+    },
+    {
+      "id": 12,
+      "name": "Chirurgie maxillo-faciale",
+      "isPediatric": false
+    },
+    {
+      "id": 13,
+      "name": "Chirurgie gynécologique",
+      "isPediatric": false
+    },
+    {
+      "id": 14,
+      "name": "Procréation médicalement assistée",
+      "isPediatric": false
+    },
+    {
+      "id": 15,
+      "name": "Chirurgie digestive",
+      "isPediatric": false
+    },
+    {
+      "id": 16,
+      "name": "Chirurgie urologique",
+      "isPediatric": false
+    },
+    {
+      "id": 17,
+      "name": "Chirurgie urologique pédiatrique",
+      "isPediatric": true
+    },
+    {
+      "id": 18,
+      "name": "Ophtalmologie",
+      "isPediatric": false
+    },
+    {
+      "id": 19,
+      "name": "Ophtalmologie pédiatrique",
+      "isPediatric": true
+    },
+    {
+      "id": 20,
+      "name": "Chirurgie dentaire pédiatrique",
+      "isPediatric": true
+    }
+  ],
+  "surgeons": [
+    {
+      "id": 1,
+      "nom": "ADAM",
+      "prenom": "Jacques-Marie",
+      "email": "jmadam@yahoo.fr",
+      "phoneNumber": "0673478524",
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "ADAM JM",
+      "specialties": [
+        {
+          "id": 4,
+          "name": "Orthopédie"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "nom": "RIFAI",
+      "prenom": "Yasser",
+      "email": "yasser.rifai@hotmail.fr",
+      "phoneNumber": "+33603628817",
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "RIFAI",
+      "specialties": [
+        {
+          "id": 4,
+          "name": "Orthopédie"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "nom": "BERNARD-CUISINIER",
+      "prenom": "Alan",
+      "email": "alanbc@hotmail.fr",
+      "phoneNumber": "0662228841",
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "BERNARD CUISINIER",
+      "specialties": [
+        {
+          "id": 4,
+          "name": "Orthopédie"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "nom": "MALEKPOUR",
+      "prenom": "Louis",
+      "email": "louismalekp@hotmail.fr",
+      "phoneNumber": "0633311793",
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "MALEKPOUR",
+      "specialties": [
+        {
+          "id": 4,
+          "name": "Orthopédie"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "nom": "RAHALI",
+      "prenom": "Said",
+      "email": "said.rahali@gmail.com",
+      "phoneNumber": "0669751169",
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "RAHALI S",
+      "specialties": [
+        {
+          "id": 4,
+          "name": "Orthopédie"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "nom": "ABU AMARA",
+      "prenom": "Saad",
+      "email": "dr.abuamara@gmail.com",
+      "phoneNumber": "0664042493",
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "ABU AMARA",
+      "specialties": [
+        {
+          "id": 5,
+          "name": "Orthopédie Pédiatrique"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "nom": "LEROUX",
+      "prenom": "Julien",
+      "email": "dr.julien.leroux@gmail.com",
+      "phoneNumber": "0661114762",
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "LEROUX",
+      "specialties": [
+        {
+          "id": 5,
+          "name": "Orthopédie Pédiatrique"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "nom": "BAILLEUX-MOISSANT",
+      "prenom": "Marion",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "BAILLEUX MOISSANT",
+      "specialties": [
+        {
+          "id": 8,
+          "name": "Chirurgie vasculaire"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "nom": "ROUX",
+      "prenom": "Nicolas",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "ROUX",
+      "specialties": [
+        {
+          "id": 8,
+          "name": "Chirurgie vasculaire"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "nom": "LECA",
+      "prenom": "Jean-Baptiste",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "LECA",
+      "specialties": [
+        {
+          "id": 7,
+          "name": "Chirurgie plastique"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "nom": "GUILLEM",
+      "prenom": "Isabelle",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "GUILLEM",
+      "specialties": [
+        {
+          "id": 10,
+          "name": "ORL pédiatrique"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "nom": "LECLER-SCARCELLA",
+      "prenom": "Véronique",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "LECLER SCARCELLA",
+      "specialties": [
+        {
+          "id": 10,
+          "name": "ORL pédiatrique"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "nom": "DELAS",
+      "prenom": "Benoît",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "DELAS",
+      "specialties": [
+        {
+          "id": 9,
+          "name": "ORL"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "nom": "HARDY/GUICHARD",
+      "prenom": "Hubert",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "HARDY/GUICHARD/DELAS",
+      "specialties": [
+        {
+          "id": 12,
+          "name": "Chirurgie maxillo-faciale"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "nom": "MERET",
+      "prenom": "Elise",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "MERET",
+      "specialties": [
+        {
+          "id": 9,
+          "name": "ORL"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "nom": "BON-MARDION",
+      "prenom": "Nicolas",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "BON-MARDION",
+      "specialties": [
+        {
+          "id": 9,
+          "name": "ORL"
+        },
+        {
+          "id": 10,
+          "name": "ORL pédiatrique"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "nom": "MAILHE-LOUGES",
+      "prenom": "Marie-Anne",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "MAILHE-LOUGES",
+      "specialties": [
+        {
+          "id": 9,
+          "name": "ORL"
+        },
+        {
+          "id": 10,
+          "name": "ORL pédiatrique"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "nom": "MOREL",
+      "prenom": "François",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "MOREL",
+      "specialties": [
+        {
+          "id": 12,
+          "name": "Chirurgie maxillo-faciale"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "nom": "BASTIEN",
+      "prenom": "Anne-Victoire",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "BASTIEN",
+      "specialties": [
+        {
+          "id": 12,
+          "name": "Chirurgie maxillo-faciale"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "nom": "PEIGNON",
+      "prenom": "Kévin",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "PEIGNON",
+      "specialties": [
+        {
+          "id": 20,
+          "name": "Chirurgie dentaire pédiatrique"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "nom": "PIOT",
+      "prenom": "Thierry",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "PIOT",
+      "specialties": [
+        {
+          "id": 10,
+          "name": "ORL pédiatrique"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "nom": "BARON",
+      "prenom": "Marc",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "BARON",
+      "specialties": [
+        {
+          "id": 13,
+          "name": "Chirurgie gynécologique"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "nom": "RESCH",
+      "prenom": "Benoît",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "RESCH",
+      "specialties": [
+        {
+          "id": 13,
+          "name": "Chirurgie gynécologique"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "nom": "SCHMIED",
+      "prenom": "Rémy",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "SCHMIED",
+      "specialties": [
+        {
+          "id": 13,
+          "name": "Chirurgie gynécologique"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "nom": "SANGUIN",
+      "prenom": "Sophie",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "SANGUIN",
+      "specialties": [
+        {
+          "id": 13,
+          "name": "Chirurgie gynécologique"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "nom": "JOUTEL",
+      "prenom": "Nicolas",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "JOUTEL",
+      "specialties": [
+        {
+          "id": 13,
+          "name": "Chirurgie gynécologique"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "nom": "DURAND-REVILLE",
+      "prenom": "Marc",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "DURAND REVILLE",
+      "specialties": [
+        {
+          "id": 13,
+          "name": "Chirurgie gynécologique"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "nom": "ROUSSEL",
+      "prenom": "Estelle",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "ROUSSEL",
+      "specialties": [
+        {
+          "id": 13,
+          "name": "Chirurgie gynécologique"
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "nom": "FIV",
+      "prenom": "Service",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "FIV",
+      "specialties": [
+        {
+          "id": 14,
+          "name": "Procréation médicalement assistée"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "nom": "LE DEM",
+      "prenom": "Nicolas",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "LE DEM",
+      "specialties": [
+        {
+          "id": 15,
+          "name": "Chirurgie digestive"
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "nom": "ROGER",
+      "prenom": "Vianney",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "ROGER",
+      "specialties": [
+        {
+          "id": 15,
+          "name": "Chirurgie digestive"
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "nom": "PASQUIER",
+      "prenom": "Geoffroy",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "PASQUIER",
+      "specialties": [
+        {
+          "id": 16,
+          "name": "Chirurgie urologique"
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "nom": "NAVARRA",
+      "prenom": "Stéphane",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "NAVARRA",
+      "specialties": [
+        {
+          "id": 16,
+          "name": "Chirurgie urologique"
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "nom": "TAMARELLE",
+      "prenom": "Blandine",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "TAMARELLE",
+      "specialties": [
+        {
+          "id": 16,
+          "name": "Chirurgie urologique"
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "nom": "KANSO",
+      "prenom": "Chaker",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "KANSO",
+      "specialties": [
+        {
+          "id": 16,
+          "name": "Chirurgie urologique"
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "nom": "GULERYUZ",
+      "prenom": "Kerem",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "GULERYUZ",
+      "specialties": [
+        {
+          "id": 16,
+          "name": "Chirurgie urologique"
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "nom": "COMTE",
+      "prenom": "Diane",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "COMTE",
+      "specialties": [
+        {
+          "id": 17,
+          "name": "Chirurgie urologique pédiatrique"
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "nom": "RAHALI",
+      "prenom": "Héla",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "RAHALI H",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "nom": "ADAM",
+      "prenom": "Pierre-Alexandre",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "ADAM PA",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "nom": "FRANCK",
+      "prenom": "Olivier",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "FRANCK",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 41,
+      "nom": "DE FONDEVILLE",
+      "prenom": "Éléonore",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "DE FONDEVILLE",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "nom": "SAAD",
+      "prenom": "Charles",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "SAAD",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "nom": "STAMATIADES",
+      "prenom": "Elie",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "STAMATIADES",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 44,
+      "nom": "CHANAOUI",
+      "prenom": "Badreddine",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "CHANAOUI",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "nom": "AZOUZI",
+      "prenom": "Olfa",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "AZOUZI",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 46,
+      "nom": "MASSY",
+      "prenom": "Jérôme",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "MASSY",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 47,
+      "nom": "HUBAULT",
+      "prenom": "Denis",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "HUBAULT",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 48,
+      "nom": "SIAHMED",
+      "prenom": "Kamal",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "SIAHMED",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 49,
+      "nom": "LECLEIRE-COLLET",
+      "prenom": "Amélie",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "LECLEIRE COLLET",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "nom": "MENARD",
+      "prenom": "Laure",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "MENARD L",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "nom": "ISCAR",
+      "prenom": "Claire",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "ISCAR",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "nom": "LUCE",
+      "prenom": "Alexandra",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "LUCE",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        },
+        {
+          "id": 19,
+          "name": "Ophtalmologie pédiatrique"
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "nom": "VERMUSO",
+      "prenom": "Laura",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "VERMUSO",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        },
+        {
+          "id": 19,
+          "name": "Ophtalmologie pédiatrique"
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "nom": "UZZAN",
+      "prenom": "Joël",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "UZZAN",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 55,
+      "nom": "BOUSIGUE",
+      "prenom": "Isabelle",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "BOUSIGUE",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "nom": "GARDEA",
+      "prenom": "Étienne",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "GARDEA",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 57,
+      "nom": "POPTOMOVA",
+      "prenom": "Daniela",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "POPTOMOVA",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "nom": "MARIE",
+      "prenom": "Olivier",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "MARIE",
+      "specialties": [
+        {
+          "id": 18,
+          "name": "Ophtalmologie"
+        }
+      ]
+    },
+    {
+      "id": 59,
+      "nom": "HADDOUCHE",
+      "prenom": "Baya",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "HADDOUCHE",
+      "specialties": [
+        {
+          "id": 2,
+          "name": "Endoscopies digestives"
+        }
+      ]
+    },
+    {
+      "id": 60,
+      "nom": "GILBERT",
+      "prenom": "Thierry",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "GILBERT",
+      "specialties": [
+        {
+          "id": 2,
+          "name": "Endoscopies digestives"
+        }
+      ]
+    },
+    {
+      "id": 61,
+      "nom": "BOIVIN",
+      "prenom": "Éléonore",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "BOIVIN",
+      "specialties": [
+        {
+          "id": 2,
+          "name": "Endoscopies digestives"
+        }
+      ]
+    },
+    {
+      "id": 62,
+      "nom": "MORIN",
+      "prenom": "Mathilde",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "MORIN",
+      "specialties": [
+        {
+          "id": 2,
+          "name": "Endoscopies digestives"
+        }
+      ]
+    },
+    {
+      "id": 63,
+      "nom": "ASWAD",
+      "prenom": "Fathe",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "ASWAD",
+      "specialties": [
+        {
+          "id": 2,
+          "name": "Endoscopies digestives"
+        }
+      ]
+    },
+    {
+      "id": 64,
+      "nom": "VANNIER",
+      "prenom": "Élise",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "VANNIER",
+      "specialties": [
+        {
+          "id": 2,
+          "name": "Endoscopies digestives"
+        }
+      ]
+    },
+    {
+      "id": 65,
+      "nom": "BENGUIGUI",
+      "prenom": "Corinne",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "BENGUIGUI",
+      "specialties": [
+        {
+          "id": 2,
+          "name": "Endoscopies digestives"
+        }
+      ]
+    },
+    {
+      "id": 66,
+      "nom": "DEMMANE",
+      "prenom": "Sabri",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "DEMMANE",
+      "specialties": [
+        {
+          "id": 2,
+          "name": "Endoscopies digestives"
+        }
+      ]
+    },
+    {
+      "id": 67,
+      "nom": "BENET",
+      "prenom": "Vincent",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "BENET",
+      "specialties": [
+        {
+          "id": 2,
+          "name": "Endoscopies digestives"
+        }
+      ]
+    },
+    {
+      "id": 68,
+      "nom": "AL HAMEEDI",
+      "prenom": "Raied",
+      "email": null,
+      "phoneNumber": null,
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "AL HAMEEDI",
+      "specialties": [
+        {
+          "id": 1,
+          "name": "Endoscopie digestive"
+        },
+        {
+          "id": 3,
+          "name": "Endoscopie interventionnelle"
+        }
+      ]
+    },
+    {
+      "id": 69,
+      "nom": "Dupont",
+      "prenom": "Jean",
+      "email": "jean.dupont@chir.example.local",
+      "phoneNumber": "0600000000",
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "DUPONT J",
+      "specialties": [
+        {
+          "id": 8,
+          "name": "Chirurgie vasculaire"
+        },
+        {
+          "id": 15,
+          "name": "Chirurgie digestive"
+        }
+      ]
+    },
+    {
+      "id": 70,
+      "nom": "Martin",
+      "prenom": "Sophie",
+      "email": "sophie.martin@chir.example.local",
+      "phoneNumber": "0600000000",
+      "status": "ACTIF",
+      "userId": null,
+      "googleSheetName": "MARTIN S",
+      "specialties": [
+        {
+          "id": 7,
+          "name": "Chirurgie plastique"
+        },
+        {
+          "id": 9,
+          "name": "ORL"
+        }
+      ]
+    }
+  ],
+  "operatingSectors": [
+    {
+      "id": 1,
+      "name": "Secteur A",
+      "colorCode": "#FF5733",
+      "isActive": true,
+      "description": "Secteur principal",
+      "rules": {
+        "maxRoomsPerSupervisor": 2
+      },
+      "createdAt": "2025-04-28T18:50:05.432Z",
+      "updatedAt": "2025-04-28T18:51:52.631Z"
+    },
+    {
+      "id": 2,
+      "name": "Secteur B",
+      "colorCode": "#33A8FF",
+      "isActive": true,
+      "description": "Secteur secondaire",
+      "rules": {
+        "maxRoomsPerSupervisor": 2
+      },
+      "createdAt": "2025-04-28T18:50:05.434Z",
+      "updatedAt": "2025-04-28T18:51:52.633Z"
+    }
+  ],
+  "operatingRooms": [
+    {
+      "id": 1,
+      "name": "Salle 1",
+      "number": "1",
+      "sectorId": 1,
+      "colorCode": "#FF0000",
+      "isActive": true,
+      "supervisionRules": {},
+      "createdAt": "2025-04-28T18:51:52.636Z",
+      "updatedAt": "2025-04-28T18:51:52.636Z",
+      "sector": {
+        "id": 1,
+        "name": "Secteur A"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Salle 2",
+      "number": "2",
+      "sectorId": 1,
+      "colorCode": "#00FF00",
+      "isActive": true,
+      "supervisionRules": {},
+      "createdAt": "2025-04-28T18:51:52.640Z",
+      "updatedAt": "2025-04-28T18:51:52.640Z",
+      "sector": {
+        "id": 1,
+        "name": "Secteur A"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Salle 3",
+      "number": "3",
+      "sectorId": 1,
+      "colorCode": "#0000FF",
+      "isActive": true,
+      "supervisionRules": {},
+      "createdAt": "2025-04-28T18:51:52.642Z",
+      "updatedAt": "2025-04-28T18:51:52.642Z",
+      "sector": {
+        "id": 1,
+        "name": "Secteur A"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Salle 4",
+      "number": "4",
+      "sectorId": 1,
+      "colorCode": "#FFFF00",
+      "isActive": true,
+      "supervisionRules": {},
+      "createdAt": "2025-04-28T18:51:52.643Z",
+      "updatedAt": "2025-04-28T18:51:52.643Z",
+      "sector": {
+        "id": 1,
+        "name": "Secteur A"
+      }
+    },
+    {
+      "id": 5,
+      "name": "Salle 5",
+      "number": "5",
+      "sectorId": 1,
+      "colorCode": "#FF00FF",
+      "isActive": true,
+      "supervisionRules": {},
+      "createdAt": "2025-04-28T18:51:52.644Z",
+      "updatedAt": "2025-04-28T18:51:52.644Z",
+      "sector": {
+        "id": 1,
+        "name": "Secteur A"
+      }
+    },
+    {
+      "id": 6,
+      "name": "Salle 6",
+      "number": "6",
+      "sectorId": 1,
+      "colorCode": "#00FFFF",
+      "isActive": true,
+      "supervisionRules": {},
+      "createdAt": "2025-04-28T18:51:52.646Z",
+      "updatedAt": "2025-04-28T18:51:52.646Z",
+      "sector": {
+        "id": 1,
+        "name": "Secteur A"
+      }
+    }
+  ],
+  "leaveTypeSettings": [
+    {
+      "id": "cma1fntoi0000cab7kok6mir0",
+      "code": "ANNUAL",
+      "label": "Congés annuels",
+      "description": "Congés payés annuels",
+      "rules": {
+        "maxDaysPerYear": 25
+      },
+      "isActive": true,
+      "isUserSelectable": true,
+      "createdAt": "2025-04-28T18:50:05.442Z",
+      "updatedAt": "2025-04-28T18:50:05.442Z"
+    },
+    {
+      "id": "cma1fntok0001cab7rk52lq7n",
+      "code": "RECOVERY",
+      "label": "Récupération",
+      "description": "Récupération des heures supplémentaires",
+      "rules": {
+        "maxDaysPerYear": 10
+      },
+      "isActive": true,
+      "isUserSelectable": true,
+      "createdAt": "2025-04-28T18:50:05.444Z",
+      "updatedAt": "2025-04-28T18:50:05.444Z"
+    },
+    {
+      "id": "cma1fntom0002cab7nw1cdijx",
+      "code": "TRAINING",
+      "label": "Formation",
+      "description": "Formation professionnelle",
+      "rules": {
+        "maxDaysPerYear": 5
+      },
+      "isActive": true,
+      "isUserSelectable": true,
+      "createdAt": "2025-04-28T18:50:05.446Z",
+      "updatedAt": "2025-04-28T18:50:05.446Z"
+    },
+    {
+      "id": "cma1fnton0003cab7jc5t47iw",
+      "code": "SICK",
+      "label": "Maladie",
+      "description": "Arrêt maladie",
+      "rules": {
+        "requiresMedicalCertificate": true
+      },
+      "isActive": true,
+      "isUserSelectable": true,
+      "createdAt": "2025-04-28T18:50:05.447Z",
+      "updatedAt": "2025-04-28T18:50:05.447Z"
+    },
+    {
+      "id": "cma1fnton0004cab715m49158",
+      "code": "MATERNITY",
+      "label": "Congé maternité",
+      "description": "Congé maternité",
+      "rules": {
+        "requiresMedicalCertificate": true
+      },
+      "isActive": true,
+      "isUserSelectable": true,
+      "createdAt": "2025-04-28T18:50:05.448Z",
+      "updatedAt": "2025-04-28T18:50:05.448Z"
+    },
+    {
+      "id": "cma1fntoo0005cab7oe2aq991",
+      "code": "SPECIAL",
+      "label": "Congé spécial",
+      "description": "Congé pour événement familial",
+      "rules": {
+        "maxDaysPerYear": 3
+      },
+      "isActive": true,
+      "isUserSelectable": true,
+      "createdAt": "2025-04-28T18:50:05.449Z",
+      "updatedAt": "2025-04-28T18:50:05.449Z"
+    },
+    {
+      "id": "cma1fntop0006cab7zug82eb5",
+      "code": "UNPAID",
+      "label": "Congé sans solde",
+      "description": "Congé non rémunéré",
+      "rules": {
+        "requiresApproval": true
+      },
+      "isActive": true,
+      "isUserSelectable": true,
+      "createdAt": "2025-04-28T18:50:05.449Z",
+      "updatedAt": "2025-04-28T18:50:05.449Z"
+    },
+    {
+      "id": "cma1fntop0007cab7exdu474z",
+      "code": "OTHER",
+      "label": "Autre",
+      "description": "Autre type de congé",
+      "rules": {
+        "requiresApproval": true
+      },
+      "isActive": true,
+      "isUserSelectable": true,
+      "createdAt": "2025-04-28T18:50:05.450Z",
+      "updatedAt": "2025-04-28T18:50:05.450Z"
+    }
+  ],
+  "rules": [],
+  "planningRules": []
+}

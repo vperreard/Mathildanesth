@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
+import { createOperatingSector, getAllOperatingSectors } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
+import { OperatingSectorSchema } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 
 const prisma = new PrismaClient();
 
@@ -10,54 +12,39 @@ export async function GET() {
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session || !session.user) {
+        if (!session) {
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
-        const sectors = await prisma.operatingSector.findMany({
-            orderBy: {
-                name: 'asc',
-            },
-        });
-
+        const sectors = await getAllOperatingSectors();
         return NextResponse.json(sectors);
     } catch (error) {
-        console.error('Erreur lors de la récupération des secteurs:', error);
-        return NextResponse.json({ error: 'Erreur lors de la récupération des secteurs' }, { status: 500 });
+        console.error('Erreur lors de la récupération des secteurs opératoires:', error);
+        return NextResponse.json({ error: 'Erreur lors de la récupération des secteurs opératoires' }, { status: 500 });
     }
 }
 
 // POST pour créer un nouveau secteur
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session || !session.user) {
+        if (!session) {
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
-        const data = await request.json();
+        const body = await request.json();
+        const result = OperatingSectorSchema.safeParse(body);
 
-        // Validation des données
-        if (!data.name) {
-            return NextResponse.json({ error: 'Le nom du secteur est requis' }, { status: 400 });
+        if (!result.success) {
+            return NextResponse.json({ error: 'Données invalides', details: result.error.format() }, { status: 400 });
         }
 
-        // Création du secteur
-        const newSector = await prisma.operatingSector.create({
-            data: {
-                name: data.name,
-                colorCode: data.colorCode || '#000000',
-                isActive: data.isActive !== undefined ? data.isActive : true,
-                description: data.description || '',
-                maxRoomsPerSupervisor: data.maxRoomsPerSupervisor || 1,
-            },
-        });
-
-        return NextResponse.json(newSector, { status: 201 });
+        const sector = await createOperatingSector(result.data);
+        return NextResponse.json(sector, { status: 201 });
     } catch (error) {
-        console.error('Erreur lors de la création du secteur:', error);
-        return NextResponse.json({ error: 'Erreur lors de la création du secteur' }, { status: 500 });
+        console.error('Erreur lors de la création d\'un secteur opératoire:', error);
+        return NextResponse.json({ error: 'Erreur lors de la création d\'un secteur opératoire' }, { status: 500 });
     }
 }
 

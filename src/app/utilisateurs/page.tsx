@@ -6,7 +6,7 @@ import axios from 'axios';
 import UserForm from '@/components/UserForm';
 // Importer les TYPES depuis le fichier centralisé
 import { User, UserFormData, Role, ProfessionalRole } from '@/types/user';
-import { useAuth } from '@/context/AuthContext'; // Importer useAuth
+import { useAuth } from '@/hooks/useAuth'; // Importer useAuth
 import ProtectedRoute from '@/components/ProtectedRoute'; // Importer ProtectedRoute
 
 // Type Role et Interface User déplacés vers src/types/user.ts

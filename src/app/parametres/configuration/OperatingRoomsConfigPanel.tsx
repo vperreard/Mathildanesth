@@ -154,17 +154,17 @@ interface OperatingRoomFormData {
 // Liste des secteurs prédéfinis
 const SECTORS = [
     'Hyperaseptique', // Salles 1-4
-    'Secteur 5-8',
-    'Secteur 9-12B',
+    'Intermédiaire',
+    'Septique',
     'Ophtalmologie',
     'Endoscopie'
 ];
 
 // Couleurs suggérées par secteur
-const SECTOR_COLORS = {
+const SECTOR_COLORS: { [key: string]: string } = {
     'Hyperaseptique': '#3B82F6', // Bleu
-    'Secteur 5-8': '#10B981', // Vert
-    'Secteur 9-12B': '#F97316', // Orange
+    'Intermédiaire': '#10B981', // Vert
+    'Septique': '#F97316', // Orange
     'Ophtalmologie': '#EC4899', // Rose
     'Endoscopie': '#4F46E5' // Bleu roi
 };
@@ -1025,8 +1025,8 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                                         <button
                                                             onClick={() => handleEditClick(room)}
                                                             className={`p-1 ${isReordering
-                                                                    ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
-                                                                    : 'text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400'
+                                                                ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
+                                                                : 'text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400'
                                                                 }`}
                                                             disabled={isReordering}
                                                             title={isReordering ? "Modification désactivée en mode réorganisation" : "Modifier"}
@@ -1036,8 +1036,8 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                                         <button
                                                             onClick={() => handleDeleteClick(room.id)}
                                                             className={`p-1 ${isReordering
-                                                                    ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
-                                                                    : 'text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400'
+                                                                ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
+                                                                : 'text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400'
                                                                 }`}
                                                             disabled={isReordering}
                                                             title={isReordering ? "Suppression désactivée en mode réorganisation" : "Supprimer"}

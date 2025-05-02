@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Bell, Lock, User, Moon, Sun, Globe, Shield, Settings } from 'lucide-react';
 import Link from 'next/link';
 

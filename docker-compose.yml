@@ -7,9 +7,20 @@ services:
       POSTGRES_PASSWORD: mathildanesth_password
       POSTGRES_DB: mathildanesth_db
     ports:
-      - "5432:5432" # Rend la base de données accessible sur le port 5432 de votre Mac
+      - "5433:5432" # Changé de 5432 à 5433 pour éviter le conflit
     volumes:
       - postgres_data:/var/lib/postgresql/data # Stocke les données pour qu'elles persistent
 
+  mongodb:
+    image: mongo:latest
+    container_name: mathildanesth_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=mathildanesth
+
 volumes:
   postgres_data: # Définit le volume pour stocker les données
+  mongodb_data: # Volume pour MongoDB

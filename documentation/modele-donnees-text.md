@@ -26,6 +26,8 @@
 - Relations:
   - UTILISATEUR --o{ AFFECTATION : a
   - UTILISATEUR --o{ CONGE : demande
+  - UTILISATEUR --o{ AFFECTATION_HABITUELLE : a_habituellement
+  - UTILISATEUR --o{ ABSENCE_PLANIFIEE : est_absent
 
 ## Entité CHIRURGIEN
 - **id**: int (PK)
@@ -38,6 +40,8 @@
 - **userId**: int (FK, Optionnel)
 - Relations:
   - CHIRURGIEN --o{ AFFECTATION : intervient_dans
+  - CHIRURGIEN --o{ AFFECTATION_HABITUELLE : a_habituellement
+  - CHIRURGIEN --o{ ABSENCE_PLANIFIEE : est_absent
 
 ## Entité SPECIALITE
 - **id**: int (PK)
@@ -56,6 +60,7 @@
 - **regles_supervision**: json (Règles spécifiques au secteur)
 - Relations:
   - SALLE --o{ AFFECTATION : lieu_de
+  - SALLE --o{ AFFECTATION_HABITUELLE : lieu_habituel_de
 
 ## Entité AFFECTATION
 - **id**: int (PK)
@@ -69,6 +74,8 @@
 - **statut**: enum (Généré auto, Validé, Modifié manuellement)
 - **situation_exceptionnelle**: boolean
 - **commentaire**: string
+- **issueTrame**: boolean
+- **trameId**: int (FK, Si issu d'une trame)
 - **createdAt**: datetime
 - **updatedAt**: datetime
 
@@ -98,13 +105,63 @@
 ## Entité TRAME
 - **id**: int (PK)
 - **nom**: string
+- **description**: string
 - **type**: enum (Bloc, Consultation, Garde)
 - **configuration**: enum (Semaine paire/impaire)
 - **date_debut_validite**: date
 - **date_fin_validite**: date
-- **details**: json (Configuration complète structurée)
+- **isActive**: boolean
+- **createdAt**: datetime
+- **updatedAt**: datetime
 - Relations:
+  - TRAME --o{ AFFECTATION_HABITUELLE : contient
   - TRAME --o{ AFFECTATION : genere
+
+## Entité AFFECTATION_HABITUELLE
+- **id**: int (PK)
+- **trameId**: int (FK)
+- **utilisateur_id**: int (FK, Optionnel)
+- **chirurgien_id**: int (FK, Optionnel)
+- **salle_id**: int (FK, Optionnel)
+- **jour**: enum (Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi, Dimanche)
+- **demi_journee**: enum (Matin, Après-midi)
+- **type_semaine**: enum (Toutes, Paire, Impaire)
+- **date_debut**: date
+- **date_fin**: date (Optionnel)
+- **type_affectation**: string (Bloc, Garde, Astreinte, Consultation)
+- **specialite**: string (Optionnel)
+- **priorite**: int
+- **details**: json (Informations additionnelles)
+- **createdAt**: datetime
+- **updatedAt**: datetime
+- Relations:
+  - AFFECTATION_HABITUELLE --|| UTILISATEUR : concerne
+  - AFFECTATION_HABITUELLE --|| CHIRURGIEN : concerne
+  - AFFECTATION_HABITUELLE --|| SALLE : dans
+  - AFFECTATION_HABITUELLE --|| TRAME : fait_partie_de
+
+## Entité ABSENCE_PLANIFIEE
+- **id**: int (PK)
+- **utilisateur_id**: int (FK, Optionnel)
+- **chirurgien_id**: int (FK, Optionnel)
+- **date_debut**: date
+- **date_fin**: date
+- **type**: enum (Congé, Maladie, Formation, Autre)
+- **type_detail**: string (Optionnel)
+- **impact_planning**: boolean
+- **priorite**: int
+- **commentaire**: string (Optionnel)
+- **statut**: enum (Demandé, Validé, Refusé)
+- **valide_par**: int (FK, Optionnel)
+- **notifier**: boolean
+- **source_import**: string (Optionnel)
+- **documents**: json (Array de chemins)
+- **createdAt**: datetime
+- **updatedAt**: datetime
+- Relations:
+  - ABSENCE_PLANIFIEE --|| UTILISATEUR : concerne
+  - ABSENCE_PLANIFIEE --|| CHIRURGIEN : concerne
+  - ABSENCE_PLANIFIEE --|| UTILISATEUR : validee_par
 
 ## Entité NOTIFICATION
 - **id**: int (PK)

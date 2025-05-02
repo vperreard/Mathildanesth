@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import axios from 'axios';
+import { CalendarSettings } from '../types/event';
+
+// Renommer l'import pour éviter le conflit
+import { UserCalendarSettings as UserCalendarSettingsType } from '../types/event';
 
 export interface UserCalendarSettings {
-    defaultView: 'month' | 'week' | 'day' | 'list';
+    defaultView: string;
     showWeekends: boolean;
     showHolidays: boolean;
     showRejectedLeaves: boolean;
-    colorScheme: 'default' | 'highContrast' | 'colorBlind';
+    colorScheme: string;
     startWeekOn: 'monday' | 'sunday';
     timeFormat: '12h' | '24h';
     notifications: {
@@ -17,88 +21,154 @@ export interface UserCalendarSettings {
     };
 }
 
-export const useCalendarSettings = () => {
+interface UseCalendarSettingsProps {
+    userId: string;
+    initialSettings?: Partial<UserCalendarSettings>;
+}
+
+interface UseCalendarSettingsReturn {
+    settings: UserCalendarSettings;
+    loading: boolean;
+    error: Error | null;
+    updateSettings: (settings: Partial<UserCalendarSettings>) => void;
+    resetSettings: () => void;
+}
+
+// Valeurs par défaut pour les paramètres utilisateur
+const DEFAULT_USER_SETTINGS: UserCalendarSettings = {
+    defaultView: 'month',
+    startWeekOn: 'monday',
+    showWeekends: true,
+    showHolidays: true,
+    showRejectedLeaves: false,
+    colorScheme: 'default',
+    timeFormat: '24h',
+    notifications: {
+        email: true,
+        browser: true,
+        sound: false
+    }
+};
+
+/**
+ * Hook pour gérer les paramètres du calendrier d'un utilisateur
+ * Évite les mises à jour trop fréquentes qui peuvent causer des rechargements complets
+ */
+export const useCalendarSettings = ({
+    userId,
+    initialSettings = {}
+}: UseCalendarSettingsProps): UseCalendarSettingsReturn => {
     const { user } = useAuth();
     const [settings, setSettings] = useState<UserCalendarSettings>({
-        defaultView: 'month',
-        showWeekends: true,
-        showHolidays: true,
-        showRejectedLeaves: false,
-        colorScheme: 'default',
-        startWeekOn: 'monday',
-        timeFormat: '24h',
-        notifications: {
-            email: true,
-            browser: true,
-            sound: false
-        }
+        ...DEFAULT_USER_SETTINGS,
+        ...initialSettings
     });
-    const [isLoading, setIsLoading] = useState(true);
+    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<Error | null>(null);
 
-    // Charger les paramètres au montage du composant
-    useEffect(() => {
-        const loadSettings = async () => {
-            if (!user) return;
+    // Référence pour stocker le timer de debounce
+    const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+    // Charger les paramètres depuis l'API ou localStorage
+    useEffect(() => {
+        const fetchSettings = async () => {
             try {
-                const response = await axios.get(`/api/users/${user.id}/calendar-settings`);
-                if (response.data) {
-                    setSettings(response.data);
+                setLoading(true);
+
+                // Essayer de charger depuis localStorage d'abord
+                const cachedSettings = localStorage.getItem(`calendar-settings-${userId}`);
+                if (cachedSettings) {
+                    const parsedSettings = JSON.parse(cachedSettings);
+                    setSettings(prevSettings => ({
+                        ...DEFAULT_USER_SETTINGS,
+                        ...prevSettings,
+                        ...parsedSettings
+                    }));
+                    setLoading(false);
+                    return;
                 }
-            } catch (error) {
-                console.error('Erreur lors du chargement des paramètres:', error);
-                setError(error instanceof Error ? error : new Error('Erreur inconnue'));
+
+                // Si pas en cache, charger depuis l'API
+                const response = await axios.get(`/api/users/${userId}/calendar-settings`);
+
+                if (response.data) {
+                    setSettings(prevSettings => ({
+                        ...DEFAULT_USER_SETTINGS,
+                        ...prevSettings,
+                        ...response.data
+                    }));
+
+                    // Mettre en cache dans localStorage
+                    localStorage.setItem(`calendar-settings-${userId}`, JSON.stringify(response.data));
+                }
+
+            } catch (err) {
+                console.error('Erreur dans useCalendarSettings:', err);
+                setError(err instanceof Error ? err : new Error('Erreur inconnue'));
             } finally {
-                setIsLoading(false);
+                setLoading(false);
             }
         };
 
-        loadSettings();
-    }, [user]);
+        fetchSettings();
+    }, [userId]);
 
-    // Sauvegarder les paramètres
-    const saveSettings = async (newSettings: Partial<UserCalendarSettings>) => {
-        if (!user) return;
+    // Mettre à jour les paramètres avec debounce pour éviter les rechargements fréquents
+    const updateSettings = useCallback((newSettings: Partial<UserCalendarSettings>) => {
+        // Mettre à jour l'état local immédiatement
+        setSettings(prevSettings => ({
+            ...prevSettings,
+            ...newSettings
+        }));
 
-        try {
-            const updatedSettings = { ...settings, ...newSettings };
-            await axios.put(`/api/users/${user.id}/calendar-settings`, updatedSettings);
-            setSettings(updatedSettings);
-            return true;
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde des paramètres:', error);
-            setError(error instanceof Error ? error : new Error('Erreur inconnue'));
-            return false;
+        // Annuler le timer précédent s'il existe
+        if (updateTimerRef.current) {
+            clearTimeout(updateTimerRef.current);
         }
-    };
 
-    // Mettre à jour un paramètre spécifique
-    const updateSetting = async <K extends keyof UserCalendarSettings>(
-        key: K,
-        value: UserCalendarSettings[K]
-    ) => {
-        return saveSettings({ [key]: value });
-    };
+        // Définir un nouveau timer pour sauvegarder les paramètres
+        updateTimerRef.current = setTimeout(async () => {
+            try {
+                // Récupérer les paramètres les plus récents
+                const currentSettings = {
+                    ...DEFAULT_USER_SETTINGS,
+                    ...settings,
+                    ...newSettings
+                };
 
-    // Mettre à jour les paramètres de notification
-    const updateNotification = async (
-        key: keyof UserCalendarSettings['notifications'],
-        value: boolean
-    ) => {
-        const newNotifications = {
-            ...settings.notifications,
-            [key]: value
-        };
-        return saveSettings({ notifications: newNotifications });
-    };
+                // Mettre à jour dans localStorage pour éviter les appels API fréquents
+                localStorage.setItem(`calendar-settings-${userId}`, JSON.stringify(currentSettings));
+
+                // Envoyer à l'API de manière asynchrone
+                await axios.put(`/api/users/${userId}/calendar-settings`, currentSettings);
+
+            } catch (err) {
+                console.error('Erreur lors de la mise à jour des paramètres:', err);
+                setError(err instanceof Error ? err : new Error('Erreur inconnue'));
+            }
+        }, 1000); // Délai de 1 seconde pour le debounce
+
+    }, [userId, settings]);
+
+    // Réinitialiser les paramètres
+    const resetSettings = useCallback(() => {
+        setSettings(DEFAULT_USER_SETTINGS);
+
+        // Effacer du localStorage
+        localStorage.removeItem(`calendar-settings-${userId}`);
+
+        // Envoyer à l'API
+        axios.delete(`/api/users/${userId}/calendar-settings`)
+            .catch(err => {
+                console.error('Erreur lors de la réinitialisation des paramètres:', err);
+            });
+    }, [userId]);
 
     return {
         settings,
-        isLoading,
+        loading,
         error,
-        saveSettings,
-        updateSetting,
-        updateNotification
+        updateSettings,
+        resetSettings
     };
 }; 

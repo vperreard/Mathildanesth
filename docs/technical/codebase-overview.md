@@ -184,6 +184,25 @@
         }
         ```
       - `LeaveRequestForm.tsx` : Formulaire spécifique pour la création/modification d'une *demande* de congé (utilise `useLeave`, `useConflictDetection`).
+      - `LeaveConflictAlert.tsx` : Composant qui affiche les alertes pour les conflits de congés détectés avec styles appropriés selon la sévérité.
+        ```typescript
+        // Props
+        interface LeaveConflictAlertProps {
+          conflicts: LeaveConflict[];
+          onResolve?: (conflictId: string) => void;
+          onIgnore?: (conflictId: string) => void;
+          showDetails?: boolean;
+          showActions?: boolean;
+          className?: string;
+        }
+        ```
+      - `LeaveConflictDashboard.tsx` : Tableau de bord d'analyse des conflits de congés avec graphiques et statistiques.
+        ```typescript
+        // Props
+        interface LeaveConflictDashboardProps {
+          className?: string;
+        }
+        ```
     - `hooks/` : Hooks spécifiques aux congés
       - `useLeave.ts` : Hook principal pour gérer l'état et les actions sur un congé individuel ou une liste.
         ```typescript
@@ -207,41 +226,139 @@
           getAllLeaves: () => Promise<Leave[]>;
         }
         ```
-      - `useConflictDetection.ts` : Hook pour vérifier et gérer les conflits liés à une période de congé.
+      - `useConflictDetection.ts` : Hook pour la détection des conflits dans les demandes de congés.
         ```typescript
-        // Signature du hook après améliorations
-        function useConflictDetection({ 
-          userId 
-        }: UseConflictDetectionProps): {
+        // Interface du hook
+        export interface UseConflictDetectionReturn {
           conflicts: LeaveConflict[];
           hasBlockingConflicts: boolean;
           loading: boolean;
           error: Error | null;
-          validateDates: (startDate: Date | null, endDate: Date | null) => boolean;
-          checkConflicts: (startDate: Date, endDate: Date, existingLeaveId?: string) => Promise<ConflictCheckResult>;
+          checkConflicts: (startDate: Date, endDate: Date, leaveId?: string) => Promise<ConflictCheckResult>;
           getConflictsByType: (type: ConflictType) => LeaveConflict[];
           getBlockingConflicts: () => LeaveConflict[];
           getWarningConflicts: () => LeaveConflict[];
           getInfoConflicts: () => LeaveConflict[];
-          resolveConflict: (id: string) => void;
+          resolveConflict: (conflictId: string) => void;
           resetConflicts: () => void;
+          validateDates: (startDate: Date | null, endDate: Date | null) => boolean;
         }
         ```
-      - `useLeaveListFilteringSorting.ts`: Hook pour trier et filtrer une liste de congés (`LeaveWithUser[]`) selon des critères spécifiés.
+      - `useLeaveConflictNotification.ts` : Hook qui s'intègre avec useConflictDetection pour la gestion des notifications de conflits.
         ```typescript
-        // Signature du hook
-        function useLeaveListFilteringSorting({
-          leaves: LeaveWithUser[],
-          filter: FilterValues,
-          sort: SortState
-        }): LeaveWithUser[];
+        // Interface du hook
+        export interface UseLeaveConflictNotificationReturn {
+          // Méthodes de notification
+          notifyConflict: (conflict: LeaveConflict, displayType?: NotificationDisplayType) => void;
+          notifyConflicts: (conflicts: LeaveConflict[], displayType?: NotificationDisplayType) => void;
+          notifyCurrentConflicts: (displayType?: NotificationDisplayType) => void;
+          
+          // Méthodes pour afficher des alertes spécifiques
+          showBlockingAlert: (conflicts?: LeaveConflict[]) => JSX.Element | null;
+          showWarningAlert: (conflicts?: LeaveConflict[]) => JSX.Element | null;
+          showInfoAlert: (conflicts?: LeaveConflict[]) => JSX.Element | null;
+          
+          // Formatage des messages
+          formatConflictMessage: (conflict: LeaveConflict) => string;
+          formatConflictTitle: (conflict: LeaveConflict) => string;
+          
+          // État des notifications
+          notificationsSent: boolean;
+          resetNotifications: () => void;
+          
+          // Accès au hook de détection de conflits
+          conflictDetection: UseConflictDetectionReturn;
+        }
+        ```
+      - `useLeaveConflictAnalytics.ts` : Hook pour l'analyse statistique des conflits de congés.
+        ```typescript
+        // Interface du hook
+        export interface UseLeaveConflictAnalyticsReturn {
+          // Données et états
+          report: ConflictAnalyticsReport | null;
+          conflicts: LeaveConflict[];
+          leaves: Leave[];
+          users: User[];
+          departments: Department[];
+          loading: boolean;
+          error: Error | null;
+          
+          // Filtrage et chargement
+          filter: AnalyticsFilter;
+          setFilter: (filter: AnalyticsFilter) => void;
+          loadData: () => Promise<void>;
+          refreshReport: () => void;
+          
+          // Analyse
+          getConflictRatio: (departmentId?: string) => number;
+          getConflictTrendForPeriod: (startDate: Date, endDate: Date) => any[];
+          getTopConflictTypes: (limit?: number) => Array<{type: ConflictType, count: number}>;
+          getMostCriticalPeriod: () => string | null;
+          
+          // Export
+          exportReportAsCSV: () => string;
+        }
         ```
     - `services/` : Services liés aux congés
-      - `leaveService.ts` : Fonctions pour interagir avec l'API des congés (CRUD, workflow, vérifications).
-      - `leaveCalculator.ts` : Logique de calcul des jours décomptés selon le planning.
-      - `notificationService.ts` : (Semble déplacé, potentiellement un service global ? À vérifier)
+      - `leaveService.ts` : Service principal pour les opérations CRUD sur les congés.
+      - `conflictDetectionService.ts` : Service pour la détection des conflits dans les demandes de congés.
+      - `leaveConflictNotificationService.ts` : Service qui gère les notifications pour les conflits de congés.
+        ```typescript
+        // Méthodes principales
+        export class LeaveConflictNotificationService {
+          // Génère une notification formatée pour un conflit
+          public generateNotificationTemplate(conflict: LeaveConflict, locale?: string): NotificationTemplate;
+          
+          // Envoie une notification par email pour un conflit
+          public async sendEmailNotification(conflict: LeaveConflict, userIds: string[], locale?: string): Promise<boolean>;
+          
+          // Envoie une notification dans l'interface pour un conflit
+          public async sendUINotification(conflict: LeaveConflict, userIds: string[], locale?: string): Promise<boolean>;
+          
+          // Notifie tous les utilisateurs concernés par un conflit (UI et email)
+          public async notifyConflict(conflict: LeaveConflict, additionalUserIds?: string[], locale?: string): Promise<boolean>;
+          
+          // Notifie les utilisateurs concernés par un ensemble de conflits
+          public async notifyConflicts(conflicts: LeaveConflict[], additionalUserIds?: string[], locale?: string): Promise<boolean>;
+        }
+        ```
+      - `leaveConflictAnalyticsService.ts` : Service d'analyse des conflits de congés.
+        ```typescript
+        // Méthodes principales
+        export class LeaveConflictAnalyticsService {
+          // Génère un rapport d'analyse complet des conflits
+          public generateAnalyticsReport(
+              conflicts: LeaveConflict[],
+              leaves: Leave[],
+              users: User[],
+              departments: Department[],
+              filter?: AnalyticsFilter
+          ): ConflictAnalyticsReport;
+          
+          // Génère un rapport spécifique pour un département
+          public generateDepartmentReport(
+              conflicts: LeaveConflict[],
+              leaves: Leave[],
+              users: User[],
+              departments: Department[],
+              departmentId: string
+          ): ConflictAnalyticsReport;
+          
+          // Génère un rapport pour une période spécifique
+          public generatePeriodReport(
+              conflicts: LeaveConflict[],
+              leaves: Leave[],
+              users: User[],
+              departments: Department[],
+              startDate: Date,
+              endDate: Date
+          ): ConflictAnalyticsReport;
+          
+          // Exporte les données au format CSV
+          public exportReportAsCSV(report: ConflictAnalyticsReport): string;
+        }
+        ```
     - `store/` : État global des congés
-      - `leaveStore.ts` : Store Zustand/Redux pour gérer l'état global lié aux congés.
     - `types/` : Types et interfaces des congés
       - `leave.ts`
       - `conflict.ts`
@@ -686,5 +803,55 @@ export function useConflictDetection({ userId }: UseConflictDetectionProps) {
 Cette intégration garantit un flux de validation robuste et permet d'éviter des vérifications inutiles lorsque les données de base ne sont pas valides.
 
 ### Interfaces Principales
+
+##### Service de détection de conflits
+Le service `conflictDetectionService.ts` est responsable de l'identification et de la gestion des conflits potentiels dans les demandes de congés :
+
+- **Détection multi-critères** : Analyse les demandes selon différentes règles (minimum d'effectif, compétences critiques, etc.)
+- **Sévérité configurable** : Catégorisation des conflits en niveaux d'importance (information, avertissement, bloquant)
+- **Règles paramétrables** : Configuration flexible permettant d'adapter les règles aux besoins de l'organisation
+- **Intégration contextuelle** : Utilisation des données d'équipe et d'utilisateur pour des vérifications complètes
+- **Gestion des règles** : Sauvegarde et chargement des configurations de règles depuis le service de configuration
+
+Les principaux types de conflits détectés incluent :
+- Chevauchements avec des congés existants
+- Taux d'absence trop élevé dans l'équipe
+- Absence de remplaçant pour un rôle critique
+- Proximité de deadlines importantes
+- Ponts autour des jours fériés
+- Conflits avec les réunions récurrentes importantes
+- Périodes de charge de travail élevée
+
+```typescript
+// Exemple d'utilisation
+const conflictService = new ConflictDetectionService(
+  userService,
+  teamService,
+  configService,
+  initialRules
+);
+
+// Configuration dynamique des règles
+conflictService.setRules({
+  maxTeamAbsencePercentage: 30,
+  minDaysBeforeDeadline: 5,
+  criticalRolesRequireBackup: true
+});
+
+// Vérification des conflits
+const result = await conflictService.checkConflicts(leaveRequest);
+
+if (result.hasBlockers) {
+  // Traitement des conflits bloquants
+} else if (result.hasConflicts) {
+  // Présentation des avertissements
+} else {
+  // Validation automatique possible
+}
+```
+
+Le service est complété par le hook `useConflictDetection` qui intègre la validation de dates avec le hook `useDateValidation` pour un système complet de vérification des demandes de congés.
+
+Voir `src/modules/leaves/types/conflict.ts` pour les définitions des types associés et `src/modules/leaves/services/conflictDetectionService.ts` pour l'implémentation complète.
 
 // ... existing code ... 

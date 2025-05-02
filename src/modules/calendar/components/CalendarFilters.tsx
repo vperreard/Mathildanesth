@@ -192,8 +192,8 @@ export const CalendarFiltersComponent: React.FC<CalendarFiltersProps> = ({
                             key={type}
                             onClick={() => handleEventTypeChange(type)}
                             className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${eventTypesState.includes(type)
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-gray-100 text-gray-800'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-gray-100 text-gray-800'
                                 }`}
                         >
                             {getEventTypeLabel(type)}
@@ -386,6 +386,10 @@ function getEventTypeLabel(type: CalendarEventType): string {
             return 'Astreintes';
         case CalendarEventType.ASSIGNMENT:
             return 'Affectations';
+        case CalendarEventType.MEETING:
+            return 'Rendez-vous';
+        case CalendarEventType.TRAINING:
+            return 'Formation';
         default:
             return 'Événement';
     }

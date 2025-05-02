@@ -74,7 +74,7 @@ export async function seedSpecialties() {
 }
 
 // Exécuter si appelé directement
-if (require.main === module) {
+if (import.meta.url === import.meta.resolve('./seedSpecialties.js')) {
     seedSpecialties()
         .then(() => process.exit(0))
         .catch(error => {

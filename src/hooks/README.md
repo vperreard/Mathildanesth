@@ -1,383 +1,254 @@
 # Documentation du système de validation des dates
 
-## Vue d'ensemble
+## Introduction
 
 Le hook `useDateValidation` est un système centralisé et robuste pour la validation des dates et des plages de dates dans l'application Mathildanesth. Il gère de nombreux scénarios de validation, notamment:
 
 - Validation des dates passées/futures
-- Vérification des plages (début/fin cohérentes)
-- Gestion des jours fériés et week-ends
-- Vérification des règles métier (délais minimums, durées, etc.)
-- Détection des conflits entre plannings
-- Périodes bloquées (blackout)
-- Gestion des jours ouvrables
-- Quotas de jours disponibles
-- Validation des demandes de congés
-- Validation des affectations de garde
-- Détection des conflits d'emploi du temps
+- Vérification de cohérence des plages de dates
+- Validation des jours spécifiques (week-ends, jours fériés)
+- Gestion des périodes non disponibles (blackout)
+- Vérification des quotas disponibles
+- Messages d'erreurs standardisés
 
-## Installation
+Ce système a été conçu pour être utilisé dans tous les composants nécessitant une validation de dates, afin de centraliser la logique et d'assurer une expérience utilisateur cohérente.
 
-Le hook est déjà intégré dans le projet. Il utilise les dépendances suivantes:
-- `date-fns` pour la manipulation des dates
-- `@testing-library/react` pour les tests
+## Utilisation du hook
 
-## Utilisation de base
+### Importation
 
-### Importer le hook
-
-```typescript
+```tsx
 import { useDateValidation, DateValidationErrorType } from '../hooks/useDateValidation';
 ```
 
-### Utiliser le hook dans un composant
+### Initialisation
 
-```typescript
-function MonFormulaire() {
-  const { 
-    validateDate, 
-    validateDateRange, 
-    validateOverlap, 
-    getErrorMessage, 
-    hasError 
-  } = useDateValidation();
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Valider une date simple
-    const dateValide = validateDate(dateDebut, 'dateDebut', { 
-      required: true,
-      disallowWeekends: true 
-    });
-    
-    // Valider une plage de dates
-    const plageValide = validateDateRange(
-      dateDebut,
-      dateFin,
-      'dateDebut',
-      'dateFin',
-      { 
-        minDuration: 2,
-        maxDuration: 30
-      }
-    );
-    
-    if (dateValide && plageValide) {
-      // Soumettre le formulaire
-    }
-  };
-  
-  return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label>Date de début</label>
-        <DatePicker value={dateDebut} onChange={setDateDebut} />
-        {hasError('dateDebut') && (
-          <p className="error">{getErrorMessage('dateDebut')}</p>
-        )}
-      </div>
-      
-      <div>
-        <label>Date de fin</label>
-        <DatePicker value={dateFin} onChange={setDateFin} />
-        {hasError('dateFin') && (
-          <p className="error">{getErrorMessage('dateFin')}</p>
-        )}
-      </div>
-      
-      <button type="submit">Valider</button>
-    </form>
-  );
-}
+```tsx
+const {
+  validateDate,
+  validateDateRange,
+  getErrorMessage,
+  hasError,
+  resetErrors
+} = useDateValidation();
 ```
 
-## API
+### Validation d'une date unique
 
-### Hook `useDateValidation`
-
-#### Méthodes retournées
-
-| Méthode | Description |
-|---------|-------------|
-| `validateDate(date, fieldName, options)` | Valide une date unique |
-| `validateDateRange(startDate, endDate, startFieldName, endFieldName, options)` | Valide une plage de dates |
-| `validateOverlap(newRange, existingRanges, fieldName)` | Vérifie si une plage chevauche d'autres plages existantes |
-| `validateLeaveRequest(start, end, userId, options)` | Valide une demande de congés |
-| `validateShiftAssignment(date, shift, userId, options)` | Valide une affectation de garde |
-| `detectConflicts(userId, date, type, existingEvents)` | Détecte les conflits pour un utilisateur à une date donnée |
-| `getErrorMessage(fieldName)` | Récupère le message d'erreur pour un champ |
-| `getErrorDetails(fieldName)` | Récupère les détails supplémentaires de l'erreur |
-| `getErrorType(fieldName)` | Récupère le type d'erreur pour un champ |
-| `hasError(fieldName)` | Vérifie si un champ a une erreur |
-| `resetErrors()` | Réinitialise toutes les erreurs |
-| `setContext(context)` | Définit le contexte de validation (ex: jours utilisés) |
-| `resetContext()` | Réinitialise le contexte de validation |
-| `resetAll()` | Réinitialise à la fois les erreurs et le contexte |
-
-#### Options de validation
-
-L'objet `options` permet de personnaliser les règles de validation:
-
-| Option | Type | Description |
-|--------|------|-------------|
-| `required` | boolean | Indique si la date est obligatoire |
-| `allowPastDates` | boolean | Autorise les dates dans le passé |
-| `allowFutureDates` | boolean | Autorise les dates dans le futur |
-| `minDate` | Date | Date minimale autorisée |
-| `maxDate` | Date | Date maximale autorisée |
-| `disallowWeekends` | boolean | Interdit les dates de week-end |
-| `onlyBusinessDays` | boolean | N'autorise que les jours ouvrables |
-| `holidays` | Date[] | Liste des jours fériés à exclure |
-| `minDuration` | number | Durée minimale (en jours) |
-| `maxDuration` | number | Durée maximale (en jours) |
-| `format` | string | Format d'affichage des dates dans les messages d'erreur |
-| `minAdvanceNotice` | number | Nombre minimum de jours à l'avance pour la réservation |
-| `maxAdvanceBooking` | number | Nombre maximum de jours à l'avance pour la réservation |
-| `blackoutPeriods` | DateRange[] | Périodes bloquées |
-| `availableDaysPerYear` | number | Nombre de jours disponibles par an |
-| `businessDaysOnly` | boolean | Compter uniquement les jours ouvrables pour les durées |
-
-### Types d'erreurs
-
-L'enum `DateValidationErrorType` contient tous les types d'erreurs possibles:
-
-```typescript
-enum DateValidationErrorType {
-    REQUIRED = 'required',
-    PAST_DATE = 'past_date',
-    FUTURE_DATE = 'future_date',
-    INVALID_FORMAT = 'invalid_format',
-    START_AFTER_END = 'start_after_end',
-    OVERLAPPING = 'overlapping',
-    WEEKEND = 'weekend',
-    HOLIDAY = 'holiday',
-    MAX_DURATION = 'max_duration',
-    MIN_DURATION = 'min_duration',
-    INVALID_RANGE = 'invalid_range',
-    MIN_ADVANCE_NOTICE = 'min_advance_notice',
-    MAX_ADVANCE_BOOKING = 'max_advance_booking',
-    BLACKOUT_PERIOD = 'blackout_period',
-    EXCEEDS_AVAILABLE_DAYS = 'exceeds_available_days',
-    INVALID_BUSINESS_DAYS = 'invalid_business_days'
-}
-```
-
-### Contexte de validation
-
-Le hook maintient un contexte de validation accessible via `context`:
-
-```typescript
-const { context } = useDateValidation();
-
-// Contexte disponible
-console.log(context.usedDays); // Jours déjà utilisés
-console.log(context.remainingDays); // Jours restants
-console.log(context.conflicts); // Conflits détectés
-console.log(context.businessDaysCount); // Nombre de jours ouvrables
-console.log(context.totalDaysCount); // Nombre total de jours
-```
-
-## Fonctions utilitaires exportées
-
-Le module exporte également plusieurs fonctions utilitaires:
-
-| Fonction | Description |
-|----------|-------------|
-| `formatDate(date, format?)` | Formate une date selon le format spécifié |
-| `isValidDateString(dateString)` | Vérifie si une chaîne est une date valide |
-| `normalizeDate(date)` | Normalise une date ou une chaîne en objet Date |
-| `isHoliday(date, holidays)` | Vérifie si une date est un jour férié |
-| `isWeekend(date)` | Vérifie si une date est un week-end |
-| `isBusinessDay(date, holidays)` | Vérifie si une date est un jour ouvrable |
-| `calculateDurationInDays(startDate, endDate)` | Calcule la durée entre deux dates en jours |
-| `calculateBusinessDays(startDate, endDate, holidays)` | Calcule la durée en jours ouvrables |
-| `datesOverlap(range1, range2)` | Vérifie si deux plages se chevauchent |
-| `findOverlaps(range, existingRanges)` | Trouve les chevauchements entre une plage et une liste de plages |
-| `isInBlackoutPeriod(date, blackoutPeriods)` | Vérifie si une date est dans une période bloquée |
-| `isRangeInBlackoutPeriod(range, blackoutPeriods)` | Vérifie si une plage chevauche des périodes bloquées |
-
-## Exemples d'utilisation avancée
-
-### Validation avec délai minimum d'avertissement
-
-```typescript
-const isValid = validateDate(date, 'dateReservation', { 
-  minAdvanceNotice: 3 // Doit réserver au moins 3 jours à l'avance
+```tsx
+const dateValide = validateDate(dateDebut, 'dateDebut', {
+  required: true,
+  allowPastDates: false,
+  minAdvanceNotice: 3 // 3 jours minimum à l'avance
 });
 ```
 
-### Validation de plage avec jours ouvrables uniquement
+### Validation d'une plage de dates
 
-```typescript
-const isValid = validateDateRange(
-  dateDebut, 
-  dateFin, 
-  'dateDebut', 
-  'dateFin', 
-  {
-    businessDaysOnly: true,
-    holidays: joursFeries,
-    minDuration: 5 // 5 jours ouvrables minimum
-  }
-);
-```
-
-### Vérification des conflits de planning
-
-```typescript
-const nouvelleReservation = {
-  start: new Date(2023, 5, 1),
-  end: new Date(2023, 5, 5)
-};
-
-const reservationsExistantes = [
-  { start: new Date(2023, 5, 3), end: new Date(2023, 5, 8), label: "Réunion équipe" },
-  { start: new Date(2023, 5, 10), end: new Date(2023, 5, 15), label: "Formation" }
-];
-
-const isValid = validateOverlap(nouvelleReservation, reservationsExistantes, 'reservation');
-
-if (!isValid) {
-  // On peut accéder aux conflits via le contexte
-  console.log(context.conflicts);
-}
-```
-
-### Validation avec quota de jours disponibles
-
-```typescript
-// Définir le contexte avec les jours déjà utilisés
-setContext({ usedDays: 10 });
-
-const isValid = validateDateRange(
-  dateDebut, 
-  dateFin, 
-  'dateDebut', 
-  'dateFin', 
-  {
-    availableDaysPerYear: 25 // 25 jours de congés par an
-  }
-);
-
-// Si valide, on peut accéder aux jours restants
-console.log(context.remainingDays);
-```
-
-### Validation des demandes de congés
-
-```typescript
-// Définir le contexte avec les jours déjà utilisés
-setContext({ usedDays: 15 });
-
-const isValid = validateLeaveRequest(
+```tsx
+const plageValide = validateDateRange(
   dateDebut,
   dateFin,
-  'user123',
+  'dateDebut',
+  'dateFin',
   {
-    availableDaysPerYear: 25, // 25 jours de congés par an
-    minAdvanceNotice: 3, // 3 jours minimum d'avance pour la demande
-    businessDaysOnly: true, // Ne compter que les jours ouvrables
-    holidays: joursFeries
+    required: true,
+    minDuration: 1,
+    maxDuration: 30
   }
 );
-
-// Si valide, on peut accéder aux jours restants
-console.log(context.remainingDays);
 ```
 
-### Validation des affectations de garde
+### Vérification et affichage des erreurs
 
-```typescript
-// Périodes de repos obligatoire après des gardes précédentes
-const periodesRepos = [
-  { 
-    start: new Date(2023, 5, 1), 
-    end: new Date(2023, 5, 2), 
-    type: 'rest_period',
-    label: 'Repos après garde user123' 
-  }
-];
-
-const isValid = validateShiftAssignment(
-  new Date(2023, 5, 2), // Date de la nouvelle garde
-  'nuit',
-  'user123',
-  {
-    blackoutPeriods: periodesRepos
-  }
-);
-
-if (!isValid) {
-  // La garde ne peut pas être assignée pendant une période de repos
-  console.log(getErrorMessage(`shift_nuit_user123`));
+```tsx
+if (hasError('dateDebut')) {
+  // Obtenir le message d'erreur personnalisé
+  const message = getErrorMessage('dateDebut');
+  
+  // Afficher l'erreur
+  <p className="text-red-500">{message}</p>
 }
 ```
 
-### Détection des conflits d'emploi du temps
+## Options de validation
+
+Le hook accepte de nombreuses options pour personnaliser la validation:
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `required` | boolean | Indique si le champ est obligatoire |
+| `allowPastDates` | boolean | Autorise ou non les dates dans le passé |
+| `allowFutureDates` | boolean | Autorise ou non les dates dans le futur |
+| `disallowWeekends` | boolean | Interdit les week-ends |
+| `onlyBusinessDays` | boolean | Accepte uniquement les jours ouvrables |
+| `holidays` | Date[] | Liste des jours fériés à exclure |
+| `minDuration` | number | Durée minimale en jours (pour les plages) |
+| `maxDuration` | number | Durée maximale en jours (pour les plages) |
+| `minAdvanceNotice` | number | Nombre de jours minimal avant la date actuelle |
+| `maxAdvanceBooking` | number | Nombre maximum de jours dans le futur |
+| `blackoutPeriods` | DateRange[] | Périodes bloquées/indisponibles |
+| `availableDaysPerYear` | number | Quota annuel disponible (congés, etc.) |
+| `businessDaysOnly` | boolean | Compte uniquement les jours ouvrables |
+
+## Fonctions principales
+
+| Fonction | Description |
+|----------|-------------|
+| `validateDate(date, fieldName, options)` | Valide une date unique |
+| `validateDateRange(startDate, endDate, startFieldName, endFieldName, options)` | Valide une plage de dates |
+| `validateLeaveRequest(start, end, userId, options)` | Valide une demande de congés |
+| `validateShiftAssignment(date, shift, userId, options)` | Valide une affectation de garde |
+| `validateOverlap(newRange, existingRanges, fieldName)` | Vérifie les chevauchements avec des plages existantes |
+| `detectConflicts(userId, date, type, existingEvents)` | Détecte les conflits avec des événements existants |
+
+## Gestion des erreurs
+
+Les erreurs sont identifiées par des types standardisés:
 
 ```typescript
-// Événements existants dans le planning
-const evenementsExistants = [
-  { 
-    start: new Date(2023, 5, 1), 
-    end: new Date(2023, 5, 5),
-    type: 'leave_user123',
-    label: 'Congés user123' 
-  },
-  { 
-    start: new Date(2023, 5, 10), 
-    end: new Date(2023, 5, 10),
-    type: 'shift_user123',
-    label: 'Garde jour user123' 
-  }
-];
-
-// Vérifier si l'utilisateur peut être assigné à une date spécifique
-const isValid = detectConflicts(
-  'user123',
-  new Date(2023, 5, 3),
-  'meeting',
-  evenementsExistants
-);
-
-if (!isValid) {
-  // Il y a un conflit avec un événement existant
-  console.log(context.conflicts);
+enum DateValidationErrorType {
+  REQUIRED = 'required',
+  PAST_DATE = 'past_date',
+  FUTURE_DATE = 'future_date',
+  INVALID_FORMAT = 'invalid_format',
+  START_AFTER_END = 'start_after_end',
+  OVERLAPPING = 'overlapping',
+  WEEKEND = 'weekend',
+  HOLIDAY = 'holiday',
+  MAX_DURATION = 'max_duration',
+  MIN_DURATION = 'min_duration',
+  // ... et plus
 }
 ```
 
-## Tests
+### Fonctions utilitaires pour les erreurs
 
-Le système est entièrement testé. Pour exécuter les tests:
+| Fonction | Description |
+|----------|-------------|
+| `getErrorMessage(fieldName)` | Récupère le message d'erreur pour un champ |
+| `getErrorType(fieldName)` | Récupère le type d'erreur pour un champ |
+| `getErrorDetails(fieldName)` | Récupère les détails additionnels de l'erreur |
+| `hasError(fieldName)` | Vérifie si un champ a une erreur |
+| `resetErrors()` | Réinitialise toutes les erreurs |
 
-```bash
-npm test
+## Exemples d'intégration
+
+### Formulaire de réservation
+
+```tsx
+// Dans un formulaire
+const { validateDate, validateDateRange, hasError, getErrorMessage } = useDateValidation();
+
+const handleDateChange = (e) => {
+  const date = new Date(e.target.value);
+  
+  const isValid = validateDate(date, 'dateReservation', {
+    required: true,
+    allowPastDates: false,
+    minAdvanceNotice: 2
+  });
+  
+  if (isValid) {
+    // Mettre à jour le state ou autre logique
+  }
+};
+
+// Dans le rendu
+<input 
+  type="date" 
+  onChange={handleDateChange}
+  className={hasError('dateReservation') ? 'border-red-500' : 'border-gray-300'}
+/>
+{hasError('dateReservation') && (
+  <p className="text-red-500">{getErrorMessage('dateReservation')}</p>
+)}
 ```
 
-Les tests couvrent tous les scénarios de validation:
-- Validation des dates individuelles
-- Validation des plages de dates
-- Vérification des chevauchements
-- Gestion des périodes bloquées
-- Calcul des jours ouvrables
-- Validation des quotas de jours disponibles
-- Validation des demandes de congés
-- Validation des affectations de garde
-- Détection des conflits d'emploi du temps
-- Etc.
+### Validation de plage de dates pour congés
+
+```tsx
+const handleSubmit = (e) => {
+  e.preventDefault();
+  
+  const isValid = validateDateRange(
+    startDate,
+    endDate,
+    'dateDebut', 
+    'dateFin',
+    {
+      required: true,
+      allowPastDates: false,
+      minDuration: 1,
+      maxDuration: 30,
+      minAdvanceNotice: 3,
+      blackoutPeriods: periodesIndisponibles
+    }
+  );
+  
+  if (isValid) {
+    // Soumission du formulaire
+    submitForm();
+  }
+};
+```
+
+### Validation de plage de dates pour export de calendrier
+
+```tsx
+const handleExport = () => {
+  const isValid = validateDateRange(
+    startDate,
+    endDate,
+    'exportStartDate',
+    'exportEndDate',
+    {
+      required: true,
+      allowPastDates: true, // Permettre l'export de données historiques
+      maxDuration: 365 // Limiter à un an
+    }
+  );
+  
+  if (isValid) {
+    // Procéder à l'export
+    exportCalendar();
+  }
+};
+```
 
 ## Bonnes pratiques
 
+1. **Validation en temps réel**: Utilisez le hook pour valider les dates dès qu'elles sont modifiées.
+2. **Réutilisation du contexte**: Utilisez `setContext` pour partager des informations entre plusieurs validations.
+3. **Gestion des erreurs**: Affichez toujours les erreurs au bon endroit dans l'interface.
+4. **Validation à la soumission**: Vérifiez toujours la validité avant de soumettre un formulaire.
+5. **Nommage cohérent**: Utilisez des noms de champs cohérents dans toute l'application.
+
+## Architecture technique
+
+Le système de validation de dates est construit autour de plusieurs éléments clés:
+
+- Validation des dates individuelles
+- Validation des plages de dates
+- Gestion d'un contexte partagé
+- Détection de chevauchements
+- Calcul de durées (totales et jours ouvrés)
+- Messages d'erreur standardisés
+- Intégration avec le système global de gestion d'erreurs
+
+## Conseils de débogage
+
+Si vous rencontrez des problèmes avec la validation:
+
+1. Vérifiez que vous passez le bon format de date (objet Date ou chaîne)
+2. Inspectez les erreurs avec `console.log(getErrorType('fieldName'))`
+3. Assurez-vous que les noms de champs sont uniques
+4. Utilisez `resetErrors()` avant de démarrer une nouvelle validation
+
+## Conseils pour les développeurs
+
 1. **Nommez clairement vos champs**: Utilisez des noms explicites pour les champs dans les appels à `validateDate` et `validateDateRange`.
-2. **Personnalisez les messages**: Les messages d'erreur sont générés automatiquement mais peuvent être personnalisés via l'interface.
-3. **Utilisez le contexte**: Le contexte de validation permet de partager des informations entre les différentes validations.
-4. **Réinitialisez quand nécessaire**: Utilisez `resetErrors()` lors du chargement initial ou après des soumissions réussies.
-5. **Vérifiez les détails**: Utilisez `getErrorDetails()` pour accéder aux détails supplémentaires des erreurs.
-
-## Évolutions futures
-
-- Support des fuseaux horaires
-- Règles de validation personnalisées
-- Support des répétitions (événements récurrents)
-- Intégration avec des calendriers externes 
+2. **Centralisez la logique métier**: Utilisez les fonctions spécialisées comme `validateLeaveRequest` pour centraliser la logique métier.
+3. **Évitez la duplication**: Ne réimplémentez pas la logique de validation, utilisez ce hook.
+4. **Testez les cas limites**: Couvrez tous les cas limites dans vos tests unitaires.
+5. **Personnalisez les options**: Adaptez les options à chaque cas d'utilisation spécifique. 

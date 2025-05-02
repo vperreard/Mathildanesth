@@ -1,14 +1,17 @@
 import { User } from '../../../types/user';
 
 /**
- * Types de fréquence de travail
+ * Types et interfaces pour la gestion des emplois du temps
+ */
+
+/**
+ * Fréquence de travail
  */
 export enum WorkFrequency {
     FULL_TIME = 'FULL_TIME',           // Temps plein
-    PART_TIME = 'PART_TIME',           // Temps partiel
-    ALTERNATE_WEEKS = 'ALTERNATE_WEEKS', // Alternance semaines paires/impaires
-    ALTERNATE_MONTHS = 'ALTERNATE_MONTHS', // Alternance mensuelle
-    CUSTOM = 'CUSTOM'                  // Configuration personnalisée
+    ALTERNATE_WEEKS = 'ALTERNATE_WEEKS', // Alternance de semaines
+    ALTERNATE_MONTHS = 'ALTERNATE_MONTHS', // Alternance de mois
+    CUSTOM = 'CUSTOM'                  // Planning personnalisé
 }
 
 /**
@@ -25,12 +28,12 @@ export enum Weekday {
 }
 
 /**
- * Type de semaine pour alternance
+ * Type de semaine
  */
 export enum WeekType {
-    EVEN = 'EVEN',    // Semaine paire
-    ODD = 'ODD',      // Semaine impaire
-    BOTH = 'BOTH'     // Les deux types de semaine
+    EVEN = 'EVEN',   // Semaines paires
+    ODD = 'ODD',     // Semaines impaires
+    BOTH = 'BOTH'    // Les deux types de semaines
 }
 
 /**
@@ -43,45 +46,31 @@ export enum MonthType {
 }
 
 /**
- * Configuration de planning de travail
+ * Configuration de planning personnalisé
+ */
+export interface CustomSchedule {
+    evenWeeks?: number[];  // Jours travaillés en semaines paires (1-7, 1=lundi)
+    oddWeeks?: number[];   // Jours travaillés en semaines impaires
+    specificDays?: string[]; // Jours spécifiques au format YYYY-MM-DD
+}
+
+/**
+ * Emploi du temps d'un utilisateur
  */
 export interface WorkSchedule {
-    id: string;
-    userId: string;
-    user?: User;
+    id: string | number;
+    userId: number;
     frequency: WorkFrequency;
-
-    // Pour temps partiel
-    workingTimePercentage?: number; // ex: 50 pour mi-temps
-
-    // Jours travaillés spécifiques
-    workingDays?: Weekday[];
-
-    // Pour alternance de semaines
-    weekType?: WeekType;
-
-    // Pour alternance de mois
-    monthType?: MonthType;
-
-    // Configurations personnalisées (jours spécifiques)
-    customSchedule?: {
-        evenWeeks?: Weekday[];
-        oddWeeks?: Weekday[];
-    };
-
-    // Congés annuels (proportionnels au temps de travail)
-    annualLeaveAllowance: number; // Nombre de jours de congés annuels
-
-    // Date de début et de fin de validité du planning
-    validFrom: Date;
-    validTo?: Date; // Optionnel si planning toujours valide
-
-    // Statut du planning
+    weekType: WeekType;
+    workingDays: number[];  // Jours travaillés (1-7, 1=lundi)
+    workingTimePercentage: number;
+    annualLeaveAllowance: number;
     isActive: boolean;
-
-    // Dates de création et modification
-    createdAt: Date;
-    updatedAt: Date;
+    validFrom: Date;
+    validTo?: Date;
+    customSchedule?: CustomSchedule;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 /**

@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-toastify';
 import {
     Button,

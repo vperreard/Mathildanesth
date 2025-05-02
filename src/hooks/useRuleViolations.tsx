@@ -72,7 +72,11 @@ export const RuleViolationsProvider: React.FC<{ children: React.ReactNode }> = (
     }, []);
 
     // Exposer l'adaptateur pour les systèmes existants
-    (window as any).__adaptViolations = adaptExistingViolationsSystem;
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            (window as any).__adaptViolations = adaptExistingViolationsSystem;
+        }
+    }, [adaptExistingViolationsSystem]);
 
     return (
         <RuleViolationsContext.Provider

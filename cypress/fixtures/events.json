@@ -1,0 +1,88 @@
+[
+    {
+        "id": "event-1",
+        "title": "Réunion de service",
+        "description": "Réunion hebdomadaire du service d'anesthésie",
+        "start": "2024-07-15T10:00:00.000Z",
+        "end": "2024-07-15T11:30:00.000Z",
+        "type": "meeting",
+        "color": "#4285F4",
+        "userId": "user-2",
+        "createdAt": "2024-07-01T08:00:00.000Z",
+        "updatedAt": "2024-07-01T08:00:00.000Z"
+    },
+    {
+        "id": "event-2",
+        "title": "Formation IADE",
+        "description": "Formation sur les nouveaux protocoles d'anesthésie",
+        "start": "2024-07-18T14:00:00.000Z",
+        "end": "2024-07-18T17:00:00.000Z",
+        "type": "training",
+        "color": "#0F9D58",
+        "userId": "user-3",
+        "createdAt": "2024-07-02T09:30:00.000Z",
+        "updatedAt": "2024-07-02T09:30:00.000Z"
+    },
+    {
+        "id": "event-3",
+        "title": "Congrès d'anesthésie",
+        "description": "Congrès annuel de la société française d'anesthésie et de réanimation",
+        "start": "2024-09-20T08:00:00.000Z",
+        "end": "2024-09-22T18:00:00.000Z",
+        "type": "conference",
+        "color": "#F4B400",
+        "userId": "user-4",
+        "createdAt": "2024-07-03T11:15:00.000Z",
+        "updatedAt": "2024-07-03T11:15:00.000Z",
+        "allDay": true
+    },
+    {
+        "id": "event-4",
+        "title": "Congés Dr Martin",
+        "description": "Congés d'été",
+        "start": "2024-08-01T00:00:00.000Z",
+        "end": "2024-08-14T23:59:59.999Z",
+        "type": "leave",
+        "color": "#DB4437",
+        "userId": "user-2",
+        "createdAt": "2024-07-04T14:20:00.000Z",
+        "updatedAt": "2024-07-04T14:20:00.000Z",
+        "allDay": true
+    },
+    {
+        "id": "event-5",
+        "title": "Réunion de planification",
+        "description": "Planification des interventions du mois prochain",
+        "start": "2024-07-25T09:00:00.000Z",
+        "end": "2024-07-25T11:00:00.000Z",
+        "type": "meeting",
+        "color": "#4285F4",
+        "userId": "user-1",
+        "createdAt": "2024-07-10T08:00:00.000Z",
+        "updatedAt": "2024-07-10T08:00:00.000Z"
+    },
+    {
+        "id": "event-6",
+        "title": "Formation sécurité",
+        "description": "Formation obligatoire sur les protocoles de sécurité",
+        "start": "2024-07-22T13:00:00.000Z",
+        "end": "2024-07-22T16:00:00.000Z",
+        "type": "training",
+        "color": "#0F9D58",
+        "userId": "user-2",
+        "createdAt": "2024-07-05T10:30:00.000Z",
+        "updatedAt": "2024-07-05T10:30:00.000Z"
+    },
+    {
+        "id": "event-7",
+        "title": "Audit qualité",
+        "description": "Audit des processus du bloc opératoire",
+        "start": "2024-07-30T10:00:00.000Z",
+        "end": "2024-07-30T15:00:00.000Z",
+        "type": "meeting",
+        "color": "#4285F4",
+        "userId": "user-1",
+        "createdAt": "2024-07-15T09:45:00.000Z",
+        "updatedAt": "2024-07-15T09:45:00.000Z"
+    }
+]

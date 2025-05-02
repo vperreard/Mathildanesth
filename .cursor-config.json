@@ -1,0 +1,24 @@
+{
+    "rules": [
+        {
+            "name": "documentation-prioritaire",
+            "enabled": true,
+            "path": ".cursor/rules/documentation-prioritaire.json"
+        },
+        {
+            "name": "module-explorer",
+            "enabled": true,
+            "path": ".cursor/rules/module-explorer.json"
+        },
+        {
+            "name": "contexte-technique-specifique",
+            "enabled": true,
+            "path": ".cursor/rules/contexte-technique-specifique.json"
+        },
+        {
+            "name": "analyse-code-contexte",
+            "enabled": true,
+            "path": ".cursor/rules/analyse-code-contexte.json"
+        }
+    ]
+}

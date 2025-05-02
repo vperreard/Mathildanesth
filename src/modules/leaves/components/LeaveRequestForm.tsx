@@ -15,14 +15,26 @@ import {
 } from '../services/leaveService';
 import { WorkSchedule } from '../../profiles/types/workSchedule';
 import { format, differenceInDays, addDays } from 'date-fns';
-import { useDateValidation, DateValidationErrorType } from '../../../hooks/useDateValidation';
+import { DateValidationErrorType, DateRange } from '../../../hooks/useDateValidation';
+import { useLeaveValidation } from '../hooks/useLeaveValidation';
+import { useLeaveQuota } from '../hooks/useLeaveQuota';
+import { LeaveQuotaDisplay } from './LeaveQuotaDisplay';
+import { RecurrenceForm } from './RecurrenceForm';
+import { useRecurringLeaveValidation } from '../hooks/useRecurringLeaveValidation';
+import {
+    RecurrenceFrequency,
+    RecurrenceEndType,
+    RecurrencePattern,
+    RecurringLeaveRequest
+} from '../types/leave';
+import { generateRecurringDates } from '../utils/recurringLeavesUtils';
 
 interface LeaveRequestFormProps {
     userId: string;
     userSchedule: WorkSchedule;
     initialLeave?: Partial<Leave>;
-    onSubmit?: (leave: Leave) => void;
-    onSaveDraft?: (leave: Leave) => void;
+    onSubmit?: (leave: Leave | RecurringLeaveRequest) => void;
+    onSaveDraft?: (leave: Leave | RecurringLeaveRequest) => void;
     onCancel?: () => void;
 }
 
@@ -58,71 +70,94 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
         getWarningConflicts
     } = useConflictDetection({ userId });
 
-    // Intégration du hook de validation de dates
+    // Utilisation du hook de validation spécifique aux congés
     const {
-        validateDate,
-        validateDateRange,
+        validateLeaveRequest,
         getErrorMessage,
+        getErrorType,
         hasError,
-        resetErrors: resetDateErrors
-    } = useDateValidation();
+        resetErrors: resetDateErrors,
+        context: validationContext
+    } = useLeaveValidation();
+
+    // Utilisation du hook de gestion des quotas
+    const {
+        loading: quotaLoading,
+        error: quotaError,
+        quotasByType,
+        totalBalance,
+        checkQuota,
+        refreshQuotas,
+        getQuotaForType
+    } = useLeaveQuota({
+        userSchedule
+    });
+
+    // État pour la récurrence
+    const [isRecurring, setIsRecurring] = useState<boolean>(false);
+    const [recurrencePattern, setRecurrencePattern] = useState<RecurrencePattern>({
+        frequency: RecurrenceFrequency.WEEKLY,
+        interval: 1,
+        weekdays: [new Date().getDay()],
+        endType: RecurrenceEndType.COUNT,
+        endCount: 10,
+        skipWeekends: false,
+        skipHolidays: false
+    });
+
+    // Utiliser le hook de validation récurrente
+    const {
+        validateRecurringLeaveRequest,
+        hasError: hasRecurringError,
+        getErrorMessage: getRecurringErrorMessage,
+        generationResult
+    } = useRecurringLeaveValidation();
 
     const [formErrors, setFormErrors] = useState<string[]>([]);
     const [showConflictWarning, setShowConflictWarning] = useState<boolean>(false);
+    const [quotaCheckResult, setQuotaCheckResult] = useState<any>(null);
+
+    // Charger les quotas au chargement du composant
+    useEffect(() => {
+        if (userId) {
+            refreshQuotas(userId).catch(err => {
+                console.error('Erreur lors du chargement des quotas:', err);
+            });
+        }
+    }, [userId, refreshQuotas]);
 
     // Gérer le changement de type de congé
     const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         updateLeaveField('type', e.target.value as LeaveType);
     };
 
-    // Gérer le changement de dates avec validation améliorée
+    // Gérer le changement de dates
     const handleDateChange = (field: 'startDate' | 'endDate', value: string) => {
-        const dateValue = new Date(value);
+        updateLeaveField(field, new Date(value));
 
-        // Valider la date individuelle
-        validateDate(dateValue, field, {
-            required: true,
-            allowPastDates: false,
-            disallowWeekends: false, // Permettre la sélection des weekends
-            minAdvanceNotice: 1 // Au moins 1 jour à l'avance
-        });
+        // Vérifier les quotas automatiquement lorsque les deux dates sont définies
+        const updatedLeave = {
+            ...leave,
+            [field]: new Date(value)
+        };
 
-        updateLeaveField(field, dateValue);
-
-        // Valider la plage de dates si les deux dates sont définies
-        if (field === 'startDate' && leave?.endDate) {
-            validateDateRange(
-                dateValue,
-                new Date(leave.endDate),
-                'startDate',
-                'endDate',
-                {
-                    required: true,
-                    minDuration: 1 // Au moins 1 jour
-                }
+        if (updatedLeave.startDate && updatedLeave.endDate && updatedLeave.type) {
+            checkLeaveQuota(
+                updatedLeave.startDate,
+                updatedLeave.endDate,
+                updatedLeave.type as LeaveType
             );
-        } else if (field === 'endDate' && leave?.startDate) {
-            validateDateRange(
-                new Date(leave.startDate),
-                dateValue,
-                'startDate',
-                'endDate',
-                {
-                    required: true,
-                    minDuration: 1 // Au moins 1 jour
+
+            // Vérifier les conflits également
+            if (field === 'startDate' || field === 'endDate') {
+                const start = field === 'startDate' ? new Date(value) : new Date(updatedLeave.startDate);
+                const end = field === 'endDate' ? new Date(value) : new Date(updatedLeave.endDate);
+
+                if (start <= end) {
+                    checkConflicts(start, end, leave?.id).catch((error) => {
+                        console.error('Erreur lors de la vérification des conflits:', error);
+                    });
                 }
-            );
-        }
-
-        // Vérifier les conflits automatiquement lorsque les deux dates sont définies
-        if (leave?.startDate && (field === 'endDate' ? dateValue : leave.endDate)) {
-            const start = field === 'startDate' ? dateValue : new Date(leave.startDate);
-            const end = field === 'endDate' ? dateValue : (leave.endDate ? new Date(leave.endDate) : null);
-
-            if (start && end && start <= end) {
-                checkConflicts(start, end, leave.id).catch(error => {
-                    console.error('Erreur lors de la vérification des conflits:', error);
-                });
             }
         }
     };
@@ -130,6 +165,36 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
     // Gérer le changement de motif
     const handleReasonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         updateLeaveField('reason', e.target.value);
+    };
+
+    // Vérifier les quotas de congés
+    const checkLeaveQuota = async (startDate: Date, endDate: Date, leaveType: LeaveType) => {
+        try {
+            const result = await checkQuota({
+                startDate,
+                endDate,
+                leaveType,
+                userId
+            });
+
+            setQuotaCheckResult(result);
+
+            // Si on dépasse le quota, ajouter une erreur
+            if (!result.isValid) {
+                setFormErrors(prev => {
+                    // Éviter les doublons
+                    if (!prev.includes(result.message)) {
+                        return [...prev, result.message];
+                    }
+                    return prev;
+                });
+            } else {
+                // Retirer l'erreur liée au quota si elle existait
+                setFormErrors(prev => prev.filter(err => !err.includes('Quota insuffisant')));
+            }
+        } catch (err) {
+            console.error('Erreur lors de la vérification des quotas:', err);
+        }
     };
 
     // Vérifier le formulaire avec validation améliorée
@@ -141,58 +206,36 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
             errors.push('Le type de congé est requis');
         }
 
-        if (!leave?.startDate) {
-            errors.push('La date de début est requise');
-        } else {
-            // Valider la date de début
-            validateDate(new Date(leave.startDate), 'startDate', {
-                required: true,
-                allowPastDates: false,
-                disallowWeekends: false
-            });
-
-            if (hasError('startDate')) {
-                errors.push(getErrorMessage('startDate') || 'Date de début invalide');
-            }
-        }
-
-        if (!leave?.endDate) {
-            errors.push('La date de fin est requise');
-        } else {
-            // Valider la date de fin
-            validateDate(new Date(leave.endDate), 'endDate', {
-                required: true,
-                allowPastDates: false,
-                disallowWeekends: false
-            });
-
-            if (hasError('endDate')) {
-                errors.push(getErrorMessage('endDate') || 'Date de fin invalide');
-            }
-        }
-
-        // Valider la plage de dates si les deux dates sont définies
-        if (leave?.startDate && leave.endDate) {
-            validateDateRange(
+        // Utiliser validateLeaveRequest pour une validation complète
+        if (leave?.startDate && leave?.endDate) {
+            const isValid = validateLeaveRequest(
                 new Date(leave.startDate),
                 new Date(leave.endDate),
-                'startDate',
-                'endDate',
+                userId,
                 {
                     required: true,
-                    minDuration: 1
+                    allowPastDates: false,
+                    minAdvanceNotice: 1,
+                    disallowWeekends: false
                 }
             );
 
-            if (hasError('startDate') || hasError('endDate')) {
-                // Ajouter l'erreur la plus pertinente
-                if (hasError('endDate')) {
-                    const errorMsg = getErrorMessage('endDate');
-                    if (errorMsg) errors.push(errorMsg);
-                } else {
-                    const errorMsg = getErrorMessage('startDate');
-                    if (errorMsg) errors.push(errorMsg);
+            if (!isValid) {
+                // Ajouter les erreurs de validation des dates
+                if (hasError(`leave_start_${userId}`)) {
+                    errors.push(getErrorMessage(`leave_start_${userId}`) || 'Date de début invalide');
                 }
+                if (hasError(`leave_end_${userId}`)) {
+                    errors.push(getErrorMessage(`leave_end_${userId}`) || 'Date de fin invalide');
+                }
+            }
+        } else {
+            // Vérification individuelle si une date est manquante
+            if (!leave?.startDate) {
+                errors.push('La date de début est requise');
+            }
+            if (!leave?.endDate) {
+                errors.push('La date de fin est requise');
             }
         }
 
@@ -200,31 +243,109 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
             errors.push('Il y a des conflits bloquants qui doivent être résolus');
         }
 
+        // Ajouter la validation des quotas
+        if (quotaCheckResult && !quotaCheckResult.isValid) {
+            errors.push(quotaCheckResult.message);
+        }
+
         setFormErrors(errors);
         return errors.length === 0;
     };
 
-    // Soumettre la demande
+    // Gérer la soumission du formulaire
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setFormErrors([]);
 
-        if (!validateForm()) {
+        if (!leave || !leave.startDate || !leave.endDate) {
+            setFormErrors(['Veuillez sélectionner les dates de début et de fin']);
             return;
         }
 
-        const warningConflicts = getWarningConflicts();
-        if (warningConflicts.length > 0 && !showConflictWarning) {
-            setShowConflictWarning(true);
+        if (!leave.type) {
+            setFormErrors(['Veuillez sélectionner un type de congé']);
             return;
         }
 
         try {
-            const submittedLeave = await submitLeave();
-            if (onSubmit) {
-                onSubmit(submittedLeave);
+            // Vérifier les conflits
+            const conflictResult = await checkConflicts(leave.startDate, leave.endDate);
+
+            if (conflictResult.hasBlockingConflicts) {
+                setFormErrors(['Des conflits bloquants ont été détectés']);
+                setShowConflictWarning(true);
+                return;
             }
-        } catch (error) {
-            console.error('Erreur lors de la soumission de la demande:', error);
+
+            if (isRecurring) {
+                // Valider la demande récurrente
+                const validationResult = await validateRecurringLeaveRequest(
+                    leave.startDate,
+                    leave.endDate,
+                    userId,
+                    recurrencePattern,
+                    {
+                        availableDaysPerYear: 30, // À adapter selon vos besoins
+                        holidays: [], // À adapter selon vos besoins
+                        validateAllOccurrences: true
+                    }
+                );
+
+                if (!validationResult.isValid) {
+                    const errors = validationResult.errors.map(err => err.message);
+                    setFormErrors(errors);
+                    return;
+                }
+
+                // Créer la demande récurrente
+                const recurringRequest: RecurringLeaveRequest = {
+                    ...leave as Leave,
+                    isRecurring: true,
+                    patternStartDate: new Date(leave.startDate),
+                    patternEndDate: new Date(leave.endDate),
+                    recurrencePattern: recurrencePattern
+                };
+
+                // Générer les occurrences pour information
+                const occurrences = validationResult.occurrencesResult?.occurrences || [];
+
+                if (onSubmit) {
+                    onSubmit(recurringRequest);
+                }
+            } else {
+                // Validation standard pour les congés non récurrents
+                const isValid = validateLeaveRequest(
+                    leave.startDate,
+                    leave.endDate,
+                    userId,
+                    { availableDaysPerYear: 30 }
+                );
+
+                if (!isValid) {
+                    const startError = getErrorMessage(`leave_start_${userId}`);
+                    const endError = getErrorMessage(`leave_end_${userId}`);
+                    const errors = [startError, endError].filter(Boolean) as string[];
+
+                    if (errors.length > 0) {
+                        setFormErrors(errors);
+                        return;
+                    }
+                }
+
+                if (onSubmit) {
+                    submitLeave()
+                        .then(submittedLeave => {
+                            onSubmit(submittedLeave);
+                        })
+                        .catch(err => {
+                            console.error('Erreur lors de la soumission', err);
+                            setFormErrors(['Erreur lors de la soumission de la demande']);
+                        });
+                }
+            }
+        } catch (err) {
+            console.error('Erreur lors de la validation', err);
+            setFormErrors(['Une erreur est survenue lors de la validation']);
         }
     };
 
@@ -266,7 +387,11 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
             currentDate = addDays(currentDate, 1);
         }
 
-        const countedDays = leave.countedDays || calculateLeaveDuration();
+        // Utiliser les informations du contexte de validation si disponibles
+        const countedDays = leave.countedDays ||
+            (validationContext.totalDaysCount !== undefined ?
+                validationContext.totalDaysCount :
+                calculateLeaveDuration());
 
         return { totalDays, weekendDays, countedDays };
     };
@@ -312,7 +437,15 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                 </div>
             )}
 
-            <form onSubmit={handleSubmit}>
+            {/* Afficher les quotas disponibles */}
+            <LeaveQuotaDisplay
+                quotasByType={quotasByType}
+                totalBalance={totalBalance}
+                selectedType={leave?.type as LeaveType}
+                loading={quotaLoading}
+            />
+
+            <form onSubmit={handleSubmit} data-testid="leave-request-form">
                 {/* Type de congé */}
                 <div className="mb-4">
                     <label htmlFor="leaveType" className="block text-sm font-medium text-gray-700 mb-2">
@@ -344,11 +477,11 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                             name="startDate"
                             value={leave?.startDate ? format(new Date(leave.startDate), 'yyyy-MM-dd') : ''}
                             onChange={(e) => handleDateChange('startDate', e.target.value)}
-                            className={`w-full px-3 py-2 border ${hasError('startDate') ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+                            className={`w-full px-3 py-2 border ${hasError(`leave_start_${userId}`) ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                             required
                         />
-                        {hasError('startDate') && (
-                            <p className="mt-1 text-sm text-red-600">{getErrorMessage('startDate')}</p>
+                        {hasError(`leave_start_${userId}`) && (
+                            <p className="mt-1 text-sm text-red-600">{getErrorMessage(`leave_start_${userId}`)}</p>
                         )}
                     </div>
 
@@ -362,12 +495,12 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                             name="endDate"
                             value={leave?.endDate ? format(new Date(leave.endDate), 'yyyy-MM-dd') : ''}
                             onChange={(e) => handleDateChange('endDate', e.target.value)}
-                            className={`w-full px-3 py-2 border ${hasError('endDate') ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+                            className={`w-full px-3 py-2 border ${hasError(`leave_end_${userId}`) ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                             min={leave?.startDate ? format(new Date(leave.startDate), 'yyyy-MM-dd') : ''}
                             required
                         />
-                        {hasError('endDate') && (
-                            <p className="mt-1 text-sm text-red-600">{getErrorMessage('endDate')}</p>
+                        {hasError(`leave_end_${userId}`) && (
+                            <p className="mt-1 text-sm text-red-600">{getErrorMessage(`leave_end_${userId}`)}</p>
                         )}
                     </div>
                 </div>
@@ -433,6 +566,71 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
                         placeholder="Précisez le motif de votre demande si nécessaire"
                     ></textarea>
                 </div>
+
+                {/* Afficher le résultat de la vérification des quotas */}
+                {quotaCheckResult && (
+                    <div className={`mb-4 p-4 rounded-md ${quotaCheckResult.isValid ? 'bg-green-50 border-l-4 border-green-400' : 'bg-yellow-50 border-l-4 border-yellow-400'}`}>
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                {quotaCheckResult.isValid ? (
+                                    <svg className="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                ) : (
+                                    <svg className="h-5 w-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                )}
+                            </div>
+                            <div className="ml-3">
+                                <p className={`text-sm ${quotaCheckResult.isValid ? 'text-green-700' : 'text-yellow-700'}`}>
+                                    {quotaCheckResult.message}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Option de récurrence */}
+                <div className="form-group">
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={isRecurring}
+                            onChange={e => setIsRecurring(e.target.checked)}
+                        />
+                        Congé récurrent
+                    </label>
+                </div>
+
+                {/* Formulaire de récurrence */}
+                {isRecurring && (
+                    <RecurrenceForm
+                        value={recurrencePattern}
+                        onChange={setRecurrencePattern}
+                        initialStartDate={leave.startDate instanceof Date ? leave.startDate : undefined}
+                        hasError={hasRecurringError}
+                        getErrorMessage={getRecurringErrorMessage}
+                    />
+                )}
+
+                {/* Prévisualisation des occurrences */}
+                {isRecurring && generationResult && generationResult.occurrences.length > 0 && (
+                    <div className="occurrences-preview">
+                        <h3>Aperçu des occurrences ({generationResult.occurrences.length})</h3>
+                        <p>Total: {generationResult.totalDays} jours demandés</p>
+                        <ul className="occurrences-list">
+                            {generationResult.occurrences.slice(0, 5).map((occurrence, index) => (
+                                <li key={index}>
+                                    {format(occurrence.startDate, 'dd/MM/yyyy')} - {format(occurrence.endDate, 'dd/MM/yyyy')}
+                                </li>
+                            ))}
+                            {generationResult.occurrences.length > 5 && (
+                                <li>... et {generationResult.occurrences.length - 5} autres occurrences</li>
+                            )}
+                        </ul>
+                    </div>
+                )}
 
                 {/* Boutons d'action */}
                 <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">

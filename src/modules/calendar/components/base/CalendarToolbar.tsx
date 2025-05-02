@@ -1,136 +1,115 @@
-import React, { memo } from 'react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import React, { useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { CalendarViewType } from '../../types/event';
-
-// Types de vues disponibles dans la barre d'outils
-const VIEW_OPTIONS = [
-    { value: CalendarViewType.MONTH, label: 'Mois' },
-    { value: CalendarViewType.WEEK, label: 'Semaine' },
-    { value: CalendarViewType.DAY, label: 'Jour' },
-    { value: CalendarViewType.LIST, label: 'Liste' }
-];
 
 interface CalendarToolbarProps {
     view: CalendarViewType;
-    dateRange: {
-        start: Date;
-        end: Date;
-    };
     onViewChange: (view: CalendarViewType) => void;
-    onPrevious: () => void;
-    onNext: () => void;
-    onToday: () => void;
-    showViewSelector?: boolean;
-    showExportButton?: boolean;
-    onExport?: () => void;
+    onNavigatePrevious: () => void;
+    onNavigateNext: () => void;
+    onNavigateToday: () => void;
+    onRefresh?: () => void;
+    isLoading?: boolean;
+    currentMonthLabel?: string;
     className?: string;
+    showViewSelector?: boolean;
+    showRefreshButton?: boolean;
 }
 
 /**
- * Composant de barre d'outils pour le calendrier
- * Gère la navigation entre les périodes et le changement de vue
+ * Barre d'outils réutilisable pour les calendriers
+ * Gère la navigation, le changement de vue et le rafraîchissement
  */
-const CalendarToolbarComponent: React.FC<CalendarToolbarProps> = ({
+export const CalendarToolbar: React.FC<CalendarToolbarProps> = ({
     view,
-    dateRange,
     onViewChange,
-    onPrevious,
-    onNext,
-    onToday,
+    onNavigatePrevious,
+    onNavigateNext,
+    onNavigateToday,
+    onRefresh,
+    isLoading = false,
+    currentMonthLabel,
+    className = '',
     showViewSelector = true,
-    showExportButton = false,
-    onExport,
-    className = ''
+    showRefreshButton = true
 }) => {
-    // Formatage du titre de la plage de dates
-    const getDateRangeTitle = () => {
-        if (!dateRange.start || !dateRange.end) return '';
-
-        if (view === CalendarViewType.MONTH) {
-            return format(dateRange.start, 'MMMM yyyy', { locale: fr });
-        } else if (view === CalendarViewType.WEEK) {
-            return `${format(dateRange.start, 'dd')} - ${format(dateRange.end, 'dd MMMM yyyy', { locale: fr })}`;
-        } else if (view === CalendarViewType.DAY) {
-            return format(dateRange.start, 'EEEE dd MMMM yyyy', { locale: fr });
-        }
-
-        return `${format(dateRange.start, 'dd/MM/yyyy')} - ${format(dateRange.end, 'dd/MM/yyyy')}`;
-    };
+    // Gestionnaire de changement de vue
+    const handleViewChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+        onViewChange(e.target.value as CalendarViewType);
+    }, [onViewChange]);
 
     return (
-        <div className={`flex flex-wrap items-center justify-between mb-4 ${className}`}>
-            {/* Titre et navigation */}
-            <div className="flex items-center space-x-2">
-                <h2 className="text-xl font-semibold">{getDateRangeTitle()}</h2>
-                <div className="flex space-x-1 ml-4">
-                    <button
-                        onClick={onPrevious}
-                        className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700"
-                        aria-label="Période précédente"
+        <div className={`flex flex-wrap items-center justify-between gap-2 mb-4 ${className}`}>
+            {/* Groupe de navigation */}
+            <div className="flex items-center gap-2">
+                <div className="flex">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onNavigatePrevious}
+                        aria-label="Précédent"
+                        className="rounded-r-none"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                    </button>
-                    <button
-                        onClick={onToday}
-                        className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm"
+                        <ChevronLeft size={16} />
+                    </Button>
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onNavigateToday}
+                        aria-label="Aujourd'hui"
+                        className="rounded-none border-x-0"
                     >
                         Aujourd'hui
-                    </button>
-                    <button
-                        onClick={onNext}
-                        className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700"
-                        aria-label="Période suivante"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
+                    </Button>
 
-            {/* Options de vue et export */}
-            <div className="flex space-x-2 mt-2 sm:mt-0">
-                {showViewSelector && (
-                    <div className="flex rounded-md shadow-sm" role="group">
-                        {VIEW_OPTIONS.map((option) => (
-                            <button
-                                key={option.value}
-                                type="button"
-                                className={`px-3 py-1 text-sm font-medium ${view === option.value
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                                    } ${option.value === VIEW_OPTIONS[0].value
-                                        ? 'rounded-l-md'
-                                        : option.value === VIEW_OPTIONS[VIEW_OPTIONS.length - 1].value
-                                            ? 'rounded-r-md'
-                                            : ''
-                                    }`}
-                                onClick={() => onViewChange(option.value)}
-                            >
-                                {option.label}
-                            </button>
-                        ))}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onNavigateNext}
+                        aria-label="Suivant"
+                        className="rounded-l-none"
+                    >
+                        <ChevronRight size={16} />
+                    </Button>
+                </div>
+
+                {currentMonthLabel && (
+                    <div className="text-lg font-medium ml-4">
+                        {currentMonthLabel}
                     </div>
                 )}
+            </div>
 
-                {showExportButton && onExport && (
-                    <button
-                        onClick={onExport}
-                        className="px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm flex items-center"
+            {/* Contrôles supplémentaires */}
+            <div className="flex items-center gap-2">
+                {showViewSelector && (
+                    <select
+                        value={view}
+                        onChange={handleViewChange}
+                        aria-label="Changer de vue"
+                        className="form-select h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                        Exporter
-                    </button>
+                        <option value={CalendarViewType.MONTH}>Mois</option>
+                        <option value={CalendarViewType.WEEK}>Semaine</option>
+                        <option value={CalendarViewType.DAY}>Jour</option>
+                        <option value={CalendarViewType.LIST}>Liste</option>
+                    </select>
+                )}
+
+                {showRefreshButton && onRefresh && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onRefresh}
+                        disabled={isLoading}
+                        aria-label="Rafraîchir"
+                    >
+                        <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+                    </Button>
                 )}
             </div>
         </div>
     );
-};
-
-// Utiliser memo pour éviter les rendus inutiles
-export const CalendarToolbar = memo(CalendarToolbarComponent); 
+}; 

@@ -1,0 +1,117 @@
+[
+    {
+        "id": "quota-1",
+        "userId": "user-2",
+        "type": "congés payés",
+        "year": 2024,
+        "initialDays": 25,
+        "remainingDays": 15,
+        "usedDays": 10,
+        "adjustments": [
+            {
+                "id": "adj-1",
+                "date": "2024-02-15T00:00:00.000Z",
+                "days": 5,
+                "reason": "Report de l'année précédente",
+                "adjustedBy": "user-1"
+            }
+        ],
+        "carryOvers": []
+    },
+    {
+        "id": "quota-2",
+        "userId": "user-2",
+        "type": "rtt",
+        "year": 2024,
+        "initialDays": 15,
+        "remainingDays": 10,
+        "usedDays": 5,
+        "adjustments": [],
+        "carryOvers": []
+    },
+    {
+        "id": "quota-3",
+        "userId": "user-2",
+        "type": "formation",
+        "year": 2024,
+        "initialDays": 5,
+        "remainingDays": 5,
+        "usedDays": 0,
+        "adjustments": [],
+        "carryOvers": []
+    },
+    {
+        "id": "quota-4",
+        "userId": "user-3",
+        "type": "congés payés",
+        "year": 2024,
+        "initialDays": 25,
+        "remainingDays": 13,
+        "usedDays": 12,
+        "adjustments": [],
+        "carryOvers": []
+    },
+    {
+        "id": "quota-5",
+        "userId": "user-3",
+        "type": "rtt",
+        "year": 2024,
+        "initialDays": 15,
+        "remainingDays": 8,
+        "usedDays": 7,
+        "adjustments": [],
+        "carryOvers": []
+    },
+    {
+        "id": "quota-6",
+        "userId": "user-3",
+        "type": "formation",
+        "year": 2024,
+        "initialDays": 5,
+        "remainingDays": 3,
+        "usedDays": 2,
+        "adjustments": [],
+        "carryOvers": []
+    },
+    {
+        "id": "quota-7",
+        "userId": "user-4",
+        "type": "congés payés",
+        "year": 2024,
+        "initialDays": 25,
+        "remainingDays": 20,
+        "usedDays": 5,
+        "adjustments": [],
+        "carryOvers": []
+    },
+    {
+        "id": "quota-8",
+        "userId": "user-4",
+        "type": "rtt",
+        "year": 2024,
+        "initialDays": 15,
+        "remainingDays": 12,
+        "usedDays": 3,
+        "adjustments": [],
+        "carryOvers": []
+    },
+    {
+        "id": "quota-9",
+        "userId": "user-4",
+        "type": "formation",
+        "year": 2024,
+        "initialDays": 5,
+        "remainingDays": 2,
+        "usedDays": 3,
+        "adjustments": [
+            {
+                "id": "adj-2",
+                "date": "2024-03-10T00:00:00.000Z",
+                "days": 2,
+                "reason": "Formation spécialisée requise",
+                "adjustedBy": "user-1"
+            }
+        ],
+        "carryOvers": []
+    }
+]

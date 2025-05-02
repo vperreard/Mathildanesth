@@ -1,18 +1,14 @@
 // src/types/assignment.ts
 
+import { RuleSeverity } from './rules';
+import { ShiftType } from './common';
+
 // Type d'affectation
 export enum AssignmentType {
     GARDE = 'GARDE',
     ASTREINTE = 'ASTREINTE',
     CONSULTATION = 'CONSULTATION',
     BLOC = 'BLOC'
-}
-
-// Niveau de gravité pour les violations de règles
-export enum RuleSeverity {
-    CRITICAL = 'CRITICAL',
-    MAJOR = 'MAJOR',
-    MINOR = 'MINOR'
 }
 
 /**
@@ -22,43 +18,39 @@ export interface Assignment {
     /** Identifiant unique de l'affectation */
     id: string;
     /** ID du médecin assigné */
-    doctorId: string;
-    /** Date de la garde */
-    date: Date;
+    userId: string;
     /** Type de garde (jour, nuit, etc.) */
     shiftType: ShiftType;
+    /** Date de début de la garde */
+    startDate: Date;
+    /** Date de fin de la garde */
+    endDate: Date;
     /** État de l'affectation */
     status: AssignmentStatus;
+    /** Date de création de l'affectation */
+    createdAt: Date;
+    /** Date de dernière mise à jour de l'affectation */
+    updatedAt: Date;
     /** Commentaires supplémentaires */
     notes?: string;
-}
-
-/**
- * Types de gardes possibles
- */
-export enum ShiftType {
-    /** Garde de jour */
-    DAY = 'day',
-    /** Garde de nuit */
-    NIGHT = 'night',
-    /** Garde de weekend */
-    WEEKEND = 'weekend',
-    /** Garde pendant un jour férié */
-    HOLIDAY = 'holiday'
+    /** ID de l'utilisateur qui a validé l'affectation */
+    validatedBy?: string;
+    /** Date de validation de l'affectation */
+    validatedAt?: Date;
+    /** Raison de rejet de l'affectation */
+    rejectionReason?: string;
+    /** Raison de annulation de l'affectation */
+    cancellationReason?: string;
 }
 
 /**
  * États possibles d'une affectation
  */
 export enum AssignmentStatus {
-    /** Planifiée */
-    SCHEDULED = 'scheduled',
-    /** Confirmée par le médecin */
-    CONFIRMED = 'confirmed',
-    /** Complétée */
-    COMPLETED = 'completed',
-    /** Annulée */
-    CANCELLED = 'cancelled'
+    PENDING = 'PENDING',
+    APPROVED = 'APPROVED',
+    REJECTED = 'REJECTED',
+    CANCELLED = 'CANCELLED'
 }
 
 /**
@@ -103,7 +95,7 @@ export interface ResolutionOption {
 
 // Compteurs de fatigue et d'équité
 export interface UserCounter {
-    userId: number;
+    userId: string;
     gardes: {
         total: number;
         weekends: number;
@@ -115,7 +107,11 @@ export interface UserCounter {
         matin: number;
         apresmidi: number;
     };
-    astreintes: number;
+    astreintes: {
+        total: number;         // Nouveau: Total astreintes
+        semaine: number;       // Nouveau: Astreintes en semaine
+        weekendFeries: number; // Nouveau: Astreintes weekend/férié
+    };
     fatigue: {
         score: number;
         lastUpdate: Date;

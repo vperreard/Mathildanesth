@@ -1,0 +1,95 @@
+/* Styles responsifs pour le calendrier - correction du bug #301 */
+
+/* Styles de base */
+.calendar-container {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* Styles pour les petits écrans (mobiles) */
+@media screen and (max-width: 640px) {
+
+    /* Correction de l'affichage des entêtes du calendrier */
+    .fc .fc-toolbar {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1rem !important;
+        margin: 0 !important;
+    }
+
+    /* Réduire la taille des boutons sur mobile */
+    .fc .fc-button {
+        padding: 0.3rem 0.5rem !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Améliorer la lisibilité des cellules */
+    .fc .fc-daygrid-day-top {
+        justify-content: center;
+    }
+
+    .fc .fc-daygrid-day-number {
+        padding: 4px !important;
+        font-size: 0.85rem;
+    }
+
+    /* Ajuster la taille des événements pour éviter les chevauchements */
+    .fc .fc-event {
+        font-size: 0.75rem !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Optimiser l'affichage en vue jour/semaine */
+    .fc .fc-timegrid-axis-cushion,
+    .fc .fc-timegrid-slot-label-cushion {
+        font-size: 0.75rem !important;
+    }
+
+    /* Améliorer le rendu sur les appareils à écran tactile */
+    .fc-event-draggable {
+        cursor: pointer;
+    }
+}
+
+/* Styles pour les tablettes */
+@media screen and (min-width: 641px) and (max-width: 1024px) {
+
+    /* Ajustements pour les tablettes */
+    .fc .fc-toolbar-title {
+        font-size: 1.25rem !important;
+    }
+
+    .fc .fc-button {
+        padding: 0.4rem 0.6rem !important;
+    }
+}
+
+/* Améliorer la performance sur les appareils mobiles */
+@media (pointer: coarse) {
+
+    /* Désactiver les animations pour améliorer les performances */
+    .fc .fc-highlight,
+    .fc .fc-event-resizable-start,
+    .fc .fc-event-resizable-end {
+        transition: none !important;
+    }
+}
+
+/* Fix spécifiques pour ios */
+@supports (-webkit-touch-callout: none) {
+
+    /* Corrections pour iOS */
+    .fc .fc-scroller {
+        -webkit-overflow-scrolling: touch;
+        overflow-y: auto;
+    }
+
+    /* Corrections pour le décalage sur Safari iOS */
+    .fc .fc-daygrid-body,
+    .fc .fc-timegrid-body {
+        width: 100% !important;
+    }
+}

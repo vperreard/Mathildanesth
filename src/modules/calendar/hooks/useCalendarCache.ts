@@ -1,103 +1,115 @@
-import { useState, useCallback, useEffect } from 'react';
-import { AnyCalendarEvent, CalendarFilters, CalendarSettings } from '../types/event';
+import { useState, useEffect, useCallback } from 'react';
 import { calendarCache } from '../services/calendarCache';
-import { fetchCalendarEvents } from '../services/calendarService';
+import { calendarService } from '../services/calendarService';
+import { AnyCalendarEvent, CalendarFilters } from '../types/event';
 
 interface UseCalendarCacheOptions {
-    enabled?: boolean;  // Activer/désactiver le cache
-    ttl?: number;       // Durée de vie du cache en ms
+    enabled?: boolean;
+    ttl?: number;
 }
-
-interface UseCalendarCacheReturn {
-    events: AnyCalendarEvent[];
-    loading: boolean;
-    error: Error | null;
-    fetchEvents: (filters: CalendarFilters) => Promise<AnyCalendarEvent[]>;
-    invalidateCache: (filters?: CalendarFilters) => void;
-    isCacheHit: boolean;
-}
-
-const DEFAULT_OPTIONS: UseCalendarCacheOptions = {
-    enabled: true,
-    ttl: 5 * 60 * 1000 // 5 minutes
-};
 
 /**
  * Hook pour gérer le cache des événements du calendrier
- * Utilise le service calendarCache pour mettre en cache les résultats d'appels API
+ * @param filters Les filtres à appliquer
+ * @param options Options du cache
+ * @returns Les données et fonctions de gestion du cache
  */
-export const useCalendarCache = (
-    initialFilters: CalendarFilters,
-    options: UseCalendarCacheOptions = DEFAULT_OPTIONS
-): UseCalendarCacheReturn => {
-    // Fusionner les options avec les valeurs par défaut
-    const { enabled, ttl } = { ...DEFAULT_OPTIONS, ...options };
+export function useCalendarCache(
+    filters: CalendarFilters,
+    options: UseCalendarCacheOptions = {}
+) {
+    const { enabled = true, ttl = 5 * 60 * 1000 } = options;
 
-    // État pour les événements, le chargement et les erreurs
     const [events, setEvents] = useState<AnyCalendarEvent[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<Error | null>(null);
     const [isCacheHit, setIsCacheHit] = useState<boolean>(false);
 
-    // Fonction pour récupérer les événements avec gestion du cache
-    const fetchEvents = useCallback(async (filters: CalendarFilters): Promise<AnyCalendarEvent[]> => {
+    const filtersKey = JSON.stringify(filters);
+
+    // Fonction pour récupérer les événements avec ou sans le cache
+    const fetchEvents = useCallback(async (fetchFilters: CalendarFilters = filters) => {
         setLoading(true);
         setError(null);
-        setIsCacheHit(false);
 
         try {
-            // Vérifier si les données sont dans le cache
-            if (enabled) {
-                const cachedEvents = calendarCache.getCachedEvents(filters);
+            const result = await calendarService.getEvents(fetchFilters);
 
-                if (cachedEvents) {
-                    setEvents(cachedEvents);
-                    setIsCacheHit(true);
-                    setLoading(false);
-                    return cachedEvents;
-                }
+            setEvents(result);
+
+            // Mettre en cache les données si le cache est activé
+            if (enabled) {
+                const fetchFiltersKey = JSON.stringify(fetchFilters);
+                calendarCache.cacheEvents(result, fetchFiltersKey, { ttl });
             }
 
-            // Si pas de cache ou cache désactivé, faire l'appel API
-            const fetchedEvents = await fetchCalendarEvents(filters);
-
-            // Mettre en cache les résultats si le cache est activé
-            if (enabled) {
-                calendarCache.cacheEvents(fetchedEvents, filters, { ttl });
-            }
-
-            setEvents(fetchedEvents);
-            return fetchedEvents;
-        } catch (err) {
-            const errorObject = err instanceof Error ? err : new Error('Erreur inconnue');
-            setError(errorObject);
-            console.error('Erreur dans useCalendarCache:', err);
-            return [];
-        } finally {
             setLoading(false);
+            return result;
+        } catch (err) {
+            const error = err instanceof Error ? err : new Error('Une erreur est survenue');
+            console.error('Erreur lors de la récupération des événements:', error);
+            setError(error);
+            setEvents([]);
+            setLoading(false);
+            throw error;
         }
-    }, [enabled, ttl]);
+    }, [enabled, filters, ttl]);
 
     // Fonction pour invalider le cache
-    const invalidateCache = useCallback((filters?: CalendarFilters) => {
-        if (filters) {
-            calendarCache.invalidateEvents(filters);
+    const invalidateCache = useCallback((specificKey?: string) => {
+        if (specificKey) {
+            calendarCache.invalidateEvents(specificKey);
         } else {
             calendarCache.clearCache();
         }
     }, []);
 
-    // Récupérer les événements au montage du composant
+    // Chargement initial des données
     useEffect(() => {
-        fetchEvents(initialFilters);
-    }, [initialFilters, fetchEvents]);
+        const loadData = async () => {
+            setLoading(true);
+
+            try {
+                // Essayer de récupérer depuis le cache si activé
+                if (enabled) {
+                    const cachedData = calendarCache.getCachedEvents(filtersKey);
+
+                    if (cachedData) {
+                        setEvents(cachedData);
+                        setIsCacheHit(true);
+                        setLoading(false);
+                        return;
+                    }
+                }
+
+                // Si pas de données en cache ou cache désactivé, charger depuis l'API
+                const apiData = await calendarService.getEvents(filters);
+                setEvents(apiData);
+                setIsCacheHit(false);
+
+                // Mettre en cache si activé
+                if (enabled) {
+                    calendarCache.cacheEvents(apiData, filtersKey, { ttl });
+                }
+            } catch (err) {
+                const error = err instanceof Error ? err : new Error('Une erreur est survenue');
+                console.error('Erreur lors de la récupération des événements:', error);
+                setError(error);
+                setEvents([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, [filtersKey, enabled, ttl, filters]);
 
     return {
         events,
         loading,
         error,
-        fetchEvents,
+        isCacheHit,
         invalidateCache,
-        isCacheHit
+        fetchEvents
     };
-}; 
+} 

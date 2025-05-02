@@ -235,4 +235,73 @@ describe('useErrorHandler Hook', () => {
         expect(result.current.errorState.globalError?.severity).toBe('critical');
         expect(result.current.errorState.globalError?.message).toBe('Server error');
     });
+
+    test('devrait gérer la fonction de réessai (retry)', async () => {
+        const { result } = renderHook(() => useErrorHandler());
+        const retryFn = jest.fn().mockResolvedValue(undefined);
+
+        act(() => {
+            result.current.setError('retryableError', {
+                message: 'Erreur avec fonction de réessai',
+                severity: 'error',
+                retry: retryFn
+            });
+        });
+
+        expect(result.current.errorState.errors.retryableError).toBeDefined();
+        expect(result.current.errorState.errors.retryableError.retry).toBe(retryFn);
+
+        // Exécuter la fonction de réessai
+        await act(async () => {
+            await result.current.errorState.errors.retryableError.retry?.();
+        });
+
+        expect(retryFn).toHaveBeenCalledTimes(1);
+    });
+
+    test('devrait gérer les erreurs sans objet response', async () => {
+        const { result } = renderHook(() => useErrorHandler());
+
+        const simpleError = new Error('Erreur simple sans réponse API');
+
+        await act(async () => {
+            await result.current.handleApiError(simpleError);
+        });
+
+        expect(result.current.errorState.globalError).toBeDefined();
+        expect(result.current.errorState.globalError?.message).toBe('Erreur simple sans réponse API');
+        expect(result.current.errorState.globalError?.code).toBe('API_500');
+        expect(result.current.errorState.globalError?.severity).toBe('critical');
+    });
+
+    test('devrait conserver l\'état d\'erreur global quand il y a des erreurs spécifiques', () => {
+        const { result } = renderHook(() => useErrorHandler());
+
+        // Ajouter une erreur globale
+        act(() => {
+            result.current.setGlobalError({
+                message: 'Erreur globale',
+                severity: 'critical'
+            });
+        });
+
+        // Ajouter une erreur spécifique
+        act(() => {
+            result.current.setError('fieldError', {
+                message: 'Erreur de champ',
+                severity: 'warning',
+                field: 'email'
+            });
+        });
+
+        // Supprimer l'erreur spécifique
+        act(() => {
+            result.current.clearError('fieldError');
+        });
+
+        // L'état global d'erreur doit rester à true car l'erreur globale existe toujours
+        expect(result.current.errorState.hasError).toBe(true);
+        expect(result.current.errorState.globalError).toBeDefined();
+        expect(Object.keys(result.current.errorState.errors)).toHaveLength(0);
+    });
 }); 

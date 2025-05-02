@@ -54,6 +54,136 @@ Le système utilise une base de données PostgreSQL avec Prisma comme ORM. Les p
    - Les affectations lient utilisateurs, dates et lieux
    - Les gardes et astreintes sont liées aux utilisateurs
 
+## Niveaux de sévérité des règles
+
+### Structure et compatibilité
+
+Le système utilise une énumération `RuleSeverity` qui maintient la compatibilité avec différents contextes :
+
+```typescript
+export enum RuleSeverity {
+    // Sévérités principales
+    ERROR = 'error',    // Erreur critique, ne peut pas être contournée
+    WARNING = 'warning', // Avertissement, peut être contourné avec justification
+    INFO = 'info',      // Information, peut être ignorée
+
+    // Alias pour la compatibilité avec l'ancien code
+    CRITICAL = ERROR,   // Alias pour ERROR
+    MAJOR = WARNING,    // Alias pour WARNING
+    MINOR = INFO,       // Alias pour INFO
+
+    // Alias pour la compatibilité avec Prisma
+    HIGH = ERROR,       // Alias pour ERROR
+    MEDIUM = WARNING,   // Alias pour WARNING
+    LOW = INFO         // Alias pour INFO
+}
+```
+
+### Utilisation dans différents contextes
+
+1. **Base de données (Prisma)**
+   - Utilise ERROR, WARNING, INFO
+   - Stocké dans la table `RuleConflict`
+   - Utilisé pour la persistance des conflits
+
+2. **Interface utilisateur**
+   - Utilise error, warning, info (en minuscules)
+   - Affiché dans le composant `RuleViolationIndicator`
+   - Définit les couleurs et styles d'affichage
+
+3. **Logique métier**
+   - Utilise les sévérités principales (ERROR, WARNING, INFO)
+   - Évalué dans le service `RuleEvaluationService`
+   - Utilisé pour le calcul des scores de fatigue
+
+### Fonctions utilitaires
+
+```typescript
+// Conversion depuis Prisma
+export function fromPrismaSeverity(severity: 'LOW' | 'MEDIUM' | 'HIGH'): RuleSeverity {
+    switch (severity) {
+        case 'LOW': return RuleSeverity.LOW;
+        case 'MEDIUM': return RuleSeverity.MEDIUM;
+        case 'HIGH': return RuleSeverity.HIGH;
+        default: return RuleSeverity.WARNING;
+    }
+}
+
+// Conversion vers Prisma
+export function toPrismaSeverity(severity: RuleSeverity): 'LOW' | 'MEDIUM' | 'HIGH' {
+    switch (severity) {
+        case RuleSeverity.LOW:
+        case RuleSeverity.INFO:
+            return 'LOW';
+        case RuleSeverity.MEDIUM:
+        case RuleSeverity.WARNING:
+            return 'MEDIUM';
+        case RuleSeverity.HIGH:
+        case RuleSeverity.ERROR:
+            return 'HIGH';
+        default:
+            return 'MEDIUM';
+    }
+}
+
+// Obtention des couleurs d'affichage
+export function getSeverityColor(severity: RuleSeverity): string {
+    switch (severity) {
+        case RuleSeverity.ERROR:
+        case RuleSeverity.CRITICAL:
+        case RuleSeverity.HIGH:
+            return '#ff4d4f'; // Rouge
+        case RuleSeverity.WARNING:
+        case RuleSeverity.MAJOR:
+        case RuleSeverity.MEDIUM:
+            return '#faad14'; // Orange
+        case RuleSeverity.INFO:
+        case RuleSeverity.MINOR:
+        case RuleSeverity.LOW:
+            return '#1890ff'; // Bleu
+        default:
+            return '#1890ff';
+    }
+}
+```
+
+### Bonnes pratiques
+
+1. **Nouveau code**
+   - Utiliser les sévérités principales (ERROR, WARNING, INFO)
+   - Éviter l'utilisation directe des alias
+   - Utiliser les fonctions de conversion pour la compatibilité
+
+2. **Migration**
+   - Pour le nouveau code : utiliser ERROR, WARNING, INFO
+   - Pour la compatibilité : utiliser les fonctions de conversion
+   - Documenter les changements de sévérité
+
+3. **Affichage**
+   - Utiliser les couleurs standardisées
+   - Maintenir la cohérence visuelle
+   - Adapter l'affichage selon le contexte
+
+### Exemples d'utilisation
+
+```typescript
+// Évaluation d'une règle
+const result = ruleEvaluationService.evaluateRule(rule, context);
+if (result.severity === RuleSeverity.ERROR) {
+    // Gérer l'erreur critique
+}
+
+// Affichage d'une violation
+const violation = {
+    severity: RuleSeverity.WARNING,
+    message: "Intervalle trop court entre gardes"
+};
+const color = getSeverityColor(violation.severity);
+
+// Conversion pour la base de données
+const prismaSeverity = toPrismaSeverity(RuleSeverity.ERROR);
+```
+
 ## Structure du projet
 
 ```

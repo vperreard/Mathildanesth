@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'; // Utiliser next/n
 import { CollectiveCalendar } from '@/modules/calendar/components/CollectiveCalendar'; // Utiliser alias
 import { PersonalCalendar } from '@/modules/calendar/components/PersonalCalendar'; // Utiliser alias
 import { AllocationCalendar } from '@/modules/calendar/components/AllocationCalendar'; // Utiliser alias
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
 import { CalendarEventType } from '@/modules/calendar/types/event';
 import DraggableCalendar from '../../components/DraggableCalendar';
@@ -207,153 +207,95 @@ export default function CalendarPage() {
 
     return (
         <>
-            {/* Supprimer l'affichage de AdminRequestsBanner pour éviter la duplication */}
-            {/* {isAdmin && <AdminRequestsBanner />} */}
-
-            <motion.div
-                className="max-w-screen-2xl mx-auto px-2 py-4 w-full"
-                initial="hidden"
-                animate="visible"
-                variants={fadeIn}
-            >
-                {/* En-tête de la page */}
-                <div className="mb-6">
-                    <motion.h1
-                        className="text-2xl font-bold text-gray-800 mb-1"
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        Calendrier
-                    </motion.h1>
-                    <p className="text-gray-600 text-sm">Consultez et gérez vos événements dans notre calendrier interactif.</p>
-                </div>
-
-                {/* Onglets */}
-                <div className="mb-4 border-b border-gray-200">
-                    <nav className="-mb-px flex flex-wrap gap-1" aria-label="Tabs">
-                        <button
-                            onClick={() => handleTabChange('personal')}
-                            className={`px-3 sm:px-5 py-2 rounded-t-lg font-medium text-xs sm:text-sm transition-all duration-200 ${activeTab === 'personal'
-                                ? 'bg-white text-indigo-600 border-b-2 border-indigo-500 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                                }`}
-                        >
-                            Mon calendrier
-                        </button>
-
-                        <button
-                            onClick={() => handleTabChange('collective')}
-                            className={`px-3 sm:px-5 py-2 rounded-t-lg font-medium text-xs sm:text-sm transition-all duration-200 ${activeTab === 'collective'
-                                ? 'bg-white text-indigo-600 border-b-2 border-indigo-500 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                                }`}
-                        >
-                            Calendrier des congés
-                        </button>
-
-                        {/* Onglet d'affectations visible uniquement pour les admins */}
-                        {isAdmin && (
-                            <button
-                                onClick={() => handleTabChange('allocation')}
-                                className={`px-3 sm:px-5 py-2 rounded-t-lg font-medium text-xs sm:text-sm transition-all duration-200 ${activeTab === 'allocation'
-                                    ? 'bg-white text-indigo-600 border-b-2 border-indigo-500 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                                    }`}
-                            >
-                                Affectations
-                            </button>
-                        )}
-                    </nav>
-
-                    {/* Boutons d'action supplémentaires */}
-                    <div className="mt-4 flex flex-wrap gap-2">
-                        <button
-                            onClick={() => router.push('/leaves/history')}
-                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                            <span className="flex items-center">
-                                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Historique
-                            </span>
-                        </button>
-
-                        <button
-                            onClick={() => router.push('/leaves/stats')}
-                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                            <span className="flex items-center">
-                                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
-                                Statistiques
-                            </span>
-                        </button>
-
-                        <button
-                            onClick={() => router.push('/calendar/export')}
-                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                            <span className="flex items-center">
-                                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Exporter
-                            </span>
-                        </button>
-
-                        <button
-                            onClick={() => router.push('/calendar/settings')}
-                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                            <span className="flex items-center">
-                                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                Paramètres
-                            </span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Contenu de l'onglet actif */}
+            <div className="px-2 py-4 sm:p-6 lg:max-w-[1600px] lg:mx-auto">
                 <motion.div
-                    key={activeTab}
-                    initial="hidden"
-                    animate="visible"
-                    variants={tabAnimation}
-                    className="bg-white rounded-lg shadow-sm p-2 sm:p-3 w-full"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="space-y-4"
                 >
-                    {activeTab === 'personal' && user && (
-                        <PersonalCalendar
-                            userId={user.id.toString()}
-                            onEventClick={handleEventClick}
-                            onRequestLeave={handleRequestLeave}
-                        />
-                    )}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                                Calendrier
+                            </h1>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Consultez et gérez les événements et affectations
+                            </p>
+                        </div>
 
-                    {activeTab === 'collective' && (
-                        <CollectiveCalendar
-                            onEventClick={handleEventClick}
-                            onRequestLeave={handleRequestLeave}
-                        />
-                    )}
+                        {/* Navigation des onglets */}
+                        <div className="bg-white rounded-lg shadow-sm p-1 self-stretch sm:self-auto">
+                            <div className="flex flex-wrap space-x-1">
+                                <button
+                                    className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'personal'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'text-gray-600 hover:bg-gray-100'
+                                        }`}
+                                    onClick={() => handleTabChange('personal')}
+                                >
+                                    Personnel
+                                </button>
+                                <button
+                                    className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'collective'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'text-gray-600 hover:bg-gray-100'
+                                        }`}
+                                    onClick={() => handleTabChange('collective')}
+                                >
+                                    Collectif
+                                </button>
+                                {isAdmin && (
+                                    <button
+                                        className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'allocation'
+                                                ? 'bg-blue-600 text-white'
+                                                : 'text-gray-600 hover:bg-gray-100'
+                                            }`}
+                                        onClick={() => handleTabChange('allocation')}
+                                    >
+                                        Affectation
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
 
-                    {activeTab === 'allocation' && isAdmin && (
-                        <DraggableCalendar
-                            initialAssignments={assignments}
-                            users={users}
-                            rules={rules}
-                            onSave={handleSave}
-                            onValidationError={handleValidationError}
-                            onSyncComplete={handleSyncComplete}
-                        />
-                    )}
+                    {/* Contenu de l'onglet actif */}
+                    <motion.div
+                        key={activeTab}
+                        initial="hidden"
+                        animate="visible"
+                        variants={tabAnimation}
+                        className="bg-white rounded-lg shadow-sm p-2 sm:p-3 w-full"
+                    >
+                        {activeTab === 'personal' && user && (
+                            <PersonalCalendar
+                                userId={user.id.toString()}
+                                onEventClick={handleEventClick}
+                                onRequestLeave={handleRequestLeave}
+                            />
+                        )}
+
+                        {activeTab === 'collective' && (
+                            <CollectiveCalendar
+                                onEventClick={handleEventClick}
+                                onRequestLeave={handleRequestLeave}
+                            />
+                        )}
+
+                        {activeTab === 'allocation' && isAdmin && (
+                            <DraggableCalendar
+                                initialAssignments={assignments}
+                                users={users}
+                                rules={rules}
+                                onSave={handleSave}
+                                onValidationError={handleValidationError}
+                                onSyncComplete={handleSyncComplete}
+                            />
+                        )}
+                    </motion.div>
                 </motion.div>
-            </motion.div>
+            </div>
         </>
     );
 }

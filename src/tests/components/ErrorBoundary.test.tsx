@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import ErrorBoundary from '../../components/ErrorBoundary';
 import { logError } from '../../services/errorLoggingService';
+import { CustomErrorFallback } from '../../components/Calendar/ErrorFallbacks';
 
 // Mock du service de logging
 jest.mock('../../services/errorLoggingService', () => ({
@@ -15,6 +16,17 @@ const ErrorComponent = ({ shouldError = true }) => {
     }
     return <div>Composant sans erreur</div>;
 };
+
+// Créer un composant fallback personnalisé pour les tests
+const TestFallbackComponent: React.FC<{ error: Error; resetError: () => void }> = ({
+    error,
+    resetError
+}) => (
+    <div>
+        <p>Message personnalisé: {error.message}</p>
+        <button onClick={resetError}>Reset personnalisé</button>
+    </div>
+);
 
 // Écraser console.error pour éviter les logs d'erreur React
 const originalConsoleError = console.error;
@@ -96,24 +108,39 @@ describe('ErrorBoundary Component', () => {
         );
     });
 
-    test('devrait afficher un fallback personnalisé sous forme de fonction', () => {
+    test('devrait afficher un composant fallback personnalisé', () => {
         // Supprimer temporairement les erreurs de la console pour ce test
         jest.spyOn(console, 'error').mockImplementation(() => { });
 
-        const fallbackFn = (error: Error, resetError: () => void) => (
-            <div>
-                <p>Message personnalisé: {error.message}</p>
-                <button onClick={resetError}>Reset personnalisé</button>
-            </div>
-        );
-
         render(
-            <ErrorBoundary fallback={fallbackFn}>
+            <ErrorBoundary fallbackComponent={TestFallbackComponent}>
                 <ErrorComponent />
             </ErrorBoundary>
         );
 
         expect(screen.getByText('Message personnalisé: Test error')).toBeInTheDocument();
         expect(screen.getByText('Reset personnalisé')).toBeInTheDocument();
+    });
+
+    test('devrait utiliser un composant fallback avec des props personnalisées', () => {
+        // Supprimer temporairement les erreurs de la console pour ce test
+        jest.spyOn(console, 'error').mockImplementation(() => { });
+
+        render(
+            <ErrorBoundary
+                fallbackComponent={(props) => (
+                    <CustomErrorFallback
+                        {...props}
+                        message="Message de test"
+                        buttonText="Réinitialiser"
+                    />
+                )}
+            >
+                <ErrorComponent />
+            </ErrorBoundary>
+        );
+
+        expect(screen.getByText('Message de test: Test error')).toBeInTheDocument();
+        expect(screen.getByText('Réinitialiser')).toBeInTheDocument();
     });
 }); 

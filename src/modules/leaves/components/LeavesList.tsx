@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     Table,
     TableBody,
@@ -15,6 +15,13 @@ import {
 } from '@mui/material';
 import { LeaveStatus, LeaveType, LeaveWithUser } from '@/modules/leaves/types/leave';
 import { User } from '@/types/user';
+import {
+    useLeaveListFilteringSorting,
+    SortableFilterableKeys,
+    SortDirection,
+    FilterValues,
+    SortState
+} from '../hooks/useLeaveListFilteringSorting';
 
 const formatDateForDisplay = (dateString: string | Date | undefined): string => {
     if (!dateString) return '';
@@ -30,192 +37,83 @@ const formatDateForDisplay = (dateString: string | Date | undefined): string => 
     }
 };
 
-const formatDateForInput = (dateString: string | Date | undefined): string => {
-    if (!dateString) return '';
-    try {
-        const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-        if (isNaN(date.getTime())) {
-            return '';
-        }
-        return date.toISOString().split('T')[0];
-    } catch (e) {
-        console.error("Erreur de formatage de date pour input:", e);
-        return '';
-    }
-};
-
-type SortableFilterableKeys = keyof LeaveWithUser | 'user' | 'type' | 'startDate' | 'endDate';
-
 interface LeavesListProps {
     leaves: LeaveWithUser[];
     isLoading: boolean;
     error: string | null;
-    currentFilter: Partial<Record<SortableFilterableKeys, string>>;
-    onFilterChange: (filterName: SortableFilterableKeys, value: string) => void;
-    currentSort: { field: SortableFilterableKeys; direction: 'asc' | 'desc' };
-    onSortChange: (field: SortableFilterableKeys) => void;
     onEditLeaveClick: (leave: LeaveWithUser) => void;
     onCancelLeaveClick: (leave: LeaveWithUser) => void;
-    userId?: string;
 }
 
 const LeavesList: React.FC<LeavesListProps> = ({
     leaves,
     isLoading,
     error,
-    currentFilter,
-    onFilterChange,
-    currentSort,
-    onSortChange,
     onEditLeaveClick,
     onCancelLeaveClick
 }) => {
-    const sortedLeaves = useMemo(() => {
-        if (!Array.isArray(leaves)) {
-            console.warn("LeavesList: 'leaves' prop n'est pas un tableau.");
-            return [];
-        }
-        const sorted = [...leaves].sort((a, b) => {
-            const field = currentSort.field;
-            let aValue: string | number | Date | null = null;
-            let bValue: string | number | Date | null = null;
+    const [filter, setFilter] = useState<FilterValues>({});
+    const [sort, setSort] = useState<SortState>({ field: 'startDate', direction: 'desc' });
 
-            try {
-                if (field === 'user') {
-                    // Vérifier les deux possibilités (firstName/lastName ou prenom/nom)
-                    // @ts-ignore - Support de la double structure de nommage
-                    const aFirstName = a.user?.firstName || a.user?.prenom || '';
-                    // @ts-ignore - Support de la double structure de nommage
-                    const aLastName = a.user?.lastName || a.user?.nom || '';
-                    // @ts-ignore - Support de la double structure de nommage
-                    const bFirstName = b.user?.firstName || b.user?.prenom || '';
-                    // @ts-ignore - Support de la double structure de nommage
-                    const bLastName = b.user?.lastName || b.user?.nom || '';
+    const handleFilterChange = (filterName: SortableFilterableKeys, value: string) => {
+        setFilter(prev => ({ ...prev, [filterName]: value }));
+    };
 
-                    aValue = `${aFirstName} ${aLastName}`.trim().toLowerCase();
-                    bValue = `${bFirstName} ${bLastName}`.trim().toLowerCase();
-                } else if (field === 'startDate' || field === 'endDate') {
-                    aValue = a[field] ? new Date(a[field]) : null;
-                    bValue = b[field] ? new Date(b[field]) : null;
-                    if (aValue && isNaN(aValue.getTime())) aValue = null;
-                    if (bValue && isNaN(bValue.getTime())) bValue = null;
+    const handleSortChange = (field: SortableFilterableKeys) => {
+        setSort(prev => ({
+            field,
+            direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc'
+        }));
+    };
 
-                    if (aValue === null && bValue === null) return 0;
-                    if (aValue === null) return currentSort.direction === 'asc' ? 1 : -1;
-                    if (bValue === null) return currentSort.direction === 'asc' ? -1 : 1;
-                    if (aValue < bValue) return currentSort.direction === 'asc' ? -1 : 1;
-                    if (aValue > bValue) return currentSort.direction === 'asc' ? 1 : -1;
-                    return 0;
-                } else if (field === 'type' || field === 'status') {
-                    aValue = a[field]?.toString().toLowerCase() ?? '';
-                    bValue = b[field]?.toString().toLowerCase() ?? '';
-                } else {
-                    aValue = (a as any)[field]?.toString().toLowerCase() ?? '';
-                    bValue = (b as any)[field]?.toString().toLowerCase() ?? '';
-                }
-            } catch (e) {
-                console.error(`Erreur durant la récupération des valeurs pour le tri sur le champ ${field}:`, e);
-                return 0;
-            }
-
-            if (typeof aValue === 'string' && typeof bValue === 'string') {
-                if (aValue < bValue) return currentSort.direction === 'asc' ? -1 : 1;
-                if (aValue > bValue) return currentSort.direction === 'asc' ? 1 : -1;
-            }
-
-            return 0;
-        });
-        return sorted;
-    }, [leaves, currentSort]);
-
-    const filteredLeaves = useMemo(() => {
-        return sortedLeaves.filter(leave => {
-            return (Object.keys(currentFilter) as SortableFilterableKeys[]).every(key => {
-                const filterValue = currentFilter[key]?.trim().toLowerCase();
-                if (!filterValue) return true;
-
-                let leaveValue: string = '';
-                try {
-                    if (key === 'user') {
-                        // Vérifier les deux possibilités (firstName/lastName ou prenom/nom)
-                        // @ts-ignore - Support de la double structure de nommage
-                        const firstName = leave.user?.firstName || leave.user?.prenom || '';
-                        // @ts-ignore - Support de la double structure de nommage
-                        const lastName = leave.user?.lastName || leave.user?.nom || '';
-                        leaveValue = `${firstName} ${lastName}`.trim().toLowerCase();
-                    } else if (key === 'startDate' || key === 'endDate') {
-                        const date = leave[key];
-                        if (date) {
-                            const formattedDateForFilter = formatDateForInput(date);
-                            return formattedDateForFilter === filterValue;
-                        }
-                        return false;
-                    } else if (key === 'type' || key === 'status') {
-                        leaveValue = leave[key]?.toString().toLowerCase() ?? '';
-                    } else {
-                        leaveValue = (leave as any)[key]?.toString().toLowerCase() ?? '';
-                    }
-                } catch (e) {
-                    console.error(`Erreur durant le filtrage sur le champ ${key}:`, e);
-                    return false;
-                }
-
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore - Le linter semble avoir du mal à résoudre correctement SortableFilterableKeys ici
-                if (key !== 'startDate' && key !== 'endDate') {
-                    return leaveValue.includes(filterValue);
-                }
-                return true;
-            });
-        });
-    }, [sortedLeaves, currentFilter]);
+    const filteredAndSortedLeaves = useLeaveListFilteringSorting({ leaves, filter, sort });
 
     return (
         <>
             <Table stickyHeader aria-label="Liste des congés">
                 <TableHead>
                     <TableRow>
-                        <TableCell sortDirection={currentSort.field === 'user' ? currentSort.direction : false}>
+                        <TableCell sortDirection={sort.field === 'user' ? sort.direction : false}>
                             <TableSortLabel
-                                active={currentSort.field === 'user'}
-                                direction={currentSort.field === 'user' ? currentSort.direction : 'asc'}
-                                onClick={() => onSortChange('user')}
+                                active={sort.field === 'user'}
+                                direction={sort.field === 'user' ? sort.direction : 'asc'}
+                                onClick={() => handleSortChange('user')}
                             >
                                 Utilisateur
                             </TableSortLabel>
                         </TableCell>
-                        <TableCell sortDirection={currentSort.field === 'type' ? currentSort.direction : false}>
+                        <TableCell sortDirection={sort.field === 'type' ? sort.direction : false}>
                             <TableSortLabel
-                                active={currentSort.field === 'type'}
-                                direction={currentSort.field === 'type' ? currentSort.direction : 'asc'}
-                                onClick={() => onSortChange('type')}
+                                active={sort.field === 'type'}
+                                direction={sort.field === 'type' ? sort.direction : 'asc'}
+                                onClick={() => handleSortChange('type')}
                             >
                                 Type
                             </TableSortLabel>
                         </TableCell>
-                        <TableCell sortDirection={currentSort.field === 'startDate' ? currentSort.direction : false}>
+                        <TableCell sortDirection={sort.field === 'startDate' ? sort.direction : false}>
                             <TableSortLabel
-                                active={currentSort.field === 'startDate'}
-                                direction={currentSort.field === 'startDate' ? currentSort.direction : 'asc'}
-                                onClick={() => onSortChange('startDate')}
+                                active={sort.field === 'startDate'}
+                                direction={sort.field === 'startDate' ? sort.direction : 'asc'}
+                                onClick={() => handleSortChange('startDate')}
                             >
                                 Début
                             </TableSortLabel>
                         </TableCell>
-                        <TableCell sortDirection={currentSort.field === 'endDate' ? currentSort.direction : false}>
+                        <TableCell sortDirection={sort.field === 'endDate' ? sort.direction : false}>
                             <TableSortLabel
-                                active={currentSort.field === 'endDate'}
-                                direction={currentSort.field === 'endDate' ? currentSort.direction : 'asc'}
-                                onClick={() => onSortChange('endDate')}
+                                active={sort.field === 'endDate'}
+                                direction={sort.field === 'endDate' ? sort.direction : 'asc'}
+                                onClick={() => handleSortChange('endDate')}
                             >
                                 Fin
                             </TableSortLabel>
                         </TableCell>
-                        <TableCell sortDirection={currentSort.field === 'status' ? currentSort.direction : false}>
+                        <TableCell sortDirection={sort.field === 'status' ? sort.direction : false}>
                             <TableSortLabel
-                                active={currentSort.field === 'status'}
-                                direction={currentSort.field === 'status' ? currentSort.direction : 'asc'}
-                                onClick={() => onSortChange('status')}
+                                active={sort.field === 'status'}
+                                direction={sort.field === 'status' ? sort.direction : 'asc'}
+                                onClick={() => handleSortChange('status')}
                             >
                                 Statut
                             </TableSortLabel>
@@ -226,8 +124,8 @@ const LeavesList: React.FC<LeavesListProps> = ({
                         <TableCell>
                             <TextField
                                 variant="standard"
-                                value={currentFilter.user || ''}
-                                onChange={(e) => onFilterChange('user', e.target.value)}
+                                value={filter.user || ''}
+                                onChange={(e) => handleFilterChange('user', e.target.value)}
                                 placeholder="Filtrer par nom..."
                                 fullWidth
                                 size="small"
@@ -236,8 +134,8 @@ const LeavesList: React.FC<LeavesListProps> = ({
                         <TableCell>
                             <Select
                                 variant="standard"
-                                value={currentFilter.type || ''}
-                                onChange={(e) => onFilterChange('type', e.target.value)}
+                                value={filter.type || ''}
+                                onChange={(e) => handleFilterChange('type', e.target.value)}
                                 displayEmpty
                                 fullWidth
                                 size="small"
@@ -252,8 +150,8 @@ const LeavesList: React.FC<LeavesListProps> = ({
                             <TextField
                                 variant="standard"
                                 type="date"
-                                value={currentFilter.startDate || ''}
-                                onChange={(e) => onFilterChange('startDate', e.target.value)}
+                                value={filter.startDate || ''}
+                                onChange={(e) => handleFilterChange('startDate', e.target.value)}
                                 InputLabelProps={{ shrink: true }}
                                 fullWidth
                                 size="small"
@@ -265,8 +163,8 @@ const LeavesList: React.FC<LeavesListProps> = ({
                             <TextField
                                 variant="standard"
                                 type="date"
-                                value={currentFilter.endDate || ''}
-                                onChange={(e) => onFilterChange('endDate', e.target.value)}
+                                value={filter.endDate || ''}
+                                onChange={(e) => handleFilterChange('endDate', e.target.value)}
                                 InputLabelProps={{ shrink: true }}
                                 fullWidth
                                 size="small"
@@ -277,8 +175,8 @@ const LeavesList: React.FC<LeavesListProps> = ({
                         <TableCell>
                             <Select
                                 variant="standard"
-                                value={currentFilter.status || ''}
-                                onChange={(e) => onFilterChange('status', e.target.value)}
+                                value={filter.status || ''}
+                                onChange={(e) => handleFilterChange('status', e.target.value)}
                                 displayEmpty
                                 fullWidth
                                 size="small"
@@ -306,14 +204,18 @@ const LeavesList: React.FC<LeavesListProps> = ({
                         <TableRow>
                             <TableCell colSpan={6} align="center" style={{ color: 'red' }}>Erreur: {error}</TableCell>
                         </TableRow>
-                    ) : filteredLeaves.length === 0 ? (
+                    ) : filteredAndSortedLeaves.length === 0 ? (
                         <TableRow>
                             <TableCell colSpan={6} align="center">Aucune demande ne correspond aux critères.</TableCell>
                         </TableRow>
                     ) : (
-                        filteredLeaves.map((leave) => (
+                        filteredAndSortedLeaves.map((leave) => (
                             <TableRow key={leave.id} hover>
-                                <TableCell>{leave.user ? `${leave.user.prenom} ${leave.user.nom}` : 'N/A'}</TableCell>
+                                <TableCell>
+                                    {leave.user && (leave.user.prenom || leave.user.nom)
+                                        ? `${leave.user.prenom || ''} ${leave.user.nom || ''}`.trim()
+                                        : 'Utilisateur inconnu'}
+                                </TableCell>
                                 <TableCell>{leave.type}</TableCell>
                                 <TableCell>{formatDateForDisplay(leave.startDate)}</TableCell>
                                 <TableCell>{formatDateForDisplay(leave.endDate)}</TableCell>

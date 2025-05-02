@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -15,8 +15,10 @@ import {
     XCircle,
     AlertTriangle,
     ChevronDown,
-    Calendar
+    Calendar,
+    RotateCw
 } from 'lucide-react';
+import Button from '@/components/ui/button';
 
 // Importation du store et des composants
 import { useLeaveStore } from '@/modules/leaves/store/leaveStore';
@@ -160,6 +162,14 @@ export default function LeavesPage() {
         setIsModalOpen(true);
     };
 
+    const handleNewRecurringLeaveClick = () => {
+        router.push('/leaves/recurring');
+    };
+
+    const handleQuotaManagementClick = () => {
+        router.push('/leaves/quotas');
+    };
+
     const handleEditLeaveClick = (leave: LeaveWithUser) => {
         setLeaveToEdit(leave);
         setIsModalOpen(true);
@@ -269,13 +279,18 @@ export default function LeavesPage() {
                         Consultez et gérez vos demandes de congés
                     </p>
                 </div>
-                <button
-                    onClick={handleNewLeaveClick}
-                    className="mt-4 md:mt-0 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                    <PlusCircle className="h-5 w-5 mr-2" />
-                    Nouvelle demande
-                </button>
+                <div className="flex gap-2">
+                    <Button onClick={handleNewLeaveClick} variant="primary">
+                        <PlusCircle className="mr-2 h-4 w-4" /> Nouvelle demande
+                    </Button>
+                    <Button onClick={handleNewRecurringLeaveClick} variant="secondary">
+                        <Calendar className="mr-2 h-4 w-4" /> Demande récurrente
+                    </Button>
+                    <Button onClick={handleQuotaManagementClick} className="bg-green-600 hover:bg-green-700">
+                        <RotateCw className="mr-2 h-4 w-4" />
+                        Gestion des quotas
+                    </Button>
+                </div>
             </div>
 
             {/* Dashboard des congés */}
@@ -519,14 +534,10 @@ export default function LeavesPage() {
                             : "Commencez par créer une nouvelle demande de congé."}
                     </p>
                     <div className="mt-6">
-                        <button
-                            type="button"
-                            onClick={handleNewLeaveClick}
-                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-                        >
+                        <Button onClick={handleNewLeaveClick} variant="primary">
                             <PlusCircle className="h-5 w-5 mr-2" />
                             Nouvelle demande
-                        </button>
+                        </Button>
                     </div>
                 </div>
             ) : (

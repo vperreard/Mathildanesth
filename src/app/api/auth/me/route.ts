@@ -11,7 +11,8 @@ export async function GET(request: NextRequest) {
         console.log("DEBUG /api/auth/me: token existe =", !!token);
 
         // Utiliser notre système de JWT personnalisé
-        const authResult = await verifyAuthToken(request);
+        // Passer le token extrait du cookie (ou undefined s'il n'existe pas)
+        const authResult = await verifyAuthToken(token);
         console.log("DEBUG /api/auth/me: résultat verifyAuthToken =", JSON.stringify(authResult));
 
         if (authResult.authenticated) {

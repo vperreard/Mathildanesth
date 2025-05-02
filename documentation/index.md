@@ -10,6 +10,7 @@ Cette documentation vous guidera dans l'utilisation du simulateur de planning et
 - [Guide d'utilisation complet](./guide-utilisateur-simulateur.md) - Guide détaillé pour comprendre et utiliser efficacement le simulateur
 - [Exemples de configurations](./exemples-configurations-simulateur.md) - Exemples concrets de configurations pour différents scénarios
 - [Guide de résolution des problèmes](./guide-resolution-problemes-simulateur.md) - Solutions aux problèmes courants rencontrés lors de l'utilisation
+- [Affectations Habituelles et Gestion des Absences](./affectations-habituelles-absences.md) - Documentation des modules de planification préétablie et gestion des absences
 
 ### Documentation technique
 - [Implémentation du moteur de règles](./regles-implementation-guide.md) - Guide technique pour comprendre le fonctionnement interne du moteur de règles
@@ -31,7 +32,9 @@ Cette documentation est structurée pour répondre aux besoins des différents u
 
 4. **En cas de difficultés** : Le [Guide de résolution des problèmes](./guide-resolution-problemes-simulateur.md) vous aidera à diagnostiquer et résoudre les problèmes courants.
 
-5. **Pour les développeurs et administrateurs** : La documentation technique ([Implémentation du moteur de règles](./regles-implementation-guide.md) et [Architecture du simulateur](./algo-technique-final.md)) fournit des informations détaillées sur le fonctionnement interne du système.
+5. **Pour la gestion des plannings préétablis et absences** : Consultez le guide [Affectations Habituelles et Gestion des Absences](./affectations-habituelles-absences.md) pour configurer les trames de planning et gérer les indisponibilités.
+
+6. **Pour les développeurs et administrateurs** : La documentation technique ([Implémentation du moteur de règles](./regles-implementation-guide.md) et [Architecture du simulateur](./algo-technique-final.md)) fournit des informations détaillées sur le fonctionnement interne du système.
 
 ## Meilleurs pratiques recommandées
 

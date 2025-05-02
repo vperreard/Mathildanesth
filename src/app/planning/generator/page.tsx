@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PlanningGenerator } from '../../../services/planningGenerator';
+// import { PlanningGenerator } from '../../../services/planningGenerator'; // Supprimé
+import { ApiService } from '../../../services/api';
 import PlanningValidator from '../../../components/PlanningValidator';
 import {
     Assignment,
@@ -14,46 +15,13 @@ import {
 import { RulesConfiguration, defaultRulesConfiguration, FatigueConfig, defaultFatigueConfig } from '../../../types/rules';
 import { User } from '../../../types/user';
 
-// Données fictives pour démonstration - à remplacer par des appels API réels
-const mockUsers: User[] = [
-    {
-        id: 1,
-        nom: 'Dupont',
-        prenom: 'Jean',
-        email: 'jean.dupont@hopital.fr',
-        login: 'jdupont',
-        role: 'USER',
-        professionalRole: 'MAR',
-        actif: true
-    },
-    {
-        id: 2,
-        nom: 'Martin',
-        prenom: 'Sophie',
-        email: 'sophie.martin@hopital.fr',
-        login: 'smartin',
-        role: 'USER',
-        professionalRole: 'MAR',
-        actif: true
-    },
-    {
-        id: 3,
-        nom: 'Bernard',
-        prenom: 'Philippe',
-        email: 'philippe.bernard@hopital.fr',
-        login: 'pbernard',
-        role: 'USER',
-        professionalRole: 'MAR',
-        actif: true
-    }
-];
-
 const PlanningGeneratorPage: React.FC = () => {
     const router = useRouter();
     const [loading, setLoading] = useState<boolean>(false);
     const [generating, setGenerating] = useState<boolean>(false);
     const [generated, setGenerated] = useState<boolean>(false);
     const [assignments, setAssignments] = useState<Assignment[]>([]);
+    const [users, setUsers] = useState<User[]>([]); // Ajout pour stocker les utilisateurs
     const [validationResult, setValidationResult] = useState<ValidationResult>({
         valid: false,
         violations: [],
@@ -74,80 +42,101 @@ const PlanningGeneratorPage: React.FC = () => {
         poidsPreference: 0.5,
         poidsQualiteVie: 0.8
     });
-    const [rulesConfig, setRulesConfig] = useState<RulesConfiguration>(defaultRulesConfiguration);
-    const [fatigueConfig, setFatigueConfig] = useState<FatigueConfig>(defaultFatigueConfig);
-    const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(false);
+    const [rulesConfig, setRulesConfig] = useState<RulesConfiguration>(defaultRulesConfiguration); // Peut-être plus nécessaire côté client
+    const [fatigueConfig, setFatigueConfig] = useState<FatigueConfig>(defaultFatigueConfig); // Peut-être plus nécessaire côté client
+    const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(false); // Options avancées peuvent être envoyées à l'API
+    const [error, setError] = useState<string | null>(null);
 
-    // Générer le planning
+    // Générer le planning via l'API
     const generatePlanning = async () => {
         setLoading(true);
         setGenerating(true);
+        setError(null);
 
         try {
-            // Dans un environnement réel, récupérer les utilisateurs et les affectations existantes via API
-            const users = mockUsers;
-            const existingAssignments: Assignment[] = [];
+            const api = ApiService.getInstance();
 
-            // Initialiser le générateur de planning
-            const generator = new PlanningGenerator(parameters, rulesConfig, fatigueConfig);
-            await generator.initialize(users, existingAssignments);
+            // Appeler le nouvel endpoint de génération
+            const response = await api.generatePlanning(parameters);
 
-            // Générer le planning complet
-            const validationResult = await generator.generateFullPlanning();
+            // Récupérer les utilisateurs actifs (pour l'affichage dans PlanningValidator)
+            const activeUsers = await api.getActiveUsers();
+            setUsers(activeUsers);
 
-            // Récupérer les résultats
-            const results = generator.getResults();
-            const allAssignments = [
-                ...results.gardes,
-                ...results.astreintes,
-                ...results.consultations,
-                ...results.blocs
-            ];
-
-            // Mettre à jour l'état
-            setAssignments(allAssignments);
-            setValidationResult(validationResult);
+            // Mettre à jour l'état avec les résultats de l'API
+            setAssignments(response.assignments);
+            setValidationResult(response.validationResult);
             setGenerated(true);
         } catch (error) {
-            console.error('Erreur lors de la génération du planning:', error);
-            // Afficher une notification d'erreur
+            console.error('Erreur lors de la génération du planning via API:', error);
+            setError(error instanceof Error ? error.message : 'Une erreur API est survenue lors de la génération');
         } finally {
             setLoading(false);
             setGenerating(false);
         }
     };
 
-    // Résoudre une violation manuellement
-    const handleResolveViolation = (violation: RuleViolation, assignmentIds?: string[]) => {
+    // Résoudre une violation manuellement (appel API validate)
+    const handleResolveViolation = async (violation: RuleViolation, assignmentIds?: string[]) => {
         if (!assignmentIds || assignmentIds.length === 0) return;
+        setError(null);
 
-        // Dans un environnement réel, ouvrir un modal d'édition ou rediriger vers une page d'édition
-        alert(`Résolution manuelle de la violation: ${violation.message}`);
+        try {
+            const api = ApiService.getInstance();
+            // L'API de validation devrait retourner le nouvel état de validation et potentiellement les affectations mises à jour
+            const validationResponse = await api.validatePlanning(assignments);
+            // Supposons que validatePlanning retourne { assignments: Assignment[], validationResult: ValidationResult }
+            setAssignments(validationResponse.assignments); // Mettre à jour si l'API modifie les assignations
+            setValidationResult(validationResponse.validationResult);
+        } catch (error) {
+            console.error('Erreur lors de la résolution de la violation via API:', error);
+            setError(error instanceof Error ? error.message : 'Une erreur API est survenue lors de la validation');
+        }
     };
 
-    // Approuver le planning généré
-    const handleApprove = () => {
-        // Dans un environnement réel, sauvegarder les assignations et rediriger
-        alert('Planning approuvé et sauvegardé !');
-
-        // Rediriger vers la vue du planning
-        router.push('/planning/view');
+    // Approuver le planning généré (appel API approve)
+    const handleApprove = async () => {
+        setError(null);
+        try {
+            const api = ApiService.getInstance();
+            await api.approvePlanning(assignments);
+            alert('Planning approuvé et sauvegardé via API !');
+            router.push('/planning/view');
+        } catch (error) {
+            console.error('Erreur lors de la sauvegarde du planning via API:', error);
+            setError(error instanceof Error ? error.message : "Une erreur API est survenue lors de l'approbation");
+        }
     };
 
     // Régénérer le planning
     const handleRegenerate = () => {
         setGenerated(false);
-        generatePlanning();
+        setAssignments([]);
+        setValidationResult({
+            valid: false,
+            violations: [],
+            metrics: { equiteScore: 0, fatigueScore: 0, satisfactionScore: 0 }
+        });
+        // Pas besoin d'appeler generatePlanning ici, l'utilisateur cliquera sur le bouton
     };
 
     // Formater la date pour l'affichage
     const formatDate = (date: Date): string => {
-        return new Date(date).toLocaleDateString('fr-FR');
+        // Assurer que la date est bien un objet Date
+        const d = date instanceof Date ? date : new Date(date);
+        return d.toLocaleDateString('fr-FR');
     };
 
     return (
         <div className="container mx-auto p-6">
             <h1 className="text-3xl font-bold mb-8">Générateur de planning</h1>
+
+            {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+                    <p className="font-bold">Erreur</p>
+                    <p>{error}</p>
+                </div>
+            )}
 
             {!generated ? (
                 <div className="bg-white shadow-md rounded-lg p-6">
@@ -155,10 +144,11 @@ const PlanningGeneratorPage: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="dateDebut" className="block text-sm font-medium text-gray-700 mb-1">
                                 Date de début
                             </label>
                             <input
+                                id="dateDebut"
                                 type="date"
                                 className="w-full p-2 border rounded"
                                 value={parameters.dateDebut.toISOString().split('T')[0]}
@@ -170,10 +160,11 @@ const PlanningGeneratorPage: React.FC = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="dateFin" className="block text-sm font-medium text-gray-700 mb-1">
                                 Date de fin
                             </label>
                             <input
+                                id="dateFin"
                                 type="date"
                                 className="w-full p-2 border rounded"
                                 value={parameters.dateFin.toISOString().split('T')[0]}
@@ -196,17 +187,13 @@ const PlanningGeneratorPage: React.FC = () => {
                                         type="checkbox"
                                         checked={parameters.etapesActives.includes(type)}
                                         onChange={(e) => {
-                                            if (e.target.checked) {
-                                                setParameters({
-                                                    ...parameters,
-                                                    etapesActives: [...parameters.etapesActives, type]
-                                                });
-                                            } else {
-                                                setParameters({
-                                                    ...parameters,
-                                                    etapesActives: parameters.etapesActives.filter(t => t !== type)
-                                                });
-                                            }
+                                            const isChecked = e.target.checked;
+                                            setParameters(prevParams => ({
+                                                ...prevParams,
+                                                etapesActives: isChecked
+                                                    ? [...prevParams.etapesActives, type]
+                                                    : prevParams.etapesActives.filter(t => t !== type)
+                                            }));
                                         }}
                                         className="rounded text-blue-600"
                                     />
@@ -217,10 +204,11 @@ const PlanningGeneratorPage: React.FC = () => {
                     </div>
 
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label htmlFor="niveauOptimisation" className="block text-sm font-medium text-gray-700 mb-1">
                             Niveau d'optimisation
                         </label>
                         <select
+                            id="niveauOptimisation"
                             className="w-full p-2 border rounded"
                             value={parameters.niveauOptimisation}
                             onChange={(e) => setParameters({
@@ -249,146 +237,97 @@ const PlanningGeneratorPage: React.FC = () => {
                         </label>
                     </div>
 
-                    <div className="mb-6">
-                        <label className="flex items-center space-x-2">
-                            <input
-                                type="checkbox"
-                                checked={parameters.appliquerPreferencesPersonnelles}
-                                onChange={(e) => setParameters({
-                                    ...parameters,
-                                    appliquerPreferencesPersonnelles: e.target.checked
-                                })}
-                                className="rounded text-blue-600"
-                            />
-                            <span>Appliquer les préférences personnelles</span>
-                        </label>
-                    </div>
-
-                    <div className="flex items-center justify-between mb-6">
-                        <button
-                            type="button"
-                            className="text-blue-600 hover:text-blue-800"
-                            onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-                        >
-                            {showAdvancedOptions ? 'Masquer les options avancées' : 'Afficher les options avancées'}
-                        </button>
-                    </div>
-
-                    {showAdvancedOptions && (
-                        <div className="border-t pt-4 mb-6">
-                            <h3 className="text-lg font-medium mb-3">Pondérations</h3>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Poids de l'équité: {parameters.poidsEquite}
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="1"
-                                        step="0.1"
-                                        value={parameters.poidsEquite}
-                                        onChange={(e) => setParameters({
-                                            ...parameters,
-                                            poidsEquite: parseFloat(e.target.value)
-                                        })}
-                                        className="w-full"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Poids des préférences: {parameters.poidsPreference}
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="1"
-                                        step="0.1"
-                                        value={parameters.poidsPreference}
-                                        onChange={(e) => setParameters({
-                                            ...parameters,
-                                            poidsPreference: parseFloat(e.target.value)
-                                        })}
-                                        className="w-full"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Poids de la qualité de vie: {parameters.poidsQualiteVie}
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="1"
-                                        step="0.1"
-                                        value={parameters.poidsQualiteVie}
-                                        onChange={(e) => setParameters({
-                                            ...parameters,
-                                            poidsQualiteVie: parseFloat(e.target.value)
-                                        })}
-                                        className="w-full"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
                     <div className="flex justify-end">
                         <button
-                            type="button"
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-300"
                             onClick={generatePlanning}
-                            disabled={loading}
+                            disabled={loading || generating}
+                            className={`px-4 py-2 rounded ${loading || generating
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                }`}
                         >
-                            {loading ? 'Génération en cours...' : 'Générer le planning'}
+                            {generating ? 'Génération...' : (loading ? 'Chargement...' : 'Générer le planning')}
                         </button>
                     </div>
                 </div>
             ) : (
-                <div className="space-y-6">
-                    <div className="bg-white shadow-md rounded-lg p-6">
-                        <h2 className="text-xl font-semibold mb-4">Récapitulatif de génération</h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                            <div className="border rounded p-3">
-                                <div className="text-sm text-gray-500">Période</div>
-                                <div>{formatDate(parameters.dateDebut)} - {formatDate(parameters.dateFin)}</div>
-                            </div>
-
-                            <div className="border rounded p-3">
-                                <div className="text-sm text-gray-500">Étapes générées</div>
-                                <div>{parameters.etapesActives.join(', ')}</div>
-                            </div>
-
-                            <div className="border rounded p-3">
-                                <div className="text-sm text-gray-500">Assignations générées</div>
-                                <div>{assignments.length}</div>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <span>
-                                Optimisation: {parameters.niveauOptimisation},
-                                {parameters.conserverAffectationsExistantes ? ' avec' : ' sans'} conservation des affectations existantes,
-                                {parameters.appliquerPreferencesPersonnelles ? ' avec' : ' sans'} préférences personnelles
-                            </span>
+                <div className="bg-white shadow-md rounded-lg p-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-semibold">Résultats de la génération</h2>
+                        <div className="space-x-4">
+                            <button
+                                onClick={handleRegenerate}
+                                disabled={loading || generating} // Désactiver pendant la régénération
+                                className={`px-4 py-2 rounded ${loading || generating
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-gray-600 hover:bg-gray-700 text-white'
+                                    }`}
+                            >
+                                Régénérer
+                            </button>
+                            <button
+                                onClick={handleApprove}
+                                disabled={loading || generating || !validationResult.valid} // Désactiver si invalide ou en cours
+                                className={`px-4 py-2 rounded ${loading || generating || !validationResult.valid
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-green-600 hover:bg-green-700 text-white'
+                                    }`}
+                            >
+                                Approuver
+                            </button>
                         </div>
                     </div>
 
                     <PlanningValidator
                         validationResult={validationResult}
                         assignments={assignments}
-                        users={mockUsers}
+                        users={users} // Passer les utilisateurs récupérés
                         onResolveViolation={handleResolveViolation}
-                        onApprove={handleApprove}
-                        onRegenerate={handleRegenerate}
+                        onApprove={handleApprove} // Conserver car le validateur peut avoir un bouton
+                        onRegenerate={handleRegenerate} // Conserver car le validateur peut avoir un bouton
                     />
+
+                    <div className="mt-8">
+                        <h3 className="text-lg font-semibold mb-4">Affectations générées ({assignments.length})</h3>
+                        <div className="overflow-x-auto max-h-96">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50 sticky top-0">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {assignments.length === 0 && (
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                                                Aucune affectation générée.
+                                            </td>
+                                        </tr>
+                                    )}
+                                    {assignments.map((assignment) => (
+                                        <tr key={assignment.id}>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {formatDate(assignment.startDate)}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {assignment.shiftType}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {/* Afficher nom/prénom si possible */}
+                                                {users.find(u => u.id === assignment.userId)?.prenom} {users.find(u => u.id === assignment.userId)?.nom || assignment.userId}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {assignment.status}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

@@ -5,12 +5,17 @@ Ce document présente les modèles de flux de données utilisés dans l'applicat
 ## Architecture Générale
 
 ```
-┌────────────────┐    ┌────────────────┐    ┌────────────────┐
-│  Composants UI │───▶│    Services    │───▶│  API Backend   │
-└────────────────┘    └────────────────┘    └────────────────┘
-        ▲                     ▲                     │
-        │                     │                     │
-        └─────────────────────└─────────────────────┘
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│ Composants  │     │ React Query │     │    API      │     │  Services   │
+│   React     │◄───►│    Cache    │◄───►│  Endpoints  │◄───►│  Backend    │
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+                                                                   ▲
+                                                                   │
+                                                                   ▼
+                                                            ┌─────────────┐     ┌─────────────┐
+                                                            │ Cache Redis │◄───►│  Base de    │
+                                                            │             │     │  Données    │
+                                                            └─────────────┘     └─────────────┘
 ```
 
 ## Modèles de Flux de Données
@@ -701,3 +706,367 @@ Le système de validation des dates a été intégré au hook `useConflictDetect
 - Feedback immédiat à l'utilisateur
 - Réduction des appels API inutiles (pour les dates formellement invalides)
 - Cohérence des validations dans toute l'application
+
+# Flux de données dans le module de congés
+
+## Vue d'ensemble
+
+Le module de congés utilise un flux de données bien défini pour assurer la cohérence et la fiabilité des opérations. Ce document détaille les interactions entre les différents composants et services.
+
+## Diagramme général du flux de données
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Composants │     │    Hooks    │     │  Services   │     │  Stockage   │
+│      UI     │────>│  Personnali-│────>│  Métier     │────>│  (Prisma /  │
+│             │<────│     sés     │<────│             │<────│    API)     │
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+       ^                   ^                   ^                   ^
+       |                   |                   |                   |
+       ▼                   ▼                   ▼                   ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Bus d'événements (EventBus)                       │
+└─────────────────────────────────────────────────────────────────────────┘
+       ^                   ^                   ^                   ^
+       |                   |                   |                   |
+       ▼                   ▼                   ▼                   ▼
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Module     │     │  Module     │     │  Module     │     │  Module     │
+│ Calendrier  │     │  Planning   │     │ Notification│     │ Statistiques│
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+```
+
+## Flux de création d'une demande de congés
+
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌─────────────┐
+│ LeaveForm   │     │   useLeave   │     │leaveService │     │   Prisma    │
+│ Component   │────>│     Hook     │────>│             │────>│  Database   │
+└─────────────┘     └──────────────┘     └─────────────┘     └─────────────┘
+       │                   │                    │                   │
+       │                   │                    │                   │
+       │                   ▼                    │                   │
+       │            ┌──────────────┐            │                   │
+       │────────────│useValidation │            │                   │
+       │            │     Hook     │            │                   │
+       │            └──────────────┘            │                   │
+       │                   │                    │                   │
+       │                   ▼                    │                   │
+       │            ┌──────────────┐            │                   │
+       └───────────>│useConflict   │────────────┘                   │
+                    │Detection Hook│                                │
+                    └──────────────┘                                │
+                           │                                        │
+                           ▼                                        │
+                    ┌──────────────┐                                │
+                    │useLeaveQuota │────────────────────────────────┘
+                    │     Hook     │
+                    └──────────────┘
+```
+
+## Flux d'approbation d'une demande
+
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌─────────────┐
+│LeaveApproval│     │   useLeave   │     │leaveService │     │   Prisma    │
+│ Component   │────>│     Hook     │────>│             │────>│  Database   │
+└─────────────┘     └──────────────┘     └─────────────┘     └─────────────┘
+                            │                    │                   │
+                            │                    │                   │
+                            ▼                    ▼                   │
+                    ┌──────────────┐     ┌─────────────┐            │
+                    │LeavePermissio│     │EventBus     │            │
+                    │nService      │     │(publish)    │            │
+                    └──────────────┘     └─────────────┘            │
+                                                │                    │
+                                                ▼                    │
+┌─────────────┐                         ┌─────────────┐             │
+│Notification │                         │LeaveToPlan- │             │
+│Service      │<────────────────────────│ningService  │<────────────┘
+└─────────────┘                         └─────────────┘
+       │
+       ▼
+┌─────────────┐
+│Email/Push   │
+│Notifications│
+└─────────────┘
+```
+
+## Détection de conflits
+
+```
+┌──────────────────┐     ┌──────────────────┐
+│useConflictDetecti│     │leaveService      │
+│on Hook           │────>│(checkConflicts)  │
+└──────────────────┘     └──────────────────┘
+                                  │
+                                  ▼
+┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│ConflictStore     │<────│Prisma (Existing  │     │CalendarService   │
+│(State)           │     │Leaves Query)     │────>│(Other Events)    │
+└──────────────────┘     └──────────────────┘     └──────────────────┘
+       │                                                   │
+       └───────────────────────────────────────────────────┘
+                               │
+                               ▼
+                      ┌──────────────────┐
+                      │ConflictResolution│
+                      │Algorithm         │
+                      └──────────────────┘
+                               │
+                               ▼
+                      ┌──────────────────┐
+                      │ConflictCheckResul│
+                      │t                 │
+                      └──────────────────┘
+```
+
+## Système de notifications
+
+```
+┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│leaveService      │     │EventBus          │     │NotificationEvent │
+│(Actions)         │────>│(publish)         │────>│Service           │
+└──────────────────┘     └──────────────────┘     └──────────────────┘
+                                                          │
+                                                          ▼
+                                                 ┌──────────────────┐
+                                                 │NotificationServic│
+                                                 │e                 │
+                                                 └──────────────────┘
+                                                      │        │
+                     ┌─────────────────────────────────┘        │
+                     │                                          │
+                     ▼                                          ▼
+           ┌──────────────────┐                       ┌──────────────────┐
+           │Database          │                       │Email/Push        │
+           │(Notifications)   │                       │Notifications     │
+           └──────────────────┘                       └──────────────────┘
+                     │
+                     ▼
+           ┌──────────────────┐
+           │useLeaveNotificati│
+           │ons Hook          │
+           └──────────────────┘
+                     │
+                     ▼
+           ┌──────────────────┐
+           │NotificationCenter│
+           │Component         │
+           └──────────────────┘
+```
+
+## Calcul des quotas
+
+```
+┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│useLeaveQuota     │     │quotaService      │     │Prisma Database   │
+│Hook              │────>│                  │────>│                  │
+└──────────────────┘     └──────────────────┘     └──────────────────┘
+       │                           │                        │
+       │                           │                        │
+       │                           ▼                        │
+       │                  ┌──────────────────┐              │
+       │                  │WorkScheduleServic│<─────────────┘
+       │                  │e                 │
+       │                  └──────────────────┘
+       │                           │
+       │                           │
+       │                           ▼
+       │                  ┌──────────────────┐
+       └─────────────────>│QuotaCalculator  │
+                          │                  │
+                          └──────────────────┘
+                                   │
+                                   ▼
+                          ┌──────────────────┐
+                          │LeaveBalance      │
+                          │                  │
+                          └──────────────────┘
+```
+
+## Intégration entre modules via le bus d'événements
+
+Le bus d'événements est au cœur de l'architecture d'intégration :
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│                     EventBusService                            │
+├───────────────┬───────────────┬───────────────┬───────────────┤
+│ LEAVE_CREATED │ LEAVE_APPROVED│ LEAVE_REJECTED│ LEAVE_CANCELED│
+└───────────────┴───────────────┴───────────────┴───────────────┘
+         │               │               │               │
+         ▼               ▼               ▼               ▼
+┌───────────────┐ ┌───────────────┐ ┌───────────────┐ ┌───────────────┐
+│ Calendar      │ │ Planning      │ │ Notification  │ │ Statistics    │
+│ Module        │ │ Module        │ │ Module        │ │ Module        │
+└───────────────┘ └───────────────┘ └───────────────┘ └───────────────┘
+```
+
+## Exemples de cas d'utilisation
+
+### 1. Soumission d'une demande de congés
+
+1. L'utilisateur remplit le formulaire `LeaveRequestForm`
+2. Le hook `useLeave` valide les entrées avec `useLeaveValidation`
+3. La détection de conflits est effectuée via `useConflictDetection`
+4. La vérification des quotas est effectuée via `useLeaveQuota`
+5. Si valide, la demande est soumise via `leaveService.submitLeaveRequest()`
+6. Le service sauvegarde la demande dans la base de données
+7. Un événement `LEAVE_CREATED` est publié via `EventBusService`
+8. Le `NotificationEventService` crée une notification pour les approbateurs
+9. L'utilisateur est redirigé vers la vue de confirmation
+
+### 2. Approbation d'une demande
+
+1. L'administrateur voit les demandes en attente dans `LeaveApprovalList`
+2. L'administrateur sélectionne une demande à approuver
+3. Le hook `useLeave` vérifie les permissions via `LeavePermissionService`
+4. La demande est approuvée via `leaveService.approveLeave()`
+5. Le service met à jour le statut de la demande en base de données
+6. Un événement `LEAVE_APPROVED` est publié via `EventBusService`
+7. Les modules abonnés réagissent à cet événement :
+   - `LeaveToPlanningService` met à jour le planning
+   - `NotificationService` notifie l'employé de l'approbation
+   - Le module de statistiques met à jour les compteurs
+
+## Conclusion
+
+Cette architecture de flux de données permet une séparation claire des responsabilités et facilite l'intégration entre les différents modules tout en maintenant un couplage faible. Le bus d'événements est l'élément central qui assure la communication entre les différentes parties du système sans créer de dépendances directes.
+
+# Flux optimisé des données de congés
+
+## Récupération des données avec React Query
+
+1. Le composant React appelle un hook personnalisé (par exemple `useLeavesList`)
+2. React Query vérifie si les données sont dans le cache client
+   - Si les données sont fraîches (< staleTime) : retourne les données du cache
+   - Si les données sont périmées mais disponibles : retourne les données du cache et déclenche une requête en arrière-plan
+   - Si les données ne sont pas en cache : déclenche une requête et affiche un état de chargement
+
+3. La requête est envoyée à l'API si nécessaire
+4. L'API vérifie d'abord dans le cache Redis
+   - Si les données sont en cache : retourne les données cachées
+   - Sinon : interroge la base de données, met en cache le résultat, puis retourne les données
+
+5. React Query met en cache les données côté client
+6. Les données sont affichées dans le composant
+
+### Mutations et invalidation de cache
+
+1. Le composant appelle un hook de mutation (par exemple `useSaveLeave`)
+2. La mutation est envoyée à l'API
+3. L'API traite la mutation et met à jour la base de données
+4. L'API invalide les entrées concernées dans le cache Redis
+5. La réponse est retournée au client
+6. React Query invalide les requêtes concernées dans le cache client
+7. Les composants sont mis à jour avec les nouvelles données
+
+## Optimisations clés
+
+### Côté Client (React)
+
+1. **React Query** : Configuration optimisée de staleTime, gcTime, et stratégies de retry
+2. **Debounce** : Limitation des requêtes pendant la saisie de filtres
+3. **Prefetching** : Préchargement des données fréquemment consultées
+4. **Invalidation ciblée** : Invalidation précise du cache après les mutations
+
+```jsx
+// Exemple d'utilisation de React Query optimisé
+const { data, isLoading } = useLeavesList({ 
+  status: LeaveStatus.APPROVED 
+}, {
+  staleTime: 5 * 60 * 1000, // 5 minutes
+  placeholderData: previousPageData // Maintient les données entre les pages
+});
+```
+
+### Côté Serveur (Node.js/Next.js)
+
+1. **Cache Redis** : Mise en cache des requêtes fréquentes avec TTL adaptés
+2. **Stratégies d'invalidation** : Invalidation précise du cache lors des mutations
+3. **Requêtes optimisées** : Sélection uniquement des champs nécessaires
+4. **Compression** : Réduction de la taille des payloads
+
+```typescript
+// Exemple de stratégie d'invalidation sur une API
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'PUT') {
+    const leaveId = req.query.id as string;
+    const updatedLeave = await leaveService.updateLeave(leaveId, req.body);
+    
+    // Invalidation ciblée du cache Redis
+    await redis.del(`leave:detail:${leaveId}`);
+    await redis.del(`user:leaves:${updatedLeave.userId}`);
+    
+    return res.status(200).json(updatedLeave);
+  }
+}
+```
+
+## Performances et Métriques
+
+Les optimisations mises en place permettent:
+
+1. **Réduction des requêtes réseau** : Jusqu'à 90% de requêtes en moins
+2. **Temps de réponse améliorés** : Chargement instantané des données en cache
+3. **Expérience utilisateur fluide** : Interface réactive même avec de grandes quantités de données
+4. **Réduction de la charge serveur** : Moins de requêtes à la base de données
+
+## Diagramme de séquence
+
+```
+┌─────────┐          ┌───────────┐          ┌──────┐          ┌─────────┐          ┌────┐
+│Component│          │React Query│          │ API  │          │   Redis │          │ DB │
+└────┬────┘          └─────┬─────┘          └──┬───┘          └────┬────┘          └─┬──┘
+     │    useLeavesList    │                   │                   │                 │
+     │ ───────────────────>│                   │                   │                 │
+     │                     │                   │                   │                 │
+     │                     │ check cache       │                   │                 │
+     │                     │ ───┐              │                   │                 │
+     │                     │    │              │                   │                 │
+     │                     │ <──┘              │                   │                 │
+     │                     │                   │                   │                 │
+     │                     │ if not in cache   │                   │                 │
+     │                     │ ─────────────────>│                   │                 │
+     │                     │                   │                   │                 │
+     │                     │                   │ check Redis cache │                 │
+     │                     │                   │ ─────────────────>│                 │
+     │                     │                   │                   │                 │
+     │                     │                   │                   │ if not in cache │
+     │                     │                   │                   │ ───────────────>│
+     │                     │                   │                   │                 │
+     │                     │                   │                   │ query result    │
+     │                     │                   │                   │ <───────────────│
+     │                     │                   │                   │                 │
+     │                     │                   │                   │ cache result    │
+     │                     │                   │                   │ ───┐            │
+     │                     │                   │                   │    │            │
+     │                     │                   │                   │ <──┘            │
+     │                     │                   │                   │                 │
+     │                     │                   │ cached result     │                 │
+     │                     │                   │ <─────────────────│                 │
+     │                     │                   │                   │                 │
+     │                     │ API response      │                   │                 │
+     │                     │ <─────────────────│                   │                 │
+     │                     │                   │                   │                 │
+     │                     │ cache result      │                   │                 │
+     │                     │ ───┐              │                   │                 │
+     │                     │    │              │                   │                 │
+     │                     │ <──┘              │                   │                 │
+     │                     │                   │                   │                 │
+     │ cached data         │                   │                   │                 │
+     │ <───────────────────│                   │                   │                 │
+     │                     │                   │                   │                 │
+┌────┴────┐          ┌─────┴─────┐          ┌──┴───┐          ┌────┴────┐          ┌─┴──┐
+│Component│          │React Query│          │ API  │          │   Redis │          │ DB │
+└─────────┘          └───────────┘          └──────┘          └─────────┘          └────┘
+```
+
+## Bonnes Pratiques
+
+1. **Toujours utiliser React Query** pour les opérations de données
+2. **Configurer les staleTime appropriés** selon la nature des données
+3. **Implémenter le debounce** pour les filtres et recherches
+4. **Prévoir des stratégies d'invalidation ciblées** pour les mutations
+5. **Surveiller les performances** avec les outils de mesure intégrés

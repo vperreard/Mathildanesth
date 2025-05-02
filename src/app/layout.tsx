@@ -3,12 +3,13 @@ import { Inter, Montserrat } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { AuthProvider } from '@/context/AuthContext';
+import { Providers } from './providers';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
-import { UnsavedChangesProvider } from '@/hooks/useUnsavedChanges';
-import { NotificationProvider } from '@/components/ui/notification';
-import { RuleViolationsProvider } from '@/hooks/useRuleViolations';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorDisplay from '@/components/ErrorDisplay';
+import { LayoutErrorFallback } from '@/components/Calendar/ErrorFallbacks';
 
 // Police principale pour le texte
 const inter = Inter({
@@ -41,34 +42,35 @@ export default function RootLayout({
     return (
         <html lang="fr" className={`${inter.variable} ${montserrat.variable}`}>
             <body className={`${inter.className} flex flex-col min-h-screen bg-gray-50`}>
-                <AuthProvider>
-                    <NotificationProvider>
-                        <UnsavedChangesProvider>
-                            <RuleViolationsProvider>
-                                <div className="flex flex-col min-h-screen">
-                                    <Header />
-                                    <main className="flex-grow">
-                                        {children}
-                                        <ToastContainer
-                                            position="top-right"
-                                            autoClose={5000}
-                                            hideProgressBar={false}
-                                            newestOnTop={false}
-                                            closeOnClick
-                                            rtl={false}
-                                            pauseOnFocusLoss
-                                            draggable
-                                            pauseOnHover
-                                            theme="colored"
-                                            toastClassName="rounded-lg shadow-md"
-                                        />
-                                    </main>
-                                    <Footer />
-                                </div>
-                            </RuleViolationsProvider>
-                        </UnsavedChangesProvider>
-                    </NotificationProvider>
-                </AuthProvider>
+                <Providers>
+                    <div className="flex flex-col min-h-screen">
+                        <Header />
+                        <main className="flex-grow container mx-auto px-4 py-8">
+                            <ErrorBoundary
+                                fallbackComponent={LayoutErrorFallback}
+                            >
+                                {children}
+                            </ErrorBoundary>
+                            <ToastContainer
+                                position="top-right"
+                                autoClose={5000}
+                                hideProgressBar={false}
+                                newestOnTop={false}
+                                closeOnClick
+                                rtl={false}
+                                pauseOnFocusLoss
+                                draggable
+                                pauseOnHover
+                                theme="colored"
+                                toastClassName="rounded-lg shadow-md"
+                            />
+                            <div className="fixed bottom-4 right-4 z-50">
+                                <NotificationCenter />
+                            </div>
+                        </main>
+                        <Footer />
+                    </div>
+                </Providers>
 
                 {/* Script pour vérifier le thème système */}
                 <script

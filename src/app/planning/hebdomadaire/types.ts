@@ -60,6 +60,11 @@ export type DisplayConfig = {
     borderStyle: BorderStyle;
     borderWidth: BorderWidth;
     cardStyle: CardStyle;
+    hiddenRoomIds?: (string | number)[];
+    hiddenPersonnelIds?: (string | number)[];
+    couleurs?: {
+        chirurgiens: Record<string | number, string>;
+    };
 };
 
 // Types compatibles avec la page principale

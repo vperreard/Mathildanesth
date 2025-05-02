@@ -107,6 +107,195 @@ function parseCsv<T>(filePath: string): T[] {
     return records as T[];
 }
 
+// Types de congés par défaut
+const leaveTypes = [
+    {
+        code: 'CP',
+        label: 'Congé annuel',
+        description: 'Congé annuel payé',
+        isActive: 'true',
+        isUserSelectable: 'true',
+        rules: JSON.stringify({
+            countingMethod: 'WEEKDAYS_IF_WORKING',
+            maxDuration: 30,
+            minRequestLeadTime: 30,
+            approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
+        })
+    },
+    {
+        code: 'RTT',
+        label: 'RTT',
+        description: 'Réduction du temps de travail',
+        isActive: 'true',
+        isUserSelectable: 'true',
+        rules: JSON.stringify({
+            countingMethod: 'WEEKDAYS_IF_WORKING',
+            maxDuration: 1,
+            minRequestLeadTime: 7,
+            approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
+        })
+    },
+    {
+        code: 'FORM',
+        label: 'Formation',
+        description: 'Congé pour formation',
+        isActive: 'true',
+        isUserSelectable: 'true',
+        rules: JSON.stringify({
+            countingMethod: 'CONTINUOUS_ALL_DAYS',
+            maxDuration: 90,
+            minRequestLeadTime: 30,
+            approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
+        })
+    },
+    {
+        code: 'MAL',
+        label: 'Maladie',
+        description: 'Congé maladie',
+        isActive: 'true',
+        isUserSelectable: 'true',
+        rules: JSON.stringify({
+            countingMethod: 'CONTINUOUS_ALL_DAYS',
+            maxDuration: 90,
+            minRequestLeadTime: 0,
+            approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
+        })
+    },
+    {
+        code: 'MAT',
+        label: 'Maternité',
+        description: 'Congé maternité',
+        isActive: 'true',
+        isUserSelectable: 'true',
+        rules: JSON.stringify({
+            countingMethod: 'CONTINUOUS_ALL_DAYS',
+            maxDuration: 180,
+            minRequestLeadTime: 30,
+            approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
+        })
+    },
+    {
+        code: 'CSS',
+        label: 'Congé spécial',
+        description: 'Congé pour événement spécial',
+        isActive: 'true',
+        isUserSelectable: 'true',
+        rules: JSON.stringify({
+            countingMethod: 'WEEKDAYS_IF_WORKING',
+            maxDuration: 5,
+            minRequestLeadTime: 15,
+            approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
+        })
+    },
+    {
+        code: 'RECUP',
+        label: 'Récupération',
+        description: 'Récupération de temps de travail',
+        isActive: 'true',
+        isUserSelectable: 'true',
+        rules: JSON.stringify({
+            countingMethod: 'WEEKDAYS_IF_WORKING',
+            maxDuration: 1,
+            minRequestLeadTime: 7,
+            approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
+        })
+    }
+];
+
+// Règles de transfert de quotas par défaut
+const quotaTransferRules = [
+    {
+        fromType: 'ANNUAL',
+        toType: 'RECOVERY',
+        conversionRate: 1.0,
+        maxTransferDays: 5,
+        maxTransferPercentage: 20,
+        requiresApproval: false,
+        authorizedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
+        isActive: true
+    },
+    {
+        fromType: 'RECOVERY',
+        toType: 'ANNUAL',
+        conversionRate: 1.0,
+        maxTransferDays: 3,
+        maxTransferPercentage: 100,
+        requiresApproval: false,
+        authorizedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
+        isActive: true
+    },
+    {
+        fromType: 'TRAINING',
+        toType: 'ANNUAL',
+        conversionRate: 0.5, // 2 jours de formation = 1 jour de congé annuel
+        maxTransferDays: 5,
+        maxTransferPercentage: 50,
+        requiresApproval: true,
+        authorizedRoles: ['ADMIN_TOTAL'],
+        isActive: true
+    },
+    {
+        fromType: 'ANNUAL',
+        toType: 'TRAINING',
+        conversionRate: 2.0, // 1 jour de congé annuel = 2 jours de formation
+        maxTransferDays: 3,
+        maxTransferPercentage: 10,
+        requiresApproval: true,
+        authorizedRoles: ['ADMIN_TOTAL'],
+        isActive: true
+    },
+    {
+        fromType: 'SPECIAL',
+        toType: 'ANNUAL',
+        conversionRate: 1.0,
+        maxTransferDays: 2,
+        maxTransferPercentage: 100,
+        requiresApproval: true,
+        authorizedRoles: ['ADMIN_TOTAL'],
+        isActive: true
+    }
+];
+
+// Règles de report de quotas par défaut
+const quotaCarryOverRules = [
+    {
+        leaveType: 'ANNUAL',
+        ruleType: 'PERCENTAGE',
+        value: 10, // 10% du solde restant
+        maxCarryOverDays: 5,
+        expirationDays: 120, // 4 mois
+        requiresApproval: false,
+        authorizedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
+        isActive: true
+    },
+    {
+        leaveType: 'RECOVERY',
+        ruleType: 'FIXED',
+        value: 3, // Maximum 3 jours
+        requiresApproval: false,
+        authorizedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
+        isActive: true
+    },
+    {
+        leaveType: 'TRAINING',
+        ruleType: 'PERCENTAGE',
+        value: 100, // 100% du solde restant
+        maxCarryOverDays: 10,
+        requiresApproval: false,
+        authorizedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
+        isActive: true
+    },
+    {
+        leaveType: 'SPECIAL',
+        ruleType: 'EXPIRABLE',
+        value: 100, // 100% du solde restant
+        expirationDays: 90, // 3 mois
+        requiresApproval: true,
+        authorizedRoles: ['ADMIN_TOTAL'],
+        isActive: true
+    }
+];
+
 async function main() {
     console.log("[SEED DEBUG] Début de la fonction main()");
 
@@ -195,15 +384,6 @@ async function main() {
         }
 
         // Créer les types de congés
-        const leaveTypes = parseCsv<{
-            code: string;
-            label: string;
-            description: string;
-            isActive: string;
-            isUserSelectable: string;
-            rules: string;
-        }>(path.join(__dirname, 'seed_data', 'leave_types.csv'));
-
         for (const leaveType of leaveTypes) {
             try {
                 const existingLeaveType = await prisma.leaveTypeSetting.findUnique({
@@ -312,6 +492,27 @@ async function main() {
             } catch (error) {
                 console.error(`[SEED DEBUG] Erreur lors du traitement du rôle ${role.code}:`, error);
             }
+        }
+
+        // Création des types de congés par défaut
+        for (const leaveType of leaveTypes) {
+            await prisma.leaveTypeSetting.create({
+                data: leaveType
+            });
+        }
+
+        // Création des règles de transfert de quotas par défaut
+        for (const rule of quotaTransferRules) {
+            await prisma.quotaTransferRule.create({
+                data: rule
+            });
+        }
+
+        // Création des règles de report de quotas par défaut
+        for (const rule of quotaCarryOverRules) {
+            await prisma.quotaCarryOverRule.create({
+                data: rule
+            });
         }
 
         // Lire le fichier CSV

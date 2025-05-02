@@ -2,143 +2,129 @@
 
 Ce guide est destiné aux équipes qui ont développé des composants externes utilisant l'ancienne API de validation des dates. Il détaille les étapes nécessaires pour migrer vers le nouveau système centralisé.
 
-## Introduction
+## Pourquoi migrer?
 
 Le nouveau système de validation des dates fournit une API unifiée et plus puissante via le hook `useDateValidation`. Cette migration améliorera la robustesse de vos composants et réduira la quantité de code à maintenir.
 
-## Pourquoi migrer ?
+### Avantages clés:
 
-- **Code plus propre**: Réduisez la quantité de code de validation dans vos composants
-- **Fonctionnalités avancées**: Accédez à des validations plus sophistiquées (jours ouvrables, quotas, etc.)
-- **Meilleure gestion des erreurs**: Système unifié avec typages précis
-- **Maintenance simplifiée**: Les mises à jour et corrections seront centralisées
-- **Cohérence**: Expérience utilisateur harmonisée dans toute l'application
+- **Gestion d'erreurs standardisée** avec messages cohérents
+- **Validation complète** couvrant de nombreux cas d'usage
+- **Code plus concis** et plus facile à maintenir
+- **Réduction des bugs** liés à la validation de dates
+- **Meilleure expérience utilisateur** avec feedbacks précis
 
-## Résumé des changements pour les intégrations externes
+## Comparaison des APIs
 
 | Ancienne API | Nouvelle API |
 |--------------|--------------|
 | `validateDateInput(date)` | `validateDate(date, fieldName, options)` |
 | `isDateRangeValid(start, end)` | `validateDateRange(start, end, startFieldName, endFieldName, options)` |
-| `hasConflict(date, events)` | `detectConflicts(userId, date, type, existingEvents)` |
+| `checkConflicts(date, userId)` | `detectConflicts(userId, date, type, existingEvents)` |
 | `isDateInBlackoutPeriod(date)` | Inclus dans `validateDate` via l'option `blackoutPeriods` |
-| `checkQuota(days, userId)` | Géré via le contexte et les options `availableDaysPerYear` |
+| `calculateDuration(start, end)` | Inclus dans le contexte retourné par `validateDateRange` |
 
-## Étapes de migration pour les composants externes
+## Étapes de migration
 
-### 1. Dépendances requises
+### 1. Installer les dépendances
 
-Assurez-vous que votre projet dépend des bonnes versions:
+Si vous utilisez une version obsolète, mettez à jour vers la dernière version:
 
-```json
-{
-  "dependencies": {
-    "date-fns": "^2.29.0",
-    "react": "^18.2.0"
-  }
-}
+```bash
+npm install @mathildanesth/core-hooks
 ```
 
-### 2. Importer le hook useDateValidation
+### 2. Importer le nouveau hook
+
+Remplacez vos anciennes importations:
 
 ```typescript
+// Ancien code
+import { validateDateInput, isDateRangeValid } from '../utils/dateUtils';
+
+// Nouveau code
 import { useDateValidation, DateValidationErrorType, DateValidationOptions } from '@mathildanesth/core-hooks';
 ```
 
-### 3. Utiliser le hook dans votre composant
+### 3. Initialiser le hook dans vos composants
 
 ```typescript
-function MonComposantExterne() {
-  // Initialiser le hook
-  const {
-    validateDate,
-    validateDateRange,
-    hasError,
-    getErrorMessage,
-    resetErrors
-  } = useDateValidation();
-
-  // Utiliser les fonctions du hook
-  // ...
-}
+// Ajouter dans votre composant fonctionnel
+const {
+  validateDate,
+  validateDateRange,
+  hasError,
+  getErrorMessage,
+  resetErrors
+} = useDateValidation();
 ```
 
 ### 4. Adapter la validation de date unique
 
-**Avant**:
+Ancien code:
 ```typescript
-function isValidDate(date, required = true) {
-  if (required && !date) {
+function validateDate(date) {
+  if (!date) {
     return { valid: false, error: 'La date est requise' };
   }
   
-  if (date && date < new Date()) {
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+  
+  if (date < currentDate) {
     return { valid: false, error: 'La date ne peut pas être dans le passé' };
   }
   
-  return { valid: true, error: null };
-}
-
-// Utilisation
-const result = isValidDate(selectedDate);
-if (!result.valid) {
-  setError(result.error);
+  // Vérifier si c'est un week-end
+  const day = date.getDay();
+  if (day === 0 || day === 6) {
+    return { valid: false, error: 'Les week-ends ne sont pas autorisés' };
+  }
+  
+  return { valid: true };
 }
 ```
 
-**Maintenant**:
+Nouveau code:
 ```typescript
-// Dans votre composant qui utilise le hook
 const isValid = validateDate(selectedDate, 'dateField', {
   required: true,
-  allowPastDates: false
+  allowPastDates: false,
+  disallowWeekends: true
 });
 
-// Vérification des erreurs
 if (!isValid) {
-  // L'erreur est déjà stockée dans le hook
-  // Vous pouvez y accéder avec hasError et getErrorMessage
+  // Utiliser getErrorMessage pour obtenir le message d'erreur
+  const errorMessage = getErrorMessage('dateField');
+  // ...
 }
-
-// Affichage de l'erreur
-{hasError('dateField') && (
-  <div className="error">{getErrorMessage('dateField')}</div>
-)}
 ```
 
 ### 5. Adapter la validation de plages de dates
 
-**Avant**:
+Ancien code:
 ```typescript
 function validateDateRange(startDate, endDate) {
-  const errors = {};
-  
-  if (!startDate) {
-    errors.startDate = 'La date de début est requise';
+  const startValid = validateDate(startDate);
+  if (!startValid.valid) {
+    return startValid;
   }
   
-  if (!endDate) {
-    errors.endDate = 'La date de fin est requise';
+  const endValid = validateDate(endDate);
+  if (!endValid.valid) {
+    return endValid;
   }
   
-  if (startDate && endDate && startDate > endDate) {
-    errors.startDate = 'La date de début doit être avant la date de fin';
-    errors.endDate = 'La date de fin doit être après la date de début';
+  if (startDate > endDate) {
+    return { valid: false, error: 'La date de début doit être avant la date de fin' };
   }
   
-  return { valid: Object.keys(errors).length === 0, errors };
-}
-
-// Utilisation
-const validation = validateDateRange(startDate, endDate);
-if (!validation.valid) {
-  setErrors(validation.errors);
+  return { valid: true };
 }
 ```
 
-**Maintenant**:
+Nouveau code:
 ```typescript
-// Dans votre composant qui utilise le hook
 const isValid = validateDateRange(
   startDate,
   endDate,
@@ -146,261 +132,155 @@ const isValid = validateDateRange(
   'endDate',
   {
     required: true,
-    minDuration: 1 // durée minimale d'un jour
+    allowPastDates: false,
+    disallowWeekends: true
   }
 );
 
-// Vérification et affichage des erreurs
-{hasError('startDate') && (
-  <div className="error">{getErrorMessage('startDate')}</div>
-)}
-{hasError('endDate') && (
-  <div className="error">{getErrorMessage('endDate')}</div>
-)}
+// Gestion des erreurs pour les dates de début et de fin
+if (hasError('startDate')) {
+  // Gérer l'erreur sur la date de début
+}
+
+if (hasError('endDate')) {
+  // Gérer l'erreur sur la date de fin
+}
 ```
 
-### 6. Adapter la détection de conflits
+### 6. Gérer l'affichage des erreurs
 
-**Avant**:
+Ancien code:
 ```typescript
-function checkConflicts(newEvent, existingEvents) {
-  const overlapping = existingEvents.filter(event => {
-    return (
-      (newEvent.start >= event.start && newEvent.start <= event.end) ||
-      (newEvent.end >= event.start && newEvent.end <= event.end) ||
-      (newEvent.start <= event.start && newEvent.end >= event.end)
-    );
-  });
+function handleDateChange(value) {
+  const date = new Date(value);
+  const validation = validateDate(date);
   
-  return { 
-    hasConflicts: overlapping.length > 0, 
-    conflicts: overlapping 
-  };
-}
-
-// Utilisation
-const result = checkConflicts(newEvent, calendarEvents);
-if (result.hasConflicts) {
-  setConflictError(`Conflit avec ${result.conflicts.length} événement(s)`);
-}
-```
-
-**Maintenant**:
-```typescript
-// Dans votre composant qui utilise le hook
-const { detectConflicts, context } = useDateValidation();
-
-// Création de la plage de dates à vérifier
-const isValid = detectConflicts(
-  'user123',
-  selectedDate,
-  'event',
-  calendarEvents
-);
-
-// Vérification des conflits
-if (!isValid) {
-  // Les conflits sont stockés dans le contexte
-  console.log('Conflits détectés:', context.conflicts);
-}
-
-// Affichage de l'erreur
-{hasError('conflict_event_user123') && (
-  <div className="error">{getErrorMessage('conflict_event_user123')}</div>
-)}
-```
-
-### 7. Migrer la gestion des quotas
-
-**Avant**:
-```typescript
-function checkQuota(requestedDays, userId) {
-  // Appel à une API pour récupérer les jours utilisés
-  return fetchUserQuota(userId).then(quota => {
-    const remaining = quota.total - quota.used;
-    return {
-      valid: requestedDays <= remaining,
-      remaining,
-      message: requestedDays > remaining 
-        ? `Quota dépassé: ${remaining} jours restants`
-        : null
-    };
-  });
-}
-
-// Utilisation
-useEffect(() => {
-  if (startDate && endDate) {
-    const days = calculateDaysBetween(startDate, endDate);
-    checkQuota(days, userId).then(result => {
-      if (!result.valid) {
-        setQuotaError(result.message);
-      }
-    });
+  if (!validation.valid) {
+    setError(validation.error);
+  } else {
+    setError(null);
+    setSelectedDate(date);
   }
-}, [startDate, endDate]);
+}
+
+// JSX
+<p className="error">{error}</p>
 ```
 
-**Maintenant**:
+Nouveau code:
 ```typescript
-// Dans votre composant qui utilise le hook
-const { validateLeaveRequest, setContext, context } = useDateValidation();
-
-// Initialiser le contexte avec les jours utilisés
-useEffect(() => {
-  // Vous pouvez toujours faire un appel API pour récupérer les jours utilisés
-  fetchUserQuota(userId).then(quota => {
-    setContext({ usedDays: quota.used });
-  });
-}, [userId, setContext]);
-
-// Validation avec la vérification du quota incluse
-const handleValidate = () => {
-  const isValid = validateLeaveRequest(
-    startDate,
-    endDate,
-    userId,
-    {
-      availableDaysPerYear: 25, // quota total
-      businessDaysOnly: true // ne compter que les jours ouvrables
-    }
-  );
+function handleDateChange(value) {
+  const date = new Date(value);
+  const isValid = validateDate(date, 'myDate', options);
   
   if (isValid) {
-    // Accéder aux informations de quota dans le contexte
-    console.log('Jours restants:', context.remainingDays);
+    setSelectedDate(date);
   }
-};
+}
+
+// JSX
+{hasError('myDate') && (
+  <p className="error">{getErrorMessage('myDate')}</p>
+)}
 ```
 
-## Transition pour les bibliothèques de composants
+### 7. Adapter les validations spécifiques métier
 
-Si vous maintenez une bibliothèque de composants utilisée par d'autres équipes, considérez ces approches pour une transition en douceur:
-
-### Option 1: Wrapper l'ancienne API
-
-Créez une version de compatibilité qui utilise en interne le nouveau hook:
+Utilisez les fonctions spécialisées pour les validations métier spécifiques:
 
 ```typescript
-// Compatibilité pour l'ancienne API
-export function isValidDate(date, required = true) {
-  // Créer une instance temporaire du hook
-  const { validateDate } = useDateValidationTemp();
-  
-  // Utiliser le nouveau hook et convertir le résultat au format ancien
-  const fieldName = 'temp_field';
+// Pour les congés
+const isLeaveValid = validateLeaveRequest(startDate, endDate, userId, {
+  availableDaysPerYear: 25,
+  minAdvanceNotice: 5
+});
+
+// Pour les gardes
+const isShiftValid = validateShiftAssignment(date, 'NUIT', userId, {
+  blackoutPeriods: restPeriods
+});
+```
+
+## Cas particuliers
+
+### Validation temporaire
+
+Si vous avez besoin de maintenir temporairement l'ancienne API:
+
+```typescript
+const { validateDate } = useDateValidationTemp();
+
+// Fonction de compatibilité
+function validateDateInput(date, required = true) {
+  const fieldName = 'tempField';
   const isValid = validateDate(date, fieldName, { required });
-  
-  if (!isValid) {
-    const { getErrorMessage } = useDateValidationTemp();
-    return { valid: false, error: getErrorMessage(fieldName) };
-  }
-  
-  return { valid: true, error: null };
+  return isValid;
 }
 
-// Fonction utilitaire pour créer une instance temporaire du hook
-function useDateValidationTemp() {
-  const [errors, setErrors] = useState({});
-  // Version simplifiée du hook pour la compatibilité
-  // ...
-}
-```
-
-### Option 2: Adaptation progressive
-
-1. Marquez les anciennes fonctions comme dépréciées
-2. Ajoutez des avertissements dans la console
-3. Fournissez des exemples de migration
-4. Définissez une date limite de suppression
-
-```typescript
+// DÉPRÉCIÉ: À remplacer par le nouveau hook
 /**
  * @deprecated Utilisez useDateValidation().validateDate() à la place
  */
-export function isValidDate(date, required = true) {
+export function isDateValid(date) {
   console.warn(
-    'isValidDate est déprécié et sera supprimé dans la version 2.0.0. ' +
     'Utilisez useDateValidation().validateDate() à la place. ' +
-    'Voir la documentation: https://wiki.mathildanesth.fr/migration/date-validation'
+    'Cette fonction sera supprimée dans une version future.'
   );
-  
-  // Ancienne implémentation...
+  return validateDateInput(date);
 }
 ```
 
-## Tests
+## Test de la migration
 
-### Adaptation des tests unitaires
+Après avoir effectué la migration, testez vos composants pour vous assurer que tout fonctionne correctement:
 
-**Avant**:
 ```typescript
-test('rejette les dates dans le passé', () => {
-  const pastDate = new Date(2020, 0, 1);
-  const result = isValidDate(pastDate);
-  expect(result.valid).toBe(false);
-  expect(result.error).toContain('dans le passé');
-});
-```
-
-**Maintenant**:
-```typescript
-test('rejette les dates dans le passé', () => {
+// Test du nouveau hook
+it('should validate dates correctly after migration', () => {
   const { result } = renderHook(() => useDateValidation());
-  const pastDate = new Date(2020, 0, 1);
   
-  act(() => {
-    const isValid = result.current.validateDate(pastDate, 'testField');
-    expect(isValid).toBe(false);
-    expect(result.current.hasError('testField')).toBe(true);
-    expect(result.current.getErrorType('testField')).toBe(DateValidationErrorType.PAST_DATE);
-  });
+  const pastDate = new Date();
+  pastDate.setDate(pastDate.getDate() - 1);
+  
+  const isValid = result.current.validateDate(pastDate, 'testField');
+  
+  expect(isValid).toBe(false);
+  expect(result.current.getErrorType('testField')).toBe(DateValidationErrorType.PAST_DATE);
 });
 ```
 
-### Adaptation des tests d'intégration
+## FAQ
+
+### Que faire si j'ai une logique de validation personnalisée?
+
+Vous pouvez étendre le hook avec vos propres fonctions ou utiliser les options existantes pour couvrir vos besoins spécifiques.
+
+### Comment centraliser mes options de validation?
+
+Créez un fichier de configuration pour vos options de validation:
 
 ```typescript
-test('affiche les erreurs de validation', async () => {
-  render(<MonComposant />);
-  
-  // Sélectionner une date dans le passé
-  fireEvent.change(screen.getByLabelText('Date'), {
-    target: { value: '2020-01-01' }
-  });
-  
-  // Soumettre le formulaire
-  fireEvent.click(screen.getByText('Valider'));
-  
-  // Vérifier que l'erreur est affichée
-  expect(await screen.findByText(/ne peut pas être dans le passé/i)).toBeInTheDocument();
-});
+// validationConfig.ts
+export const leaveValidationOptions = {
+  required: true,
+  allowPastDates: false,
+  minAdvanceNotice: 3,
+  availableDaysPerYear: 25
+};
+
+export const shiftValidationOptions = {
+  required: true,
+  allowPastDates: false,
+  disallowWeekends: false
+};
 ```
 
-## Liste de contrôle pour la migration
+### La migration est-elle obligatoire?
 
-- [ ] Identifier tous les composants qui utilisent l'ancienne API
-- [ ] Importer le hook `useDateValidation` dans chaque composant
-- [ ] Remplacer les appels aux anciennes fonctions
-- [ ] Adapter l'affichage des erreurs
-- [ ] Mettre à jour la gestion du contexte et des quotas
-- [ ] Adapter les tests unitaires et d'intégration
-- [ ] Tester les cas limites (dates nulles, périodes inversées, etc.)
-- [ ] Vérifier les performances (notamment pour les composants avec beaucoup de validations)
+Oui, l'ancienne API sera dépréciée puis supprimée. Nous recommandons de migrer dès que possible pour bénéficier des améliorations et éviter les problèmes futurs.
 
-## Ressources supplémentaires
+## Support
 
-- [Démonstration interactive](https://mathildanesth.fr/demos/date-validation)
-- [Documentation complète de l'API](https://wiki.mathildanesth.fr/hooks/useDateValidation)
-- [Exemples de code](https://github.com/mathildanesth/examples/tree/main/date-validation)
-- [FAQ Migration](https://wiki.mathildanesth.fr/migration/date-validation/faq)
-
-## Aide et support
-
-Si vous rencontrez des difficultés lors de la migration, plusieurs options s'offrent à vous:
-
-- **Assistance technique**: Contactez l'équipe de développement à dev-team@mathildanesth.fr
-- **Sessions de pair programming**: Réservez une session sur [Calendly](https://calendly.com/mathildanesth/migration)
-- **Révision de code**: Soumettez votre code migré pour révision via le canal Slack #date-validation-migration
-
-Nous sommes là pour vous aider à réussir cette transition! 
+Si vous rencontrez des difficultés lors de la migration, contactez l'équipe Core via:
+- Slack: #team-core-hooks
+- Email: dev-support@mathildanesth.fr 

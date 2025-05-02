@@ -1,0 +1,153 @@
+# Configuration Cursor pour développement optimal
+
+## Règles générales de développement
+- TOUJOURS analyser le code existant avant de proposer des modifications
+- VÉRIFIER si une fonctionnalité existe déjà avant d'en créer une nouvelle
+- ÉVITER absolument le code dupliqué - réutiliser les fonctions existantes
+- RESPECTER les conventions de nommage et l'architecture du projet
+- OPTIMISER les performances à chaque modification
+- DOCUMENTER clairement chaque fonction et module
+- TESTER chaque modification avant de la proposer
+
+## Analyse et debugging
+- Lire TOUS les messages d'erreur en détail
+- Tracer l'origine des bugs jusqu'à leur source
+- Vérifier les dépendances et leur compatibilité
+- Analyser les performances et proposer des optimisations
+- Identifier les patterns de code problématiques
+- Suggérer des solutions préventives, pas seulement correctives
+
+## Standards de code
+- Utiliser des noms de variables et fonctions explicites
+- Limiter les fonctions à une seule responsabilité (principe SRP)
+- Appliquer les principes SOLID quand pertinent
+- Écrire du code DRY (Don't Repeat Yourself)
+- Préférer la composition à l'héritage
+- Utiliser TypeScript pour une meilleure sécurité de type
+
+## Structure du projet
+- Respecter l'architecture modulaire
+- Séparer les préoccupations (UI, logique métier, données)
+- Maintenir une structure de dossiers cohérente
+- Centraliser les configurations
+- Isoler les effets de bord
+
+## Sécurité
+- Valider toutes les entrées utilisateur
+- Échapper les sorties pour éviter les injections
+- Utiliser des variables d'environnement pour les secrets
+- Implémenter une gestion d'erreurs robuste
+- Suivre les bonnes pratiques OWASP
+
+## Tests
+- Écrire des tests unitaires pour les nouvelles fonctions
+- Maintenir une couverture de tests adéquate
+- Tester les cas limites et les erreurs
+- Utiliser des mocks pour les dépendances externes
+
+## Documentation
+- Commenter le POURQUOI, pas le QUOI
+- Maintenir la documentation à jour
+- Documenter les API et interfaces
+- Ajouter des exemples d'utilisation
+- Créer des diagrammes pour l'architecture complexe
+
+## Performance
+- Éviter les opérations coûteuses dans les boucles
+- Utiliser la mise en cache quand approprié
+- Optimiser les requêtes base de données
+- Minimiser les re-rendus dans les applications frontend
+- Profiler le code avant d'optimiser
+
+## Git et versioning
+- Faire des commits atomiques avec des messages clairs
+- Suivre la convention de commit (feat:, fix:, docs:, etc.)
+- Créer des branches pour les nouvelles fonctionnalités
+- Faire des revues de code avant merge
+
+## Instructions spécifiques pour Cursor
+- Toujours fournir des explications détaillées pour un débutant
+- Décomposer les problèmes complexes en étapes simples
+- Proposer plusieurs solutions avec leurs avantages/inconvénients
+- Expliquer les concepts techniques utilisés
+- Suggérer des ressources d'apprentissage pertinentes
+- Être proactif sur les potentiels problèmes futurs
+
+## Contexte de développement
+- Prendre en compte l'environnement de développement
+- Vérifier la compatibilité cross-platform
+- Considérer les contraintes de déploiement
+- Anticiper les besoins de scaling
+
+## Collaboration
+- Écrire du code lisible par d'autres développeurs
+- Utiliser des conventions de nommage cohérentes
+- Documenter les décisions architecturales
+- Faciliter l'onboarding des nouveaux développeurs
+
+## Maintenance
+- Penser à la maintenabilité à long terme
+- Éviter les dépendances obsolètes
+- Prévoir des mécanismes de mise à jour
+- Documenter les procédures de maintenance
+
+## Apprentissage continu
+- Suggérer des améliorations basées sur les meilleures pratiques actuelles
+- Expliquer les nouvelles fonctionnalités des langages/frameworks
+- Recommander des patterns modernes
+- Partager des ressources d'apprentissage pertinentes
+
+## Documentation prioritaire
+- Prioriser la documentation pour faciliter la compréhension et la maintenance
+- Documenter les modules et les fonctions clés
+- Utiliser des formats de documentation adaptés (Markdown, Swagger, etc.)
+
+## Module explorer
+- Explorer et comprendre les modules existants
+- Identifier les interactions entre les modules
+- Évaluer les impacts des modifications sur les autres modules
+
+## Contexte technique spécifique
+- Prendre en compte les spécificités du contexte technique
+- Adapter les règles à la technologie utilisée
+- Considérer les contraintes de performance et de sécurité
+
+## Analyse code contexte
+- Analyser le code dans le contexte d'utilisation
+- Identifier les besoins spécifiques du contexte
+- Proposer des solutions adaptées au contexte
+
+# Règles Cursor pour Mathildanesth
+
+# Documentation prioritaire
+# Analyse automatiquement les documents clés du projet avant de répondre à une tâche
+pattern: .*
+action:
+  - readFiles:
+      - docs/technique/NEXT_STEPS.md
+      - documentation/roadmap-dev-updated.md
+      - docs/technical/codebase-overview.md
+  - search: Identifier documents pertinents pour ${userQuery}
+
+# Module explorer
+# Explore automatiquement la documentation du module concerné par la requête
+pattern: .*(?:ajouter|modifier|implémenter|développer|corriger|bug|fonctionnalité|module) (\w+).*
+action:
+  - readFiles:
+      - documentation/${1}*.md
+      - docs/modules/${1}/*.md
+      - docs/technique/${1}*.md
+
+# Contexte technique spécifique
+# Consulte automatiquement la documentation technique spécifique mentionnée
+pattern: .*(?:test|cypress|performance|accessibilité|responsive|mobile|règles|congés|bloc opératoire|planning).*
+action:
+  - search: Documentation technique sur ${0}
+
+# Analyse code contexte
+# Analyse le code et la documentation associée aux fonctionnalités mentionnées
+pattern: .*implémentation|développer|ajouter une fonctionnalité.*
+action:
+  - readFiles:
+      - docs/technique/NEXT_STEPS.md
+  - search: Structure du code et exemples pour ${userQuery}

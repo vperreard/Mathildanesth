@@ -8,8 +8,7 @@ import {
     getRuleTypeLabel,
     getRulePriorityLabel
 } from '../services/ruleService';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { formatDate, parseDate, isDateBefore, ISO_DATE_FORMAT } from '@/utils/dateUtils';
 
 // Importation des formulaires spécifiques par type
 import { DutyRuleForm } from './rule-forms/DutyRuleForm';
@@ -49,13 +48,22 @@ export const RuleForm: React.FC<RuleFormProps> = ({
 
     // Mettre à jour la règle locale lorsque la règle passée en prop change
     useEffect(() => {
-        setCurrentRule(rule);
+        // Convertir les dates string en objets Date lors de l'initialisation si nécessaire
+        const initialRule = { ...rule };
+        if (rule.validFrom && typeof rule.validFrom === 'string') {
+            initialRule.validFrom = parseDate(rule.validFrom);
+        }
+        if (rule.validTo && typeof rule.validTo === 'string') {
+            initialRule.validTo = parseDate(rule.validTo);
+        }
+        setCurrentRule(initialRule);
     }, [rule]);
 
     // Gérer les changements des champs de base
     const handleBaseFieldChange = (
         field: keyof AnyRule,
-        value: string | RulePriority | Date | boolean
+        // La valeur peut être null pour les dates optionnelles
+        value: string | RulePriority | Date | boolean | null
     ) => {
         setCurrentRule((prev) => ({ ...prev, [field]: value }));
     };
@@ -76,10 +84,19 @@ export const RuleForm: React.FC<RuleFormProps> = ({
 
         if (!currentRule.validFrom) {
             errors.push('La date de début de validité est requise');
+        } else if (!parseDate(currentRule.validFrom)) { // Vérifier aussi que la date est valide
+            errors.push('La date de début de validité est invalide');
         }
 
-        if (currentRule.validTo && currentRule.validFrom && new Date(currentRule.validTo) < new Date(currentRule.validFrom)) {
-            errors.push('La date de fin doit être postérieure à la date de début');
+        // Utiliser isDateBefore de dateUtils
+        const validFromDate = parseDate(currentRule.validFrom);
+        const validToDate = parseDate(currentRule.validTo);
+
+        if (validToDate && !validFromDate) {
+            // Si validTo est défini mais validFrom est invalide (cas déjà couvert ci-dessus, mais double check)
+            errors.push('La date de début de validité est requise pour définir une date de fin');
+        } else if (validToDate && validFromDate && isDateBefore(validToDate, validFromDate)) {
+            errors.push('La date de fin doit être postérieure ou égale à la date de début');
         }
 
         // Valider les champs spécifiques au type (à compléter selon le type)
@@ -228,10 +245,8 @@ export const RuleForm: React.FC<RuleFormProps> = ({
                             <input
                                 id="valid-from"
                                 type="date"
-                                value={currentRule.validFrom
-                                    ? format(new Date(currentRule.validFrom), 'yyyy-MM-dd')
-                                    : ''}
-                                onChange={(e) => handleBaseFieldChange('validFrom', new Date(e.target.value))}
+                                value={formatDate(currentRule.validFrom, ISO_DATE_FORMAT)}
+                                onChange={(e) => handleBaseFieldChange('validFrom', parseDate(e.target.value))}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                 required
                             />
@@ -243,14 +258,13 @@ export const RuleForm: React.FC<RuleFormProps> = ({
                             <input
                                 id="valid-to"
                                 type="date"
-                                value={currentRule.validTo
-                                    ? format(new Date(currentRule.validTo), 'yyyy-MM-dd')
-                                    : ''}
+                                value={formatDate(currentRule.validTo, ISO_DATE_FORMAT)}
                                 onChange={(e) => handleBaseFieldChange(
                                     'validTo',
-                                    e.target.value ? new Date(e.target.value) : undefined
+                                    e.target.value ? parseDate(e.target.value) : null
                                 )}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                min={formatDate(currentRule.validFrom, ISO_DATE_FORMAT)}
                             />
                         </div>
                     </div>
@@ -323,18 +337,17 @@ export const RuleForm: React.FC<RuleFormProps> = ({
                     <button
                         type="button"
                         onClick={onCancel}
+                        className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         disabled={loading}
-                        className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                         Annuler
                     </button>
                     <button
                         type="submit"
+                        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                         disabled={loading}
-                        className={`px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''
-                            }`}
                     >
-                        {loading ? 'Enregistrement...' : 'Enregistrer'}
+                        {loading ? 'Enregistrement...' : (rule.id ? 'Mettre à jour' : 'Créer')}
                     </button>
                 </div>
             </form>

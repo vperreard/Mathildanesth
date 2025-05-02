@@ -18,6 +18,262 @@
     /* blue-500 */
     --fc-event-text-color: #fff;
     --fc-event-selected-overlay-color: rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 100%;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Améliorations essentielles pour mobile - PRIORITAIRE */
+@media (max-width: 768px) {
+
+    /* Ajuster la taille des cellules des jours */
+    .fc .fc-daygrid-day-frame {
+        min-height: 70px !important;
+        padding: 3px !important;
+    }
+
+    /* En-têtes de colonnes plus lisibles */
+    .fc .fc-col-header-cell-cushion {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 5px 2px;
+        text-transform: uppercase;
+    }
+
+    /* Style des numéros de jour */
+    .fc .fc-daygrid-day-number {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 0 !important;
+        margin: 2px;
+    }
+
+    /* Augmenter largeur des colonnes de temps */
+    .fc .fc-timegrid-axis-cushion,
+    .fc .fc-timegrid-slot-label-cushion {
+        font-size: 10px;
+        width: 40px !important;
+    }
+
+    /* Amélioration des titres */
+    .fc .fc-toolbar-title {
+        font-size: 14px !important;
+        padding: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Réduction des boutons */
+    .fc .fc-button {
+        padding: 3px 6px !important;
+        font-size: 10px !important;
+    }
+
+    /* Augmenter la taille des clics dans la zone des jours */
+    .fc-day,
+    .fc-daygrid-day {
+        touch-action: manipulation;
+    }
+
+    /* Optimisation vue timegrid pour mobile */
+    .fc-timegrid-slot {
+        height: 2.5em !important;
+    }
+
+    /* Alignement vertical des heures */
+    .fc-timegrid-slot-label-cushion {
+        vertical-align: middle;
+    }
+
+    /* Réduire marges internes pour plus d'espace */
+    .fc-theme-standard .fc-scrollgrid {
+        border: none !important;
+    }
+
+    /* Amélioration visibilité du jour actuel */
+    .fc .fc-day-today {
+        background-color: rgba(219, 234, 254, 0.5) !important;
+    }
+
+    /* Optimisation de l'espacement entre les colonnes */
+    .fc td,
+    .fc th {
+        border-style: solid;
+        border-width: 1px !important;
+    }
+}
+
+/* Optimisation spécifique téléphone portrait */
+@media (max-width: 480px) {
+
+    /* Afficher les jours avec initiales seulement sur très petits écrans */
+    .fc-theme-standard .fc-scrollgrid {
+        border: none !important;
+    }
+
+    /* Réduction maximale des marges externes */
+    .fc-direction-ltr .fc-daygrid-event.fc-event-end,
+    .fc-direction-rtl .fc-daygrid-event.fc-event-start {
+        margin-right: 0 !important;
+    }
+
+    /* Ajustement extrême des en-têtes */
+    .fc .fc-col-header-cell-cushion {
+        font-size: 10px !important;
+        padding: 2px 0 !important;
+    }
+
+    /* Augmenter la visibilité du jour actuel */
+    .fc .fc-day-today {
+        background-color: rgba(219, 234, 254, 0.6) !important;
+    }
+
+    /* Augmenter la taille des numéros de jour */
+    .fc .fc-daygrid-day-number {
+        margin: 1px !important;
+    }
+
+    /* Réduire la taille des événements */
+    .fc-daygrid-event {
+        padding: 1px 2px !important;
+        margin-top: 1px !important;
+        margin-bottom: 1px !important;
+        border-radius: 2px !important;
+    }
+
+    /* Rendre les événements plus visibles */
+    .fc-daygrid-dot-event .fc-event-title {
+        font-weight: 600 !important;
+        font-size: 10px !important;
+    }
+}
+
+/* Améliorations pour les titres du FullCalendar */
+.fc .fc-toolbar-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    text-transform: capitalize;
+}
+
+/* Améliorations pour les buttons du FullCalendar */
+.fc .fc-button {
+    font-weight: 500;
+    text-transform: none;
+    padding: 0.5rem 1rem;
+}
+
+/* Améliorations pour les cellules de jours */
+.fc-daygrid-day {
+    min-height: 100px;
+}
+
+/* Événements dans la vue liste */
+.event-list-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin: 2px 0;
+    background-color: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.event-list-item:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.event-list-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.event-list-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Événements dans les vues grille (mois, semaine, jour) */
+.event-grid-item {
+    padding: 4px 6px;
+    margin: 2px 0;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.event-grid-item:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+    z-index: 10;
+}
+
+.event-grid-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Titre de l'événement */
+.event-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Nom de l'utilisateur */
+.event-user {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Icône de statut */
+.event-status-icon {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 0.9rem;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Amélioration des événements */
+.fc-event {
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin-bottom: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.fc-event:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* En-têtes de jour */
@@ -86,105 +342,6 @@
     /* gray-500 */
 }
 
-/* Lignes de temps dans la vue semaine/jour */
-.calendar-slot-lane {
-    background-color: #fcfcfc;
-}
-
-/* Styles pour les événements dans différentes vues */
-
-/* Événements dans la vue liste */
-.event-list-item {
-    display: flex;
-    align-items: center;
-    padding: 8px 12px;
-    border-radius: 6px;
-    margin: 2px 0;
-    background-color: white;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    transition: all 0.2s ease;
-    position: relative;
-}
-
-.event-list-item:hover {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px);
-}
-
-.event-list-indicator {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    margin-right: 10px;
-    flex-shrink: 0;
-}
-
-.event-list-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Événements dans les vues grille (mois, semaine, jour) */
-.event-grid-item {
-    padding: 4px 6px;
-    margin: 2px 0;
-    border-radius: 6px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    position: relative;
-    overflow: hidden;
-    transition: all 0.2s ease;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.event-grid-item:hover {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px) scale(1.01);
-    z-index: 10;
-}
-
-.event-grid-content {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
-
-/* Titre de l'événement */
-.event-title {
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Nom de l'utilisateur */
-.event-user {
-    font-size: 0.75rem;
-    opacity: 0.9;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Icône de statut */
-.event-status-icon {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    font-size: 0.9rem;
-    width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.8);
-}
-
 /* Styles spécifiques aux statuts */
 .event-approved {
     border-left: 3px solid #10b981;
@@ -209,79 +366,46 @@
     text-decoration: line-through;
 }
 
+/* Événements dans la vue liste */
+.fc-list-event {
+    transition: background-color 0.15s ease;
+}
+
+.fc-list-event:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+    /* blue-500 avec faible opacité */
+}
+
 /* Overlay de chargement */
 .calendar-loading-overlay {
     position: absolute;
-    inset: 0;
-    background-color: rgba(255, 255, 255, 0.75);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     z-index: 10;
-    backdrop-filter: blur(2px);
 }
 
+/* Animation de chargement */
 .calendar-loading-spinner {
     width: 40px;
     height: 40px;
+    border: 3px solid rgba(59, 130, 246, 0.3);
+    /* blue-500 avec transparence */
     border-radius: 50%;
-    border: 3px solid rgba(99, 102, 241, 0.2);
-    /* indigo-500 avec transparence */
-    border-top-color: #6366f1;
-    /* indigo-500 */
+    border-top-color: #3b82f6;
+    /* blue-500 */
     animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Amélioration des boutons du calendrier */
-.fc-button-primary {
-    background-color: #f3f4f6 !important;
-    /* gray-100 */
-    border-color: #e5e7eb !important;
-    /* gray-200 */
-    color: #4b5563 !important;
-    /* gray-600 */
-    font-weight: 500 !important;
-    text-transform: none !important;
-    padding: 6px 12px !important;
-    border-radius: 6px !important;
-    transition: all 0.2s ease !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
-}
-
-.fc-button-primary:hover {
-    background-color: #e5e7eb !important;
-    /* gray-200 */
-    color: #1f2937 !important;
-    /* gray-800 */
-}
-
-.fc-button-primary:not(:disabled).fc-button-active,
-.fc-button-primary:not(:disabled):active {
-    background-color: #6366f1 !important;
-    /* indigo-500 */
-    border-color: #6366f1 !important;
-    /* indigo-500 */
-    color: white !important;
-}
-
-.fc-button-primary:disabled {
-    opacity: 0.5 !important;
+/* Masquer les événements désactivés */
+.fc-event.disabled {
+    opacity: 0.5;
     cursor: not-allowed !important;
-}
-
-/* Titre du calendrier */
-.fc-toolbar-title {
-    font-size: 1.25rem !important;
-    font-weight: 600 !important;
-    color: #111827 !important;
-    /* gray-900 */
-    text-transform: capitalize !important;
 }
 
 /* Responsive breakpoints */
@@ -296,10 +420,6 @@
 
     .event-user {
         display: none;
-    }
-
-    .fc-toolbar-title {
-        font-size: 1rem !important;
     }
 
     /* Réduire les boutons sur mobile */
@@ -332,10 +452,6 @@
         min-height: 50px;
     }
 
-    .fc-toolbar-title {
-        font-size: 0.85rem !important;
-    }
-
     /* Masquer les icônes de statut sur très petits écrans */
     .event-status-icon {
         display: none;
@@ -361,5 +477,368 @@
     .fc-button-primary {
         padding: 2px 6px !important;
         font-size: 0.75rem !important;
+    }
+}
+
+/* Styles améliorés pour les écrans laptop et desktop */
+@media (min-width: 1024px) {
+    .calendar-container {
+        min-height: 700px;
+        /* Assurer une hauteur minimale correcte */
+    }
+
+    /* Amélioration de la taille des cellules pour les grands écrans */
+    .calendar-day-cell {
+        min-height: 150px;
+    }
+
+    /* Améliorer la lisibilité des titres d'événements */
+    .event-title {
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    /* Augmenter légèrement la taille des infos utilisateur */
+    .event-user {
+        font-size: 0.85rem;
+    }
+
+    /* Assurer que FullCalendar utilise tout l'espace disponible */
+    .fc {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* Améliorer les marges internes des cellules pour plus d'espace */
+    .fc-daygrid-day-frame {
+        padding: 4px !important;
+    }
+
+    /* Améliorer la hauteur des événements dans la vue mois */
+    .fc-daygrid-event {
+        min-height: 24px;
+        padding: 2px 4px;
+    }
+
+    /* Styles spécifiques pour la vue semaine */
+    .fc-timeGridWeek-view .fc-timegrid-slot {
+        height: 40px !important;
+    }
+
+    /* Amélioration des en-têtes de jours en vue semaine et jour */
+    .fc-timeGridWeek-view .fc-col-header-cell,
+    .fc-timeGridDay-view .fc-col-header-cell {
+        padding: 10px 0;
+        background-color: #f3f4f6;
+    }
+}
+
+/* Styles pour très grands écrans (moniteurs) */
+@media (min-width: 1536px) {
+    .calendar-container {
+        min-height: 800px;
+    }
+
+    /* Espacement plus généreux pour les grands écrans */
+    .fc-daygrid-day-frame {
+        padding: 6px !important;
+    }
+
+    /* Textes plus grands sur les très grands écrans */
+    .fc .fc-toolbar-title {
+        font-size: 1.5rem;
+    }
+
+    .event-title {
+        font-size: 1rem;
+    }
+
+    .event-user {
+        font-size: 0.9rem;
+    }
+
+    /* Amélioration des événements sur grands écrans */
+    .fc-daygrid-event {
+        min-height: 28px;
+        padding: 4px 6px;
+    }
+
+    /* Hauteur de cellules plus généreuse */
+    .fc-daygrid-day {
+        min-height: 180px;
+    }
+
+    /* Hauteur des slots de temps en vue semaine */
+    .fc-timeGridWeek-view .fc-timegrid-slot {
+        height: 48px !important;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Styles pour la vue jour */
+.day-grid-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.day-grid-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.day-grid-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.day-grid-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.day-grid-event {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.day-grid-event:hover {
+    background: #f1f5f9;
+    transform: translateY(-1px);
+}
+
+.event-time {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-right: 1rem;
+}
+
+.event-title {
+    font-size: 0.875rem;
+    color: #1a202c;
+}
+
+/* Styles pour la vue semaine */
+.week-grid-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.week-grid-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.week-day-header {
+    text-align: center;
+}
+
+.week-day-name {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+}
+
+.week-day-number {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.week-grid-content {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.week-day-column {
+    min-height: 100px;
+    border-right: 1px solid #e2e8f0;
+    padding: 0.5rem;
+}
+
+.week-day-column:last-child {
+    border-right: none;
+}
+
+.week-day-event {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.week-day-event:hover {
+    background: #f1f5f9;
+    transform: translateY(-1px);
+}
+
+/* Styles pour la vue liste */
+.list-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.list-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.list-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.list-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.list-event {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.list-event:hover {
+    background: #f1f5f9;
+    transform: translateY(-1px);
+}
+
+.event-date {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-right: 1rem;
+}
+
+/* Styles pour les tooltips */
+.calendar-tooltips {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.tooltip-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tooltip-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tooltip-button:hover {
+    background: #f8fafc;
+    transform: translateY(-2px);
+}
+
+.tooltip-icon {
+    font-size: 1.2em;
+}
+
+.tooltip-text {
+    font-size: 0.9em;
+    color: #64748b;
+}
+
+/* Styles responsifs */
+@media (max-width: 640px) {
+    .calendar-tooltips {
+        bottom: 10px;
+        right: 10px;
+    }
+
+    .tooltip-button {
+        padding: 6px 10px;
+    }
+
+    .tooltip-text {
+        display: none;
+    }
+
+    .day-grid-event,
+    .week-day-event,
+    .list-event {
+        padding: 0.5rem;
+    }
+
+    .event-time,
+    .event-date {
+        font-size: 0.75rem;
+    }
+
+    .event-title {
+        font-size: 0.75rem;
+    }
+}
+
+/* Styles pour l'overlay de chargement */
+.calendar-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.calendar-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
 }

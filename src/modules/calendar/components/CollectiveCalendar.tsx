@@ -9,9 +9,12 @@ import { useCalendar } from '../hooks/useCalendar';
 import { AnyCalendarEvent, CalendarEventType, CalendarViewType, LeaveCalendarEvent } from '../types/event';
 import { User } from '../../../types/user';
 import { LeaveDetailsModal } from './LeaveDetailsModal';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorDisplay from '@/components/ErrorDisplay';
+import { CalendarErrorFallback } from '@/components/Calendar/ErrorFallbacks';
 
 interface CollectiveCalendarProps {
     onEventClick?: (eventId: string, eventType: string) => void;
@@ -176,7 +179,7 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
                                 onClick={navigateToToday}
                                 className="px-2 py-1 sm:px-3 sm:py-2 hover:bg-gray-100 border-l border-r border-gray-300 text-xs sm:text-sm"
                             >
-                                Aujourd'hui
+                                Aujourd&#39;hui
                             </button>
 
                             <button
@@ -265,74 +268,61 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
             </div>
 
             {/* Filtres */}
-            <CalendarFiltersComponent
-                filters={filters}
-                onFilterChange={updateFilters}
-                availableEventTypes={[CalendarEventType.LEAVE]}
-                showLeaveFilter={true}
-                showUserFilter={true}
-                showLocationFilter={false}
-                showTeamFilter={false}
-                showSpecialtyFilter={false}
-            />
-
-            {/* Affichage des erreurs */}
-            {error && (
-                <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
-                    <div className="flex">
-                        <div className="flex-shrink-0">
-                            <svg className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                        </div>
-                        <div className="ml-3">
-                            <p className="text-sm text-red-700">
-                                Erreur lors du chargement des données: {error.message}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                {/* Calendrier (pleine largeur sur mobile, 3/4 sur desktop) */}
-                <div className="lg:col-span-3 order-2 lg:order-1">
-                    <BaseCalendar
-                        events={filteredEvents}
-                        view={view}
-                        settings={settings}
-                        loading={loading}
-                        editable={false}
-                        selectable={false}
-                        onEventClick={handleEventClick}
-                        onViewChange={handleViewChange}
-                        onDateRangeChange={handleDateRangeChange}
-                        headerToolbar={headerToolbar}
-                    />
-                </div>
-
-                {/* Légende (première sur mobile, côté droit sur desktop) */}
-                <div className="order-1 lg:order-2 mb-4 lg:mb-0">
-                    <CalendarLegend
-                        showEventTypes={true}
-                        showStatuses={true}
-                        showLocations={false}
-                        showTeams={false}
-                        showSpecialties={false}
-                        selectedEventTypes={[CalendarEventType.LEAVE]}
-                    />
-                </div>
+            <div className="bg-white shadow rounded-lg p-4">
+                <CalendarFiltersComponent
+                    availableTypes={Object.values(CalendarEventType)}
+                    currentFilters={filters}
+                    onFilterChange={updateFilters}
+                />
             </div>
 
-            {/* Modal de détail d'événement */}
+            {/* Affichage du calendrier principal */}
+            <div className="bg-white shadow rounded-lg p-4">
+                <ErrorBoundary
+                    fallbackComponent={CalendarErrorFallback}
+                >
+                    {loading ? (
+                        <div className="text-center py-10">Chargement du calendrier...</div>
+                    ) : error ? (
+                        <ErrorDisplay
+                            error={new Error(error)}
+                            title="Erreur de chargement des données du calendrier"
+                            severity="error"
+                        />
+                    ) : (
+                        <BaseCalendar
+                            view={view as any}
+                            events={filteredEvents}
+                            dateRange={currentRange}
+                            settings={settings}
+                            onEventClick={handleEventClick}
+                            headerToolbar={headerToolbar}
+                            dateRangeTitle={getDateRangeTitle()}
+                            handleDateRangeChange={handleDateRangeChange}
+                        />
+                    )}
+                </ErrorBoundary>
+            </div>
+
+            {/* Légende */}
+            <div className="bg-white shadow rounded-lg p-4">
+                <CalendarLegend />
+            </div>
+
+            {/* Export */}
+            <div className="bg-white shadow rounded-lg p-4">
+                <CalendarExport events={filteredEvents} />
+            </div>
+
+            {/* Modal de détails */}
             {selectedEvent && (
                 <LeaveDetailsModal
                     isOpen={isModalOpen}
                     onClose={handleCloseModal}
-                    leave={selectedEvent}
-                    showApprovalButtons={isAdmin && selectedEvent.status === 'PENDING'}
-                    onApprove={() => handleApproveLeave(selectedEvent.id)}
-                    onReject={() => handleRejectLeave(selectedEvent.id)}
+                    leaveEvent={selectedEvent}
+                    onApprove={isAdmin ? handleApproveLeave : undefined}
+                    onReject={isAdmin ? handleRejectLeave : undefined}
+                    currentUserId={user?.id}
                 />
             )}
         </div>

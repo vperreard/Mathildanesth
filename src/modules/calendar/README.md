@@ -1,158 +1,199 @@
-# Plan de refactorisation du module Calendar
+# Module Calendar - Documentation
 
-## Nouvelle architecture (pattern module)
+## Aperçu
+
+Le module Calendar fournit un ensemble complet de composants pour gérer la planification du bloc opératoire, incluant des fonctionnalités de calendrier avancées, une visualisation intuitive des opérations et un retour visuel immédiat pour améliorer l'expérience utilisateur.
+
+## Structure du module
 
 ```
 src/modules/calendar/
-├── components/
-│   ├── base/                  # Composants de base réutilisables
-│   │   ├── BaseCalendar.tsx   # Wrapper autour de FullCalendar
-│   │   ├── CalendarToolbar.tsx # Barre d'outils indépendante
-│   │   ├── CalendarLegend.tsx # Légende du calendrier
-│   │   └── CalendarEvent.tsx  # Rendu standardisé d'événement
-│   ├── views/                 # Vues spécifiques
-│   │   ├── PersonalCalendar.tsx
-│   │   ├── CollectiveCalendar.tsx
-│   │   └── AllocationCalendar.tsx
-│   └── modals/                # Composants de modaux
-│       ├── EventDetailsModal.tsx
-│       └── ...
-├── hooks/
-│   ├── useCalendar.ts         # Hook principal refactorisé
-│   ├── useCalendarEvents.ts   # Hook pour la gestion des événements
-│   ├── useCalendarNavigation.ts # Hook pour la navigation entre dates
-│   ├── useCalendarSettings.ts # Hook pour les paramètres utilisateur
-│   └── useCalendarCache.ts    # Nouveau hook pour la mise en cache
-├── services/
-│   ├── calendarService.ts     # Services pour l'API
-│   ├── calendarCache.ts       # Service de cache
-│   └── eventFormatter.ts      # Formatage des événements
-├── store/
-│   ├── calendarSlice.ts       # Store global pour les données partagées
-│   └── calendarSelectors.ts   # Sélecteurs pour le store
-└── types/
-    ├── event.ts               # Types d'événements
-    ├── settings.ts            # Types de paramètres
-    └── cache.ts               # Types pour le cache
+├── components/          # Composants React du module
+│   ├── feedback/        # Composants de feedback visuel
+│   │   ├── SkeletonLoader.tsx    # Placeholders de chargement
+│   │   ├── Spinner.tsx           # Indicateurs de chargement rotatifs
+│   │   ├── ProgressBar.tsx       # Barres de progression
+│   │   ├── Toast.tsx             # Notifications temporaires
+│   │   ├── Tooltip.tsx           # Infobulles contextuelles
+│   │   └── index.ts              # Export centralisé
+│   ├── OperationRoomSchedule.tsx # Planification du bloc opératoire
+│   ├── OperationForm.tsx         # Formulaire d'opération
+│   └── ...                       # Autres composants
+├── context/             # Context API pour la gestion d'état
+├── hooks/               # Hooks personnalisés
+├── services/            # Services et appels API
+├── types/               # Définitions TypeScript
+└── utils/               # Fonctions utilitaires
 ```
 
-## Séparation logique métier / interface utilisateur
+## Composants de feedback visuel
 
-1. **Niveau données** : `services/` et `store/`
-   - Gestion des appels API, formatage des données, cache
-   - État global du calendrier via un store centralisé
+Le module implémente un système cohérent de feedback visuel pour améliorer l'expérience utilisateur:
 
-2. **Niveau logique** : `hooks/`
-   - Séparation des responsabilités en hooks spécialisés
-   - Abstraction des comportements complexes
+### SkeletonLoader
 
-3. **Niveau interface** : `components/`
-   - Composants purement UI qui utilisent les hooks pour leur logique
-   - Structure hiérarchique avec composants de base et composants spécifiques
+Affiche des placeholders animés pendant le chargement initial des données.
 
-## Optimisations de performance
+```tsx
+import { SkeletonLoader } from '@/modules/calendar/components/feedback';
 
-1. **Réduction des rendus inutiles**
-   - Utilisation de `React.memo` pour les composants purs
-   - Utilisation de `useCallback` et `useMemo` pour la mémorisation
-   - Extraction des états qui changent fréquemment dans des composants isolés
+// Usage simple
+<SkeletonLoader width="100%" height="20px" count={3} />
 
-2. **Système de cache**
-   - Cache côté client pour les événements récurrents
-   - Stratégie de mise en cache basée sur la plage de dates et les filtres
-   - Invalidation intelligente du cache
-
-3. **Chargement paresseux**
-   - Chargement des événements uniquement pour la plage de dates visible
-   - Chargement progressif des données supplémentaires
-
-## Système de cache
-
-```typescript
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  expiresAt: number;
-}
-
-interface CacheOptions {
-  ttl: number; // Durée de vie en millisecondes
-  key: string; // Clé de cache unique
-}
-
-interface CalendarCache {
-  events: Map<string, CacheEntry<AnyCalendarEvent[]>>;
-  settings: Map<string, CacheEntry<CalendarSettings>>;
-}
+// Utilisation des squelettes spécialisés
+<SkeletonCalendarDay />
+<SkeletonCalendarHeader />
+<SkeletonOperationRoomSchedule />
 ```
 
-## Plan de tests unitaires
+### Spinner
 
-1. **Tests de composants**
-   - Tests de rendu pour les composants de base
-   - Tests d'interaction utilisateur (clics, navigation)
-   - Tests de rendu conditionnel
+Affiche un indicateur de chargement rotatif pour les opérations asynchrones.
 
-2. **Tests de hooks**
-   - Tests des comportements des hooks avec différents paramètres
-   - Tests des cas d'erreur et de chargement
+```tsx
+import { Spinner, CalendarLoadingSpinner, FormSubmitSpinner } from '@/modules/calendar/components/feedback';
 
-3. **Tests de services**
-   - Tests des appels API (avec mock)
-   - Tests du système de cache
-   - Tests des formateurs de données
+// Spinner standard
+<Spinner size="md" color="primary" />
 
-4. **Tests d'intégration**
-   - Tests de flux complets (navigation, filtrage, etc.)
-   - Tests de performance
+// Spinner plein écran avec overlay
+<Spinner fullScreen label="Chargement des données..." />
 
-## Implémentation progressive
+// Spinners spécialisés
+<CalendarLoadingSpinner />
+<FormSubmitSpinner label="Enregistrement en cours..." />
+```
 
-1. Créer la nouvelle structure de dossiers
-2. Refactoriser les services et le système de cache
-3. Refactoriser les hooks en séparant les responsabilités
-4. Refactoriser les composants en commençant par les composants de base
-5. Mettre en place les tests unitaires
-6. Optimiser les performances et vérifier la couverture des tests
+### ProgressBar
 
-## Résumé des améliorations réalisées
+Affiche la progression des opérations longues.
 
-### Composants implémentés
-- **CalendarToolbar** : Composant de barre d'outils réutilisable pour la navigation
+```tsx
+import { ProgressBar, ImportProgress, OperationSaveProgress } from '@/modules/calendar/components/feedback';
 
-### Hooks implémentés
-- **useCalendarCache** : Hook de gestion du cache avec invalidation intelligente
-- **useCalendarNavigation** : Hook de navigation entre les périodes du calendrier
-- **useCalendar** : Hook principal refactorisé qui combine les hooks spécialisés
+// Barre de progression standard
+<ProgressBar 
+  progress={75} 
+  color="primary" 
+  height={8} 
+  showPercentage 
+  label="Chargement" 
+/>
 
-### Services implémentés
-- **calendarCache** : Service de cache singleton pour les événements du calendrier
+// Composants spécialisés
+<ImportProgress progress={45} total={100} />
+<OperationSaveProgress step={2} totalSteps={5} currentTask="Validation des données" />
+```
 
-### Tests implémentés
-- **useCalendarCache.test.tsx** : Tests unitaires pour le hook de cache
+### Toast
 
-## Prochaines étapes
+Affiche des notifications temporaires pour les confirmations et erreurs.
 
-1. **Finaliser la structure des dossiers**
-   - Créer les dossiers manquants
-   - Déplacer et adapter les fichiers existants
+```tsx
+import { Toast, useToast } from '@/modules/calendar/components/feedback';
 
-2. **Refactoriser les composants restants**
-   - Séparer BaseCalendar en composants plus petits
-   - Créer un composant CalendarEvent standardisé
-   - Adapter les vues spécifiques pour utiliser nos nouveaux hooks
+// Utilisation du hook
+const { showSuccess, showError, showWarning, showInfo, ToastContainer } = useToast();
 
-3. **Compléter les tests**
-   - Ajouter des tests pour useCalendarNavigation
-   - Tester les composants de base
-   - Mettre en place des tests d'intégration
+// Afficher un toast
+showSuccess('Opération enregistrée avec succès');
+showError('Erreur lors de l'enregistrement');
 
-4. **Documentation**
-   - Documenter l'utilisation de chaque hook
-   - Créer des exemples d'utilisation
-   - Mettre à jour la documentation générale
+// N'oubliez pas d'ajouter le conteneur dans votre composant
+return (
+  <div>
+    {/* Votre contenu */}
+    <ToastContainer />
+  </div>
+);
+```
 
-5. **Mesurer les performances**
-   - Utiliser React DevTools pour évaluer le nombre de rendus
-   - Mesurer les performances du cache
-   - Identifier et corriger les points faibles 
+### Tooltip
+
+Affiche des infobulles contextuelles pour l'aide utilisateur.
+
+```tsx
+import { Tooltip, TooltipIcon, HelpTooltip } from '@/modules/calendar/components/feedback';
+
+// Tooltip standard
+<Tooltip content="Information supplémentaire" position="top">
+  <button>Hover me</button>
+</Tooltip>
+
+// Composants spécialisés
+<TooltipIcon content="Cette opération nécessite une validation" />
+<HelpTooltip content="Cliquez pour ajouter une nouvelle opération" />
+```
+
+## Composants principaux
+
+### OperationRoomSchedule
+
+Visualisation et planification des opérations dans les différentes salles du bloc opératoire.
+
+```tsx
+import { OperationRoomSchedule } from '@/modules/calendar/components';
+
+<OperationRoomSchedule 
+  sectors={sectors}
+  onOperationClick={handleOperationClick}
+  onTimeSlotClick={handleTimeSlotClick}
+  isReadOnly={false}
+/>
+```
+
+### OperationForm
+
+Formulaire pour créer ou modifier une opération chirurgicale.
+
+```tsx
+import { OperationForm } from '@/modules/calendar/components';
+
+<OperationForm
+  initialValues={initialValues}
+  sectors={sectors}
+  staff={staff}
+  patients={patients}
+  onSubmit={handleSubmit}
+  onCancel={handleCancel}
+  isEditing={false}
+/>
+```
+
+## Utilisation avec Animation
+
+Le module utilise Framer Motion pour des animations fluides:
+
+```tsx
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Exemple d'animation de transition entre dates
+<AnimatePresence mode="wait" custom={direction}>
+  <motion.div
+    key={currentDate.toString()}
+    custom={direction}
+    variants={variants}
+    initial="enter"
+    animate="center"
+    exit="exit"
+  >
+    {/* Contenu */}
+  </motion.div>
+</AnimatePresence>
+```
+
+## Dépendances
+
+- react-hook-form: Gestion des formulaires
+- framer-motion: Animations fluides
+- date-fns: Manipulation des dates
+- tailwindcss: Styling
+- react-window: Virtualisation pour les grands ensembles de données
+
+## Bonnes pratiques
+
+- Utilisez les composants de feedback visuel de manière cohérente
+- Fournissez toujours un retour visuel pour les opérations asynchrones
+- Utilisez les transitions animées pour les changements d'état importants
+- Validez les données côté client avant soumission
+- Gérez les erreurs avec des messages clairs et des options de récupération 

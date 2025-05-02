@@ -7,6 +7,10 @@
   - Intégration du hook `useDateValidation` dans le module Leaves et Calendar.
   - Validation standardisée des dates avec gestion des erreurs consistante.
   - Support de validation pour les jours fériés, weekends et périodes spéciales.
+- **Intégration du système centralisé de validation des dates dans le module Leaves**:
+  - Création d'un hook personnalisé `useLeaveValidation` qui étend `useDateValidation` avec des fonctionnalités spécifiques aux congés.
+  - Intégration du hook dans le composant `LeaveRequestForm` pour une validation centralisée et robuste des demandes de congés.
+  - Ajout de tests unitaires pour le hook `useLeaveValidation` assurant le bon fonctionnement de la validation des dates de congés.
 - **Unification du type `ShiftType`** :
   - Création d'un type unifié dans `src/types/common.ts` pour centraliser la définition.
   - Ajout de constante `SHIFT_DURATION` pour standardiser les durées des shifts.
@@ -62,6 +66,26 @@
   - Alertes en temps réel
   - Centre de notifications
   - Notifications par email
+- **Système de notification pour les conflits de congés** :
+  - Service `LeaveConflictNotificationService` pour générer et envoyer des notifications personnalisées pour chaque type de conflit.
+  - Hook `useLeaveConflictNotification` qui s'intègre avec `useConflictDetection` et fournit des méthodes pour afficher des notifications visuelles.
+  - Composant `LeaveConflictAlert` pour afficher les conflits avec le style approprié selon leur sévérité (information, avertissement, bloquant).
+  - Support pour les actions sur les conflits (ignorer, résoudre, etc.).
+  - Intégration complète avec le formulaire de demande de congés pour une meilleure expérience utilisateur.
+- **Système de détection de conflits pour les congés** :
+  - Service `conflictDetectionService.ts` qui implémente l'analyse des conflits potentiels dans les demandes de congés.
+  - Types et interfaces dans `types/conflict.ts` pour standardiser la gestion des conflits.
+  - Niveaux de sévérité configurables (information, avertissement, bloquant).
+  - Règles personnalisables pour adapter la détection aux besoins spécifiques.
+  - Intégration avec les services de gestion d'équipe et d'utilisateur pour les vérifications contextuelles.
+- **Système de rapport analytique pour les conflits de congés** :
+  - Service `LeaveConflictAnalyticsService` pour collecter des statistiques sur les conflits et générer des rapports d'analyse.
+  - Hook `useLeaveConflictAnalytics` pour récupérer, filtrer et manipuler les données d'analyse des conflits.
+  - Composant `LeaveConflictDashboard` pour visualiser les données avec graphiques et tableaux.
+  - Page dédiée aux analyses dans l'interface d'administration (`/admin/leaves/analytics`).
+  - Fonctionnalités avancées de filtrage par département, période et type de congé.
+  - Génération de recommandations automatiques pour optimiser la planification des congés.
+  - Export des rapports au format CSV.
 
 ### Modifié
 - **Amélioration du hook `useConflictDetection`** :
@@ -107,6 +131,13 @@
 - Résolution des problèmes de synchronisation
 - Optimisation des requêtes de base de données
 - fix(leaves): Correction du type de date (Date vs string) passé à checkLeaveConflicts depuis useLeave.
+
+### Bug Fixes
+
+- Résolution des erreurs silencieuses dans les hooks de gestion des congés
+- Correction de l'affichage des erreurs de validation de dates
+- Standardisation de la gestion des dates invalides à travers l'application
+- Mise à jour des tests du LeaveRequestForm pour refléter l'utilisation du nouveau hook useLeaveValidation
 
 ## [0.1.0] - 2024-03-20
 
@@ -165,16 +196,19 @@ Pour mettre à jour cette documentation lorsque vous implémentez de nouvelles f
 ## Version 1.4.0 (à venir)
 
 ### Ajouts et améliorations
-- Intégration d'un système centralisé de validation des dates dans le module Leaves
-- Intégration de la validation des dates dans le module Calendar
-- Amélioration de la gestion des erreurs dans le hook useLeave
-- Amélioration de la gestion des erreurs dans le hook useConflictDetection
-
-### Détails techniques
-- **Système de validation de dates**: Intégration du hook `useDateValidation` dans les composants `LeaveRequestForm` et `CalendarExport` pour centraliser et standardiser la validation des dates
-- **Gestion des erreurs**: Amélioration de la capture et de l'affichage des erreurs pour une meilleure expérience utilisateur
-- **Interface utilisateur**: Affichage des messages d'erreur spécifiques selon le type d'erreur de validation de date
-- **Tests**: Ajout de tests pour vérifier le comportement de la validation des dates
+- **Intégration du système centralisé de validation des dates dans le module Leaves**
+  - Implémentation du hook personnalisé `useLeaveValidation` qui étend les fonctionnalités de `useDateValidation` spécifiquement pour les congés.
+  - Intégration complète dans le composant `LeaveRequestForm` pour une validation robuste des demandes de congés.
+  - Validation des dates avec gestion centralisée des erreurs et affichage contextuel.
+  - Support pour la validation des quotas de congés disponibles.
+- **Tests unitaires complets**
+  - Tests exhaustifs pour le hook `useLeaveValidation` couvrant tous les cas de validation.
+  - Vérification des cas limites (dates passées, plages invalides, dépassement de quotas).
+- **Gestion des erreurs**
+  - Amélioration de la capture et de l'affichage des erreurs pour une meilleure expérience utilisateur.
+  - Messages d'erreur spécifiques selon le type d'erreur de validation de date.
+- **Intégration du hook `useDateValidation` dans les composants `LeaveRequestForm`**
+  - Support pour la validation de contraintes métier (préavis minimum, quotas, etc.)
 
 ### Corrections de bugs
 - Correction des erreurs silencieuses dans les hooks de gestion des congés

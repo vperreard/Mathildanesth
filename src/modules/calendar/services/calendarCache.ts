@@ -23,6 +23,7 @@ class CalendarCacheService {
     private static instance: CalendarCacheService;
     private eventCache: Map<string, CacheEntry<AnyCalendarEvent[]>> = new Map();
     private settingsCache: Map<string, CacheEntry<CalendarSettings>> = new Map();
+    private defaultTtl: number = 5 * 60 * 1000; // 5 minutes par défaut
 
     private constructor() {
         // Initialisation du cache
@@ -72,6 +73,14 @@ class CalendarCacheService {
             timestamp: now,
             expiresAt: now + ttl
         });
+
+        // Enregistrer un timer pour supprimer automatiquement l'entrée expirée
+        setTimeout(() => {
+            const entry = this.eventCache.get(key);
+            if (entry && !this.isEntryValid(entry)) {
+                this.eventCache.delete(key);
+            }
+        }, ttl);
     }
 
     // Récupérer des événements du cache
@@ -167,6 +176,12 @@ class CalendarCacheService {
 
         // Programmer le prochain nettoyage
         setTimeout(() => this.cleanupExpiredEntries(), 60 * 1000); // Toutes les minutes
+    }
+
+    // Vérifie si une entrée de cache est encore valide
+    private isEntryValid(entry: CacheEntry<AnyCalendarEvent[]>): boolean {
+        const now = Date.now();
+        return now - entry.timestamp < entry.expiresAt - entry.timestamp;
     }
 }
 

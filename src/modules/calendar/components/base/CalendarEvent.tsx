@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { AnyCalendarEvent, CalendarEventType } from '../../types/event';
 import { getEventBackgroundColor, getEventBorderColor } from '../../services/eventFormatter';
 
@@ -23,9 +23,11 @@ const CalendarEventComponent: React.FC<CalendarEventProps> = ({
     onClick,
     className = ''
 }) => {
-    // Déterminer le style de l'événement
-    const backgroundColor = getEventBackgroundColor(event);
-    const borderColor = getEventBorderColor(event);
+    // Mémoriser les styles calculés
+    const styles = useMemo(() => ({
+        backgroundColor: getEventBackgroundColor(event.type),
+        borderColor: getEventBorderColor(event.type, event.type === CalendarEventType.LEAVE ? event.status : undefined),
+    }), [event.type, event.status]);
 
     // Déterminer l'icône de statut pour les congés
     let statusIcon = '';
@@ -61,21 +63,32 @@ const CalendarEventComponent: React.FC<CalendarEventProps> = ({
         }
     };
 
+    // Mémoriser le contenu de l'événement
+    const eventContent = useMemo(() => (
+        <div className={`event-content ${isCompact ? 'compact' : ''} ${className} ${statusClass}`}>
+            <div className="event-title">{event.title}</div>
+            {showUser && event.user && (
+                <div className="event-user">{`${event.user.prenom} ${event.user.nom}`}</div>
+            )}
+            {showStatus && statusIcon && (
+                <div className="event-status">{statusIcon}</div>
+            )}
+        </div>
+    ), [event.title, event.user, event.type, isCompact, showUser, showStatus, statusIcon, className, statusClass]);
+
     // Affichage compact (pour les listes, légendes, etc.)
     if (isCompact) {
         return (
             <div
                 className={`flex items-center py-1 px-2 rounded-md cursor-pointer hover:bg-gray-50 ${className} ${statusClass}`}
+                style={styles}
                 onClick={handleClick}
             >
                 <div
                     className="w-3 h-3 rounded-full mr-2"
-                    style={{ backgroundColor }}
+                    style={{ backgroundColor: styles.backgroundColor }}
                 />
-                <div className="flex-1 text-sm truncate">{event.title}</div>
-                {showStatus && statusIcon && (
-                    <div className="ml-2 text-xs">{statusIcon}</div>
-                )}
+                {eventContent}
             </div>
         );
     }
@@ -84,58 +97,22 @@ const CalendarEventComponent: React.FC<CalendarEventProps> = ({
     return (
         <div
             className={`p-3 border rounded-md cursor-pointer hover:shadow-sm ${className} ${statusClass}`}
-            style={{ borderColor, borderLeftWidth: '4px' }}
+            style={{
+                ...styles,
+                borderLeftWidth: '4px'
+            }}
             onClick={handleClick}
         >
-            <div className="flex items-center justify-between">
-                <h3 className="font-medium text-gray-800">{event.title}</h3>
-                {showStatus && statusIcon && (
-                    <span className="text-sm">{statusIcon}</span>
-                )}
-            </div>
-
-            {showUser && event.user && (
-                <div className="text-sm text-gray-600 mt-1">
-                    {`${event.user.prenom} ${event.user.nom}`}
-                </div>
-            )}
+            {eventContent}
 
             <div className="flex justify-between items-center text-xs text-gray-500 mt-2">
                 <span>
                     {new Date(event.start).toLocaleDateString('fr-FR')}
                     {event.end && ` - ${new Date(event.end).toLocaleDateString('fr-FR')}`}
                 </span>
-                <span className="uppercase px-2 py-1 rounded bg-gray-100">
-                    {getEventTypeLabel(event.type)}
-                </span>
             </div>
-
-            {event.description && (
-                <div className="text-sm text-gray-600 mt-2 line-clamp-2">
-                    {event.description}
-                </div>
-            )}
         </div>
     );
 };
 
-/**
- * Obtenir le libellé d'un type d'événement
- */
-const getEventTypeLabel = (type: CalendarEventType): string => {
-    switch (type) {
-        case CalendarEventType.LEAVE:
-            return 'Congé';
-        case CalendarEventType.DUTY:
-            return 'Garde';
-        case CalendarEventType.ON_CALL:
-            return 'Astreinte';
-        case CalendarEventType.ASSIGNMENT:
-            return 'Affectation';
-        default:
-            return 'Événement';
-    }
-};
-
-// Utiliser memo pour éviter les rendus inutiles
-export const CalendarEvent = memo(CalendarEventComponent); 
+export default memo(CalendarEventComponent);

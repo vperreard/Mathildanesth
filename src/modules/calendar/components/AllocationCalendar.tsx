@@ -116,7 +116,7 @@ export const AllocationCalendar: React.FC<AllocationCalendarProps> = ({
                                 onClick={navigateToToday}
                                 className="px-3 py-2 hover:bg-gray-100 border-l border-r border-gray-300 text-sm"
                             >
-                                Aujourd'hui
+                                Aujourd&#39;hui
                             </button>
 
                             <button

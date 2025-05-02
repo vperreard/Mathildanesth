@@ -1,10 +1,14 @@
+"use client";
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logError } from '../services/errorLoggingService';
 import ErrorDisplay from './ErrorDisplay';
 
+// Utiliser des types qui ne sont pas des fonctions pour éviter l'erreur de sérialisation
 interface Props {
     children: ReactNode;
-    fallback?: ReactNode | ((error: Error, resetError: () => void) => ReactNode);
+    fallback?: ReactNode;
+    fallbackComponent?: React.ComponentType<{ error: Error; resetError: () => void }>;
     onError?: (error: Error, errorInfo: ErrorInfo) => void;
     resetOnPropsChange?: boolean;
 }
@@ -24,18 +28,23 @@ interface State {
  * </ErrorBoundary>
  * ```
  * 
- * Ou avec une fonction personnalisée:
+ * Ou avec un composant personnalisé:
  * ```jsx
  * <ErrorBoundary 
- *   fallback={(error, resetError) => (
- *     <div>
- *       <p>Erreur: {error.message}</p>
- *       <button onClick={resetError}>Réessayer</button>
- *     </div>
- *   )}
+ *   fallbackComponent={CustomErrorComponent}
  * >
  *   <MonComposant />
  * </ErrorBoundary>
+ * ```
+ * 
+ * Où CustomErrorComponent est défini comme:
+ * ```jsx
+ * const CustomErrorComponent = ({ error, resetError }) => (
+ *   <div>
+ *     <p>Erreur: {error.message}</p>
+ *     <button onClick={resetError}>Réessayer</button>
+ *   </div>
+ * );
  * ```
  */
 class ErrorBoundary extends Component<Props, State> {
@@ -92,14 +101,16 @@ class ErrorBoundary extends Component<Props, State> {
 
     render(): ReactNode {
         const { hasError, error } = this.state;
-        const { children, fallback } = this.props;
+        const { children, fallback, fallbackComponent: FallbackComponent } = this.props;
 
         if (hasError && error) {
-            // Rendu du fallback personnalisé s'il est fourni
+            // Utiliser le composant fallback personnalisé s'il est fourni
+            if (FallbackComponent) {
+                return <FallbackComponent error={error} resetError={this.resetError} />;
+            }
+
+            // Sinon, utiliser le fallback simple (non-fonction)
             if (fallback) {
-                if (typeof fallback === 'function') {
-                    return fallback(error, this.resetError);
-                }
                 return fallback;
             }
 

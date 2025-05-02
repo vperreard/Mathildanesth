@@ -4,10 +4,42 @@ import {
     GenerationParameters,
     RuleViolation,
     ValidationResult,
-    UserCounter
+    UserCounter,
+    AssignmentStatus
 } from '../types/assignment';
-import { User, DayOfWeek, WeekType } from '../types/user';
-import { RulesConfiguration, FatigueConfig, defaultRulesConfiguration, defaultFatigueConfig } from '../types/rules';
+import { ShiftType } from '../types/common';
+import { User, DayOfWeek, WeekType, Leave } from '../types/user';
+import { RulesConfiguration, FatigueConfig, defaultRulesConfiguration, defaultFatigueConfig, RuleSeverity } from '../types/rules';
+import { PlanningOptimizer } from './planningOptimizer';
+import {
+    parseDate,
+    addDaysToDate,
+    formatDate,
+    ISO_DATE_FORMAT,
+    areDatesSameDay,
+    getDifferenceInDays,
+    addHoursToDate
+} from '@/utils/dateUtils';
+
+// Logger simple compatible avec Next.js
+const logger = {
+    info: (message: string, ...args: any[]) => {
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`[INFO] ${message}`, ...args);
+        }
+    },
+    error: (message: string, ...args: any[]) => {
+        console.error(`[ERROR] ${message}`, ...args);
+    },
+    warn: (message: string, ...args: any[]) => {
+        console.warn(`[WARN] ${message}`, ...args);
+    },
+    debug: (message: string, ...args: any[]) => {
+        if (process.env.NODE_ENV !== 'production') {
+            console.debug(`[DEBUG] ${message}`, ...args);
+        }
+    }
+};
 
 /**
  * Service principal de génération de planning
@@ -18,7 +50,7 @@ export class PlanningGenerator {
     private rulesConfig: RulesConfiguration;
     private fatigueConfig: FatigueConfig;
     private existingAssignments: Assignment[] = [];
-    private userCounters: Map<number, UserCounter> = new Map();
+    private userCounters: Map<string, UserCounter> = new Map();
     private results: {
         gardes: Assignment[];
         astreintes: Assignment[];
@@ -65,22 +97,11 @@ export class PlanningGenerator {
         this.personnel.forEach(user => {
             this.userCounters.set(user.id, {
                 userId: user.id,
-                gardes: {
-                    total: 0,
-                    weekends: 0,
-                    feries: 0,
-                    noel: 0
-                },
-                consultations: {
-                    total: 0,
-                    matin: 0,
-                    apresmidi: 0
-                },
-                astreintes: 0,
-                fatigue: {
-                    score: 0,
-                    lastUpdate: new Date()
-                }
+                gardes: { total: 0, weekends: 0, feries: 0, noel: 0 },
+                consultations: { total: 0, matin: 0, apresmidi: 0 },
+                // Initialiser les nouveaux compteurs d'astreinte
+                astreintes: { total: 0, semaine: 0, weekendFeries: 0 },
+                fatigue: { score: 0, lastUpdate: new Date() }
             });
         });
     }
@@ -92,57 +113,77 @@ export class PlanningGenerator {
         this.existingAssignments.forEach(assignment => {
             const counter = this.userCounters.get(assignment.userId);
             if (!counter) return;
-
-            // Met à jour les compteurs en fonction du type d'affectation
             this.updateCounterForAssignment(counter, assignment);
         });
     }
 
     /**
-     * Met à jour les compteurs pour une affectation
+     * Met à jour les compteurs pour une affectation donnée
+     * Adapte la logique aux nouveaux ShiftType et règles d'astreinte/fatigue.
      */
     private updateCounterForAssignment(counter: UserCounter, assignment: Assignment): void {
-        const date = new Date(assignment.date);
-        const isWeekend = this.isWeekend(date);
-        const isFerie = this.isHoliday(date);
-
-        switch (assignment.type) {
-            case AssignmentType.GARDE:
-                counter.gardes.total++;
-                if (isWeekend) counter.gardes.weekends++;
-                if (isFerie) counter.gardes.feries++;
-                // Mise à jour du score de fatigue
-                counter.fatigue.score += this.fatigueConfig.points.garde;
-                break;
-
-            case AssignmentType.ASTREINTE:
-                counter.astreintes++;
-                // Mise à jour du score de fatigue
-                counter.fatigue.score += this.fatigueConfig.points.astreinte;
-                break;
-
-            case AssignmentType.CONSULTATION:
-                counter.consultations.total++;
-                if (assignment.shift === 'matin') {
-                    counter.consultations.matin++;
-                } else if (assignment.shift === 'apresmidi') {
-                    counter.consultations.apresmidi++;
-                }
-                break;
-
-            case AssignmentType.BLOC:
-                // Supervision multiple
-                if (assignment.secteur && this.isMultipleSupervisedSector(assignment.secteur)) {
-                    counter.fatigue.score += this.fatigueConfig.points.supervisionMultiple;
-                }
-                // Pédiatrie
-                if (assignment.secteur === 'pediatrie') {
-                    counter.fatigue.score += this.fatigueConfig.points.pediatrie;
-                }
-                break;
+        const date = parseDate(assignment.startDate);
+        if (!date) {
+            logger.error(`Date invalide pour l'affectation ${assignment.id}`, assignment);
+            return;
         }
 
-        // Met à jour la date de dernière mise à jour
+        const isWeekendDay = this.isWeekend(date);
+        const isHolidayDay = this.isHoliday(date);
+        const isWeekendOrHoliday = isWeekendDay || isHolidayDay;
+
+        // Logique de fatigue spécifique (supervision multiple, pédiatrie)
+        let specificFatiguePoints = 0;
+        if (assignment.notes) {
+            if (this.isMultipleSupervisedSector(assignment.notes)) {
+                specificFatiguePoints += this.fatigueConfig.points.supervisionMultiple || 0;
+            }
+            if (assignment.notes.includes('pediatrie')) {
+                specificFatiguePoints += this.fatigueConfig.points.pediatrie || 0;
+            }
+        }
+
+        switch (assignment.shiftType) {
+            case ShiftType.GARDE_24H:
+                counter.gardes.total++;
+                if (isWeekendDay) counter.gardes.weekends++;
+                if (isHolidayDay) counter.gardes.feries++;
+                // TODO: Gérer le cas spécifique Noël ?
+                counter.fatigue.score += (this.fatigueConfig.points.garde || 0) + specificFatiguePoints;
+                break;
+
+            case ShiftType.ASTREINTE:
+                counter.astreintes.total++;
+                if (isWeekendOrHoliday) {
+                    counter.astreintes.weekendFeries++;
+                    // Ajoute un peu de fatigue seulement le weekend/férié
+                    counter.fatigue.score += (this.fatigueConfig.points.astreinteWeekendFerie || this.fatigueConfig.points.astreinte || 0) + specificFatiguePoints;
+                } else {
+                    counter.astreintes.semaine++;
+                    // Pas de fatigue ajoutée en semaine (ou très peu?)
+                    // counter.fatigue.score += specificFatiguePoints; // Si supervision/pédiatrie possible en astreinte semaine?
+                }
+                break;
+
+            case ShiftType.MATIN:
+                counter.consultations.total++;
+                counter.consultations.matin++;
+                // Ajouter fatigue spécifique si applicable aux vacations ?
+                // counter.fatigue.score += specificFatiguePoints;
+                break;
+
+            case ShiftType.APRES_MIDI:
+                counter.consultations.total++;
+                counter.consultations.apresmidi++;
+                // Ajouter fatigue spécifique si applicable aux vacations ?
+                // counter.fatigue.score += specificFatiguePoints;
+                break;
+
+            // Les anciens types sont supprimés, pas besoin de les gérer ici
+            // default: 
+            //     logger.warn(`Type de shift inconnu ou non géré dans les compteurs: ${assignment.shiftType}`);
+        }
+
         counter.fatigue.lastUpdate = new Date();
     }
 
@@ -160,12 +201,22 @@ export class PlanningGenerator {
      */
     private getPeriodDays(): Date[] {
         const days: Date[] = [];
-        const currentDate = new Date(this.parameters.dateDebut);
-        const endDate = new Date(this.parameters.dateFin);
+        let currentDate = parseDate(this.parameters.dateDebut);
+        const endDate = parseDate(this.parameters.dateFin);
+
+        if (!currentDate || !endDate || currentDate > endDate) {
+            logger.error('Dates de début ou de fin invalides pour la génération', this.parameters);
+            return [];
+        }
 
         while (currentDate <= endDate) {
-            days.push(new Date(currentDate));
-            currentDate.setDate(currentDate.getDate() + 1);
+            days.push(currentDate);
+            const nextDate = addDaysToDate(currentDate, 1);
+            if (!nextDate) {
+                logger.error('Erreur lors de l\'incrémentation de la date', currentDate);
+                break;
+            }
+            currentDate = nextDate;
         }
 
         return days;
@@ -189,207 +240,298 @@ export class PlanningGenerator {
     }
 
     /**
-     * Détermine si un utilisateur est disponible à une date donnée
+     * Calcule le nombre de jours entre deux dates
+     */
+    private getDaysBetween(date1: Date, date2: Date): number {
+        const diff = getDifferenceInDays(date1, date2);
+        return diff !== null ? Math.abs(diff) : 0;
+    }
+
+    /**
+     * Vérifie si un utilisateur a des affectations consécutives
+     */
+    private hasConsecutiveAssignments(user: User, targetDate: Date): boolean {
+        const assignments = this.findUserAssignments(user.id);
+        return assignments.some(assignment => {
+            return areDatesSameDay(assignment.startDate, targetDate);
+        });
+    }
+
+    /**
+     * Trouve la dernière affectation d'un type donné pour un utilisateur
+     */
+    private findLastAssignment(user: User, shiftType: ShiftType): Assignment | null {
+        const assignments = this.findUserAssignments(user.id);
+        return assignments.find(a => a.shiftType === shiftType) || null;
+    }
+
+    /**
+     * Vérifie si un utilisateur est disponible à une date donnée
      */
     private isUserAvailable(user: User, date: Date): boolean {
-        // Vérifie si l'utilisateur est actif à la date donnée
-        const dateStr = date.toISOString().split('T')[0];
-        if (user.dateEntree && new Date(user.dateEntree).toISOString().split('T')[0] > dateStr) return false;
-        if (user.dateSortie && new Date(user.dateSortie).toISOString().split('T')[0] < dateStr) return false;
-        if (user.actif === false) return false;
-
-        // Vérifie le pattern de travail
-        if (!this.isWorkingDay(user, date)) return false;
-
-        // Vérifie s'il y a déjà une affectation à cette date
-        const hasConflict = this.existingAssignments.some(a =>
-            a.userId === user.id &&
-            new Date(a.date).toISOString().split('T')[0] === dateStr
+        // Vérifier les congés
+        const hasLeave = user.leaves?.some(leave =>
+            this.isWithinInterval(date, { start: leave.startDate, end: leave.endDate })
         );
+        if (hasLeave) return false;
 
-        return !hasConflict;
-    }
-
-    /**
-     * Détermine si une date est un jour de travail pour l'utilisateur
-     */
-    private isWorkingDay(user: User, date: Date): boolean {
-        if (!user.workPattern) return true; // Par défaut, temps plein
-
-        const dayOfWeek = date.getDay() || 7; // 0 = Dimanche, 1-6 = Lundi-Samedi, on transforme 0 en 7
-        const dayIndex = dayOfWeek - 1; // 0-6 pour Lundi-Dimanche
-        const dayNames = [
-            DayOfWeek.LUNDI, DayOfWeek.MARDI, DayOfWeek.MERCREDI,
-            DayOfWeek.JEUDI, DayOfWeek.VENDREDI, DayOfWeek.SAMEDI, DayOfWeek.DIMANCHE
-        ];
-        const day = dayNames[dayIndex];
-
-        // Vérifier selon le pattern de travail
-        switch (user.workPattern) {
-            case 'FULL_TIME':
-                return true;
-
-            case 'ALTERNATING_WEEKS': {
-                const weekNumber = this.getWeekNumber(date);
-                const isEvenWeek = weekNumber % 2 === 0;
-
-                if (isEvenWeek && user.workOnMonthType === WeekType.EVEN) {
-                    return user.joursTravaillesSemainePaire?.includes(day) || false;
-                } else if (!isEvenWeek && user.workOnMonthType === WeekType.ODD) {
-                    return user.joursTravaillesSemaineImpaire?.includes(day) || false;
-                }
-                return false;
-            }
-
-            case 'ALTERNATING_MONTHS': {
-                const month = date.getMonth() + 1; // 1-12
-                const isEvenMonth = month % 2 === 0;
-
-                if (isEvenMonth && user.workOnMonthType === WeekType.EVEN) {
-                    return true;
-                } else if (!isEvenMonth && user.workOnMonthType === WeekType.ODD) {
-                    return true;
-                }
-                return false;
-            }
-
-            case 'SPECIFIC_DAYS': {
-                // Vérifier si le jour est dans la liste des jours travaillés
-                return (
-                    user.joursTravaillesSemainePaire?.includes(day) ||
-                    user.joursTravaillesSemaineImpaire?.includes(day) ||
-                    false
-                );
-            }
-
-            default:
-                return true;
-        }
-    }
-
-    /**
-     * Obtient le numéro de semaine d'une date
-     */
-    private getWeekNumber(date: Date): number {
-        const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-        const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-        return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-    }
-
-    /**
-     * Détermine si un utilisateur a des affectations consécutives
-     */
-    private hasConsecutiveAssignments(userId: number, date: Date): boolean {
-        const previousDay = new Date(date);
-        previousDay.setDate(previousDay.getDate() - 1);
-
-        const nextDay = new Date(date);
-        nextDay.setDate(nextDay.getDate() + 1);
-
-        const previousDayStr = previousDay.toISOString().split('T')[0];
-        const nextDayStr = nextDay.toISOString().split('T')[0];
-
-        const hasAssignmentPreviousDay = this.existingAssignments.some(a =>
-            a.userId === userId &&
-            (a.type === AssignmentType.GARDE || a.type === AssignmentType.ASTREINTE) &&
-            new Date(a.date).toISOString().split('T')[0] === previousDayStr
+        // Vérifier les dates d'indisponibilité
+        const isBlackedOut = user.preferences?.blackoutDates?.some(blackoutDate =>
+            areDatesSameDay(date, blackoutDate)
         );
+        if (isBlackedOut) return false;
 
-        const hasAssignmentNextDay = this.existingAssignments.some(a =>
-            a.userId === userId &&
-            (a.type === AssignmentType.GARDE || a.type === AssignmentType.ASTREINTE) &&
-            new Date(a.date).toISOString().split('T')[0] === nextDayStr
-        );
+        // Vérifier le score de fatigue
+        const fatigueScore = this.calculateFatigueScore(user, date);
+        if (fatigueScore >= this.fatigueConfig.seuils.critique) return false;
 
-        return hasAssignmentPreviousDay || hasAssignmentNextDay;
+        return true;
     }
 
     /**
-     * Génère les gardes pour la période spécifiée
+     * Compare si deux dates sont le même jour
      */
-    generateGardes(): Assignment[] {
-        const gardes: Assignment[] = [];
-        const periodDays = this.getPeriodDays();
+    private isSameDay(date1: Date, date2: Date): boolean {
+        return date1.getFullYear() === date2.getFullYear() &&
+            date1.getMonth() === date2.getMonth() &&
+            date1.getDate() === date2.getDate();
+    }
 
-        for (const day of periodDays) {
-            // Trouver les utilisateurs éligibles pour la garde
-            const eligibleUsers = this.findEligibleUsersForGarde(day);
+    /**
+     * Génère les affectations de garde
+     */
+    private generateGardes(): void {
+        logger.info('Génération des gardes');
+        const days = this.getPeriodDays();
 
+        days.forEach(date => {
+            const eligibleUsers = this.findEligibleUsersForGarde(date);
             if (eligibleUsers.length === 0) {
-                console.warn(`Aucun utilisateur disponible pour la garde du ${day.toISOString().split('T')[0]}`);
-                continue;
+                logger.warn(`Aucun utilisateur disponible pour la garde du ${formatDate(date, ISO_DATE_FORMAT)}`);
+                return;
             }
 
-            // Sélectionner le meilleur candidat pour la garde
-            const selectedUser = this.selectBestCandidateForGarde(eligibleUsers, day);
+            const selectedUser = this.selectBestCandidateForGarde(eligibleUsers, date);
+            const endDate = addHoursToDate(date, 24);
+            if (!endDate) {
+                logger.error('Impossible de calculer la date de fin pour la garde', { date });
+                return;
+            }
 
-            // Créer la garde et l'ajouter au résultat
-            const garde: Assignment = {
-                id: `garde-${day.toISOString().split('T')[0]}`,
+            const assignment: Assignment = {
+                id: `garde-${Math.random().toString(36).substring(2, 9)}`,
                 userId: selectedUser.id,
-                date: day,
-                type: AssignmentType.GARDE,
-                shift: 'nuit',
-                confirmed: false,
+                shiftType: ShiftType.GARDE_24H,
+                startDate: date,
+                endDate: endDate,
+                status: AssignmentStatus.PENDING,
                 createdAt: new Date(),
                 updatedAt: new Date()
             };
 
-            gardes.push(garde);
-            this.existingAssignments.push(garde);
-
-            // Mettre à jour les compteurs de l'utilisateur
-            const counter = this.userCounters.get(selectedUser.id);
-            if (counter) {
-                this.updateCounterForAssignment(counter, garde);
-            }
-        }
-
-        this.results.gardes = gardes;
-        return gardes;
+            this.results.gardes.push(assignment);
+            this.updateCounterForAssignment(this.userCounters.get(selectedUser.id)!, assignment);
+        });
     }
 
     /**
-     * Trouve les utilisateurs éligibles pour une garde à une date donnée
+     * Génère les affectations d'astreinte
+     */
+    private generateAstreintes(): void {
+        logger.info('Génération des astreintes');
+        const days = this.getPeriodDays();
+
+        days.forEach(date => {
+            const eligibleUsers = this.findEligibleUsersForAstreinte(date);
+            if (eligibleUsers.length === 0) {
+                logger.warn(`Aucun utilisateur disponible pour l'astreinte du ${formatDate(date, ISO_DATE_FORMAT)}`);
+                return;
+            }
+
+            const selectedUser = this.selectBestCandidateForAstreinte(eligibleUsers, date);
+            const endDate = addHoursToDate(date, 24);
+            if (!endDate) {
+                logger.error('Impossible de calculer la date de fin pour l\'astreinte', { date });
+                return;
+            }
+
+            const assignment: Assignment = {
+                id: `astreinte-${Math.random().toString(36).substring(2, 9)}`,
+                userId: selectedUser.id,
+                shiftType: ShiftType.ASTREINTE,
+                startDate: date,
+                endDate: endDate,
+                status: AssignmentStatus.PENDING,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            };
+
+            this.results.astreintes.push(assignment);
+            this.updateCounterForAssignment(this.userCounters.get(selectedUser.id)!, assignment);
+        });
+    }
+
+    /**
+     * Génère les affectations de consultation
+     */
+    private generateConsultations(): void {
+        logger.info('Génération des consultations');
+        const days = this.getPeriodDays();
+
+        days.forEach(date => {
+            if (this.isWeekend(date) || this.isHoliday(date)) return;
+
+            // Consultation du matin
+            const morningUsers = this.findEligibleUsersForConsultation(date, ShiftType.MATIN);
+            if (morningUsers.length > 0) {
+                const selectedMorningUser = this.selectBestCandidateForConsultation(morningUsers, date, ShiftType.MATIN);
+                const morningEndDate = addHoursToDate(date, 4);
+                if (!morningEndDate) {
+                    logger.error('Impossible de calculer la date de fin pour la consultation matin', { date });
+                    // Continuer avec la consultation de l'après-midi ?
+                } else {
+                    const morningAssignment: Assignment = {
+                        id: `consultation-matin-${Math.random().toString(36).substring(2, 9)}`,
+                        userId: selectedMorningUser.id,
+                        shiftType: ShiftType.MATIN,
+                        startDate: date,
+                        endDate: morningEndDate,
+                        status: AssignmentStatus.PENDING,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    };
+
+                    this.results.consultations.push(morningAssignment);
+                    this.updateCounterForAssignment(this.userCounters.get(selectedMorningUser.id)!, morningAssignment);
+                }
+            }
+
+            // Consultation de l'après-midi
+            const afternoonUsers = this.findEligibleUsersForConsultation(date, ShiftType.APRES_MIDI);
+            if (afternoonUsers.length > 0) {
+                const selectedAfternoonUser = this.selectBestCandidateForConsultation(afternoonUsers, date, ShiftType.APRES_MIDI);
+                const afternoonStartDate = addHoursToDate(date, 6); // Début décalé
+                if (!afternoonStartDate) {
+                    logger.error('Impossible de calculer la date de début pour la consultation aprem', { date });
+                    return; // Sortir pour ce jour
+                }
+                const afternoonEndDate = addHoursToDate(afternoonStartDate, 4);
+                if (!afternoonEndDate) {
+                    logger.error('Impossible de calculer la date de fin pour la consultation aprem', { date: afternoonStartDate });
+                } else {
+                    const afternoonAssignment: Assignment = {
+                        id: `consultation-apresmidi-${Math.random().toString(36).substring(2, 9)}`,
+                        userId: selectedAfternoonUser.id,
+                        shiftType: ShiftType.APRES_MIDI,
+                        startDate: afternoonStartDate,
+                        endDate: afternoonEndDate,
+                        status: AssignmentStatus.PENDING,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    };
+
+                    this.results.consultations.push(afternoonAssignment);
+                    this.updateCounterForAssignment(this.userCounters.get(selectedAfternoonUser.id)!, afternoonAssignment);
+                }
+            }
+        });
+    }
+
+    /**
+     * Génère les affectations de bloc opératoire
+     */
+    private generateBlocs(): void {
+        logger.info('Génération des affectations de bloc');
+        const days = this.getPeriodDays();
+
+        days.forEach(date => {
+            if (this.isWeekend(date) || this.isHoliday(date)) {
+                // Gestion spéciale pour les weekends et jours fériés
+                const weekendUsers = this.findEligibleUsersForBloc(date, true);
+                if (weekendUsers.length > 0) {
+                    const selectedUser = this.selectBestCandidateForBloc(weekendUsers, date, true);
+                    const endDate = addHoursToDate(date, 12);
+                    if (!endDate) {
+                        logger.error('Impossible de calculer la date de fin pour le bloc weekend', { date });
+                        return;
+                    }
+
+                    const assignment: Assignment = {
+                        id: `bloc-weekend-${Math.random().toString(36).substring(2, 9)}`,
+                        userId: selectedUser.id,
+                        shiftType: ShiftType.GARDE_24H,
+                        startDate: date,
+                        endDate: endDate,
+                        status: AssignmentStatus.PENDING,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    };
+
+                    this.results.blocs.push(assignment);
+                    this.updateCounterForAssignment(this.userCounters.get(selectedUser.id)!, assignment);
+                }
+            } else {
+                // Journée normale
+                const users = this.findEligibleUsersForBloc(date, false);
+                if (users.length > 0) {
+                    const selectedUser = this.selectBestCandidateForBloc(users, date, false);
+                    const endDate = addHoursToDate(date, 8);
+                    if (!endDate) {
+                        logger.error('Impossible de calculer la date de fin pour le bloc jour', { date });
+                        return;
+                    }
+
+                    const assignment: Assignment = {
+                        id: `bloc-${Math.random().toString(36).substring(2, 9)}`,
+                        userId: selectedUser.id,
+                        shiftType: ShiftType.MATIN,
+                        startDate: date,
+                        endDate: endDate,
+                        status: AssignmentStatus.PENDING,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    };
+
+                    this.results.blocs.push(assignment);
+                    this.updateCounterForAssignment(this.userCounters.get(selectedUser.id)!, assignment);
+                }
+            }
+        });
+    }
+
+    /**
+     * Trouve les utilisateurs éligibles pour une garde
      */
     private findEligibleUsersForGarde(date: Date): User[] {
         return this.personnel.filter(user => {
-            // Vérifier si l'utilisateur est disponible ce jour-là
+            // Vérifier la disponibilité de base
             if (!this.isUserAvailable(user, date)) return false;
 
-            // Vérifier le rôle professionnel (seuls les MAR font des gardes)
-            if (user.professionalRole !== 'MAR') return false;
+            // Vérifier les affectations consécutives
+            if (this.hasConsecutiveAssignments(user, date)) return false;
 
-            const counter = this.userCounters.get(user.id);
-            if (!counter) return false;
+            // Vérifier le nombre de gardes dans le mois
+            const userCounter = this.userCounters.get(user.id);
+            if (userCounter && userCounter.gardes.total >= this.rulesConfig.intervalle.maxGardesMois) return false;
 
-            // Vérifier le nombre de gardes par mois
-            const month = date.getMonth();
-            const year = date.getFullYear();
-            const gardesThisMonth = this.existingAssignments.filter(a =>
-                a.userId === user.id &&
-                a.type === AssignmentType.GARDE &&
-                new Date(a.date).getMonth() === month &&
-                new Date(a.date).getFullYear() === year
-            ).length;
+            return true;
+        });
+    }
 
-            if (gardesThisMonth >= this.rulesConfig.intervalle.maxGardesMois) return false;
+    /**
+     * Trouve les utilisateurs éligibles pour une astreinte
+     */
+    private findEligibleUsersForAstreinte(date: Date): User[] {
+        return this.personnel.filter(user => {
+            // Vérifier la disponibilité de base
+            if (!this.isUserAvailable(user, date)) return false;
 
-            // Vérifier l'intervalle minimum entre les gardes
-            const lastGarde = this.findLastAssignment(user.id, AssignmentType.GARDE);
-            if (lastGarde) {
-                const lastGardeDate = new Date(lastGarde.date);
-                const daysBetween = this.getDaysBetween(lastGardeDate, date);
-                if (daysBetween < this.rulesConfig.intervalle.minJoursEntreGardes) return false;
-            }
+            // Vérifier les affectations consécutives
+            if (this.hasConsecutiveAssignments(user, date)) return false;
 
-            // Vérifier les gardes consécutives
-            if (this.rulesConfig.qualiteVie.eviterConsecutifs && this.hasConsecutiveAssignments(user.id, date)) {
-                return false;
-            }
-
-            // Vérifier le score de fatigue
-            if (counter.fatigue.score > this.fatigueConfig.seuils.critique) {
+            // Vérifier le nombre d'astreintes
+            const userCounter = this.userCounters.get(user.id);
+            if (userCounter && userCounter.astreintes.total >= this.rulesConfig.intervalle.maxAstreintesMois) {
                 return false;
             }
 
@@ -398,128 +540,133 @@ export class PlanningGenerator {
     }
 
     /**
-     * Trouve la dernière affectation d'un type donné pour un utilisateur
+     * Trouve les utilisateurs éligibles pour une consultation
      */
-    private findLastAssignment(userId: number, type: AssignmentType): Assignment | undefined {
-        const assignments = this.existingAssignments
-            .filter(a => a.userId === userId && a.type === type)
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    private findEligibleUsersForConsultation(date: Date, shift: ShiftType): User[] {
+        return this.personnel.filter(user => {
+            // Vérifier la disponibilité de base
+            if (!this.isUserAvailable(user, date)) return false;
 
-        return assignments[0];
+            // Vérifier le nombre de consultations par semaine
+            const userCounter = this.userCounters.get(user.id);
+            if (userCounter && userCounter.consultations.total >= this.rulesConfig.consultations.maxParSemaine) return false;
+
+            return true;
+        });
     }
 
     /**
-     * Calcule le nombre de jours entre deux dates
+     * Trouve les utilisateurs éligibles pour le bloc opératoire
      */
-    private getDaysBetween(date1: Date, date2: Date): number {
-        const diffTime = Math.abs(date2.getTime() - date1.getTime());
-        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    private findEligibleUsersForBloc(date: Date, isWeekend: boolean): User[] {
+        return this.personnel.filter(user => {
+            // Vérifier la disponibilité de base
+            if (!this.isUserAvailable(user, date)) return false;
+
+            // Vérifier les affectations consécutives
+            if (this.hasConsecutiveAssignments(user, date)) return false;
+
+            return true;
+        });
     }
 
     /**
      * Sélectionne le meilleur candidat pour une garde
      */
     private selectBestCandidateForGarde(eligibleUsers: User[], date: Date): User {
-        const isWeekend = this.isWeekend(date);
-        const isFerie = this.isHoliday(date);
+        return eligibleUsers.reduce((best, current) => {
+            const bestCounter = this.userCounters.get(best.id)!;
+            const currentCounter = this.userCounters.get(current.id)!;
 
-        // Calcul du score pour chaque candidat
-        const scoredCandidates = eligibleUsers.map(user => {
-            const counter = this.userCounters.get(user.id) as UserCounter;
-            let score = 0;
+            // Critères de sélection
+            const bestScore = this.calculateAssignmentScore(best, bestCounter, date);
+            const currentScore = this.calculateAssignmentScore(current, currentCounter, date);
 
-            // Temps écoulé depuis la dernière garde
-            const lastGarde = this.findLastAssignment(user.id, AssignmentType.GARDE);
-            if (lastGarde) {
-                const daysSinceLastGarde = this.getDaysBetween(new Date(lastGarde.date), date);
-                score += Math.min(daysSinceLastGarde, 30) / 3; // max 10 points
-            } else {
-                score += 10; // Max points for new users
+            return currentScore > bestScore ? current : best;
+        }, eligibleUsers[0]);
+    }
+
+    /**
+     * Sélectionne le meilleur candidat pour une astreinte
+     */
+    private selectBestCandidateForAstreinte(eligibleUsers: User[], date: Date): User {
+        return eligibleUsers.reduce((best, current) => {
+            const bestCounter = this.userCounters.get(best.id)!;
+            const currentCounter = this.userCounters.get(current.id)!;
+
+            // Critères de sélection
+            const bestScore = this.calculateAssignmentScore(best, bestCounter, date);
+            const currentScore = this.calculateAssignmentScore(current, currentCounter, date);
+
+            return currentScore > bestScore ? current : best;
+        }, eligibleUsers[0]);
+    }
+
+    /**
+     * Sélectionne le meilleur candidat pour une consultation
+     */
+    private selectBestCandidateForConsultation(eligibleUsers: User[], date: Date, shift: ShiftType): User {
+        return eligibleUsers.reduce((best, current) => {
+            const bestCounter = this.userCounters.get(best.id)!;
+            const currentCounter = this.userCounters.get(current.id)!;
+
+            // Critères de sélection
+            const bestScore = this.calculateAssignmentScore(best, bestCounter, date);
+            const currentScore = this.calculateAssignmentScore(current, currentCounter, date);
+
+            return currentScore > bestScore ? current : best;
+        }, eligibleUsers[0]);
+    }
+
+    /**
+     * Sélectionne le meilleur candidat pour le bloc opératoire
+     */
+    private selectBestCandidateForBloc(eligibleUsers: User[], date: Date, isWeekend: boolean): User {
+        return eligibleUsers.reduce((best, current) => {
+            const bestCounter = this.userCounters.get(best.id)!;
+            const currentCounter = this.userCounters.get(current.id)!;
+
+            // Critères de sélection
+            const bestScore = this.calculateAssignmentScore(best, bestCounter, date);
+            const currentScore = this.calculateAssignmentScore(current, currentCounter, date);
+
+            return currentScore > bestScore ? current : best;
+        }, eligibleUsers[0]);
+    }
+
+    /**
+     * Calcule un score pour une affectation potentielle
+     */
+    private calculateAssignmentScore(user: User, counter: UserCounter, date: Date): number {
+        let score = 0;
+
+        // Facteur de fatigue (inversé car moins de fatigue = meilleur score)
+        score += 100 - counter.fatigue.score;
+
+        // Facteur d'équité (moins d'affectations = meilleur score)
+        const avgGardes = this.getAverageGardesPerUser();
+        if (avgGardes > 0) {
+            score += 50 * (1 - (counter.gardes.total / avgGardes));
+        }
+
+        // Bonus pour les préférences personnelles
+        if (user.preferences) {
+            const formattedDate = formatDate(date, ISO_DATE_FORMAT);
+            if (formattedDate && user.preferences.preferredDays?.includes(formattedDate)) {
+                score += 20;
             }
+        }
 
-            // Équité des gardes
-            const averageGardes = this.getAverageGardesPerUser();
-            const gardeRatio = counter.gardes.total / Math.max(averageGardes, 1);
-            score += (1 - Math.min(gardeRatio, 1)) * 10; // max 10 points
-
-            // Équité pour les weekends et jours fériés
-            if (isWeekend) {
-                const avgWeekendsGardes = this.getAverageWeekendGardesPerUser();
-                const weekendRatio = counter.gardes.weekends / Math.max(avgWeekendsGardes, 1);
-                score += (1 - Math.min(weekendRatio, 1)) * 8 * this.rulesConfig.equite.poidsGardesWeekend;
-            }
-
-            if (isFerie) {
-                const avgFeriesGardes = this.getAverageFeriesGardesPerUser();
-                const ferieRatio = counter.gardes.feries / Math.max(avgFeriesGardes, 1);
-                score += (1 - Math.min(ferieRatio, 1)) * 8 * this.rulesConfig.equite.poidsGardesFeries;
-            }
-
-            // Score de fatigue inverse (moins fatigué = meilleur score)
-            const fatigueRatio = counter.fatigue.score / this.fatigueConfig.seuils.critique;
-            score += (1 - Math.min(fatigueRatio, 1)) * 8;
-
-            return { user, score };
-        });
-
-        // Tri par score décroissant
-        scoredCandidates.sort((a, b) => b.score - a.score);
-
-        return scoredCandidates[0].user;
+        return score;
     }
 
     /**
      * Calcule la moyenne des gardes par utilisateur
      */
     private getAverageGardesPerUser(): number {
-        let totalGardes = 0;
-        let userCount = 0;
-
-        for (const [_, counter] of this.userCounters) {
-            totalGardes += counter.gardes.total;
-            userCount++;
-        }
-
-        return userCount ? totalGardes / userCount : 0;
-    }
-
-    /**
-     * Calcule la moyenne des gardes de weekend par utilisateur
-     */
-    private getAverageWeekendGardesPerUser(): number {
-        let totalWeekendGardes = 0;
-        let userCount = 0;
-
-        for (const [_, counter] of this.userCounters) {
-            totalWeekendGardes += counter.gardes.weekends;
-            userCount++;
-        }
-
-        return userCount ? totalWeekendGardes / userCount : 0;
-    }
-
-    /**
-     * Calcule la moyenne des gardes les jours fériés par utilisateur
-     */
-    private getAverageFeriesGardesPerUser(): number {
-        let totalFeriesGardes = 0;
-        let userCount = 0;
-
-        for (const [_, counter] of this.userCounters) {
-            totalFeriesGardes += counter.gardes.feries;
-            userCount++;
-        }
-
-        return userCount ? totalFeriesGardes / userCount : 0;
-    }
-
-    /**
-     * Génère les consultations pour la période spécifiée
-     */
-    generateConsultations(): Assignment[] {
-        // Similaire à generateGardes mais avec des règles différentes
-        // Implémentation à compléter...
-        return [];
+        const totalGardes = Array.from(this.userCounters.values())
+            .reduce((sum, counter) => sum + counter.gardes.total, 0);
+        return totalGardes / this.userCounters.size;
     }
 
     /**
@@ -528,14 +675,14 @@ export class PlanningGenerator {
     validatePlanning(): ValidationResult {
         const violations: RuleViolation[] = [];
 
-        // Vérification des contraintes du planning
+        // Vérifier les violations de règles
         this.checkForViolations(violations);
 
-        // Calcul des métriques
+        // Calculer les métriques
         const metrics = {
             equiteScore: this.calculateEquityScore(),
-            fatigueScore: this.calculateFatigueScore(),
-            satisfactionScore: 0 // À implémenter
+            fatigueScore: this.calculateAverageFatigueScore(),
+            satisfactionScore: this.calculateSatisfactionScore()
         };
 
         return {
@@ -549,47 +696,42 @@ export class PlanningGenerator {
      * Vérifie les violations de règles
      */
     private checkForViolations(violations: RuleViolation[]): void {
-        // À implémenter: vérification des règles métier
-        // Exemple: détection des intervalles trop courts entre gardes
-
-        // Vérification des intervalles minimum entre gardes
+        // Vérifier les intervalles minimum entre les gardes
         this.checkMinimumGardeIntervals(violations);
 
-        // Vérification du nombre maximum de gardes par mois
+        // Vérifier le nombre maximum de gardes par mois
         this.checkMaxGardesPerMonth(violations);
 
-        // Vérification des incompatibilités (gardes consécutives, etc.)
+        // Vérifier les affectations consécutives
         this.checkConsecutiveAssignments(violations);
 
-        // Vérification des scores de fatigue critiques
+        // Vérifier les scores de fatigue
         this.checkFatigueScores(violations);
     }
 
     /**
-     * Vérifie les intervalles minimum entre gardes
+     * Vérifie les intervalles minimum entre les gardes
      */
     private checkMinimumGardeIntervals(violations: RuleViolation[]): void {
-        // Pour chaque utilisateur, vérifier les gardes trop rapprochées
         this.personnel.forEach(user => {
-            const userGardes = this.results.gardes
-                .filter(g => g.userId === user.id)
-                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-            for (let i = 1; i < userGardes.length; i++) {
-                const previous = new Date(userGardes[i - 1].date);
-                const current = new Date(userGardes[i].date);
-                const daysBetween = this.getDaysBetween(previous, current);
-
-                if (daysBetween < this.rulesConfig.intervalle.minJoursEntreGardes) {
-                    violations.push({
-                        id: `violation-${Math.random().toString(36).substring(2, 9)}`,
-                        type: 'INTERVALLE_GARDE',
-                        severity: daysBetween < 3 ? 'CRITICAL' : 'MAJOR',
-                        message: `Intervalle trop court entre gardes pour ${user.prenom} ${user.nom}: ${daysBetween} jours`,
-                        affectedAssignments: [userGardes[i - 1].id, userGardes[i].id]
-                    });
+            const userAssignments = this.findUserAssignments(user.id);
+            userAssignments.forEach(assignment => {
+                const nextAssignment = userAssignments.find(a =>
+                    a.startDate > assignment.startDate
+                );
+                if (nextAssignment) {
+                    const daysBetween = this.getDaysBetween(assignment.startDate, nextAssignment.startDate);
+                    if (daysBetween < this.rulesConfig.intervalle.minJoursEntreGardes) {
+                        violations.push({
+                            id: `min-interval-${assignment.id}-${nextAssignment.id}`,
+                            type: 'MIN_INTERVAL',
+                            severity: RuleSeverity.ERROR,
+                            message: `Intervalle minimum de ${this.rulesConfig.intervalle.minJoursEntreGardes} jours non respecté entre les gardes`,
+                            affectedAssignments: [assignment.id, nextAssignment.id]
+                        });
+                    }
                 }
-            }
+            });
         });
     }
 
@@ -597,36 +739,19 @@ export class PlanningGenerator {
      * Vérifie le nombre maximum de gardes par mois
      */
     private checkMaxGardesPerMonth(violations: RuleViolation[]): void {
-        // Pour chaque utilisateur, vérifier le nombre de gardes par mois
         this.personnel.forEach(user => {
-            // Regrouper les gardes par mois
-            const gardesByMonth: Record<string, Assignment[]> = {};
+            const counter = this.userCounters.get(user.id);
+            if (!counter) return;
 
-            this.results.gardes
-                .filter(g => g.userId === user.id)
-                .forEach(garde => {
-                    const date = new Date(garde.date);
-                    const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
-
-                    if (!gardesByMonth[monthKey]) {
-                        gardesByMonth[monthKey] = [];
-                    }
-
-                    gardesByMonth[monthKey].push(garde);
+            if (counter.gardes.total > this.rulesConfig.intervalle.maxGardesMois) {
+                violations.push({
+                    id: `max-gardes-${user.id}`,
+                    type: 'MAX_GARDES',
+                    severity: RuleSeverity.ERROR,
+                    message: `Nombre maximum de gardes par mois dépassé (${counter.gardes.total} > ${this.rulesConfig.intervalle.maxGardesMois})`,
+                    affectedAssignments: this.findUserAssignments(user.id).map(a => a.id)
                 });
-
-            // Vérifier les mois avec trop de gardes
-            Object.entries(gardesByMonth).forEach(([monthKey, gardes]) => {
-                if (gardes.length > this.rulesConfig.intervalle.maxGardesMois) {
-                    violations.push({
-                        id: `violation-${Math.random().toString(36).substring(2, 9)}`,
-                        type: 'MAX_GARDES_MOIS',
-                        severity: 'MAJOR',
-                        message: `Trop de gardes pour ${user.prenom} ${user.nom} en ${monthKey}: ${gardes.length}/${this.rulesConfig.intervalle.maxGardesMois}`,
-                        affectedAssignments: gardes.map(g => g.id)
-                    });
-                }
-            });
+            }
         });
     }
 
@@ -634,52 +759,67 @@ export class PlanningGenerator {
      * Vérifie les affectations consécutives
      */
     private checkConsecutiveAssignments(violations: RuleViolation[]): void {
-        if (!this.rulesConfig.qualiteVie.eviterConsecutifs) return;
-
-        // Pour chaque utilisateur, vérifier les affectations consécutives
         this.personnel.forEach(user => {
-            const userAssignments = [...this.results.gardes, ...this.results.astreintes]
-                .filter(a => a.userId === user.id)
-                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            const userAssignments = this.findUserAssignments(user.id);
+            let consecutiveCount = 0;
 
-            for (let i = 1; i < userAssignments.length; i++) {
-                const previous = new Date(userAssignments[i - 1].date);
-                const current = new Date(userAssignments[i].date);
-                previous.setHours(0, 0, 0, 0);
-                current.setHours(0, 0, 0, 0);
+            // Trier les affectations par date de début pour s'assurer de la logique consécutive
+            const sortedAssignments = [...userAssignments].sort((a, b) => {
+                const dateA = parseDate(a.startDate);
+                const dateB = parseDate(b.startDate);
+                if (!dateA || !dateB) return 0; // Gérer les dates invalides
+                return dateA.getTime() - dateB.getTime();
+            });
 
-                const nextDay = new Date(previous);
-                nextDay.setDate(nextDay.getDate() + 1);
-
-                if (nextDay.getTime() === current.getTime()) {
-                    violations.push({
-                        id: `violation-${Math.random().toString(36).substring(2, 9)}`,
-                        type: 'AFFECTATIONS_CONSECUTIVES',
-                        severity: 'MINOR',
-                        message: `Affectations consécutives pour ${user.prenom} ${user.nom}: ${previous.toISOString().split('T')[0]} et ${current.toISOString().split('T')[0]}`,
-                        affectedAssignments: [userAssignments[i - 1].id, userAssignments[i].id]
-                    });
+            sortedAssignments.forEach((assignment, index) => {
+                // Comparer avec l'affectation précédente dans la liste triée
+                if (index > 0) {
+                    const previousAssignment = sortedAssignments[index - 1];
+                    if (areDatesSameDay(previousAssignment.endDate, assignment.startDate)) {
+                        consecutiveCount++;
+                        if (consecutiveCount + 1 > this.rulesConfig.intervalle.maxGardesConsecutives) {
+                            // On a dépassé le max (consecutiveCount = 1 signifie 2 jours consécutifs)
+                            violations.push({
+                                id: `consecutive-${previousAssignment.id}-${assignment.id}`,
+                                type: 'CONSECUTIVE_ASSIGNMENTS',
+                                severity: RuleSeverity.WARNING,
+                                message: `Nombre maximum d'affectations consécutives (${this.rulesConfig.intervalle.maxGardesConsecutives}) dépassé`,
+                                affectedAssignments: [previousAssignment.id, assignment.id]
+                            });
+                        }
+                    } else {
+                        consecutiveCount = 0; // Réinitialiser si pas consécutif
+                    }
+                } else {
+                    consecutiveCount = 0; // Premier élément
                 }
-            }
+            });
         });
     }
 
     /**
-     * Vérifie les scores de fatigue critiques
+     * Vérifie les scores de fatigue
      */
     private checkFatigueScores(violations: RuleViolation[]): void {
-        // Pour chaque utilisateur, vérifier le score de fatigue
-        this.userCounters.forEach((counter, userId) => {
-            if (counter.fatigue.score > this.fatigueConfig.seuils.critique) {
-                const user = this.personnel.find(u => u.id === userId);
-                if (!user) return;
+        this.personnel.forEach(user => {
+            const counter = this.userCounters.get(user.id);
+            if (!counter) return;
 
+            if (counter.fatigue.score >= this.fatigueConfig.seuils.critique) {
                 violations.push({
-                    id: `violation-${Math.random().toString(36).substring(2, 9)}`,
-                    type: 'FATIGUE_CRITIQUE',
-                    severity: 'CRITICAL',
-                    message: `Score de fatigue critique pour ${user.prenom} ${user.nom}: ${counter.fatigue.score}/${this.fatigueConfig.seuils.critique}`,
-                    affectedAssignments: []
+                    id: `fatigue-${user.id}`,
+                    type: 'FATIGUE',
+                    severity: RuleSeverity.ERROR,
+                    message: `Score de fatigue critique atteint (${counter.fatigue.score})`,
+                    affectedAssignments: this.findUserAssignments(user.id).map(a => a.id)
+                });
+            } else if (counter.fatigue.score >= this.fatigueConfig.seuils.alerte) {
+                violations.push({
+                    id: `fatigue-warning-${user.id}`,
+                    type: 'FATIGUE_WARNING',
+                    severity: RuleSeverity.WARNING,
+                    message: `Score de fatigue élevé (${counter.fatigue.score})`,
+                    affectedAssignments: this.findUserAssignments(user.id).map(a => a.id)
                 });
             }
         });
@@ -689,65 +829,94 @@ export class PlanningGenerator {
      * Calcule le score d'équité global
      */
     private calculateEquityScore(): number {
-        // Calcul de l'écart-type des gardes entre utilisateurs
-        const gardesCounts = Array.from(this.userCounters.values())
-            .map(counter => {
-                // Pondération des gardes
-                return counter.gardes.total +
-                    (counter.gardes.weekends * this.rulesConfig.equite.poidsGardesWeekend) +
-                    (counter.gardes.feries * this.rulesConfig.equite.poidsGardesFeries);
-            });
+        const totalGardes = this.results.gardes.length;
+        const totalUsers = this.personnel.length;
+        const averageGardes = totalGardes / totalUsers;
 
-        const mean = gardesCounts.reduce((sum, count) => sum + count, 0) / gardesCounts.length;
-        const variance = gardesCounts.reduce((sum, count) => sum + Math.pow(count - mean, 2), 0) / gardesCounts.length;
-        const stdDev = Math.sqrt(variance);
+        let deviationSum = 0;
+        this.userCounters.forEach(counter => {
+            const deviation = Math.abs(counter.gardes.total - averageGardes);
+            deviationSum += deviation;
+        });
 
-        // Normaliser sur 100 (0 = parfaitement équitable, 100 = très inéquitable)
-        const maxPossibleStdDev = mean; // Cas le plus inéquitable: certains ont tout, d'autres rien
-        const equityScore = 100 - (stdDev / maxPossibleStdDev * 100);
+        const maxDeviation = totalGardes; // Pire cas : toutes les gardes sur une seule personne
+        return 1 - (deviationSum / maxDeviation);
+    }
 
-        return Math.max(0, Math.min(100, equityScore));
+    /**
+     * Calcule le score de fatigue moyen
+     */
+    private calculateAverageFatigueScore(): number {
+        let totalScore = 0;
+        let count = 0;
+
+        this.personnel.forEach(user => {
+            const score = this.calculateFatigueScore(user, new Date());
+            if (score > 0) {
+                totalScore += score;
+                count++;
+            }
+        });
+
+        return count > 0 ? totalScore / count : 0;
+    }
+
+    /**
+     * Calcule le score de satisfaction
+     */
+    private calculateSatisfactionScore(): number {
+        // TODO: Implémenter le calcul de satisfaction
+        return 0;
     }
 
     /**
      * Calcule le score de fatigue global
      */
-    private calculateFatigueScore(): number {
-        const fatigueScores = Array.from(this.userCounters.values())
-            .map(counter => counter.fatigue.score);
+    private calculateFatigueScore(user: User, date: Date): number {
+        const counter = this.userCounters.get(user.id);
+        if (!counter) return 0;
 
-        const maxFatigue = this.fatigueConfig.seuils.critique;
-        const avgFatigue = fatigueScores.reduce((sum, score) => sum + score, 0) / fatigueScores.length;
+        // Calculer le temps écoulé depuis la dernière mise à jour
+        const daysSinceLastUpdate = this.getDaysBetween(counter.fatigue.lastUpdate, date);
 
-        // Normaliser sur 100 (0 = très fatigué, 100 = pas fatigué)
-        return Math.max(0, Math.min(100, 100 - (avgFatigue / maxFatigue * 100)));
+        // Appliquer la récupération
+        let score = counter.fatigue.score;
+        if (daysSinceLastUpdate > 0) {
+            score -= this.fatigueConfig.recovery.jourOff * daysSinceLastUpdate;
+        }
+
+        return Math.max(0, score);
     }
 
     /**
-     * Exécute la génération complète du planning
+     * Génère le planning complet
      */
     async generateFullPlanning(): Promise<ValidationResult> {
-        if (this.parameters.etapesActives.includes(AssignmentType.GARDE)) {
+        try {
+            // Générer les différents types d'affectations
             this.generateGardes();
-        }
-
-        if (this.parameters.etapesActives.includes(AssignmentType.ASTREINTE)) {
-            // Génération des astreintes (à implémenter)
-        }
-
-        if (this.parameters.etapesActives.includes(AssignmentType.CONSULTATION)) {
+            this.generateAstreintes();
             this.generateConsultations();
-        }
+            this.generateBlocs();
 
-        if (this.parameters.etapesActives.includes(AssignmentType.BLOC)) {
-            // Génération des affectations de bloc (à implémenter)
-        }
+            // Valider le planning généré
+            const validationResult = this.validatePlanning();
 
-        return this.validatePlanning();
+            // Si le planning n'est pas valide, essayer de le corriger
+            if (!validationResult.valid) {
+                logger.warn('Planning initial non valide, tentative de correction...');
+                // TODO: Implémenter la correction automatique
+            }
+
+            return validationResult;
+        } catch (error) {
+            logger.error('Erreur lors de la génération du planning:', error);
+            throw error;
+        }
     }
 
     /**
-     * Récupère le planning généré
+     * Récupère les résultats de la génération
      */
     getResults(): {
         gardes: Assignment[];
@@ -756,5 +925,19 @@ export class PlanningGenerator {
         blocs: Assignment[];
     } {
         return this.results;
+    }
+
+    /**
+     * Trouve toutes les affectations d'un utilisateur
+     */
+    private findUserAssignments(userId: string): Assignment[] {
+        return this.existingAssignments.filter(assignment => assignment.userId === userId);
+    }
+
+    /**
+     * Vérifie si une date est dans un intervalle
+     */
+    private isWithinInterval(date: Date, interval: { start: Date; end: Date }): boolean {
+        return date >= interval.start && date <= interval.end;
     }
 } 

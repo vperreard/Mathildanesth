@@ -1,0 +1,42 @@
+[
+    {
+        "id": "specialty-1",
+        "name": "Orthopédie",
+        "description": "Chirurgie orthopédique et traumatologie",
+        "color": "#4285F4",
+        "createdAt": "2023-01-01T00:00:00.000Z",
+        "updatedAt": "2023-01-01T00:00:00.000Z"
+    },
+    {
+        "id": "specialty-2",
+        "name": "Anesthésie",
+        "description": "Anesthésie et réanimation",
+        "color": "#0F9D58",
+        "createdAt": "2023-01-01T00:00:00.000Z",
+        "updatedAt": "2023-01-01T00:00:00.000Z"
+    },
+    {
+        "id": "specialty-3",
+        "name": "Chirurgie Générale",
+        "description": "Chirurgie digestive et générale",
+        "color": "#F4B400",
+        "createdAt": "2023-01-01T00:00:00.000Z",
+        "updatedAt": "2023-01-01T00:00:00.000Z"
+    },
+    {
+        "id": "specialty-4",
+        "name": "Urologie",
+        "description": "Chirurgie urologique",
+        "color": "#DB4437",
+        "createdAt": "2023-01-01T00:00:00.000Z",
+        "updatedAt": "2023-01-01T00:00:00.000Z"
+    },
+    {
+        "id": "specialty-5",
+        "name": "ORL",
+        "description": "Oto-rhino-laryngologie",
+        "color": "#673AB7",
+        "createdAt": "2023-01-01T00:00:00.000Z",
+        "updatedAt": "2023-01-01T00:00:00.000Z"
+    }
+]

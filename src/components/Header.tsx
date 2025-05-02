@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
 import { useState, useMemo } from 'react';
 import { memo } from 'react';
