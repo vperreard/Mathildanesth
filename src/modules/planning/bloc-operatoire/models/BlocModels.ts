@@ -36,19 +36,45 @@ export enum VacationStatus {
     CLOSED = 'CLOSED',  // Vacation fermée
 }
 
-// Schéma pour une salle d'opération
+/**
+ * Schéma de validation pour une salle d'opération
+ */
 export const OperatingRoomSchema = z.object({
-    id: z.number().int().positive().optional(),
-    name: z.string().min(1).max(100),
-    number: z.string().min(1).max(20),
-    sectorId: z.number().int().positive(),
-    colorCode: z.string().optional(),
-    isActive: z.boolean().default(true),
-    supervisionRules: z.any().default({}),
+    id: z.number().optional(), // Optional pour création
+    name: z.string().min(1, "Le nom de la salle est obligatoire"),
+    number: z.string().min(1, "Le numéro de la salle est obligatoire"),
+    // Accepter soit sectorId comme nombre ou secteur comme chaîne
+    sectorId: z.number().optional(),
+    sector: z.string().optional(),
+    colorCode: z.string().optional().default('#000000'),
+    isActive: z.boolean().optional().default(true),
+    supervisionRules: z.record(z.any()).optional().default({}),
     createdAt: z.date().optional(),
-    updatedAt: z.date().optional(),
+    updatedAt: z.date().optional()
+}).refine(data => {
+    // Au moins l'un des deux (sectorId ou sector) doit être présent
+    return data.sectorId !== undefined || data.sector !== undefined;
+}, {
+    message: "Le secteur de la salle est obligatoire (soit par sectorId, soit par sector)",
+    path: ["sector"]
+}).transform(data => {
+    // Normaliser le nom du secteur si présent
+    if (typeof data.sector === 'string') {
+        // Normaliser les espaces
+        let normalized = data.sector.trim().replace(/\s+/g, ' ');
+
+        // Traitement spécial pour Endoscopie
+        if (normalized.toLowerCase().includes("endoscopie")) {
+            normalized = "Endoscopie";
+        }
+
+        data.sector = normalized;
+    }
+
+    return data;
 });
 
+// Type généré par zod
 export type OperatingRoom = z.infer<typeof OperatingRoomSchema>;
 
 // Schéma pour un secteur opératoire

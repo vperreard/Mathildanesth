@@ -1,20 +1,78 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
 import { headers } from 'next/headers';
-import { Prisma } from '@prisma/client';
+import { verifyAuthToken } from '@/lib/auth-utils';
+import { OperatingRoomSchema } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 
-// Helper pour vérifier les rôles admin
-const hasRequiredRole = (): boolean => {
-    const headersList = headers();
-    const userRoleString = headersList.get('x-user-role');
-    return !!userRoleString && ['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(userRoleString);
-};
-
+// Contexte pour les paramètres d'URL
 interface Context {
     params: {
         id: string;
     };
 }
+
+const prisma = new PrismaClient();
+
+// Fonction utilitaire pour normaliser les noms de secteurs (identique à route.ts)
+const normalizeSectorName = (name: string): string => {
+    // Enlever les espaces invisibles et normaliser les espaces multiples
+    let normalized = name.trim().replace(/\s+/g, ' ');
+
+    // Traitement spécial pour Endoscopie
+    if (normalized.toLowerCase().includes("endoscopie")) {
+        return "Endoscopie";
+    }
+
+    return normalized;
+};
+
+// Fonction utilitaire pour trouver un secteur (identique à route.ts)
+const findSector = async (sectorId?: number, sectorName?: string) => {
+    if (sectorId) {
+        // Recherche directe par ID
+        return prisma.operatingSector.findUnique({ where: { id: sectorId } });
+    } else if (sectorName) {
+        // Normaliser le nom pour la recherche
+        const normalizedName = normalizeSectorName(sectorName);
+
+        // D'abord, essayer une recherche exacte
+        let sector = await prisma.operatingSector.findFirst({
+            where: { name: normalizedName }
+        });
+
+        // Si pas de résultat, essayer une recherche insensible à la casse
+        if (!sector) {
+            sector = await prisma.operatingSector.findFirst({
+                where: {
+                    name: {
+                        contains: normalizedName,
+                        mode: 'insensitive'
+                    }
+                }
+            });
+        }
+
+        // Cas spécial pour Endoscopie
+        if (!sector && normalizedName.toLowerCase().includes('endo')) {
+            sector = await prisma.operatingSector.findFirst({
+                where: {
+                    name: {
+                        contains: 'Endoscopie',
+                        mode: 'insensitive'
+                    }
+                }
+            });
+
+            if (sector) {
+                console.log(`Secteur Endoscopie trouvé par recherche partielle: ${sector.name}`);
+            }
+        }
+
+        return sector;
+    }
+
+    return null;
+};
 
 // GET : Récupérer une salle spécifique
 export async function GET(request: Request, context: Context) {
@@ -28,8 +86,7 @@ export async function GET(request: Request, context: Context) {
     try {
         const room = await prisma.operatingRoom.findUnique({
             where: { id: roomId },
-            // Inclure le secteur si nécessaire
-            // include: { sector: true }
+            include: { sector: true }
         });
 
         if (!room) {
@@ -42,104 +99,108 @@ export async function GET(request: Request, context: Context) {
     }
 }
 
-// PUT : Mettre à jour une salle spécifique
+// PUT : Mettre à jour une salle
 export async function PUT(request: Request, context: Context) {
-    // Vérifier les permissions
-    if (!hasRequiredRole()) {
-        return new NextResponse(JSON.stringify({ message: 'Accès non autorisé' }), { status: 403 });
-    }
-
-    const { id } = context.params;
-    const roomId = parseInt(id);
-
-    if (isNaN(roomId)) {
-        return new NextResponse(JSON.stringify({ message: 'ID invalide' }), { status: 400 });
-    }
-
-    let data: any;
     try {
-        data = await request.json();
-        const { name, number, sectorId, colorCode, isActive, supervisionRules } = data;
+        // Vérifier l'authentification
+        const authResult = await verifyAuthToken();
 
-        // Vérifications de base
-        if (!name || typeof name !== 'string' || name.trim() === '') {
-            return new NextResponse(JSON.stringify({ message: 'Le nom de la salle est obligatoire.' }), { status: 400 });
+        if (!authResult.authenticated) {
+            // Vérifier si l'en-tête x-user-role est présent (pour le développement)
+            const headersList = headers();
+            const userRole = headersList.get('x-user-role');
+
+            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
+                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+            }
+            console.log('[DEV MODE] Authentification par en-tête uniquement pour PUT /api/operating-rooms');
         }
 
-        if (!number || typeof number !== 'string' || number.trim() === '') {
-            return new NextResponse(JSON.stringify({ message: 'Le numéro de la salle est obligatoire.' }), { status: 400 });
+        // Récupérer l'ID
+        const { id } = context.params;
+        const roomId = parseInt(id);
+
+        if (isNaN(roomId)) {
+            return NextResponse.json({ error: 'ID de salle invalide' }, { status: 400 });
         }
 
-        if (!sectorId || typeof sectorId !== 'string') {
-            return new NextResponse(JSON.stringify({ message: 'L\'ID du secteur (sectorId) est obligatoire et doit être une chaîne de caractères.' }), { status: 400 });
-        }
-
-        // Convertir sectorId en nombre
-        const sectorIdInt = parseInt(sectorId, 10);
-        if (isNaN(sectorIdInt)) {
-            return new NextResponse(JSON.stringify({ message: 'L\'ID du secteur (sectorId) doit être un nombre valide.' }), { status: 400 });
-        }
-
-        // Vérifier si la salle existe (avec le nom de modèle corrigé)
+        // Vérifier si la salle existe
         const existingRoom = await prisma.operatingRoom.findUnique({
-            where: { id: roomId }
+            where: { id: roomId },
+            include: { sector: true }
         });
+
         if (!existingRoom) {
-            return new NextResponse(JSON.stringify({ message: 'Salle non trouvée' }), { status: 404 });
+            return NextResponse.json({ error: 'Salle introuvable' }, { status: 404 });
         }
 
-        // Vérifier si un autre salle a déjà le nouveau numéro (sauf si c'est la salle actuelle)
-        if (number && number !== existingRoom.number) {
+        // Récupérer le corps de la requête
+        const body = await request.json();
+        console.log(`PUT /api/operating-rooms/${id} - Body reçu:`, body);
+
+        try {
+            // Valider avec le schéma Zod
+            OperatingRoomSchema.parse(body);
+        } catch (validationError) {
+            console.error("Erreur de validation Zod:", validationError);
+            return NextResponse.json({ error: 'Les données sont invalides', details: validationError }, { status: 400 });
+        }
+
+        // Extraire les données validées
+        const { name, number, sector, sectorId, colorCode, isActive, supervisionRules } = body;
+
+        // Vérifier si le numéro est déjà utilisé par une autre salle
+        if (number !== existingRoom.number) {
             const roomWithSameNumber = await prisma.operatingRoom.findFirst({
-                where: { number: number, NOT: { id: roomId } }
+                where: {
+                    number: number.trim(),
+                    NOT: {
+                        id: roomId
+                    }
+                }
             });
+
             if (roomWithSameNumber) {
-                return new NextResponse(JSON.stringify({ message: `Une autre salle (ID: ${roomWithSameNumber.id}) utilise déjà le numéro ${number}.` }), { status: 409 });
+                return NextResponse.json({ error: 'Une autre salle avec ce numéro existe déjà.' }, { status: 409 });
             }
         }
 
-        // Mettre à jour la salle (avec le nom de modèle corrigé)
+        // Trouver le secteur soit par ID soit par nom
+        const sectorEntity = await findSector(sectorId, sector);
+
+        if (!sectorEntity) {
+            console.error(`Secteur non trouvé: ID=${sectorId || 'non fourni'}, nom=${sector || 'non fourni'}`);
+            return NextResponse.json({ error: 'Secteur introuvable. Veuillez sélectionner un secteur valide.' }, { status: 400 });
+        }
+
+        // Mettre à jour la salle
         const updatedRoom = await prisma.operatingRoom.update({
             where: { id: roomId },
             data: {
-                name: name?.trim(),
-                number: number?.trim(),
-                sectorId: sectorIdInt, // Utiliser le nombre converti
-                colorCode: colorCode,
-                isActive: isActive,
-                supervisionRules: supervisionRules
+                name: name.trim(),
+                number: number.trim(),
+                sectorId: sectorEntity.id,
+                colorCode: colorCode || null,
+                isActive: isActive === undefined ? true : isActive,
+                supervisionRules: supervisionRules || existingRoom.supervisionRules,
             },
+            include: { sector: true }
         });
 
+        console.log(`Salle ${roomId} mise à jour avec succès:`, updatedRoom);
         return NextResponse.json(updatedRoom);
-    } catch (error: any) {
-        console.error(`Erreur PUT /api/operating-rooms/${roomId}:`, error);
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            if (error.code === 'P2002') {
-                // Gérer conflit sur contrainte unique (ex: number)
-                return NextResponse.json({ error: `Le numéro de salle '${data?.number}' est déjà utilisé par une autre salle.` }, { status: 409 });
-            } else if (error.code === 'P2003') {
-                // Gérer violation clé étrangère (ex: sectorId)
-                let fieldName = error.meta?.field_name;
-                let failedValue = 'inconnue';
-                if (typeof fieldName === 'string' && data && data[fieldName]) {
-                    failedValue = data[fieldName];
-                }
-                return NextResponse.json({ error: `La valeur fournie pour le champ '${fieldName || 'inconnu'}' (valeur: ${failedValue}) n'est pas valide ou n'existe pas.` }, { status: 400 });
-            } else if (error.code === 'P2025') {
-                // Enregistrement à mettre à jour non trouvé (peut arriver si supprimé entre temps)
-                return NextResponse.json({ message: 'Salle non trouvée pour la mise à jour.' }, { status: 404 });
-            }
-        }
-        return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
+
+    } catch (error) {
+        console.error(`Erreur PUT /api/operating-rooms/${context.params.id}:`, error);
+        return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
     }
 }
 
-// DELETE : Supprimer une salle spécifique
+// DELETE : Supprimer une salle
 export async function DELETE(request: Request, context: Context) {
-    // Vérifier les permissions (seul un admin total peut supprimer)
     const headersList = headers();
     const userRoleString = headersList.get('x-user-role');
+
     if (userRoleString !== 'ADMIN_TOTAL') {
         return new NextResponse(JSON.stringify({ message: 'Accès non autorisé. Seul un administrateur total peut supprimer une salle.' }), { status: 403 });
     }
@@ -152,20 +213,23 @@ export async function DELETE(request: Request, context: Context) {
     }
 
     try {
-        // Vérifier si la salle existe (avec le nom de modèle corrigé)
         const room = await prisma.operatingRoom.findUnique({
             where: { id: roomId }
         });
+
         if (!room) {
             return new NextResponse(JSON.stringify({ message: 'Salle non trouvée' }), { status: 404 });
         }
 
-        // Supprimer la salle (avec le nom de modèle corrigé)
+        // TODO: Vérifier si la salle est utilisée dans des plannings existants
+        // Si c'est le cas, on pourrait renvoyer une erreur ou proposer une solution alternative
+
+        // Supprimer la salle
         await prisma.operatingRoom.delete({
-            where: { id: roomId },
+            where: { id: roomId }
         });
 
-        return new NextResponse(JSON.stringify({ message: 'Salle supprimée avec succès' }), { status: 200 });
+        return new NextResponse(null, { status: 204 });
     } catch (error) {
         console.error(`Erreur DELETE /api/operating-rooms/${id}:`, error);
         return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
