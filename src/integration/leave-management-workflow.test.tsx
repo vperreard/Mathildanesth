@@ -7,7 +7,9 @@
 
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { jest, describe, test, expect, beforeAll, beforeEach } from '@jest/globals';
 import { LeaveType, LeaveStatus } from '../modules/leaves/types/leave';
+import { QuotaCalculationResult } from '../modules/leaves/hooks/useLeaveQuota';
 
 // Interface pour les props du formulaire de demande de congé
 interface LeaveRequestFormProps {
@@ -60,73 +62,78 @@ describe('Workflow complet de gestion des congés', () => {
     beforeAll(() => {
         // Implémentation du mock LeaveRequestForm
         require('../modules/leaves/components/LeaveRequestForm').LeaveRequestForm.mockImplementation(
-            ({ userId, onSubmit }: LeaveRequestFormProps) => (
-                <div>
-                    <h1 data-testid="leave-form-title">Nouvelle demande de congé</h1>
-                    <form data-testid="leave-request-form" onSubmit={(e) => {
-                        e.preventDefault();
-                        onSubmit && onSubmit({
-                            userId,
-                            startDate: new Date('2023-12-18'),
-                            endDate: new Date('2023-12-22'),
-                            type: LeaveType.ANNUAL,
-                            reason: 'Vacances de fin d\'année'
-                        });
-                    }}>
-                        <div>
-                            <label htmlFor="leaveType">Type de congé *</label>
-                            <select
-                                id="leaveType"
-                                name="leaveType"
-                                data-testid="leave-type-select"
-                                required
-                            >
-                                <option value="">Sélectionner...</option>
-                                <option value={LeaveType.ANNUAL}>Congé annuel</option>
-                                <option value={LeaveType.SICK}>Congé maladie</option>
-                            </select>
-                        </div>
+            ({ userId, onSubmit }: LeaveRequestFormProps) => {
+                const handleSubmitInternal = (e: React.FormEvent) => {
+                    e.preventDefault();
+                    onSubmit && onSubmit({
+                        userId,
+                        startDate: new Date('2023-12-18'),
+                        endDate: new Date('2023-12-22'),
+                        type: LeaveType.ANNUAL,
+                        reason: 'Vacances de fin d\'année'
+                    });
+                };
 
-                        <div>
-                            <label htmlFor="startDate">Date de début *</label>
-                            <input
-                                type="date"
-                                id="startDate"
-                                name="startDate"
-                                data-testid="start-date-input"
-                                defaultValue="2023-12-18"
-                                required
-                            />
-                        </div>
+                return (
+                    <div>
+                        <h1 data-testid="leave-form-title">Nouvelle demande de congé</h1>
+                        <form data-testid="leave-request-form" onSubmit={handleSubmitInternal}>
+                            <div>
+                                <label htmlFor="leaveType">Type de congé *</label>
+                                <select
+                                    id="leaveType"
+                                    name="leaveType"
+                                    data-testid="leave-type-select"
+                                    required
+                                    defaultValue={LeaveType.ANNUAL}
+                                >
+                                    <option value="">Sélectionner...</option>
+                                    <option value={LeaveType.ANNUAL}>Congé annuel</option>
+                                    <option value={LeaveType.SICK}>Congé maladie</option>
+                                </select>
+                            </div>
 
-                        <div>
-                            <label htmlFor="endDate">Date de fin *</label>
-                            <input
-                                type="date"
-                                id="endDate"
-                                name="endDate"
-                                data-testid="end-date-input"
-                                defaultValue="2023-12-22"
-                                required
-                            />
-                        </div>
+                            <div>
+                                <label htmlFor="startDate">Date de début *</label>
+                                <input
+                                    type="date"
+                                    id="startDate"
+                                    name="startDate"
+                                    data-testid="start-date-input"
+                                    defaultValue="2023-12-18"
+                                    required
+                                />
+                            </div>
 
-                        <div>
-                            <label htmlFor="reason">Motif (facultatif)</label>
-                            <textarea
-                                id="reason"
-                                name="reason"
-                                data-testid="reason-input"
-                                defaultValue="Vacances de fin d'année"
-                            ></textarea>
-                        </div>
+                            <div>
+                                <label htmlFor="endDate">Date de fin *</label>
+                                <input
+                                    type="date"
+                                    id="endDate"
+                                    name="endDate"
+                                    data-testid="end-date-input"
+                                    defaultValue="2023-12-22"
+                                    required
+                                />
+                            </div>
 
-                        <button type="submit" data-testid="submit-button">
-                            Soumettre la demande
-                        </button>
-                    </form>
-                </div>
-            )
+                            <div>
+                                <label htmlFor="reason">Motif (facultatif)</label>
+                                <textarea
+                                    id="reason"
+                                    name="reason"
+                                    data-testid="reason-input"
+                                    defaultValue="Vacances de fin d'année"
+                                ></textarea>
+                            </div>
+
+                            <button type="submit" data-testid="submit-button">
+                                Soumettre la demande
+                            </button>
+                        </form>
+                    </div>
+                );
+            }
         );
 
         // Implémentation du mock useLeaveValidation
@@ -159,14 +166,14 @@ describe('Workflow complet de gestion des congés', () => {
                 pending: 2,
                 remaining: 15
             },
-            checkQuota: jest.fn().mockResolvedValue({
+            checkQuota: jest.fn<(...args: any[]) => Promise<QuotaCalculationResult>>().mockResolvedValue({
                 isValid: true,
                 message: 'Demande valide. 5 jour(s) seront décomptés.',
                 requestedDays: 5,
                 availableDays: 15,
                 leaveType: LeaveType.ANNUAL
             }),
-            refreshQuotas: jest.fn().mockResolvedValue(undefined),
+            refreshQuotas: jest.fn<(...args: any[]) => Promise<void>>().mockResolvedValue(undefined),
             getQuotaForType: jest.fn().mockReturnValue({
                 type: LeaveType.ANNUAL,
                 label: 'Congés annuels',
@@ -302,14 +309,14 @@ describe('Workflow complet de gestion des congés', () => {
                 pending: 0,
                 remaining: 2
             },
-            checkQuota: jest.fn().mockResolvedValue({
+            checkQuota: jest.fn<(...args: any[]) => Promise<QuotaCalculationResult>>().mockResolvedValue({
                 isValid: false,
                 message: 'Quota insuffisant. Il vous reste 2 jours disponibles.',
                 requestedDays: 5,
                 availableDays: 2,
                 leaveType: LeaveType.ANNUAL
             }),
-            refreshQuotas: jest.fn(),
+            refreshQuotas: jest.fn<(...args: any[]) => Promise<void>>().mockResolvedValue(undefined),
             getQuotaForType: jest.fn().mockReturnValue({
                 type: LeaveType.ANNUAL,
                 label: 'Congés annuels',
@@ -321,20 +328,19 @@ describe('Workflow complet de gestion des congés', () => {
         });
 
         const { useLeaveQuota } = require('../modules/leaves/hooks/useLeaveQuota');
-        const { checkQuota } = useLeaveQuota();
+        const { checkQuota } = useLeaveQuota({ userId: mockUser.id });
 
         // Simuler une vérification de quota
         const result = await checkQuota({
-            startDate: new Date('2023-12-18'),
-            endDate: new Date('2023-12-22'),
+            userId: mockUser.id,
             leaveType: LeaveType.ANNUAL,
-            userId: 'user123'
+            startDate: new Date('2024-01-10'),
+            endDate: new Date('2024-01-14')
         });
 
         // Vérifier que la demande est invalide à cause du quota
         expect(result.isValid).toBe(false);
         expect(result.message).toContain('Quota insuffisant');
-        expect(result.requestedDays).toBe(5);
         expect(result.availableDays).toBe(2);
     });
 

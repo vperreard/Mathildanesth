@@ -140,7 +140,12 @@ const VariationConfigPanel: React.FC<VariationConfigPanelProps> = ({
                         >
                             Enregistrer
                         </Button>
-                        <IconButton color="error" onClick={onDelete} disabled={isLoading}>
+                        <IconButton
+                            color="error"
+                            onClick={onDelete}
+                            disabled={isLoading}
+                            aria-label="Supprimer la variation"
+                        >
                             <DeleteIcon size={20} />
                         </IconButton>
                     </Box>

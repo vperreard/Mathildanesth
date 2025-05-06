@@ -1,6 +1,7 @@
 import { templateIntegrationService } from '../templateIntegrationService';
 import { templateService } from '../templateService';
 import { AffectationConfiguration } from '../../types/template';
+import { act } from '@testing-library/react';
 
 // Mock du service de templates
 jest.mock('../templateService', () => ({
@@ -21,16 +22,18 @@ describe('templateIntegrationService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        // Mock de document.createElement et des éléments associés
         const mockAnchor = {
             href: '',
             download: '',
             click: jest.fn(),
         };
+        const createElementSpy = jest.spyOn(document, 'createElement').mockImplementation(() => mockAnchor as any);
+        const appendChildSpy = jest.spyOn(document.body, 'appendChild').mockImplementation(() => { });
+        const removeChildSpy = jest.spyOn(document.body, 'removeChild').mockImplementation(() => { });
+    });
 
-        document.createElement = jest.fn().mockImplementation(() => mockAnchor);
-        document.body.appendChild = jest.fn();
-        document.body.removeChild = jest.fn();
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     describe('exportTemplateToJSON', () => {
@@ -39,7 +42,6 @@ describe('templateIntegrationService', () => {
             (templateService.exportTemplateAsJSON as jest.Mock).mockResolvedValue(mockBlob);
 
             const result = await templateIntegrationService.exportTemplateToJSON('tmpl_1');
-
             expect(templateService.exportTemplateAsJSON).toHaveBeenCalledWith('tmpl_1');
             expect(result).toBe(mockBlob);
         });
@@ -47,12 +49,18 @@ describe('templateIntegrationService', () => {
         test('devrait propager les erreurs', async () => {
             const error = new Error('Erreur d\'exportation');
             (templateService.exportTemplateAsJSON as jest.Mock).mockRejectedValue(error);
-
             await expect(templateIntegrationService.exportTemplateToJSON('tmpl_1')).rejects.toThrow(error);
         });
     });
 
     describe('downloadTemplateAsJSON', () => {
+        beforeAll(() => {
+            jest.useFakeTimers();
+        });
+        afterAll(() => {
+            jest.useRealTimers();
+        });
+
         test('devrait télécharger la trame avec un nom de fichier généré', async () => {
             const mockTemplate = { id: 'tmpl_1', nom: 'Trame Test' };
             const mockBlob = new Blob(['{}'], { type: 'application/json' });
@@ -62,7 +70,6 @@ describe('templateIntegrationService', () => {
             (global.URL.createObjectURL as jest.Mock).mockReturnValue('blob:url');
 
             await templateIntegrationService.downloadTemplateAsJSON('tmpl_1');
-
             expect(templateService.getTemplateById).toHaveBeenCalledWith('tmpl_1');
             expect(templateService.exportTemplateAsJSON).toHaveBeenCalledWith('tmpl_1');
             expect(global.URL.createObjectURL).toHaveBeenCalledWith(mockBlob);
@@ -71,12 +78,12 @@ describe('templateIntegrationService', () => {
             expect(anchor.href).toBe('blob:url');
             expect(anchor.download).toBe('trame_trame_test.json');
             expect(anchor.click).toHaveBeenCalled();
-
             expect(document.body.appendChild).toHaveBeenCalled();
             expect(document.body.removeChild).toHaveBeenCalled();
 
-            // Vérifier que URL.revokeObjectURL est appelé après un délai
-            jest.runAllTimers();
+            act(() => {
+                jest.runAllTimers();
+            });
             expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('blob:url');
         });
 
@@ -92,12 +99,16 @@ describe('templateIntegrationService', () => {
 
             const anchor = document.createElement('a');
             expect(anchor.download).toBe('export_custom.json');
+
+            act(() => {
+                jest.runAllTimers();
+            });
+            expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('blob:url');
         });
 
         test('devrait gérer les erreurs lors de la récupération de la trame', async () => {
             const error = new Error('Template non trouvé');
             (templateService.getTemplateById as jest.Mock).mockResolvedValue(null);
-
             await expect(templateIntegrationService.downloadTemplateAsJSON('tmpl_not_found')).rejects.toThrow('Trame avec l\'ID tmpl_not_found non trouvée');
         });
     });
@@ -221,7 +232,7 @@ describe('templateIntegrationService', () => {
             expect(differences).toHaveProperty('nom');
             expect(differences).toHaveProperty('heureDebut');
             expect(differences).toHaveProperty('priorite');
-            expect(differences).not.toHaveProperty('couleur'); // Identique
+            expect(differences).not.toHaveProperty('couleur');
             expect(differences).toHaveProperty('postes.Médecin.quantite');
             expect(differences).toHaveProperty('postes.Infirmier.status');
         });

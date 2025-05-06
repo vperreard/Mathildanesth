@@ -2,40 +2,51 @@
 
 import React, { useState, useEffect } from 'react';
 import DraggableCalendar from '../../components/DraggableCalendar';
-import { Assignment, ShiftType, AssignmentStatus } from '../../types/assignment';
+import { Assignment, AssignmentStatus } from '../../types/assignment';
+import { ShiftType } from '../../types/common';
 import { RulesConfiguration } from '../../types/rules';
-import { User } from '../../types/user';
+import { User, UserRole, LeaveStatus, LeaveType } from '../../types/user';
 import { Doctor, MedicalSpecialty, MedicalGrade, DoctorAvailabilityStatus } from '../../types/doctor';
 import toast from 'react-hot-toast';
+import { addDays, startOfDay } from 'date-fns';
+import { Toaster } from 'react-hot-toast';
 
 // Simuler des données utilisateurs pour notre exemple
 const mockUsers: User[] = [
     {
         id: "1",
-        prenom: 'Jean',
-        nom: 'Dupont',
-        email: 'jean.dupont@hopital.fr',
-        login: 'jdupont',
-        role: 'DOCTOR',
-        professionalRole: 'MEDECIN'
+        prenom: 'Alice',
+        nom: 'Dubois',
+        email: 'alice.dubois@example.com',
+        role: UserRole.MÉDECIN,
+        leaves: []
     },
     {
         id: "2",
-        prenom: 'Marie',
+        prenom: 'Bob',
         nom: 'Martin',
-        email: 'marie.martin@hopital.fr',
-        login: 'mmartin',
-        role: 'DOCTOR',
-        professionalRole: 'MEDECIN'
+        email: 'bob.martin@example.com',
+        role: UserRole.MÉDECIN,
+        leaves: [
+            {
+                id: 'leave1',
+                userId: '2',
+                startDate: addDays(startOfDay(new Date()), 3),
+                endDate: addDays(startOfDay(new Date()), 5),
+                type: LeaveType.VACATION,
+                status: LeaveStatus.APPROVED,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            }
+        ]
     },
     {
         id: "3",
-        prenom: 'Pierre',
-        nom: 'Dubois',
-        email: 'pierre.dubois@hopital.fr',
-        login: 'pdubois',
-        role: 'DOCTOR',
-        professionalRole: 'MEDECIN'
+        prenom: 'Charlie',
+        nom: 'Bernard',
+        email: 'charlie.bernard@example.com',
+        role: UserRole.MÉDECIN,
+        leaves: []
     }
 ];
 
@@ -102,125 +113,199 @@ const mockDoctors: Doctor[] = [
 
 // Exemple de règles de planification conformes à l'interface RulesConfiguration
 const mockRules: RulesConfiguration = {
+    minimumRestPeriod: 11,
+    shiftStartTimes: {
+        [ShiftType.MATIN]: '08:00',
+        [ShiftType.APRES_MIDI]: '13:30',
+        [ShiftType.JOUR]: '08:00',
+        [ShiftType.NUIT]: '20:00',
+        [ShiftType.GARDE_24H]: '08:00',
+        [ShiftType.GARDE_WEEKEND]: '08:00',
+        [ShiftType.ASTREINTE]: '00:00',
+        [ShiftType.ASTREINTE_SEMAINE]: '00:00',
+        [ShiftType.ASTREINTE_WEEKEND]: '00:00',
+        [ShiftType.URGENCE]: '08:00',
+        [ShiftType.CONSULTATION]: '09:00',
+    },
+    shiftEndTimes: {
+        [ShiftType.MATIN]: '13:00',
+        [ShiftType.APRES_MIDI]: '18:30',
+        [ShiftType.JOUR]: '20:00',
+        [ShiftType.NUIT]: '08:00',
+        [ShiftType.GARDE_24H]: '08:00',
+        [ShiftType.GARDE_WEEKEND]: '08:00',
+        [ShiftType.ASTREINTE]: '00:00',
+        [ShiftType.ASTREINTE_SEMAINE]: '00:00',
+        [ShiftType.ASTREINTE_WEEKEND]: '00:00',
+        [ShiftType.URGENCE]: '20:00',
+        [ShiftType.CONSULTATION]: '13:00',
+    },
+    shiftSpecialties: {
+        [ShiftType.MATIN]: [],
+        [ShiftType.APRES_MIDI]: [],
+        [ShiftType.JOUR]: [],
+        [ShiftType.NUIT]: [],
+        [ShiftType.GARDE_24H]: [],
+        [ShiftType.GARDE_WEEKEND]: [],
+        [ShiftType.ASTREINTE]: [],
+        [ShiftType.ASTREINTE_SEMAINE]: [],
+        [ShiftType.ASTREINTE_WEEKEND]: [],
+        [ShiftType.URGENCE]: ['URGENTISTE'],
+        [ShiftType.CONSULTATION]: ['GENERALISTE', 'SPECIALISTE_X'],
+    },
+    weekdayShifts: [ShiftType.MATIN, ShiftType.APRES_MIDI, ShiftType.JOUR, ShiftType.NUIT, ShiftType.CONSULTATION, ShiftType.URGENCE, ShiftType.ASTREINTE_SEMAINE],
+    weekendShifts: [ShiftType.GARDE_24H, ShiftType.GARDE_WEEKEND, ShiftType.ASTREINTE_WEEKEND],
     intervalle: {
-        minJoursEntreGardes: 2,
-        minJoursRecommandes: 7,
-        maxGardesMois: 5,
-        maxGardesConsecutives: 1
+        minJoursEntreGardes: 7,
+        minJoursRecommandes: 14,
+        maxGardesMois: 4,
+        maxGardesConsecutives: 1,
+        maxAstreintesMois: 8,
     },
     supervision: {
-        maxSallesParMAR: {
-            'standard': 2
-        },
+        maxSallesParMAR: { standard: 2, exceptionnel: 3 },
+        reglesSecteursCompatibles: {},
         maxSallesExceptionnel: 3,
-        reglesSecteursCompatibles: {
-            'standard': ['standard']
-        }
     },
     consultations: {
-        maxParSemaine: 2,
-        equilibreMatinApresMidi: true
+        maxParSemaine: 5,
+        equilibreMatinApresMidi: true,
     },
     equite: {
         poidsGardesWeekend: 1.5,
-        poidsGardesFeries: 2,
-        equilibrageSpecialites: true
+        poidsGardesFeries: 2.0,
+        equilibrageSpecialites: true,
     },
     qualiteVie: {
         poidsPreferences: 0.5,
         eviterConsecutifs: true,
-        recuperationApresGardeNuit: true
+        recuperationApresGardeNuit: true,
     }
 };
 
-const CalendarDragDropDemo: React.FC = () => {
-    const [assignments, setAssignments] = useState<Assignment[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [syncErrors, setSyncErrors] = useState<any[]>([]);
+const mockInitialAssignments: Assignment[] = [
+    {
+        id: 'assign1',
+        userId: '1',
+        startDate: startOfDay(new Date()),
+        endDate: addDays(startOfDay(new Date()), 1),
+        shiftType: ShiftType.GARDE_24H,
+        status: AssignmentStatus.APPROVED,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    },
+    {
+        id: 'assign2',
+        userId: '3',
+        startDate: addDays(startOfDay(new Date()), 1),
+        endDate: addDays(startOfDay(new Date()), 1),
+        shiftType: ShiftType.MATIN,
+        status: AssignmentStatus.PENDING,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    }
+];
 
-    // Charger les affectations au chargement de la page
-    useEffect(() => {
-        // Simulation d'un chargement depuis une API
-        setIsLoading(true);
-        setTimeout(() => {
-            const now = new Date();
-            const currentMonth = now.getMonth();
-            const currentYear = now.getFullYear();
+// Fonction pour générer des affectations MOCK (corrigée à nouveau)
+function generateMockAssignments(users: User[]): Assignment[] {
+    const assignments: Assignment[] = [];
+    const today = startOfDay(new Date());
 
-            // Générer des affectations aléatoires pour le mois en cours
-            const generatedAssignments: Assignment[] = [];
+    users.forEach((user, userIndex) => {
+        for (let i = 0; i < 7; i++) {
+            const date = addDays(today, i);
+            let shiftType: ShiftType | null = null;
+            const dayOfWeek = date.getDay();
 
-            // Pour chaque utilisateur
-            mockUsers.forEach((user, userIndex) => {
-                // Attribuer 3 à 5 gardes aléatoires dans le mois
-                const assignmentCount = 3 + Math.floor(Math.random() * 3);
-
-                for (let i = 0; i < assignmentCount; i++) {
-                    // Jour aléatoire entre 1 et 28
-                    const day = 1 + Math.floor(Math.random() * 28);
-                    const date = new Date(currentYear, currentMonth, day);
-
-                    // Alterner les types de garde
-                    const shiftTypes = [ShiftType.DAY, ShiftType.NIGHT, ShiftType.WEEKEND, ShiftType.HOLIDAY];
-                    const shiftType = shiftTypes[Math.floor(Math.random() * shiftTypes.length)];
-
-                    generatedAssignments.push({
-                        id: `assignment-${userIndex}-${i}`,
-                        doctorId: user.id,
-                        date: date,
-                        shiftType: shiftType,
-                        status: AssignmentStatus.SCHEDULED,
-                        notes: ''
-                    });
+            if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+                if (i % 3 === userIndex % 3) {
+                    shiftType = (i % 2 === 0) ? ShiftType.MATIN : ShiftType.APRES_MIDI;
+                } else if (i % 4 === userIndex % 4) {
+                    shiftType = ShiftType.JOUR;
+                } else if (i % 5 === userIndex % 5) {
+                    shiftType = ShiftType.NUIT;
                 }
-            });
+            } else {
+                if (i % 2 === userIndex % 2) {
+                    shiftType = ShiftType.GARDE_WEEKEND;
+                }
+            }
 
-            setAssignments(generatedAssignments);
-            setIsLoading(false);
-        }, 1000);
-    }, []);
+            if (shiftType) {
+                let endDate = new Date(date);
+                // Correction: Comparaison GARDE_24H retirée car non générée ici
+                if (shiftType === ShiftType.NUIT || shiftType === ShiftType.GARDE_WEEKEND) {
+                    endDate = addDays(date, 1);
+                }
+                else if (shiftType === ShiftType.MATIN) endDate.setHours(13, 0, 0, 0);
+                else if (shiftType === ShiftType.APRES_MIDI) endDate.setHours(18, 30, 0, 0);
+                else if (shiftType === ShiftType.JOUR) endDate.setHours(20, 0, 0, 0);
 
-    // Gérer la sauvegarde des affectations
-    const handleSave = (updatedAssignments: Assignment[]) => {
-        console.log('Affectations sauvegardées:', updatedAssignments);
-        // Dans une application réelle, on pourrait envoyer ces données à une API
-    };
-
-    // Gérer les erreurs de validation
-    const handleValidationError = (violations: any[]) => {
-        console.error('Violations des règles:', violations);
-        setSyncErrors(violations);
-    };
-
-    // Gérer la fin de la synchronisation
-    const handleSyncComplete = (success: boolean) => {
-        if (success) {
-            toast.success('Synchronisation avec le calendrier principal réussie');
-            setSyncErrors([]);
-        } else {
-            toast.error('Échec de la synchronisation avec le calendrier principal');
+                assignments.push({
+                    id: `mock-${user.id}-${i}`,
+                    userId: user.id,
+                    startDate: date, // Utilisation de startDate
+                    endDate: endDate,
+                    shiftType: shiftType,
+                    status: AssignmentStatus.APPROVED, // Utilisation de APPROVED
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                });
+            }
         }
-    };
+    });
+    // Ajouter manuellement une garde 24h pour tester si besoin
+    assignments.push({
+        id: `mock-24h-1`, userId: users[0].id, shiftType: ShiftType.GARDE_24H,
+        startDate: addDays(today, 8), endDate: addDays(today, 9), status: AssignmentStatus.APPROVED,
+        createdAt: new Date(), updatedAt: new Date()
+    });
+    return assignments;
+}
+
+const CalendarPage: React.FC = () => {
+    const [assignments, setAssignments] = useState<Assignment[]>(() => generateMockAssignments(mockUsers));
+    const [isLoading, setIsLoading] = useState(false); // Mettre à false car données mockées
+    const [syncErrors, setSyncErrors] = useState<any[]>([]);
+    const [validationErrors, setValidationErrors] = useState<any[]>([]);
+    const [syncSuccess, setSyncSuccess] = useState<boolean | null>(null);
+
+    // Charger les affectations au chargement de la page (commenté car mock)
+    // useEffect(() => {
+    //   setIsLoading(true);
+    //   // Simuler un fetch API
+    //   setTimeout(() => {
+    //       setAssignments(generateMockAssignments(mockUsers));
+    //       setIsLoading(false);
+    //   }, 500);
+    // }, []);
+
+    const handleSave = (savedAssignments: Assignment[]) => {
+        console.log("Changements sauvegardés (reçus via onSave):", savedAssignments);
+        setAssignments(savedAssignments);
+        toast.success('Modifications sauvegardées avec succès!');
+    }
+
+    const handleValidationError = (violations: any[]) => {
+        console.error("Erreurs de validation détectées:", violations);
+        setValidationErrors(violations);
+        toast.error(`Des erreurs de validation empêchent la sauvegarde.`);
+    }
+
+    const handleSyncComplete = (success: boolean) => {
+        console.log(`Synchronisation terminée avec succès: ${success}`);
+        setSyncSuccess(success);
+        if (!success) {
+            toast.error('Échec de la synchronisation des modifications.');
+        }
+    }
 
     return (
-        <div className="container mx-auto p-4">
-            <h1 className="text-3xl font-bold mb-6">Calendrier des gardes avec drag-and-drop</h1>
-
-            {syncErrors.length > 0 && (
-                <div className="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700">
-                    <h2 className="font-bold mb-2">Erreurs de synchronisation avec le calendrier principal</h2>
-                    <ul className="list-disc list-inside">
-                        {syncErrors.map((error, index) => (
-                            <li key={index}>{error.message}</li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-
+        <div className="p-4">
+            <Toaster position="top-right" /> {/* Ajouté pour afficher les toasts */}
+            <h1 className="text-2xl font-bold mb-4">Calendrier du Planning</h1>
             {isLoading ? (
-                <div className="flex justify-center items-center h-64">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-                </div>
+                <div>Chargement du calendrier...</div>
             ) : (
                 <DraggableCalendar
                     initialAssignments={assignments}
@@ -232,20 +317,17 @@ const CalendarDragDropDemo: React.FC = () => {
                     onSyncComplete={handleSyncComplete}
                 />
             )}
-
-            <div className="mt-8 p-4 bg-blue-50 rounded-md">
-                <h2 className="text-xl font-semibold mb-2">Instructions</h2>
-                <ul className="list-disc list-inside space-y-1">
-                    <li>Faites glisser une garde pour la déplacer à une autre date</li>
-                    <li>Les gardes modifiées apparaissent en jaune jusqu'à la sauvegarde</li>
-                    <li>Cliquez sur le X d'une garde modifiée pour annuler le changement</li>
-                    <li>Utilisez le bouton "Valider" pour vérifier les règles de planning</li>
-                    <li>Utilisez le bouton "Annuler" pour annuler toutes les modifications</li>
-                    <li>Utilisez le bouton "Sauvegarder" pour enregistrer les modifications</li>
-                </ul>
-            </div>
+            {validationErrors.length > 0 && (
+                <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                    <h3 className="font-bold">Erreurs de validation:</h3>
+                    {/* Correction: s'assurer que err est bien une string ou un objet simple */}
+                    <ul>
+                        {validationErrors.map((err, index) => <li key={index}>{typeof err === 'string' ? err : JSON.stringify(err)}</li>)}
+                    </ul>
+                </div>
+            )}
         </div>
     );
 };
 
-export default CalendarDragDropDemo; 
+export default CalendarPage; 

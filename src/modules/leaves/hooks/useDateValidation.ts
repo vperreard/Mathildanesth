@@ -2,10 +2,10 @@ import { useState, useCallback, useEffect } from 'react';
 import { formatDate, parseDate, isDateWeekend } from '@/utils/dateUtils';
 import { calculateWorkingDays, isBusinessDay } from '../services/leaveCalculator';
 import { publicHolidayService } from '../services/publicHolidayService';
-import { format, isAfter, isBefore, isSameDay } from 'date-fns';
+import { format, isAfter, isBefore, isSameDay, isValid } from 'date-fns';
 import { WorkSchedule } from '../../profiles/types/workSchedule';
 import { LeaveDateValidationOptions } from '../types/leave';
-import { logger } from '@/utils/logger';
+import { getLogger } from '@/utils/logger';
 
 export interface DateValidationConfig {
     startDate: Date | string | null;
@@ -62,18 +62,24 @@ export const useDateValidation = ({
     });
 
     const validateDates = useCallback(async () => {
+        const logger = await getLogger();
+        logger.info('Validating dates...', { startDate, endDate, options, minDays, maxDays });
+
         const errors: { startDate?: string[]; endDate?: string[]; period?: string[] } = {};
         const warnings: { startDate?: string[]; endDate?: string[]; period?: string[] } = {};
+        let workingDaysCount = 0;
+        let holidays: any[] = [];
+        let weekends: Date[] = [];
+        let holidayCount = 0;
+        let weekendCount = 0;
+        let calculationError = false;
 
         // Valider et parser les dates
         const start = parseDate(startDate);
         const end = parseDate(endDate);
-
-        // Aujourd'hui à minuit
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // Vérifier si les dates sont définies
         if (!start) {
             errors.startDate = [...(errors.startDate || []), "La date de début est requise"];
         }
@@ -82,27 +88,19 @@ export const useDateValidation = ({
             errors.endDate = [...(errors.endDate || []), "La date de fin est requise"];
         }
 
-        // Si une des dates est manquante, retourner immédiatement
-        if (!start || !end) {
+        if (start && end && isAfter(start, end)) {
+            errors.period = [...(errors.period || []), "La date de début doit être antérieure ou égale à la date de fin"];
+        }
+
+        if (!start || !end || errors.period?.length) {
+            logger.warn('Basic date validation failed (missing dates or end before start)', { errors });
             setResult({
-                isValid: false,
-                errors,
-                warnings,
-                workingDays: 0,
-                hasHolidays: false,
-                hasWeekends: false,
-                holidayCount: 0,
-                weekendCount: 0
+                isValid: false, errors, warnings, workingDays: 0,
+                hasHolidays: false, hasWeekends: false, holidayCount: 0, weekendCount: 0
             });
             return;
         }
 
-        // Vérifier si la date de début est antérieure à la date de fin
-        if (isAfter(start, end)) {
-            errors.period = [...(errors.period || []), "La date de début doit être antérieure ou égale à la date de fin"];
-        }
-
-        // Vérifier si les dates sont dans le passé
         if (!allowPastDates && isBefore(start, today) && !isSameDay(start, today)) {
             errors.startDate = [...(errors.startDate || []), "La date de début ne peut pas être dans le passé"];
         }
@@ -111,57 +109,66 @@ export const useDateValidation = ({
             errors.endDate = [...(errors.endDate || []), "La date de fin ne peut pas être dans le passé"];
         }
 
-        // Vérifier si les dates sont trop loin dans le futur
         if (maxFutureDays) {
             const maxFutureDate = new Date(today);
             maxFutureDate.setDate(today.getDate() + maxFutureDays);
-
             if (isAfter(start, maxFutureDate)) {
                 warnings.startDate = [...(warnings.startDate || []), `La date de début est plus de ${maxFutureDays} jours dans le futur`];
             }
-
             if (isAfter(end, maxFutureDate)) {
                 warnings.endDate = [...(warnings.endDate || []), `La date de fin est plus de ${maxFutureDays} jours dans le futur`];
             }
         }
 
-        // Si des erreurs ont été trouvées, retourner immédiatement
-        if (Object.values(errors).some(errorList => errorList && errorList.length > 0)) {
+        if (errors.startDate?.length || errors.endDate?.length) {
+            logger.warn('Date validation failed (past/future checks)', { errors, warnings });
             setResult({
-                isValid: false,
-                errors,
-                warnings,
-                workingDays: 0,
-                hasHolidays: false,
-                hasWeekends: false,
-                holidayCount: 0,
-                weekendCount: 0
+                isValid: false, errors, warnings, workingDays: 0,
+                hasHolidays: false, hasWeekends: false, holidayCount: 0, weekendCount: 0
             });
             return;
         }
 
         try {
-            // Calculer le nombre de jours ouvrables
-            const workingDaysCount = await calculateWorkingDays(start, end, {
-                countHolidaysOnWeekends: options.countHolidaysOnWeekends
+            logger.info('Calculating working days...');
+            workingDaysCount = await calculateWorkingDays(start, end, {
+                countHolidaysOnWeekends: options.countHolidaysOnWeekends ?? false
             });
 
             if (workingDaysCount === null) {
-                errors.period = [...(errors.period || []), "Impossible de calculer les jours ouvrables"];
-                setResult({
-                    isValid: false,
-                    errors,
-                    warnings,
-                    workingDays: 0,
-                    hasHolidays: false,
-                    hasWeekends: false,
-                    holidayCount: 0,
-                    weekendCount: 0
-                });
-                return;
+                logger.error('calculateWorkingDays returned null');
+                throw new Error("Impossible de calculer les jours ouvrables");
             }
+            logger.info(`Working days calculated: ${workingDaysCount}`);
 
-            // Vérifier nombre minimum de jours ouvrables
+            logger.info('Fetching public holidays...');
+            const formattedStart = format(start, 'yyyy-MM-dd');
+            const formattedEnd = format(end, 'yyyy-MM-dd');
+            holidays = await publicHolidayService.getPublicHolidaysInRange(formattedStart, formattedEnd);
+            holidayCount = holidays.length;
+            logger.info(`Public holidays fetched: ${holidayCount}`);
+
+            logger.info('Calculating weekends...');
+            const oneDay = 24 * 60 * 60 * 1000;
+            const diffDays = Math.round(Math.abs((end.getTime() - start.getTime()) / oneDay)) + 1;
+            const dates: Date[] = [];
+            for (let i = 0; i < diffDays; i++) {
+                const date = new Date(start);
+                date.setDate(start.getDate() + i);
+                dates.push(date);
+            }
+            weekends = dates.filter(date => isDateWeekend(date));
+            weekendCount = weekends.length;
+            logger.info(`Weekends calculated: ${weekendCount}`);
+
+        } catch (calcErr) {
+            const errorObj = calcErr instanceof Error ? calcErr : new Error(String(calcErr));
+            logger.error('Error during working days/holiday/weekend calculation', { error: errorObj.message, stack: errorObj.stack });
+            errors.period = [...(errors.period || []), "Erreur interne lors du calcul des jours."];
+            calculationError = true;
+        }
+
+        if (!calculationError) {
             if (workingDaysCount < minDays && options.minWorkingDays !== false) {
                 if (options.allowPeriodsWithNoWorkingDays && workingDaysCount === 0) {
                     warnings.period = [...(warnings.period || []), `Aucun jour ouvrable dans cette période`];
@@ -169,60 +176,30 @@ export const useDateValidation = ({
                     errors.period = [...(errors.period || []), `La période doit contenir au moins ${minDays} jour(s) ouvrable(s)`];
                 }
             }
-
-            // Vérifier nombre maximum de jours
-            if (maxDays && workingDaysCount > maxDays) {
+            if (maxDays !== undefined && workingDaysCount > maxDays) {
                 errors.period = [...(errors.period || []), `La période ne peut pas dépasser ${maxDays} jours ouvrables`];
             }
-
-            // Récupérer les jours fériés dans la période
-            const formattedStart = format(start, 'yyyy-MM-dd');
-            const formattedEnd = format(end, 'yyyy-MM-dd');
-            const holidays = await publicHolidayService.getPublicHolidaysInRange(formattedStart, formattedEnd);
-
-            // Calculer le nombre de weekends
-            const oneDay = 24 * 60 * 60 * 1000; // Millisecondes dans une journée
-            const diffDays = Math.round(Math.abs((end.getTime() - start.getTime()) / oneDay)) + 1;
-
-            const dates: Date[] = [];
-            for (let i = 0; i < diffDays; i++) {
-                const date = new Date(start);
-                date.setDate(start.getDate() + i);
-                dates.push(date);
-            }
-
-            const weekends = dates.filter(date => isDateWeekend(date));
-
-            // Mettre à jour le résultat
-            setResult({
-                isValid: Object.values(errors).every(errorList => !errorList || errorList.length === 0),
-                errors,
-                warnings,
-                workingDays: workingDaysCount,
-                hasHolidays: holidays.length > 0,
-                hasWeekends: weekends.length > 0,
-                holidayCount: holidays.length,
-                weekendCount: weekends.length
-            });
-        } catch (err) {
-            logger.error(`Erreur dans useDateValidation: ${err instanceof Error ? err.message : String(err)}`, {
-                startDate,
-                endDate,
-                workScheduleId: workSchedule?.id
-            });
-
-            errors.period = [...(errors.period || []), "Une erreur est survenue lors de la validation des dates"];
-            setResult({
-                isValid: false,
-                errors,
-                warnings,
-                workingDays: 0,
-                hasHolidays: false,
-                hasWeekends: false,
-                holidayCount: 0,
-                weekendCount: 0
-            });
         }
+
+        const finalIsValid = Object.values(errors).every(errorList => !errorList || errorList.length === 0);
+
+        if (!finalIsValid) {
+            logger.warn('Final date validation failed', { errors, warnings, calculationError });
+        } else {
+            logger.info('Final date validation successful');
+        }
+
+        setResult({
+            isValid: finalIsValid,
+            errors,
+            warnings,
+            workingDays: workingDaysCount ?? 0,
+            hasHolidays: holidayCount > 0,
+            hasWeekends: weekendCount > 0,
+            holidayCount,
+            weekendCount
+        });
+
     }, [startDate, endDate, workSchedule, options, minDays, maxDays, allowPastDates, maxFutureDays]);
 
     useEffect(() => {

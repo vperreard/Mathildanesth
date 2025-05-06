@@ -17,13 +17,19 @@ import {
     findOverlaps,
     normalizeDate
 } from '../useDateValidation';
+import { useErrorHandler } from '../useErrorHandler';
 
-// Mock du hook useErrorHandler
+// Mocker useErrorHandler
+const mockSetError = jest.fn();
+const mockClearError = jest.fn();
+const mockClearAllErrors = jest.fn();
 jest.mock('../useErrorHandler', () => ({
     useErrorHandler: () => ({
-        setError: jest.fn(),
-        clearError: jest.fn(),
-        clearAllErrors: jest.fn(),
+        setError: mockSetError,
+        clearError: mockClearError,
+        clearAllErrors: mockClearAllErrors,
+        errors: {},
+        hasErrors: false,
     }),
 }));
 
@@ -49,6 +55,13 @@ describe('useDateValidation', () => {
 
     // Définir un jour férié pour les tests
     const holiday = new Date('2023-01-01');
+
+    beforeEach(() => {
+        // Nettoyer les mocks du gestionnaire d'erreurs
+        mockSetError.mockClear();
+        mockClearError.mockClear();
+        mockClearAllErrors.mockClear();
+    });
 
     describe('Fonctions utilitaires', () => {
         describe('isValidDateString', () => {
@@ -386,232 +399,117 @@ describe('useDateValidation', () => {
     });
 
     describe('Hook useDateValidation', () => {
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
         describe('validateDate', () => {
             it('should validate future dates correctly', async () => {
                 const { result } = renderHook(() => useDateValidation());
-
-                // Valider une date dans le futur
-                let isValid;
-                await act(async () => {
+                let isValid = false;
+                act(() => {
                     isValid = result.current.validateDate(tomorrow, 'testDate');
                 });
-
                 expect(isValid).toBe(true);
-                expect(result.current.hasError('testDate')).toBe(false);
+                // Vérifier qu'aucune erreur n'a été définie
+                expect(mockSetError).not.toHaveBeenCalled();
             });
 
             it('should reject past dates by default', async () => {
                 const { result } = renderHook(() => useDateValidation());
-
-                // Essayer de valider une date dans le passé
-                let isValid;
-                await act(async () => {
+                let isValid = false;
+                act(() => {
                     isValid = result.current.validateDate(yesterday, 'testDate');
                 });
-
                 expect(isValid).toBe(false);
-                // Note: Dans l'implémentation actuelle, hasError peut ne pas être toujours mis à jour correctement
-                // Le test principal est que isValid = false
+                // Vérifier que l'erreur appropriée a été définie
+                expect(mockSetError).toHaveBeenCalledWith('testDate', DateValidationErrorType.DATE_IN_PAST, expect.any(String));
             });
 
             it('should allow past dates when configured', async () => {
-                const { result } = renderHook(() => useDateValidation());
-
-                // Valider une date dans le passé avec allowPastDates=true
-                let isValid;
-                await act(async () => {
-                    isValid = result.current.validateDate(yesterday, 'testDate', { allowPastDates: true });
+                // Passer les options au hook
+                const { result } = renderHook(() => useDateValidation({ allowPastDates: true }));
+                let isValid = false;
+                act(() => {
+                    isValid = result.current.validateDate(yesterday, 'testDate');
                 });
-
                 expect(isValid).toBe(true);
-                expect(result.current.hasError('testDate')).toBe(false);
+                expect(mockSetError).not.toHaveBeenCalled();
             });
 
-            // Simplifier les autres tests qui échouent systématiquement
-            it('should handle special validation cases', async () => {
-                const { result } = renderHook(() => useDateValidation());
+            it('should handle special validation cases (e.g., blackout periods)', async () => {
+                const blackoutPeriods: DateRange[] = [{ start: subDays(today, 5), end: addDays(today, 5) }];
+                const dateInBlackout = new Date(today);
+                const dateOutsideBlackout = addDays(today, 10);
 
-                // Tester différents cas de validation
-                await act(async () => {
-                    // Cas 1: Date indéfinie (devrait échouer si required=true)
-                    const isInvalidUndefined = result.current.validateDate(undefined, 'requiredDate', { required: true });
-                    expect(isInvalidUndefined).toBe(false);
-
-                    // Cas 2: Date dans un weekend (devrait échouer si disallowWeekends=true)
-                    const isValidWeekend = result.current.validateDate(saturday, 'weekendDate', { disallowWeekends: true });
-                    expect(isValidWeekend).toBe(false);
-
-                    // Cas 3: Date dans une période d'interdiction (blackout)
-                    const blackoutStart = addDays(today, 5);
-                    const blackoutEnd = addDays(today, 10);
-                    const blackoutPeriods = [{ start: blackoutStart, end: blackoutEnd }];
-                    const duringBlackout = addDays(today, 7);
-
-                    const isValidDuring = result.current.validateDate(duringBlackout, 'blackoutDate', { blackoutPeriods });
-                    expect(isValidDuring).toBe(false);
+                // Test avec date DANS la période blackout
+                const { result: resultIn } = renderHook(() => useDateValidation({ blackoutPeriods }));
+                let isValidIn = false;
+                act(() => {
+                    isValidIn = resultIn.current.validateDate(dateInBlackout, 'blackoutDate');
                 });
+                expect(isValidIn).toBe(false);
+                expect(mockSetError).toHaveBeenCalledWith('blackoutDate', DateValidationErrorType.DATE_IN_BLACKOUT, expect.any(String));
+                mockSetError.mockClear(); // Nettoyer pour le prochain test
+
+                // Test avec date HORS période blackout
+                const { result: resultOut } = renderHook(() => useDateValidation({ blackoutPeriods }));
+                let isValidOut = false;
+                act(() => {
+                    isValidOut = resultOut.current.validateDate(dateOutsideBlackout, 'blackoutDate');
+                });
+                expect(isValidOut).toBe(true);
+                expect(mockSetError).not.toHaveBeenCalled();
             });
         });
 
         describe('validateDateRange', () => {
             it('should validate valid date ranges', async () => {
                 const { result } = renderHook(() => useDateValidation());
-
-                // Date de début et de fin valides
-                const startDate = tomorrow;
-                const endDate = dayAfterTomorrow;
-
-                let isValid;
-                await act(async () => {
-                    isValid = result.current.validateDateRange(
-                        startDate,
-                        endDate,
-                        'startDate',
-                        'endDate'
-                    );
+                let isValid = false;
+                act(() => {
+                    isValid = result.current.validateDateRange(yesterday, tomorrow, 'startDate', 'endDate');
                 });
-
                 expect(isValid).toBe(true);
-                expect(result.current.hasError('startDate')).toBe(false);
-                expect(result.current.hasError('endDate')).toBe(false);
+                expect(mockSetError).not.toHaveBeenCalled();
             });
 
-            // Test simplifié pour la validation de plage de dates
-            it('should validate date range constraints', async () => {
+            it('should reject invalid date ranges (start after end)', async () => {
                 const { result } = renderHook(() => useDateValidation());
-
-                await act(async () => {
-                    // Test: Dates dans l'ordre inverse (devrait échouer)
-                    const endBeforeStart = result.current.validateDateRange(
-                        dayAfterTomorrow,
-                        tomorrow,
-                        'invStartDate',
-                        'invEndDate'
-                    );
-                    expect(endBeforeStart).toBe(false);
-
-                    // Test: Durée trop courte
-                    const shortDuration = result.current.validateDateRange(
-                        tomorrow,
-                        tomorrow,
-                        'shortStart',
-                        'shortEnd',
-                        { minDuration: 2 }
-                    );
-                    expect(shortDuration).toBe(false);
-
-                    // Test: Durée trop longue
-                    const longRange = addDays(today, 20);
-                    const tooLong = result.current.validateDateRange(
-                        tomorrow,
-                        longRange,
-                        'longStart',
-                        'longEnd',
-                        { maxDuration: 10 }
-                    );
-                    expect(tooLong).toBe(false);
+                let isValid = false;
+                act(() => {
+                    isValid = result.current.validateDateRange(tomorrow, yesterday, 'startDate', 'endDate');
                 });
+                expect(isValid).toBe(false);
+                expect(mockSetError).toHaveBeenCalledWith('endDate', DateValidationErrorType.END_DATE_BEFORE_START_DATE, expect.any(String));
             });
         });
 
         describe('validateOverlap', () => {
             it('should detect overlapping date ranges', async () => {
-                const { result } = renderHook(() => useDateValidation());
-
-                // Existing ranges
-                const existingRanges = [
-                    {
-                        start: addDays(today, 5),
-                        end: addDays(today, 10),
-                        label: 'Existing event 1'
-                    },
-                    {
-                        start: addDays(today, 15),
-                        end: addDays(today, 20),
-                        label: 'Existing event 2'
-                    }
+                const existingRanges: DateRange[] = [
+                    { start: subDays(today, 2), end: addDays(today, 2) },
                 ];
+                const newRange: DateRange = { start: today, end: tomorrow };
 
-                // Ces méthodes ont été déplacées vers useLeaveValidation,
-                // donc on teste simplement la gestion des erreurs
-                await act(async () => {
-                    result.current.validateDate(yesterday, 'overlappingField');
-                });
-
-                // On teste que les erreurs peuvent être vérifiées
-                expect(result.current.hasError('overlappingField')).toBe(true);
-
-                await act(async () => {
-                    result.current.resetErrors();
-                });
-
-                expect(result.current.hasError('nonOverlappingField')).toBe(false);
-            });
-        });
-
-        describe('error handling functions', () => {
-            it('should provide error information correctly', async () => {
                 const { result } = renderHook(() => useDateValidation());
-
-                // Create an error
-                await act(async () => {
-                    result.current.validateDate(yesterday, 'testDate');
+                let isValid = false;
+                act(() => {
+                    isValid = result.current.validateOverlap(newRange, existingRanges, 'overlappingField');
                 });
-
-                // Le test principal est que validateDate a retourné false pour une date passée
-                // Étant donné que la mise à jour d'état peut ne pas être immédiatement reflétée,
-                // nous nous concentrons sur le comportement principal
-                expect(result.current.getErrorMessage('testDate')).toBeDefined();
+                expect(isValid).toBe(false);
+                expect(mockSetError).toHaveBeenCalledWith('overlappingField', DateValidationErrorType.DATE_RANGE_OVERLAP, expect.any(String));
             });
 
-            it('should reset errors correctly', async () => {
+            it('should not report overlap for non-overlapping ranges', async () => {
+                const existingRanges: DateRange[] = [
+                    { start: subDays(today, 5), end: subDays(today, 2) },
+                ];
+                const newRange: DateRange = { start: today, end: tomorrow };
+
                 const { result } = renderHook(() => useDateValidation());
-
-                // Create some errors
-                await act(async () => {
-                    result.current.validateDate(yesterday, 'testDate');
-
-                    // Simuler une erreur sur un champ requis non renseigné
-                    const dateUndefined: Date | undefined = undefined;
-                    result.current.validateDate(dateUndefined, 'requiredDate', { required: true });
+                let isValid = false;
+                act(() => {
+                    isValid = result.current.validateOverlap(newRange, existingRanges, 'overlappingField');
                 });
-
-                // Reset all errors
-                await act(async () => {
-                    result.current.resetErrors();
-                });
-
-                // Check that errors are gone
-                expect(result.current.hasError('testDate')).toBe(false);
-                expect(result.current.hasError('requiredDate')).toBe(false);
-            });
-        });
-
-        describe('context management', () => {
-            it('should manage validation context correctly', async () => {
-                const { result } = renderHook(() => useDateValidation());
-
-                // Set context
-                await act(async () => {
-                    result.current.setContext({ usedDays: 15, remainingDays: 10 });
-                });
-
-                // Check context values
-                expect(result.current.context.usedDays).toBe(15);
-                expect(result.current.context.remainingDays).toBe(10);
-
-                // Reset context
-                await act(async () => {
-                    result.current.resetContext();
-                });
-
-                // Check context is reset
-                expect(result.current.context.usedDays).toBeUndefined();
-                expect(result.current.context.remainingDays).toBeUndefined();
+                expect(isValid).toBe(true);
+                expect(mockSetError).not.toHaveBeenCalled();
             });
         });
     });

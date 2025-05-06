@@ -19,6 +19,10 @@
 *   **(P1)** ✅ Intégration du module de trames avec le module de planning.
 *   **(P1)** 🔄 Implémentation de **tests unitaires** (Jest) pour tous les composants/fonctions refactorisés (Objectif couverture ≥ 70%).
 *   **(P1)** 🔄 Refactorisation du module/composants `Calendar`.
+    *   ✅ **Découplage Client/Serveur:** Refactorisation des services et hooks du calendrier pour utiliser les API routes (`fetch`) au lieu d'importer directement du code serveur.
+    *   ✅ **API Routes (Base):** Création des routes `GET /api/assignments` et `GET /api/public-holidays`.
+    *   ✅ **Correction appel `getUserPreferences`**: Modification de `ApiService` et `apiConfig` pour utiliser des URLs relatives, résolvant potentiellement `ERR_CONNECTION_REFUSED`.
+    *   ✅ **Correction méthode `saveUserPreferences`**: Passage de `POST` à `PUT`.
 *   **(P1)** 🔄 Division des composants majeurs refactorisés en sous-composants réutilisables et plus simples.
 *   **(P1)** 🔄 Amélioration de la gestion des états (cohérence, éviter mutations directes, cf. `patterns-antipatterns.md`).
 *   **(P1)** 🔄 Feedback visuel immédiat pour les interactions utilisateur critiques (chargement, succès, erreur).
@@ -37,11 +41,16 @@
 **Objectif :** Livrer un premier module de planification fonctionnel (gardes/astreintes), incluant les règles de base, la gestion des remplacements et un premier algorithme, ainsi que des outils d'analyse basiques.
 
 *   **(P1)** Développement du module de **règles dynamiques (MVP)** : 
-    - ✅ Structure de base avec types et interfaces
-    - ✅ Service du moteur de règles implémenté
-    - ✅ Composants d'édition et de liste des règles
-    - 🔄 interface admin simple (CRUD) 
-    - 🔄 moteur pour règles de base (répartition gardes)
+    - ✅ Structure de base avec types et interfaces (Vérifiée et nettoyée)
+    - ✅ Service du moteur de règles implémenté (`RuleEngineService` existant)
+    - ✅ Validation des règles (Moteur + `RuleForm`)
+    - ✅ Détection des conflits (Moteur, TODO: intégration UI)
+    - ✅ Mécanisme d'application et journalisation (Moteur + Logs générateur)
+    - ✅ Intégration avec générateur de planning (`RuleBasedPlanningGeneratorService` mis à jour)
+    - ✅ Service API pour CRUD (Existant ou à faire)
+    - ✅ Interface admin simple (`RuleForm` mis à jour, `RuleList` à faire/vérifier)
+    - [ ] Feedback visuel sur respect des règles dans UI planning (À faire)
+    - [ ] Amélioration éditeur Conditions/Actions dans `RuleForm` (À faire)
 *   **(P1)** Implémentation de la gestion des **indisponibilités** utilisateurs.
 *   **(P1)** Interface de **validation/modification manuelle** des plannings.
 *   **(P1)** Développement d'un système de **remplacements** / gestion des imprévus.
@@ -53,6 +62,7 @@
 *   **(P2)** Documentation utilisateur initiale pour les fonctionnalités de planification.
 *   **(P2)** Gestion détaillée des **profils utilisateurs** (Préférences spécifiques MAR/IADE, temps de travail personnalisé).
 *   **(P3)** Gestion des **jours fériés** (configurable).
+    *   ✅ API route `GET /api/public-holidays` implémentée avec calcul local.
 *   **(P3)** Implémentation d'une fonctionnalité simple d'**échange/permutation** de gardes entre médecins.
 
 **Livrables Clés Phase 2 :** Module planification gardes/astreintes (MVP) opérationnel, Algorithme V1 fonctionnel, Analytics basiques, Version Bêta testée.
@@ -82,21 +92,24 @@
 
 ---
 
-### Phase 4 : Module Bloc Opératoire, Finalisation & Déploiement (Durée estimée : 2 mois + 2 semaines tampon)
+### Phase 4 : Stabilisation et Tests Approfondis
 
-**Objectif :** Compléter l'application avec le module bloc opératoire, assurer la sécurité et la performance, et préparer le déploiement en production.
-
-*   **(P1)** **Audit de sécurité** complet et corrections.
-*   **(P1)** **Optimisations de performance** finales (backend, frontend, requêtes base de données).
-*   **(P1)** Mise en place de stratégies de **cache avancé**.
-*   **(P1)** **Tests de charge** pour simuler l'utilisation réelle.
-*   **(P1)** Finalisation de la **documentation** complète (technique et utilisateur).
-*   **(P1)** Préparation technique au **déploiement** : stratégie, plan migration, setup monitoring/alerting, plan support.
-*   **(P1)** **Formation** des utilisateurs clés/référents.
-*   **(P2)** 🔄 Développement du module de **planification du bloc opératoire (MVP)** : définition salles/secteurs, règles supervision simples, interface planning bloc V1.
-*   **(P3)** Complétion du module **bloc opératoire** : intégration Google Sheets (si confirmé), trame hebdo, règles avancées, simulation, annotations.
-*   **(P3)** Amélioration du module **Analytics** : indicateurs avancés (QoL, équité), rapports personnalisés.
-*   **(P3)** Création du **matériel de formation** détaillé.
+*   **Statut :** En cours
+*   **Objectifs :**
+    *   Identifier et corriger les bugs restants.
+    *   Améliorer la couverture de tests.
+    *   Optimiser les performances.
+    *   Valider l'accessibilité.
+*   **Actions récentes :**
+    *   Analyse détaillée de la structure des tests existants (Unitaires, Intégration, E2E, Composants, Performance, Accessibilité).
+    *   Définition d'une stratégie de correction des bugs basée sur les tests (priorisation E2E, reproduction par tests, descente dans la pyramide de tests).
+    *   ✅ **Implémentation initiale du Drag & Drop (DND)** pour les affectations dans le planning hebdomadaire (planning hebdo), incluant intégration RuleEngine et sauvegarde API batch.
+*   **Prochaines étapes :**
+    *   Exécution systématique des suites de tests pour identifier les régressions et les bugs.
+    *   Application de la stratégie de correction de bugs.
+    *   Augmentation de la couverture de tests pour les modules critiques ou peu couverts.
+    *   Correction des tests d'accessibilité (`pa11y`).
+    *   **Affinement UI/UX et tests complets pour le DND du planning hebdomadaire.**
 
 **Livrables Clés Phase 4 :** Module bloc opératoire (MVP+), Application sécurisée et performante, Documentation finale, Utilisateurs clés formés, Application prête pour production.
 
@@ -131,8 +144,69 @@
 
 **Note Importante :** Cette roadmap consolidée met fortement l'accent sur la **Phase 1 : Refactorisation Critique**. Il est essentiel de la mener à bien avant de s'engager pleinement dans les phases suivantes pour garantir la qualité et la pérennité du projet. Les durées sont indicatives et la roadmap devrait être revue régulièrement.
 
-**Statut actuel :** Nous avons avancé sur plusieurs tâches de la Phase 1 et commençons à travailler sur le développement du module de planification du bloc opératoire (Phase 4) en parallèle, tout en continuant l'implémentation des tests unitaires et la refactorisation du module Calendar.
+**Statut actuel :** Nous avons avancé sur plusieurs tâches de la Phase 1 et commençons à travailler sur le développement du module de planification du bloc opératoire (Phase 4) en parallèle, tout en continuant l'implémentation des tests unitaires et la refactorisation du module Calendar. Le découplage client/serveur a été initié pour le module calendrier.
 
 ---
 
-*Dernière mise à jour: Mai 2025*
+*Dernière mise à jour: Mai 2025 - Implémentation initiale DND planning hebdo.*
+
+#### Intégrations et Améliorations du Bloc Opératoire
+- [x] Intégration des données réelles de salles opératoires dans le planning hebdomadaire
+- [x] **Implémentation initiale du Drag & Drop (DND)** pour les affectations dans le planning hebdomadaire (avec validation `RuleEngine` et sauvegarde API `batch`)
+- [ ] Optimisation du moteur de règles pour le bloc opératoire
+- [ ] Gestion améliorée des trames de planning répétitives
+- [ ] Affinement UI/UX et tests complets pour le DND du planning
+
+### Tâches Techniques Récentes / Prochaines Étapes
+
+- **Résolution du problème de configuration Babel** ✅
+  - Correction du conflit entre `"type": "module"` dans package.json et la configuration Babel
+  - Adaptation du fichier `babel.config.js` pour utiliser la syntaxe ES Module
+- **Correction du système d'authentification** ✅
+  - Résolution des problèmes 401 Unauthorized dans les routes d'API
+  - Amélioration des logs serveur pour le débogage de l'authentification
+  - Ajout d'un utilisateur de test et correction du flux de connexion
+  - Standardisation de la gestion des cookies HTTP-only pour l'authentification
+- **Initialisation des données de base** ✅
+  - Import des spécialités chirurgicales, chirurgiens et utilisateurs
+  - Configuration des secteurs opératoires et salles d'opération
+  - Définition des types de congés et règles de quotas
+  - Ajout de données de test complètes pour le développement
+- **Nettoyage et refactoring du code legacy** (Continu)
+- **Amélioration de la couverture de tests** (Continu)
+- **Optimisation des performances frontend et backend** (Planifié Q3)
+- **Mise à jour des dépendances clés (Next.js, Prisma, etc.)** (Investigation nécessaire)
+- **Résolution des problèmes de build Next.js impactant les tests E2E** (Priorité haute)
+- **Réparation des tests Cypress désactivés (ex: `quota-management.spec.ts`)** (Bloqué par build)
+- **Correction des avertissements `Unsupported metadata viewport`** (Partiellement corrigé)
+
+## Stratégie de stabilisation par les tests
+
+### Objectifs
+- Rendre la base de code plus stable
+- Faciliter l'identification précoce des régressions
+- Assurer la qualité des nouvelles fonctionnalités
+
+### Plan d'action
+1. **T1 2026** : Mise à jour de l'infrastructure de test
+   - Corriger la configuration de Jest et Babel pour le support JSX/React
+   - Mettre à jour les mocks obsolètes
+   - Réactiver les tests unitaires essentiels
+
+2. **T2 2026** : Expansion des tests
+   - Augmenter la couverture des tests unitaires sur les modules critiques
+   - Développer de nouveaux tests d'intégration pour les workflows principaux
+   - Ajouter des tests de performance pour les fonctionnalités sensibles
+
+3. **T3 2026** : Automatisation et CI/CD
+   - Mettre en place une CI robuste avec validation automatique des tests
+   - Implémenter des tests de non-régression automatiques
+   - Documenter les procédures de test pour les développeurs
+
+### Priorités
+1. Module de gestion des congés (useLeaveQuota, conflictDetection)
+2. Générateur de planning et moteur de règles
+3. Calendrier et affichage des événements
+4. Interface utilisateur et composants partagés
+
+- **Refactorisation du hook useDateValidation** pour corriger la signature de `setError` et la logique de logging d'erreur alignée avec `useErrorHandler`.

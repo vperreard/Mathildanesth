@@ -15,13 +15,16 @@ import {
     differenceInDays,
     parse,
     addHours,
-    isWeekend,
+    isWeekend as isDateWeekendFns,
     getWeek,
     startOfWeek,
     endOfWeek,
     eachDayOfInterval
 } from 'date-fns';
 import { fr } from 'date-fns/locale'; // Utiliser la locale française pour les formats
+
+// Ré-exporter addDays pour qu'il soit accessible via ce module
+export { addDays };
 
 // --- Constantes ---
 
@@ -187,9 +190,12 @@ export const areDatesSameDay = (date1: string | number | Date | null | undefined
  */
 export const isDateWeekend = (date: string | number | Date | null | undefined): boolean => {
     const d = parseDate(date);
-    // 0 = Dimanche, 6 = Samedi
-    return d ? isWeekend(d) : false;
+    // Utiliser la fonction renommée importée
+    return d ? isDateWeekendFns(d) : false;
 };
+
+// Export direct pour ceux qui l'utilisent sous le nom isWeekend
+export { isDateWeekendFns as isWeekend };
 
 // --- Manipulation ---
 

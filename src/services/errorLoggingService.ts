@@ -96,25 +96,42 @@ export const flushErrorQueue = async (): Promise<void> => {
     }
 };
 
-// Flush la file d'attente avant que l'utilisateur ne quitte la page
-window.addEventListener('beforeunload', () => {
-    if (errorQueue.length > 0) {
-        // Utiliser sendBeacon pour l'envoi asynchrone lors de la fermeture de la page
-        navigator.sendBeacon(
-            config.serverEndpoint,
-            JSON.stringify({
-                environment: config.environment,
-                errors: errorQueue.map(({ key, error }) => ({
-                    key,
-                    message: error.message,
-                    code: error.code,
-                    severity: error.severity,
-                    timestamp: error.timestamp,
-                    context: error.context,
-                    userAgent: navigator.userAgent,
-                    url: window.location.href,
-                })),
-            })
-        );
+/**
+ * Ajoute un écouteur d'événement pour envoyer les logs restants 
+ * avant que l'utilisateur ne quitte la page.
+ * DOIT être appelé uniquement côté client.
+ */
+function setupUnloadListener() {
+    // Vérifie si on est bien dans un environnement navigateur
+    if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        console.log("Setting up beforeunload listener for error logging.");
+        window.addEventListener('beforeunload', () => {
+            const queueToSend = [...errorQueue]; // Create a copy of the queue
+            if (queueToSend.length > 0) {
+                try {
+                    // Send the copy
+                    const success = navigator.sendBeacon('/api/log-client-errors', JSON.stringify(queueToSend));
+                    if (success) {
+                        console.log(`Successfully queued ${queueToSend.length} errors via sendBeacon on unload.`);
+                        // Don't attempt to modify the original errorQueue here
+                    } else {
+                        console.warn('sendBeacon failed to queue errors on unload.');
+                    }
+                } catch (error) {
+                    console.error('Error using sendBeacon on unload:', error);
+                }
+            }
+        });
+    } else {
+        console.log("Skipping beforeunload listener setup (not in a browser environment or sendBeacon not supported).");
     }
-}); 
+}
+
+// Appeler la fonction de setup uniquement côté client
+if (typeof window !== 'undefined') {
+    setupUnloadListener();
+}
+
+export const errorLoggingService = {
+    logError
+}; 

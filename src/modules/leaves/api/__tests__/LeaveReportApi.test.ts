@@ -245,7 +245,7 @@ describe('LeaveReportApi', () => {
             };
 
             // Act
-            const exportTaskId = await reportApi.exportReport(
+            const taskId = await reportApi.exportReport(
                 ReportType.LEAVE_USAGE,
                 mockFilters,
                 exportOptions
@@ -253,15 +253,14 @@ describe('LeaveReportApi', () => {
 
             // Assert
             expect(axios.post).toHaveBeenCalledWith(
-                '/api/leaves/reports/export',
+                `/api/leaves/reports/leave_usage/export`,
                 expect.objectContaining({
-                    reportType: ReportType.LEAVE_USAGE,
-                    filters: expect.any(Object),
-                    exportOptions
+                    filters: mockFilters,
+                    exportOptions: exportOptions
                 }),
                 expect.any(Object)
             );
-            expect(exportTaskId).toBe('export-task-1');
+            expect(taskId).toBe('export-task-1');
             expect(performanceTracker.measure).toHaveBeenCalledWith(
                 'LeaveReportApi.exportReport',
                 expect.any(Number)
@@ -271,25 +270,17 @@ describe('LeaveReportApi', () => {
 
     describe('getExportStatus', () => {
         it('devrait récupérer le statut d\'une tâche d\'exportation', async () => {
-            // Arrange
-            const mockStatus = {
-                id: 'export-task-1',
-                status: 'completed',
-                progress: 100,
-                startedAt: new Date(),
-                completedAt: new Date(),
-                fileUrl: 'https://example.com/exports/report.csv'
-            };
-
-            (axios.get as jest.Mock).mockResolvedValue({ data: mockStatus });
+            const taskId = 'export-task-123'; // Définir une valeur test
+            const mockStatus = { status: 'COMPLETED', url: '/exports/report.csv' };
+            axios.get.mockResolvedValue({ data: mockStatus });
 
             // Act
-            const status = await reportApi.getExportStatus('export-task-1');
+            const status = await reportApi.getExportStatus(taskId);
 
             // Assert
             expect(axios.get).toHaveBeenCalledWith(
-                '/api/leaves/reports/export/export-task-1',
-                expect.any(Object)
+                `/api/leaves/reports/export/${taskId}/status`,
+                expect.any(Object) // headers
             );
             expect(status).toEqual(mockStatus);
         });

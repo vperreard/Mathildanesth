@@ -2,8 +2,13 @@ import React, { useState } from 'react';
 import './NotificationSettingsForm.css';
 
 export interface NotificationSettingsFormProps {
-    userId: string;
+    // userId: string; // Supposé venir d'un contexte ou passé autrement?
     onSave: (settings: NotificationSettings) => Promise<void>;
+    initialSettings?: NotificationSettings; // Rendre optionnel, utiliser DEFAULT si absent
+    isLoading: boolean; // Prop pour l'état de chargement
+    errorMessage: string | null; // Prop pour message d'erreur
+    successMessage: string | null; // Prop pour message de succès
+    // Ajouter d'autres props si nécessaire (ex: onReset)
 }
 
 export interface NotificationSettings {
@@ -36,15 +41,24 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
 };
 
 export const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = ({
-    userId,
-    onSave
+    // userId, // Ne pas déstructurer si non utilisé directement
+    onSave,
+    initialSettings = DEFAULT_NOTIFICATION_SETTINGS, // Utiliser les props
+    isLoading, // Utiliser les props
+    errorMessage, // Utiliser les props
+    successMessage, // Utiliser les props
 }) => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [success, setSuccess] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    // Supprimer les états internes redondants
+    // const [isLoading, setIsLoading] = useState(false);
+    // const [success, setSuccess] = useState<string | null>(null);
+    // const [error, setError] = useState<string | null>(null);
 
-    // Initialisation avec les valeurs par défaut (seront écrasées par les données du hook)
-    const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
+    const [settings, setSettings] = useState<NotificationSettings>(initialSettings);
+
+    // Mettre à jour l'état local si les props initialSettings changent
+    React.useEffect(() => {
+        setSettings(initialSettings);
+    }, [initialSettings]);
 
     const handleToggleChange = (channel: keyof Pick<NotificationSettings, 'email' | 'sms' | 'push' | 'inApp'>) => {
         setSettings(prev => ({
@@ -74,33 +88,29 @@ export const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> =
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        setIsLoading(true);
-        setSuccess(null);
-        setError(null);
+        // Pas besoin de gérer isLoading/success/error ici, c'est géré par le parent via les props
+        // setIsLoading(true);
+        // setSuccess(null);
+        // setError(null);
 
-        try {
-            await onSave(settings);
-            setSuccess('Vos préférences ont été enregistrées avec succès.');
-        } catch (err) {
-            setError('Une erreur est survenue lors de l\'enregistrement de vos préférences.');
-            console.error(err);
-        } finally {
-            setIsLoading(false);
-        }
+        // Appeler onSave directement
+        await onSave(settings);
+
+        // La gestion de l'état après sauvegarde (isLoading=false, message) est faite par le parent
     };
 
     const handleReset = () => {
         setSettings(DEFAULT_NOTIFICATION_SETTINGS);
-        setSuccess(null);
-        setError(null);
+        // Informer le parent si nécessaire (ex: props.onReset())
     };
 
     return (
         <div className="notification-settings">
             <h2>Gérer vos préférences de notification</h2>
 
-            {success && <div className="alert alert-success">{success}</div>}
-            {error && <div className="alert alert-error">{error}</div>}
+            {/* Utiliser les props pour afficher les messages */}
+            {successMessage && <div className="alert alert-success">{successMessage}</div>}
+            {errorMessage && <div className="alert alert-error">{errorMessage}</div>}
 
             <form onSubmit={handleSubmit}>
                 <div className="settings-section">
@@ -236,7 +246,7 @@ export const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> =
                     <button
                         type="submit"
                         className="btn-save"
-                        disabled={isLoading}
+                        disabled={isLoading} // Utiliser la prop isLoading
                     >
                         {isLoading ? 'Enregistrement...' : 'Enregistrer les préférences'}
                     </button>
@@ -244,7 +254,7 @@ export const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> =
                         type="button"
                         className="btn-cancel"
                         onClick={handleReset}
-                        disabled={isLoading}
+                        disabled={isLoading} // Désactiver aussi pendant le chargement?
                     >
                         Réinitialiser
                     </button>

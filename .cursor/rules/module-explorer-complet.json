@@ -1,0 +1,21 @@
+{
+    "name": "module-explorer-complet",
+    "description": "Explore en profondeur la documentation et le code d'un module spécifique",
+    "pattern": ".*(?:module|fonctionnalité|système|composant) (\\w+).*",
+    "actions": [
+        {
+            "type": "readFiles",
+            "files": [
+                "src/modules/${module}/**/*.ts",
+                "src/modules/${module}/**/*.tsx",
+                "documentation/${module}*.md",
+                "docs/modules/${module}*.md",
+                "docs/technique/${module}*.md",
+                "docs/technical/${module}*.md"
+            ],
+            "variables": {
+                "module": "${match.1}"
+            }
+        }
+    ]
+}

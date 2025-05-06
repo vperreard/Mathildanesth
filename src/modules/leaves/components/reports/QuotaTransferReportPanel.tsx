@@ -2,12 +2,12 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuotaTransferReport } from '../../hooks/useQuotaTransferReport';
 import { LeaveType } from '../../types/leave';
 import { QuotaTransferReportData } from '../../types/quota';
-import { Loader2, Download, Filter, RefreshCw, Table as TableIcon, ChevronDown, ChevronUp, FileSpreadsheet, FilePdf, FileType } from 'lucide-react';
+import { Loader2, Download, Filter, RefreshCw, Table as TableIcon, ChevronDown, ChevronUp, FileSpreadsheet, FileType } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -30,8 +30,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -58,6 +56,7 @@ import { ReportFilterPanel } from './ReportFilterPanel';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useToast } from '@/components/ui/use-toast';
+import { AlertCircle } from 'lucide-react';
 
 interface QuotaTransferReportPanelProps {
     userId?: string;

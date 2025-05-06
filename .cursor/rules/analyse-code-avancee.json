@@ -1,0 +1,19 @@
+{
+    "name": "analyse-code-avancee",
+    "description": "Analyse le code source et la documentation pertinente pour la tâche",
+    "pattern": ".*(?:implémenter|développer|ajouter|créer|modifier|corriger|bug|problème|améliorer|optimiser).*",
+    "actions": [
+        {
+            "type": "executeActions",
+            "actions": [
+                {
+                    "type": "search",
+                    "query": "Code source et documentation liés à ${topic}"
+                }
+            ],
+            "variables": {
+                "topic": "${userQuery}"
+            }
+        }
+    ]
+}

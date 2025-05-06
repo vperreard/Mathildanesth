@@ -6,7 +6,7 @@ import {
     CalendarSettings,
     CalendarViewType
 } from '../types/event';
-import { fetchCalendarEvents } from '../services/calendarService';
+import { calendarService } from '../services/calendarService';
 import { startOfMonth, endOfMonth, addMonths, subMonths, startOfWeek, endOfWeek, addWeeks, subWeeks, startOfDay, endOfDay, addDays, subDays } from 'date-fns';
 import {
     DEFAULT_FILTERS,
@@ -15,7 +15,7 @@ import {
     createCacheKey
 } from './calendarStoreConfig';
 
-interface CalendarState {
+export interface CalendarState {
     // Événements et données
     events: AnyCalendarEvent[];
     loading: boolean;
@@ -169,7 +169,7 @@ export const useCalendarStore = create<CalendarState>()(
                 set({ loading: true, error: null });
 
                 try {
-                    const events = await fetchCalendarEvents(state.filters);
+                    const events = await calendarService.getEvents(state.filters);
                     set({
                         events,
                         loading: false,

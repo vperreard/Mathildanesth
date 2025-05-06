@@ -1,8 +1,5 @@
 {
     "rules": [
-        "documentation-prioritaire",
-        "module-explorer",
-        "contexte-technique-specifique",
-        "analyse-code-contexte"
+        "instruction-totale"
     ]
 }

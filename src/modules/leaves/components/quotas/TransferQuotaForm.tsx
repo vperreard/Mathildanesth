@@ -4,22 +4,24 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { LeaveType } from '../../types/leave';
+import { LeaveType, LeaveTypeQuota } from '../../types/leave';
 import { QuotaTransactionStatus } from '../../types/quota';
 import { getLabelForLeaveType } from '../../utils/leaveTypeUtils';
 import { useQuotaCalculation } from '../../hooks/useQuotaCalculation';
 import { useQuotaHistory } from '../../hooks/useQuotaHistory';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import Input from '@/components/ui/input';
+import Textarea from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, AlertCircle, CheckCircle2, ArrowRightCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
+import { Label as UILabel } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { useQuotaTransfer } from '../../hooks/useQuotaTransfer';
+import { getLeaveTypeName } from '../../utils/leaveUtils';
 
 // Définition du schéma de validation
 const transferFormSchema = z.object({

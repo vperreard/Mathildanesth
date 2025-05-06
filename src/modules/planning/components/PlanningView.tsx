@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Assignment, AssignmentStatus, ShiftType } from '@/types/assignment';
+import { Assignment, AssignmentStatus } from '@/types/assignment';
+import { ShiftType } from '@/types/common';
 import { User } from '@/types/user';
 import { RulesConfiguration } from '@/types/rules';
 import { PlanningGeneratorService } from '../services/PlanningGeneratorService';
@@ -45,7 +46,7 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
                 toast.success('Planning généré avec succès');
             }
 
-            setAssignments(newAssignments);
+            setAssignments(Array.isArray(newAssignments) ? newAssignments : []);
         } catch (error) {
             toast.error('Erreur lors de la génération du planning');
             console.error(error);
@@ -64,6 +65,9 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
 
     // Filtrer les affectations par date
     const getAssignmentsForDate = useCallback((date: Date) => {
+        // S'assurer que assignments est bien un tableau
+        if (!Array.isArray(assignments)) return [];
+
         return assignments.filter(assignment =>
             format(new Date(assignment.startDate), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
         );
@@ -71,6 +75,9 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
 
     // Filtrer les affectations par utilisateur
     const getAssignmentsForUser = useCallback((user: User) => {
+        // S'assurer que assignments est bien un tableau
+        if (!Array.isArray(assignments)) return [];
+
         return assignments.filter(assignment => assignment.userId === user.id);
     }, [assignments]);
 
@@ -108,10 +115,10 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
                                 <motion.div
                                     key={assignment.id}
                                     className={`p-2 rounded ${assignment.status === AssignmentStatus.APPROVED
-                                            ? 'bg-green-100'
-                                            : assignment.status === AssignmentStatus.REJECTED
-                                                ? 'bg-red-100'
-                                                : 'bg-gray-100'
+                                        ? 'bg-green-100'
+                                        : assignment.status === AssignmentStatus.REJECTED
+                                            ? 'bg-red-100'
+                                            : 'bg-gray-100'
                                         }`}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}

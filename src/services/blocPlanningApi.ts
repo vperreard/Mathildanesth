@@ -1,5 +1,6 @@
 import { BlocDayPlanning, ValidationResult } from '@/types/bloc-planning-types';
-import { logError } from '@/lib/logger';
+import { logError } from '@/services/errorLoggingService';
+import { ErrorDetails, ErrorSeverity } from '@/hooks/useErrorHandler';
 
 // Interface pour notre réponse simulée
 interface MockResponse {
@@ -121,11 +122,14 @@ export async function fetchDayPlanning(date: string, options?: { signal?: AbortS
         if (error instanceof DOMException && error.name === 'AbortError') {
             throw new Error('Requête annulée');
         }
-
-        logError({
+        const errorDetails: ErrorDetails = {
             message: `Erreur lors de la récupération du planning pour la date ${date}`,
-            context: { date, error }
-        });
+            severity: 'error',
+            code: 'FETCH_DAY_PLANNING_FAILED',
+            context: { date, rawError: error },
+            timestamp: new Date()
+        };
+        logError('fetchDayPlanning', errorDetails);
         throw new Error(`Impossible de récupérer le planning: ${(error as Error).message}`);
     }
 }
@@ -155,11 +159,14 @@ export async function validateDayPlanning(planning: BlocDayPlanning, options?: {
         if (error instanceof DOMException && error.name === 'AbortError') {
             throw new Error('Requête annulée');
         }
-
-        logError({
+        const errorDetails: ErrorDetails = {
             message: `Erreur lors de la validation du planning pour la date ${planning.date}`,
-            context: { planning, error }
-        });
+            severity: 'warning',
+            code: 'VALIDATE_DAY_PLANNING_FAILED',
+            context: { planning, rawError: error },
+            timestamp: new Date()
+        };
+        logError('validateDayPlanning', errorDetails);
         throw new Error(`Impossible de valider le planning: ${(error as Error).message}`);
     }
 }
@@ -195,11 +202,14 @@ export async function saveDayPlanning(planning: BlocDayPlanning, validate: boole
         if (error instanceof DOMException && error.name === 'AbortError') {
             throw new Error('Requête annulée');
         }
-
-        logError({
+        const errorDetails: ErrorDetails = {
             message: `Erreur lors de la sauvegarde du planning pour la date ${planning.date}`,
-            context: { planning, error }
-        });
+            severity: 'error',
+            code: 'SAVE_DAY_PLANNING_FAILED',
+            context: { planning, rawError: error },
+            timestamp: new Date()
+        };
+        logError('saveDayPlanning', errorDetails);
         throw new Error(`Impossible de sauvegarder le planning: ${(error as Error).message}`);
     }
 }
@@ -226,11 +236,14 @@ export async function fetchAvailableSupervisors(date?: string, options?: { signa
         if (error instanceof DOMException && error.name === 'AbortError') {
             throw new Error('Requête annulée');
         }
-
-        logError({
+        const errorDetails: ErrorDetails = {
             message: 'Erreur lors de la récupération des superviseurs disponibles',
-            context: { date, error }
-        });
+            severity: 'error',
+            code: 'FETCH_SUPERVISORS_FAILED',
+            context: { date, rawError: error },
+            timestamp: new Date()
+        };
+        logError('fetchAvailableSupervisors', errorDetails);
         throw new Error(`Impossible de récupérer les superviseurs: ${(error as Error).message}`);
     }
 } 

@@ -21,8 +21,11 @@ import {
     DialogFooter
 } from "@/components/ui"; // Assurez-vous que ces composants existent
 import { DialogClose } from "@radix-ui/react-dialog";
-import { getCookie } from 'cookies-next';
 import { toast } from 'react-hot-toast';
+import { v4 as uuidv4 } from 'uuid';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import Input from '@/components/ui/input';
 
 // Style global pour les animations
 const globalStyles = `
@@ -243,26 +246,6 @@ const OperatingRoomsConfigPanel: React.FC = () => {
     const [roomOrder, setRoomOrder] = useState<RoomOrderConfig>({ orderedRoomIdsBySector: {} });
     const [saveMessage, setSaveMessage] = useState('');
 
-    // Remplacer la configuration axios pour ajouter les en-têtes d'authentification
-    // Créer un intercepteur pour ajouter automatiquement le token à toutes les requêtes
-    useEffect(() => {
-        // Intercepteur pour toutes les requêtes
-        const requestInterceptor = axios.interceptors.request.use(config => {
-            const token = getCookie('auth_token');
-            if (token) {
-                config.headers['Authorization'] = `Bearer ${token}`;
-            }
-            // Ajouter le role admin pour les opérations
-            config.headers['x-user-role'] = 'ADMIN_TOTAL';
-            return config;
-        });
-
-        // Nettoyage à la désinscription
-        return () => {
-            axios.interceptors.request.eject(requestInterceptor);
-        };
-    }, []);
-
     // Fonction pour récupérer les données
     const fetchData = useCallback(async () => {
         setIsLoading(true);
@@ -387,6 +370,32 @@ const OperatingRoomsConfigPanel: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
+    }, []);
+
+    useEffect(() => {
+        const fetchSectors = async () => {
+            try {
+                const apiBaseUrl = window.location.origin;
+                const response = await axios.get(`${apiBaseUrl}/api/operating-sectors`, {
+                    params: { _t: Date.now() }
+                });
+                setSectors(response.data);
+                // Mettre à jour les noms et couleurs pour les listes déroulantes
+                const names = response.data.map((s: Sector) => s.name);
+                setSectorNames(names);
+
+                const colors: Record<string, string> = {};
+                response.data.forEach((s: Sector) => {
+                    colors[s.name] = s.colorCode;
+                });
+                setSectorColors(colors);
+            } catch (error) {
+                console.error("Erreur lors du chargement des secteurs:", error);
+                setError("Impossible de charger les secteurs. Veuillez réessayer plus tard.");
+            }
+        };
+
+        fetchSectors();
     }, []);
 
     useEffect(() => {
@@ -580,261 +589,54 @@ const OperatingRoomsConfigPanel: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (DEBUG_MODE) {
-            console.log("DEBUG SOUMISSION FORMULAIRE -----");
-            console.log("Secteurs disponibles:", sectors);
-            console.log("Liste des noms de secteurs:", sectors.map(s => s.name));
-            console.log("Secteur recherché:", formData.sector);
-        }
-
-        // Vérifier si nous avons besoin de créer d'abord un secteur
-        if (sectors.length === 0) {
-            try {
-                if (DEBUG_MODE) console.log("Aucun secteur trouvé - création automatique du secteur Endoscopie");
-                setIsSubmitting(true);
-
-                // Créer un secteur d'endoscopie par défaut
-                const sectorResponse = await axios.post('/api/operating-sectors', {
-                    name: 'Endoscopie',
-                    colorCode: '#4F46E5', // Bleu roi
-                    description: 'Secteur d\'endoscopie (créé automatiquement)'
-                });
-
-                if (DEBUG_MODE) console.log("Secteur créé avec succès:", sectorResponse.data);
-
-                // Ajouter le nouveau secteur à la liste
-                const newSector = sectorResponse.data;
-                setSectors(prev => [...prev, newSector]);
-                setSectorNames(prev => [...prev, newSector.name]);
-                setSectorColors(prev => ({ ...prev, [newSector.name]: newSector.colorCode }));
-
-                // Mettre à jour le formulaire avec le nouveau secteur
-                setFormData(prev => ({
-                    ...prev,
-                    sector: newSector.name,
-                    colorCode: newSector.colorCode
-                }));
-
-                // Continuer le processus avec les nouvelles données
-                setTimeout(() => {
-                    // On resoumet le formulaire maintenant que le secteur existe
-                    handleSubmit(e);
-                }, 100);
-
-                return; // Sortir pour éviter la double soumission
-            } catch (err: any) {
-                console.error("Erreur lors de la création automatique du secteur:", err);
-                setFormError("Impossible de créer automatiquement le secteur. Veuillez d'abord créer un secteur manuellement.");
-                setIsSubmitting(false);
-                return;
-            }
-        }
-
-        // Validation basique des champs obligatoires
-        if (!formData.name?.trim()) {
-            setFormError('Le nom de la salle est obligatoire.');
-            return;
-        }
-        if (!formData.number?.trim()) {
-            setFormError('Le numéro de la salle est obligatoire.');
-            return;
-        }
-
-        // Vérifier et corriger le secteur si nécessaire
-        let updatedFormData = { ...formData };
-
-        // Si le secteur est vide ou invalide, tenter de le corriger automatiquement
-        if (!formData.sector?.trim()) {
-            console.log("Secteur manquant - tentative de correction automatique");
-
-            // Chercher un secteur par défaut (endoscopie en priorité)
-            let defaultSector = '';
-
-            if (sectorNames.length > 0) {
-                const endoscopieIndex = sectorNames.findIndex(s =>
-                    s.toLowerCase().includes('endo')
-                );
-
-                defaultSector = endoscopieIndex >= 0 ? sectorNames[endoscopieIndex] : sectorNames[0];
-            } else if (sectors.length > 0) {
-                const endoscopieSector = sectors.find(s =>
-                    s.name.toLowerCase().includes('endo')
-                );
-
-                defaultSector = endoscopieSector ? endoscopieSector.name : sectors[0].name;
-            }
-
-            if (defaultSector) {
-                console.log(`Secteur corrigé automatiquement: "${defaultSector}"`);
-                updatedFormData.sector = defaultSector;
-                // Mettre à jour aussi le state pour les rendus futurs
-                setFormData(prev => ({ ...prev, sector: defaultSector }));
-            } else {
-                setFormError('Le secteur est obligatoire et aucun secteur par défaut n\'a pu être trouvé.');
-                return;
-            }
-        }
-
-        // Fonction pour trouver un secteur de manière plus robuste
-        const findSector = (sectorName: string) => {
-            if (!sectorName || !sectors || sectors.length === 0) {
-                console.error("Données invalides pour la recherche de secteur", { sectorName, sectors });
-                return null;
-            }
-
-            // Normaliser le nom pour la recherche
-            const normalizedName = sectorName.trim().toLowerCase();
-
-            if (DEBUG_MODE) {
-                console.log("Recherche de secteur - nom normalisé:", normalizedName);
-
-                // Afficher tous les secteurs disponibles avec leur nom normalisé pour débogage
-                console.log("Secteurs disponibles pour comparaison:",
-                    sectors.map(s => ({
-                        id: s.id,
-                        name: s.name,
-                        normalizedName: s.name.toLowerCase(),
-                        match: s.name.toLowerCase() === normalizedName
-                    }))
-                );
-            }
-
-            // Recherche exacte d'abord (insensible à la casse)
-            let result = sectors.find(s => s.name.toLowerCase() === normalizedName);
-            if (result) {
-                if (DEBUG_MODE) console.log(`Secteur trouvé par correspondance exacte: ${result.name} (ID: ${result.id})`);
-                return result;
-            }
-
-            // Recherche spécifique pour Endoscopie
-            if (normalizedName.includes("endo")) {
-                result = sectors.find(s =>
-                    s.name.toLowerCase().includes("endo") ||
-                    s.name.toLowerCase() === "endoscopie"
-                );
-
-                if (result) {
-                    if (DEBUG_MODE) console.log(`Secteur Endoscopie trouvé par recherche partielle: ${result.name} (ID: ${result.id})`);
-                    return result;
-                }
-            }
-
-            // Recherche par inclusion si toujours pas trouvé
-            result = sectors.find(s =>
-                s.name.toLowerCase().includes(normalizedName) ||
-                normalizedName.includes(s.name.toLowerCase())
-            );
-
-            if (result) {
-                if (DEBUG_MODE) console.log(`Secteur trouvé par inclusion: ${result.name} (ID: ${result.id})`);
-                return result;
-            }
-
-            // Solution de secours: prendre le premier secteur en dernier recours 
-            // si le secteur "Endoscopie" est recherché
-            if (normalizedName.includes("endo") && sectors.length > 0) {
-                // Chercher spécifiquement un secteur d'endoscopie
-                const endoSector = sectors.find(s => s.name.toLowerCase().includes("endo"));
-
-                // Utiliser ce secteur ou le premier de la liste
-                const fallbackSector = endoSector || sectors[0];
-                if (DEBUG_MODE) console.log(`SECOURS - Utilisation du secteur: ${fallbackSector.name} (ID: ${fallbackSector.id})`);
-                return fallbackSector;
-            }
-
-            // Dernier recours: prendre simplement le premier secteur si disponible
-            if (sectors.length > 0) {
-                if (DEBUG_MODE) console.log(`DERNIER RECOURS - Utilisation du premier secteur: ${sectors[0].name}`);
-                return sectors[0];
-            }
-
-            console.error("Aucun secteur trouvé pour:", normalizedName);
-            return null;
-        };
-
-        // Trouver l'ID du secteur à partir de son nom de façon plus robuste
-        const selectedSector = findSector(updatedFormData.sector);
-        if (DEBUG_MODE) {
-            console.log("Secteur cherché:", updatedFormData.sector);
-            console.log("Secteur trouvé:", selectedSector);
-        }
-
-        if (!selectedSector) {
-            console.error("ERREUR: Secteur non trouvé!", updatedFormData.sector);
-            if (DEBUG_MODE) {
-                console.log("Tous les secteurs:", sectors.map(s => s.name));
-                console.log("Comparaison exacte:");
-                sectors.forEach(s => {
-                    console.log(`"${s.name}" === "${updatedFormData.sector}" ? ${s.name === updatedFormData.sector}`);
-                    console.log(`Longueurs: ${s.name.length} vs ${updatedFormData.sector.length}`);
-                    console.log(`Codes caractères: [${[...s.name].map(c => c.charCodeAt(0))}] vs [${[...updatedFormData.sector].map(c => c.charCodeAt(0))}]`);
-                });
-            }
-
-            setFormError('Secteur invalide. Veuillez sélectionner un secteur existant ou réessayer.');
-            return;
-        }
-
         try {
-            setIsSubmitting(true);
-            setFormError(null);
-
-            // Préparation des données à envoyer (avec l'ID du secteur)
-            const roomData = {
-                ...updatedFormData,
-                sectorId: selectedSector.id,  // Définir l'ID du secteur
-                sector: selectedSector.name,  // Garder aussi le nom pour compatibilité
-                supervisionRules: updatedFormData.supervisionRules || {}
-            };
-
-            if (DEBUG_MODE) console.log("Données envoyées à l'API:", roomData);
-
-            // Création ou modification selon le mode
+            const apiBaseUrl = window.location.origin;
             if (isEditing) {
-                // Mode édition
-                await axios.put(`/api/operating-rooms/${isEditing}`, roomData);
-                setShowSuccess(true);
-                setTimeout(() => setShowSuccess(false), 3000);
+                // Mise à jour d'une salle existante
+                await axios.put(`${apiBaseUrl}/api/operating-rooms/${isEditing}`, {
+                    ...formData,
+                    sectorId: sectors.find(s => s.name === formData.sector)?.id
+                });
             } else {
-                // Mode création
-                await axios.post('/api/operating-rooms', roomData);
-                setShowSuccess(true);
-                setTimeout(() => setShowSuccess(false), 3000);
+                // Création d'une nouvelle salle
+                await axios.post(`${apiBaseUrl}/api/operating-rooms`, {
+                    ...formData,
+                    sectorId: sectors.find(s => s.name === formData.sector)?.id
+                });
             }
 
-            // Rafraîchir les données et réinitialiser le formulaire
-            await fetchData();
+            // Recharger la liste des salles
+            const result = await axios.get(`${apiBaseUrl}/api/operating-rooms`, {
+                params: { _t: Date.now() }
+            });
+            setRooms(result.data);
+
             resetFormAndCloseModal();
-        } catch (err: any) {
-            console.error("Erreur lors de la soumission:", err);
-            setFormError(err.response?.data?.message || 'Une erreur est survenue lors de la soumission.');
-        } finally {
-            setIsSubmitting(false);
+            setSaveMessage('Salle enregistrée avec succès!');
+            setTimeout(() => setSaveMessage(''), 3000);
+        } catch (error) {
+            console.error('Erreur lors de l\'enregistrement de la salle:', error);
         }
     };
 
     // Suppression d'une salle
     const handleDeleteClick = async (id: number) => {
-        if (!confirm('Êtes-vous sûr de vouloir supprimer cette salle ? Cette action est irréversible.')) {
-            return;
-        }
-        setError(null);
-        try {
-            // Vérifier si la salle existe avant de tenter de la supprimer
-            const salle = rooms.find(r => r.id === id);
-            if (!salle) {
-                throw new Error('Salle introuvable');
+        if (window.confirm('Êtes-vous sûr de vouloir supprimer cette salle?')) {
+            try {
+                const apiBaseUrl = window.location.origin;
+                await axios.delete(`${apiBaseUrl}/api/operating-rooms/${id}`);
+
+                // Recharger la liste des salles
+                const result = await axios.get(`${apiBaseUrl}/api/operating-rooms`, {
+                    params: { _t: Date.now() }
+                });
+                setRooms(result.data);
+
+                setSaveMessage('Salle supprimée avec succès!');
+                setTimeout(() => setSaveMessage(''), 3000);
+            } catch (error) {
+                console.error('Erreur lors de la suppression de la salle:', error);
             }
-
-            await axios.delete(`/api/operating-rooms/${id}`);
-
-            // Mettre à jour l'état local (supprimer la salle de l'état)
-            setRooms(prev => prev.filter(r => r.id !== id));
-            setShowSuccess(true);
-            setTimeout(() => setShowSuccess(false), 3000);
-        } catch (err: any) {
-            console.error("Erreur lors de la suppression:", err);
-            setError(err.response?.data?.message || err.message || 'Impossible de supprimer la salle.');
         }
     };
 

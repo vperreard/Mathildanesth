@@ -65,6 +65,8 @@ export type DisplayConfig = {
     couleurs?: {
         chirurgiens: Record<string | number, string>;
     };
+    selectedSector?: string;
+    groupBySector?: boolean;
 };
 
 // Types compatibles avec la page principale
@@ -129,4 +131,19 @@ export type AssignmentConflict = {
 
 export type RoomOrderConfig = {
     orderedRoomIds: (string | number)[];
-}; 
+};
+
+import { RuleViolation } from '@/types/assignment';
+
+// Définition de ValidationResult (à exporter)
+export interface ValidationResult {
+    valid: boolean;
+    violations: RuleViolation[];
+    warnings?: RuleViolation[]; // Optionnel
+    metrics?: {
+        equiteScore?: number;
+        fatigueScore?: number;
+        satisfactionScore?: number;
+        // ... autres métriques
+    };
+} 

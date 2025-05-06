@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { Button, Table, Badge, Card } from '@/components/ui';
 import { OperatingSector } from '@/modules/planning/bloc-operatoire/models/BlocModels';

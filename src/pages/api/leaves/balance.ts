@@ -1,9 +1,45 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
-import { LeaveStatus, LeaveType } from '@prisma/client';
 import { LeaveQueryCacheService } from '@/modules/leaves/services/LeaveQueryCacheService';
 import { LeaveEvent } from '@/modules/leaves/types/cache';
 import { logger } from '@/lib/logger';
+
+// Pour TypeScript, définir des enums manuellement si nécessaire
+enum LeaveType {
+    CongesPayes = 'CongesPayes',
+    RTT = 'RTT',
+    Maladie = 'Maladie',
+    Formation = 'Formation',
+    CongesSansSolde = 'CongesSansSolde',
+    Exceptionnel = 'Exceptionnel',
+    Recuperation = 'Recuperation'
+}
+
+enum LeaveStatus {
+    PENDING = 'PENDING',
+    APPROVED = 'APPROVED',
+    REJECTED = 'REJECTED',
+    CANCELLED = 'CANCELLED'
+}
+
+// Définir le type pour les ajustements de quota
+interface QuotaAdjustment {
+    id: string;
+    userId: number;
+    leaveType: string;
+    amount: number;
+    reason: string;
+    year: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+// Définir un type pour le résultat de la requête brute
+interface AggregatedLeave {
+    type: string;
+    status: string;
+    totalDays: number | null; // Le SUM peut être null si aucun congé
+}
 
 // Obtenir le service de cache
 const cacheService = LeaveQueryCacheService.getInstance();
@@ -42,27 +78,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const startDate = new Date(targetYear, 0, 1); // 1er Janvier
         const endDate = new Date(targetYear, 11, 31, 23, 59, 59, 999); // 31 Décembre
 
-        // Récupérer l'allocation annuelle pour l'utilisateur depuis la configuration utilisateur
-        const userProfile = await prisma.userProfile.findUnique({
-            where: { userId: userIdInt },
-            select: {
-                annualLeaveAllowance: true,
-                additionalLeaveAllowance: true,
-                sickLeaveAllowance: true
-            }
-        });
+        // --- Définir les allocations annuelles par défaut (à rendre configurable plus tard) ---
+        const defaultAllowances: Record<string, number> = {
+            [LeaveType.CongesPayes]: 25,
+            [LeaveType.RTT]: 10,
+            [LeaveType.Maladie]: 12, // Ou gérer différemment
+            [LeaveType.Formation]: 5,
+            [LeaveType.CongesSansSolde]: 0,
+            [LeaveType.Exceptionnel]: 3,
+            [LeaveType.Recuperation]: 0,
+            // Ajouter d'autres types si nécessaire
+        };
 
-        const totalDays = userProfile?.annualLeaveAllowance || 25; // Valeur par défaut si non trouvée
-        const additionalDays = userProfile?.additionalLeaveAllowance || 0;
-        const sickDays = userProfile?.sickLeaveAllowance || 12;
-
-        // Optimisation: Utiliser l'agrégation Prisma pour calculer les jours utilisés par type de congé
-        // Cette requête est beaucoup plus efficace qu'une requête suivie d'une réduction en mémoire
-        const leavesByType = await prisma.$queryRaw`
+        // Utiliser le type AggregatedLeave[] pour le résultat
+        const leavesByType: AggregatedLeave[] = await prisma.$queryRaw<AggregatedLeave[]>`
             SELECT 
                 "type", 
                 "status",
-                SUM("workingDaysCount") as "totalDays"
+                SUM("workingDaysCount")::integer as "totalDays" -- Caster en integer
             FROM "Leave"
             WHERE 
                 "userId" = ${userIdInt}
@@ -74,24 +107,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             GROUP BY "type", "status"
         `;
 
-        // Initialiser les compteurs pour chaque type de congé
-        const detailsByType = Object.values(LeaveType).reduce((acc, type) => {
-            acc[type] = { used: 0, pending: 0 };
-            return acc;
-        }, {} as Record<string, { used: number, pending: number }>);
+        // Obtenir la liste des types de congés disponibles
+        const leaveTypes = Object.values(LeaveType);
 
-        // Remplir les détails par type depuis les résultats agrégés
-        leavesByType.forEach((leave: any) => {
+        // Initialiser les compteurs avec les allocations par défaut
+        const detailsByType: Record<string, { initial: number, used: number, pending: number }> = {};
+        leaveTypes.forEach(type => {
+            detailsByType[type] = {
+                initial: defaultAllowances[type] || 0,
+                used: 0,
+                pending: 0
+            };
+        });
+
+        // Remplir les détails (utiliser le type AggregatedLeave)
+        leavesByType.forEach((leave: AggregatedLeave) => {
             const { type, status, totalDays } = leave;
+            const days = Number(totalDays || 0); // Gérer le cas null et convertir
 
-            if (status === LeaveStatus.APPROUVE) {
-                detailsByType[type].used += Number(totalDays);
-            } else if (status === LeaveStatus.EN_ATTENTE) {
-                detailsByType[type].pending += Number(totalDays);
+            // Vérifier si le type existe dans les détails, sinon l'initialiser
+            if (!detailsByType[type]) {
+                detailsByType[type] = { initial: 0, used: 0, pending: 0 };
+            }
+
+            // Utiliser les bonnes valeurs d'enum importées
+            if (status === LeaveStatus.APPROVED) {
+                detailsByType[type].used += days;
+            } else if (status === LeaveStatus.PENDING) {
+                detailsByType[type].pending += days;
             }
         });
 
-        // Récupérer les ajustements manuels de quotas pour l'utilisateur
+        // Récupérer les ajustements avec une requête simple sans utiliser d'index unique
         const quotaAdjustments = await prisma.leaveQuotaAdjustment.findMany({
             where: {
                 userId: userIdInt,
@@ -99,39 +146,70 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
         });
 
-        // Appliquer les ajustements de quotas
+        // Appliquer les ajustements
         let totalAdjustment = 0;
         const adjustmentsByType: Record<string, number> = {};
 
-        quotaAdjustments.forEach(adjustment => {
-            const type = adjustment.leaveType;
-            adjustmentsByType[type] = (adjustmentsByType[type] || 0) + adjustment.amount;
-            totalAdjustment += adjustment.amount;
+        // Initialiser les ajustements par type à 0
+        leaveTypes.forEach(type => {
+            adjustmentsByType[type] = 0;
         });
 
-        // Calculer les totaux
-        const used = Object.values(detailsByType).reduce((sum, detail) => sum + detail.used, 0);
-        const pending = Object.values(detailsByType).reduce((sum, detail) => sum + detail.pending, 0);
-        const remaining = totalDays + additionalDays + totalAdjustment - used - pending;
+        quotaAdjustments.forEach((adjustment: any) => {
+            const type = adjustment.leaveType;
+            if (type in adjustmentsByType) {
+                adjustmentsByType[type] += adjustment.amount;
+                totalAdjustment += adjustment.amount;
+            } else {
+                logger.warn(`Type d'ajustement de quota inconnu trouvé: ${type} pour l'utilisateur ${userIdInt}`);
+            }
+        });
+
+        // Calculer les totaux globaux et par type
+        let totalUsed = 0;
+        let totalPending = 0;
+        let totalInitial = 0;
+
+        const finalBalancesByType: Record<string, {
+            initial: number,
+            adjustment: number,
+            used: number,
+            pending: number,
+            remaining: number
+        }> = {};
+
+        Object.keys(detailsByType).forEach(type => {
+            const initial = detailsByType[type].initial;
+            const adjustment = adjustmentsByType[type] || 0;
+            const used = detailsByType[type].used;
+            const pending = detailsByType[type].pending;
+            const remaining = initial + adjustment - used - pending;
+
+            finalBalancesByType[type] = {
+                initial,
+                adjustment,
+                used,
+                pending,
+                remaining
+            };
+
+            totalInitial += initial;
+            totalUsed += used;
+            totalPending += pending;
+        });
+
+        const totalRemaining = totalInitial + totalAdjustment - totalUsed - totalPending;
 
         // Résultat final
         const result = {
             userId: userIdInt,
             year: targetYear,
-            initialAllowance: totalDays,
-            additionalAllowance: additionalDays,
-            adjustments: totalAdjustment,
-            adjustmentsByType,
-            used,
-            pending,
-            remaining,
-            detailsByType,
-            sickLeave: {
-                allowance: sickDays,
-                used: detailsByType[LeaveType.MALADIE]?.used || 0,
-                pending: detailsByType[LeaveType.MALADIE]?.pending || 0,
-                remaining: sickDays - (detailsByType[LeaveType.MALADIE]?.used || 0) - (detailsByType[LeaveType.MALADIE]?.pending || 0)
-            },
+            totalInitialAllowance: totalInitial, // Allocation totale calculée
+            totalAdjustments: totalAdjustment,
+            totalUsed,
+            totalPending,
+            totalRemaining,
+            detailsByType: finalBalancesByType, // Détails par type
             lastUpdated: new Date()
         };
 
@@ -140,10 +218,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         return res.status(200).json(result);
     } catch (error) {
-        logger.error(`Erreur API /api/leaves/balance:`, { userId, year, error });
+        // Log amélioré pour voir la nature de l'erreur
+        const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
+        logger.error(`Erreur API /api/leaves/balance: Message=[${errorMessage}]`, {
+            userId,
+            year,
+            errorObject: error, // Log the original error object too
+            stack: errorStack
+        });
         return res.status(500).json({
             error: 'Erreur serveur lors du calcul du solde de congés',
-            details: error instanceof Error ? error.message : String(error)
+            details: errorMessage // Retourner un message d'erreur plus informatif
         });
     }
 } 

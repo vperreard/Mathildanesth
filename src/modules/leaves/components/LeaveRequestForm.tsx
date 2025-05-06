@@ -248,104 +248,60 @@ export const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
             errors.push(quotaCheckResult.message);
         }
 
+        // Validation récurrence si activée
+        if (isRecurring) {
+            const recurringValidation = validateRecurringLeaveRequest(
+                leave as Leave,
+                recurrencePattern
+            );
+            if (!recurringValidation.isValid) {
+                errors.push(recurringValidation.message);
+            }
+        }
+
         setFormErrors(errors);
         return errors.length === 0;
     };
 
-    // Gérer la soumission du formulaire
+    // Soumettre le formulaire
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setFormErrors([]);
 
-        if (!leave || !leave.startDate || !leave.endDate) {
-            setFormErrors(['Veuillez sélectionner les dates de début et de fin']);
-            return;
+        setFormErrors([]); // Clear previous errors
+
+        // Validate form data
+        const isValid = validateForm();
+
+        if (!isValid) {
+            return; // Ne pas continuer si la validation de base échoue
         }
 
-        if (!leave.type) {
-            setFormErrors(['Veuillez sélectionner un type de congé']);
-            return;
-        }
-
+        // Check for conflicts
         try {
-            // Vérifier les conflits
-            const conflictResult = await checkConflicts(leave.startDate, leave.endDate);
+            const conflictResult = await checkConflicts(
+                new Date(leave.startDate!),
+                new Date(leave.endDate!),
+                leave.id ?? undefined
+            );
 
             if (conflictResult.hasBlockingConflicts) {
-                setFormErrors(['Des conflits bloquants ont été détectés']);
+                setFormErrors(prev => [...prev, 'Il y a des conflits bloquants avec cette demande.']);
                 setShowConflictWarning(true);
                 return;
             }
 
-            if (isRecurring) {
-                // Valider la demande récurrente
-                const validationResult = await validateRecurringLeaveRequest(
-                    leave.startDate,
-                    leave.endDate,
-                    userId,
-                    recurrencePattern,
-                    {
-                        availableDaysPerYear: 30, // À adapter selon vos besoins
-                        holidays: [], // À adapter selon vos besoins
-                        validateAllOccurrences: true
-                    }
-                );
-
-                if (!validationResult.isValid) {
-                    const errors = validationResult.errors.map(err => err.message);
-                    setFormErrors(errors);
-                    return;
-                }
-
-                // Créer la demande récurrente
-                const recurringRequest: RecurringLeaveRequest = {
-                    ...leave as Leave,
-                    isRecurring: true,
-                    patternStartDate: new Date(leave.startDate),
-                    patternEndDate: new Date(leave.endDate),
-                    recurrencePattern: recurrencePattern
-                };
-
-                // Générer les occurrences pour information
-                const occurrences = validationResult.occurrencesResult?.occurrences || [];
-
-                if (onSubmit) {
-                    onSubmit(recurringRequest);
-                }
-            } else {
-                // Validation standard pour les congés non récurrents
-                const isValid = validateLeaveRequest(
-                    leave.startDate,
-                    leave.endDate,
-                    userId,
-                    { availableDaysPerYear: 30 }
-                );
-
-                if (!isValid) {
-                    const startError = getErrorMessage(`leave_start_${userId}`);
-                    const endError = getErrorMessage(`leave_end_${userId}`);
-                    const errors = [startError, endError].filter(Boolean) as string[];
-
-                    if (errors.length > 0) {
-                        setFormErrors(errors);
-                        return;
-                    }
-                }
-
-                if (onSubmit) {
-                    submitLeave()
-                        .then(submittedLeave => {
-                            onSubmit(submittedLeave);
-                        })
-                        .catch(err => {
-                            console.error('Erreur lors de la soumission', err);
-                            setFormErrors(['Erreur lors de la soumission de la demande']);
-                        });
-                }
+            if (conflictResult.conflicts.length > 0) {
+                setShowConflictWarning(true);
             }
-        } catch (err) {
-            console.error('Erreur lors de la validation', err);
-            setFormErrors(['Une erreur est survenue lors de la validation']);
+
+            await submitLeave(leave as Leave); // Assurer que l'objet est complet
+
+            if (onSubmit) {
+                onSubmit(leave as Leave);
+            }
+
+        } catch (error) {
+            setFormErrors(prev => [...prev, `Erreur lors de la soumission: ${error instanceof Error ? error.message : String(error)}`]);
         }
     };
 

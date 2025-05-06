@@ -1,0 +1,18 @@
+{
+    "name": "module-explorer",
+    "description": "Explore automatiquement la documentation du module concerné par la requête",
+    "pattern": ".*(?:ajouter|modifier|implémenter|développer|corriger|bug|fonctionnalité|module) (\\w+).*",
+    "actions": [
+        {
+            "type": "readFiles",
+            "files": [
+                "documentation/${module}*.md",
+                "docs/modules/${module}/*.md",
+                "docs/technique/${module}*.md"
+            ],
+            "variables": {
+                "module": "${match.1}"
+            }
+        }
+    ]
+}

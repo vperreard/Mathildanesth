@@ -1,0 +1,31 @@
+import Button from '@/components/ui/button'; // Import défaut
+
+// Dans src/modules/leaves/components/quotas/QuotaTransferHistory.tsx
+import Button from '@/components/ui/button'; // Import défaut
+
+// Dans src/modules/leaves/components/quotas/TransferQuotaForm.tsx
+import Input from '@/components/ui/input'; // Import défaut
+import Textarea from '@/components/ui/textarea'; // Import défaut
+import Button from '@/components/ui/button'; // Import défaut
+
+// Dans src/modules/leaves/components/reports/QuotaTransferReportPanel.tsx
+import Button from '@/components/ui/button'; // Import défaut
+import { DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'; // OK si exporté dans dropdown-menu
+// Supposer que TableCaption existe dans table
+import { TableCaption } from '@/components/ui/table';
+
+// Dans src/modules/leaves/components/reports/ReportFilterPanel.tsx
+import Button from '@/components/ui/button'; // Import défaut
+import { DatePicker } from '@/components/ui/date-picker'; // OK, exporté via alias
+// Commenter MultiSelectItem car non exporté
+// import { MultiSelectItem } from '@/components/ui/multi-select';
+
+// Dans src/modules/planning/bloc-operatoire/components/AddRoomModal.tsx
+// Commenter Modal, Form, FormField, etc. car non exportés depuis @/components/ui
+// import { Modal, Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui';
+
+// Dans src/modules/planning/bloc-operatoire/components/RoomsList.tsx
+// Commenter Spinner car non exporté
+// import { Spinner } from '@/components/ui';
+import Button from '@/components/ui/button'; // Import défaut
+import { Table, Badge, Alert } from '@/components/ui'; // Imports nommés OK 

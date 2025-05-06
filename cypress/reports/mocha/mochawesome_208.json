@@ -1,0 +1,374 @@
+{
+  "stats": {
+    "suites": 5,
+    "tests": 9,
+    "passes": 0,
+    "pending": 0,
+    "failures": 9,
+    "start": "2025-05-04T20:33:12.577Z",
+    "end": "2025-05-04T20:33:48.009Z",
+    "duration": 35432,
+    "testsRegistered": 9,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "b4188a50-0a72-47ba-9e73-58c993410e3d",
+      "title": "",
+      "fullFile": "cypress/e2e/compatibility/responsive-tests.spec.ts",
+      "file": "cypress/e2e/compatibility/responsive-tests.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "4bfa04e1-0a50-4054-a9c4-18f652d9ec2b",
+          "title": "Tests de compatibilité responsive",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [],
+          "suites": [
+            {
+              "uuid": "e45fdcd8-2c3d-445f-bde5-1560b3517144",
+              "title": "Tests sur mobile",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "affiche correctement le menu de navigation",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur mobile affiche correctement le menu de navigation",
+                  "timedOut": null,
+                  "duration": 694,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier que le menu hamburger est présent sur mobile\ncy.get('[data-cy=mobile-menu-button]').should('be.visible');\n// Cliquer sur le menu hamburger\ncy.get('[data-cy=mobile-menu-button]').click();\n// Vérifier que le menu s'ouvre\ncy.get('[data-cy=navigation-menu]').should('be.visible');",
+                  "err": {
+                    "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                    "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133692:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133098:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133675:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:124:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
+                    "diff": null
+                  },
+                  "uuid": "42664407-e858-4ab6-81d9-c3451bd139e1",
+                  "parentUUID": "e45fdcd8-2c3d-445f-bde5-1560b3517144",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "affiche correctement la liste des congés",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur mobile affiche correctement la liste des congés",
+                  "timedOut": null,
+                  "duration": 6158,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/leaves');\n// Vérifier que les cartes de congés s'affichent en une colonne\ncy.get('[data-cy=leave-item]').should('have.css', 'width', '100%');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=leave-item]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=leave-item]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/compatibility/responsive-tests.spec.ts:44:43)",
+                    "diff": null
+                  },
+                  "uuid": "8f7317f2-0413-48cc-adea-a884a2dc7d14",
+                  "parentUUID": "e45fdcd8-2c3d-445f-bde5-1560b3517144",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "adapte correctement le calendrier",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur mobile adapte correctement le calendrier",
+                  "timedOut": null,
+                  "duration": 6395,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/calendar');\n// Vérifier que la vue par défaut est différente sur mobile\ncy.get('[data-cy=calendar-day-view]').should('be.visible');\n// Vérifier que les contrôles du calendrier sont adaptés\ncy.get('[data-cy=calendar-controls]').should('have.css', 'flex-direction', 'column');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=calendar-day-view]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=calendar-day-view]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/compatibility/responsive-tests.spec.ts:51:50)",
+                    "diff": null
+                  },
+                  "uuid": "b80d0532-96e2-466b-9f51-66440e96f345",
+                  "parentUUID": "e45fdcd8-2c3d-445f-bde5-1560b3517144",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "42664407-e858-4ab6-81d9-c3451bd139e1",
+                "8f7317f2-0413-48cc-adea-a884a2dc7d14",
+                "b80d0532-96e2-466b-9f51-66440e96f345"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 13247,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "6496d8c1-3600-41f0-a9a0-bb59802df84d",
+              "title": "Tests sur tablette",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "affiche correctement le menu de navigation",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur tablette affiche correctement le menu de navigation",
+                  "timedOut": null,
+                  "duration": 668,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier l'affichage correct du menu sur tablette\ncy.get('[data-cy=navigation-menu]').should('be.visible');",
+                  "err": {
+                    "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                    "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133692:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133098:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133675:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:124:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
+                    "diff": null
+                  },
+                  "uuid": "ff16b169-6bf4-4293-8e7e-7c4d2cf3cbb2",
+                  "parentUUID": "6496d8c1-3600-41f0-a9a0-bb59802df84d",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "affiche correctement la liste des congés",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur tablette affiche correctement la liste des congés",
+                  "timedOut": null,
+                  "duration": 6437,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/leaves');\n// Vérifier que les cartes de congés s'affichent en grille\ncy.get('[data-cy=leave-grid]').should('have.css', 'grid-template-columns');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=leave-grid]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=leave-grid]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/compatibility/responsive-tests.spec.ts:74:43)",
+                    "diff": null
+                  },
+                  "uuid": "a82407f8-7078-4db1-8671-e28e4617a7cb",
+                  "parentUUID": "6496d8c1-3600-41f0-a9a0-bb59802df84d",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "ff16b169-6bf4-4293-8e7e-7c4d2cf3cbb2",
+                "a82407f8-7078-4db1-8671-e28e4617a7cb"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 7105,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "9ac7ecc9-bbbc-4d44-979f-ce1bd5f71959",
+              "title": "Tests sur desktop",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "affiche correctement le menu de navigation",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur desktop affiche correctement le menu de navigation",
+                  "timedOut": null,
+                  "duration": 723,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier l'affichage du menu latéral sur desktop\ncy.get('[data-cy=sidebar-navigation]').should('be.visible');",
+                  "err": {
+                    "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                    "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133692:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133098:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133675:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:124:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
+                    "diff": null
+                  },
+                  "uuid": "479a65e8-33d7-416d-abd1-cab1ee38e370",
+                  "parentUUID": "9ac7ecc9-bbbc-4d44-979f-ce1bd5f71959",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "affiche correctement le planning hebdomadaire",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur desktop affiche correctement le planning hebdomadaire",
+                  "timedOut": null,
+                  "duration": 6396,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\n// Vérifier que toutes les colonnes sont visibles\ncy.get('[data-cy=planning-day-column]').should('have.length.at.least', 5);",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=planning-day-column]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=planning-day-column]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/compatibility/responsive-tests.spec.ts:94:52)",
+                    "diff": null
+                  },
+                  "uuid": "79b74ee4-98bb-4f3f-ae04-4fcb3aaf0ddc",
+                  "parentUUID": "9ac7ecc9-bbbc-4d44-979f-ce1bd5f71959",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "479a65e8-33d7-416d-abd1-cab1ee38e370",
+                "79b74ee4-98bb-4f3f-ae04-4fcb3aaf0ddc"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 7119,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "b95b2c89-0d55-41af-81e4-2d290ddb967e",
+              "title": "Tests sur grand écran",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "optimise l'affichage du planning",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur grand écran optimise l'affichage du planning",
+                  "timedOut": null,
+                  "duration": 6258,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\n// Vérifier que l'interface exploite l'espace disponible\ncy.get('[data-cy=planning-container]').invoke('width').should('be.gt', 1800);",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=planning-container]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=planning-container]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/compatibility/responsive-tests.spec.ts:107:15)",
+                    "diff": null
+                  },
+                  "uuid": "96c99550-4cc7-40e4-94d9-de2d2c2588cd",
+                  "parentUUID": "b95b2c89-0d55-41af-81e4-2d290ddb967e",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "affiche correctement le tableau de bord",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur grand écran affiche correctement le tableau de bord",
+                  "timedOut": null,
+                  "duration": 1126,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier que les widgets s'adaptent à l'espace disponible\ncy.get('[data-cy=dashboard-widgets]').invoke('width').should('be.gt', 1800);",
+                  "err": {
+                    "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                    "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133692:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133098:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133675:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:124:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
+                    "diff": null
+                  },
+                  "uuid": "82602eea-96d8-407c-adf7-e5aa02719a65",
+                  "parentUUID": "b95b2c89-0d55-41af-81e4-2d290ddb967e",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "96c99550-4cc7-40e4-94d9-de2d2c2588cd",
+                "82602eea-96d8-407c-adf7-e5aa02719a65"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 7384,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            }
+          ],
+          "passes": [],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 0,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

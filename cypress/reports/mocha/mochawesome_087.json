@@ -1,0 +1,188 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-05-04T17:23:21.542Z",
+    "end": "2025-05-04T17:23:22.085Z",
+    "duration": 543,
+    "testsRegistered": 5,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 4,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "b6b70d2e-0f45-4c93-89fc-4ebe02d00115",
+      "title": "",
+      "fullFile": "cypress/e2e/accessibility/accessibility-tests.spec.ts",
+      "file": "cypress/e2e/accessibility/accessibility-tests.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "233131f6-72c4-4a79-933a-e7c92d5e19a5",
+          "title": "Tests d'accessibilité",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "vérifie l'accessibilité de la page d'accueil",
+              "fullTitle": "Tests d'accessibilité vérifie l'accessibilité de la page d'accueil",
+              "timedOut": null,
+              "duration": 311,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/dashboard');\n// Injecter et vérifier l'accessibilité\ncy.checkAccessibility();",
+              "err": {
+                "message": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests d'accessibilité`",
+                "estack": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests d'accessibilité`\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "0a4f2eaf-9fa0-4586-8053-d5380b24d278",
+              "parentUUID": "233131f6-72c4-4a79-933a-e7c92d5e19a5",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "vérifie l'accessibilité de la page de congés",
+              "fullTitle": "Tests d'accessibilité vérifie l'accessibilité de la page de congés",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/leaves');\n// Injecter et vérifier l'accessibilité\ncy.checkAccessibility();",
+              "err": {},
+              "uuid": "f3160c2e-a44e-423b-87a2-7df267d7487b",
+              "parentUUID": "233131f6-72c4-4a79-933a-e7c92d5e19a5",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "vérifie l'accessibilité de la page de planning",
+              "fullTitle": "Tests d'accessibilité vérifie l'accessibilité de la page de planning",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\n// Injecter et vérifier l'accessibilité\ncy.checkAccessibility();",
+              "err": {},
+              "uuid": "3b928ad2-4266-4804-ae3d-3facb8c3ea4b",
+              "parentUUID": "233131f6-72c4-4a79-933a-e7c92d5e19a5",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "vérifie l'accessibilité du calendrier",
+              "fullTitle": "Tests d'accessibilité vérifie l'accessibilité du calendrier",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/calendar');\n// Injecter et vérifier l'accessibilité\ncy.checkAccessibility();",
+              "err": {},
+              "uuid": "02ac037c-a332-478e-a43e-62fa7145579a",
+              "parentUUID": "233131f6-72c4-4a79-933a-e7c92d5e19a5",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "vérifie l'accessibilité du formulaire de demande de congés",
+              "fullTitle": "Tests d'accessibilité vérifie l'accessibilité du formulaire de demande de congés",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/leaves/new');\n// Injecter et vérifier l'accessibilité avec une configuration personnalisée\ncy.checkAccessibility({\n    rules: {\n        'color-contrast': { enabled: true },\n        'label': { enabled: true },\n        'form-field-multiple-labels': { enabled: false }\n    }\n});",
+              "err": {},
+              "uuid": "bb85ed85-2a0d-4b6f-9685-f58162453675",
+              "parentUUID": "233131f6-72c4-4a79-933a-e7c92d5e19a5",
+              "isHook": false,
+              "skipped": true
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "0a4f2eaf-9fa0-4586-8053-d5380b24d278"
+          ],
+          "pending": [],
+          "skipped": [
+            "f3160c2e-a44e-423b-87a2-7df267d7487b",
+            "3b928ad2-4266-4804-ae3d-3facb8c3ea4b",
+            "02ac037c-a332-478e-a43e-62fa7145579a",
+            "bb85ed85-2a0d-4b6f-9685-f58162453675"
+          ],
+          "duration": 311,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

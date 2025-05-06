@@ -1,16 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/auth/AuthContext';
-import { QuotaTransferForm } from './quotas/QuotaTransferForm';
-import { AvailableQuotaDisplay } from './quotas/AvailableQuotaDisplay';
+import Button from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
+import { useLeaveQuota, UseLeaveQuotaReturn, LeaveTypeQuota } from '@/modules/leaves/hooks/useLeaveQuota';
+import { useToast } from '@/components/ui/use-toast';
+import AvailableQuotaDisplay from "./quotas/AvailableQuotaDisplay";
+import QuotaTransferForm from "./QuotaTransferForm";
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import QuotaTransferHistory from "./QuotaTransferHistory";
 
 // Import dynamique pour éviter les problèmes de rendu côté serveur avec recharts
 const QuotaTransferReportPanel = dynamic(
@@ -26,15 +29,40 @@ interface QuotaAdvancedManagementProps {
  * Composant principal pour la gestion avancée des quotas de congés
  * Inclut les fonctionnalités de transfert, reporting et configuration
  */
-export function QuotaAdvancedManagement({ userId }: QuotaAdvancedManagementProps) {
+export default function QuotaAdvancedManagement({ userId }: QuotaAdvancedManagementProps) {
     const [activeTab, setActiveTab] = useState<string>('transferts');
-    const { user, isAdmin } = useAuth();
+    const { toast } = useToast();
+    const { quotasByType, loading: isLoadingQuotas, error: errorQuotas, refreshQuotas }: UseLeaveQuotaReturn =
+        useLeaveQuota({ userId: userId || 'current' });
+    const { user } = useAuth();
     const router = useRouter();
+    const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
+    const [targetUserId, setTargetUserId] = useState<string>('');
 
-    // Utiliser l'ID utilisateur fourni ou celui de l'utilisateur connecté
-    const targetUserId = userId || (user?.id ? user.id.toString() : undefined);
+    // Déclarer isAdmin correctement
+    const isAdmin = user?.role === 'ADMIN' || user?.role === 'ADMIN_TOTAL';
 
-    // Si pas d'utilisateur cible et pas d'utilisateur connecté, afficher une erreur
+    useEffect(() => {
+        if (selectedUser) {
+            setTargetUserId(selectedUser.id);
+        } else if (user) {
+            setTargetUserId(String(user.id));
+        }
+    }, [selectedUser, user]);
+
+    useEffect(() => {
+        if (targetUserId) {
+            refreshQuotas(targetUserId);
+        }
+    }, [targetUserId, refreshQuotas]);
+
+    const handleTransferComplete = useCallback(() => {
+        if (targetUserId) {
+            refreshQuotas(targetUserId);
+            toast({ title: "Transfert de quota réussi !", description: "Les soldes ont été mis à jour." });
+        }
+    }, [targetUserId, refreshQuotas, toast]);
+
     if (!targetUserId) {
         return (
             <Alert variant="destructive">
@@ -46,6 +74,8 @@ export function QuotaAdvancedManagement({ userId }: QuotaAdvancedManagementProps
             </Alert>
         );
     }
+
+    const currentQuotasByType: LeaveTypeQuota[] = quotasByType || [];
 
     return (
         <Card className="w-full">
@@ -76,12 +106,15 @@ export function QuotaAdvancedManagement({ userId }: QuotaAdvancedManagementProps
                             </div>
 
                             <div className="lg:col-span-2">
-                                <QuotaTransferForm
-                                    userId={targetUserId}
-                                    onTransferComplete={() => {
-                                        // Rafraîchir les quotas après un transfert
-                                    }}
-                                />
+                                {targetUserId && !isLoadingQuotas && currentQuotasByType.length > 0 && (
+                                    <QuotaTransferForm
+                                        userId={targetUserId}
+                                        quotasByType={currentQuotasByType}
+                                        onTransferComplete={handleTransferComplete}
+                                    />
+                                )}
+                                {isLoadingQuotas && <p>Chargement des quotas...</p>}
+                                {!isLoadingQuotas && currentQuotasByType.length === 0 && <p>Aucun quota trouvé.</p>}
                             </div>
                         </div>
                     </TabsContent>
@@ -137,10 +170,12 @@ export function QuotaAdvancedManagement({ userId }: QuotaAdvancedManagementProps
                         : "Mode utilisateur - Accès limité à vos propres données"}
                 </div>
                 <Button
-                    variant="link"
-                    onClick={() => router.push('/leaves/quotas')}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.push('/leaves/new')}
+                    className="mt-4"
                 >
-                    Retour à la gestion des quotas
+                    Faire une nouvelle demande
                 </Button>
             </CardFooter>
         </Card>

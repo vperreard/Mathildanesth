@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from 'react';
+import Button from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { DatePicker } from '@/components/ui/date-picker';
+import { DatePickerComponent as DatePicker } from '@/components/ui/date-picker';
 import {
     Select,
     SelectContent,
@@ -15,10 +15,7 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/components/ui/select';
-import {
-    MultiSelect,
-    MultiSelectItem
-} from '@/components/ui/multi-select';
+import { MultiSelect } from '@/components/ui/multi-select';
 import {
     Accordion,
     AccordionContent,
@@ -76,11 +73,6 @@ export function ReportFilterPanel({ currentFilters, onApplyFilters, onResetFilte
         { value: 'month', label: 'Mois' }
     ];
 
-    // Mettre à jour les filtres quand les filtres actuels changent
-    useEffect(() => {
-        setFilters(currentFilters);
-    }, [currentFilters]);
-
     /**
      * Met à jour un filtre
      */
@@ -130,17 +122,15 @@ export function ReportFilterPanel({ currentFilters, onApplyFilters, onResetFilte
                                 <div className="space-y-2">
                                     <Label htmlFor="startDate">Date de début</Label>
                                     <DatePicker
-                                        id="startDate"
-                                        value={filters.startDate ? new Date(filters.startDate) : undefined}
-                                        onChange={(date) => updateFilter('startDate', date ? format(date, 'yyyy-MM-dd') : undefined)}
+                                        selected={filters.startDate ? new Date(filters.startDate) : null}
+                                        onSelect={(date: Date | null) => updateFilter('startDate', date ? format(date, 'yyyy-MM-dd') : undefined)}
                                     />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="endDate">Date de fin</Label>
                                     <DatePicker
-                                        id="endDate"
-                                        value={filters.endDate ? new Date(filters.endDate) : undefined}
-                                        onChange={(date) => updateFilter('endDate', date ? format(date, 'yyyy-MM-dd') : undefined)}
+                                        selected={filters.endDate ? new Date(filters.endDate) : null}
+                                        onSelect={(date: Date | null) => updateFilter('endDate', date ? format(date, 'yyyy-MM-dd') : undefined)}
                                     />
                                 </div>
                             </div>
@@ -164,26 +154,29 @@ export function ReportFilterPanel({ currentFilters, onApplyFilters, onResetFilte
                     </AccordionContent>
                 </AccordionItem>
 
+                {/* Types de congés (Commenté temporairement) */}
+                {/*
                 <AccordionItem value="leaveTypes">
                     <AccordionTrigger>Types de congés</AccordionTrigger>
                     <AccordionContent>
                         <div className="space-y-2">
-                            <Label htmlFor="leaveTypes">Filtrer par types de congés</Label>
+                            <Label htmlFor="leaveTypes">Types de congés</Label>
                             <MultiSelect
                                 id="leaveTypes"
                                 value={filters.leaveTypes || []}
                                 onChange={(value) => updateFilter('leaveTypes', value)}
-                                placeholder="Sélectionner les types de congés"
+                                placeholder="Tous les types"
                             >
-                                {leaveTypes.map(type => (
-                                    <MultiSelectItem key={type.value} value={type.value}>
-                                        {type.label}
-                                    </MultiSelectItem>
+                                {Object.values(LeaveType).map((type) => (
+                                    <SelectItem key={type} value={type}>
+                                        {getLeaveTypeLabel(type)}
+                                    </SelectItem>
                                 ))}
                             </MultiSelect>
                         </div>
                     </AccordionContent>
                 </AccordionItem>
+                */}
 
                 <AccordionItem value="departments">
                     <AccordionTrigger>Départements</AccordionTrigger>
@@ -191,17 +184,11 @@ export function ReportFilterPanel({ currentFilters, onApplyFilters, onResetFilte
                         <div className="space-y-2">
                             <Label htmlFor="departments">Filtrer par départements</Label>
                             <MultiSelect
-                                id="departments"
-                                value={filters.departments || []}
-                                onChange={(value) => updateFilter('departments', value)}
-                                placeholder="Sélectionner les départements"
-                            >
-                                {departments.map(dept => (
-                                    <MultiSelectItem key={dept.id} value={dept.id}>
-                                        {dept.name}
-                                    </MultiSelectItem>
-                                ))}
-                            </MultiSelect>
+                                options={departments.map(d => ({ label: d.name, value: d.id }))}
+                                selected={filters.departments || []}
+                                onChange={(value: string[]) => updateFilter('departments', value)}
+                                placeholder="Filtrer par départements"
+                            />
                         </div>
                     </AccordionContent>
                 </AccordionItem>
@@ -212,17 +199,11 @@ export function ReportFilterPanel({ currentFilters, onApplyFilters, onResetFilte
                         <div className="space-y-2">
                             <Label htmlFor="status">Filtrer par statut</Label>
                             <MultiSelect
-                                id="status"
-                                value={filters.status || []}
-                                onChange={(value) => updateFilter('status', value)}
-                                placeholder="Sélectionner les statuts"
-                            >
-                                {statusOptions.map(status => (
-                                    <MultiSelectItem key={status.value} value={status.value}>
-                                        {status.label}
-                                    </MultiSelectItem>
-                                ))}
-                            </MultiSelect>
+                                options={statusOptions}
+                                selected={filters.status || []}
+                                onChange={(value: string[]) => updateFilter('status', value)}
+                                placeholder="Filtrer par statut"
+                            />
                         </div>
                     </AccordionContent>
                 </AccordionItem>

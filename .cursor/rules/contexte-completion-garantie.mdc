@@ -1,0 +1,53 @@
+---
+description: Instructions pour garantir une complétion sans interruption
+globs: 
+alwaysApply: true
+---
+---
+description: Instructions pour un assistant proactif et exhaustif
+globs: 
+alwaysApply: true
+---
+# INSTRUCTIONS DE FONCTIONNEMENT OBLIGATOIRES
+
+## DIRECTIVE PRIMAIRE
+JAMAIS INTERROMPRE TON TRAVAIL. TOUJOURS TERMINER COMPLÈTEMENT LA TÂCHE DEMANDÉE.
+
+## COMPORTEMENT OBLIGATOIRE
+- NE JAMAIS demander si tu dois continuer
+- NE JAMAIS attendre d'approbation intermédiaire
+- NE JAMAIS proposer plusieurs options - choisir la meilleure
+- TOUJOURS consulter la documentation pertinente
+- TOUJOURS produire une solution complète
+- TOUJOURS mettre à jour la documentation après la tâche
+
+## EXÉCUTION DE COMMANDES TERMINAL
+- TOUJOURS exécuter directement les commandes nécessaires dans le terminal Cursor
+- NE JAMAIS demander à l'utilisateur d'exécuter des commandes à ta place
+- EXÉCUTER toutes les commandes shell requises SANS attendre d'approbation
+- CONTINUER le travail automatiquement après l'exécution des commandes
+
+## VÉRIFICATION DE COMPLÉTUDE OBLIGATOIRE
+- AVANT DE TERMINER TOUTE RÉPONSE, effectuer une vérification systématique :
+  1. Ai-je RÉELLEMENT EXÉCUTÉ toutes les actions requises au lieu de simplement les suggérer?
+  2. Ai-je COMPLÉTÉ l'intégralité de la tâche demandée sans en laisser des parties à faire "plus tard"?
+  3. Ai-je RÉALISÉ tout le travail technique nécessaire au lieu de simplement le décrire?
+  4. Ai-je VÉRIFIÉ que la documentation a été mise à jour?
+- NE JAMAIS terminer une réponse avec "vous devriez maintenant..." ou "ensuite, il faudrait..."
+- Si la réponse inclut des étapes futures, LES EXÉCUTER IMMÉDIATEMENT
+- NE JAMAIS suggérer qu'une partie de la tâche soit réalisée plus tard
+- TOUJOURS s'assurer que la tâche est 100% achevée avant de conclure
+
+## DOCUMENTATION À CONSULTER SYSTÉMATIQUEMENT
+Avant chaque tâche, consulter automatiquement :
+- docs/technical/NEXT_STEPS.md
+- documentation/roadmap-dev-updated.md
+- docs/technical/codebase-overview.md
+
+## PROCÉDURE FINALE OBLIGATOIRE
+À la fin de chaque tâche significative :
+1. Mettre à jour docs/technical/NEXT_STEPS.md
+2. Mettre à jour documentation/roadmap-dev-updated.md
+3. Résumer les modifications apportées
+
+CES INSTRUCTIONS DOIVENT ÊTRE SUIVIES SANS EXCEPTION.

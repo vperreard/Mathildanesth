@@ -89,29 +89,56 @@ export const useCalendarPerformance = (options: CalendarPerformanceOptions = {})
 
     // Appliquer des optimisations basées sur les métriques et le type d'appareil
     useEffect(() => {
-        if (!optimizeForMobile) return;
+        if (!optimizeForMobile) {
+            if (debug) console.log('Mobile optimization disabled by options');
+            return;
+        }
+
+        if (debug) console.log('Checking mobile optimizations...', { isMobile: isMobile.current, renderTime: metrics.renderTime });
 
         // Optimisations pour les appareils mobiles
         if (isMobile.current) {
-            // Appliquer des optimisations spécifiques pour mobile
+            const shouldSimplify = metrics.renderTime > 50;
+            const shouldReduceDetails = metrics.renderTime > 100;
+            if (debug) console.log('Applying mobile optimizations', { shouldSimplify, shouldReduceDetails });
+
             const newOptimizations = {
                 reducedAnimations: true,
-                simplifiedRendering: metrics.renderTime > 50, // Si le rendu est lent
+                simplifiedRendering: shouldSimplify,
                 lazyLoading: true,
-                reduceEventDetails: metrics.renderTime > 100 // Si le rendu est très lent
+                reduceEventDetails: shouldReduceDetails
             };
 
-            setOptimizations(newOptimizations);
-
-            if (debug) {
-                console.log('Applied mobile optimizations:', newOptimizations);
+            // Vérifier si les optimisations ont réellement changé avant de mettre à jour
+            if (JSON.stringify(newOptimizations) !== JSON.stringify(optimizations)) {
+                if (debug) console.log('Setting new optimizations:', newOptimizations);
+                setOptimizations(newOptimizations);
             }
 
             // Appliquer des classes CSS pour les optimisations
-            document.documentElement.classList.toggle('calendar-reduced-animations', newOptimizations.reducedAnimations);
-            document.documentElement.classList.toggle('calendar-simplified-rendering', newOptimizations.simplifiedRendering);
+            // Ne toggle que si la valeur a changé pour éviter des changements de classe inutiles
+            if (newOptimizations.reducedAnimations !== document.documentElement.classList.contains('calendar-reduced-animations')) {
+                document.documentElement.classList.toggle('calendar-reduced-animations', newOptimizations.reducedAnimations);
+            }
+            if (newOptimizations.simplifiedRendering !== document.documentElement.classList.contains('calendar-simplified-rendering')) {
+                document.documentElement.classList.toggle('calendar-simplified-rendering', newOptimizations.simplifiedRendering);
+            }
+        } else {
+            if (debug) console.log('Not applying mobile optimizations (not mobile)');
+            // S'assurer que les optimisations sont désactivées si ce n'est pas mobile
+            if (optimizations.reducedAnimations || optimizations.simplifiedRendering) {
+                if (debug) console.log('Resetting optimizations for desktop');
+                setOptimizations({
+                    reducedAnimations: false,
+                    simplifiedRendering: false,
+                    lazyLoading: false,
+                    reduceEventDetails: false
+                });
+                document.documentElement.classList.remove('calendar-reduced-animations');
+                document.documentElement.classList.remove('calendar-simplified-rendering');
+            }
         }
-    }, [metrics.renderTime, optimizeForMobile, debug]);
+    }, [metrics.renderTime, optimizeForMobile, debug, optimizations]);
 
     // Surveillance des problèmes de performance
     useEffect(() => {

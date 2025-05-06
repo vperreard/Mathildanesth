@@ -1,0 +1,180 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 4,
+    "passes": 0,
+    "pending": 0,
+    "failures": 4,
+    "start": "2025-05-04T19:08:46.938Z",
+    "end": "2025-05-04T19:09:21.917Z",
+    "duration": 34979,
+    "testsRegistered": 4,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "f53c1313-af31-40d0-bbea-8f421a0c8e6d",
+      "title": "",
+      "fullFile": "cypress/e2e/performance/performance-tests.spec.ts",
+      "file": "cypress/e2e/performance/performance-tests.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "31cbdb90-6a75-4372-9455-d4d2b57b21ff",
+          "title": "Tests de performance",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "évalue les performances de la page d'accueil",
+              "fullTitle": "Tests de performance évalue les performances de la page d'accueil",
+              "timedOut": null,
+              "duration": 672,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/dashboard');\ncy.runLighthouseAudit();",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133692:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133098:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133675:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:124:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
+                "diff": null
+              },
+              "uuid": "cab3333d-59be-4fb1-b2f6-c8dfa7c85813",
+              "parentUUID": "31cbdb90-6a75-4372-9455-d4d2b57b21ff",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "évalue les performances de la page de congés",
+              "fullTitle": "Tests de performance évalue les performances de la page de congés",
+              "timedOut": null,
+              "duration": 11232,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/leaves');\ncy.runLighthouseAudit();",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-cy=main-content]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-cy=main-content]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:133:57)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
+                "diff": null
+              },
+              "uuid": "b74c80a6-787b-455e-b2ed-277d14cada09",
+              "parentUUID": "31cbdb90-6a75-4372-9455-d4d2b57b21ff",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "évalue les performances du calendrier",
+              "fullTitle": "Tests de performance évalue les performances du calendrier",
+              "timedOut": null,
+              "duration": 11513,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/calendar');\ncy.runLighthouseAudit();",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-cy=main-content]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-cy=main-content]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:133:57)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
+                "diff": null
+              },
+              "uuid": "04252ff8-ac80-425f-85b0-2b8107cc0f6a",
+              "parentUUID": "31cbdb90-6a75-4372-9455-d4d2b57b21ff",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "évalue les performances du planning",
+              "fullTitle": "Tests de performance évalue les performances du planning",
+              "timedOut": null,
+              "duration": 11326,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\ncy.runLighthouseAudit();",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-cy=main-content]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-cy=main-content]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:133:57)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
+                "diff": null
+              },
+              "uuid": "417eff9f-d2d6-4748-96af-caae4b2d3731",
+              "parentUUID": "31cbdb90-6a75-4372-9455-d4d2b57b21ff",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "cab3333d-59be-4fb1-b2f6-c8dfa7c85813",
+            "b74c80a6-787b-455e-b2ed-277d14cada09",
+            "04252ff8-ac80-425f-85b0-2b8107cc0f6a",
+            "417eff9f-d2d6-4748-96af-caae4b2d3731"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 34743,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

@@ -37,15 +37,11 @@ interface PrismaRuleConflict {
 import {
     AnyRule,
     DutyRule,
-    LeaveRule,
     SupervisionRule,
-    AssignmentRule,
-    OnCallRule,
     RuleType,
-    RulePriority,
-    RuleConflict,
     RuleSeverity,
-    BaseRule
+    RuleScope,
+    Rule
 } from '../types/rule';
 
 /**
@@ -53,27 +49,31 @@ import {
  */
 export function mapRuleType(prismaType: PrismaRuleType): RuleType {
     switch (prismaType) {
-        case 'LEAVE': return RuleType.LEAVE;
+        case 'LEAVE': return RuleType.LEAVE_RESTRICTION;
         case 'DUTY': return RuleType.DUTY;
         case 'SUPERVISION': return RuleType.SUPERVISION;
-        case 'ASSIGNMENT': return RuleType.ASSIGNMENT;
-        case 'ON_CALL': return RuleType.ON_CALL;
+        case 'ASSIGNMENT': return RuleType.PLANNING;
+        case 'ON_CALL': return RuleType.DUTY;
         default:
-            throw new Error(`Type de règle non reconnu: ${prismaType}`);
+            if (Object.values(RuleType).includes(prismaType as RuleType)) {
+                return prismaType as RuleType;
+            }
+            console.warn(`Type de règle Prisma non mappé explicitement: ${prismaType}, tentative de cast direct`);
+            return prismaType as RuleType;
     }
 }
 
 /**
- * Convertit un enum RulePriority de Prisma en RulePriority de notre application
+ * Convertit un enum RulePriority de Prisma en priorité numérique
  */
-export function mapRulePriority(prismaPriority: PrismaRulePriority): RulePriority {
+export function mapRulePriority(prismaPriority: PrismaRulePriority): number {
     switch (prismaPriority) {
-        case 'LOW': return RulePriority.LOW;
-        case 'MEDIUM': return RulePriority.MEDIUM;
-        case 'HIGH': return RulePriority.HIGH;
-        case 'CRITICAL': return RulePriority.CRITICAL;
+        case 'LOW': return 25;
+        case 'MEDIUM': return 50;
+        case 'HIGH': return 75;
+        case 'CRITICAL': return 100;
         default:
-            throw new Error(`Priorité de règle non reconnue: ${prismaPriority}`);
+            return 50; // Valeur par défaut
     }
 }
 
@@ -95,106 +95,73 @@ export function mapRuleSeverity(prismaSeverity: PrismaRuleSeverity): RuleSeverit
  */
 export function mapPrismaRuleToRule(prismaRule: PrismaRule & { createdByUser?: any, updatedByUser?: any }): AnyRule {
     const type = mapRuleType(prismaRule.type);
-    const baseFields: BaseRule = {
+    const baseFields: Rule = {
         id: prismaRule.id,
         name: prismaRule.name,
-        description: prismaRule.description || '',
+        description: prismaRule.description || undefined,
         type,
-        priority: parseInt(prismaRule.priority), // Convertir en nombre
-        isActive: prismaRule.isActive,
+        priority: mapRulePriority(prismaRule.priority),
+        severity: RuleSeverity.MEDIUM, // Valeur par défaut
+        scope: RuleScope.GLOBAL, // Valeur par défaut
+        enabled: prismaRule.isActive,
+        parameters: {},
+        configuration: prismaRule.configuration as any,
         createdAt: new Date(prismaRule.createdAt),
         updatedAt: new Date(prismaRule.updatedAt),
-        createdBy: prismaRule.createdBy.toString()
     };
 
-    // Configuration spécifique selon le type
-    const configuration = prismaRule.configuration as any;
-
-    // Créer l'objet de règle selon le type
     switch (type) {
-        case RuleType.LEAVE:
-            return {
-                ...baseFields,
-                type: RuleType.LEAVE,
-                configuration
-            } as unknown as LeaveRule;
-
         case RuleType.DUTY:
-            return {
-                ...baseFields,
-                type: RuleType.DUTY,
-                configuration
-            } as unknown as DutyRule;
-
+            return { ...baseFields, type: RuleType.DUTY, dutyConfig: baseFields.configuration } as DutyRule;
         case RuleType.SUPERVISION:
-            return {
-                ...baseFields,
-                type: RuleType.SUPERVISION,
-                configuration
-            } as unknown as SupervisionRule;
-
-        case RuleType.ASSIGNMENT:
-            return {
-                ...baseFields,
-                type: RuleType.ASSIGNMENT,
-                configuration
-            } as unknown as AssignmentRule;
-
-        case RuleType.ON_CALL:
-            return {
-                ...baseFields,
-                type: RuleType.ON_CALL,
-                configuration
-            } as unknown as OnCallRule;
-
+            return { ...baseFields, type: RuleType.SUPERVISION, supervisionConfig: baseFields.configuration } as SupervisionRule;
         default:
-            throw new Error(`Type de règle non géré: ${type}`);
+            console.warn(`Mappage spécifique non implémenté pour le type: ${type}. Retour de la règle de base.`);
+            return baseFields as AnyRule;
     }
 }
 
 /**
  * Convertit un conflit Prisma en conflit de notre application
  */
-export function mapPrismaConflictToConflict(
-    prismaConflict: PrismaRuleConflict
-): RuleConflict {
-    return {
-        id: prismaConflict.id,
-        ruleIds: prismaConflict.rules?.map(rule => rule.id) || [],
-        description: prismaConflict.description,
-        severity: mapRuleSeverity(prismaConflict.severity),
-        detectedAt: new Date(prismaConflict.detectedAt),
-        resolvedAt: prismaConflict.resolvedAt ? new Date(prismaConflict.resolvedAt) : undefined
-    };
-}
+// export function mapPrismaConflictToConflict(
+//     prismaConflict: PrismaRuleConflict
+// ): RuleConflict {
+//     return {
+//         id: prismaConflict.id,
+//         ruleIds: prismaConflict.rules?.map(rule => rule.id) || [],
+//         description: prismaConflict.description,
+//         severity: mapRuleSeverity(prismaConflict.severity),
+//         detectedAt: new Date(prismaConflict.detectedAt),
+//         resolvedAt: prismaConflict.resolvedAt ? new Date(prismaConflict.resolvedAt) : undefined
+//     };
+// }
 
 /**
  * Convertit un type RuleType de notre application en RuleType de Prisma
  */
 export function mapToPrismaRuleType(type: RuleType): PrismaRuleType {
     switch (type) {
-        case RuleType.LEAVE: return 'LEAVE';
+        case RuleType.LEAVE_RESTRICTION: return 'LEAVE';
         case RuleType.DUTY: return 'DUTY';
         case RuleType.SUPERVISION: return 'SUPERVISION';
-        case RuleType.ASSIGNMENT: return 'ASSIGNMENT';
-        case RuleType.ON_CALL: return 'ON_CALL';
+        case RuleType.PLANNING: return 'ASSIGNMENT';
         default:
-            throw new Error(`Type de règle non reconnu: ${type}`);
+            if (['LEAVE', 'DUTY', 'SUPERVISION', 'ASSIGNMENT', 'ON_CALL'].includes(type)) {
+                return type as PrismaRuleType;
+            }
+            throw new Error(`Type de règle d'application non reconnu pour mappage Prisma: ${type}`);
     }
 }
 
 /**
- * Convertit un type RulePriority de notre application en RulePriority de Prisma
+ * Convertit une priorité numérique en RulePriority de Prisma
  */
-export function mapToPrismaRulePriority(priority: RulePriority): PrismaRulePriority {
-    switch (priority) {
-        case RulePriority.LOW: return 'LOW';
-        case RulePriority.MEDIUM: return 'MEDIUM';
-        case RulePriority.HIGH: return 'HIGH';
-        case RulePriority.CRITICAL: return 'CRITICAL';
-        default:
-            throw new Error(`Priorité de règle non reconnue: ${priority}`);
-    }
+export function mapToPrismaRulePriority(priority: number): PrismaRulePriority {
+    if (priority <= 25) return 'LOW';
+    if (priority <= 50) return 'MEDIUM';
+    if (priority <= 75) return 'HIGH';
+    return 'CRITICAL';
 }
 
 /**
@@ -217,15 +184,16 @@ export function mapRuleToPrismaRule(rule: Partial<AnyRule>): any {
     if (!rule.type) {
         throw new Error('Le type de règle est requis');
     }
+    const type = rule.type;
 
     return {
         name: rule.name,
         description: rule.description,
-        type: mapToPrismaRuleType(rule.type),
-        priority: rule.priority ? mapToPrismaRulePriority(rule.priority as unknown as RulePriority) : undefined,
-        isActive: rule.isActive,
-        validFrom: rule.validFrom,
-        validTo: rule.validTo,
+        type: mapToPrismaRuleType(type),
+        priority: rule.priority ? mapToPrismaRulePriority(rule.priority) : 'MEDIUM',
+        isActive: (rule as Rule).enabled,
+        // validFrom: (rule as Rule).validFrom,
+        // validTo: (rule as Rule).validTo,
         configuration: buildRuleConfiguration(rule)
     };
 }
@@ -235,22 +203,11 @@ export function mapRuleToPrismaRule(rule: Partial<AnyRule>): any {
  */
 function buildRuleConfiguration(rule: Partial<AnyRule>): any {
     switch (rule.type) {
-        case RuleType.LEAVE:
-            return (rule as Partial<LeaveRule>).configuration || {};
-
         case RuleType.DUTY:
-            return (rule as Partial<DutyRule>).configuration || {};
-
+            return (rule as Partial<DutyRule>).dutyConfig || {};
         case RuleType.SUPERVISION:
-            return (rule as Partial<SupervisionRule>).configuration || {};
-
-        case RuleType.ASSIGNMENT:
-            return (rule as Partial<AssignmentRule>).configuration || {};
-
-        case RuleType.ON_CALL:
-            return (rule as Partial<OnCallRule>).configuration || {};
-
+            return (rule as Partial<SupervisionRule>).supervisionConfig || {};
         default:
-            return {};
+            return (rule as Rule).configuration || {};
     }
-} 
+}

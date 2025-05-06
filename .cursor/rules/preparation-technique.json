@@ -1,0 +1,15 @@
+{
+    "name": "preparation-technique",
+    "description": "Prépare les ressources techniques nécessaires à la tâche",
+    "pattern": ".*(?:tâche|fonctionnalité|implémentation|bug|correction).*",
+    "actions": [
+        {
+            "type": "readFiles",
+            "files": [
+                "docs/technical/patterns-antipatterns.md",
+                "docs/technical/debugging-guide.md",
+                "docs/technical/data-flow.md"
+            ]
+        }
+    ]
+}

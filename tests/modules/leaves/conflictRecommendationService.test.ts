@@ -1,237 +1,204 @@
-import { describe, it, expect, beforeEach, vi, SpyInstance } from 'vitest';
+import { jest, expect, describe, test, beforeEach, afterEach } from '@jest/globals';
 import {
-    ConflictRecommendationService
-} from '../../src/modules/leaves/services/conflictRecommendationService';
+    ConflictRecommendationService,
+} from '@/modules/leaves/services/conflictRecommendationService';
 import {
     ConflictType,
     ConflictSeverity,
     LeaveConflict
-} from '../../src/modules/leaves/types/conflict';
+} from '@/modules/leaves/types/conflict';
 import {
     ConflictPriority,
-    ResolutionStrategy
-} from '../../src/modules/leaves/types/recommendation';
-import { LeaveRequest } from '../../src/modules/leaves/types/leave';
-import { User } from '../../src/types/user';
-import { EventBusService } from '../../src/services/eventBusService';
+    ResolutionStrategy,
+} from '@/modules/leaves/types/recommendation';
+import { LeaveRequest, LeaveStatus } from '@/modules/leaves/types/leave';
+import { User } from '@/types/user';
+import { EventBusService } from '@/services/eventBusService';
+import { differenceInDays } from 'date-fns';
 
-// Mock du service EventBusService
-vi.mock('../../src/services/eventBusService', () => {
-    return {
-        EventBusService: {
-            getInstance: vi.fn(() => ({
-                subscribe: vi.fn(),
-                unsubscribe: vi.fn(),
-                publish: vi.fn()
-            }))
-        }
-    };
-});
+// Mock EventBusService
+jest.mock('@/services/eventBusService');
+
+// Mock data avec des ConflictType valides
+const mockUser: User = { id: 'user1', prenom: 'John', nom: 'Doe', email: 'john.doe@example.com', role: 'UTILISATEUR' };
+const mockLeaveRequest: Partial<LeaveRequest> = {
+    id: 'leave1',
+    userId: 'user1',
+    startDate: '2024-08-01',
+    endDate: '2024-08-05'
+};
+
+const mockConflicts: LeaveConflict[] = [
+    {
+        id: 'conflict1',
+        leaveId: 'leave1',
+        type: ConflictType.USER_LEAVE_OVERLAP,
+        severity: ConflictSeverity.BLOQUANT,
+        description: 'Chevauchement avec un autre congé',
+        startDate: '2024-08-01',
+        endDate: '2024-08-05',
+        canOverride: false
+    },
+    {
+        id: 'conflict2',
+        leaveId: 'leave1',
+        type: ConflictType.TEAM_ABSENCE,
+        severity: ConflictSeverity.AVERTISSEMENT,
+        description: 'Trop de membres absents',
+        startDate: '2024-08-01',
+        endDate: '2024-08-05',
+        canOverride: true
+    }
+];
 
 describe('ConflictRecommendationService', () => {
-    let service: ConflictRecommendationService;
-    let mockEventBus: {
-        subscribe: SpyInstance;
-        unsubscribe: SpyInstance;
-        publish: SpyInstance;
-    };
-
-    // Données de test
-    const mockLeaveRequest: Partial<LeaveRequest> = {
-        id: '123',
-        startDate: '2025-06-01',
-        endDate: '2025-06-10',
-        userId: 'user1'
-    };
-
-    const mockUser: User = {
-        id: 'user1',
-        email: 'test@example.com',
-        role: 'MANAGER',
-        firstName: 'Test',
-        lastName: 'User',
-        isActive: true
-    };
-
-    const mockConflicts: LeaveConflict[] = [
-        {
-            id: 'conflict1',
-            leaveId: '123',
-            type: ConflictType.USER_LEAVE_OVERLAP,
-            severity: ConflictSeverity.BLOQUANT,
-            description: 'Chevauchement avec un autre congé',
-            startDate: '2025-06-02',
-            endDate: '2025-06-05',
-            canOverride: false
-        },
-        {
-            id: 'conflict2',
-            leaveId: '123',
-            type: ConflictType.TEAM_ABSENCE,
-            severity: ConflictSeverity.AVERTISSEMENT,
-            description: 'Trop de membres absents dans l\'équipe',
-            startDate: '2025-06-05',
-            endDate: '2025-06-08',
-            canOverride: true
-        },
-        {
-            id: 'conflict3',
-            leaveId: '123',
-            type: ConflictType.DEADLINE_PROXIMITY,
-            severity: ConflictSeverity.INFORMATION,
-            description: 'Proche d\'une deadline importante',
-            startDate: '2025-06-01',
-            endDate: '2025-06-10',
-            canOverride: true
-        }
-    ];
+    let eventBusMock: jest.Mocked<EventBusService>;
+    let publishSpy: jest.Mock;
 
     beforeEach(() => {
-        // Réinitialiser les mocks
-        vi.clearAllMocks();
+        jest.clearAllMocks();
 
-        // Configurer les mocks
-        mockEventBus = {
-            subscribe: vi.fn(),
-            unsubscribe: vi.fn(),
-            publish: vi.fn()
+        // Créer un objet mock simulant l'instance EventBusService
+        const mockServiceInstance = {
+            subscribe: jest.fn(),
+            unsubscribe: jest.fn(),
+            publish: jest.fn(),
+            // Ajouter d'autres méthodes si nécessaire par le test
         };
 
-        (EventBusService.getInstance as any).mockReturnValue(mockEventBus);
+        // Mocker getInstance pour retourner notre instance simulée
+        // Cast en 'any' pour contourner les problèmes de type strict sur le mock de méthode statique
+        (EventBusService.getInstance as any) = jest.fn(() => mockServiceInstance);
 
-        // Obtenir l'instance du service
-        service = ConflictRecommendationService.getInstance();
+        // Récupérer l'instance mockée pour les assertions
+        eventBusMock = EventBusService.getInstance() as jest.Mocked<EventBusService>;
+        publishSpy = eventBusMock.publish; // Assigner directement la fonction mockée
     });
 
-    it('devrait être une instance de ConflictRecommendationService', () => {
-        expect(service).toBeInstanceOf(ConflictRecommendationService);
+    afterEach(() => {
+        // Restaurer l'implémentation originale si nécessaire
+        // EventBusService.getInstance.mockRestore(); // Optionnel
     });
 
-    it('devrait s\'abonner aux événements de résolution lors de l\'initialisation', () => {
-        expect(mockEventBus.subscribe).toHaveBeenCalledWith(
+    test('devrait analyser les conflits et retourner des recommandations', () => {
+        const service = ConflictRecommendationService.getInstance();
+        const result = service.analyzeConflicts(mockConflicts, mockLeaveRequest, mockUser);
+
+        expect(result).toBeDefined();
+        expect(result.recommendations).toHaveLength(mockConflicts.length);
+        expect(result.recommendations[0].conflictId).toBe('conflict1');
+        expect(result.recommendations[0].priority).toBeDefined();
+        expect(result.recommendations[0].strategies).toBeInstanceOf(Array);
+        expect(result.recommendations[0].explanation).toBeDefined();
+        expect(result.automatedResolutionsCount).toBeDefined();
+        expect(result.manualResolutionsCount).toBeDefined();
+        expect(result.priorityDistribution).toBeDefined();
+        expect(result.highestPriorityConflicts).toBeInstanceOf(Array);
+    });
+
+    test('devrait déterminer la priorité du conflit', () => {
+        const service = ConflictRecommendationService.getInstance();
+        const priority = service.determineConflictPriority(mockConflicts[0], mockUser);
+        expect(priority).toBe(ConflictPriority.VERY_HIGH);
+
+        const priority2 = service.determineConflictPriority(mockConflicts[1], mockUser);
+        expect(priority2).toBe(ConflictPriority.HIGH);
+    });
+
+    test('devrait générer des stratégies de résolution', () => {
+        const service = ConflictRecommendationService.getInstance();
+        const strategies = service.generateResolutionStrategies(mockConflicts[0], mockLeaveRequest, mockUser);
+        expect(strategies).toBeInstanceOf(Array);
+        expect(strategies.length).toBeGreaterThan(0);
+        expect(strategies[0]).toHaveProperty('strategy');
+        expect(strategies[0]).toHaveProperty('description');
+        expect(strategies[0]).toHaveProperty('confidence');
+    });
+
+    test('devrait générer une explication', () => {
+        const service = ConflictRecommendationService.getInstance();
+        const strategies = service.generateResolutionStrategies(mockConflicts[0], mockLeaveRequest, mockUser);
+        const explanation = service.generateExplanation(mockConflicts[0], strategies, false, ConflictPriority.VERY_HIGH);
+        expect(explanation).toBeDefined();
+        expect(typeof explanation).toBe('string');
+        expect(explanation.length).toBeGreaterThan(0);
+    });
+
+    test('devrait publier un événement lors de la résolution automatique', () => {
+        const service = ConflictRecommendationService.getInstance();
+        service.options.enableAutoResolution = true;
+        const autoResolvableConflict: LeaveConflict = { ...mockConflicts[1], type: ConflictType.DEADLINE_PROXIMITY, severity: ConflictSeverity.INFORMATION };
+        const mockRecommendationAuto = service.analyzeConflict(autoResolvableConflict, mockLeaveRequest, mockUser);
+        mockRecommendationAuto.automaticResolution = true;
+        mockRecommendationAuto.strategies = [{ strategy: ResolutionStrategy.AUTO_APPROVE, description: 'Approbation auto', confidence: 1.0 }];
+
+        const result = service.analyzeConflicts([autoResolvableConflict], mockLeaveRequest, mockUser);
+
+        expect(publishSpy).toHaveBeenCalledWith(
             'conflict.resolved',
-            expect.any(Function)
+            expect.objectContaining({
+                conflictId: autoResolvableConflict.id,
+                resolution: 'AUTO',
+                resolvedBy: 'ConflictRecommendationService'
+            })
         );
     });
 
-    it('devrait analyser les conflits et fournir des recommandations', () => {
-        // Analyser les conflits
-        const result = service.analyzeConflicts(mockConflicts, mockLeaveRequest, mockUser);
+    test('devrait retourner un résultat vide si aucun conflit n\'est fourni', () => {
+        const service = ConflictRecommendationService.getInstance();
+        const result = service.analyzeConflicts([], mockLeaveRequest, mockUser);
 
-        // Vérifier le format et la structure du résultat
-        expect(result).toHaveProperty('recommendations');
-        expect(result).toHaveProperty('automatedResolutionsCount');
-        expect(result).toHaveProperty('manualResolutionsCount');
-        expect(result).toHaveProperty('priorityDistribution');
-        expect(result).toHaveProperty('highestPriorityConflicts');
-
-        // Vérifier qu'il y a une recommandation pour chaque conflit
-        expect(result.recommendations.length).toBe(mockConflicts.length);
-
-        // Vérifier que chaque recommandation a les propriétés attendues
-        result.recommendations.forEach(recommendation => {
-            expect(recommendation).toHaveProperty('conflictId');
-            expect(recommendation).toHaveProperty('priority');
-            expect(recommendation).toHaveProperty('strategies');
-            expect(recommendation).toHaveProperty('automaticResolution');
-            expect(recommendation).toHaveProperty('explanation');
-            expect(recommendation).toHaveProperty('resolutionStatus', 'PENDING');
-
-            // Vérifier que chaque stratégie a les propriétés attendues
-            recommendation.strategies.forEach(strategy => {
-                expect(strategy).toHaveProperty('strategy');
-                expect(strategy).toHaveProperty('description');
-                expect(strategy).toHaveProperty('confidence');
-            });
-        });
+        expect(result).toBeDefined();
+        expect(result.recommendations).toHaveLength(0);
+        expect(result.automatedResolutionsCount).toBe(0);
+        expect(result.manualResolutionsCount).toBe(0);
+        expect(Object.keys(result.priorityDistribution)).toHaveLength(0);
+        expect(result.highestPriorityConflicts).toHaveLength(0);
     });
 
-    it('devrait trier les recommandations par priorité', () => {
-        const result = service.analyzeConflicts(mockConflicts, mockLeaveRequest, mockUser);
-
-        // Vérifier que les recommandations sont triées par priorité (décroissante)
-        for (let i = 1; i < result.recommendations.length; i++) {
-            expect(result.recommendations[i - 1].priority >= result.recommendations[i].priority).toBeTruthy();
-        }
-    });
-
-    it('devrait identifier correctement les conflits pouvant être résolus automatiquement', () => {
-        // Configurer le service pour activer la résolution automatique
-        service.configure({
-            enableAutoResolution: true,
-            rules: {
-                priorityRules: {},
-                autoResolutionThresholds: {
-                    minConfidence: 70,
-                    maxSeverity: ConflictSeverity.AVERTISSEMENT,
-                    enabledStrategies: [
-                        ResolutionStrategy.APPROVE,
-                        ResolutionStrategy.RESCHEDULE_AFTER
-                    ]
-                }
-            }
-        });
+    test('devrait gérer les erreurs internes gracieusement', () => {
+        const service = ConflictRecommendationService.getInstance();
+        service.determineConflictPriority = jest.fn(() => { throw new Error('Test Error'); });
 
         const result = service.analyzeConflicts(mockConflicts, mockLeaveRequest, mockUser);
 
-        // Vérifier que certaines recommandations sont identifiées comme automatiques
-        const automaticCount = result.recommendations.filter(r => r.automaticResolution).length;
-        expect(automaticCount).toBeGreaterThan(0);
-        expect(automaticCount).toBe(result.automatedResolutionsCount);
-
-        // Les conflits bloquants ne devraient pas être résolus automatiquement
-        const blockingConflict = result.recommendations.find(r =>
-            mockConflicts.find(c => c.id === r.conflictId)?.severity === ConflictSeverity.BLOQUANT
-        );
-        expect(blockingConflict?.automaticResolution).toBeFalsy();
+        expect(result).toBeDefined();
+        expect(result.recommendations).toHaveLength(0);
     });
 
-    it('devrait fournir des stratégies de résolution adaptées au type de conflit', () => {
+    test('devrait utiliser les règles personnalisées si fournies', () => {
+        const service = ConflictRecommendationService.getInstance();
+        const customRules = { /* ... définir des règles personnalisées ... */ };
+        service.options.rules = customRules;
+
         const result = service.analyzeConflicts(mockConflicts, mockLeaveRequest, mockUser);
-
-        // Vérifier que chaque type de conflit a des stratégies spécifiques
-        const overlapRecommendation = result.recommendations.find(r =>
-            mockConflicts.find(c => c.id === r.conflictId)?.type === ConflictType.USER_LEAVE_OVERLAP
-        );
-
-        const teamAbsenceRecommendation = result.recommendations.find(r =>
-            mockConflicts.find(c => c.id === r.conflictId)?.type === ConflictType.TEAM_ABSENCE
-        );
-
-        // Vérifier les stratégies spécifiques au chevauchement de congés
-        expect(overlapRecommendation?.strategies.some(s =>
-            s.strategy === ResolutionStrategy.REJECT ||
-            s.strategy === ResolutionStrategy.RESCHEDULE_BEFORE ||
-            s.strategy === ResolutionStrategy.RESCHEDULE_AFTER
-        )).toBeTruthy();
-
-        // Vérifier les stratégies spécifiques à l'absence d'équipe
-        expect(teamAbsenceRecommendation?.strategies.some(s =>
-            s.strategy === ResolutionStrategy.APPROVE ||
-            s.strategy === ResolutionStrategy.REJECT ||
-            s.strategy === ResolutionStrategy.SPLIT
-        )).toBeTruthy();
+        expect(result.recommendations[0].priority).not.toBe(ConflictPriority.VERY_HIGH);
     });
 
-    it('devrait retourner une distribution correcte des priorités', () => {
+    test('devrait limiter le nombre de stratégies retournées', () => {
+        const service = ConflictRecommendationService.getInstance();
+        service.options.maxRecommendationsPerConflict = 1;
+
         const result = service.analyzeConflicts(mockConflicts, mockLeaveRequest, mockUser);
-
-        // Vérifier que la somme des valeurs dans la distribution égale le nombre de conflits
-        const totalPriorities = Object.values(result.priorityDistribution)
-            .reduce((sum, count) => sum + count, 0);
-
-        expect(totalPriorities).toBe(mockConflicts.length);
+        expect(result.recommendations[0].strategies.length).toBeLessThanOrEqual(1);
+        expect(result.recommendations[1].strategies.length).toBeLessThanOrEqual(1);
     });
 
-    it('devrait gérer correctement les erreurs et les cas limites', () => {
-        // Cas 1: Liste de conflits vide
-        const emptyResult = service.analyzeConflicts([], mockLeaveRequest, mockUser);
-        expect(emptyResult.recommendations).toHaveLength(0);
-
-        // Cas 2: Demande de congé incomplète
-        const incompleteLeaveRequest: Partial<LeaveRequest> = { id: '123' };
-        const incompleteResult = service.analyzeConflicts(mockConflicts, incompleteLeaveRequest, mockUser);
-        // Devrait quand même fonctionner, mais avec des stratégies limitées
-        expect(incompleteResult.recommendations).toHaveLength(mockConflicts.length);
+    test('devrait gérer des données de conflit incomplètes', () => {
+        const incompleteConflict: LeaveConflict = {
+            id: 'conflict3',
+            leaveId: 'leave1',
+            type: undefined,
+            severity: ConflictSeverity.INFO,
+            description: 'Conflit incomplet',
+            startDate: '2024-08-01',
+            endDate: '2024-08-05',
+            canOverride: true
+        };
+        const service = ConflictRecommendationService.getInstance();
+        const incompleteResult = service.analyzeConflicts([incompleteConflict], mockLeaveRequest, mockUser);
+        expect(incompleteResult).toBeDefined();
+        expect(incompleteResult.recommendations).toHaveLength(1);
+        expect(incompleteResult.recommendations[0].priority).toBeDefined();
     });
 }); 

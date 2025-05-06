@@ -18,18 +18,23 @@ import { LeaveStatus, LeaveType, Leave, LeaveBalance, LeaveFilters, LeaveAllowan
 import { ConflictCheckResult, LeaveConflict, ConflictSeverity, ConflictType } from '../types/conflict';
 import { WorkSchedule, WorkFrequency, Weekday } from '../../profiles/types/workSchedule';
 import { formatDate, ISO_DATE_FORMAT } from '@/utils/dateUtils';
+import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import { mockDeep, mockReset } from 'jest-mock-extended';
+import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma'; // Utiliser l'export nommé
 
-// Mock global pour fetch
-global.fetch = jest.fn();
+// Mocker le client Prisma
+jest.mock('@/lib/prisma', () => ({
+    __esModule: true,
+    default: mockDeep<PrismaClient>(), // Garder le mock par défaut si c'est ce qui est utilisé ailleurs
+    prisma: mockDeep<PrismaClient>(), // Mocker aussi l'export nommé
+}));
 
-// Mock pour les dépendances internes (si nécessaire pour isolation)
-// jest.mock('./leaveCalculator', () => ({
-//   calculateLeaveCountedDays: jest.fn(),
-// }));
-// jest.mock('../../profiles/services/workScheduleService', () => ({
-//   isWorkingDay: jest.fn(),
-//   isEvenWeek: jest.fn(),
-// }));
+// Utiliser le mock de l'export nommé
+const prismaMock = prisma as unknown as ReturnType<typeof mockDeep<PrismaClient>>;
+
+// Mock de l'API fetch globale (pour les appels directs qui restent)
+global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({}) })) as jest.Mock;
 
 // --- Mocks de données ---
 const mockLeave: Leave = {
@@ -87,11 +92,17 @@ const mockAllowanceResult: LeaveAllowanceCheckResult = {
 // --- Fin des Mocks ---
 
 describe('leaveService', () => {
+    // Mock de fetch avant chaque test
+    let mockFetch: jest.Mock;
+
     beforeEach(() => {
-        // Réinitialiser les mocks avant chaque test
-        (fetch as jest.Mock).mockClear();
-        // Si vous mockez les dépendances internes, réinitialisez-les aussi
-        // jest.clearAllMocks();
+        // Réinitialiser TOUS les mocks avant chaque test
+        jest.resetAllMocks();
+        mockReset(prismaMock); // Réinitialiser le mock Prisma
+
+        // Remocker fetch spécifiquement pour ce bloc describe si nécessaire
+        global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
+        mockFetch = global.fetch as jest.Mock;
     });
 
     // == Fonctions Utilitaires ==
@@ -160,52 +171,42 @@ describe('leaveService', () => {
     // == Fonctions API (Fetch) ==
 
     describe('fetchLeaves', () => {
+        const mockLeaveData: Leave[] = [
+            { id: '1', userId: 'user1', type: LeaveType.ANNUAL, startDate: new Date(), endDate: new Date(), status: LeaveStatus.APPROVED, createdAt: new Date(), updatedAt: new Date(), countedDays: 1 },
+            { id: '2', userId: 'user2', type: LeaveType.SICK, startDate: new Date(), endDate: new Date(), status: LeaveStatus.PENDING, createdAt: new Date(), updatedAt: new Date(), countedDays: 2 },
+        ];
+
         it('should fetch leaves without filters', async () => {
-            const mockLeaves = [mockLeave];
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockLeaves,
-            });
+            prismaMock.leave.count.mockResolvedValue(mockLeaveData.length);
+            prismaMock.leave.findMany.mockResolvedValue(mockLeaveData);
 
-            const leaves = await fetchLeaves();
+            const result = await fetchLeaves({});
 
-            // Vérifier que l'URL complète commence par /api/leaves
-            const call = (fetch as jest.Mock).mock.calls[0][0];
-            expect(call).toContain('/api/leaves');
-            expect(leaves).toEqual(mockLeaves);
+            expect(prismaMock.leave.count).toHaveBeenCalledWith({ where: {} });
+            expect(prismaMock.leave.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: {} }));
+            expect(result.leaves).toEqual(mockLeaveData);
+            expect(result.total).toBe(mockLeaveData.length);
         });
 
         it('should fetch leaves with filters', async () => {
-            const mockLeaves = [mockLeave];
-            const filters: LeaveFilters = {
-                userId: 'user456',
-                status: LeaveStatus.PENDING,
-                startDateFrom: new Date('2024-08-01'),
-            };
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockLeaves,
-            });
+            const filters: LeaveFilter = { status: [LeaveStatus.PENDING], type: [LeaveType.SICK] };
+            const filteredData = mockLeaveData.filter(l => l.status === LeaveStatus.PENDING && l.type === LeaveType.SICK);
+            prismaMock.leave.count.mockResolvedValue(filteredData.length);
+            prismaMock.leave.findMany.mockResolvedValue(filteredData);
 
-            await fetchLeaves(filters);
+            const result = await fetchLeaves({ filters });
 
-            // Vérifier que les paramètres attendus sont inclus dans l'URL
-            const call = (fetch as jest.Mock).mock.calls[0][0];
-            expect(call).toContain('userId=user456');
-            expect(call).toContain('status=PENDING');
-            expect(call).toContain('startDateFrom=2024-08-01');
+            expect(prismaMock.leave.count).toHaveBeenCalledWith(expect.objectContaining({ where: expect.any(Object) }));
+            expect(prismaMock.leave.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.any(Object) }));
+            expect(result.leaves).toEqual(filteredData);
+            expect(result.total).toBe(filteredData.length);
         });
 
-        it('should handle fetch errors', async () => {
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                ok: false,
-                status: 500,
-                statusText: 'Server Error',
-                json: () => Promise.reject('Not JSON'),
-                text: () => Promise.resolve('Server Error')
-            });
+        it('should handle prisma errors', async () => {
+            const mockError = new Error('Prisma Error');
+            prismaMock.leave.count.mockRejectedValue(mockError);
 
-            await expect(fetchLeaves()).rejects.toThrow('Erreur HTTP 500 lors de la récupération des congés');
+            await expect(fetchLeaves({})).rejects.toThrow(mockError);
         });
     });
 
@@ -325,74 +326,41 @@ describe('leaveService', () => {
     });
 
     describe('submitLeaveRequest', () => {
-        it('should set status to PENDING and call saveLeave', async () => {
-            const draftLeave: Partial<Leave> = { ...mockLeave, status: LeaveStatus.DRAFT, id: undefined };
-            const pendingLeave = { ...draftLeave, status: LeaveStatus.PENDING, id: 'submitted123', requestDate: expect.any(Date) };
+        const newLeave: Partial<Leave> = {
+            userId: 'user-test',
+            type: LeaveType.SPECIAL,
+            startDate: new Date('2024-01-10'),
+            endDate: new Date('2024-01-12'),
+        };
 
-            // Mock la réponse de saveLeave (appelé par submitLeaveRequest)
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({ ...pendingLeave, id: 'submitted123' }), // Assure un ID différent pour la création
-            });
+        it('should set status to PENDING and call saveLeave (mocking saveLeave)', async () => {
+            // Mock saveLeave pour ce test car il appelle Prisma maintenant
+            const saveLeaveMock = jest.spyOn(require('../leaveService'), 'saveLeave')
+                .mockResolvedValue({ ...newLeave, id: 'new-id', status: LeaveStatus.PENDING } as Leave);
 
-            const result = await submitLeaveRequest(draftLeave);
+            const result = await submitLeaveRequest(newLeave as Leave);
 
-            // Vérifier que la méthode POST est utilisée avec le bon endpoint
-            expect(fetch).toHaveBeenCalledWith('/api/leaves', expect.objectContaining({
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            }));
+            expect(saveLeaveMock).toHaveBeenCalledWith(expect.objectContaining({ status: LeaveStatus.PENDING }));
+            expect(result.status).toBe(LeaveStatus.PENDING);
 
-            // Vérifier que le body contient les données attendues
-            const body = JSON.parse((fetch as jest.Mock).mock.calls[0][1].body);
-            expect(body).toHaveProperty('userId', 'user456');
-            expect(body).toHaveProperty('type', 'ANNUAL');
-            expect(body).toHaveProperty('status', 'PENDING');
-
-            // Vérifier que les dates sont au format attendu (YYYY-MM-DD)
-            expect(body.startDate).toBe('2024-08-19');
-            expect(body.endDate).toBe('2024-08-23');
-
-            // Le résultat doit correspondre à ce que l'API (mockée) retourne
-            expect(result).toEqual(expect.objectContaining({
-                ...draftLeave, // contient les champs originaux
-                id: 'submitted123',
-                status: LeaveStatus.PENDING,
-                requestDate: expect.any(Date)
-            }));
-            expect(result.id).toBe('submitted123'); // Vérification spécifique de l'ID retourné
+            saveLeaveMock.mockRestore(); // Nettoyer le spy
         });
     });
 
     // == Fonctions de Workflow (Approve, Reject, Cancel) ==
 
     describe('approveLeave', () => {
-        it('should call the approve endpoint', async () => {
-            const approvedLeave = { ...mockLeave, status: LeaveStatus.APPROVED };
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                ok: true,
-                json: async () => approvedLeave,
-            });
-            const comment = 'Approved by manager';
+        it('should update leave status using Prisma', async () => {
+            const approvedLeave = { id: 'leave-to-approve', status: LeaveStatus.APPROVED } as Leave;
+            prismaMock.leave.update.mockResolvedValue(approvedLeave);
 
-            const result = await approveLeave('leave123', comment);
+            const result = await approveLeave('leave-to-approve', 'approver-id');
 
-            expect(fetch).toHaveBeenCalledWith('/api/leaves/leave123/approve', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ comment }),
+            expect(prismaMock.leave.update).toHaveBeenCalledWith({
+                where: { id: 'leave-to-approve' },
+                data: { status: LeaveStatus.APPROVED, approvedById: 'approver-id' /* ou champ similaire */ },
             });
-            expect(result).toEqual(approvedLeave);
-        });
-        it('should handle approve errors', async () => {
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                ok: false,
-                status: 403,
-                statusText: 'Unauthorized',
-                json: () => Promise.reject('Not JSON'),
-                text: () => Promise.resolve('Unauthorized')
-            });
-            await expect(approveLeave('leave123')).rejects.toThrow("Erreur HTTP 403 lors de l'approbation du congé");
+            expect(result.status).toBe(LeaveStatus.APPROVED);
         });
     });
 

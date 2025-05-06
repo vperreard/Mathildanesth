@@ -87,7 +87,7 @@ Cypress.Commands.add('loginByApi', (email: string, password: string) => {
         method: 'POST',
         url: `${Cypress.env('apiUrl')}/auth/login`,
         body: {
-            email,
+            login: email,
             password
         },
         failOnStatusCode: false
@@ -115,20 +115,25 @@ Cypress.Commands.add('visitAsAuthenticatedUser', (url: string) => {
         throw new Error('Aucun jeton d\'authentification trouvé. Utilisez cy.loginByApi() avant.');
     }
 
+    // Enregistrer l'intercepteur AVANT cy.visit()
+    // Il restera actif pour les requêtes suivantes
+    cy.intercept('**/api/**', (req) => {
+        req.headers['Authorization'] = `Bearer ${authToken}`;
+    }).as('apiRequests');
+
     cy.visit(url, {
         onBeforeLoad: (win) => {
-            // Restaurer le token d'authentification
+            // Restaurer le token d'authentification dans le localStorage du navigateur
             win.localStorage.setItem('authToken', authToken);
-
-            // Intercepter les requêtes API pour ajouter le token d'autorisation automatiquement
-            cy.intercept('**/api/**', (req) => {
-                req.headers['Authorization'] = `Bearer ${authToken}`;
-            });
         }
     });
 
-    // Attendre que la page se charge complètement
-    cy.get('[data-cy=main-content]', { timeout: 10000 }).should('exist');
+    // Log & Screenshot avant d'attendre le contenu principal
+    cy.log(`Page ${url} visitée, attendant l\'élément <main>...`);
+    cy.screenshot(`before-main-content-${url.replace(/\/|\?|=|&/g, '-')}`);
+
+    // Attendre que la page se charge complètement (garder cette vérification)
+    cy.get('main', { timeout: 15000 }).should('be.visible');
 });
 
 // Commande pour sélectionner une date dans un date-picker

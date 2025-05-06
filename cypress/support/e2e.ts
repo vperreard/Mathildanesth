@@ -6,7 +6,7 @@
 import './commands';
 import '@cypress/code-coverage/support';
 import '@testing-library/cypress/add-commands';
-import 'cypress-axe';
+// import 'cypress-axe'; // Commenter l'import
 import 'cypress-plugin-tab';
 
 // Fonctions utilitaires pour le setup des tests
@@ -30,23 +30,15 @@ const setupApiInterceptions = () => {
 beforeEach(() => {
   // Réinitialiser la base de données avant chaque test si nécessaire
   // Cette action peut être conditionnelle selon les besoins des tests
-  if (Cypress.env('resetDatabase') !== false) {
-    cy.task('resetTestDatabase');
-  }
+  // if (Cypress.env('resetDatabase') !== false) {
+  //   cy.task('resetTestDatabase'); // Commenté car géré dans les 'before()' spécifiques
+  // }
 
   // Configurer les interceptions d'API
   setupApiInterceptions();
 
   // Définir la taille de la fenêtre pour la cohérence des tests (par défaut)
   cy.viewport(1280, 720);
-});
-
-// Préserver les cookies de session entre les tests
-// Au lieu d'utiliser Cypress.Cookies.defaults qui n'est plus supporté
-// On utilise la méthode recommandée
-// @ts-ignore - Ignorer l'erreur TypeScript pour cette session particulière
-Cypress.Cookies.defaults({
-  preserve: ['authToken', 'session', 'next-auth.session-token', 'next-auth.csrf-token'],
 });
 
 // Commandes personnalisées pour les tests multiplateforme
@@ -59,7 +51,8 @@ Cypress.Commands.add('viewportDevice', (device: 'mobile' | 'tablet' | 'desktop' 
   }
 });
 
-// Commande pour vérifier l'accessibilité d'une page
+// Commande pour vérifier l'accessibilité d'une page (commentée)
+/*
 Cypress.Commands.add('checkAccessibility', (options?: Partial<CypressAxeOptions>) => {
   cy.injectAxe();
   cy.checkA11y(
@@ -73,14 +66,13 @@ Cypress.Commands.add('checkAccessibility', (options?: Partial<CypressAxeOptions>
       const violationsCount = violations.length;
       if (violationsCount > 0) {
         cy.task('log', `${violationsCount} problèmes d'accessibilité trouvés`);
-
-        // Sauvegarder les violations dans un fichier pour analyse
         const fileName = `a11y-violations-${Date.now()}.json`;
         cy.writeFile(`cypress/reports/a11y/${fileName}`, violations);
       }
     }
   );
 });
+*/
 
 // Commande pour tester les performances avec Lighthouse
 Cypress.Commands.add('runLighthouseAudit', () => {

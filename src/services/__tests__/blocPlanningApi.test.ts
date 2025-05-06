@@ -1,7 +1,9 @@
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
-import { fetchDayPlanning, saveDayPlanning, fetchAvailableSupervisors } from '@/services/blocPlanningApi';
-import { BlocDayPlanning } from '@/types/bloc-planning-types';
+import { fetchDayPlanning, saveDayPlanning, validateDayPlanning, fetchAvailableSupervisors } from '@/services/blocPlanningApi';
+import { BlocDayPlanning, ValidationResult } from '@/types/bloc-planning-types';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { logger } from '@/lib/logger'; // Importer l'instance logger
 
 // Définir un serveur MSW pour mocker les appels API
 const server = setupServer(
@@ -92,7 +94,21 @@ beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
+// Mock global pour fetch
+// const mockFetch = jest.fn(); // Commenté car MSW est utilisé
+// global.fetch = mockFetch; // Commenté car MSW est utilisé
+
+// Mock pour logger.error (ou la méthode utilisée)
+// const mockLogError = jest.spyOn(logger, 'logError').mockImplementation(() => { }); // Incorrect
+const mockLogError = jest.spyOn(logger, 'error').mockImplementation(() => { }); // Mocker la méthode 'error' de l'instance
+
 describe('Bloc Planning API Service', () => {
+    beforeEach(() => {
+        // Réinitialiser les mocks avant chaque test
+        // mockFetch.mockClear(); // Commenté car MSW est utilisé
+        mockLogError.mockClear(); // Nettoyer le spy logger.error
+    });
+
     test('fetchDayPlanning récupère un planning depuis l\'API', async () => {
         const date = '2023-06-15';
         const planning = await fetchDayPlanning(date);

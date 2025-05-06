@@ -19,6 +19,7 @@ import { EventBusService } from '@/services/eventBusService';
 import { LeaveRequest } from '../types/leave';
 import { User } from '../../../types/user';
 import { logError } from '@/services/errorLoggingService';
+import { ErrorDetails } from '@/hooks/useErrorHandler';
 
 /**
  * Service d'analyse et de recommandation pour la résolution des conflits
@@ -103,7 +104,15 @@ export class ConflictRecommendationService {
                 highestPriorityConflicts
             };
         } catch (error) {
-            logError('Erreur lors de l\'analyse des conflits', error);
+            // Construire un objet ErrorDetails avant d'appeler logError
+            const errorDetails: ErrorDetails = {
+                message: error instanceof Error ? error.message : 'Erreur inconnue lors de l\'analyse des conflits',
+                severity: 'error', // Utiliser la minuscule
+                code: 'CONFLICT_ANALYSIS_FAILED',
+                context: { rawError: error, leaveRequest, user },
+                timestamp: new Date()
+            };
+            logError('Erreur lors de l\'analyse des conflits', errorDetails);
             // Retourner un résultat vide en cas d'erreur
             return this.createEmptyAnalysisResult();
         }

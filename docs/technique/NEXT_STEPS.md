@@ -55,15 +55,20 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 
 ### 1. Finalisation du module bloc opératoire (Haute priorité)
 
-- [ ] **Composants de définition des salles et secteurs**
-  - Interface de création et modification des salles d'opération
-  - Configuration des secteurs opératoires
-  - Association salles-secteurs-spécialités
+- [x] **Composants de définition des salles et secteurs**
+  - ✓ Interface de création et modification des salles d'opération
+  - ✓ Configuration des secteurs opératoires
+  - ✓ Association salles-secteurs-spécialités
+  - ✓ Hooks React Query pour la gestion des données
+  - ✓ API simulée pour le développement et les tests
+  - ✓ Pages d'administration dédiées (/admin/bloc-operatoire/salles et /admin/bloc-operatoire/secteurs)
 
-- [ ] **Règles de supervision**
-  - Interface de définition des règles de supervision par secteur
-  - Système de validation des contraintes de supervision
-  - Alertes en cas de non-respect des règles
+- [x] **Règles de supervision**
+  - ✓ Interface de définition des règles de supervision par secteur
+  - ✓ Configuration des conditions de supervision (max salles, supervision interne, etc.)
+  - ✓ Gestion des priorités et des exceptions
+  - ✓ Page d'administration (/admin/bloc-operatoire/regles-supervision)
+  - ✓ Implémentation des services et hooks React Query
 
 - [ ] **Interface planning bloc V1**
   - Vue calendrier des affectations par salle
@@ -78,18 +83,22 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 
 - [x] **Structure de base du module**
   - Types et interfaces pour les règles
-  - Service du moteur de règles
-  - Composants d'édition et de liste des règles
-  
-- [ ] **Interface d'administration des règles**
-  - CRUD pour différents types de règles
-  - Validation et vérification de cohérence
-  - Interface intuitive pour définir les priorités
+  - Service du moteur de règles (basique)
+  - Service API (`src/modules/dynamicRules/services/api.ts`)
+
+- [x] **Interface d'administration des règles (MVP)**
+  - CRUD pour les champs principaux des règles (Nom, Description, Type, Priorité, Statut)
+  - Composant liste (`src/modules/dynamicRules/components/RuleList.tsx`)
+  - Composant formulaire (`src/modules/dynamicRules/components/RuleForm.tsx`)
+  - Page d'administration (`src/app/admin/schedule-rules/page.tsx`)
+  - Validation de base et notifications toast
+  - Tests unitaires pour le formulaire (`src/modules/dynamicRules/components/__tests__/RuleForm.test.tsx`)
 
 - [ ] **Moteur de règles avancé**
   - Système de validation des règles
   - Détection de conflits entre règles
   - Mécanisme d'application avec journalisation
+  - **Prochaine étape :** Implémenter un éditeur visuel simple pour Conditions/Actions dans `RuleForm`.
 
 - [ ] **Intégration avec l'algorithme de génération**
   - Prise en compte des règles dynamiques lors de la génération
@@ -118,7 +127,9 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - ✓ Service de cache cohérent pour données fréquemment utilisées (`CacheService.ts`)
   - ✓ Hook optimisé pour requêtes API avec mise en cache (`useOptimizedQuery.ts`)
   - ✓ Réduction des rendus inutiles grâce aux mémoïsations
-  - [ ] Amélioration du lazy loading des composants
+  - [x] Amélioration du lazy loading des composants
+    - `src/components/dashboard/widgets/ChartWidget.tsx` via `src/components/dashboard/DashboardGrid.tsx`
+    - `src/modules/leaves/components/LeaveForm.tsx` via `src/app/leaves/page.tsx`
   - [ ] Mise en place d'un service de prefetching pour les données critiques
 
 - [ ] **Retours utilisateurs**
@@ -270,4 +281,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 
 Ce document sera révisé mensuellement pour refléter l'avancement du projet et l'évolution des priorités. La prochaine mise à jour majeure est prévue pour fin juin 2025.
 
-*Dernière mise à jour : Mai 2025* 
+*Dernière mise à jour : Mai 2025*
+
+*   **(P1)** ✅ Mise en place/Refactorisation d'un système de validation des dates robuste et centralisé.
+-   ✓ Correction du hook `useDateValidation` pour alignement avec `useErrorHandler` et correction de la signature et des props d'erreur. 

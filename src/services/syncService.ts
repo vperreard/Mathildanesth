@@ -1,100 +1,104 @@
 import { Assignment } from '../types/assignment';
-import { RulesConfiguration } from '../types/rules';
-import { ValidationService } from './ValidationService';
-import { PlanningService } from './planningService';
-import { Doctor } from '../types/doctor';
+import { ValidationResult, Violation, ViolationType } from '../types/validation';
 
 interface SyncResult {
     success: boolean;
     message: string;
-    violations?: any[];
+    violations?: Violation[];
 }
 
 /**
- * Service de synchronisation entre le calendrier drag-and-drop et le calendrier principal
+ * Service de synchronisation (côté client) - Appelle les API serveur
  */
 export class SyncService {
-    private validationService: ValidationService;
-    private doctors: Doctor[] = [];
-
-    constructor(rulesConfig: RulesConfiguration, doctors: Doctor[] = []) {
-        this.validationService = new ValidationService(rulesConfig);
-        this.doctors = doctors;
-    }
+    // Plus besoin de stocker rulesConfig ou doctors ici, le serveur s'en chargera
 
     /**
-     * Met à jour les docteurs disponibles pour la validation
-     */
-    setDoctors(doctors: Doctor[]): void {
-        this.doctors = doctors;
-    }
-
-    /**
-     * Synchronise les affectations entre les deux interfaces
+     * Synchronise les affectations en appelant l'API serveur
      * @param assignments Affectations à synchroniser
      * @returns Résultat de la synchronisation
      */
     async syncAssignments(assignments: Assignment[]): Promise<SyncResult> {
         try {
-            // Validation des affectations
-            const validationResult = this.validationService.validateAssignments(assignments, this.doctors);
+            // Appel à l'API pour sauvegarder (validation incluse côté serveur idéalement)
+            // Supposons une route unique /api/assignments pour PATCH/POST qui valide et sauve
+            const response = await fetch('/api/assignments', {
+                method: 'PATCH', // ou POST
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ assignments }),
+            });
 
-            // Si la validation échoue, retourner les violations
-            if (!validationResult.isValid) {
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                // Si l'API retourne des erreurs de validation ou autres
                 return {
                     success: false,
-                    message: 'Les affectations contiennent des violations de règles',
-                    violations: validationResult.violations
+                    message: responseData.error || `Erreur HTTP ${response.status}`,
+                    violations: responseData.violations || [],
                 };
             }
 
-            // Sauvegarde des affectations
-            const saved = await PlanningService.saveAssignments(assignments);
-
-            if (!saved) {
-                return {
-                    success: false,
-                    message: 'Erreur lors de la sauvegarde des affectations'
-                };
-            }
-
-            // Enregistrement de l'historique de modification
-            this.logSync(assignments);
+            // Enregistrement de l'historique de modification (peut se faire côté serveur)
+            // this.logSync(assignments);
 
             return {
                 success: true,
-                message: 'Synchronisation réussie'
+                message: responseData.message || 'Synchronisation réussie',
             };
-        } catch (error) {
-            console.error('Erreur de synchronisation:', error);
+        } catch (error: any) {
+            console.error("Erreur lors de l'appel API de synchronisation:", error);
             return {
                 success: false,
-                message: error instanceof Error ? error.message : 'Erreur inconnue lors de la synchronisation'
+                message: error.message || 'Erreur réseau ou inconnue lors de la synchronisation',
             };
         }
     }
 
     /**
-     * Valide les affectations sans les sauvegarder
+     * Valide les affectations sans les sauvegarder (via API)
      * @param assignments Affectations à valider
      * @returns Résultat de la validation
      */
-    validateOnly(assignments: Assignment[]): SyncResult {
+    async validateOnly(assignments: Assignment[]): Promise<ValidationResult> { // Utiliser ValidationResult
         try {
-            const validationResult = this.validationService.validateAssignments(assignments, this.doctors);
+            const response = await fetch('/api/assignments/validate', { // Utiliser l'API de validation dédiée
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ assignments }),
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                console.error('Erreur API de validation:', responseData);
+                const violations: Violation[] = responseData.violations || [
+                    {
+                        type: ViolationType.SCHEDULING_CONFLICT,
+                        message: `Erreur API ${response.status}: ${responseData.error || 'Erreur inconnue'}`,
+                    }
+                ];
+                return {
+                    isValid: false,
+                    violations: violations,
+                };
+            }
 
             return {
-                success: validationResult.isValid,
-                message: validationResult.isValid
-                    ? 'Validation réussie'
-                    : 'Les affectations contiennent des violations de règles',
-                violations: validationResult.violations
+                isValid: responseData.isValid ?? (responseData.violations?.length === 0), // Déduire isValid si non fourni
+                violations: responseData.violations || [],
             };
-        } catch (error) {
-            console.error('Erreur de validation:', error);
+        } catch (error: any) {
+            console.error("Erreur lors de l'appel API de validation:", error);
+            const violations: Violation[] = [
+                {
+                    type: ViolationType.SCHEDULING_CONFLICT,
+                    message: error.message || 'Erreur réseau ou inconnue lors de la validation',
+                }
+            ];
             return {
-                success: false,
-                message: error instanceof Error ? error.message : 'Erreur inconnue lors de la validation'
+                isValid: false,
+                violations: violations,
             };
         }
     }
@@ -113,11 +117,12 @@ export class SyncService {
         const added: Assignment[] = [];
         const removed: Assignment[] = [];
         const modified: { original: Assignment; updated: Assignment }[] = [];
+        const originalMap = new Map(original.map(a => [a.id, a]));
+        const updatedMap = new Map(updated.map(a => [a.id, a]));
 
         // Trouver les ajouts et modifications
-        updated.forEach(updatedAssignment => {
-            const originalAssignment = original.find(a => a.id === updatedAssignment.id);
-
+        updatedMap.forEach((updatedAssignment, id) => {
+            const originalAssignment = originalMap.get(id);
             if (!originalAssignment) {
                 added.push(updatedAssignment);
             } else if (this.hasChanged(originalAssignment, updatedAssignment)) {
@@ -126,8 +131,8 @@ export class SyncService {
         });
 
         // Trouver les suppressions
-        original.forEach(originalAssignment => {
-            if (!updated.some(a => a.id === originalAssignment.id)) {
+        originalMap.forEach((originalAssignment, id) => {
+            if (!updatedMap.has(id)) {
                 removed.push(originalAssignment);
             }
         });
@@ -139,23 +144,26 @@ export class SyncService {
      * Détermine si une affectation a changé
      */
     private hasChanged(a: Assignment, b: Assignment): boolean {
-        // Convertir les dates en chaînes pour la comparaison
-        const dateA = a.date instanceof Date ? a.date.toISOString().split('T')[0] : a.date;
-        const dateB = b.date instanceof Date ? b.date.toISOString().split('T')[0] : b.date;
+        // Correction : Utiliser les propriétés startDate/endDate de Assignment
+        const dateA = a.startDate instanceof Date ? a.startDate.toISOString().split('T')[0] : undefined;
+        const dateB = b.startDate instanceof Date ? b.startDate.toISOString().split('T')[0] : undefined;
+        const endDateA = a.endDate instanceof Date ? a.endDate.toISOString().split('T')[0] : undefined;
+        const endDateB = b.endDate instanceof Date ? b.endDate.toISOString().split('T')[0] : undefined;
 
         return (
             dateA !== dateB ||
-            a.doctorId !== b.doctorId ||
+            endDateA !== endDateB ||
+            a.userId !== b.userId ||
             a.shiftType !== b.shiftType ||
-            a.status !== b.status
+            a.status !== b.status ||
+            a.notes !== b.notes
         );
     }
 
-    /**
-     * Enregistre l'historique des modifications
-     */
+    // La méthode logSync n'est plus pertinente côté client
+    /*
     private logSync(assignments: Assignment[]): void {
         console.log(`Synchronisation: ${assignments.length} affectations mises à jour à ${new Date().toISOString()}`);
-        // Dans une application réelle, on pourrait stocker l'historique en base de données
     }
+    */
 } 

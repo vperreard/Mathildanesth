@@ -317,7 +317,7 @@ export class QuotaAdvancedService {
                 eligibleForCarryOver: originalRemaining,
                 carryOverAmount,
                 expiryDate,
-                appliedRule,
+                appliedRule: applicableRule,
                 message: `Vous pouvez reporter ${carryOverAmount} jour(s) sur votre quota de ${this.getLeaveTypeLabel(request.leaveType)} vers l'année ${request.toYear}.${applicableRule.expiryMonths > 0 ? ` Ces jours expireront le ${formatDate(expiryDate)}.` : ''}`
             };
         } catch (error) {

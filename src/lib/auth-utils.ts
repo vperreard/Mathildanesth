@@ -32,9 +32,9 @@ export async function generateAuthToken(payload: any) {
 
 export async function verifyAuthToken(token?: string) {
     try {
+        // Si aucun token n'est explicitement fourni, le récupérer via la fonction asynchrone
         if (!token) {
-            const cookieStore = cookies();
-            token = cookieStore.get('auth_token')?.value;
+            token = await getAuthToken();
         }
 
         if (!token) {
@@ -52,13 +52,20 @@ export async function verifyAuthToken(token?: string) {
             }
         );
 
+        // Vérifier que le payload a la structure attendue
+        if (typeof payload.userId !== 'number' ||
+            typeof payload.login !== 'string' ||
+            typeof payload.role !== 'string') {
+            return { authenticated: false, error: 'Structure du token invalide' };
+        }
+
         return {
             authenticated: true,
             user: {
-                id: payload.userId,
+                userId: payload.userId,
                 login: payload.login,
                 role: payload.role
-            }
+            } as UserJWTPayload
         };
     } catch (error) {
         console.error('Erreur de vérification du token:', error);
@@ -67,24 +74,37 @@ export async function verifyAuthToken(token?: string) {
 }
 
 export async function getAuthToken() {
-    const cookieStore = cookies();
-    return cookieStore.get('auth_token')?.value;
+    try {
+        const cookieStore = cookies();
+        return cookieStore.get('auth_token')?.value;
+    } catch (error) {
+        console.error('Erreur lors de la récupération du token:', error);
+        return null;
+    }
 }
 
 export async function setAuthToken(token: string) {
-    const cookieStore = cookies();
-    cookieStore.set('auth_token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: TOKEN_EXPIRATION,
-        path: '/',
-    });
+    try {
+        const cookieStore = cookies();
+        cookieStore.set('auth_token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: TOKEN_EXPIRATION,
+            path: '/',
+        });
+    } catch (error) {
+        console.error('Erreur lors de la définition du token:', error);
+    }
 }
 
 export async function removeAuthToken() {
-    const cookieStore = cookies();
-    cookieStore.delete('auth_token');
+    try {
+        const cookieStore = cookies();
+        cookieStore.delete('auth_token');
+    } catch (error) {
+        console.error('Erreur lors de la suppression du token:', error);
+    }
 }
 
 // Fonction pour vérifier si l'utilisateur a l'un des rôles requis

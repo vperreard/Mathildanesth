@@ -2,7 +2,7 @@
  * Configuration de l'API
  */
 export const apiConfig = {
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || '/api',
     endpoints: {
         users: {
             active: '/users/active',
@@ -21,7 +21,8 @@ export const apiConfig = {
             update: (id: string) => `/assignments/${id}`,
             delete: (id: string) => `/assignments/${id}`,
             byDateRange: (startDate: string, endDate: string) =>
-                `/assignments?startDate=${startDate}&endDate=${endDate}`
+                `/assignments?startDate=${startDate}&endDate=${endDate}`,
+            batch: '/assignments/batch'
         },
         planning: {
             generate: '/planning/generate',

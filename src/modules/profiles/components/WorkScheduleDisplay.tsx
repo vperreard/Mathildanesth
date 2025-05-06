@@ -10,6 +10,9 @@ import { calculateWeeklyWorkingDays } from '../services/workScheduleService';
 import { format, addMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
+// Import workScheduleService functions here for CalendarMonth
+import { isEvenWeek, isEvenMonth, isWorkingDay } from '../services/workScheduleService';
+
 interface WorkScheduleDisplayProps {
     schedule: WorkSchedule;
     onEdit?: () => void;
@@ -137,8 +140,8 @@ export const WorkScheduleDisplay: React.FC<WorkScheduleDisplayProps> = ({
                                 <div
                                     key={day}
                                     className={`px-3 py-1 rounded-md text-sm ${schedule.workingDays?.includes(day)
-                                            ? 'bg-blue-100 text-blue-800'
-                                            : 'bg-gray-100 text-gray-400'
+                                        ? 'bg-blue-100 text-blue-800'
+                                        : 'bg-gray-100 text-gray-400'
                                         }`}
                                 >
                                     {getWeekdayLabel(day)}
@@ -156,8 +159,8 @@ export const WorkScheduleDisplay: React.FC<WorkScheduleDisplayProps> = ({
                                         <div
                                             key={day}
                                             className={`px-3 py-1 rounded-md text-sm ${schedule.customSchedule?.evenWeeks?.includes(day)
-                                                    ? 'bg-blue-100 text-blue-800'
-                                                    : 'bg-gray-100 text-gray-400'
+                                                ? 'bg-blue-100 text-blue-800'
+                                                : 'bg-gray-100 text-gray-400'
                                                 }`}
                                         >
                                             {getWeekdayLabel(day)}
@@ -173,8 +176,8 @@ export const WorkScheduleDisplay: React.FC<WorkScheduleDisplayProps> = ({
                                         <div
                                             key={day}
                                             className={`px-3 py-1 rounded-md text-sm ${schedule.customSchedule?.oddWeeks?.includes(day)
-                                                    ? 'bg-blue-100 text-blue-800'
-                                                    : 'bg-gray-100 text-gray-400'
+                                                ? 'bg-blue-100 text-blue-800'
+                                                : 'bg-gray-100 text-gray-400'
                                                 }`}
                                         >
                                             {getWeekdayLabel(day)}
@@ -265,9 +268,6 @@ const CalendarMonth: React.FC<CalendarMonthProps> = ({ schedule, monthOffset }) 
         days.push(<div key={`empty-${i}`} className="h-8 w-8"></div>);
     }
 
-    // Importer les fonctions de vérification ici au lieu d'importer le service complet
-    const { isEvenWeek, isEvenMonth, isWorkingDay } = require('../services/workScheduleService');
-
     // Ajouter les jours du mois
     for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), day);
@@ -284,10 +284,10 @@ const CalendarMonth: React.FC<CalendarMonthProps> = ({ schedule, monthOffset }) 
             <div
                 key={day}
                 className={`flex items-center justify-center h-8 w-8 rounded-full text-sm ${isCurrentDay
-                        ? 'bg-blue-600 text-white'
-                        : isWorking
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'text-gray-500'
+                    ? 'bg-blue-600 text-white'
+                    : isWorking
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'text-gray-500'
                     }`}
             >
                 {day}

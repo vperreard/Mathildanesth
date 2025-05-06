@@ -17,7 +17,8 @@ import {
     TextStyle,
     TextCase,
     FontSize,
-    PersonnelFormat
+    PersonnelFormat,
+    RoomOrderConfig
 } from './types';
 
 // Définir l'interface des props avec les types importés
@@ -27,6 +28,9 @@ interface DisplayConfigPanelProps {
     onClose: () => void;
     users?: User[];
     surgeons?: Surgeon[];
+    rooms?: Room[];
+    roomOrderConfig?: RoomOrderConfig;
+    onSaveRoomOrder?: (orderedRoomIds: string[]) => void;
 }
 
 // Configuration par défaut (à déplacer dans le fichier types.ts si nécessaire)
@@ -78,7 +82,10 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
     onConfigChange,
     onClose,
     users = [],
-    surgeons = []
+    surgeons = [],
+    rooms = [],
+    roomOrderConfig,
+    onSaveRoomOrder
 }) => {
     // État local pour les modifications
     const [tempConfig, setTempConfig] = useState<DisplayConfig>({ ...config });
@@ -263,6 +270,13 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
                 </div>
             </div>
         );
+    };
+
+    // Gestion de la sauvegarde de l'ordre des salles (si la fonction est fournie)
+    const handleInternalSaveRoomOrder = (orderedIds: string[]) => {
+        if (onSaveRoomOrder) {
+            onSaveRoomOrder(orderedIds);
+        }
     };
 
     return (

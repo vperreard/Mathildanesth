@@ -2,12 +2,12 @@
 export { default as Button } from './button';
 export { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from './card';
 export { default as Input } from './input';
-export { DatePicker } from './date-picker';
+export { DatePickerComponent as DatePicker } from './date-picker';
 export { DateRangePicker } from './date-range-picker';
 export { MultiSelect } from './multi-select';
 export { Chart } from './chart';
 export { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from './table';
-export { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './dialog';
+export { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from './dialog';
 export { Alert, AlertTitle, AlertDescription } from './alert';
 export { Popover, PopoverContent, PopoverTrigger } from './popover';
 export { Badge } from './badge';
@@ -23,9 +23,9 @@ export { Separator } from './separator';
 export { Slider } from './slider';
 export { default as PageHeader } from './PageHeader';
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip';
-export { default as Notification } from './notification';
-export { default as RuleViolationIndicator } from './RuleViolationIndicator';
-export { default as UnsavedChangesIndicator } from './UnsavedChangesIndicator';
+export { Notification, type NotificationProps } from './notification';
+export { RuleViolationIndicator } from './RuleViolationIndicator';
+export { UnsavedChangesIndicator } from './UnsavedChangesIndicator';
 export {
     Command,
     CommandDialog,
@@ -37,7 +37,8 @@ export {
     CommandSeparator,
     CommandShortcut
 } from './command';
-export { useToast, toast, Toaster } from './use-toast';
+export { useToast, toast } from './use-toast';
+export { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose, ToastAction, type ToastProps, type ToastActionProps } from './toast';
 
 // Export des utilitaires UI
 export { cn } from '@/lib/utils';

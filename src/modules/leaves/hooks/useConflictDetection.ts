@@ -177,11 +177,12 @@ export const useConflictDetection = ({
                 return result;
             } catch (err) {
                 const errorObj = err instanceof Error ? err : new Error('Erreur lors de la vérification des conflits');
-                setError(errorObj);
                 console.error('Erreur dans checkConflicts:', err);
 
-                // Réinitialiser l'état des conflits en cas d'erreur
+                // Réinitialiser l'état des conflits AVANT de définir l'erreur
                 resetConflicts();
+                // Mettre à jour l'état error
+                setError(errorObj);
 
                 throw errorObj;
             } finally {

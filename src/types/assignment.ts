@@ -1,6 +1,6 @@
 // src/types/assignment.ts
 
-import { RuleSeverity } from './rules';
+import { RuleSeverity } from '@/modules/rules/types/rule';
 import { ShiftType } from './common';
 
 // Type d'affectation
@@ -83,7 +83,7 @@ export interface RuleViolation {
     severity: RuleSeverity;
     message: string;
     affectedAssignments: string[]; // IDs des affectations concernées
-    possibleResolutions?: ResolutionOption[];
+    resolutionOptions?: ResolutionOption[];
 }
 
 // Option de résolution de conflit

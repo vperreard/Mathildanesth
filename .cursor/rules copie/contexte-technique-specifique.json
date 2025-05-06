@@ -1,0 +1,19 @@
+{
+    "name": "contexte-technique-specifique",
+    "description": "Consulte automatiquement la documentation technique spécifique mentionnée",
+    "pattern": ".*(?:test|cypress|performance|accessibilité|responsive|mobile|règles|congés|bloc opératoire|planning).*",
+    "actions": [
+        {
+            "type": "executeActions",
+            "actions": [
+                {
+                    "type": "search",
+                    "query": "Documentation technique sur ${topic}"
+                }
+            ],
+            "variables": {
+                "topic": "${match.0}"
+            }
+        }
+    ]
+}

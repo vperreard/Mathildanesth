@@ -1,0 +1,226 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 6,
+    "passes": 0,
+    "pending": 0,
+    "failures": 6,
+    "start": "2025-05-04T16:34:23.434Z",
+    "end": "2025-05-04T16:34:28.360Z",
+    "duration": 4926,
+    "testsRegistered": 6,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "ef396231-2c7d-4621-a266-75006ffe746c",
+      "title": "",
+      "fullFile": "cypress/e2e/auth/authentication.spec.ts",
+      "file": "cypress/e2e/auth/authentication.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "cef4bd23-b3f8-4669-95b6-0df3cf26064b",
+          "title": "Authentification et gestion des sessions",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "permet la connexion avec des identifiants valides",
+              "fullTitle": "Authentification et gestion des sessions permet la connexion avec des identifiants valides",
+              "timedOut": null,
+              "duration": 859,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/auth/login');\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=password-input]').type(testUser.password);\ncy.get('[data-cy=login-button]').click();\n// Vérifier la redirection après connexion\ncy.url().should(function (url) {\n    expect(url).to.satisfy(function (url) {\n        return url.includes('/dashboard') || url.includes('/planning');\n    });\n});\n// Vérifier que le nom de l'utilisateur est affiché\ncy.get('[data-cy=user-name]').should('contain', testUser.name);",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/login\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/login\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133692:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133098:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133675:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:20:11)",
+                "diff": null
+              },
+              "uuid": "376e107d-4c76-4e0d-a3c6-e4ea9ca9ec06",
+              "parentUUID": "cef4bd23-b3f8-4669-95b6-0df3cf26064b",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "affiche un message d'erreur pour des identifiants invalides",
+              "fullTitle": "Authentification et gestion des sessions affiche un message d'erreur pour des identifiants invalides",
+              "timedOut": null,
+              "duration": 582,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/auth/login');\ncy.get('[data-cy=email-input]').type('utilisateur.invalide@example.com');\ncy.get('[data-cy=password-input]').type('mot_de_passe_incorrect');\ncy.get('[data-cy=login-button]').click();\n// Vérifier le message d'erreur\ncy.get('[data-cy=notification-error]')\n    .should('be.visible')\n    .and('contain', 'Identifiants invalides');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/login\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/login\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133692:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133098:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133675:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:37:11)",
+                "diff": null
+              },
+              "uuid": "595906ee-fcb8-4d9a-b6dd-61b03c7ccc5a",
+              "parentUUID": "cef4bd23-b3f8-4669-95b6-0df3cf26064b",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "maintient la session utilisateur après rafraîchissement de la page",
+              "fullTitle": "Authentification et gestion des sessions maintient la session utilisateur après rafraîchissement de la page",
+              "timedOut": null,
+              "duration": 1299,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter via l'API (plus rapide que via l'UI)\ncy.loginByApi(testUser.email, testUser.password);\n// Visiter la page d'accueil\ncy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier que l'utilisateur est connecté\ncy.get('[data-cy=user-name]').should('contain', testUser.name);\n// Rafraîchir la page\ncy.reload();\n// Vérifier que l'utilisateur est toujours connecté\ncy.get('[data-cy=user-name]').should('contain', testUser.name);",
+              "err": {
+                "message": "Error: Échec d'authentification: 500 \"<!DOCTYPE html><html><head><style data-next-hide-fouc=\\\"true\\\">body{display:none}</style><noscript data-next-hide-fouc=\\\"true\\\"><style>body{display:block}</style></noscript><meta charSet=\\\"utf-8\\\"/><meta name=\\\"viewport\\\" content=\\\"width=device-width\\\"/><meta name=\\\"next-head-count\\\" content=\\\"2\\\"/><noscript data-n-css=\\\"\\\"></noscript><script defer=\\\"\\\" nomodule=\\\"\\\" src=\\\"/_next/static/chunks/polyfills.js?ts=1746376466054\\\"></script><script src=\\\"/_next/static/chunks/fallback/webpack.js?ts=1746376466054\\\" defer=\\\"\\\"></script><script src=\\\"/_next/static/chunks/fallback/main.js?ts=1746376466054\\\" defer=\\\"\\\"></script><script src=\\\"/_next/static/chunks/fallback/pages/_app.js?ts=1746376466054\\\" defer=\\\"\\\"></script><script src=\\\"/_next/static/chunks/fallback/pages/_error.js?ts=1746376466054\\\" defer=\\\"\\\"></script><noscript id=\\\"__next_css__DO_NOT_USE__\\\"></noscript></head><body><div id=\\\"__next\\\"></div><script src=\\\"/_next/static/chunks/fallback/react-refresh.js?ts=1746376466054\\\"></script><script id=\\\"__NEXT_DATA__\\\" type=\\\"application/json\\\">{\\\"props\\\":{\\\"pageProps\\\":{\\\"statusCode\\\":500}},\\\"page\\\":\\\"/_error\\\",\\\"query\\\":{},\\\"buildId\\\":\\\"development\\\",\\\"isFallback\\\":false,\\\"err\\\":{\\\"name\\\":\\\"ModuleBuildError\\\",\\\"source\\\":\\\"server\\\",\\\"message\\\":\\\"Module build failed: Error: ENOENT: no such file or directory, open '/Users/vincentperreard/Mathildanesth/node_modules/.prisma/client/index-browser.js'\\\",\\\"stack\\\":\\\"ModuleBuildError: Module build failed: Error: ENOENT: no such file or directory, open '/Users/vincentperreard/Mathildanesth/node_modules/.prisma/client/index-browser.js'\\\\n    at processResult (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:28:398653)\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:28:400370\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:8645\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:5353\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:28:399783\\\\n    at eval (eval at create (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:13:28867), \\\\u003canonymous\\\\u003e:11:1)\\\\n    at Array.\\\\u003canonymous\\\\u003e (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/build/webpack/plugins/profiling-plugin.js:168:29)\\\\n    at runCallbacks (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:1:168123)\\\\n    at ReadFileContext.\\\\u003canonymous\\\\u003e (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:1:170035)\\\\n    at ReadFileContext.callback (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:1:267649)\\\\n    at FSReqCallback.readFileAfterOpen [as oncomplete] (node:fs:298:13)\\\\n    at FSReqCallback.callbackTrampoline (node:internal/async_hooks:130:17)\\\"},\\\"gip\\\":true,\\\"scriptLoader\\\":[]}</script></body></html>\"",
+                "estack": "Error: Échec d'authentification: 500 \"<!DOCTYPE html><html><head><style data-next-hide-fouc=\\\"true\\\">body{display:none}</style><noscript data-next-hide-fouc=\\\"true\\\"><style>body{display:block}</style></noscript><meta charSet=\\\"utf-8\\\"/><meta name=\\\"viewport\\\" content=\\\"width=device-width\\\"/><meta name=\\\"next-head-count\\\" content=\\\"2\\\"/><noscript data-n-css=\\\"\\\"></noscript><script defer=\\\"\\\" nomodule=\\\"\\\" src=\\\"/_next/static/chunks/polyfills.js?ts=1746376466054\\\"></script><script src=\\\"/_next/static/chunks/fallback/webpack.js?ts=1746376466054\\\" defer=\\\"\\\"></script><script src=\\\"/_next/static/chunks/fallback/main.js?ts=1746376466054\\\" defer=\\\"\\\"></script><script src=\\\"/_next/static/chunks/fallback/pages/_app.js?ts=1746376466054\\\" defer=\\\"\\\"></script><script src=\\\"/_next/static/chunks/fallback/pages/_error.js?ts=1746376466054\\\" defer=\\\"\\\"></script><noscript id=\\\"__next_css__DO_NOT_USE__\\\"></noscript></head><body><div id=\\\"__next\\\"></div><script src=\\\"/_next/static/chunks/fallback/react-refresh.js?ts=1746376466054\\\"></script><script id=\\\"__NEXT_DATA__\\\" type=\\\"application/json\\\">{\\\"props\\\":{\\\"pageProps\\\":{\\\"statusCode\\\":500}},\\\"page\\\":\\\"/_error\\\",\\\"query\\\":{},\\\"buildId\\\":\\\"development\\\",\\\"isFallback\\\":false,\\\"err\\\":{\\\"name\\\":\\\"ModuleBuildError\\\",\\\"source\\\":\\\"server\\\",\\\"message\\\":\\\"Module build failed: Error: ENOENT: no such file or directory, open '/Users/vincentperreard/Mathildanesth/node_modules/.prisma/client/index-browser.js'\\\",\\\"stack\\\":\\\"ModuleBuildError: Module build failed: Error: ENOENT: no such file or directory, open '/Users/vincentperreard/Mathildanesth/node_modules/.prisma/client/index-browser.js'\\\\n    at processResult (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:28:398653)\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:28:400370\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:8645\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:5353\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:28:399783\\\\n    at eval (eval at create (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:13:28867), \\\\u003canonymous\\\\u003e:11:1)\\\\n    at Array.\\\\u003canonymous\\\\u003e (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/build/webpack/plugins/profiling-plugin.js:168:29)\\\\n    at runCallbacks (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:1:168123)\\\\n    at ReadFileContext.\\\\u003canonymous\\\\u003e (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:1:170035)\\\\n    at ReadFileContext.callback (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:1:267649)\\\\n    at FSReqCallback.readFileAfterOpen [as oncomplete] (node:fs:298:13)\\\\n    at FSReqCallback.callbackTrampoline (node:internal/async_hooks:130:17)\\\"},\\\"gip\\\":true,\\\"scriptLoader\\\":[]}</script></body></html>\"\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "4faa52ae-d401-43e4-b2f0-93ac55fb7a9e",
+              "parentUUID": "cef4bd23-b3f8-4669-95b6-0df3cf26064b",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet la déconnexion",
+              "fullTitle": "Authentification et gestion des sessions permet la déconnexion",
+              "timedOut": null,
+              "duration": 466,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter via l'API\ncy.loginByApi(testUser.email, testUser.password);\ncy.visitAsAuthenticatedUser('/dashboard');\n// Ouvrir le menu utilisateur et cliquer sur déconnexion\ncy.get('[data-cy=user-menu]').click();\ncy.get('[data-cy=logout-option]').click();\n// Vérifier la redirection vers la page de connexion\ncy.url().should('include', '/auth/login');\n// Essayer d'accéder à une page protégée\ncy.visit('/dashboard');\n// Vérifier qu'on est redirigé vers la page de connexion\ncy.url().should('include', '/auth/login');",
+              "err": {
+                "message": "Error: Échec d'authentification: 500 \"<!DOCTYPE html><html><head><style data-next-hide-fouc=\\\"true\\\">body{display:none}</style><noscript data-next-hide-fouc=\\\"true\\\"><style>body{display:block}</style></noscript><meta charSet=\\\"utf-8\\\"/><meta name=\\\"viewport\\\" content=\\\"width=device-width\\\"/><meta name=\\\"next-head-count\\\" content=\\\"2\\\"/><noscript data-n-css=\\\"\\\"></noscript><script defer=\\\"\\\" nomodule=\\\"\\\" src=\\\"/_next/static/chunks/polyfills.js?ts=1746376466560\\\"></script><script src=\\\"/_next/static/chunks/fallback/webpack.js?ts=1746376466560\\\" defer=\\\"\\\"></script><script src=\\\"/_next/static/chunks/fallback/main.js?ts=1746376466560\\\" defer=\\\"\\\"></script><script src=\\\"/_next/static/chunks/fallback/pages/_app.js?ts=1746376466560\\\" defer=\\\"\\\"></script><script src=\\\"/_next/static/chunks/fallback/pages/_error.js?ts=1746376466560\\\" defer=\\\"\\\"></script><noscript id=\\\"__next_css__DO_NOT_USE__\\\"></noscript></head><body><div id=\\\"__next\\\"></div><script src=\\\"/_next/static/chunks/fallback/react-refresh.js?ts=1746376466560\\\"></script><script id=\\\"__NEXT_DATA__\\\" type=\\\"application/json\\\">{\\\"props\\\":{\\\"pageProps\\\":{\\\"statusCode\\\":500}},\\\"page\\\":\\\"/_error\\\",\\\"query\\\":{},\\\"buildId\\\":\\\"development\\\",\\\"isFallback\\\":false,\\\"err\\\":{\\\"name\\\":\\\"ModuleBuildError\\\",\\\"source\\\":\\\"server\\\",\\\"message\\\":\\\"Module build failed: Error: ENOENT: no such file or directory, open '/Users/vincentperreard/Mathildanesth/node_modules/.prisma/client/index-browser.js'\\\",\\\"stack\\\":\\\"ModuleBuildError: Module build failed: Error: ENOENT: no such file or directory, open '/Users/vincentperreard/Mathildanesth/node_modules/.prisma/client/index-browser.js'\\\\n    at processResult (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:28:398653)\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:28:400370\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:8645\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:5353\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:28:399783\\\\n    at eval (eval at create (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:13:28867), \\\\u003canonymous\\\\u003e:11:1)\\\\n    at Array.\\\\u003canonymous\\\\u003e (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/build/webpack/plugins/profiling-plugin.js:168:29)\\\\n    at runCallbacks (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:1:168123)\\\\n    at ReadFileContext.\\\\u003canonymous\\\\u003e (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:1:170035)\\\\n    at ReadFileContext.callback (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:1:267649)\\\\n    at FSReqCallback.readFileAfterOpen [as oncomplete] (node:fs:298:13)\\\\n    at FSReqCallback.callbackTrampoline (node:internal/async_hooks:130:17)\\\"},\\\"gip\\\":true,\\\"scriptLoader\\\":[]}</script></body></html>\"",
+                "estack": "Error: Échec d'authentification: 500 \"<!DOCTYPE html><html><head><style data-next-hide-fouc=\\\"true\\\">body{display:none}</style><noscript data-next-hide-fouc=\\\"true\\\"><style>body{display:block}</style></noscript><meta charSet=\\\"utf-8\\\"/><meta name=\\\"viewport\\\" content=\\\"width=device-width\\\"/><meta name=\\\"next-head-count\\\" content=\\\"2\\\"/><noscript data-n-css=\\\"\\\"></noscript><script defer=\\\"\\\" nomodule=\\\"\\\" src=\\\"/_next/static/chunks/polyfills.js?ts=1746376466560\\\"></script><script src=\\\"/_next/static/chunks/fallback/webpack.js?ts=1746376466560\\\" defer=\\\"\\\"></script><script src=\\\"/_next/static/chunks/fallback/main.js?ts=1746376466560\\\" defer=\\\"\\\"></script><script src=\\\"/_next/static/chunks/fallback/pages/_app.js?ts=1746376466560\\\" defer=\\\"\\\"></script><script src=\\\"/_next/static/chunks/fallback/pages/_error.js?ts=1746376466560\\\" defer=\\\"\\\"></script><noscript id=\\\"__next_css__DO_NOT_USE__\\\"></noscript></head><body><div id=\\\"__next\\\"></div><script src=\\\"/_next/static/chunks/fallback/react-refresh.js?ts=1746376466560\\\"></script><script id=\\\"__NEXT_DATA__\\\" type=\\\"application/json\\\">{\\\"props\\\":{\\\"pageProps\\\":{\\\"statusCode\\\":500}},\\\"page\\\":\\\"/_error\\\",\\\"query\\\":{},\\\"buildId\\\":\\\"development\\\",\\\"isFallback\\\":false,\\\"err\\\":{\\\"name\\\":\\\"ModuleBuildError\\\",\\\"source\\\":\\\"server\\\",\\\"message\\\":\\\"Module build failed: Error: ENOENT: no such file or directory, open '/Users/vincentperreard/Mathildanesth/node_modules/.prisma/client/index-browser.js'\\\",\\\"stack\\\":\\\"ModuleBuildError: Module build failed: Error: ENOENT: no such file or directory, open '/Users/vincentperreard/Mathildanesth/node_modules/.prisma/client/index-browser.js'\\\\n    at processResult (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:28:398653)\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:28:400370\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:8645\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:5353\\\\n    at /Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:28:399783\\\\n    at eval (eval at create (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:13:28867), \\\\u003canonymous\\\\u003e:11:1)\\\\n    at Array.\\\\u003canonymous\\\\u003e (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/build/webpack/plugins/profiling-plugin.js:168:29)\\\\n    at runCallbacks (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:1:168123)\\\\n    at ReadFileContext.\\\\u003canonymous\\\\u003e (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:1:170035)\\\\n    at ReadFileContext.callback (/Users/vincentperreard/Mathildanesth/node_modules/next/dist/compiled/webpack/bundle5.js:1:267649)\\\\n    at FSReqCallback.readFileAfterOpen [as oncomplete] (node:fs:298:13)\\\\n    at FSReqCallback.callbackTrampoline (node:internal/async_hooks:130:17)\\\"},\\\"gip\\\":true,\\\"scriptLoader\\\":[]}</script></body></html>\"\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "5ed84bfa-7e52-47de-b316-34237881b188",
+              "parentUUID": "cef4bd23-b3f8-4669-95b6-0df3cf26064b",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "redirige vers la page demandée après connexion",
+              "fullTitle": "Authentification et gestion des sessions redirige vers la page demandée après connexion",
+              "timedOut": null,
+              "duration": 1029,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Essayer d'accéder à une page protégée sans être connecté\ncy.visit('/planning');\n// Vérifier qu'on est redirigé vers la page de connexion\ncy.url().should('include', '/auth/login');\n// Se connecter\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=password-input]').type(testUser.password);\ncy.get('[data-cy=login-button]').click();\n// Vérifier qu'on est redirigé vers la page initialement demandée\ncy.url().should('include', '/planning');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/planning\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/planning\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133692:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133098:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133675:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:86:11)",
+                "diff": null
+              },
+              "uuid": "f35bf5ba-f008-40f1-b761-7ec2acc52db3",
+              "parentUUID": "cef4bd23-b3f8-4669-95b6-0df3cf26064b",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet la récupération de mot de passe",
+              "fullTitle": "Authentification et gestion des sessions permet la récupération de mot de passe",
+              "timedOut": null,
+              "duration": 448,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/auth/login');\n// Cliquer sur le lien \"Mot de passe oublié\"\ncy.get('[data-cy=forgot-password-link]').click();\n// Vérifier qu'on est sur la page de récupération de mot de passe\ncy.url().should('include', '/auth/reset-password');\n// Saisir l'email et soumettre\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=submit-button]').click();\n// Vérifier le message de confirmation\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Instructions envoyées');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/login\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/login\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133692:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133098:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133675:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:101:11)",
+                "diff": null
+              },
+              "uuid": "314a8b7e-c0fb-4ee0-ab72-6d38f1e1ed92",
+              "parentUUID": "cef4bd23-b3f8-4669-95b6-0df3cf26064b",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "376e107d-4c76-4e0d-a3c6-e4ea9ca9ec06",
+            "595906ee-fcb8-4d9a-b6dd-61b03c7ccc5a",
+            "4faa52ae-d401-43e4-b2f0-93ac55fb7a9e",
+            "5ed84bfa-7e52-47de-b316-34237881b188",
+            "f35bf5ba-f008-40f1-b761-7ec2acc52db3",
+            "314a8b7e-c0fb-4ee0-ab72-6d38f1e1ed92"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 4683,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

@@ -1,0 +1,288 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 5,
+    "passes": 2,
+    "pending": 6,
+    "failures": -3,
+    "start": "2025-05-05T05:06:27.369Z",
+    "end": "2025-05-05T05:06:48.417Z",
+    "duration": 21048,
+    "testsRegistered": 10,
+    "passPercent": 50,
+    "pendingPercent": 60,
+    "other": 5,
+    "hasOther": true,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "d74ae36e-76f3-44b3-a5c1-3f2db9d17380",
+      "title": "",
+      "fullFile": "cypress/e2e/leaves/quota-management.spec.ts",
+      "file": "cypress/e2e/leaves/quota-management.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "47a951c3-068e-4cbb-9fe2-65477fa52a6c",
+          "title": "Gestion des quotas de congés",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "vérifie que l'authentification fonctionne",
+              "fullTitle": "Gestion des quotas de congés vérifie que l'authentification fonctionne",
+              "timedOut": null,
+              "duration": 1939,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Vérifier si l'utilisateur existe via une API (si possible) ou une tâche\ncy.task('checkUserExists', testUser.email).then(function (exists) {\n    if (!exists) {\n        throw new Error(\"L'utilisateur de test \".concat(testUser.email, \" n'existe pas apr\\u00E8s le seeding.\"));\n    }\n    cy.log(\"V\\u00E9rification : L'utilisateur \".concat(testUser.email, \" existe.\"));\n    // Se connecter\n    cy.loginByApi(testUser.email, testUser.password);\n    // Vérifier que nous sommes bien authentifiés - juste une vérification minimale\n    cy.request({\n        method: 'GET',\n        url: '/api/auth/me',\n        failOnStatusCode: false\n    }).then(function (response) {\n        expect(response.status).to.eq(200);\n        expect(response.body).to.have.property('authenticated', true);\n        expect(response.body.user).to.have.property('role');\n        cy.log(\"Utilisateur authentifi\\u00E9 avec le r\\u00F4le: \".concat(response.body.user.role));\n    });\n});",
+              "err": {},
+              "uuid": "faca3bc3-6a01-40f0-afea-2ee50bf322d9",
+              "parentUUID": "47a951c3-068e-4cbb-9fe2-65477fa52a6c",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "peut accéder à la page des congés après authentification",
+              "fullTitle": "Gestion des quotas de congés peut accéder à la page des congés après authentification",
+              "timedOut": null,
+              "duration": 4472,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page des congés\ncy.visitAsAuthenticatedUser('/leaves');\n// Vérifier que la page s'affiche correctement\ncy.location('pathname').should('include', '/leaves');\n// Prendre une capture d'écran pour vérifier visuellement\ncy.screenshot('page-leaves-authentifiee');",
+              "err": {},
+              "uuid": "e5bebd1c-b59f-4b6a-961b-aa7d2d9dce83",
+              "parentUUID": "47a951c3-068e-4cbb-9fe2-65477fa52a6c",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "affiche correctement les quotas de congés d'un utilisateur sur la page des congés",
+              "fullTitle": "Gestion des quotas de congés affiche correctement les quotas de congés d'un utilisateur sur la page des congés",
+              "timedOut": null,
+              "duration": 7137,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page des congés\ncy.visitAsAuthenticatedUser('/leaves');\n// Vérifier que la section des quotas est visible \n// TODO: Ajuster ce sélecteur si nécessaire\ncy.contains('Solde des congés').should('be.visible');\n// Vérifier la présence de certains types de quotas (sélecteurs plus robustes)\n// TODO: Ajuster ces sélecteurs si nécessaire\ncy.contains('Congés Payés').should('exist');\ncy.contains('RTT').should('exist');\ncy.screenshot('page-leaves-avec-quotas');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'Solde des congés' but never did.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'Solde des congés' but never did.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/quota-management.spec.ts:77:40)",
+                "diff": null
+              },
+              "uuid": "88ea3d00-cd4d-417a-9000-fa2d18ba7219",
+              "parentUUID": "47a951c3-068e-4cbb-9fe2-65477fa52a6c",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet à un administrateur d'ajuster les quotas d'un utilisateur",
+              "fullTitle": "Gestion des quotas de congés permet à un administrateur d'ajuster les quotas d'un utilisateur",
+              "timedOut": null,
+              "duration": 7258,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter en tant qu'administrateur\ncy.loginByApi(adminUser.email, adminUser.password);\n// Accéder à la page des utilisateurs\ncy.visitAsAuthenticatedUser('/utilisateurs');\n// Rechercher l'utilisateur cible (peut nécessiter un filtre ou une navigation)\ncy.contains(testUser.email).click();\n// Trouver le bouton ou le lien pour ajuster les quotas\n// TODO: Adapter le sélecteur\ncy.get('[data-cy=adjust-quotas-button]').click();\n// Effectuer un ajustement (ex: ajouter 2 jours de Congés Payés)\n// TODO: Adapter les sélecteurs du formulaire d'ajustement\ncy.get('[data-cy=quota-type-select]').select('CongesPayes');\ncy.get('[data-cy=quota-adjustment-amount]').type('2');\ncy.get('[data-cy=quota-adjustment-reason]').type('Ajustement test Cypress');\ncy.get('[data-cy=submit-adjustment-button]').click();\n// Vérifier que l'ajustement a été pris en compte (ex: via un message de succès ou en vérifiant le nouveau solde)\n// TODO: Adapter la vérification\ncy.contains('Quota mis à jour avec succès').should('be.visible');\ncy.screenshot('admin-ajustement-quotas');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'medecin@example.com' but never did.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'medecin@example.com' but never did.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/quota-management.spec.ts:95:11)",
+                "diff": null
+              },
+              "uuid": "ca19c30c-bf2b-46c7-b040-9efc869be62f",
+              "parentUUID": "47a951c3-068e-4cbb-9fe2-65477fa52a6c",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet de transférer des jours de congés entre deux types de quotas",
+              "fullTitle": "Gestion des quotas de congés permet de transférer des jours de congés entre deux types de quotas",
+              "timedOut": null,
+              "duration": 0,
+              "state": "pending",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": true,
+              "context": null,
+              "code": "// Test désactivé",
+              "err": {},
+              "uuid": "1c7c2e41-2676-492b-9489-529ac56e8a60",
+              "parentUUID": "47a951c3-068e-4cbb-9fe2-65477fa52a6c",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet de reporter des jours de congés sur l'année suivante",
+              "fullTitle": "Gestion des quotas de congés permet de reporter des jours de congés sur l'année suivante",
+              "timedOut": null,
+              "duration": 0,
+              "state": "pending",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": true,
+              "context": null,
+              "code": "// Test désactivé",
+              "err": {},
+              "uuid": "55231678-0a46-4853-8d22-2a0484a9e457",
+              "parentUUID": "47a951c3-068e-4cbb-9fe2-65477fa52a6c",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "affiche l'historique des ajustements de quotas",
+              "fullTitle": "Gestion des quotas de congés affiche l'historique des ajustements de quotas",
+              "timedOut": null,
+              "duration": 0,
+              "state": "pending",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": true,
+              "context": null,
+              "code": "// Test désactivé",
+              "err": {},
+              "uuid": "f2ea8e89-e638-4713-8171-b683df9a4f41",
+              "parentUUID": "47a951c3-068e-4cbb-9fe2-65477fa52a6c",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "empêche de demander plus de jours que le quota disponible",
+              "fullTitle": "Gestion des quotas de congés empêche de demander plus de jours que le quota disponible",
+              "timedOut": null,
+              "duration": 0,
+              "state": "pending",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": true,
+              "context": null,
+              "code": "// Test désactivé",
+              "err": {},
+              "uuid": "52ab2f22-8846-4cae-983e-590be31b5fb9",
+              "parentUUID": "47a951c3-068e-4cbb-9fe2-65477fa52a6c",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "affiche les quotas de congés dans le profil utilisateur",
+              "fullTitle": "Gestion des quotas de congés affiche les quotas de congés dans le profil utilisateur",
+              "timedOut": null,
+              "duration": 0,
+              "state": "pending",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": true,
+              "context": null,
+              "code": "// Test désactivé",
+              "err": {},
+              "uuid": "d44ee909-9df1-49e8-9bff-bd91254c3555",
+              "parentUUID": "47a951c3-068e-4cbb-9fe2-65477fa52a6c",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet d'exporter les quotas de congés au format CSV",
+              "fullTitle": "Gestion des quotas de congés permet d'exporter les quotas de congés au format CSV",
+              "timedOut": null,
+              "duration": 0,
+              "state": "pending",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": true,
+              "context": null,
+              "code": "// Test désactivé",
+              "err": {},
+              "uuid": "816303d4-0a20-4c53-90f0-6f8f9f36f9e8",
+              "parentUUID": "47a951c3-068e-4cbb-9fe2-65477fa52a6c",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "faca3bc3-6a01-40f0-afea-2ee50bf322d9",
+            "e5bebd1c-b59f-4b6a-961b-aa7d2d9dce83"
+          ],
+          "failures": [
+            "88ea3d00-cd4d-417a-9000-fa2d18ba7219",
+            "ca19c30c-bf2b-46c7-b040-9efc869be62f"
+          ],
+          "pending": [
+            "1c7c2e41-2676-492b-9489-529ac56e8a60",
+            "55231678-0a46-4853-8d22-2a0484a9e457",
+            "f2ea8e89-e638-4713-8171-b683df9a4f41",
+            "52ab2f22-8846-4cae-983e-590be31b5fb9",
+            "d44ee909-9df1-49e8-9bff-bd91254c3555",
+            "816303d4-0a20-4c53-90f0-6f8f9f36f9e8"
+          ],
+          "skipped": [],
+          "duration": 20806,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

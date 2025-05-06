@@ -4,7 +4,7 @@ import {
     RuleAction,
     RuleEvaluationResult,
     RuleConflict,
-    ComparisonOperator,
+    ConditionOperator,
     LogicalOperator,
     ActionType,
     RuleEngineOptions
@@ -356,65 +356,66 @@ export class RuleEngineService {
 
         // Évaluer la condition en fonction de l'opérateur
         switch (condition.operator) {
-            case ComparisonOperator.EQUAL:
+            case ConditionOperator.EQUALS:
                 result = fieldValue === condition.value;
                 break;
-            case ComparisonOperator.NOT_EQUAL:
+            case ConditionOperator.NOT_EQUALS:
                 result = fieldValue !== condition.value;
                 break;
-            case ComparisonOperator.GREATER_THAN:
+            case ConditionOperator.GREATER_THAN:
                 result = fieldValue > condition.value;
                 break;
-            case ComparisonOperator.LESS_THAN:
+            case ConditionOperator.LESS_THAN:
                 result = fieldValue < condition.value;
                 break;
-            case ComparisonOperator.GREATER_THAN_OR_EQUAL:
+            case ConditionOperator.GREATER_THAN_OR_EQUAL:
                 result = fieldValue >= condition.value;
                 break;
-            case ComparisonOperator.LESS_THAN_OR_EQUAL:
+            case ConditionOperator.LESS_THAN_OR_EQUAL:
                 result = fieldValue <= condition.value;
                 break;
-            case ComparisonOperator.CONTAINS:
+            case ConditionOperator.CONTAINS:
                 if (Array.isArray(fieldValue)) {
                     result = fieldValue.includes(condition.value);
                 } else if (typeof fieldValue === 'string') {
                     result = fieldValue.includes(String(condition.value));
                 }
                 break;
-            case ComparisonOperator.NOT_CONTAINS:
+            case ConditionOperator.NOT_CONTAINS:
                 if (Array.isArray(fieldValue)) {
                     result = !fieldValue.includes(condition.value);
                 } else if (typeof fieldValue === 'string') {
                     result = !fieldValue.includes(String(condition.value));
                 }
                 break;
-            case ComparisonOperator.STARTS_WITH:
+            case ConditionOperator.STARTS_WITH:
                 if (typeof fieldValue === 'string') {
                     result = fieldValue.startsWith(String(condition.value));
                 }
                 break;
-            case ComparisonOperator.ENDS_WITH:
+            case ConditionOperator.ENDS_WITH:
                 if (typeof fieldValue === 'string') {
                     result = fieldValue.endsWith(String(condition.value));
                 }
                 break;
-            case ComparisonOperator.IN:
+            case ConditionOperator.IN:
                 if (Array.isArray(condition.value)) {
                     result = condition.value.includes(fieldValue);
                 }
                 break;
-            case ComparisonOperator.NOT_IN:
+            case ConditionOperator.NOT_IN:
                 if (Array.isArray(condition.value)) {
                     result = !condition.value.includes(fieldValue);
                 }
                 break;
-            case ComparisonOperator.BETWEEN:
+            case ConditionOperator.BETWEEN:
                 if (Array.isArray(condition.value) && condition.value.length === 2) {
                     result = fieldValue >= condition.value[0] && fieldValue <= condition.value[1];
                 }
                 break;
             default:
-                throw new Error(`Opérateur non pris en charge: ${condition.operator}`);
+                console.warn(`Opérateur non supporté: ${condition.operator}`);
+                return false;
         }
 
         // Inverser le résultat si la condition est négative
@@ -672,34 +673,34 @@ export class RuleEngineService {
         // pour une détection précise
 
         // Si ce sont des égalités strictes identiques
-        if (condition1.operator === ComparisonOperator.EQUAL &&
-            condition2.operator === ComparisonOperator.EQUAL) {
+        if (condition1.operator === ConditionOperator.EQUALS &&
+            condition2.operator === ConditionOperator.EQUALS) {
             return condition1.value === condition2.value;
         }
 
         // Si ce sont des inégalités qui peuvent se chevaucher
-        if ((condition1.operator === ComparisonOperator.GREATER_THAN ||
-            condition1.operator === ComparisonOperator.GREATER_THAN_OR_EQUAL) &&
-            (condition2.operator === ComparisonOperator.LESS_THAN ||
-                condition2.operator === ComparisonOperator.LESS_THAN_OR_EQUAL)) {
+        if ((condition1.operator === ConditionOperator.GREATER_THAN ||
+            condition1.operator === ConditionOperator.GREATER_THAN_OR_EQUAL) &&
+            (condition2.operator === ConditionOperator.LESS_THAN ||
+                condition2.operator === ConditionOperator.LESS_THAN_OR_EQUAL)) {
             return true;
         }
 
-        if ((condition2.operator === ComparisonOperator.GREATER_THAN ||
-            condition2.operator === ComparisonOperator.GREATER_THAN_OR_EQUAL) &&
-            (condition1.operator === ComparisonOperator.LESS_THAN ||
-                condition1.operator === ComparisonOperator.LESS_THAN_OR_EQUAL)) {
+        if ((condition2.operator === ConditionOperator.GREATER_THAN ||
+            condition2.operator === ConditionOperator.GREATER_THAN_OR_EQUAL) &&
+            (condition1.operator === ConditionOperator.LESS_THAN ||
+                condition1.operator === ConditionOperator.LESS_THAN_OR_EQUAL)) {
             return true;
         }
 
         // Si l'un des opérateurs est IN et que l'autre est une égalité
-        if (condition1.operator === ComparisonOperator.IN &&
-            condition2.operator === ComparisonOperator.EQUAL) {
+        if (condition1.operator === ConditionOperator.IN &&
+            condition2.operator === ConditionOperator.EQUALS) {
             return Array.isArray(condition1.value) && condition1.value.includes(condition2.value);
         }
 
-        if (condition2.operator === ComparisonOperator.IN &&
-            condition1.operator === ComparisonOperator.EQUAL) {
+        if (condition2.operator === ConditionOperator.IN &&
+            condition1.operator === ConditionOperator.EQUALS) {
             return Array.isArray(condition2.value) && condition2.value.includes(condition1.value);
         }
 

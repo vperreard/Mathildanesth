@@ -1,22 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { authOptions } from '@/lib/auth';
-import { getServerSession } from 'next-auth/next';
-import { createOperatingSector, getAllOperatingSectors } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
+import { verifyAuthToken } from '@/lib/auth-utils';
+import { headers } from 'next/headers';
+import { BlocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 import { OperatingSectorSchema } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 
 const prisma = new PrismaClient();
+const planningService = new BlocPlanningService();
 
 // GET tous les secteurs
 export async function GET() {
     try {
-        const session = await getServerSession(authOptions);
+        // Utiliser le système JWT personnalisé au lieu de next-auth
+        const authResult = await verifyAuthToken();
 
-        if (!session) {
-            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        if (!authResult.authenticated) {
+            // Vérifier si l'en-tête x-user-role est présent (pour le développement)
+            const headersList = headers();
+            const userRole = headersList.get('x-user-role');
+
+            // Si nous sommes en développement et que le rôle admin est fourni dans l'en-tête
+            if (process.env.NODE_ENV === 'development' && userRole === 'ADMIN_TOTAL') {
+                console.log('[DEV MODE] Authentification par en-tête uniquement pour GET /api/operating-sectors');
+            } else {
+                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+            }
         }
 
-        const sectors = await getAllOperatingSectors();
+        const sectors = await planningService.getAllOperatingSectors();
         return NextResponse.json(sectors);
     } catch (error) {
         console.error('Erreur lors de la récupération des secteurs opératoires:', error);
@@ -27,10 +38,18 @@ export async function GET() {
 // POST pour créer un nouveau secteur
 export async function POST(request: Request) {
     try {
-        const session = await getServerSession(authOptions);
+        // Vérifier l'authentification et les permissions
+        const authResult = await verifyAuthToken();
 
-        if (!session) {
-            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        if (!authResult.authenticated) {
+            // Vérifier si l'en-tête x-user-role est présent (pour le développement)
+            const headersList = headers();
+            const userRole = headersList.get('x-user-role');
+
+            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
+                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+            }
+            console.log('[DEV MODE] Authentification par en-tête uniquement pour POST /api/operating-sectors');
         }
 
         const body = await request.json();
@@ -40,7 +59,8 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Données invalides', details: result.error.format() }, { status: 400 });
         }
 
-        const sector = await createOperatingSector(result.data);
+        // Utiliser la méthode createOperatingSector du service BlocPlanningService
+        const sector = await planningService.createOperatingSector(result.data);
         return NextResponse.json(sector, { status: 201 });
     } catch (error) {
         console.error('Erreur lors de la création d\'un secteur opératoire:', error);
@@ -51,10 +71,18 @@ export async function POST(request: Request) {
 // PUT pour mettre à jour un secteur existant
 export async function PUT(request: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
+        // Vérifier l'authentification et les permissions
+        const authResult = await verifyAuthToken();
 
-        if (!session || !session.user) {
-            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        if (!authResult.authenticated) {
+            // Vérifier si l'en-tête x-user-role est présent (pour le développement)
+            const headersList = headers();
+            const userRole = headersList.get('x-user-role');
+
+            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
+                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+            }
+            console.log('[DEV MODE] Authentification par en-tête uniquement pour PUT /api/operating-sectors');
         }
 
         const data = await request.json();
@@ -63,15 +91,18 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'ID du secteur requis' }, { status: 400 });
         }
 
-        const updatedSector = await prisma.operatingSector.update({
-            where: { id: data.id },
-            data: {
-                name: data.name,
-                colorCode: data.colorCode,
-                isActive: data.isActive,
-                description: data.description,
-                maxRoomsPerSupervisor: data.maxRoomsPerSupervisor,
-            },
+        // Convertir l'ID en nombre si nécessaire
+        const sectorId = parseInt(data.id, 10);
+        if (isNaN(sectorId)) {
+            return NextResponse.json({ error: 'ID du secteur invalide' }, { status: 400 });
+        }
+
+        // Utiliser la méthode updateOperatingSector du service BlocPlanningService
+        const updatedSector = await planningService.updateOperatingSector(sectorId, {
+            name: data.name,
+            colorCode: data.colorCode,
+            isActive: data.isActive,
+            description: data.description
         });
 
         return NextResponse.json(updatedSector);
@@ -84,22 +115,35 @@ export async function PUT(request: NextRequest) {
 // DELETE pour supprimer un secteur
 export async function DELETE(request: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
+        // Vérifier l'authentification et les permissions
+        const authResult = await verifyAuthToken();
 
-        if (!session || !session.user) {
-            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        if (!authResult.authenticated) {
+            // Vérifier si l'en-tête x-user-role est présent (pour le développement)
+            const headersList = headers();
+            const userRole = headersList.get('x-user-role');
+
+            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
+                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+            }
+            console.log('[DEV MODE] Authentification par en-tête uniquement pour DELETE /api/operating-sectors');
         }
 
         const url = new URL(request.url);
-        const id = url.searchParams.get('id');
+        const idStr = url.searchParams.get('id');
 
-        if (!id) {
+        if (!idStr) {
             return NextResponse.json({ error: 'ID du secteur requis' }, { status: 400 });
         }
 
-        await prisma.operatingSector.delete({
-            where: { id },
-        });
+        // Convertir l'ID en nombre
+        const id = parseInt(idStr, 10);
+        if (isNaN(id)) {
+            return NextResponse.json({ error: 'ID du secteur invalide' }, { status: 400 });
+        }
+
+        // Utiliser la méthode deleteOperatingSector du service BlocPlanningService
+        await planningService.deleteOperatingSector(id);
 
         return NextResponse.json({ message: 'Secteur supprimé avec succès' });
     } catch (error) {

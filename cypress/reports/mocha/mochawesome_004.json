@@ -1,0 +1,226 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 6,
+    "passes": 0,
+    "pending": 0,
+    "failures": 6,
+    "start": "2025-05-04T15:26:14.248Z",
+    "end": "2025-05-04T15:26:35.811Z",
+    "duration": 21563,
+    "testsRegistered": 6,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "a70b628f-e8a9-489f-b808-d9f32b1dd059",
+      "title": "",
+      "fullFile": "cypress/e2e/auth/authentication.spec.ts",
+      "file": "cypress/e2e/auth/authentication.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "118d28be-885c-4081-98c6-e29cb9cbf33a",
+          "title": "Authentification et gestion des sessions",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "permet la connexion avec des identifiants valides",
+              "fullTitle": "Authentification et gestion des sessions permet la connexion avec des identifiants valides",
+              "timedOut": null,
+              "duration": 4974,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/auth/login');\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=password-input]').type(testUser.password);\ncy.get('[data-cy=login-button]').click();\n// Vérifier la redirection après connexion\ncy.url().should(function (url) {\n    expect(url).to.satisfy(function (url) {\n        return url.includes('/dashboard') || url.includes('/planning');\n    });\n});\n// Vérifier que le nom de l'utilisateur est affiché\ncy.get('[data-cy=user-name]').should('contain', testUser.name);",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=email-input]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=email-input]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:21:11)",
+                "diff": null
+              },
+              "uuid": "883b7b9d-cf0f-4df8-b09d-c9a09869fc97",
+              "parentUUID": "118d28be-885c-4081-98c6-e29cb9cbf33a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "affiche un message d'erreur pour des identifiants invalides",
+              "fullTitle": "Authentification et gestion des sessions affiche un message d'erreur pour des identifiants invalides",
+              "timedOut": null,
+              "duration": 4805,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/auth/login');\ncy.get('[data-cy=email-input]').type('utilisateur.invalide@example.com');\ncy.get('[data-cy=password-input]').type('mot_de_passe_incorrect');\ncy.get('[data-cy=login-button]').click();\n// Vérifier le message d'erreur\ncy.get('[data-cy=notification-error]')\n    .should('be.visible')\n    .and('contain', 'Identifiants invalides');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=email-input]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=email-input]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:38:11)",
+                "diff": null
+              },
+              "uuid": "2adf7f2c-1ef4-407b-b28a-f03c76018dc9",
+              "parentUUID": "118d28be-885c-4081-98c6-e29cb9cbf33a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "maintient la session utilisateur après rafraîchissement de la page",
+              "fullTitle": "Authentification et gestion des sessions maintient la session utilisateur après rafraîchissement de la page",
+              "timedOut": null,
+              "duration": 275,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter via l'API (plus rapide que via l'UI)\ncy.loginByApi(testUser.email, testUser.password);\n// Visiter la page d'accueil\ncy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier que l'utilisateur est connecté\ncy.get('[data-cy=user-name]').should('contain', testUser.name);\n// Rafraîchir la page\ncy.reload();\n// Vérifier que l'utilisateur est toujours connecté\ncy.get('[data-cy=user-name]').should('contain', testUser.name);",
+              "err": {
+                "message": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}",
+                "estack": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "8d75bed9-f4d3-4474-bf6f-be0c6b6a20b7",
+              "parentUUID": "118d28be-885c-4081-98c6-e29cb9cbf33a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet la déconnexion",
+              "fullTitle": "Authentification et gestion des sessions permet la déconnexion",
+              "timedOut": null,
+              "duration": 241,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter via l'API\ncy.loginByApi(testUser.email, testUser.password);\ncy.visitAsAuthenticatedUser('/dashboard');\n// Ouvrir le menu utilisateur et cliquer sur déconnexion\ncy.get('[data-cy=user-menu]').click();\ncy.get('[data-cy=logout-option]').click();\n// Vérifier la redirection vers la page de connexion\ncy.url().should('include', '/auth/login');\n// Essayer d'accéder à une page protégée\ncy.visit('/dashboard');\n// Vérifier qu'on est redirigé vers la page de connexion\ncy.url().should('include', '/auth/login');",
+              "err": {
+                "message": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}",
+                "estack": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "067a32e8-18b5-46eb-85b7-38a98349b5a3",
+              "parentUUID": "118d28be-885c-4081-98c6-e29cb9cbf33a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "redirige vers la page demandée après connexion",
+              "fullTitle": "Authentification et gestion des sessions redirige vers la page demandée après connexion",
+              "timedOut": null,
+              "duration": 6152,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Essayer d'accéder à une page protégée sans être connecté\ncy.visit('/planning');\n// Vérifier qu'on est redirigé vers la page de connexion\ncy.url().should('include', '/auth/login');\n// Se connecter\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=password-input]').type(testUser.password);\ncy.get('[data-cy=login-button]').click();\n// Vérifier qu'on est redirigé vers la page initialement demandée\ncy.url().should('include', '/planning');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=email-input]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=email-input]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:92:11)",
+                "diff": null
+              },
+              "uuid": "564c82ba-9624-48be-9df6-e39145325cbe",
+              "parentUUID": "118d28be-885c-4081-98c6-e29cb9cbf33a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet la récupération de mot de passe",
+              "fullTitle": "Authentification et gestion des sessions permet la récupération de mot de passe",
+              "timedOut": null,
+              "duration": 4761,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/auth/login');\n// Cliquer sur le lien \"Mot de passe oublié\"\ncy.get('[data-cy=forgot-password-link]').click();\n// Vérifier qu'on est sur la page de récupération de mot de passe\ncy.url().should('include', '/auth/reset-password');\n// Saisir l'email et soumettre\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=submit-button]').click();\n// Vérifier le message de confirmation\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Instructions envoyées');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=forgot-password-link]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=forgot-password-link]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:104:11)",
+                "diff": null
+              },
+              "uuid": "2869c3b3-cbae-48ad-ae33-185ecf422b20",
+              "parentUUID": "118d28be-885c-4081-98c6-e29cb9cbf33a",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "883b7b9d-cf0f-4df8-b09d-c9a09869fc97",
+            "2adf7f2c-1ef4-407b-b28a-f03c76018dc9",
+            "8d75bed9-f4d3-4474-bf6f-be0c6b6a20b7",
+            "067a32e8-18b5-46eb-85b7-38a98349b5a3",
+            "564c82ba-9624-48be-9df6-e39145325cbe",
+            "2869c3b3-cbae-48ad-ae33-185ecf422b20"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 21208,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

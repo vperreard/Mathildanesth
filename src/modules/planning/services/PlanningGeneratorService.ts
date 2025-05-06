@@ -6,10 +6,10 @@ import { addDays, format, isSameDay, isWeekend, isWithinInterval, areIntervalsOv
 import { fr } from 'date-fns/locale';
 
 export class PlanningGeneratorService {
-    private users: User[];
+    protected users: User[];
     private rules: RulesConfiguration;
-    private startDate: Date;
-    private endDate: Date;
+    protected startDate: Date;
+    protected endDate: Date;
     private assignments: Assignment[] = [];
 
     constructor(
@@ -35,7 +35,7 @@ export class PlanningGeneratorService {
     /**
      * Génère un planning automatique en respectant les contraintes
      */
-    public generatePlanning(): Assignment[] {
+    public async generatePlanning(): Promise<Assignment[]> {
         // Réinitialiser les affectations
         this.assignments = [];
 
@@ -69,7 +69,7 @@ export class PlanningGeneratorService {
     /**
      * Récupère les utilisateurs disponibles pour un shift donné
      */
-    private getAvailableUsers(date: Date, shiftType: ShiftType): User[] {
+    protected getAvailableUsers(date: Date, shiftType: ShiftType): User[] {
         return this.users.filter(user => {
             const available = this.isUserAvailable(user, date, shiftType);
             if (!available) {

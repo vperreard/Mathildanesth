@@ -23,9 +23,25 @@ enum AuditPriority {
 }
 
 /**
+ * Structure d'un changement dans une entrée d'audit
+ */
+interface AuditChange {
+    field: string;
+    oldValue: any;
+    newValue: any;
+}
+
+/**
+ * Extension de l'interface AuditEntry importée
+ */
+interface ExtendedAuditEntry extends AuditEntry {
+    changes?: AuditChange[];
+}
+
+/**
  * Entrée d'audit avec métadonnées internes
  */
-interface EnhancedAuditEntry extends AuditEntry {
+interface EnhancedAuditEntry extends ExtendedAuditEntry {
     _metadata?: {
         priority: AuditPriority;
         queuedAt: number;
@@ -225,7 +241,7 @@ export class OptimizedAuditService {
 
         try {
             // Préparer les données pour l'envoi
-            let payload = JSON.stringify(batch);
+            const payload = JSON.stringify(batch);
             let isCompressed = false;
 
             // Compression si nécessaire et activée
@@ -250,6 +266,18 @@ export class OptimizedAuditService {
                     console.error('[OptimizedAuditService] Erreur de compression:', compressionError);
                     isCompressed = false;
                 }
+            }
+
+            // Extrait l'ancienne et la nouvelle valeur pour les logs détaillés
+            let oldValue = null;
+            let newValue = null;
+
+            // Vérifier si batch a des changements à tracer
+            const entry = batch[0]; // Prendre la première entrée pour l'exemple
+            if (entry && entry.changes && entry.changes.length > 0) {
+                const change = entry.changes[0];
+                oldValue = change.oldValue;
+                newValue = change.newValue;
             }
 
             // Envoyer à l'API

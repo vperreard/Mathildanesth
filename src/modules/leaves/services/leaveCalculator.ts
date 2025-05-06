@@ -10,7 +10,7 @@ import {
     formatDate
 } from '@/utils/dateUtils';
 import { fr } from 'date-fns/locale';
-import { isAfter, parseISO, format, getYear, isEqual, isBefore, isWithinInterval } from 'date-fns';
+import { isAfter, parseISO, format, getYear, isEqual, isBefore, isWithinInterval, addDays } from 'date-fns';
 
 import {
     LeaveCalculationDetails,
@@ -26,7 +26,7 @@ import {
 import { isWorkingDay as isScheduledWorkingDay } from '../../profiles/services/workScheduleService';
 import { isEvenWeek } from '../../profiles/services/workScheduleService';
 import { publicHolidayService } from '../services/publicHolidayService';
-import { logger } from '@/utils/logger';
+import { getLogger } from '@/utils/logger';
 
 // Type pour les semaines paires/impaires
 type WeekEvenOdd = 'EVEN' | 'ODD';
@@ -94,12 +94,14 @@ export const calculateLeaveCountedDays = async (
         forceCacheRefresh?: boolean;          // Forcer le rafraîchissement du cache (défaut: false)
     }
 ): Promise<LeaveCalculationDetails | null> => {
+    const logger = await getLogger();
     try {
         // Valider et parser les dates en entrée
         const startDate = parseDate(startDateInput);
         const endDate = parseDate(endDateInput);
 
         if (!startDate || !endDate || isAfter(startDate, endDate)) {
+            logger.warn('Invalid dates provided to calculateLeaveCountedDays', { startDateInput, endDateInput });
             throw new Error("Dates de début ou de fin invalides pour le calcul des congés");
         }
 
@@ -125,6 +127,8 @@ export const calculateLeaveCountedDays = async (
                 return cachedEntry.result;
             }
         }
+
+        logger.info('Starting leave counted days calculation...', { startDate: formatDate(startDate), endDate: formatDate(endDate), scheduleId: schedule.id, options });
 
         // Nombre total de jours naturels
         const naturalDaysDiff = getDifferenceInDays(endDate, startDate);
@@ -155,6 +159,8 @@ export const calculateLeaveCountedDays = async (
             format(startDate, 'yyyy-MM-dd'),
             format(endDate, 'yyyy-MM-dd')
         );
+
+        logger.info(`Fetched ${publicHolidays.length} public holidays for the period.`);
 
         // Parcourir la période jour par jour
         const days = getDaysInInterval({ start: startDate, end: endDate });
@@ -243,6 +249,15 @@ export const calculateLeaveCountedDays = async (
 
             // Déterminer si le jour est compté dans les jours de congé
             let isCounted = false;
+            if (isWeekend && !countHolidaysOnWeekends && !isPublicHoliday) {
+                isCounted = false; // Weekend non travaillé, non férié
+            } else if (isPublicHoliday && skipHolidays && (!isWeekend || !countHolidaysOnWeekends)) {
+                isCounted = false; // Férié à ignorer
+            } else if (!isScheduledWorkingDay(schedule, day)) {
+                isCounted = false; // Jour non travaillé selon le planning
+            } else {
+                isCounted = true; // Si aucune exclusion, le jour est compté
+            }
 
             // Gestion du cas où un jour férié tombe un weekend
             if (isWeekend && isPublicHoliday && countHolidaysOnWeekends) {
@@ -336,6 +351,7 @@ export const calculateLeaveCountedDays = async (
             });
         }
 
+        logger.info('Leave counted days calculation successful', { countedDays: result.countedDays, workDays: result.workDays, scheduleId: schedule.id });
         return result;
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -343,7 +359,8 @@ export const calculateLeaveCountedDays = async (
             startDate: startDateInput,
             endDate: endDateInput,
             scheduleId: schedule.id,
-            options
+            options,
+            stack: error instanceof Error ? error.stack : undefined
         });
         return null;
     }
@@ -368,13 +385,17 @@ export const calculateWorkingDays = async (
         country?: string;
     }
 ): Promise<number | null> => {
+    const logger = await getLogger();
     try {
         const start = parseDate(startDate);
         const end = parseDate(endDate);
 
         if (!start || !end || isAfter(start, end)) {
+            logger.warn('Invalid dates provided to calculateWorkingDays', { startDate, endDate });
             return null;
         }
+
+        logger.info('Calculating working days...', { startDate: formatDate(start), endDate: formatDate(end), options });
 
         // Récupérer les jours fériés pour la période
         const publicHolidays = await publicHolidayService.getPublicHolidaysInRange(
@@ -382,6 +403,8 @@ export const calculateWorkingDays = async (
             format(end, 'yyyy-MM-dd'),
             options?.region
         );
+
+        logger.info(`Fetched ${publicHolidays.length} public holidays for working days calculation.`);
 
         const days = getDaysInInterval({ start, end });
         let workingDays = 0;
@@ -416,13 +439,11 @@ export const calculateWorkingDays = async (
             }
         }
 
+        logger.info(`Working days calculated: ${workingDays}`);
         return workingDays;
     } catch (error) {
-        logger.error(`Erreur lors du calcul des jours ouvrables: ${error instanceof Error ? error.message : String(error)}`, {
-            startDate,
-            endDate,
-            options
-        });
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        logger.error('Error calculating working days', { error: errorObj.message, stack: errorObj.stack });
         return null;
     }
 };
@@ -442,20 +463,28 @@ export const isBusinessDay = async (
         country?: string;
     }
 ): Promise<boolean> => {
+    const logger = await getLogger();
     try {
         const dateObj = parseDate(date);
-        if (!dateObj) return false;
+        if (!dateObj) {
+            logger.warn('Invalid date provided to isBusinessDay', { date });
+            return false;
+        }
 
         // Vérifier si c'est un weekend
         if (isDateWeekend(dateObj)) return false;
 
         // Vérifier si c'est un jour férié
+        logger.info(`Checking if ${formatDate(dateObj)} is a business day...`);
         const isHoliday = await publicHolidayService.isPublicHoliday(dateObj);
-        return !isHoliday;
+        logger.info(`Result for ${formatDate(dateObj)}: isWeekend=${isDateWeekend(dateObj)}, isHoliday=${isHoliday}`);
+        return !isDateWeekend(dateObj) && !isHoliday;
     } catch (error) {
-        logger.error(`Erreur lors de la vérification de jour ouvrable: ${error instanceof Error ? error.message : String(error)}`, {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        logger.error(`Erreur lors de la vérification de jour ouvrable: ${errorObj.message}`, {
             date,
-            options
+            options,
+            stack: errorObj.stack
         });
         return false;
     }

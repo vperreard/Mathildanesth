@@ -1,0 +1,169 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-05-04T17:23:29.663Z",
+    "end": "2025-05-04T17:23:30.508Z",
+    "duration": 845,
+    "testsRegistered": 4,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 3,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "09bfd989-4995-49de-b507-41ece78e048e",
+      "title": "",
+      "fullFile": "cypress/e2e/performance/performance-tests.spec.ts",
+      "file": "cypress/e2e/performance/performance-tests.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "5b003144-1cc8-4cfd-96bc-734d7e93db4f",
+          "title": "Tests de performance",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "évalue les performances de la page d'accueil",
+              "fullTitle": "Tests de performance évalue les performances de la page d'accueil",
+              "timedOut": null,
+              "duration": 301,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/dashboard');\ncy.runLighthouseAudit();",
+              "err": {
+                "message": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests de performance`",
+                "estack": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests de performance`\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "138b6201-6d20-4aa7-beb7-f8e7bf7ead0f",
+              "parentUUID": "5b003144-1cc8-4cfd-96bc-734d7e93db4f",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "évalue les performances de la page de congés",
+              "fullTitle": "Tests de performance évalue les performances de la page de congés",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/leaves');\ncy.runLighthouseAudit();",
+              "err": {},
+              "uuid": "f6e702c7-c839-4909-80ed-15ec670df667",
+              "parentUUID": "5b003144-1cc8-4cfd-96bc-734d7e93db4f",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "évalue les performances du calendrier",
+              "fullTitle": "Tests de performance évalue les performances du calendrier",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/calendar');\ncy.runLighthouseAudit();",
+              "err": {},
+              "uuid": "7b2e810c-905a-4d68-9540-79caa6472761",
+              "parentUUID": "5b003144-1cc8-4cfd-96bc-734d7e93db4f",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "évalue les performances du planning",
+              "fullTitle": "Tests de performance évalue les performances du planning",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\ncy.runLighthouseAudit();",
+              "err": {},
+              "uuid": "3bc203c4-1392-4945-94c2-6dbbbc240f70",
+              "parentUUID": "5b003144-1cc8-4cfd-96bc-734d7e93db4f",
+              "isHook": false,
+              "skipped": true
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "138b6201-6d20-4aa7-beb7-f8e7bf7ead0f"
+          ],
+          "pending": [],
+          "skipped": [
+            "f6e702c7-c839-4909-80ed-15ec670df667",
+            "7b2e810c-905a-4d68-9540-79caa6472761",
+            "3bc203c4-1392-4945-94c2-6dbbbc240f70"
+          ],
+          "duration": 301,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

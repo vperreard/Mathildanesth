@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { OperatingRoom, OperatingSector } from '../types';
-import { logError } from '@/lib/logger';
+import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 /**
  * Service de gestion des salles d'opération
@@ -39,10 +40,7 @@ export class OperatingRoomService {
                 this.initializeTestData();
             }
         } catch (error) {
-            logError({
-                message: 'Erreur lors du chargement des données des salles d\'opération',
-                context: { error }
-            });
+            logger.error('Erreur lors du chargement des données des salles d\'opération', { error });
         }
     }
 
@@ -175,10 +173,7 @@ export class OperatingRoomService {
 
             return room;
         } catch (error) {
-            logError({
-                message: 'Erreur lors de la création d\'une salle d\'opération',
-                context: { data, error }
-            });
+            logger.error('Erreur lors de la création d\'une salle d\'opération', { data, error });
             throw error;
         }
     }
@@ -227,10 +222,7 @@ export class OperatingRoomService {
 
             return updatedRoom;
         } catch (error) {
-            logError({
-                message: `Erreur lors de la mise à jour de la salle d'opération ${id}`,
-                context: { id, data, error }
-            });
+            logger.error(`Erreur lors de la mise à jour de la salle d'opération ${id}`, { id, data, error });
             throw error;
         }
     }
@@ -266,10 +258,7 @@ export class OperatingRoomService {
             // Supprimer la salle
             return this.rooms.delete(id);
         } catch (error) {
-            logError({
-                message: `Erreur lors de la suppression de la salle d'opération ${id}`,
-                context: { id, error }
-            });
+            logger.error(`Erreur lors de la suppression de la salle d'opération ${id}`, { id, error });
             throw error;
         }
     }
@@ -303,4 +292,52 @@ export class OperatingRoomService {
 }
 
 // Exporter une instance singleton du service
-export const operatingRoomService = new OperatingRoomService(); 
+export const operatingRoomService = new OperatingRoomService();
+
+export const createOperatingRoom = async (data: Omit<OperatingRoom, 'id'>): Promise<OperatingRoom> => {
+    try {
+        const newRoom = await prisma.operatingRoom.create({
+            data: {
+                // ... data mapping ...
+            },
+        });
+        return newRoom;
+    } catch (error) {
+        logger.error('Error creating operating room', { error, data });
+        throw new Error('Failed to create operating room');
+    }
+};
+
+export const updateOperatingRoom = async (id: number, data: Partial<Omit<OperatingRoom, 'id'>>): Promise<OperatingRoom | null> => {
+    try {
+        const updatedRoom = await prisma.operatingRoom.update({
+            where: { id },
+            data,
+        });
+        return updatedRoom;
+    } catch (error) {
+        logger.error('Error updating operating room', { error, id, data });
+        throw new Error('Failed to update operating room');
+    }
+};
+
+export const deleteOperatingRoom = async (id: number): Promise<void> => {
+    try {
+        await prisma.operatingRoom.delete({ where: { id } });
+    } catch (error) {
+        logger.error('Error deleting operating room', { error, id });
+        throw new Error('Failed to delete operating room');
+    }
+};
+
+export const getOperatingRoomsBySector = async (sectorId: number): Promise<OperatingRoom[]> => {
+    try {
+        const rooms = await prisma.operatingRoom.findMany({
+            where: { sectorId, isActive: true },
+        });
+        return rooms;
+    } catch (error) {
+        logger.error('Error fetching operating rooms by sector', { error, sectorId });
+        throw new Error('Failed to fetch operating rooms');
+    }
+}; 

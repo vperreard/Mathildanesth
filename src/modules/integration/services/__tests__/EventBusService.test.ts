@@ -34,7 +34,7 @@ describe('EventBusService', () => {
 
     describe('Abonnement & Publication', () => {
         it('devrait appeler les abonnés lorsqu\'un événement est publié', () => {
-            // Créer des gestionnaires d'événements fictifs
+            // Créer des gestionnaires d'événements fictifs DISTINCTS
             const handler1 = jest.fn();
             const handler2 = jest.fn();
 
@@ -618,8 +618,9 @@ describe('EventBusService', () => {
             // Publier un événement après nettoyage
             eventBus.publish({ type: IntegrationEventType.LEAVE_CREATED, payload: {}, source: 'test' });
 
-            // Le gestionnaire ne devrait pas être appelé
-            expect(handler).toHaveBeenCalledTimes(2); // 1 pour l'événement spécifique, 1 pour l'abonnement général
+            // Le gestionnaire ne devrait pas être appelé après dispose.
+            // Il a été appelé 1 fois pour l'événement spécifique et 1 fois pour l'abonnement général AVANT dispose.
+            expect(handler).toHaveBeenCalledTimes(2);
         });
     });
 }); 

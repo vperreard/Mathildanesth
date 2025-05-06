@@ -26,7 +26,8 @@ export const NotificationCenter: React.FC = () => {
 
     const fetchNotifications = async () => {
         try {
-            const response = await fetch('/api/notifications');
+            const apiBaseUrl = window.location.origin;
+            const response = await fetch(`${apiBaseUrl}/api/notifications`);
             const data = await response.json();
             const notifications = data?.notifications || [];
             setNotifications(notifications);
@@ -40,7 +41,8 @@ export const NotificationCenter: React.FC = () => {
 
     const markAsRead = async (id: number) => {
         try {
-            await fetch(`/api/notifications/${id}/read`, { method: 'POST' });
+            const apiBaseUrl = window.location.origin;
+            await fetch(`${apiBaseUrl}/api/notifications/${id}/read`, { method: 'POST' });
             setNotifications(prev =>
                 prev.map(n => (n.id === id ? { ...n, read: true } : n))
             );
@@ -52,7 +54,8 @@ export const NotificationCenter: React.FC = () => {
 
     const clearAll = async () => {
         try {
-            await fetch('/api/notifications/clear', { method: 'POST' });
+            const apiBaseUrl = window.location.origin;
+            await fetch(`${apiBaseUrl}/api/notifications/clear`, { method: 'POST' });
             setNotifications([]);
             setUnreadCount(0);
         } catch (error) {

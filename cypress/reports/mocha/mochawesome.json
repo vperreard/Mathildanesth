@@ -1,0 +1,92 @@
+{
+  "stats": {
+    "suites": 0,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-05-04T15:11:50.278Z",
+    "end": "2025-05-04T15:11:51.012Z",
+    "duration": 734,
+    "testsRegistered": 1,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "8c3ef07b-2fca-48e7-89c6-c90178ba4544",
+      "title": "",
+      "fullFile": "cypress/e2e/auth/authentication.spec.ts",
+      "file": "cypress/e2e/auth/authentication.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [
+        {
+          "title": "An uncaught error was detected outside of a test",
+          "fullTitle": "An uncaught error was detected outside of a test",
+          "timedOut": null,
+          "duration": 591,
+          "state": "failed",
+          "speed": null,
+          "pass": false,
+          "fail": true,
+          "pending": false,
+          "context": null,
+          "code": "throw err;",
+          "err": {
+            "message": "CypressError: The following error originated from your test code, not from Cypress.\n\n  > `Cypress.Cookies.defaults()` was removed in Cypress version 12.0.0. Please update to use `cy.session()` instead.\n\nWhen Cypress detects uncaught errors originating from your test code it will automatically fail the current test.\n\nCypress could not associate this error to any specific test.\n\nWe dynamically generated a new test to display this failure.\n\nhttps://on.cypress.io/session",
+            "estack": "CypressError: The following error originated from your test code, not from Cypress.\n\n  > `Cypress.Cookies.defaults()` was removed in Cypress version 12.0.0. Please update to use `cy.session()` instead.\n\nWhen Cypress detects uncaught errors originating from your test code it will automatically fail the current test.\n\nCypress could not associate this error to any specific test.\n\nWe dynamically generated a new test to display this failure.\n\nhttps://on.cypress.io/session\n    at Object.defaults (http://localhost:3000/__cypress/runner/cypress_runner.js:166726:67)\n    at ./cypress/support/e2e.ts (webpack://mathildanesth/./cypress/support/e2e.ts:48:16)\n    at __webpack_require__ (webpack://mathildanesth/webpack/bootstrap:19:0)\n    at eval (webpack://mathildanesth/webpack/startup:4:0)\n    at eval (http://localhost:3000/__cypress/tests?p=cypress/support/e2e.ts:22478:12)\n    at eval (<anonymous>)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:111945:23)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Object.gotValue (http://localhost:3000/__cypress/runner/cypress_runner.js:6446:18)\n    at Object.gotAccum (http://localhost:3000/__cypress/runner/cypress_runner.js:6435:25)\n    at Object.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromiseCtx (http://localhost:3000/__cypress/runner/cypress_runner.js:1583:10)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2381:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)",
+            "diff": null
+          },
+          "uuid": "9ce2ee64-2035-46a1-91d8-c2d620478719",
+          "parentUUID": "8c3ef07b-2fca-48e7-89c6-c90178ba4544",
+          "isHook": false,
+          "skipped": false
+        }
+      ],
+      "suites": [],
+      "passes": [],
+      "failures": [
+        "9ce2ee64-2035-46a1-91d8-c2d620478719"
+      ],
+      "pending": [],
+      "skipped": [],
+      "duration": 591,
+      "root": true,
+      "rootEmpty": false,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

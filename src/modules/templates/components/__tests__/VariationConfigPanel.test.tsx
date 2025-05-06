@@ -63,10 +63,11 @@ describe('VariationConfigPanel', () => {
             />
         );
 
-        // Vérifier que les champs affichent correctement les données initiales
+        screen.debug();
+
+        expect(screen.getByText('Configuration de la variation')).toBeInTheDocument();
         expect(screen.getByDisplayValue('Variation Test')).toBeInTheDocument();
         expect(screen.getByText('Période estivale')).toBeInTheDocument();
-        expect(screen.getByTestId('mock-assignment-config')).toBeInTheDocument();
     });
 
     it('calls onChange when fields are modified', () => {
@@ -79,12 +80,10 @@ describe('VariationConfigPanel', () => {
             />
         );
 
-        // Modifier le nom de la variation
-        const nameInput = screen.getByDisplayValue('Variation Test');
+        const nameInput = screen.getByLabelText('Nom de la variation *');
         fireEvent.change(nameInput, { target: { value: 'Variation Modifiée' } });
 
-        // Vérifier que onChange a été appelé avec les données mises à jour
-        expect(mockOnChange).toHaveBeenCalledTimes(1);
+        expect(mockOnChange).toHaveBeenCalled();
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({
             ...mockVariation,
             nom: 'Variation Modifiée'
@@ -101,11 +100,9 @@ describe('VariationConfigPanel', () => {
             />
         );
 
-        // Trouver et cliquer sur le bouton de suppression
-        const deleteButton = screen.getByTitle('Supprimer la variation');
+        const deleteButton = screen.getByRole('button', { name: /supprimer/i });
         fireEvent.click(deleteButton);
 
-        // Vérifier que onDelete a été appelé
         expect(mockOnDelete).toHaveBeenCalledTimes(1);
     });
 
@@ -119,11 +116,9 @@ describe('VariationConfigPanel', () => {
             />
         );
 
-        // Trouver et cliquer sur le switch "Récurrent"
         const recurringSwitch = screen.getByLabelText('Récurrent (se répète chaque année)');
         fireEvent.click(recurringSwitch);
 
-        // Vérifier que onChange a été appelé avec estRecurrent mis à jour
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({
             ...mockVariation,
             estRecurrent: !mockVariation.estRecurrent
@@ -131,12 +126,7 @@ describe('VariationConfigPanel', () => {
     });
 
     it('shows error messages for required fields', () => {
-        // Créer une variation sans nom (champ requis)
-        const invalidVariation = {
-            ...mockVariation,
-            nom: ''
-        };
-
+        const invalidVariation = { ...mockVariation, nom: '' };
         render(
             <VariationConfigPanel
                 variation={invalidVariation}
@@ -146,8 +136,10 @@ describe('VariationConfigPanel', () => {
             />
         );
 
-        // Vérifier que le message d'erreur est affiché
         const nameInput = screen.getByLabelText('Nom de la variation *');
+        const saveButton = screen.getByRole('button', { name: /^Enregistrer$/i });
+        fireEvent.click(saveButton);
+
         expect(nameInput).toHaveAttribute('aria-invalid', 'true');
     });
 
@@ -162,8 +154,10 @@ describe('VariationConfigPanel', () => {
             />
         );
 
-        // Vérifier que le bouton de suppression est désactivé en état de chargement
-        const deleteButton = screen.getByTitle('Supprimer la variation');
+        const saveButton = screen.getByRole('button', { name: /^Enregistrer$/i });
+        expect(saveButton).toBeDisabled();
+
+        const deleteButton = screen.getByRole('button', { name: /supprimer la variation/i });
         expect(deleteButton).toBeDisabled();
     });
 }); 

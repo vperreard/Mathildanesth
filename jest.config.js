@@ -5,8 +5,16 @@ export default {
         '<rootDir>/jest.setup.js'
     ],
     transform: {
-        '^.+\\.(ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
+        '^.+\\.(t|j)s$': ['ts-jest', {
+            tsconfig: 'tsconfig.jest.json'
+        }],
+        '^.+\\.(t|j)sx?$': ['ts-jest', {
+            tsconfig: 'tsconfig.jest.json',
+            babelConfig: true
+        }],
     },
+    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+    moduleDirectories: ['node_modules', '<rootDir>/src'],
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1',
         '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
@@ -15,20 +23,21 @@ export default {
         '<rootDir>/node_modules/',
         '<rootDir>/.next/',
         '<rootDir>/dist/',
+        '<rootDir>/cypress/',
     ],
-    coveragePathIgnorePatterns: [
-        '<rootDir>/node_modules/',
+    transformIgnorePatterns: [
+        '/node_modules/',
         '<rootDir>/.next/',
-        '<rootDir>/dist/',
-        '<rootDir>/src/tests/',
-        '<rootDir>/src/mocks/',
+        '<rootDir>/dist/'
     ],
-    collectCoverageFrom: [
-        'src/**/*.{js,jsx,ts,tsx}',
-        '!src/**/*.d.ts',
-        '!src/pages/_app.tsx',
-        '!src/pages/_document.tsx',
+    testMatch: [
+        '**/__tests__/**/*.+(ts|tsx|js)',
+        '**/?(*.)+(spec|test).+(ts|tsx|js)'
     ],
+    verbose: true,
+    collectCoverage: true,
+    coverageDirectory: 'coverage',
+    coverageReporters: ['json', 'lcov', 'text', 'clover'],
     coverageThreshold: {
         global: {
             branches: 80,
@@ -55,5 +64,4 @@ export default {
             statements: 80,
         },
     },
-    verbose: true,
 } 

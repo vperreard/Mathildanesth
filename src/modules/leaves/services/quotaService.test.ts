@@ -31,7 +31,7 @@ describe('quotaService', () => {
             userId: 'user1',
             year: 2023,
             initialAllowance: 25,
-            additionalAllowance: 5,
+            additionalAllowance: 10,
             used: 10,
             pending: 2,
             remaining: 18,
@@ -73,14 +73,19 @@ describe('quotaService', () => {
             const rules: QuotaTransferRule[] = [
                 {
                     id: '1',
-                    name: 'Récupération vers congés annuels',
-                    sourceType: LeaveType.RECOVERY,
-                    targetType: LeaveType.ANNUAL,
-                    ruleType: QuotaTransferRuleType.RATIO,
-                    ratio: 2, // 2 jours de récupération = 1 jour de congé annuel
+                    fromType: LeaveType.RECOVERY,
+                    toType: LeaveType.ANNUAL,
+                    ruleType: QuotaTransferRuleType.STANDARD,
+                    conversionRate: 0.5,
                     isActive: true,
-                    createdAt: new Date(),
-                    updatedAt: new Date()
+                    maxTransferDays: undefined,
+                    maxTransferPercentage: undefined,
+                    requiresApproval: false,
+                    authorizedRoles: undefined,
+                    departmentId: undefined,
+                    applicableUserRoles: undefined,
+                    minimumRemainingDays: undefined,
+                    metadata: undefined,
                 }
             ];
 
@@ -88,9 +93,9 @@ describe('quotaService', () => {
 
             expect(result.success).toBe(true);
             expect(result.sourceAmount).toBe(4);
-            expect(result.targetAmount).toBe(2); // Ratio 2:1
+            expect(result.targetAmount).toBe(2); // 4 * 0.5
             expect(result.appliedRule).toBeDefined();
-            expect(result.appliedRule?.ratio).toBe(2);
+            expect(result.appliedRule?.conversionRate).toBe(0.5);
         });
 
         it('refuse le transfert si le montant est insuffisant', async () => {

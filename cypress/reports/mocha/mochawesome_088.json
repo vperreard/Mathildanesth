@@ -1,0 +1,343 @@
+{
+  "stats": {
+    "suites": 2,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-05-04T17:23:23.304Z",
+    "end": "2025-05-04T17:23:23.863Z",
+    "duration": 559,
+    "testsRegistered": 9,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 8,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "372aca10-b1d2-4106-8015-dc4ae1fb2620",
+      "title": "",
+      "fullFile": "cypress/e2e/compatibility/responsive-tests.spec.ts",
+      "file": "cypress/e2e/compatibility/responsive-tests.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "f6cc5662-c476-4231-8104-becfa5dd7e3a",
+          "title": "Tests de compatibilité responsive",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [],
+          "suites": [
+            {
+              "uuid": "4f96c22e-b847-40f4-82f9-5f0425c2adff",
+              "title": "Tests sur mobile",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "affiche correctement le menu de navigation",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur mobile affiche correctement le menu de navigation",
+                  "timedOut": null,
+                  "duration": 316,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier que le menu hamburger est présent sur mobile\ncy.get('[data-cy=mobile-menu-button]').should('be.visible');\n// Cliquer sur le menu hamburger\ncy.get('[data-cy=mobile-menu-button]').click();\n// Vérifier que le menu s'ouvre\ncy.get('[data-cy=navigation-menu]').should('be.visible');",
+                  "err": {
+                    "message": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests de compatibilité resp...`",
+                    "estack": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests de compatibilité resp...`\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                    "diff": null
+                  },
+                  "uuid": "aa681d76-9774-41c7-b0e9-ddea1b626edf",
+                  "parentUUID": "4f96c22e-b847-40f4-82f9-5f0425c2adff",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "affiche correctement la liste des congés",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur mobile affiche correctement la liste des congés",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/leaves');\n// Vérifier que les cartes de congés s'affichent en une colonne\ncy.get('[data-cy=leave-item]').should('have.css', 'width', '100%');",
+                  "err": {},
+                  "uuid": "c5ed9e30-6487-4807-88e6-f7fb98341a03",
+                  "parentUUID": "4f96c22e-b847-40f4-82f9-5f0425c2adff",
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "adapte correctement le calendrier",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur mobile adapte correctement le calendrier",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/calendar');\n// Vérifier que la vue par défaut est différente sur mobile\ncy.get('[data-cy=calendar-day-view]').should('be.visible');\n// Vérifier que les contrôles du calendrier sont adaptés\ncy.get('[data-cy=calendar-controls]').should('have.css', 'flex-direction', 'column');",
+                  "err": {},
+                  "uuid": "b0a872ef-a39c-493c-8230-1de33514181d",
+                  "parentUUID": "4f96c22e-b847-40f4-82f9-5f0425c2adff",
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "aa681d76-9774-41c7-b0e9-ddea1b626edf"
+              ],
+              "pending": [],
+              "skipped": [
+                "c5ed9e30-6487-4807-88e6-f7fb98341a03",
+                "b0a872ef-a39c-493c-8230-1de33514181d"
+              ],
+              "duration": 316,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "9236d3a1-892e-40e3-a04b-ef5d71d87ae4",
+              "title": "Tests sur tablette",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "affiche correctement le menu de navigation",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur tablette affiche correctement le menu de navigation",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier l'affichage correct du menu sur tablette\ncy.get('[data-cy=navigation-menu]').should('be.visible');",
+                  "err": {},
+                  "uuid": "8c0da7ce-80fc-41c4-9382-4f5f8d7610da",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "affiche correctement la liste des congés",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur tablette affiche correctement la liste des congés",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/leaves');\n// Vérifier que les cartes de congés s'affichent en grille\ncy.get('[data-cy=leave-grid]').should('have.css', 'grid-template-columns');",
+                  "err": {},
+                  "uuid": "827ac893-1837-4627-b13e-1b795987a932",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [],
+              "pending": [],
+              "skipped": [
+                "8c0da7ce-80fc-41c4-9382-4f5f8d7610da",
+                "827ac893-1837-4627-b13e-1b795987a932"
+              ],
+              "duration": 0,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "11b50a46-c864-4d54-8ada-fa4ad1db7aae",
+              "title": "Tests sur desktop",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "affiche correctement le menu de navigation",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur desktop affiche correctement le menu de navigation",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier l'affichage du menu latéral sur desktop\ncy.get('[data-cy=sidebar-navigation]').should('be.visible');",
+                  "err": {},
+                  "uuid": "cb340e09-848b-445e-af11-951f94ce7eb3",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "affiche correctement le planning hebdomadaire",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur desktop affiche correctement le planning hebdomadaire",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\n// Vérifier que toutes les colonnes sont visibles\ncy.get('[data-cy=planning-day-column]').should('have.length.at.least', 5);",
+                  "err": {},
+                  "uuid": "077b6988-9b1e-4ece-97cc-67a022315a04",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [],
+              "pending": [],
+              "skipped": [
+                "cb340e09-848b-445e-af11-951f94ce7eb3",
+                "077b6988-9b1e-4ece-97cc-67a022315a04"
+              ],
+              "duration": 0,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "f4253278-4bd3-4167-ae9b-b2c7b4dd926a",
+              "title": "Tests sur grand écran",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "optimise l'affichage du planning",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur grand écran optimise l'affichage du planning",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\n// Vérifier que l'interface exploite l'espace disponible\ncy.get('[data-cy=planning-container]').invoke('width').should('be.gt', 1800);",
+                  "err": {},
+                  "uuid": "3ab66f3c-f538-44cc-9001-faa8ffc91b51",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "affiche correctement le tableau de bord",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur grand écran affiche correctement le tableau de bord",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier que les widgets s'adaptent à l'espace disponible\ncy.get('[data-cy=dashboard-widgets]').invoke('width').should('be.gt', 1800);",
+                  "err": {},
+                  "uuid": "026498bc-2218-449e-a2f9-8453829133bd",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [],
+              "pending": [],
+              "skipped": [
+                "3ab66f3c-f538-44cc-9001-faa8ffc91b51",
+                "026498bc-2218-449e-a2f9-8453829133bd"
+              ],
+              "duration": 0,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            }
+          ],
+          "passes": [],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 0,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

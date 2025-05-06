@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Widget } from '@/types/dashboard';
 import { StatWidget } from './widgets/StatWidget';
-import { ChartWidget } from './widgets/ChartWidget';
 import { ListWidget } from './widgets/ListWidget';
 import { CalendarWidget } from './widgets/CalendarWidget';
 import { ResizableWidget } from './ResizableWidget';
@@ -12,6 +11,10 @@ import { useTheme } from '@/hooks/useTheme';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import ErrorDisplay from '@/components/ErrorDisplay';
 import { DashboardWidgetErrorFallback } from '@/components/Calendar/ErrorFallbacks';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+
+// Importer ChartWidget avec React.lazy
+const ChartWidget = lazy(() => import('./widgets/ChartWidget').then(module => ({ default: module.ChartWidget })));
 
 interface DashboardGridProps {
     widgets: Widget[];
@@ -26,7 +29,12 @@ const renderWidget = (widget: Widget) => {
         case 'stat':
             return <StatWidget title={widget.title} data={widget.data} />;
         case 'chart':
-            return <ChartWidget title={widget.title} data={widget.data} />;
+            // Envelopper ChartWidget avec Suspense
+            return (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ChartWidget title={widget.title} data={widget.data} />
+                </Suspense>
+            );
         case 'list':
             return <ListWidget title={widget.title} data={widget.data} />;
         case 'calendar':
@@ -104,6 +112,16 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
                                                 widget={widget}
                                                 onResize={(size) => onWidgetResize(widget.id, size)}
                                             >
+                                                <ErrorBoundary
+                                                    fallbackComponent={(props) =>
+                                                        <DashboardWidgetErrorFallback
+                                                            {...props}
+                                                            widgetTitle={widget.title}
+                                                        />
+                                                    }
+                                                >
+                                                    {renderWidget(widget)}
+                                                </ErrorBoundary>
                                                 <div
                                                     {...provided.dragHandleProps}
                                                     className="transition-shadow"
@@ -143,16 +161,6 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    <ErrorBoundary
-                                                        fallbackComponent={(props) =>
-                                                            <DashboardWidgetErrorFallback
-                                                                {...props}
-                                                                widgetTitle={widget.title}
-                                                            />
-                                                        }
-                                                    >
-                                                        {renderWidget(widget)}
-                                                    </ErrorBoundary>
                                                 </div>
                                             </ResizableWidget>
                                         </div>

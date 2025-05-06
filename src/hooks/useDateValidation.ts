@@ -16,7 +16,9 @@ import {
     isSameDay
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useErrorHandler, ErrorSeverity } from './useErrorHandler';
+import { useErrorHandler } from './useErrorHandler';
+import { logError } from '@/services/errorLoggingService';
+import { ErrorDetails } from './useErrorHandler';
 
 /**
  * Types d'erreurs de validation de dates
@@ -309,43 +311,46 @@ export function isRangeInBlackoutPeriod(range: DateRange, blackoutPeriods: DateR
 }
 
 /**
- * Hook pour la validation des dates
+ * Hook personnalisé pour la validation des dates
  */
-export function useDateValidation() {
-    const [errors, setErrors] = useState<Array<{ type: DateValidationErrorType, message: string, field: string }>>([]);
-    const { setError, clearError, clearAllErrors } = useErrorHandler();
+export function useDateValidation(options: DateValidationOptions = {}) {
+    const [errors, setErrors] = useState<Record<string, DateValidationError>>({});
+    const { setError: logValidationError } = useErrorHandler();
 
     /**
-     * Ajoute une erreur à la liste en évitant les doublons
+     * Définit une erreur de validation pour un champ spécifique.
      */
-    const addError = useCallback((field: string, type: DateValidationErrorType, message: string) => {
-        setErrors(prev => {
-            // Vérifier si l'erreur existe déjà pour ce champ et ce type
-            const existingErrorIndex = prev.findIndex(e => e.field === field && e.type === type);
-
-            // Si l'erreur existe déjà, on ne l'ajoute pas à nouveau
-            if (existingErrorIndex >= 0) {
-                return prev;
-            }
-
-            // Sinon, on ajoute la nouvelle erreur
-            return [...prev, { field, type, message }];
+    const setError = useCallback((fieldName: string, type: DateValidationErrorType, message: string, details?: any) => {
+        setErrors((prevErrors) => ({
+            ...prevErrors,
+            [fieldName]: { type, message, details },
+        }));
+        // Log the error using the error handler hook
+        logValidationError(`DateValidation Error [${fieldName}]`, {
+            severity: 'warning',
+            code: `DATE_VALIDATION_${type}`,
+            message: message,
+            context: { fieldName, validationType: type, ...details, componentStack: 'useDateValidation' },
         });
-    }, []);
+    }, [logValidationError]);
 
     /**
-     * Efface les erreurs pour un champ spécifique
+     * Efface l'erreur de validation pour un champ spécifique.
      */
-    const clearFieldErrors = useCallback((field: string) => {
-        setErrors(prev => prev.filter(error => error.field !== field));
+    const clearValidationError = useCallback((fieldName: string) => {
+        setErrors((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            delete newErrors[fieldName];
+            return newErrors;
+        });
     }, []);
 
     /**
      * Valide une date selon les options spécifiées
      */
-    const validateDate = useCallback((date: Date | string | null | undefined, field: string, options: DateValidationOptions = {}) => {
+    const validateDate = useCallback((date: Date | string | null | undefined, fieldName: string, context: DateValidationContext = {}): boolean => {
         // Par défaut, on efface toutes les erreurs précédentes pour ce champ
-        clearFieldErrors(field);
+        clearValidationError(fieldName);
 
         const {
             required = true,
@@ -359,7 +364,7 @@ export function useDateValidation() {
 
         // Vérification si la date est requise
         if (required && (date === null || date === undefined || date === '')) {
-            addError(field, DateValidationErrorType.REQUIRED, 'Ce champ est obligatoire');
+            setError(fieldName, DateValidationErrorType.REQUIRED, 'Ce champ est obligatoire');
             return false;
         } else if (!required && (date === null || date === undefined || date === '')) {
             // Si la date n'est pas requise et qu'elle est vide, c'est valide
@@ -369,7 +374,7 @@ export function useDateValidation() {
         // Normaliser la date
         const normalizedDate = normalizeDate(date);
         if (!normalizedDate) {
-            addError(field, DateValidationErrorType.INVALID_FORMAT, 'Format de date invalide');
+            setError(fieldName, DateValidationErrorType.INVALID_FORMAT, 'Format de date invalide');
             return false;
         }
 
@@ -378,41 +383,41 @@ export function useDateValidation() {
         now.setHours(0, 0, 0, 0); // Minuit pour comparer uniquement les dates
 
         if (!allowPastDates && isBefore(normalizedDate, now)) {
-            addError(field, DateValidationErrorType.PAST_DATE, 'Les dates passées ne sont pas autorisées');
+            setError(fieldName, DateValidationErrorType.PAST_DATE, 'Les dates passées ne sont pas autorisées');
             return false;
         }
 
         // Vérification des dates futures
         if (!allowFutureDates && isAfter(normalizedDate, now)) {
-            addError(field, DateValidationErrorType.FUTURE_DATE, 'Les dates futures ne sont pas autorisées');
+            setError(fieldName, DateValidationErrorType.FUTURE_DATE, 'Les dates futures ne sont pas autorisées');
             return false;
         }
 
         // Vérification des week-ends
         if (disallowWeekends && isWeekend(normalizedDate)) {
-            addError(field, DateValidationErrorType.WEEKEND, 'Les week-ends ne sont pas autorisés');
+            setError(fieldName, DateValidationErrorType.WEEKEND, 'Les week-ends ne sont pas autorisés');
             return false;
         }
 
         // Vérification des jours fériés
         if (holidays.length > 0 && isHoliday(normalizedDate, holidays)) {
-            addError(field, DateValidationErrorType.HOLIDAY, 'Les jours fériés ne sont pas autorisés');
+            setError(fieldName, DateValidationErrorType.HOLIDAY, 'Les jours fériés ne sont pas autorisés');
             return false;
         }
 
         // Vérification des dates min/max
         if (minDate && isBefore(normalizedDate, minDate)) {
-            addError(field, DateValidationErrorType.INVALID_DATE, `La date doit être après le ${formatDate(minDate)}`);
+            setError(fieldName, DateValidationErrorType.INVALID_DATE, `La date doit être après le ${formatDate(minDate)}`);
             return false;
         }
 
         if (maxDate && isAfter(normalizedDate, maxDate)) {
-            addError(field, DateValidationErrorType.INVALID_DATE, `La date doit être avant le ${formatDate(maxDate)}`);
+            setError(fieldName, DateValidationErrorType.INVALID_DATE, `La date doit être avant le ${formatDate(maxDate)}`);
             return false;
         }
 
         return true;
-    }, [addError, clearFieldErrors]);
+    }, [options, setError, clearValidationError]);
 
     /**
      * Valide une plage de dates
@@ -422,11 +427,11 @@ export function useDateValidation() {
         endDate: Date | string | null | undefined,
         startFieldName: string,
         endFieldName: string,
-        options: DateValidationOptions = {}
+        context: DateValidationContext = {}
     ): boolean => {
         // Réinitialiser les erreurs pour les deux champs
-        clearFieldErrors(startFieldName);
-        clearFieldErrors(endFieldName);
+        clearValidationError(startFieldName);
+        clearValidationError(endFieldName);
 
         const {
             required = true,
@@ -438,19 +443,8 @@ export function useDateValidation() {
         } = options;
 
         // Valider les dates individuellement
-        const isStartValid = validateDate(startDate, startFieldName, {
-            required,
-            allowPastDates,
-            disallowWeekends,
-            holidays
-        });
-
-        const isEndValid = validateDate(endDate, endFieldName, {
-            required,
-            allowPastDates,
-            disallowWeekends,
-            holidays
-        });
+        const isStartValid = validateDate(startDate, startFieldName, context);
+        const isEndValid = validateDate(endDate, endFieldName, context);
 
         if (!isStartValid || !isEndValid) {
             return false;
@@ -466,7 +460,7 @@ export function useDateValidation() {
 
         // Vérifier que la date de début est avant la date de fin
         if (isAfter(normalizedStartDate, normalizedEndDate)) {
-            addError(startFieldName, DateValidationErrorType.START_AFTER_END, 'La date de début doit être antérieure à la date de fin');
+            setError(startFieldName, DateValidationErrorType.START_AFTER_END, 'La date de début doit être antérieure à la date de fin');
             return false;
         }
 
@@ -474,7 +468,7 @@ export function useDateValidation() {
         if (minDuration !== undefined && minDuration > 0) {
             const durationDays = differenceInDays(normalizedEndDate, normalizedStartDate) + 1;
             if (durationDays < minDuration) {
-                addError(endFieldName, DateValidationErrorType.MIN_DURATION, `La durée minimum requise est de ${minDuration} jour(s)`);
+                setError(endFieldName, DateValidationErrorType.MIN_DURATION, `La durée minimum requise est de ${minDuration} jour(s)`);
                 return false;
             }
         }
@@ -483,13 +477,36 @@ export function useDateValidation() {
         if (maxDuration !== undefined && maxDuration > 0) {
             const durationDays = differenceInDays(normalizedEndDate, normalizedStartDate) + 1;
             if (durationDays > maxDuration) {
-                addError(endFieldName, DateValidationErrorType.MAX_DURATION, `La durée maximum autorisée est de ${maxDuration} jour(s)`);
+                setError(endFieldName, DateValidationErrorType.MAX_DURATION, `La durée maximum autorisée est de ${maxDuration} jour(s)`);
                 return false;
             }
         }
 
         return true;
-    }, [validateDate, clearFieldErrors, addError]);
+    }, [options, validateDate, clearValidationError, setError]);
+
+    /**
+     * Vérifie si une nouvelle plage de dates chevauche des plages existantes.
+     */
+    const validateOverlap = useCallback((newRangeInput: DateRange | null | undefined, existingRanges: DateRange[] = [], fieldName: string): boolean => {
+        clearValidationError(fieldName);
+        const newRange = newRangeInput ? { start: normalizeDate(newRangeInput.start), end: normalizeDate(newRangeInput.end) } : null;
+
+        if (!newRange || !newRange.start || !newRange.end) {
+            // Cannot validate overlap if the new range is invalid
+            return true; // Or false depending on desired behavior for invalid input
+        }
+
+        const overlaps = findOverlaps(newRange as DateRange, existingRanges);
+
+        if (overlaps.length > 0) {
+            const overlapDetails = overlaps.map(o => ({ start: formatDate(o.start), end: formatDate(o.end), label: o.label }));
+            setError(fieldName, DateValidationErrorType.OVERLAP, `La période chevauche une ou plusieurs périodes existantes.`, overlapDetails);
+            return false;
+        }
+
+        return true;
+    }, [setError, clearValidationError, formatDate, normalizeDate, findOverlaps]);
 
     // Récupérer toutes les erreurs
     const getAllErrors = useCallback(() => {
@@ -498,32 +515,35 @@ export function useDateValidation() {
 
     // Effacer toutes les erreurs
     const clearAllValidationErrors = useCallback(() => {
-        setErrors([]);
+        setErrors({});
     }, []);
 
     // Vérifier s'il y a des erreurs pour un champ spécifique
     const hasFieldError = useCallback((fieldName: string): boolean => {
-        return errors.some(error => error.field === fieldName);
+        return !!errors[fieldName];
     }, [errors]);
 
     // Récupérer les erreurs pour un champ spécifique
     const getFieldErrors = useCallback((fieldName: string) => {
-        return errors.filter(error => error.field === fieldName);
+        return errors[fieldName];
     }, [errors]);
 
     // Vérifier s'il y a des erreurs d'un type spécifique
     const hasErrorType = useCallback((type: DateValidationErrorType): boolean => {
-        return errors.some(error => error.type === type);
+        return Object.values(errors).some(error => error.type === type);
     }, [errors]);
 
     return {
-        errors,
         validateDate,
         validateDateRange,
+        validateOverlap,
+        setError,
+        clearError: clearValidationError,
         getAllErrors,
         clearAllValidationErrors,
         hasFieldError,
         getFieldErrors,
-        hasErrorType
+        hasErrorType,
+        resetErrors: clearAllValidationErrors
     };
-} 
+}

@@ -9,7 +9,11 @@ const formatDateForInput = (dateString: string | Date | undefined): string => {
         if (isNaN(date.getTime())) {
             return '';
         }
-        return date.toISOString().split('T')[0];
+        // Correction: Utiliser getFullYear, getMonth, getDate pour éviter les problèmes de fuseau horaire
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Mois est 0-indexé
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
     } catch (e) {
         console.error("Erreur de formatage de date pour input:", e);
         return '';
@@ -67,9 +71,9 @@ export const useLeaveListFilteringSorting = ({
                     if (aValue === null && bValue === null) return 0;
                     if (aValue === null) return sort.direction === 'asc' ? 1 : -1;
                     if (bValue === null) return sort.direction === 'asc' ? -1 : 1;
-                    if (aValue < bValue) return sort.direction === 'asc' ? -1 : 1;
-                    if (aValue > bValue) return sort.direction === 'asc' ? 1 : -1;
-                    return 0;
+                    // Comparaison directe des objets Date
+                    const comparison = aValue.getTime() - bValue.getTime();
+                    return sort.direction === 'asc' ? comparison : -comparison;
                 } else if (field === 'type' || field === 'status') {
                     // Utilisation des enums LeaveType/LeaveStatus
                     aValue = a[field]?.toString().toLowerCase() ?? '';
@@ -86,8 +90,7 @@ export const useLeaveListFilteringSorting = ({
             }
 
             if (typeof aValue === 'string' && typeof bValue === 'string') {
-                if (aValue < bValue) return sort.direction === 'asc' ? -1 : 1;
-                if (aValue > bValue) return sort.direction === 'asc' ? 1 : -1;
+                return sort.direction === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
             }
 
             return 0;
@@ -149,7 +152,7 @@ export const useLeaveListFilteringSorting = ({
 };
 
 // Helper pour vérifier si une clé est valide (évite le cast risqué)
-const validKeys: ReadonlyArray<SortableFilterableKeys> = ['id', 'userId', 'startDate', 'endDate', 'type', 'status', 'countedDays', 'reason', 'comment', 'requestDate', 'approvalDate', 'approvedBy', 'calculationDetails', 'createdAt', 'updatedAt', 'user'];
+const validKeys: ReadonlyArray<SortableFilterableKeys> = ['id', 'userId', 'startDate', 'endDate', 'type', 'status', 'countedDays', 'reason', 'comment', 'requestDate', 'approvalDate', 'createdAt', 'updatedAt', 'user'];
 function isValidSortableFilterableKey(key: string): key is SortableFilterableKeys {
     return validKeys.includes(key as SortableFilterableKeys);
 } 

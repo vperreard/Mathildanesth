@@ -69,20 +69,30 @@ describe('CalendarHeader', () => {
         expect(mockProps.onToday).toHaveBeenCalledTimes(1);
     });
 
-    test('appelle onViewChange avec la bonne vue quand un bouton de vue est cliqué', () => {
+    test('appelle onViewChange avec la bonne vue quand un bouton de vue est cliqué', async () => {
         render(<CalendarHeader {...mockProps} />);
 
-        // Cliquer sur le bouton de vue semaine
-        const weekButton = screen.getByText(/semaine/i);
-        fireEvent.click(weekButton);
-
-        expect(mockProps.onViewChange).toHaveBeenCalledWith(CalendarViewType.WEEK);
-
-        // Cliquer sur le bouton de vue jour
-        const dayButton = screen.getByText(/jour/i);
+        // Cliquer sur le bouton de vue jour (utiliser un sélecteur plus précis)
+        // Cibler un bouton qui contient "Jour" mais pas "Aujourd'hui"
+        const dayButton = screen.getByRole('button', { name: /^Jour$/i }); // Utiliser une regex exacte
         fireEvent.click(dayButton);
 
         expect(mockProps.onViewChange).toHaveBeenCalledWith(CalendarViewType.DAY);
+
+        // Cliquer sur le bouton semaine
+        const weekButton = screen.getByRole('button', { name: /semaine/i });
+        fireEvent.click(weekButton);
+        expect(mockProps.onViewChange).toHaveBeenCalledWith(CalendarViewType.WEEK);
+
+        // Cliquer sur le bouton mois
+        const monthButton = screen.getByRole('button', { name: /^Mois$/i }); // Utiliser une regex exacte
+        fireEvent.click(monthButton);
+        expect(mockProps.onViewChange).toHaveBeenCalledWith(CalendarViewType.MONTH);
+
+        // Cliquer sur le bouton liste
+        const listButton = screen.getByRole('button', { name: /liste/i });
+        fireEvent.click(listButton);
+        expect(mockProps.onViewChange).toHaveBeenCalledWith(CalendarViewType.LIST);
     });
 
     test('met en évidence la vue active', () => {
@@ -119,16 +129,16 @@ describe('CalendarHeader', () => {
     });
 
     test('ne montre pas le sélecteur de vue quand showViewSelector est false', () => {
-        render(
-            <CalendarHeader
-                {...mockProps}
-                showViewSelector={false}
-            />
-        );
+        render(<CalendarHeader {...mockProps} showViewSelector={false} />);
 
-        expect(screen.queryByText(/mois/i)).not.toBeInTheDocument();
-        expect(screen.queryByText(/semaine/i)).not.toBeInTheDocument();
-        expect(screen.queryByText(/jour/i)).not.toBeInTheDocument();
+        // Les boutons spécifiques (Mois, Semaine, Jour, Liste) ne doivent pas être là
+        expect(screen.queryByRole('button', { name: /^Mois$/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /semaine/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /^Jour$/i })).not.toBeInTheDocument(); // Utiliser une regex exacte
+        expect(screen.queryByRole('button', { name: /liste/i })).not.toBeInTheDocument();
+
+        // Le bouton "Aujourd'hui" peut toujours être présent
+        // expect(screen.queryByRole('button', { name: /aujourd'hui/i })).toBeInTheDocument(); // Optionnel
     });
 
     test('ne montre pas la plage de dates quand showDateRange est false', () => {

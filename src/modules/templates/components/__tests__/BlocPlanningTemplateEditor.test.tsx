@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import BlocPlanningTemplateEditor from '../BlocPlanningTemplateEditor';
 import { AffectationType, PlanningTemplate, ConfigurationVariation } from '../../types/template';
 
@@ -106,8 +107,9 @@ describe('BlocPlanningTemplateEditor', () => {
         expect(screen.getByRole('tab', { name: /lundi/i })).toBeInTheDocument();
         expect(screen.getByRole('tab', { name: /mardi/i })).toBeInTheDocument();
 
-        // Vérifier les affectations
-        expect(screen.getByText('CONSULTATION')).toBeInTheDocument();
+        // Vérifier les affectations (plusieurs peuvent exister)
+        const consultations = screen.getAllByText('CONSULTATION');
+        expect(consultations.length).toBeGreaterThan(0);
     });
 
     it('allows switching to variations tab', async () => {
@@ -140,18 +142,18 @@ describe('BlocPlanningTemplateEditor', () => {
             />
         );
 
-        // Sélectionner un type d'affectation
-        const typeSelect = screen.getByLabelText(/type d'affectation/i);
+        // Sélectionner un type d'affectation par role
+        const typeSelect = screen.getByRole('combobox');
         fireEvent.mouseDown(typeSelect);
         const gardeOption = screen.getByRole('option', { name: /garde_jour/i });
         fireEvent.click(gardeOption);
 
-        // Cliquer sur le bouton pour ajouter
-        const addButton = screen.getByRole('button', { name: /ajouter/i });
+        // Cliquer sur le bouton pour ajouter (texte exact)
+        const addButton = screen.getByRole('button', { name: /^Ajouter$/i });
         fireEvent.click(addButton);
 
         // Vérifier que la nouvelle affectation apparaît
-        expect(screen.getAllByText(/ouvert/i)).toHaveLength(2); // Une existante plus la nouvelle
+        expect(screen.getAllByText(/ouvert/i)).toHaveLength(2);
     });
 
     it('opens variation dialog when add variation button is clicked', () => {
@@ -164,8 +166,8 @@ describe('BlocPlanningTemplateEditor', () => {
             />
         );
 
-        // Trouver le bouton d'ajout de variation (utilisant l'icône CalendarIcon)
-        const addVariationButton = screen.getByTitle(/ajouter une variation/i);
+        // Trouver le bouton d'ajout de variation par role et name (aria-label)
+        const addVariationButton = screen.getByRole('button', { name: /ajouter une variation/i });
         fireEvent.click(addVariationButton);
 
         // Vérifier que le dialogue s'ouvre
@@ -187,33 +189,34 @@ describe('BlocPlanningTemplateEditor', () => {
         fireEvent.click(variationsTab);
 
         // Éditer une variation existante
-        const editButton = screen.getByTitle(/éditer la variation/i);
+        const editButton = screen.getByRole('button', { name: /éditer la variation/i });
         fireEvent.click(editButton);
 
-        // Attendre que le dialogue s'ouvre
+        // Attendre que le dialogue s'ouvre et que le mock soit là
         await waitFor(() => {
             expect(screen.getByTestId('mock-variation-config')).toBeInTheDocument();
         });
 
-        // Modifier le nom de la variation
+        // Modifier le nom de la variation via le mock
         const nameInput = screen.getByTestId('mock-variation-name');
         fireEvent.change(nameInput, { target: { value: 'Nouvelle Variation' } });
 
-        // Fermer le dialogue
+        // Fermer le dialogue (en cliquant sur le bouton "Fermer" du dialogue)
         const closeButton = screen.getByRole('button', { name: /fermer/i });
         fireEvent.click(closeButton);
 
-        // Vérifier que la variation a été mise à jour
-        const saveButton = screen.getByRole('button', { name: /enregistrer/i });
-        fireEvent.click(saveButton);
+        // Attendre que le bouton Enregistrer principal soit disponible et le cliquer
+        const saveEditorButton = await screen.findByRole('button', { name: /enregistrer/i });
+        fireEvent.click(saveEditorButton);
 
-        expect(mockSave).toHaveBeenCalledWith(expect.objectContaining({
-            variations: expect.arrayContaining([
-                expect.objectContaining({
-                    nom: 'Nouvelle Variation'
-                })
-            ])
-        }));
+        // Attendre et vérifier que la fonction onSave a été appelée
+        await waitFor(() => {
+            expect(mockSave).toHaveBeenCalledWith(expect.objectContaining({
+                variations: expect.arrayContaining([
+                    expect.objectContaining({ id: 'var-123', nom: 'Nouvelle Variation' })
+                ])
+            }));
+        });
     });
 
     it('deletes a variation when delete button is clicked', async () => {
@@ -230,8 +233,8 @@ describe('BlocPlanningTemplateEditor', () => {
         const variationsTab = screen.getByRole('tab', { name: /variations/i });
         fireEvent.click(variationsTab);
 
-        // Supprimer une variation existante
-        const deleteButton = screen.getByTitle(/supprimer/i);
+        // Supprimer une variation existante par role et name (aria-label)
+        const deleteButton = screen.getByRole('button', { name: /supprimer/i });
         fireEvent.click(deleteButton);
 
         // Sauvegarder les modifications

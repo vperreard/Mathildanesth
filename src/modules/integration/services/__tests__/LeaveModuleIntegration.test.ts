@@ -12,42 +12,47 @@ jest.mock('../../../leaves/services/AuditService', () => ({
     }
 }));
 
-// Classe fictive pour simuler le service de planning
-class MockPlanningService {
-    public updatePlanning = jest.fn().mockResolvedValue(true);
-    public removeFromPlanning = jest.fn().mockResolvedValue(true);
-    public checkConflicts = jest.fn().mockResolvedValue([]);
-}
+// Mock EventBusService pour ce test, en s'assurant que subscribe retourne une fct
+jest.mock('../EventBusService', () => ({
+    eventBus: {
+        publish: jest.fn(),
+        subscribe: jest.fn(() => ({ unsubscribe: jest.fn() })), // Retourne un objet avec une fonction unsubscribe
+        dispose: jest.fn(),
+        getStats: jest.fn().mockReturnValue({ /* ... */ })
+    },
+    IntegrationEventType: {
+        LEAVE_CREATED: 'LEAVE_CREATED',
+        LEAVE_UPDATED: 'LEAVE_UPDATED',
+        LEAVE_APPROVED: 'LEAVE_APPROVED',
+        LEAVE_REJECTED: 'LEAVE_REJECTED',
+        LEAVE_CANCELLED: 'LEAVE_CANCELLED',
+        LEAVE_DELETED: 'LEAVE_DELETED',
+        QUOTA_UPDATED: 'QUOTA_UPDATED'
+        // Ajouter d'autres types si utilisés
+    }
+}));
 
-// Classe fictive pour simuler le service de notification
-class MockNotificationService {
-    public sendNotification = jest.fn().mockResolvedValue(true);
-    public updateNotificationStatus = jest.fn().mockResolvedValue(true);
-}
+// Créer des mocks Jest simples au lieu de classes
+const mockUpdatePlanning = jest.fn().mockResolvedValue(true);
+const mockRemoveFromPlanning = jest.fn().mockResolvedValue(true);
+const mockCheckConflicts = jest.fn().mockResolvedValue([]);
+const mockSendNotification = jest.fn().mockResolvedValue(true);
 
 describe('Intégration entre le module de congés et les autres modules', () => {
-    let mockPlanningService: MockPlanningService;
-    let mockNotificationService: MockNotificationService;
-
     beforeEach(() => {
         jest.clearAllMocks();
 
-        // Réinitialiser les instances
-        mockPlanningService = new MockPlanningService();
-        mockNotificationService = new MockNotificationService();
+        // Utiliser les mocks Jest simples directement
+        eventBus.subscribe(IntegrationEventType.LEAVE_CREATED, mockUpdatePlanning);
+        eventBus.subscribe(IntegrationEventType.LEAVE_UPDATED, mockUpdatePlanning);
+        eventBus.subscribe(IntegrationEventType.LEAVE_APPROVED, mockUpdatePlanning);
+        eventBus.subscribe(IntegrationEventType.LEAVE_REJECTED, mockRemoveFromPlanning);
+        eventBus.subscribe(IntegrationEventType.LEAVE_CANCELLED, mockRemoveFromPlanning);
+        eventBus.subscribe(IntegrationEventType.LEAVE_DELETED, mockRemoveFromPlanning);
 
-        // S'abonner aux événements pour simuler les interactions
-        eventBus.subscribe(IntegrationEventType.LEAVE_CREATED, mockPlanningService.updatePlanning);
-        eventBus.subscribe(IntegrationEventType.LEAVE_UPDATED, mockPlanningService.updatePlanning);
-        eventBus.subscribe(IntegrationEventType.LEAVE_APPROVED, mockPlanningService.updatePlanning);
-        eventBus.subscribe(IntegrationEventType.LEAVE_REJECTED, mockPlanningService.removeFromPlanning);
-        eventBus.subscribe(IntegrationEventType.LEAVE_CANCELLED, mockPlanningService.removeFromPlanning);
-        eventBus.subscribe(IntegrationEventType.LEAVE_DELETED, mockPlanningService.removeFromPlanning);
-
-        // Notification d'événements de congé
-        eventBus.subscribe(IntegrationEventType.LEAVE_CREATED, mockNotificationService.sendNotification);
-        eventBus.subscribe(IntegrationEventType.LEAVE_APPROVED, mockNotificationService.sendNotification);
-        eventBus.subscribe(IntegrationEventType.LEAVE_REJECTED, mockNotificationService.sendNotification);
+        eventBus.subscribe(IntegrationEventType.LEAVE_CREATED, mockSendNotification);
+        eventBus.subscribe(IntegrationEventType.LEAVE_APPROVED, mockSendNotification);
+        eventBus.subscribe(IntegrationEventType.LEAVE_REJECTED, mockSendNotification);
     });
 
     afterEach(() => {
@@ -75,7 +80,7 @@ describe('Intégration entre le module de congés et les autres modules', () => 
             });
 
             // Assert
-            expect(mockPlanningService.updatePlanning).toHaveBeenCalledWith(
+            expect(mockUpdatePlanning).toHaveBeenCalledWith(
                 expect.objectContaining({
                     payload: leaveData
                 })
@@ -101,7 +106,7 @@ describe('Intégration entre le module de congés et les autres modules', () => 
             });
 
             // Assert
-            expect(mockPlanningService.updatePlanning).toHaveBeenCalledWith(
+            expect(mockUpdatePlanning).toHaveBeenCalledWith(
                 expect.objectContaining({
                     payload: leaveData
                 })
@@ -125,7 +130,7 @@ describe('Intégration entre le module de congés et les autres modules', () => 
             });
 
             // Assert
-            expect(mockPlanningService.removeFromPlanning).toHaveBeenCalledWith(
+            expect(mockRemoveFromPlanning).toHaveBeenCalledWith(
                 expect.objectContaining({
                     payload: leaveData
                 })
@@ -148,7 +153,7 @@ describe('Intégration entre le module de congés et les autres modules', () => 
             });
 
             // Assert
-            expect(mockPlanningService.removeFromPlanning).toHaveBeenCalledWith(
+            expect(mockRemoveFromPlanning).toHaveBeenCalledWith(
                 expect.objectContaining({
                     payload: leaveData
                 })
@@ -176,7 +181,7 @@ describe('Intégration entre le module de congés et les autres modules', () => 
             });
 
             // Assert
-            expect(mockNotificationService.sendNotification).toHaveBeenCalledWith(
+            expect(mockSendNotification).toHaveBeenCalledWith(
                 expect.objectContaining({
                     payload: leaveData
                 })
@@ -202,7 +207,7 @@ describe('Intégration entre le module de congés et les autres modules', () => 
             });
 
             // Assert
-            expect(mockNotificationService.sendNotification).toHaveBeenCalledWith(
+            expect(mockSendNotification).toHaveBeenCalledWith(
                 expect.objectContaining({
                     payload: leaveData
                 })
@@ -227,7 +232,7 @@ describe('Intégration entre le module de congés et les autres modules', () => 
             });
 
             // Assert
-            expect(mockNotificationService.sendNotification).toHaveBeenCalledWith(
+            expect(mockSendNotification).toHaveBeenCalledWith(
                 expect.objectContaining({
                     payload: leaveData
                 })
@@ -271,7 +276,7 @@ describe('Intégration entre le module de congés et les autres modules', () => 
                 { id: 'event-1', type: 'GARDE', date: '2023-07-03' },
                 { id: 'event-2', type: 'ASTREINTE', date: '2023-07-04' }
             ];
-            mockPlanningService.checkConflicts.mockResolvedValue(planningConflicts);
+            mockCheckConflicts.mockResolvedValue(planningConflicts);
 
             const leaveData = {
                 userId: 'user-456',
@@ -284,7 +289,7 @@ describe('Intégration entre le module de congés et les autres modules', () => 
             // qui interrogerait le service de planning via une requête HTTP ou directement
 
             // Simuler la logique ici pour l'exemple
-            expect(mockPlanningService.checkConflicts).toBeDefined();
+            expect(mockCheckConflicts).toBeDefined();
         });
     });
 

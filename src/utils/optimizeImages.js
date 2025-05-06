@@ -1,10 +1,10 @@
-const fs = require('fs');
-const path = require('path');
-const sharp = require('sharp');
-const glob = require('glob');
+import fs from 'fs';
+import path from 'path';
+import sharp from 'sharp';
+import glob from 'glob';
 
-const SOURCE_DIR = './public/images';
-const OUTPUT_DIR = './public/optimized';
+const INPUT_DIR = 'public'; // Répertoire contenant les images originales
+const OUTPUT_DIR = 'public/optimized'; // Répertoire de sortie pour les images optimisées
 const SIZES = [640, 750, 828, 1080, 1200, 1920]; // Tailles courantes pour les appareils
 const QUALITY = 80;
 
@@ -14,7 +14,7 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 }
 
 // Trouve toutes les images dans le répertoire source
-const imageFiles = glob.sync(`${SOURCE_DIR}/**/*.{jpg,jpeg,png}`);
+const imageFiles = glob.sync(`${INPUT_DIR}/**/*.{jpg,jpeg,png}`);
 
 // Génère une version placeholder de très petite taille pour l'effet blur
 async function generatePlaceholder(imagePath, outputPath) {

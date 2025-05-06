@@ -4,11 +4,9 @@
  */
 export class EventBusService {
     private static instance: EventBusService;
-    private listeners: Map<string, Function[]>;
+    private listeners: { [key: string]: Array<(...args: unknown[]) => void> } = {};
 
-    private constructor() {
-        this.listeners = new Map();
-    }
+    private constructor() { }
 
     /**
      * Obtient l'instance singleton du service d'événements
@@ -26,12 +24,12 @@ export class EventBusService {
      * @param callback Fonction à appeler quand l'événement est émis
      * @returns Fonction pour se désabonner
      */
-    public subscribe(eventType: string, callback: Function): () => void {
-        if (!this.listeners.has(eventType)) {
-            this.listeners.set(eventType, []);
+    public subscribe(eventType: string, callback: (...args: unknown[]) => void): () => void {
+        if (!this.listeners[eventType]) {
+            this.listeners[eventType] = [];
         }
 
-        const eventListeners = this.listeners.get(eventType)!;
+        const eventListeners = this.listeners[eventType];
         eventListeners.push(callback);
 
         return () => {
@@ -48,8 +46,8 @@ export class EventBusService {
      */
     public emit(event: { type: string; data?: any }): void {
         const eventType = event.type;
-        if (this.listeners.has(eventType)) {
-            const eventListeners = this.listeners.get(eventType)!;
+        if (this.listeners[eventType]) {
+            const eventListeners = this.listeners[eventType];
             eventListeners.forEach(listener => {
                 try {
                     listener(event);
@@ -65,14 +63,14 @@ export class EventBusService {
      * @param eventType Type d'événement à nettoyer
      */
     public clearEventListeners(eventType: string): void {
-        this.listeners.delete(eventType);
+        this.listeners[eventType] = [];
     }
 
     /**
      * Supprime tous les abonnements
      */
     public clearAllListeners(): void {
-        this.listeners.clear();
+        this.listeners = {};
     }
 }
 

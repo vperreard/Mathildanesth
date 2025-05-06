@@ -123,29 +123,6 @@ export interface RuleEvaluationResult {
 }
 
 /**
- * Interface principale pour une règle
- */
-export interface Rule {
-    id: string;
-    name: string;
-    description?: string;
-    type: RuleType;                   // Type de règle
-    priority: RulePriority;           // Priorité de la règle
-    isActive: boolean;                // Si la règle est active
-    conditions: RuleCondition[];      // Conditions d'application
-    conditionLogic?: 'AND' | 'OR';    // Logique entre les conditions (défaut: AND)
-    actions: RuleAction[];            // Actions à exécuter
-    createdAt: Date;                  // Date de création
-    updatedAt: Date;                  // Date de dernière mise à jour
-    createdBy?: string;               // Créateur de la règle
-    tags?: string[];                  // Tags pour catégorisation
-    version?: number;                 // Version de la règle
-    metadata?: Record<string, any>;   // Métadonnées additionnelles
-    scope?: string[];                 // Portée d'application (départements, services...)
-    expireAt?: Date;                  // Date d'expiration (optionnelle)
-}
-
-/**
  * Interface pour un conflit entre règles
  */
 export interface RuleConflict {
@@ -219,6 +196,8 @@ export interface Rule {
     contexts?: string[];                 // Contextes dans lesquels la règle s'applique
     exceptions?: Rule[];                 // Règles d'exception à celle-ci
     conflictResolution?: string;         // Stratégie de résolution de conflit
+    createdAt?: Date;                 // Optionnel si géré par la DB
+    updatedAt?: Date;                 // Optionnel si géré par la DB
 }
 
 /**

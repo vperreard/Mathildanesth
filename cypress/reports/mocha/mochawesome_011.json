@@ -1,0 +1,272 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 8,
+    "passes": 0,
+    "pending": 0,
+    "failures": 8,
+    "start": "2025-05-04T16:22:51.605Z",
+    "end": "2025-05-04T16:22:55.557Z",
+    "duration": 3952,
+    "testsRegistered": 8,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "adcca507-4fca-450b-891b-021d698dd18d",
+      "title": "",
+      "fullFile": "cypress/e2e/edge-cases/error-handling.spec.ts",
+      "file": "cypress/e2e/edge-cases/error-handling.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "be7768bd-c4ed-4f94-bc98-7040495fc4b7",
+          "title": "Gestion des erreurs et cas limites",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "gère correctement les erreurs de validation du formulaire de congés",
+              "fullTitle": "Gestion des erreurs et cas limites gère correctement les erreurs de validation du formulaire de congés",
+              "timedOut": null,
+              "duration": 400,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page de demande de congés\ncy.visitAsAuthenticatedUser('/leaves/new');\n// Soumettre le formulaire sans remplir les champs obligatoires\ncy.get('[data-cy=submit-leave-request]').click();\n// Vérifier que les erreurs de validation s'affichent\ncy.get('[data-cy=validation-error]').should('have.length.at.least', 2);\ncy.get('[data-cy=type-validation-error]').should('be.visible');\ncy.get('[data-cy=dates-validation-error]').should('be.visible');\n// Remplir partiellement le formulaire\ncy.get('[data-cy=leave-type-select]').click();\ncy.get('[data-cy=leave-type-option-conges]').click();\n// Soumettre à nouveau\ncy.get('[data-cy=submit-leave-request]').click();\n// Vérifier que l'erreur sur le type a disparu mais que l'erreur sur les dates persiste\ncy.get('[data-cy=type-validation-error]').should('not.exist');\ncy.get('[data-cy=dates-validation-error]').should('be.visible');",
+              "err": {
+                "message": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}",
+                "estack": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "ad5ace81-a230-409c-8e46-d1f1aa07aa4d",
+              "parentUUID": "be7768bd-c4ed-4f94-bc98-7040495fc4b7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "gère les erreurs de serveur lors de la soumission d'un formulaire",
+              "fullTitle": "Gestion des erreurs et cas limites gère les erreurs de serveur lors de la soumission d'un formulaire",
+              "timedOut": null,
+              "duration": 327,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page de demande de congés\ncy.visitAsAuthenticatedUser('/leaves/new');\n// Remplir le formulaire\ncy.get('[data-cy=leave-type-select]').click();\ncy.get('[data-cy=leave-type-option-conges]').click();\nvar tomorrow = new Date();\ntomorrow.setDate(tomorrow.getDate() + 1);\nvar nextWeek = new Date();\nnextWeek.setDate(nextWeek.getDate() + 7);\ncy.selectDate('[data-cy=start-date-input]', tomorrow);\ncy.selectDate('[data-cy=end-date-input]', nextWeek);\n// Simuler une erreur serveur\ncy.intercept('POST', '**/api/leaves', {\n    statusCode: 500,\n    body: {\n        message: 'Erreur interne du serveur'\n    }\n}).as('serverError');\n// Soumettre le formulaire\ncy.get('[data-cy=submit-leave-request]').click();\n// Attendre la requête interceptée\ncy.wait('@serverError');\n// Vérifier que l'erreur est bien affichée\ncy.get('[data-cy=notification-error]')\n    .should('be.visible')\n    .and('contain', 'Erreur');\n// Vérifier que le formulaire est toujours affiché avec les données\ncy.get('[data-cy=leave-form]').should('be.visible');",
+              "err": {
+                "message": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}",
+                "estack": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "a56b6c7f-118c-431c-ac6c-765f2952f61c",
+              "parentUUID": "be7768bd-c4ed-4f94-bc98-7040495fc4b7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "gère les problèmes de réseau lors des requêtes API",
+              "fullTitle": "Gestion des erreurs et cas limites gère les problèmes de réseau lors des requêtes API",
+              "timedOut": null,
+              "duration": 328,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page des congés\ncy.visitAsAuthenticatedUser('/leaves');\n// Simuler une erreur réseau pour le chargement des congés\ncy.intercept('GET', '**/api/leaves**', {\n    forceNetworkError: true\n}).as('networkError');\n// Rafraîchir la page pour déclencher la requête\ncy.reload();\n// Vérifier que l'erreur réseau est bien gérée\ncy.get('[data-cy=network-error-message]')\n    .should('be.visible')\n    .and('contain', 'Erreur de connexion');\n// Vérifier qu'un bouton de réessai est disponible\ncy.get('[data-cy=retry-button]').should('be.visible');\n// Simuler le retour du réseau\ncy.intercept('GET', '**/api/leaves**').as('leavesRequest');\n// Cliquer sur le bouton de réessai\ncy.get('[data-cy=retry-button]').click();\n// Attendre la nouvelle requête\ncy.wait('@leavesRequest');\n// Vérifier que les données s'affichent\ncy.get('[data-cy=leave-list]').should('be.visible');",
+              "err": {
+                "message": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}",
+                "estack": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "03d68dab-3ed5-49f3-b0fa-75f763dc8c23",
+              "parentUUID": "be7768bd-c4ed-4f94-bc98-7040495fc4b7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "gère correctement la validation des dates de congés chevauchantes",
+              "fullTitle": "Gestion des erreurs et cas limites gère correctement la validation des dates de congés chevauchantes",
+              "timedOut": null,
+              "duration": 323,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page de demande de congés\ncy.visitAsAuthenticatedUser('/leaves/new');\n// Remplir le formulaire avec des dates qui chevauchent un congé existant\ncy.get('[data-cy=leave-type-select]').click();\ncy.get('[data-cy=leave-type-option-conges]').click();\n// Utiliser les dates du congé déjà existant (d'après les fixtures)\nvar existingLeaveStart = new Date('2024-06-01T00:00:00.000Z');\nvar existingLeaveEnd = new Date('2024-06-14T23:59:59.999Z');\n// Choisir des dates qui chevauchent\nvar overlapStart = new Date('2024-06-10T00:00:00.000Z');\nvar overlapEnd = new Date('2024-06-20T00:00:00.000Z');\ncy.selectDate('[data-cy=start-date-input]', overlapStart);\ncy.selectDate('[data-cy=end-date-input]', overlapEnd);\n// Ajouter des notes\ncy.get('[data-cy=leave-notes]').type('Congés chevauchants');\n// Soumettre le formulaire\ncy.get('[data-cy=submit-leave-request]').click();\n// Vérifier l'affichage de l'avertissement de chevauchement\ncy.get('[data-cy=overlap-warning]')\n    .should('be.visible')\n    .and('contain', 'chevauchement');\n// Vérifier que des options sont proposées\ncy.get('[data-cy=continue-anyway-button]').should('be.visible');\ncy.get('[data-cy=modify-dates-button]').should('be.visible');",
+              "err": {
+                "message": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}",
+                "estack": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "f8251b64-7c20-4b42-8b34-419cb398b922",
+              "parentUUID": "be7768bd-c4ed-4f94-bc98-7040495fc4b7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "empêche la création de congés avec des dates invalides",
+              "fullTitle": "Gestion des erreurs et cas limites empêche la création de congés avec des dates invalides",
+              "timedOut": null,
+              "duration": 328,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page de demande de congés\ncy.visitAsAuthenticatedUser('/leaves/new');\n// Remplir le formulaire avec une date de fin antérieure à la date de début\ncy.get('[data-cy=leave-type-select]').click();\ncy.get('[data-cy=leave-type-option-conges]').click();\nvar futureDate = new Date();\nfutureDate.setDate(futureDate.getDate() + 10);\nvar earlierDate = new Date();\nearlierDate.setDate(earlierDate.getDate() + 5);\ncy.selectDate('[data-cy=start-date-input]', futureDate);\ncy.selectDate('[data-cy=end-date-input]', earlierDate);\n// Vérifier que le message d'erreur sur les dates s'affiche\ncy.get('[data-cy=date-order-error]')\n    .should('be.visible')\n    .and('contain', 'La date de fin doit être postérieure à la date de début');\n// Vérifier que le bouton de soumission est désactivé\ncy.get('[data-cy=submit-leave-request]').should('be.disabled');",
+              "err": {
+                "message": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}",
+                "estack": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "968d24e4-e51a-4646-8e71-33f467a9db73",
+              "parentUUID": "be7768bd-c4ed-4f94-bc98-7040495fc4b7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "gère correctement la session expirée",
+              "fullTitle": "Gestion des erreurs et cas limites gère correctement la session expirée",
+              "timedOut": null,
+              "duration": 466,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à une page protégée\ncy.visitAsAuthenticatedUser('/leaves');\n// Simuler une expiration de session en modifiant le token\ncy.window().then(function (win) {\n    // Sauvegarder le token original pour restauration ultérieure\n    var originalToken = win.localStorage.getItem('authToken');\n    // Remplacer par un token invalide/expiré\n    win.localStorage.setItem('authToken', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjN9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c');\n    // Simuler une erreur d'authentification pour la prochaine requête API\n    cy.intercept('GET', '**/api/leaves**', {\n        statusCode: 401,\n        body: {\n            message: 'Token expiré ou invalide'\n        }\n    }).as('authError');\n    // Déclencher une requête API\n    cy.reload();\n    // Attendre la requête interceptée\n    cy.wait('@authError');\n    // Vérifier la redirection vers la page de connexion\n    cy.url().should('include', '/auth/login');\n    // Vérifier l'affichage d'un message d'erreur\n    cy.get('[data-cy=notification-error]')\n        .should('be.visible')\n        .and('contain', 'Session expirée');\n    // Restaurer le token original pour ne pas affecter les tests suivants\n    cy.window().then(function (win) {\n        win.localStorage.setItem('authToken', originalToken);\n    });\n});",
+              "err": {
+                "message": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}",
+                "estack": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "0f2979ee-87c9-48e3-8cb2-671ec2cb6e74",
+              "parentUUID": "be7768bd-c4ed-4f94-bc98-7040495fc4b7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "gère les accès non autorisés aux fonctionnalités d'administration",
+              "fullTitle": "Gestion des erreurs et cas limites gère les accès non autorisés aux fonctionnalités d'administration",
+              "timedOut": null,
+              "duration": 880,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter en tant qu'utilisateur standard\ncy.loginByApi(testUser.email, testUser.password);\n// Essayer d'accéder à une page d'administration\ncy.visitAsAuthenticatedUser('/admin/leaves');\n// Vérifier la redirection ou l'affichage d'un message d'erreur\ncy.get('[data-cy=access-denied-message]')\n    .should('be.visible')\n    .and('contain', 'Accès refusé');\n// Vérifier que les fonctionnalités d'administration ne sont pas accessibles\ncy.get('[data-cy=admin-functions]').should('not.exist');",
+              "err": {
+                "message": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}",
+                "estack": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "de4449ea-642a-42e3-a526-e0e4a679ddc5",
+              "parentUUID": "be7768bd-c4ed-4f94-bc98-7040495fc4b7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "gère correctement le cas d'un planning complet lors de l'ajout d'une nouvelle vacation",
+              "fullTitle": "Gestion des erreurs et cas limites gère correctement le cas d'un planning complet lors de l'ajout d'une nouvelle vacation",
+              "timedOut": null,
+              "duration": 520,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter en tant qu'administrateur\ncy.loginByApi(adminUser.email, adminUser.password);\n// Accéder à la page de planning\ncy.visitAsAuthenticatedUser('/planning/hebdomadaire');\n// Sélectionner une semaine\nvar nextMonday = new Date();\nvar day = nextMonday.getDay(); // 0 = dimanche, 1 = lundi, ...\nvar diff = day === 0 ? 1 : 8 - day; // Si dimanche, ajouter 1 jour, sinon ajouter 8 - jour actuel\nnextMonday.setDate(nextMonday.getDate() + diff);\ncy.selectDate('[data-cy=week-select]', nextMonday);\n// Simuler un planning complet\ncy.intercept('GET', '**/api/planning/availability**', {\n    statusCode: 200,\n    body: {\n        available: false,\n        message: 'Toutes les salles sont déjà réservées pour cette période'\n    }\n}).as('availabilityCheck');\n// Essayer d'ajouter une nouvelle vacation\ncy.get('[data-cy=add-assignment-button]').click();\n// Vérifier l'affichage d'un message indiquant que le planning est complet\ncy.get('[data-cy=planning-full-message]')\n    .should('be.visible')\n    .and('contain', 'Toutes les salles sont déjà réservées');\n// Vérifier qu'il n'est pas possible d'ajouter une nouvelle vacation\ncy.get('[data-cy=assignment-modal]').should('not.exist');",
+              "err": {
+                "message": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}",
+                "estack": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "b01cdf28-27e4-445f-958f-f920b825668a",
+              "parentUUID": "be7768bd-c4ed-4f94-bc98-7040495fc4b7",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "ad5ace81-a230-409c-8e46-d1f1aa07aa4d",
+            "a56b6c7f-118c-431c-ac6c-765f2952f61c",
+            "03d68dab-3ed5-49f3-b0fa-75f763dc8c23",
+            "f8251b64-7c20-4b42-8b34-419cb398b922",
+            "968d24e4-e51a-4646-8e71-33f467a9db73",
+            "0f2979ee-87c9-48e3-8cb2-671ec2cb6e74",
+            "de4449ea-642a-42e3-a526-e0e4a679ddc5",
+            "b01cdf28-27e4-445f-958f-f920b825668a"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 3572,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

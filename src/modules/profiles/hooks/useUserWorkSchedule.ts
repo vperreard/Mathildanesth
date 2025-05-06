@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { WorkSchedule, WorkFrequency, WeekType } from '../types/workSchedule';
-import { logger } from '@/utils/logger';
+import { getLogger } from '@/utils/logger';
 
 interface UseUserWorkScheduleProps {
     userId?: number;
@@ -25,40 +25,51 @@ export const useUserWorkSchedule = ({ userId }: UseUserWorkScheduleProps = {}): 
     const [error, setError] = useState<Error | null>(null);
 
     const fetchWorkSchedule = async () => {
+        const logger = await getLogger();
         try {
             setIsLoading(true);
             setError(null);
 
-            // Déterminer l'ID de l'utilisateur à utiliser
             const targetUserId = userId || session?.user?.id;
 
             if (!targetUserId) {
+                logger.warn('useUserWorkSchedule: Aucun identifiant utilisateur disponible');
                 throw new Error('Aucun identifiant utilisateur disponible');
             }
 
-            // Récupérer l'emploi du temps depuis l'API
+            logger.info(`Fetching work schedule for user ID: ${targetUserId}`);
+
             const response = await fetch(`/api/users/${targetUserId}/work-schedule`);
 
             if (!response.ok) {
+                const errorText = await response.text();
+                logger.error(`Erreur ${response.status} lors de la récupération de l'emploi du temps pour ${targetUserId}: ${errorText}`);
                 throw new Error(`Erreur ${response.status}: Impossible de récupérer l'emploi du temps`);
             }
 
             const data = await response.json();
             setWorkSchedule(data);
+            logger.info(`Successfully fetched work schedule for user ID: ${targetUserId}`);
         } catch (err) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             setError(errorObj);
-            logger.error(`Erreur dans useUserWorkSchedule: ${errorObj.message}`, {
-                userId: userId || session?.user?.id
+            logger.error(`Erreur dans useUserWorkSchedule catch block: ${errorObj.message}`, {
+                userId: userId || session?.user?.id,
+                stack: errorObj.stack
             });
 
-            // Créer un emploi du temps par défaut pour éviter les blocages en cas d'erreur
+            // Fallback schedule creation
+            const fallbackUserId = typeof session?.user?.id === 'string' ? parseInt(session.user.id, 10) : session?.user?.id;
             setWorkSchedule({
-                id: 'default',
+                id: 'default-error-fallback',
+                userId: userId ?? (Number.isNaN(fallbackUserId) ? -1 : fallbackUserId ?? -1), // Ensure number, default to -1
                 frequency: WorkFrequency.FULL_TIME,
                 weekType: WeekType.BOTH,
-                workingDays: [1, 2, 3, 4, 5], // Lundi à vendredi par défaut
-                workingTimePercentage: 100
+                workingDays: [1, 2, 3, 4, 5],
+                workingTimePercentage: 100,
+                annualLeaveAllowance: 0,
+                isActive: true,
+                validFrom: new Date(0)
             });
         } finally {
             setIsLoading(false);

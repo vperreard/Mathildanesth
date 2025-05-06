@@ -1,3 +1,5 @@
+'use client';
+
 import { DatePicker } from '@/components/ui';
 import BlocPlanningCalendar from '@/modules/planning/bloc-operatoire/components/BlocPlanningCalendar';
 import { BlocPeriod, BlocPlanningStatus } from '@/modules/planning/bloc-operatoire/models/BlocModels';

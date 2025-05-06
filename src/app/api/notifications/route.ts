@@ -3,6 +3,7 @@ import { verifyAuthToken } from '@/lib/auth-utils';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { getAuthToken } from '@/lib/auth-utils';
 
 export async function GET(req: NextRequest) {
     try {
@@ -23,8 +24,10 @@ export async function GET(req: NextRequest) {
 
         // Fallback sur l'ancien système de token si nécessaire
         if (isNaN(userId)) {
-            const token = req.cookies.get('auth_token')?.value;
+            // Utiliser getAuthToken au lieu de l'accès direct synchrone
+            const token = await getAuthToken();
             if (!token) {
+                console.error("API Notifications: Fallback échoué - Aucun token via getAuthToken");
                 return NextResponse.json(
                     { error: 'Non authentifié' },
                     { status: 401 }
@@ -90,7 +93,8 @@ async function fetchNotifications(userId: number) {
 
 export async function POST(req: NextRequest) {
     try {
-        const token = req.cookies.get('auth_token')?.value;
+        // Utiliser getAuthToken au lieu de l'accès direct synchrone
+        const token = await getAuthToken();
         if (!token) {
             return NextResponse.json(
                 { error: 'Non authentifié' },

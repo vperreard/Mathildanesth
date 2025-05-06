@@ -22,7 +22,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowDownUp, Calendar, RefreshCw, Filter, ArrowRightLeft } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -34,6 +34,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ExternalLink } from 'lucide-react';
 
 interface QuotaTransferHistoryProps {
     userId: string;

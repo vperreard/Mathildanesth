@@ -1,60 +1,50 @@
 [
     {
-        "id": "user-1",
         "email": "admin@example.com",
-        "name": "Admin Test",
+        "prenom": "Admin",
+        "nom": "Test",
+        "login": "admin",
         "password": "Test123!",
-        "role": "admin",
+        "role": "ADMIN_TOTAL",
+        "professionalRole": "SECRETAIRE",
+        "actif": true,
         "createdAt": "2023-01-01T00:00:00.000Z",
-        "updatedAt": "2023-01-01T00:00:00.000Z",
-        "permissions": [
-            "manage_users",
-            "manage_planning",
-            "manage_leaves",
-            "view_reports"
-        ]
+        "updatedAt": "2023-01-01T00:00:00.000Z"
     },
     {
-        "id": "user-2",
         "email": "medecin@example.com",
-        "name": "Dr Martin",
+        "prenom": "Dr",
+        "nom": "Martin",
+        "login": "drmartin",
         "password": "Test123!",
-        "role": "médecin",
-        "specialtyId": "specialty-1",
+        "role": "USER",
+        "professionalRole": "MAR",
+        "actif": true,
         "createdAt": "2023-01-02T00:00:00.000Z",
-        "updatedAt": "2023-01-02T00:00:00.000Z",
-        "permissions": [
-            "view_planning",
-            "manage_own_leaves",
-            "view_own_reports"
-        ]
+        "updatedAt": "2023-01-02T00:00:00.000Z"
     },
     {
-        "id": "user-3",
         "email": "iade@example.com",
-        "name": "Infirmier Anesthésiste",
+        "prenom": "Infirmier",
+        "nom": "Anesthésiste",
+        "login": "iade",
         "password": "Test123!",
-        "role": "IADE",
+        "role": "USER",
+        "professionalRole": "IADE",
+        "actif": true,
         "createdAt": "2023-01-03T00:00:00.000Z",
-        "updatedAt": "2023-01-03T00:00:00.000Z",
-        "permissions": [
-            "view_planning",
-            "manage_own_leaves"
-        ]
+        "updatedAt": "2023-01-03T00:00:00.000Z"
     },
     {
-        "id": "user-4",
         "email": "mar@example.com",
-        "name": "Médecin Anesthésiste",
+        "prenom": "Médecin",
+        "nom": "Anesthésiste",
+        "login": "mar",
         "password": "Test123!",
-        "role": "MAR",
-        "specialtyId": "specialty-2",
+        "role": "USER",
+        "professionalRole": "MAR",
+        "actif": true,
         "createdAt": "2023-01-04T00:00:00.000Z",
-        "updatedAt": "2023-01-04T00:00:00.000Z",
-        "permissions": [
-            "view_planning",
-            "manage_own_leaves",
-            "view_own_reports"
-        ]
+        "updatedAt": "2023-01-04T00:00:00.000Z"
     }
 ]

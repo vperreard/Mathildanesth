@@ -13,7 +13,7 @@ import {
 import { WorkSchedule } from '../../profiles/types/workSchedule';
 import { useUserWorkSchedule } from '../../profiles/hooks/useUserWorkSchedule';
 import { format } from 'date-fns';
-import { logger } from '@/utils/logger';
+import { getLogger } from '@/utils/logger';
 
 type CalculationStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -69,6 +69,9 @@ export const useLeaveCalculation = ({
             return;
         }
 
+        const logger = await getLogger();
+        logger.info('Starting leave calculation...', { startDate, endDate, scheduleId: workSchedule?.id });
+
         try {
             setStatus('loading');
 
@@ -90,7 +93,9 @@ export const useLeaveCalculation = ({
                 setDetails(result);
                 setPublicHolidays(result.publicHolidays);
                 setStatus('success');
+                logger.info('Leave calculation successful', { countedDays: result.countedDays });
             } else {
+                logger.warn('calculateLeaveCountedDays returned null or undefined');
                 throw new Error("Échec du calcul des jours de congés");
             }
         } catch (err) {
@@ -101,7 +106,8 @@ export const useLeaveCalculation = ({
                 startDate,
                 endDate,
                 scheduleId: workSchedule?.id,
-                options: calculationOptions
+                options: calculationOptions,
+                stack: errorObj.stack
             });
         }
     }, [startDate, endDate, workSchedule, options]);
@@ -117,6 +123,8 @@ export const useLeaveCalculation = ({
     useEffect(() => {
         const loadPublicHolidays = async () => {
             if (startDate && endDate) {
+                const logger = await getLogger();
+                logger.info('Loading public holidays...', { startDate, endDate });
                 try {
                     const formattedStart = typeof startDate === 'string' ? startDate : format(startDate, 'yyyy-MM-dd');
                     const formattedEnd = typeof endDate === 'string' ? endDate : format(endDate, 'yyyy-MM-dd');
@@ -135,11 +143,15 @@ export const useLeaveCalculation = ({
                     }));
 
                     setPublicHolidays(holidayDetails);
+                    logger.info('Public holidays loaded successfully', { count: holidayDetails.length });
                 } catch (err) {
-                    logger.error(`Erreur lors du chargement des jours fériés: ${err instanceof Error ? err.message : String(err)}`, {
+                    const errorObj = err instanceof Error ? err : new Error(String(err));
+                    logger.error(`Erreur lors du chargement des jours fériés: ${errorObj.message}`, {
                         startDate,
-                        endDate
+                        endDate,
+                        stack: errorObj.stack
                     });
+                    setError(errorObj);
                 }
             }
         };

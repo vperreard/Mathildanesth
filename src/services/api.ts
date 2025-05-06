@@ -177,4 +177,50 @@ export class ApiService {
             throw error;
         }
     }
+
+    /**
+     * Sauvegarde les préférences utilisateur
+     * @param preferences Objet des préférences utilisateur
+     * @returns Confirmation de la sauvegarde
+     */
+    async saveUserPreferences(preferences: any): Promise<{ success: boolean }> {
+        try {
+            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.user.preferences}`, {
+                method: 'PUT',
+                headers: apiConfig.headers,
+                body: JSON.stringify(preferences),
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                throw new Error('Erreur lors de la sauvegarde des préférences');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Erreur lors de la sauvegarde des préférences utilisateur:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Sauvegarde un lot d'assignations (création/mise à jour)
+     * @param assignments Tableau des assignations à sauvegarder
+     * @returns Résultat du traitement par lot
+     */
+    async saveAssignmentsBatch(assignments: Assignment[]): Promise<{ message: string; count?: number; errors?: any[]; successCount?: number }> {
+        try {
+            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.assignments.batch}`, {
+                method: 'POST',
+                headers: apiConfig.headers,
+                body: JSON.stringify({ assignments }),
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                throw new Error('Erreur lors de la sauvegarde des affectations par lots');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Erreur lors de la sauvegarde des assignations par lots:', error);
+            throw error;
+        }
+    }
 } 

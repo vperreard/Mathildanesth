@@ -1,0 +1,226 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 6,
+    "passes": 0,
+    "pending": 0,
+    "failures": 6,
+    "start": "2025-05-04T17:24:51.318Z",
+    "end": "2025-05-04T17:24:54.596Z",
+    "duration": 3278,
+    "testsRegistered": 6,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "68c2d6ab-683c-4934-a7c6-3c5725d1f696",
+      "title": "",
+      "fullFile": "cypress/e2e/leaves/quota-management.spec.ts",
+      "file": "cypress/e2e/leaves/quota-management.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "a6e28ecb-f1c1-4c2c-a188-9b2724b203de",
+          "title": "Gestion des quotas de congés",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "affiche correctement les quotas de congés d'un utilisateur",
+              "fullTitle": "Gestion des quotas de congés affiche correctement les quotas de congés d'un utilisateur",
+              "timedOut": null,
+              "duration": 529,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page de quotas\ncy.visitAsAuthenticatedUser('/leaves/quotas');\n// Vérifier que les informations de quotas sont affichées\ncy.get('[data-cy=quota-summary]').should('be.visible');\n// Vérifier les différents types de quotas\ncy.get('[data-cy=quota-conges-payes]').should('contain', '25');\ncy.get('[data-cy=quota-rtt]').should('contain', '15');\ncy.get('[data-cy=quota-formation]').should('contain', '5');\n// Vérifier les jours utilisés\ncy.get('[data-cy=used-days]').should('be.visible');\n// Vérifier les jours restants\ncy.get('[data-cy=remaining-days]').should('be.visible');",
+              "err": {
+                "message": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}",
+                "estack": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "bb2ad1cb-582d-42cc-b642-583a024103d4",
+              "parentUUID": "a6e28ecb-f1c1-4c2c-a188-9b2724b203de",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet à un administrateur d'ajuster les quotas d'un utilisateur",
+              "fullTitle": "Gestion des quotas de congés permet à un administrateur d'ajuster les quotas d'un utilisateur",
+              "timedOut": null,
+              "duration": 513,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter en tant qu'administrateur\ncy.loginByApi(adminUser.email, adminUser.password);\n// Accéder à la page d'administration des quotas\ncy.visitAsAuthenticatedUser('/admin/leaves/quotas');\n// Rechercher un utilisateur\ncy.get('[data-cy=user-search]').type(targetUser.name);\ncy.get(\"[data-cy=user-item-\".concat(targetUser.id, \"]\")).click();\n// Ajuster le quota de congés payés\ncy.get('[data-cy=edit-quota-conges-payes]').click();\ncy.get('[data-cy=quota-input]').clear().type('30');\n// Saisir une justification\ncy.get('[data-cy=adjustment-reason]').type('Ajustement pour ancienneté');\n// Intercepter la requête d'ajustement\ncy.intercept('PUT', '**/api/leaves/quotas/**').as('updateQuota');\n// Enregistrer les modifications\ncy.get('[data-cy=save-quota-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@updateQuota').its('response.statusCode').should('eq', 200);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Quota mis à jour');\n// Vérifier que le quota a bien été mis à jour\ncy.get('[data-cy=quota-conges-payes]').should('contain', '30');",
+              "err": {
+                "message": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}",
+                "estack": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "827c8412-5b48-4a12-a709-153159490db7",
+              "parentUUID": "a6e28ecb-f1c1-4c2c-a188-9b2724b203de",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet de transférer des jours de congés entre deux types de quotas",
+              "fullTitle": "Gestion des quotas de congés permet de transférer des jours de congés entre deux types de quotas",
+              "timedOut": null,
+              "duration": 510,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page de transfert de quotas\ncy.visitAsAuthenticatedUser('/leaves/quotas/transfer');\n// Sélectionner le type de quota source\ncy.get('[data-cy=source-quota-select]').click();\ncy.get('[data-cy=quota-option-rtt]').click();\n// Sélectionner le type de quota destination\ncy.get('[data-cy=target-quota-select]').click();\ncy.get('[data-cy=quota-option-conges-payes]').click();\n// Définir le nombre de jours à transférer\ncy.get('[data-cy=transfer-days-input]').clear().type('3');\n// Intercepter la requête de transfert\ncy.intercept('POST', '**/api/leaves/quotas/transfer').as('transferQuota');\n// Confirmer le transfert\ncy.get('[data-cy=confirm-transfer-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@transferQuota').its('response.statusCode').should('eq', 200);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Transfert effectué');\n// Vérifier que les quotas ont été mis à jour\ncy.visitAsAuthenticatedUser('/leaves/quotas');\ncy.get('[data-cy=quota-conges-payes]').should('contain', '28'); // 25 + 3\ncy.get('[data-cy=quota-rtt]').should('contain', '12'); // 15 - 3",
+              "err": {
+                "message": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}",
+                "estack": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "64ee6990-d3ae-49ba-8957-00b109d866dd",
+              "parentUUID": "a6e28ecb-f1c1-4c2c-a188-9b2724b203de",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet de reporter des jours de congés sur l'année suivante",
+              "fullTitle": "Gestion des quotas de congés permet de reporter des jours de congés sur l'année suivante",
+              "timedOut": null,
+              "duration": 524,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page de report de quotas\ncy.visitAsAuthenticatedUser('/leaves/quotas/carry-over');\n// Sélectionner le type de quota à reporter\ncy.get('[data-cy=quota-type-select]').click();\ncy.get('[data-cy=quota-option-conges-payes]').click();\n// Définir le nombre de jours à reporter\ncy.get('[data-cy=carryover-days-input]').clear().type('5');\n// Saisir une justification\ncy.get('[data-cy=carryover-reason]').type('Report pour projet en cours');\n// Intercepter la requête de report\ncy.intercept('POST', '**/api/leaves/quotas/carry-over').as('carryOverQuota');\n// Confirmer le report\ncy.get('[data-cy=confirm-carryover-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@carryOverQuota').its('response.statusCode').should('eq', 200);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Report effectué');\n// Vérifier que le report apparaît dans l'historique\ncy.get('[data-cy=carryover-history]').should('contain', 'Report pour projet en cours');",
+              "err": {
+                "message": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}",
+                "estack": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "0197c1d8-fde4-4ce3-8cd0-b336c6b84c10",
+              "parentUUID": "a6e28ecb-f1c1-4c2c-a188-9b2724b203de",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "affiche l'historique des ajustements de quotas",
+              "fullTitle": "Gestion des quotas de congés affiche l'historique des ajustements de quotas",
+              "timedOut": null,
+              "duration": 506,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page d'historique des quotas\ncy.visitAsAuthenticatedUser('/leaves/quotas/history');\n// Vérifier que l'historique est affiché\ncy.get('[data-cy=quota-history]').should('be.visible');\n// Vérifier qu'on peut filtrer par type d'opération\ncy.get('[data-cy=filter-by-operation]').click();\ncy.get('[data-cy=operation-option-adjustment]').click();\n// Vérifier qu'on peut filtrer par date\ncy.get('[data-cy=filter-by-date]').click();\ncy.get('[data-cy=date-option-this-year]').click();\n// Vérifier que les résultats filtrés s'affichent\ncy.get('[data-cy=history-item]').should('have.length.at.least', 1);",
+              "err": {
+                "message": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}",
+                "estack": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "59645077-3d5e-49e5-950f-58807446db0e",
+              "parentUUID": "a6e28ecb-f1c1-4c2c-a188-9b2724b203de",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "empêche de demander plus de jours que le quota disponible",
+              "fullTitle": "Gestion des quotas de congés empêche de demander plus de jours que le quota disponible",
+              "timedOut": null,
+              "duration": 520,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page de demande de congés\ncy.visitAsAuthenticatedUser('/leaves/new');\n// Remplir le formulaire avec trop de jours\ncy.get('[data-cy=leave-type-select]').click();\ncy.get('[data-cy=leave-type-option-conges]').click();\n// Sélectionner une période très longue (plus que le quota disponible)\nvar startDate = new Date();\nstartDate.setDate(startDate.getDate() + 1);\nvar endDate = new Date();\nendDate.setDate(endDate.getDate() + 60); // 60 jours de congés (bien plus que le quota)\ncy.selectDate('[data-cy=start-date-input]', startDate);\ncy.selectDate('[data-cy=end-date-input]', endDate);\n// Ajouter un commentaire\ncy.get('[data-cy=leave-notes]').type('Longue absence');\n// Soumettre la demande\ncy.get('[data-cy=submit-leave-request]').click();\n// Vérifier le message d'erreur\ncy.get('[data-cy=notification-error]')\n    .should('be.visible')\n    .and('contain', 'Quota insuffisant');\n// Vérifier que le formulaire affiche une validation d'erreur\ncy.get('[data-cy=quota-error-message]')\n    .should('be.visible')\n    .and('contain', 'dépasse votre quota disponible');",
+              "err": {
+                "message": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}",
+                "estack": "Error: Échec d'authentification: 401 {\"message\":\"Login ou mot de passe incorrect\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                "diff": null
+              },
+              "uuid": "84dafb26-c3a6-4c7e-b7e0-9c63dc3bc0d9",
+              "parentUUID": "a6e28ecb-f1c1-4c2c-a188-9b2724b203de",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "bb2ad1cb-582d-42cc-b642-583a024103d4",
+            "827c8412-5b48-4a12-a709-153159490db7",
+            "64ee6990-d3ae-49ba-8957-00b109d866dd",
+            "0197c1d8-fde4-4ce3-8cd0-b336c6b84c10",
+            "59645077-3d5e-49e5-950f-58807446db0e",
+            "84dafb26-c3a6-4c7e-b7e0-9c63dc3bc0d9"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 3102,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

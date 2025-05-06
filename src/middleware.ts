@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAuthToken } from '@/lib/auth-utils';
+import type { UserJWTPayload } from '@/lib/auth-utils';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     // Journaliser les informations sur la requête
     const url = request.nextUrl.href;
     const method = request.method;
@@ -24,24 +26,36 @@ export function middleware(request: NextRequest) {
     requestHeaders.set('x-middleware-executed', 'true');
     requestHeaders.set('x-middleware-timestamp', new Date().toISOString());
 
-    // Si un cookie auth_token est trouvé, décoder son contenu et ajouter le rôle aux en-têtes
+    // Si un cookie auth_token est trouvé, vérifier et décoder le token
     if (authCookie && authCookie.value) {
         try {
-            // Extraire le payload JSON du JWT (partie du milieu)
-            const parts = authCookie.value.split('.');
-            if (parts.length === 3) {
-                const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-                console.log('JWT payload décodé:', payload);
+            const authResult = await verifyAuthToken(authCookie.value);
 
+            if (authResult.authenticated && authResult.user) {
+                const user = authResult.user as UserJWTPayload;
                 // Ajouter les informations utilisateur aux en-têtes
-                if (payload.userId) requestHeaders.set('x-user-id', payload.userId.toString());
-                if (payload.login) requestHeaders.set('x-user-login', payload.login);
-                if (payload.role) requestHeaders.set('x-user-role', payload.role);
-
+                requestHeaders.set('x-user-id', user.userId.toString());
+                requestHeaders.set('x-user-login', user.login);
+                requestHeaders.set('x-user-role', user.role);
                 console.log('En-têtes ajoutés avec les informations utilisateur');
+            } else {
+                console.warn('Token invalide ou expiré');
             }
         } catch (error) {
-            console.error('Erreur lors du décodage du JWT:', error);
+            console.error('Erreur lors de la vérification du token:', error);
+        }
+    }
+
+    // Pour les routes API protégées, vérifier l'authentification
+    if (pathname.startsWith('/api/') &&
+        !pathname.startsWith('/api/auth/') &&
+        !pathname.includes('public')) {
+
+        if (!authCookie || !authCookie.value) {
+            return NextResponse.json(
+                { error: 'Authentification requise' },
+                { status: 401 }
+            );
         }
     }
 

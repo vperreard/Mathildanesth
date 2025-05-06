@@ -440,4 +440,34 @@ export interface QuotaCarryOverCalculationResult {
     carryOverAmount: number; // Montant réellement reporté
     expiryDate?: Date; // Date d'expiration pour les reports limités dans le temps
     message?: string; // Message explicatif
+}
+
+/**
+ * Types pour les règles de période spéciale (à définir)
+ */
+export enum SpecialPeriodRuleType {
+    SUMMER = 'SUMMER',
+    WINTER = 'WINTER',
+    HOLIDAYS = 'HOLIDAYS', // Exemple ajouté
+    OTHER = 'OTHER'        // Exemple ajouté
+}
+
+/**
+ * Règle pour les périodes spéciales affectant les quotas
+ */
+export interface SpecialPeriodRule {
+    id: string;
+    name: string;
+    description?: string;
+    periodType: SpecialPeriodRuleType; // Utilisation de l'enum défini ci-dessus
+    startDay: number;
+    startMonth: number;
+    endDay: number;
+    endMonth: number;
+    specificYear?: number; // Si applicable seulement à une année spécifique
+    minimumQuotaGuaranteed?: number; // Quota minimum garanti pendant cette période
+    priorityRules?: string[]; // Règles de priorité spécifiques pendant cette période
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
 } 

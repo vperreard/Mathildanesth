@@ -16,7 +16,7 @@ import {
 import quotaApi from '../../api/quotaApi';
 import { useAuth } from '@/context/AuthContext';
 import { notification } from 'antd';
-import { AuditAction } from '@/core/audit/AuditTypes';
+import { AuditAction } from '@/services/AuditService';
 import { useTranslation } from 'next-i18next';
 
 /**
@@ -106,9 +106,8 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
     const [transferHistory, setTransferHistory] = useState<any[]>([]);
     const [transferPreview, setTransferPreview] = useState<TransferPreviewResult | null>(null);
 
-    /**
-     * Labels pour les types de congés
-     */
+    // Définir les utilitaires AVANT les callbacks qui les utilisent
+
     const typeLabels: { [key in LeaveType]: string } = {
         [LeaveType.ANNUAL]: 'Congés annuels',
         [LeaveType.RECOVERY]: 'Récupération',
@@ -118,7 +117,59 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
         [LeaveType.SPECIAL]: 'Congés spéciaux',
         [LeaveType.UNPAID]: 'Sans solde',
         [LeaveType.OTHER]: 'Autre',
+        [LeaveType.PATERNITY]: 'Paternité',
+        [LeaveType.PARENTAL]: 'Parental',
     };
+
+    const getTypeLabel = useCallback((type: LeaveType): string => {
+        return typeLabels[type] || 'Type inconnu';
+    }, [typeLabels]);
+
+    const getRemainingDays = useCallback((type: LeaveType): number => {
+        if (!balance) return 0;
+        const details = balance.detailsByType[type] || { used: 0, pending: 0 };
+        let total = 0;
+        switch (type) {
+            case LeaveType.ANNUAL:
+                total = balance.initialAllowance;
+                break;
+            case LeaveType.RECOVERY:
+                total = balance.additionalAllowance;
+                break;
+            default:
+                total = 0;
+        }
+        return Math.max(0, total - (details.used || 0) - (details.pending || 0));
+    }, [balance]);
+
+    const isTransferAllowed = useCallback((sourceType: LeaveType, targetType: LeaveType): boolean => {
+        const ruleExists = transferRules.some(r =>
+            r.sourceType === sourceType &&
+            r.targetType === targetType &&
+            r.isActive
+        );
+        if (!ruleExists) return false;
+        const hasRemainingDays = getRemainingDays(sourceType) > 0;
+        return ruleExists && hasRemainingDays;
+    }, [transferRules, getRemainingDays]);
+
+    const getReasonTransferNotAllowed = useCallback((sourceType: LeaveType, targetType: LeaveType): string | null => {
+        const ruleExists = transferRules.some(r =>
+            r.sourceType === sourceType &&
+            r.targetType === targetType &&
+            r.isActive
+        );
+        if (!ruleExists) {
+            return `Aucune règle de transfert n'est disponible pour ${getTypeLabel(sourceType)} vers ${getTypeLabel(targetType)}`;
+        }
+        const remaining = getRemainingDays(sourceType);
+        if (remaining <= 0) {
+            return `Aucun jour disponible à transférer depuis ${getTypeLabel(sourceType)}`;
+        }
+        return null;
+    }, [transferRules, getRemainingDays, getTypeLabel]);
+
+    // Définir les fonctions de refresh AVANT les callbacks qui les utilisent
 
     /**
      * Récupérer le solde des congés
@@ -146,7 +197,7 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
         setError(null);
 
         try {
-            const rules = await quotaApi.getTransferRules();
+            const rules = await fetchActiveTransferRulesForUser(userId);
             setTransferRules(rules);
         } catch (err) {
             setError(err as Error);
@@ -154,7 +205,7 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [userId]);
 
     /**
      * Récupérer l'historique des transferts
@@ -177,7 +228,7 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
     }, [userId, includeHistory, maxHistoryItems]);
 
     /**
-     * Simuler un transfert
+     * Simuler un transfert (AVEC useCallback)
      */
     const simulateTransfer = useCallback(async (request: QuotaTransferRequest): Promise<TransferPreviewResult> => {
         setSimulationLoading(true);
@@ -187,7 +238,6 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
             const sourceType = request.sourceType;
             const targetType = request.targetType;
 
-            // Trouver les règles applicables
             const applicableRules = transferRules.filter(rule =>
                 rule.sourceType === sourceType &&
                 rule.targetType === targetType &&
@@ -198,10 +248,8 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
                 throw new Error(`Aucune règle de transfert n'est disponible pour ${getTypeLabel(sourceType)} vers ${getTypeLabel(targetType)}`);
             }
 
-            // Prévisualiser le transfert
             const preview = await previewQuotaTransfer(request, applicableRules);
 
-            // Extension de la prévisualisation avec des informations supplémentaires
             const extendedPreview: TransferPreviewResult = {
                 ...preview,
                 applicableRules,
@@ -218,7 +266,6 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
             setTransferError(err as Error);
             console.error('Erreur lors de la simulation du transfert', err);
 
-            // Retourner un objet d'erreur
             return {
                 success: false,
                 sourceAmount: 0,
@@ -236,29 +283,25 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
         } finally {
             setSimulationLoading(false);
         }
-    }, [transferRules]);
+    }, [transferRules, getTypeLabel, isTransferAllowed, getReasonTransferNotAllowed, previewQuotaTransfer]);
 
     /**
-     * Exécuter un transfert
+     * Exécuter un transfert (AVEC useCallback)
      */
     const executeTransfer = useCallback(async (request: QuotaTransferRequest): Promise<QuotaTransferResult> => {
         setTransferLoading(true);
         setTransferError(null);
 
         try {
-            // Vérifier si le transfert est autorisé
             if (!isTransferAllowed(request.sourceType, request.targetType)) {
                 const reason = getReasonTransferNotAllowed(request.sourceType, request.targetType);
                 throw new Error(reason || 'Transfert non autorisé');
             }
 
-            // Exécuter le transfert
             const result = await transferQuota(request);
 
-            // Rafraîchir le solde après le transfert
             await refreshBalance();
 
-            // Rafraîchir l'historique si nécessaire
             if (includeHistory) {
                 await refreshTransferHistory();
             }
@@ -279,59 +322,20 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
         } finally {
             setTransferLoading(false);
         }
-    }, [refreshBalance, refreshTransferHistory, includeHistory]);
-
-    /**
-     * Obtenir le label d'un type de congé
-     */
-    const getTypeLabel = useCallback((type: LeaveType): string => {
-        return typeLabels[type] || 'Type inconnu';
-    }, []);
-
-    /**
-     * Obtenir le nombre de jours restants pour un type de congé
-     */
-    const getRemainingDays = useCallback((type: LeaveType): number => {
-        if (!balance) return 0;
-
-        const details = balance.detailsByType[type] || { used: 0, pending: 0 };
-        let total = 0;
-
-        // Définir le total selon le type de congé
-        switch (type) {
-            case LeaveType.ANNUAL:
-                total = balance.initialAllowance;
-                break;
-            case LeaveType.RECOVERY:
-                total = balance.additionalAllowance;
-                break;
-            default:
-                // Pour les autres types, on pourrait ajouter une logique spécifique
-                total = 0;
-        }
-
-        return Math.max(0, total - (details.used || 0) - (details.pending || 0));
-    }, [balance]);
+    }, [refreshBalance, refreshTransferHistory, includeHistory, isTransferAllowed, getReasonTransferNotAllowed, transferQuota]);
 
     /**
      * Obtenir le montant maximum transférable
      */
     const getMaxTransferableAmount = useCallback((sourceType: LeaveType, targetType: LeaveType): number => {
         if (!balance) return 0;
-
-        // Trouver les règles applicables
         const rule = transferRules.find(r =>
             r.sourceType === sourceType &&
             r.targetType === targetType &&
             r.isActive
         );
-
         if (!rule) return 0;
-
-        // Récupérer le nombre de jours restants pour le type source
         const remaining = getRemainingDays(sourceType);
-
-        // Appliquer la limite de la règle si elle existe
         return rule.maxAmount ? Math.min(remaining, rule.maxAmount) : remaining;
     }, [balance, transferRules, getRemainingDays]);
 
@@ -344,62 +348,16 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
             r.targetType === targetType &&
             r.isActive
         );
-
         return rule?.ratio || 1.0;
     }, [transferRules]);
-
-    /**
-     * Vérifier si un transfert est autorisé
-     */
-    const isTransferAllowed = useCallback((sourceType: LeaveType, targetType: LeaveType): boolean => {
-        // Vérifier si une règle de transfert existe
-        const ruleExists = transferRules.some(r =>
-            r.sourceType === sourceType &&
-            r.targetType === targetType &&
-            r.isActive
-        );
-
-        if (!ruleExists) return false;
-
-        // Vérifier s'il y a des jours disponibles à transférer
-        const hasRemainingDays = getRemainingDays(sourceType) > 0;
-
-        return ruleExists && hasRemainingDays;
-    }, [transferRules, getRemainingDays]);
-
-    /**
-     * Obtenir la raison pour laquelle un transfert n'est pas autorisé
-     */
-    const getReasonTransferNotAllowed = useCallback((sourceType: LeaveType, targetType: LeaveType): string | null => {
-        // Vérifier si une règle de transfert existe
-        const ruleExists = transferRules.some(r =>
-            r.sourceType === sourceType &&
-            r.targetType === targetType &&
-            r.isActive
-        );
-
-        if (!ruleExists) {
-            return `Aucune règle de transfert n'est disponible pour ${getTypeLabel(sourceType)} vers ${getTypeLabel(targetType)}`;
-        }
-
-        // Vérifier s'il y a des jours disponibles à transférer
-        const remaining = getRemainingDays(sourceType);
-        if (remaining <= 0) {
-            return `Aucun jour disponible à transférer depuis ${getTypeLabel(sourceType)}`;
-        }
-
-        return null;
-    }, [transferRules, getRemainingDays, getTypeLabel]);
 
     /**
      * Déterminer les types de congés sources disponibles
      */
     const getAvailableSourceTypes = useCallback((): LeaveType[] => {
         if (!balance) return [];
-
         return Object.values(LeaveType).filter(type => {
             const remaining = getRemainingDays(type);
-            // Un type est disponible comme source s'il a des jours restants et au moins une règle
             return remaining > 0 && transferRules.some(r => r.sourceType === type && r.isActive);
         });
     }, [balance, getRemainingDays, transferRules]);
@@ -409,21 +367,15 @@ export function useQuotaTransfer(options: UseQuotaTransferOptions): UseQuotaTran
      */
     const getAvailableTargetTypes = useCallback((): { [sourceType: string]: LeaveType[] } => {
         const result: { [sourceType: string]: LeaveType[] } = {};
-
         if (!balance) return result;
-
-        // Pour chaque type de congé
         Object.values(LeaveType).forEach(sourceType => {
-            // Trouver les règles où ce type est la source
             const targetTypes = transferRules
                 .filter(r => r.sourceType === sourceType && r.isActive)
                 .map(r => r.targetType);
-
             if (targetTypes.length > 0) {
                 result[sourceType] = targetTypes;
             }
         });
-
         return result;
     }, [balance, transferRules]);
 

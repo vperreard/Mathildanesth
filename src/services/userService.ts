@@ -7,7 +7,7 @@ const buildUserServiceErrorDetails = (error: any, context?: Record<string, any>)
     const isSequelizeError = error.name?.startsWith('Sequelize');
     let message = 'Erreur inconnue dans le service utilisateur.';
     let code = 'USER_SERVICE_ERROR';
-    let severity: ErrorSeverity = 'error';
+    const severity: ErrorSeverity = 'error';
 
     if (error instanceof Error) {
         message = error.message;

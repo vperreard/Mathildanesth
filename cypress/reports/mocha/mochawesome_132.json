@@ -1,0 +1,180 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 4,
+    "passes": 0,
+    "pending": 0,
+    "failures": 4,
+    "start": "2025-05-04T18:48:35.107Z",
+    "end": "2025-05-04T18:48:39.974Z",
+    "duration": 4867,
+    "testsRegistered": 4,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "b0e95dcd-70d3-4057-8467-74667bc87607",
+      "title": "",
+      "fullFile": "cypress/e2e/performance/performance-tests.spec.ts",
+      "file": "cypress/e2e/performance/performance-tests.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "4fe3d4dc-c290-4ce7-94fb-416384696213",
+          "title": "Tests de performance",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "évalue les performances de la page d'accueil",
+              "fullTitle": "Tests de performance évalue les performances de la page d'accueil",
+              "timedOut": null,
+              "duration": 625,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/dashboard');\ncy.runLighthouseAudit();",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133692:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133098:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133675:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:118:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
+                "diff": null
+              },
+              "uuid": "0747bd9e-05bb-45ee-8878-d5d2515a01da",
+              "parentUUID": "4fe3d4dc-c290-4ce7-94fb-416384696213",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "évalue les performances de la page de congés",
+              "fullTitle": "Tests de performance évalue les performances de la page de congés",
+              "timedOut": null,
+              "duration": 1251,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/leaves');\ncy.runLighthouseAudit();",
+              "err": {
+                "message": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.intercept()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command",
+                "estack": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.intercept()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command\n    at cy.<computed> [as intercept] (http://localhost:3000/__cypress/runner/cypress_runner.js:140215:64)\n    at Context.onBeforeLoad (webpack://mathildanesth/./cypress/support/commands.ts:124:15)\n    at $Cy.onBeforeLoad (http://localhost:3000/__cypress/runner/cypress_runner.js:133421:132)\n    at $Cy.listener (http://localhost:3000/__cypress/runner/cypress_runner.js:143179:17)\n    at EventEmitter.emit (http://localhost:3000/__cypress/runner/cypress_runner.js:143259:19)\n    at parent.<computed> [as emit] (http://localhost:3000/__cypress/runner/cypress_runner.js:142172:32)\n    at $Cypress.action (http://localhost:3000/__cypress/runner/cypress_runner.js:41679:21)\n    at <unknown> (http://localhost:3000/leaves:1:1409)\n    at <unknown> (http://localhost:3000/leaves:1:1450)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:118:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
+                "diff": null
+              },
+              "uuid": "d2c59895-60e4-489f-9196-0490443fa584",
+              "parentUUID": "4fe3d4dc-c290-4ce7-94fb-416384696213",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "évalue les performances du calendrier",
+              "fullTitle": "Tests de performance évalue les performances du calendrier",
+              "timedOut": null,
+              "duration": 1467,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/calendar');\ncy.runLighthouseAudit();",
+              "err": {
+                "message": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.intercept()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command",
+                "estack": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.intercept()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command\n    at cy.<computed> [as intercept] (http://localhost:3000/__cypress/runner/cypress_runner.js:140215:64)\n    at Context.onBeforeLoad (webpack://mathildanesth/./cypress/support/commands.ts:124:15)\n    at $Cy.onBeforeLoad (http://localhost:3000/__cypress/runner/cypress_runner.js:133421:132)\n    at $Cy.listener (http://localhost:3000/__cypress/runner/cypress_runner.js:143179:17)\n    at EventEmitter.emit (http://localhost:3000/__cypress/runner/cypress_runner.js:143259:19)\n    at parent.<computed> [as emit] (http://localhost:3000/__cypress/runner/cypress_runner.js:142172:32)\n    at $Cypress.action (http://localhost:3000/__cypress/runner/cypress_runner.js:41679:21)\n    at <unknown> (http://localhost:3000/calendar:1:1409)\n    at <unknown> (http://localhost:3000/calendar:1:1450)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:118:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
+                "diff": null
+              },
+              "uuid": "c57fcf07-ca97-49d5-9736-9866fee005af",
+              "parentUUID": "4fe3d4dc-c290-4ce7-94fb-416384696213",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "évalue les performances du planning",
+              "fullTitle": "Tests de performance évalue les performances du planning",
+              "timedOut": null,
+              "duration": 1188,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\ncy.runLighthouseAudit();",
+              "err": {
+                "message": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.intercept()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command",
+                "estack": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.intercept()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command\n    at cy.<computed> [as intercept] (http://localhost:3000/__cypress/runner/cypress_runner.js:140215:64)\n    at Context.onBeforeLoad (webpack://mathildanesth/./cypress/support/commands.ts:124:15)\n    at $Cy.onBeforeLoad (http://localhost:3000/__cypress/runner/cypress_runner.js:133421:132)\n    at $Cy.listener (http://localhost:3000/__cypress/runner/cypress_runner.js:143179:17)\n    at EventEmitter.emit (http://localhost:3000/__cypress/runner/cypress_runner.js:143259:19)\n    at parent.<computed> [as emit] (http://localhost:3000/__cypress/runner/cypress_runner.js:142172:32)\n    at $Cypress.action (http://localhost:3000/__cypress/runner/cypress_runner.js:41679:21)\n    at <unknown> (http://localhost:3000/planning/hebdomadaire:1:1409)\n    at <unknown> (http://localhost:3000/planning/hebdomadaire:1:1450)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:118:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
+                "diff": null
+              },
+              "uuid": "1d95fb02-3654-4286-ba83-bda389228e7f",
+              "parentUUID": "4fe3d4dc-c290-4ce7-94fb-416384696213",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "0747bd9e-05bb-45ee-8878-d5d2515a01da",
+            "d2c59895-60e4-489f-9196-0490443fa584",
+            "c57fcf07-ca97-49d5-9736-9866fee005af",
+            "1d95fb02-3654-4286-ba83-bda389228e7f"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 4531,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

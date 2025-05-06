@@ -4,24 +4,21 @@ import '@testing-library/jest-dom';
 import { NotificationSettingsForm } from './NotificationSettingsForm';
 
 describe('NotificationSettingsForm', () => {
-    const mockOnSubmit = jest.fn();
+    const mockOnSave = jest.fn();
+
     const defaultProps = {
-        onSubmit: mockOnSubmit,
+        onSave: mockOnSave,
         initialSettings: {
-            channels: {
-                email: true,
-                sms: false,
-                push: true
-            },
-            digestFrequency: 'daily',
-            preferences: {
-                newMessage: true,
-                mentionedInComment: true,
-                taskAssigned: true,
-                taskCompleted: false,
-                projectUpdate: true,
-                documentShared: false,
-                eventReminder: true
+            email: true,
+            sms: false,
+            push: true,
+            inApp: true,
+            digestFrequency: 'daily' as const,
+            notifyOn: {
+                messages: true,
+                updates: true,
+                reminders: true,
+                mentions: true
             }
         },
         isLoading: false,
@@ -30,7 +27,7 @@ describe('NotificationSettingsForm', () => {
     };
 
     beforeEach(() => {
-        mockOnSubmit.mockClear();
+        mockOnSave.mockClear();
     });
 
     test('rend le formulaire avec les paramètres initiaux', () => {
@@ -45,31 +42,31 @@ describe('NotificationSettingsForm', () => {
         const emailLabel = screen.getByText('Email').closest('label');
         const smsLabel = screen.getByText('SMS').closest('label');
         const pushLabel = screen.getByText('Notifications push').closest('label');
+        const inAppLabel = screen.getByText('Notifications dans l\'application').closest('label');
 
         // Vérifions que les éléments existent avant de les utiliser
-        if (emailLabel && smsLabel && pushLabel) {
+        if (emailLabel && smsLabel && pushLabel && inAppLabel) {
             const emailToggle = emailLabel.querySelector('.toggle-switch');
             const smsToggle = smsLabel.querySelector('.toggle-switch');
             const pushToggle = pushLabel.querySelector('.toggle-switch');
+            const inAppToggle = inAppLabel.querySelector('.toggle-switch');
 
-            if (emailToggle && smsToggle && pushToggle) {
+            if (emailToggle && smsToggle && pushToggle && inAppToggle) {
                 expect(emailToggle).toHaveClass('active');
                 expect(smsToggle).not.toHaveClass('active');
                 expect(pushToggle).toHaveClass('active');
+                expect(inAppToggle).toHaveClass('active');
             }
         }
 
         // Vérification du select de fréquence
-        expect(screen.getByDisplayValue('daily')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('Quotidien')).toBeInTheDocument();
 
         // Vérification des checkboxes de préférence
-        expect(screen.getByLabelText('Nouveau message')).toBeChecked();
-        expect(screen.getByLabelText('Mentionné dans un commentaire')).toBeChecked();
-        expect(screen.getByLabelText('Tâche assignée')).toBeChecked();
-        expect(screen.getByLabelText('Tâche terminée')).not.toBeChecked();
-        expect(screen.getByLabelText('Mise à jour de projet')).toBeChecked();
-        expect(screen.getByLabelText('Document partagé')).not.toBeChecked();
-        expect(screen.getByLabelText('Rappel d\'événement')).toBeChecked();
+        expect(screen.getByLabelText('Nouveaux messages')).toBeChecked();
+        expect(screen.getByLabelText('Mises à jour du système')).toBeChecked();
+        expect(screen.getByLabelText('Rappels')).toBeChecked();
+        expect(screen.getByLabelText('Mentions')).toBeChecked();
     });
 
     test('met à jour les canaux de notification lors du clic', () => {
@@ -99,24 +96,22 @@ describe('NotificationSettingsForm', () => {
     test('met à jour la fréquence du résumé', () => {
         render(<NotificationSettingsForm {...defaultProps} />);
 
-        const selectElement = screen.getByDisplayValue('daily');
+        const selectElement = screen.getByRole('combobox');
         fireEvent.change(selectElement, { target: { value: 'weekly' } });
 
-        expect(screen.getByDisplayValue('weekly')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('Hebdomadaire')).toBeInTheDocument();
     });
 
     test('met à jour les préférences de notification', () => {
         render(<NotificationSettingsForm {...defaultProps} />);
 
-        // Changement d'état d'une checkbox cochée
-        fireEvent.click(screen.getByLabelText('Nouveau message'));
-
-        // Changement d'état d'une checkbox non cochée
-        fireEvent.click(screen.getByLabelText('Tâche terminée'));
+        // Utiliser les noms corrects des préférences
+        fireEvent.click(screen.getByLabelText('Nouveaux messages'));
+        fireEvent.click(screen.getByLabelText('Mises à jour du système'));
 
         // Vérification des états mis à jour
-        expect(screen.getByLabelText('Nouveau message')).not.toBeChecked();
-        expect(screen.getByLabelText('Tâche terminée')).toBeChecked();
+        expect(screen.getByLabelText('Nouveaux messages')).not.toBeChecked();
+        expect(screen.getByLabelText('Mises à jour du système')).not.toBeChecked();
     });
 
     test('soumet le formulaire avec les valeurs correctes', async () => {
@@ -131,29 +126,25 @@ describe('NotificationSettingsForm', () => {
             }
         }
 
-        fireEvent.click(screen.getByLabelText('Nouveau message'));
-        fireEvent.change(screen.getByDisplayValue('daily'), { target: { value: 'weekly' } });
+        fireEvent.click(screen.getByLabelText('Nouveaux messages'));
+        fireEvent.change(screen.getByRole('combobox'), { target: { value: 'weekly' } });
 
         // Soumission du formulaire
         fireEvent.click(screen.getByText('Enregistrer les préférences'));
 
-        // Vérification que onSubmit a été appelé avec les paramètres modifiés
+        // Vérification que onSave a été appelé avec la structure correcte
         await waitFor(() => {
-            expect(mockOnSubmit).toHaveBeenCalledWith({
-                channels: {
-                    email: false,
-                    sms: false,
-                    push: true
-                },
+            expect(mockOnSave).toHaveBeenCalledWith({
+                email: false,
+                sms: false,
+                push: true,
+                inApp: true,
                 digestFrequency: 'weekly',
-                preferences: {
-                    newMessage: false,
-                    mentionedInComment: true,
-                    taskAssigned: true,
-                    taskCompleted: false,
-                    projectUpdate: true,
-                    documentShared: false,
-                    eventReminder: true
+                notifyOn: {
+                    messages: false,
+                    updates: true,
+                    reminders: true,
+                    mentions: true
                 }
             });
         });
@@ -180,6 +171,6 @@ describe('NotificationSettingsForm', () => {
     test('désactive le bouton de soumission pendant le chargement', () => {
         render(<NotificationSettingsForm {...defaultProps} isLoading={true} />);
 
-        expect(screen.getByText('Enregistrer les préférences')).toBeDisabled();
+        expect(screen.getByText('Enregistrement...')).toBeDisabled();
     });
 }); 

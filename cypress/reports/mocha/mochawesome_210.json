@@ -1,0 +1,249 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 7,
+    "passes": 0,
+    "pending": 0,
+    "failures": 7,
+    "start": "2025-05-04T20:33:57.010Z",
+    "end": "2025-05-04T20:34:52.814Z",
+    "duration": 55804,
+    "testsRegistered": 7,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "17e2ee07-a8ef-4bf9-aa57-a8b3a539507b",
+      "title": "",
+      "fullFile": "cypress/e2e/planning/planning-management.spec.ts",
+      "file": "cypress/e2e/planning/planning-management.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "8c15bd8a-e04a-41bd-9289-29789dc02f58",
+          "title": "Gestion des plannings",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "permet de générer un planning hebdomadaire",
+              "fullTitle": "Gestion des plannings permet de générer un planning hebdomadaire",
+              "timedOut": null,
+              "duration": 7402,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/planning/generator');\ncy.contains('h1', 'Générateur de planning').should('be.visible'); // Vérifier que la page de base est là\nvar nextMonday = getNextMonday();\ncy.log('Tentative de sélection de la date de début...');\n// Augmenter le timeout spécifiquement pour cet élément\ncy.get('#dateDebut', { timeout: 10000 }).should('be.visible').type(nextMonday.toISOString().split('T')[0]);\ncy.log('Date de début sélectionnée.');\n// Sélectionner un secteur opératoire\ncy.get('[data-cy=sector-select]').click();\ncy.get('[data-cy=sector-option-1]').click();\n// Définir les paramètres de génération\ncy.get('[data-cy=include-weekends]').click(); // Désactiver les weekends\ncy.get('[data-cy=respect-preferences]').click(); // Activer le respect des préférences\ncy.get('[data-cy=balance-workload]').click(); // Activer l'équilibrage de charge\n// Intercepter la requête de génération\ncy.intercept('POST', '**/api/planning/generate').as('generatePlanning');\n// Lancer la génération\ncy.get('[data-cy=generate-planning-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@generatePlanning').its('response.statusCode').should('eq', 200);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Planning généré avec succès');\n// Vérifier que le planning a été généré et redirige vers la vue du planning\ncy.url().should('include', '/planning/hebdomadaire');\ncy.contains('h1', 'Planning Hebdomadaire').should('be.visible');\ncy.get('table').should('be.visible');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=sector-select]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=sector-select]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/planning/planning-management.spec.ts:40:11)",
+                "diff": null
+              },
+              "uuid": "a6cf76d2-4e17-452d-bb4a-335533587e09",
+              "parentUUID": "8c15bd8a-e04a-41bd-9289-29789dc02f58",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet de modifier manuellement un planning",
+              "fullTitle": "Gestion des plannings permet de modifier manuellement un planning",
+              "timedOut": null,
+              "duration": 17085,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\ncy.contains('h1', 'Planning Hebdomadaire').should('be.visible');\ncy.log('Attente des cellules de planning...');\n// Augmenter le timeout pour trouver une cellule vide\ncy.get('td[data-date]', { timeout: 15000 }).not(':has(div)').first().should('be.visible').click();\ncy.log('Cellule vide cliquée.');\n// Vérifier que le modal d'édition s'ouvre\ncy.get('[role=\"dialog\"]').should('be.visible');\ncy.get('[data-cy=assignment-modal]').should('be.visible');\n// Sélectionner un chirurgien\ncy.get('[data-cy=surgeon-select]').click();\ncy.get('[data-cy=surgeon-option]').first().click();\n// Sélectionner un MAR (Médecin Anesthésiste Réanimateur)\ncy.get('[data-cy=mar-select]').click();\ncy.get('[data-cy=mar-option]').first().click();\n// Ajouter un IADE (optionnel)\ncy.get('[data-cy=add-iade-checkbox]').click();\ncy.get('[data-cy=iade-select]').click();\ncy.get('[data-cy=iade-option]').first().click();\n// Définir le type d'intervention\ncy.get('[data-cy=assignment-type-select]').click();\ncy.get('[data-cy=assignment-type-option-standard]').click();\n// Ajouter des notes\ncy.get('[data-cy=assignment-notes]').type('Intervention programmée manuellement');\n// Intercepter la requête de création\ncy.intercept('POST', '**/api/planning/assignments').as('createAssignment');\n// Enregistrer l'assignation\ncy.get('[data-cy=save-assignment-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@createAssignment').its('response.statusCode').should('eq', 201);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Assignation créée');\n// Vérifier que le créneau est maintenant occupé\ncy.get('td[data-date] div[draggable=\"true\"]').should('have.length.at.least', 1);",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `td[data-date]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `td[data-date]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/planning/planning-management.spec.ts:74:11)",
+                "diff": null
+              },
+              "uuid": "ddc69cc9-ec03-476d-a18a-ee0bf7243c8f",
+              "parentUUID": "8c15bd8a-e04a-41bd-9289-29789dc02f58",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet de modifier une assignation existante",
+              "fullTitle": "Gestion des plannings permet de modifier une assignation existante",
+              "timedOut": null,
+              "duration": 6077,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\ncy.contains('h1', 'Planning Hebdomadaire').should('be.visible');\ncreateTestAssignment(); // S'assure qu'une assignation existe\ncy.log('Attente de l\\'assignation à modifier...');\n// Augmenter le timeout pour trouver l'assignation\ncy.get('td[data-date] div[draggable=\"true\"]', { timeout: 10000 }).first().should('be.visible').click();\ncy.log('Assignation cliquée.');\n// Vérifier que le modal d'édition s'ouvre\ncy.get('[role=\"dialog\"][aria-modal=\"true\"]').should('be.visible');\ncy.get('[data-cy=assignment-modal]').should('be.visible');\n// Modifier les notes\ncy.get('[data-cy=assignment-notes]').clear().type('Intervention modifiée');\n// Intercepter la requête de mise à jour\ncy.intercept('PUT', '**/api/planning/assignments/**').as('updateAssignment');\n// Enregistrer les modifications\ncy.get('[data-cy=save-assignment-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@updateAssignment').its('response.statusCode').should('eq', 200);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Assignation mise à jour');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `td[data-date]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `td[data-date]`, but never found it.\n    at createTestAssignment (webpack://mathildanesth/./cypress/e2e/planning/planning-management.spec.ts:287:11)\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/planning/planning-management.spec.ts:123:8)",
+                "diff": null
+              },
+              "uuid": "5b7fa261-5af4-47cc-911a-8fcdaf2e7e8c",
+              "parentUUID": "8c15bd8a-e04a-41bd-9289-29789dc02f58",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet de supprimer une assignation",
+              "fullTitle": "Gestion des plannings permet de supprimer une assignation",
+              "timedOut": null,
+              "duration": 6000,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\ncy.contains('h1', 'Planning Hebdomadaire').should('be.visible');\ncreateTestAssignment();\ncy.log('Attente de l\\'assignation à supprimer...');\ncy.get('td[data-date] div[draggable=\"true\"]', { timeout: 10000 }).first().should('be.visible').click();\ncy.log('Assignation cliquée.');\n// Vérifier que le modal d'édition s'ouvre\ncy.get('[role=\"dialog\"][aria-modal=\"true\"]').should('be.visible');\ncy.get('[data-cy=assignment-modal]').should('be.visible');\n// Intercepter la requête de suppression\ncy.intercept('DELETE', '**/api/planning/assignments/**').as('deleteAssignment');\n// Cliquer sur le bouton de suppression\ncy.get('[data-cy=delete-assignment-button]').click();\n// Confirmer la suppression\ncy.get('[data-cy=confirm-delete-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@deleteAssignment').its('response.statusCode').should('eq', 200);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Assignation supprimée');\n// Vérifier que le créneau est maintenant vide\ncy.get('td[data-date] div[draggable=\"true\"]').should('not.exist');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `td[data-date]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `td[data-date]`, but never found it.\n    at createTestAssignment (webpack://mathildanesth/./cypress/e2e/planning/planning-management.spec.ts:287:11)\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/planning/planning-management.spec.ts:156:8)",
+                "diff": null
+              },
+              "uuid": "07cc6c8d-8bb8-489c-8a68-c825ccad9900",
+              "parentUUID": "8c15bd8a-e04a-41bd-9289-29789dc02f58",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet de publier un planning",
+              "fullTitle": "Gestion des plannings permet de publier un planning",
+              "timedOut": null,
+              "duration": 5989,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\ncy.contains('h1', 'Planning Hebdomadaire').should('be.visible');\ncreateTestAssignment();\ncy.log('Attente du bouton Publier...');\n// Augmenter le timeout si nécessaire, et s'assurer que le sélecteur est bon\ncy.get('[data-cy=publish-planning-button]', { timeout: 10000 }).should('be.visible').click();\n// NOTE: Ce data-cy existe-t-il vraiment ? A vérifier.\n// Confirmer la publication\ncy.get('[data-cy=confirm-publish-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@publishPlanning').its('response.statusCode').should('eq', 200);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Planning publié');\n// Vérifier que le planning est marqué comme publié\ncy.get('[data-cy=published-badge]').should('be.visible');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `td[data-date]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `td[data-date]`, but never found it.\n    at createTestAssignment (webpack://mathildanesth/./cypress/e2e/planning/planning-management.spec.ts:287:11)\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/planning/planning-management.spec.ts:191:8)",
+                "diff": null
+              },
+              "uuid": "79a16189-a201-43e4-a92e-141bab008f43",
+              "parentUUID": "8c15bd8a-e04a-41bd-9289-29789dc02f58",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet de détecter les conflits lors de la génération d'un planning",
+              "fullTitle": "Gestion des plannings permet de détecter les conflits lors de la génération d'un planning",
+              "timedOut": null,
+              "duration": 6625,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/planning/generator');\ncy.contains('h1', 'Générateur de planning').should('be.visible');\nvar nextMonday = getNextMonday();\ncy.log('Tentative de sélection de la date de début (conflits)...');\ncy.get('#dateDebut', { timeout: 10000 }).should('be.visible').type(nextMonday.toISOString().split('T')[0]);\ncy.log('Date de début sélectionnée (conflits).');\n// Sélectionner un secteur opératoire\ncy.get('[data-cy=sector-select]').click();\ncy.get('[data-cy=sector-option-1]').click();\n// Activer la détection de conflits stricte\ncy.get('[data-cy=strict-conflict-detection]').click();\n// Simuler un conflit (par exemple, en créant manuellement une absence pour un médecin)\ncreateConflictingLeave();\n// Intercepter la requête de génération\ncy.intercept('POST', '**/api/planning/generate').as('generatePlanning');\n// Lancer la génération\ncy.get('[data-cy=generate-planning-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@generatePlanning');\n// Vérifier l'affichage des conflits\ncy.get('[data-cy=conflicts-modal]').should('be.visible');\ncy.get('[data-cy=conflict-item]').should('have.length.at.least', 1);\n// Résoudre les conflits en ignorant\ncy.get('[data-cy=ignore-conflicts-button]').click();\n// Vérifier que le planning est généré malgré les conflits\ncy.url().should('include', '/planning/hebdomadaire');\ncy.contains('h1', 'Planning Hebdomadaire').should('be.visible');\ncy.get('table').should('be.visible');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=sector-select]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=sector-select]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/planning/planning-management.spec.ts:223:11)",
+                "diff": null
+              },
+              "uuid": "7ac2b5cb-f4fb-4b1b-bf87-8763eebd4581",
+              "parentUUID": "8c15bd8a-e04a-41bd-9289-29789dc02f58",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet aux utilisateurs standards de visualiser leur planning",
+              "fullTitle": "Gestion des plannings permet aux utilisateurs standards de visualiser leur planning",
+              "timedOut": null,
+              "duration": 6296,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.loginByApi('mar@example.com', 'Test123!');\ncy.visitAsAuthenticatedUser('/planning/hebdomadaire');\ncy.contains('h1', 'Planning Hebdomadaire').should('be.visible');\ncy.log('Attente du tableau de planning pour utilisateur standard...');\ncy.get('table', { timeout: 10000 }).should('be.visible');\ncy.log('Tableau trouvé.');\n// Vérifier que le planning est visible mais que les contrôles admin sont absents\ncy.get('table').should('be.visible');\ncy.get('[data-cy=generate-planning-button]').should('not.exist');\ncy.get('[data-cy=publish-planning-button]').should('not.exist');\n// Optionnel: vérifier des éléments spécifiques au rôle USER\ncy.contains('Mon Planning');\n// Déconnexion\ncy.request('/api/auth/logout');\ncy.url().should('include', '/auth/login');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'Mon Planning' but never did.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'Mon Planning' but never did.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/planning/planning-management.spec.ts:269:11)",
+                "diff": null
+              },
+              "uuid": "5c5488ce-44ce-439a-8270-edd251b11703",
+              "parentUUID": "8c15bd8a-e04a-41bd-9289-29789dc02f58",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "a6cf76d2-4e17-452d-bb4a-335533587e09",
+            "ddc69cc9-ec03-476d-a18a-ee0bf7243c8f",
+            "5b7fa261-5af4-47cc-911a-8fcdaf2e7e8c",
+            "07cc6c8d-8bb8-489c-8a68-c825ccad9900",
+            "79a16189-a201-43e4-a92e-141bab008f43",
+            "7ac2b5cb-f4fb-4b1b-bf87-8763eebd4581",
+            "5c5488ce-44ce-439a-8270-edd251b11703"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 55474,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

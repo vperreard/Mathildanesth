@@ -17,7 +17,7 @@ import {
 } from "../types/template";
 
 // --- Mock Data Store ---
-let mockTemplates: PlanningTemplate[] = [
+const mockTemplates: PlanningTemplate[] = [
     {
         id: "tmpl_1",
         nom: "Trame Standard Semaine",

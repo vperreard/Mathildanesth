@@ -85,6 +85,7 @@ export interface User {
     profilePictureUrl?: string;
     createdAt?: Date;
     updatedAt?: Date;
+    mustChangePassword?: boolean;
 }
 
 /**

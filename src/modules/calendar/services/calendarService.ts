@@ -14,43 +14,13 @@ class CalendarService {
      */
     async getEvents(filters: CalendarFilters): Promise<AnyCalendarEvent[]> {
         try {
-            // Dans une vraie implémentation, on ferait un appel API
-            // Simuler un délai
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Renvoyer des données simulées
-            return [
-                {
-                    id: 'event1',
-                    title: 'Congé annuel',
-                    start: '2023-06-01',
-                    end: '2023-06-05',
-                    type: CalendarEventType.LEAVE,
-                    userId: 'user1',
-                    allDay: true
-                },
-                {
-                    id: 'event2',
-                    title: 'Garde',
-                    start: '2023-06-10',
-                    end: '2023-06-11',
-                    type: CalendarEventType.DUTY,
-                    userId: 'user1',
-                    allDay: true
-                },
-                {
-                    id: 'event3',
-                    title: 'Formation',
-                    start: '2023-06-15',
-                    end: '2023-06-16',
-                    type: CalendarEventType.TRAINING,
-                    userId: 'user2',
-                    allDay: true
-                }
-            ] as AnyCalendarEvent[];
+            const queryParams = this.buildQueryParams(filters);
+            const response = await axios.get(`${this.baseUrl}/events${queryParams}`);
+            return this.normalizeEvents(response.data);
         } catch (error) {
             console.error('Erreur lors de la récupération des événements:', error);
-            throw error;
+            // Renvoyer une erreur plus spécifique ou logger différemment
+            throw new Error('Impossible de récupérer les événements du calendrier');
         }
     }
 
@@ -74,15 +44,13 @@ class CalendarService {
      */
     async updateEvent(event: AnyCalendarEvent): Promise<AnyCalendarEvent> {
         try {
-            // Dans une vraie implémentation, on ferait un appel API
-            // Simuler un délai
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Simuler une mise à jour
-            return event;
+            const formattedEvent = this.formatEventForApi(event);
+            const response = await axios.put(`${this.baseUrl}/events/${event.id}?type=${event.type}`, formattedEvent);
+            const [normalizedEvent] = this.normalizeEvents([response.data]);
+            return normalizedEvent;
         } catch (error) {
             console.error('Erreur lors de la mise à jour de l\'événement:', error);
-            throw error;
+            throw new Error('Impossible de mettre à jour l\'événement');
         }
     }
 
@@ -91,21 +59,13 @@ class CalendarService {
      */
     async createEvent(event: Omit<AnyCalendarEvent, 'id'>): Promise<AnyCalendarEvent> {
         try {
-            // Dans une vraie implémentation, on ferait un appel API
-            // Simuler un délai
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Simuler une création
-            const newId = `event-${Date.now()}`;
-            return {
-                ...event,
-                id: newId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            } as AnyCalendarEvent;
+            const formattedEvent = this.formatEventForApi(event);
+            const response = await axios.post(`${this.baseUrl}/events`, formattedEvent);
+            const [normalizedEvent] = this.normalizeEvents([response.data]);
+            return normalizedEvent;
         } catch (error) {
             console.error('Erreur lors de la création de l\'événement:', error);
-            throw error;
+            throw new Error('Impossible de créer l\'événement');
         }
     }
 
@@ -194,7 +154,7 @@ class CalendarService {
         const formattedEvent: Record<string, any> = { ...event };
 
         // Suppression des champs calculés qui ne doivent pas être envoyés à l'API
-        const fieldsToOmit = ['formattedTitle', 'formattedDescription', 'color'];
+        const fieldsToOmit = ['formattedTitle', 'formattedDescription', 'color', 'createdAt', 'updatedAt']; // Ajouter createdAt/updatedAt
         fieldsToOmit.forEach(field => {
             if (field in formattedEvent) {
                 delete formattedEvent[field];
@@ -210,27 +170,14 @@ class CalendarService {
      * @param status Nouveau statut
      * @returns Événement mis à jour
      */
-    async updateEventStatus(eventId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED'): Promise<AnyCalendarEvent> {
+    async updateEventStatus(eventId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED', eventType: CalendarEventType): Promise<AnyCalendarEvent> {
         try {
-            // Dans une vraie implémentation, on ferait un appel API
-            // Simuler un délai
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Simuler une mise à jour de statut
-            return {
-                id: eventId,
-                title: 'Événement mis à jour',
-                start: '2023-06-01',
-                end: '2023-06-05',
-                type: CalendarEventType.LEAVE,
-                userId: 'user1',
-                status: status,
-                allDay: true,
-                updatedAt: new Date().toISOString()
-            };
+            const response = await axios.patch(`${this.baseUrl}/events/${eventId}/status?type=${eventType}`, { status });
+            const [normalizedEvent] = this.normalizeEvents([response.data]);
+            return normalizedEvent;
         } catch (error) {
             console.error('Erreur lors de la mise à jour du statut de l\'événement:', error);
-            throw error;
+            throw new Error('Impossible de mettre à jour le statut de l\'événement');
         }
     }
 }

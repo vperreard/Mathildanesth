@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
@@ -22,10 +22,15 @@ import Button from '@/components/ui/button';
 
 // Importation du store et des composants
 import { useLeaveStore } from '@/modules/leaves/store/leaveStore';
-import { LeaveForm } from '@/modules/leaves/components/LeaveForm';
+// Supprimer l'import direct
+// import { LeaveForm } from '@/modules/leaves/components/LeaveForm';
 import { LeaveCard } from '@/modules/leaves/components/LeaveCard';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { LeaveWithUser, LeaveStatus, LeaveType } from '@/modules/leaves/types/leave';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+
+// Importer LeaveForm avec React.lazy
+const LeaveForm = lazy(() => import('@/modules/leaves/components/LeaveForm').then(module => ({ default: module.LeaveForm })));
 
 // Animation variants
 const fadeIn = {
@@ -248,7 +253,7 @@ export default function LeavesPage() {
     if (authLoading) {
         return (
             <div className="flex justify-center items-center h-96">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+                <LoadingSpinner />
             </div>
         );
     }
@@ -271,361 +276,147 @@ export default function LeavesPage() {
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Gestion des congés</h1>
-                    <p className="mt-1 text-sm text-gray-600">
-                        Consultez et gérez vos demandes de congés
-                    </p>
-                </div>
-                <div className="flex gap-2">
-                    <Button onClick={handleNewLeaveClick} variant="primary">
-                        <PlusCircle className="mr-2 h-4 w-4" /> Nouvelle demande
-                    </Button>
-                    <Button onClick={handleNewRecurringLeaveClick} variant="secondary">
-                        <Calendar className="mr-2 h-4 w-4" /> Demande récurrente
-                    </Button>
-                    <Button onClick={handleQuotaManagementClick} className="bg-green-600 hover:bg-green-700">
-                        <RotateCw className="mr-2 h-4 w-4" />
-                        Gestion des quotas
-                    </Button>
-                </div>
-            </div>
-
-            {/* Dashboard des congés */}
-            <div className="mt-2 mb-6">
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <motion.div
-                        className="bg-white overflow-hidden shadow rounded-lg"
-                        variants={fadeIn}
-                        initial="hidden"
-                        animate="visible"
-                    >
-                        <div className="p-5">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0 bg-blue-100 p-3 rounded-md">
-                                    <Clock className="h-5 w-5 text-blue-600" />
-                                </div>
-                                <div className="ml-4">
-                                    <div className="text-sm font-medium text-gray-500">Total</div>
-                                    <div className="text-lg font-semibold text-gray-900">{counts.total}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    <motion.div
-                        className="bg-white overflow-hidden shadow rounded-lg"
-                        variants={fadeIn}
-                        initial="hidden"
-                        animate="visible"
-                        transition={{ delay: 0.1 }}
-                    >
-                        <div className="p-5">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0 bg-yellow-100 p-3 rounded-md">
-                                    <Clock className="h-5 w-5 text-yellow-600" />
-                                </div>
-                                <div className="ml-4">
-                                    <div className="text-sm font-medium text-gray-500">En attente</div>
-                                    <div className="text-lg font-semibold text-gray-900">{counts.pending}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    <motion.div
-                        className="bg-white overflow-hidden shadow rounded-lg"
-                        variants={fadeIn}
-                        initial="hidden"
-                        animate="visible"
-                        transition={{ delay: 0.2 }}
-                    >
-                        <div className="p-5">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0 bg-green-100 p-3 rounded-md">
-                                    <CheckCircle className="h-5 w-5 text-green-600" />
-                                </div>
-                                <div className="ml-4">
-                                    <div className="text-sm font-medium text-gray-500">Approuvés</div>
-                                    <div className="text-lg font-semibold text-gray-900">{counts.approved}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    <motion.div
-                        className="bg-white overflow-hidden shadow rounded-lg"
-                        variants={fadeIn}
-                        initial="hidden"
-                        animate="visible"
-                        transition={{ delay: 0.3 }}
-                    >
-                        <div className="p-5">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0 bg-red-100 p-3 rounded-md">
-                                    <XCircle className="h-5 w-5 text-red-600" />
-                                </div>
-                                <div className="ml-4">
-                                    <div className="text-sm font-medium text-gray-500">Refusés</div>
-                                    <div className="text-lg font-semibold text-gray-900">{counts.rejected}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    <motion.div
-                        className="bg-white overflow-hidden shadow rounded-lg"
-                        variants={fadeIn}
-                        initial="hidden"
-                        animate="visible"
-                        transition={{ delay: 0.4 }}
-                    >
-                        <div className="p-5">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0 bg-gray-100 p-3 rounded-md">
-                                    <AlertTriangle className="h-5 w-5 text-gray-600" />
-                                </div>
-                                <div className="ml-4">
-                                    <div className="text-sm font-medium text-gray-500">Annulés</div>
-                                    <div className="text-lg font-semibold text-gray-900">{counts.cancelled}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-            </div>
-
-            {/* Solde de congés */}
-            {leaveBalance && (
-                <motion.div
-                    className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow-lg px-6 py-5 mb-6 text-white"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                >
-                    <h3 className="text-lg font-medium mb-2">Solde de congés {new Date().getFullYear()}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <div className="text-sm text-blue-100">Droits initiaux</div>
-                            <div className="text-2xl font-bold">{leaveBalance.initialAllowance} jours</div>
-                        </div>
-                        <div>
-                            <div className="text-sm text-blue-100">Jours pris / en attente</div>
-                            <div className="text-2xl font-bold">{leaveBalance.used} / {leaveBalance.pending} jours</div>
-                        </div>
-                        <div>
-                            <div className="text-sm text-blue-100">Solde restant</div>
-                            <div className="text-2xl font-bold">{leaveBalance.remaining} jours</div>
+        <div className="container mx-auto p-4 md:p-8">
+            <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={fadeIn}
+            >
+                <header className="mb-8">
+                    <div className="flex flex-wrap justify-between items-center gap-4">
+                        <h1 className="text-3xl font-bold text-gray-800">Mes Congés</h1>
+                        <div className="flex gap-2">
+                            <Button onClick={handleNewLeaveClick} variant="default" size="sm">
+                                <PlusCircle className="mr-2 h-4 w-4" /> Nouvelle Demande
+                            </Button>
+                            <Button onClick={handleNewRecurringLeaveClick} variant="outline" size="sm">
+                                <RotateCw className="mr-2 h-4 w-4" /> Demande Récurrente
+                            </Button>
+                            <Button onClick={handleQuotaManagementClick} variant="secondary" size="sm">
+                                <Calendar className="mr-2 h-4 w-4" /> Gérer Quotas
+                            </Button>
                         </div>
                     </div>
-                </motion.div>
-            )}
-
-            {/* Barre de recherche et filtres */}
-            <div className="bg-white shadow-sm rounded-lg p-4 mb-6">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div className="relative flex-grow">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search className="h-5 w-5 text-gray-400" />
+                    {/* Section Résumé Solde */}
+                    {leaveBalance && (
+                        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md flex items-center justify-between">
+                            <p className="text-sm text-blue-700">
+                                Solde de congés payés pour {leaveBalance.year} : <span className="font-semibold">{leaveBalance.balance}</span> jours restants sur {leaveBalance.totalAllowance}
+                            </p>
+                            {/* TODO: Ajouter peut-être un lien vers la gestion des quotas */}
                         </div>
+                    )}
+                </header>
+
+                {/* Barre de recherche et filtres */}
+                <div className="mb-6 flex flex-wrap gap-4 items-center">
+                    <div className="relative flex-grow max-w-xs">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input
                             type="text"
+                            placeholder="Rechercher (type, motif...)"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            placeholder="Rechercher..."
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                     </div>
 
-                    <div className="flex flex-wrap justify-start md:justify-end gap-2">
-                        <div className="flex items-center">
-                            <span className="text-sm text-gray-700 mr-2">Filtrer :</span>
-                            <div className="flex space-x-1">
-                                <button
-                                    type="button"
-                                    onClick={() => handleStatusFilterChange(LeaveStatus.PENDING)}
-                                    className={`px-2 py-1 rounded-md text-xs font-medium ${(filters.status as LeaveStatus[])?.includes(LeaveStatus.PENDING)
-                                        ? 'bg-yellow-100 text-yellow-800'
-                                        : 'bg-gray-100 text-gray-600'
-                                        }`}
-                                >
-                                    En attente
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleStatusFilterChange(LeaveStatus.APPROVED)}
-                                    className={`px-2 py-1 rounded-md text-xs font-medium ${(filters.status as LeaveStatus[])?.includes(LeaveStatus.APPROVED)
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-gray-100 text-gray-600'
-                                        }`}
-                                >
-                                    Approuvé
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleStatusFilterChange(LeaveStatus.REJECTED)}
-                                    className={`px-2 py-1 rounded-md text-xs font-medium ${(filters.status as LeaveStatus[])?.includes(LeaveStatus.REJECTED)
-                                        ? 'bg-red-100 text-red-800'
-                                        : 'bg-gray-100 text-gray-600'
-                                        }`}
-                                >
-                                    Refusé
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleStatusFilterChange(LeaveStatus.CANCELLED)}
-                                    className={`px-2 py-1 rounded-md text-xs font-medium ${(filters.status as LeaveStatus[])?.includes(LeaveStatus.CANCELLED)
-                                        ? 'bg-gray-300 text-gray-800'
-                                        : 'bg-gray-100 text-gray-600'
-                                        }`}
-                                >
-                                    Annulé
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center">
-                            <span className="text-sm text-gray-700 mr-2">Trier par :</span>
-                            <div className="relative inline-block text-left">
-                                <button
-                                    type="button"
-                                    className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-3 py-1 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                    id="sort-menu"
-                                    aria-expanded="true"
-                                    aria-haspopup="true"
-                                    onClick={() => handleSortChange('startDate')}
-                                >
-                                    {currentSort.field === 'startDate' ? 'Date' : 'Trier par date'}
-                                    <ChevronDown className="ml-1 h-4 w-4" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Liste des congés */}
-            {isLoading ? (
-                <div className="flex justify-center items-center h-64">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-                </div>
-            ) : error ? (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4">
-                    <div className="flex">
-                        <div className="flex-shrink-0">
-                            <AlertTriangle className="h-5 w-5 text-red-400" />
-                        </div>
-                        <div className="ml-3">
-                            <p className="text-sm text-red-700">{error}</p>
-                        </div>
-                    </div>
-                </div>
-            ) : filteredLeaves.length === 0 ? (
-                <div className="bg-gray-50 rounded-lg border border-gray-200 p-12 text-center">
-                    <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
-                        <Calendar className="h-6 w-6 text-gray-500" />
-                    </div>
-                    <h3 className="mt-2 text-lg font-medium text-gray-900">Aucune demande de congé</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                        {searchTerm
-                            ? "Aucun résultat ne correspond à votre recherche."
-                            : "Commencez par créer une nouvelle demande de congé."}
-                    </p>
-                    <div className="mt-6">
-                        <Button onClick={handleNewLeaveClick} variant="primary">
-                            <PlusCircle className="h-5 w-5 mr-2" />
-                            Nouvelle demande
+                    <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm font-medium text-gray-600">Statut:</span>
+                        {[LeaveStatus.PENDING, LeaveStatus.APPROVED, LeaveStatus.REJECTED, LeaveStatus.CANCELLED].map(status => (
+                            <button
+                                key={status}
+                                onClick={() => handleStatusFilterChange(status)}
+                                className={`px-3 py-1 text-xs rounded-full border ${(filters.status as LeaveStatus[] || []).includes(status)
+                                    ? 'bg-blue-100 text-blue-700 border-blue-300'
+                                    : 'bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200'
+                                    }`}
+                            >
+                                {status}
+                            </button>
+                        ))}
+                        <Button variant="ghost" size="sm" onClick={resetFilters} className="text-xs">
+                            Réinitialiser
                         </Button>
                     </div>
                 </div>
-            ) : (
-                <div className="grid gap-4">
-                    {filteredLeaves.map((leave, index) => (
-                        <LeaveCard
-                            key={leave.id}
-                            leave={leave}
-                            index={index}
-                            onEdit={handleEditLeaveClick}
-                            onCancel={handleCancelLeaveClick}
-                            onView={handleViewLeaveDetails}
-                        />
-                    ))}
-                </div>
-            )}
 
-            {/* Modales */}
-            {isModalOpen && (
-                <div className="fixed inset-0 overflow-y-auto z-50">
-                    <div className="flex items-center justify-center min-h-screen px-4">
-                        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-                            <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-                        </div>
-                        <div className="bg-white rounded-lg overflow-hidden shadow-xl transform transition-all max-w-lg w-full">
-                            <div className="bg-gray-50 px-4 py-3 flex justify-between">
-                                <h3 className="text-lg font-medium text-gray-900">
-                                    {leaveToEdit ? 'Modifier la demande de congé' : 'Nouvelle demande de congé'}
-                                </h3>
-                                <button
-                                    type="button"
-                                    onClick={handleCloseModal}
-                                    className="text-gray-400 hover:text-gray-500"
-                                >
-                                    <span className="sr-only">Fermer</span>
-                                    <XCircle className="h-6 w-6" />
-                                </button>
-                            </div>
-                            <div className="p-6">
-                                <LeaveForm
-                                    userId={user.id}
-                                    onSuccess={handleLeaveCreatedOrUpdated}
-                                />
-                            </div>
-                        </div>
+                {/* Liste des congés */}
+                {isLoading && (
+                    <div className="flex justify-center items-center h-64">
+                        <LoadingSpinner />
                     </div>
-                </div>
-            )}
+                )}
 
-            {isDetailModalOpen && selectedLeave && (
-                <div className="fixed inset-0 overflow-y-auto z-50">
-                    <div className="flex items-center justify-center min-h-screen px-4">
-                        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-                            <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-                        </div>
-                        <div className="bg-white rounded-lg overflow-hidden shadow-xl transform transition-all max-w-lg w-full">
-                            <div className="bg-gray-50 px-4 py-3 flex justify-between">
-                                <h3 className="text-lg font-medium text-gray-900">Détails de la demande</h3>
-                                <button
-                                    type="button"
-                                    onClick={handleCloseDetailModal}
-                                    className="text-gray-400 hover:text-gray-500"
-                                >
-                                    <span className="sr-only">Fermer</span>
-                                    <XCircle className="h-6 w-6" />
-                                </button>
-                            </div>
-                            <div className="p-6">
+                {!isLoading && error && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                        <strong className="font-bold">Erreur !</strong>
+                        <span className="block sm:inline"> {error.message || 'Impossible de charger les congés.'}</span>
+                    </div>
+                )}
+
+                {!isLoading && !error && filteredLeaves.length === 0 && (
+                    <div className="text-center py-10 text-gray-500">
+                        Aucune demande de congé trouvée.
+                    </div>
+                )}
+
+                {!isLoading && !error && filteredLeaves.length > 0 && (
+                    <motion.div
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+                    >
+                        {filteredLeaves.map(leave => (
+                            <motion.div key={leave.id} variants={fadeIn}>
                                 <LeaveCard
-                                    leave={selectedLeave}
-                                    isExpanded={true}
-                                    showActions={false}
+                                    leave={leave}
+                                    onEdit={() => handleEditLeaveClick(leave)}
+                                    onCancel={() => handleCancelLeaveClick(leave)}
+                                    onViewDetails={() => handleViewLeaveDetails(leave)}
                                 />
-                            </div>
-                        </div>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                )}
+            </motion.div>
+
+            {/* Modale pour créer/modifier un congé */}
+            {isModalOpen && (
+                <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"><LoadingSpinner /></div>}>
+                    <LeaveForm
+                        isOpen={isModalOpen}
+                        onClose={handleCloseModal}
+                        onSubmit={handleLeaveCreatedOrUpdated}
+                        initialData={leaveToEdit ?? undefined}
+                        isLoading={isSubmitting}
+                    />
+                </Suspense>
+            )}
+
+            {/* Modale pour voir les détails */}
+            {isDetailModalOpen && selectedLeave && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg relative">
+                        <button onClick={handleCloseDetailModal} className="absolute top-2 right-2 text-gray-500 hover:text-gray-700">&times;</button>
+                        <h2 className="text-xl font-semibold mb-4">Détails du Congé</h2>
+                        <LeaveCard leave={selectedLeave} isDetailView={true} />
+                        {/* Ajouter ici d'autres détails si nécessaire */}
                     </div>
                 </div>
             )}
 
-            {isConfirmModalOpen && leaveToCancel && (
-                <ConfirmationModal
-                    isOpen={isConfirmModalOpen}
-                    onClose={handleCloseConfirmModal}
-                    onConfirm={handleConfirmCancelLeave}
-                    title="Confirmer l'annulation"
-                    message="Êtes-vous sûr de vouloir annuler cette demande de congé ? Cette action ne peut pas être annulée."
-                />
-            )}
+            {/* Modale de confirmation d'annulation */}
+            <ConfirmationModal
+                isOpen={isConfirmModalOpen}
+                onClose={handleCloseConfirmModal}
+                onConfirm={handleConfirmCancelLeave}
+                title="Confirmer l'annulation"
+                message={`Êtes-vous sûr de vouloir annuler cette demande de congé (${leaveToCancel?.type} du ${leaveToCancel ? format(new Date(leaveToCancel.startDate), 'dd/MM/yyyy') : ''}) ?`}
+                confirmText="Confirmer l'annulation"
+                cancelText="Ne pas annuler"
+                isLoading={isSubmitting}
+            />
         </div>
     );
-} 
+}

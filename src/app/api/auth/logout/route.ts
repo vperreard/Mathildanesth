@@ -1,21 +1,21 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { removeAuthToken } from '@/lib/auth-utils';
 
 export async function POST() {
     try {
-        // Supprimer le cookie d'authentification
-        cookies().set('auth_token', '', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: -1, // Date d'expiration passée pour supprimer le cookie
-            path: '/',
-        });
+        console.log("API LOGOUT: Tentative de déconnexion");
 
-        return new NextResponse(JSON.stringify({ message: 'Déconnexion réussie' }), { status: 200 });
+        // Utiliser la fonction dédiée pour supprimer le cookie d'authentification
+        await removeAuthToken();
+
+        console.log("API LOGOUT: Cookie d'authentification supprimé avec succès");
+        return NextResponse.json({ message: 'Déconnexion réussie' });
 
     } catch (error) {
-        console.error("Erreur POST /api/auth/logout:", error);
-        return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur lors de la déconnexion' }), { status: 500 });
+        console.error("API LOGOUT ERROR:", error);
+        return NextResponse.json(
+            { message: 'Erreur interne du serveur lors de la déconnexion' },
+            { status: 500 }
+        );
     }
 } 

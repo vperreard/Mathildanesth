@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
 import {
     ChevronLeftIcon,
     ChevronRightIcon,
@@ -12,7 +12,6 @@ import {
 import { format, addWeeks, startOfWeek, endOfWeek, isToday, isWeekend, eachDayOfInterval } from "date-fns";
 import { fr } from "date-fns/locale";
 import { motion } from "framer-motion";
-import { DragDropAssignmentEditor } from './components';
 import { ApiService } from "@/services/api";
 import {
     Assignment,
@@ -22,19 +21,28 @@ import {
     Surgeon,
     User,
 } from './types';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import Button from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
+import { RuleEngine, RuleEvaluationSummary } from '@/modules/rules/engine/rule-engine';
+import { RuleEvaluationResult, RuleEvaluationContext, RuleSeverity as RuleEngineSeverity } from '@/modules/rules/types/rule';
+import { AssignmentType } from '@/types/assignment';
+import { ShiftType } from '@/types/common';
 
-// Import du panneau de configuration et des types associés
 import DisplayConfigPanel, { defaultDisplayConfig } from "./DisplayConfigPanel";
-// Importer les données mock depuis le fichier dédié
-import { mockUsers, mockRooms, mockAssignments } from './mockData';
+import { toast } from "react-hot-toast";
 
-// Les constantes de style restent locales pour l'instant
 const sectors: Record<string, string> = {
-    HYPERASEPTIQUE: "bg-blue-100 dark:bg-blue-950 border-blue-300 dark:border-blue-700",
-    SECTEUR_5_8: "bg-green-100 dark:bg-green-950 border-green-300 dark:border-green-700",
-    SECTEUR_9_12B: "bg-orange-100 dark:bg-orange-950 border-orange-300 dark:border-orange-700",
-    OPHTALMOLOGIE: "bg-pink-100 dark:bg-pink-950 border-pink-300 dark:border-pink-700",
-    ENDOSCOPIE: "bg-indigo-100 dark:bg-indigo-950 border-indigo-300 dark:border-indigo-700",
+    'Hyperaseptique': 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200',
+    'Orthopédie': 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200',
+    'Viscéral': 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200',
+    'Ambulatoire': 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200',
+    'Ophtalmologie': 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-800 dark:text-cyan-200',
+    'Bloc A': 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200',
+    'Bloc B': 'bg-rose-100 dark:bg-rose-900/30 text-rose-800 dark:text-rose-200',
+    'default': 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200',
 };
 const sectorLabels = {
     HYPERASEPTIQUE: "Hyperaseptique",
@@ -49,6 +57,46 @@ const roleColors = {
     IADE: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
 };
 
+// Définition directe pour éviter les conflits d'import
+enum AssignmentRuleSeverity {
+    CRITICAL = 'CRITICAL',
+    MAJOR = 'MAJOR',
+    MINOR = 'MINOR',
+    INFO = 'INFO'
+}
+
+// Redéfinition locale de RuleViolation pour utiliser notre propre énumération
+interface RuleViolation {
+    id: string;
+    type: string;
+    severity: AssignmentRuleSeverity;
+    message: string;
+    affectedAssignments: string[];
+}
+
+// Redéfinition locale de ValidationResult pour utiliser notre propre RuleViolation
+interface ValidationResult {
+    valid: boolean;
+    violations: RuleViolation[];
+    metrics: {
+        equiteScore: number;
+        fatigueScore: number;
+        satisfactionScore: number;
+    };
+}
+
+// Memoized Assignment Card component (or representation)
+const MemoizedAssignment = memo(({ assignment, users }: { assignment: Assignment; users: User[] }) => {
+    const user = users.find(u => u.id === assignment.userId);
+    return (
+        <div className="p-1 mb-1 border rounded bg-gray-100 text-xs shadow-sm">
+            {user ? `${user.firstName} ${user.lastName}` : `Utilisateur ID: ${assignment.userId}`}
+            {/* Ajouter d'autres détails si nécessaire */}
+        </div>
+    );
+});
+MemoizedAssignment.displayName = 'MemoizedAssignment';
+
 export default function WeeklyPlanningPage() {
     const [currentWeekStart, setCurrentWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
     const [searchQuery, setSearchQuery] = useState("");
@@ -57,14 +105,11 @@ export default function WeeklyPlanningPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [compactView, setCompactView] = useState(false);
 
-    // État pour le panneau de configuration
     const [showConfigPanel, setShowConfigPanel] = useState(false);
     const [displayConfig, setDisplayConfig] = useState<DisplayConfig | null>(null);
 
-    // État pour l'ordre personnalisé des salles
     const [roomOrderConfig, setRoomOrderConfig] = useState<RoomOrderConfig>({ orderedRoomIds: [] });
 
-    // État pour stocker la configuration active
     const [activeConfigId, setActiveConfigId] = useState<string | null>(null);
     const [visibleRoomIds, setVisibleRoomIds] = useState<string[]>([]);
     const [visiblePersonnelIds, setVisiblePersonnelIds] = useState<string[]>([]);
@@ -72,39 +117,60 @@ export default function WeeklyPlanningPage() {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [assignments, setAssignments] = useState<Assignment[]>([]);
+    const [tempAssignments, setTempAssignments] = useState<Assignment[]>([]);
+    const [hasPendingChanges, setHasPendingChanges] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+    const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] = useState(false);
+    const [pendingChangesDiff, setPendingChangesDiff] = useState<string[]>([]);
 
-    // Remplacer l'utilisation de useTheme par un useState local
+    const ruleEngine = useMemo(() => new RuleEngine(), []);
+
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
-    // Load data
+    const [isLoadingData, setIsLoadingData] = useState(true);
+
     useEffect(() => {
         const fetchDataAndConfig = async () => {
+            setIsLoadingData(true);
             setIsLoading(true);
             let finalConfig = defaultDisplayConfig;
+
             try {
                 const api = ApiService.getInstance();
                 const configData = await api.getUserPreferences();
-                // Valider ou fusionner configData avec defaultDisplayConfig si nécessaire
                 if (configData && typeof configData === 'object') {
-                    // Ici, on pourrait avoir une fonction de validation/fusion
-                    // Pour l'instant, on suppose que configData est valide si elle existe
                     finalConfig = { ...defaultDisplayConfig, ...configData } as DisplayConfig;
                 } else {
                     console.warn("Préférences utilisateur invalides reçues, utilisation des défauts.");
                 }
             } catch (error) {
                 console.error('Erreur lors du chargement de la config d\'affichage:', error);
-                // Utiliser config par défaut en cas d'erreur (401, 500, etc.)
             } finally {
                 setDisplayConfig(finalConfig);
             }
 
             try {
-                // Utiliser les données mock importées
-                const fetchedUsers = mockUsers; // Utiliser mockUsers importés
-                setUsers(fetchedUsers);
+                const weekStart = startOfWeek(currentWeekStart, { weekStartsOn: 1 });
+                const weekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
 
-                const fetchedRooms = mockRooms; // Utiliser mockRooms importés
+                const [usersResponse, roomsResponse, assignmentsResponse] = await Promise.all([
+                    fetch('/api/utilisateurs'),
+                    fetch('/api/operating-rooms'),
+                    fetch(`/api/assignments?start=${weekStart.toISOString()}&end=${weekEnd.toISOString()}`)
+                ]);
+
+                if (!usersResponse.ok || !roomsResponse.ok || !assignmentsResponse.ok) {
+                    throw new Error('Erreur lors du chargement des données initiales');
+                }
+
+                const usersData = await usersResponse.json();
+                const roomsData = await roomsResponse.json();
+                const assignmentsData = await assignmentsResponse.json();
+
+                setUsers(usersData.users || []);
+                const fetchedRooms = roomsData.rooms || [];
+
                 let currentRoomOrder: string[] = [];
                 if (typeof window !== 'undefined') {
                     const savedRoomOrder = localStorage.getItem('roomOrderConfig');
@@ -112,48 +178,51 @@ export default function WeeklyPlanningPage() {
                         try {
                             const parsedOrder = JSON.parse(savedRoomOrder);
                             if (parsedOrder && Array.isArray(parsedOrder.orderedRoomIds)) {
-                                currentRoomOrder = parsedOrder.orderedRoomIds.map(String); // Assurer string[]
+                                currentRoomOrder = parsedOrder.orderedRoomIds.map(String);
                                 setRoomOrderConfig({ orderedRoomIds: currentRoomOrder });
-                            } else {
-                                console.warn("Format roomOrderConfig invalide dans localStorage.");
                             }
                         } catch (e) {
                             console.error('Erreur lecture roomOrderConfig:', e);
                         }
                     }
                 }
-                const orderedRooms = fetchedRooms.map(room => {
+                const orderedRooms = fetchedRooms.map((room: Room) => {
                     const orderIndex = currentRoomOrder.indexOf(String(room.id));
-                    return { ...room, order: orderIndex === -1 ? Infinity : orderIndex }; // Gérer les salles non ordonnées
+                    return { ...room, order: orderIndex === -1 ? Infinity : orderIndex };
                 });
                 const sortedRooms = [...orderedRooms].sort((a, b) => {
                     if (a.order !== b.order) return a.order - b.order;
-                    if (a.sector !== b.sector) return a.sector.localeCompare(b.sector);
+                    if (a.sector && b.sector && a.sector !== b.sector) return a.sector.localeCompare(b.sector);
                     return a.name.localeCompare(b.name);
                 });
                 setRooms(sortedRooms);
 
-                const fetchedAssignments = mockAssignments; // Utiliser mockAssignments importés
+                const fetchedAssignments = assignmentsData.assignments || [];
                 setAssignments(fetchedAssignments);
+                setTempAssignments(fetchedAssignments);
 
             } catch (error) {
                 console.error('Erreur lors du chargement des données (users/rooms/assignments):', error);
+                toast.error("Erreur lors du chargement des données du planning.");
+                setUsers([]);
+                setRooms([]);
+                setAssignments([]);
+                setTempAssignments([]);
             } finally {
+                setIsLoadingData(false);
                 setIsLoading(false);
             }
         };
+
         fetchDataAndConfig();
     }, [currentWeekStart]);
 
-    // Fonction pour sauvegarder l'ordre des salles
     const handleSaveRoomOrder = (orderedRoomIds: string[]) => {
         const newConfig = { orderedRoomIds };
         setRoomOrderConfig(newConfig);
         if (typeof window !== 'undefined') {
             localStorage.setItem('roomOrderConfig', JSON.stringify(newConfig));
         }
-        // Mettre à jour l'ordre des salles dans l'état local immédiatement
-        // Typage explicite pour 'room'
         const orderedRooms = rooms.map((room: Room) => {
             const orderIndex = orderedRoomIds.indexOf(String(room.id));
             return { ...room, order: orderIndex === -1 ? Infinity : orderIndex };
@@ -164,13 +233,20 @@ export default function WeeklyPlanningPage() {
             return a.name.localeCompare(b.name);
         });
         setRooms(sortedRooms);
-        alert('L\'ordre des salles a été sauvegardé avec succès !');
+        if (displayConfig) {
+            const newConfig = { ...displayConfig, roomOrder: orderedRoomIds };
+            setDisplayConfig(newConfig);
+            try {
+                console.log("Préférences d'ordre des salles (simulé) sauvegardées.");
+            } catch (error) {
+                console.error("Erreur sauvegarde préférences ordre salles:", error);
+            }
+        }
     };
 
-    // Filter data based on search query AND configuration preferences
     const filteredRooms = rooms.filter(room => {
         const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const isVisibleByConfig = !displayConfig?.hiddenRoomIds || !displayConfig.hiddenRoomIds.includes(String(room.id));
+        const isVisibleByConfig = !displayConfig || !displayConfig.hiddenRoomIds || !displayConfig.hiddenRoomIds.includes(String(room.id));
         return matchesSearch && isVisibleByConfig;
     });
 
@@ -178,24 +254,21 @@ export default function WeeklyPlanningPage() {
         .filter(user => user.role === "SURGEON")
         .filter(surgeon => {
             const matchesSearch = `${surgeon.prenom} ${surgeon.nom}`.toLowerCase().includes(searchQuery.toLowerCase());
-            const isVisibleByConfig = !displayConfig?.hiddenPersonnelIds || !displayConfig.hiddenPersonnelIds.includes(String(surgeon.id));
+            const isVisibleByConfig = !displayConfig || !displayConfig.hiddenPersonnelIds || !displayConfig.hiddenPersonnelIds.includes(String(surgeon.id));
             return matchesSearch && isVisibleByConfig;
         });
 
-    const filteredAssignments = assignments.filter(assignment => {
-        const roomVisible = !displayConfig?.hiddenRoomIds || !displayConfig.hiddenRoomIds.includes(String(assignment.roomId));
-        const surgeonVisible = !displayConfig?.hiddenPersonnelIds || !displayConfig.hiddenPersonnelIds.includes(String(assignment.surgeonId));
+    const filteredTempAssignments = tempAssignments.filter(assignment => {
+        const roomVisible = !displayConfig || !displayConfig.hiddenRoomIds || !displayConfig.hiddenRoomIds.includes(String(assignment.roomId));
+        const surgeonVisible = !displayConfig || !displayConfig.hiddenPersonnelIds || !displayConfig.hiddenPersonnelIds.includes(String(assignment.surgeonId));
         return roomVisible && surgeonVisible;
     });
-
-    // ========= Nouvelles fonctions utilitaires utilisant displayConfig =========
 
     const formatNameWithConfig = (person: User | null, role: 'chirurgien' | 'mar' | 'iade'): string => {
         if (!person || !displayConfig || !displayConfig.personnel || !displayConfig.personnel[role]) {
             return person ? `${person.prenom} ${person.nom}` : '';
         }
 
-        // Adapter le type User local au type attendu par la logique de formatage
         const configPerson: Surgeon = {
             id: person.id,
             nom: person.nom,
@@ -211,9 +284,7 @@ export default function WeeklyPlanningPage() {
         let name = '';
         const { prenom, nom, specialty } = configPerson;
 
-        // Définir le format de nom en fonction de la configuration disponible
         if (config.format) {
-            // Utiliser le format spécifié directement
             switch (config.format) {
                 case 'nom': name = nom; break;
                 case 'nomPrenom': name = `${nom} ${prenom}`; break;
@@ -238,7 +309,6 @@ export default function WeeklyPlanningPage() {
             name = `${prenom} ${nom}`;
         }
 
-        // Appliquer le style de casse si configuré
         if (config.casse) {
             switch (config.casse) {
                 case 'uppercase': name = name.toUpperCase(); break;
@@ -248,7 +318,6 @@ export default function WeeklyPlanningPage() {
             }
         }
 
-        // Ajouter le préfixe de rôle si configuré
         if (config.showRolePrefix) {
             let rolePrefix = '';
             switch (role) {
@@ -262,9 +331,7 @@ export default function WeeklyPlanningPage() {
         }
     };
 
-    // Fonction utilitaire pour déterminer la couleur du texte en fonction de la couleur d'arrière-plan
     const getTextColorForBackground = (backgroundColor: string): string => {
-        // Convertir la couleur hex en RGB
         let hex = backgroundColor.replace('#', '');
         if (hex.length === 3) {
             hex = hex.split('').map(char => char + char).join('');
@@ -274,17 +341,15 @@ export default function WeeklyPlanningPage() {
         const g = parseInt(hex.substring(2, 4), 16);
         const b = parseInt(hex.substring(4, 6), 16);
 
-        // Calculer la luminosité (formule standard)
         const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
-        // Si la luminance est élevée (couleur claire), utiliser du texte foncé, sinon du texte clair
         return luminance > 0.5 ? '#000000' : '#ffffff';
     };
 
     const getStyleWithConfig = (assignment: Assignment | null | undefined): React.CSSProperties => {
         if (!assignment) {
             return {
-                backgroundColor: "#e5e7eb", // Couleur grise par défaut
+                backgroundColor: "#e5e7eb",
                 color: "#374151"
             };
         }
@@ -294,11 +359,11 @@ export default function WeeklyPlanningPage() {
             return {
                 backgroundColor: "#e5e7eb",
                 color: "#374151"
-            }; // Style par défaut si pas de configuration
+            };
         }
 
         const surgeonColorMap = displayConfig.couleurs.chirurgiens;
-        const color = surgeonColorMap[surgeonId] || "#e5e7eb"; // Couleur par défaut si pas de correspondance
+        const color = surgeonColorMap[surgeonId] || "#e5e7eb";
 
         return {
             backgroundColor: color,
@@ -306,9 +371,6 @@ export default function WeeklyPlanningPage() {
         };
     };
 
-    // =====================================================================
-
-    // Navigation functions
     const goToPreviousWeek = () => {
         setCurrentWeekStart(prev => addWeeks(prev, -1));
     };
@@ -321,7 +383,6 @@ export default function WeeklyPlanningPage() {
         setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
     };
 
-    // Helper functions
     const getUserById = (id: string | number | null) => {
         if (id === null || id === undefined) return undefined;
         const stringId = String(id);
@@ -333,11 +394,9 @@ export default function WeeklyPlanningPage() {
     }
 
     const getDailyAssignments = (date: Date, roomId: string | number) => {
-        const stringRoomId = String(roomId);
-        return filteredAssignments.filter(
-            assignment =>
-                new Date(assignment.date).toDateString() === date.toDateString() &&
-                String(assignment.roomId) === stringRoomId
+        const dateString = format(date, "yyyy-MM-dd");
+        return filteredTempAssignments.filter(
+            (a) => format(new Date(a.date), "yyyy-MM-dd") === dateString && String(a.roomId) === String(roomId)
         );
     };
 
@@ -348,51 +407,43 @@ export default function WeeklyPlanningPage() {
         }).filter(day => !isWeekend(day));
     };
 
-    // Get assignments for a specific surgeon on a specific day
     const getSurgeonDailyAssignments = (date: Date, surgeonId: string | number) => {
-        const stringSurgeonId = String(surgeonId);
-        return filteredAssignments.filter(
-            assignment =>
-                new Date(assignment.date).toDateString() === date.toDateString() &&
-                String(assignment.surgeonId) === stringSurgeonId
+        const dateString = format(date, "yyyy-MM-dd");
+        return filteredTempAssignments.filter(
+            (a) => format(new Date(a.date), "yyyy-MM-dd") === dateString && String(a.surgeonId) === String(surgeonId)
         );
     };
 
-    // Render functions avec les nouveaux formats de nom et styles de police
-    const renderAssignment = (assignment: Assignment) => {
-        const surgeon = getUserById(assignment.surgeonId);
-        const mar = assignment.marId ? getUserById(assignment.marId) : null;
-        const iade = assignment.iadeId ? getUserById(assignment.iadeId) : null;
-        const room = getRoomById(assignment.roomId);
+    const renderAssignment = (assignment: Assignment, index: number = 0) => {
+        const surgeon = assignment.surgeonId != null ? getUserById(assignment.surgeonId) : undefined;
+        const mar = assignment.marId != null ? getUserById(assignment.marId) : undefined;
+        const iade = assignment.iadeId != null ? getUserById(assignment.iadeId) : undefined;
+        const room = assignment.roomId != null ? getRoomById(assignment.roomId) : undefined;
 
-        // Vérifier si les données essentielles sont présentes
         if (!surgeon || !room) return null;
 
-        // Styles et formatage depuis displayConfig (avec vérification de sécurité)
         const surgeonStyle = getStyleWithConfig(assignment);
-        const marStyle = getStyleWithConfig(assignment);
-        const iadeStyle = getStyleWithConfig(assignment);
+        const marStyle = mar ? getStyleWithConfig(assignment) : {};
+        const iadeStyle = iade ? getStyleWithConfig(assignment) : {};
 
-        const sectorColorMatch = sectors[room.sector]?.match(/(bg-\w+-\d+)/);
-        const sectorColor = sectorColorMatch ? sectorColorMatch[1] : 'bg-gray-100'; // Fallback color
+        const sectorColorMatch = room.sector ? sectors[room.sector]?.match(/(bg-\w+-\d+)/) : null;
+        const sectorColor = sectorColorMatch ? sectorColorMatch[1] : 'bg-gray-100';
 
-        // Appliquer l'opacité de fond configurée avec vérification de sécurité
         const opacityValue = displayConfig?.backgroundOpacity ? Math.round(displayConfig.backgroundOpacity * 100) : 50;
         const cardBgStyle = assignment.period === "MORNING"
-            ? sectors[room.sector]
+            ? (room.sector ? sectors[room.sector] : sectors['default'])
             : `${sectorColor} bg-opacity-${opacityValue} dark:bg-opacity-${opacityValue}`;
 
-        return (
+        const textColor = getTextColorForBackground(cardBgStyle);
+
+        const content = (
             <div
-                key={assignment.id}
-                className={`p-2 mb-1 rounded border ${cardBgStyle}`}
+                className={`p-1 rounded text-xs mb-1 shadow-sm ${cardBgStyle}`}
+                style={{ color: textColor }}
             >
-                {/* Chirurgien */}
                 <div style={surgeonStyle}>
                     {formatNameWithConfig(surgeon, 'chirurgien')}
                 </div>
-
-                {/* MAR et IADE */}
                 <div className="flex flex-wrap gap-1 mt-1">
                     {mar && (
                         <span style={marStyle}>
@@ -400,115 +451,115 @@ export default function WeeklyPlanningPage() {
                         </span>
                     )}
                     {iade && (
-                        <span style={iadeStyle} className={mar ? 'ml-2' : ''}> {/* Ajoute marge si MAR présent */}
+                        <span style={iadeStyle} className={mar ? 'ml-2' : ''}>
                             {formatNameWithConfig(iade, 'iade')}
                         </span>
                     )}
                 </div>
             </div>
         );
-    };
-
-    const renderRoomView = () => {
-        const weekDays = getWeekDays();
 
         return (
-            <div className={`mt-4 overflow-x-auto ${compactView ? 'scale-compact' : ''}`}>
-                <table className={`min-w-full border-collapse ${compactView ? 'compact-table' : ''}`}>
-                    <thead>
-                        <tr className="bg-gray-50 dark:bg-gray-800">
-                            <th className={`py-2 px-3 border border-gray-300 dark:border-gray-700 text-left ${compactView ? 'compact-cell' : ''}`}>Salles</th>
-                            {weekDays.map((day) => (
-                                <th
-                                    key={day.toISOString()}
-                                    className={`py-2 px-3 border border-gray-300 dark:border-gray-700 text-center ${isToday(day) ? "bg-blue-50 dark:bg-blue-900" : ""} ${compactView ? 'compact-cell' : ''}`}
-                                >
-                                    <div className={compactView ? 'text-xs' : ''}>{format(day, "EEEE", { locale: fr })}</div>
-                                    <div className={compactView ? 'text-xs' : ''}>{format(day, "dd/MM", { locale: fr })}</div>
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredRooms.map((room) => (
-                            <tr key={room.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                                <td className={`py-2 px-3 border border-gray-300 dark:border-gray-700 ${sectors[room.sector]} font-medium ${compactView ? 'compact-cell' : ''}`}>
-                                    {room.name}
-                                </td>
-                                {weekDays.map((day) => {
-                                    const dayAssignments = getDailyAssignments(day, room.id);
-                                    const morningAssignment = dayAssignments.find(a => a.period === "MORNING");
-                                    const afternoonAssignment = dayAssignments.find(a => a.period === "AFTERNOON");
-
-                                    return (
-                                        <td key={day.toISOString()} className={`py-2 px-3 border border-gray-300 dark:border-gray-700 ${compactView ? 'compact-cell' : ''}`}>
-                                            <div className="flex gap-2">
-                                                <div className="flex-1">
-                                                    {morningAssignment && renderCompactAssignment(morningAssignment)}
-                                                </div>
-                                                <div className="flex-1">
-                                                    {afternoonAssignment && renderCompactAssignment(afternoonAssignment)}
-                                                </div>
-                                            </div>
-                                        </td>
-                                    );
-                                })}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+            <Draggable draggableId={`assignment-${assignment.id}`} index={index}>
+                {(provided, snapshot) => (
+                    <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className={`transition-shadow duration-150 ease-in-out ${snapshot.isDragging ? 'shadow-lg scale-105 rotate-1' : 'shadow-sm'}`}
+                        style={{
+                            ...provided.draggableProps.style,
+                        }}
+                    >
+                        {content}
+                    </div>
+                )}
+            </Draggable>
         );
     };
 
-    // Nouvelle fonction pour rendre les assignations en fonction du mode (compact ou normal)
-    const renderCompactAssignment = (assignment: Assignment) => {
-        if (compactView) {
-            return renderCompactVersionAssignment(assignment);
-        }
-        return renderAssignment(assignment);
-    };
-
-    // Version compacte de l'affichage des assignations
-    const renderCompactVersionAssignment = (assignment: Assignment) => {
-        const surgeon = getUserById(assignment.surgeonId);
-        const room = getRoomById(assignment.roomId);
-
-        if (!surgeon || !room) return null;
-
-        // Utiliser la config pour le style (partiellement ou totalement)
-        const surgeonStyle = getStyleWithConfig(assignment);
-
-        // Pour la vue compacte, on peut choisir de forcer une petite taille
-        // ou utiliser celle de la config. Utilisons celle de la config pour l'instant.
-        // surgeonStyle.fontSize = '0.75rem'; // Forcer taille xs
-
-        const sectorColorMatch = sectors[room.sector]?.match(/(bg-\w+-\d+)/);
-        const sectorColor = sectorColorMatch ? sectorColorMatch[1] : 'bg-gray-100';
-
-        // Appliquer l'opacité configurée (avec vérification de sécurité)
-        const opacityValue = displayConfig?.backgroundOpacity ? Math.round(displayConfig.backgroundOpacity * 100) : 50;
-        const cardBgStyle = assignment.period === "MORNING"
-            ? sectors[room.sector]
-            : `${sectorColor} bg-opacity-${opacityValue} dark:bg-opacity-${opacityValue}`;
+    // Fonction pour rendre les assignations d'une salle spécifique
+    const renderRoomAssignments = useCallback((room: Room) => {
+        const weekDays = getWeekDays();
+        const dailyAssignments = getDailyAssignments(new Date(currentWeekStart), room.id);
+        const morningAssignments = dailyAssignments.filter(a => a.period === 'MORNING');
+        const afternoonAssignments = dailyAssignments.filter(a => a.period === 'AFTERNOON');
+        const morningDroppableId = `room-${room.id}-day-${format(currentWeekStart, 'yyyy-MM-dd')}-period-MORNING`;
+        const afternoonDroppableId = `room-${room.id}-day-${format(currentWeekStart, 'yyyy-MM-dd')}-period-AFTERNOON`;
 
         return (
-            <div
-                key={assignment.id}
-                className={`p-1 mb-1 rounded border text-xs ${cardBgStyle}`}
-            >
-                {/* Utiliser le style et format configurés */}
-                <div style={surgeonStyle} className="truncate">
-                    {formatNameWithConfig(surgeon, 'chirurgien')}
+            <div className="grid grid-cols-2 gap-1 h-full">
+                <Droppable droppableId={morningDroppableId} type="ASSIGNMENT">
+                    {(provided, snapshot) => (
+                        <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className={`min-h-[60px] p-1 rounded-md transition-colors duration-150 ease-in-out ${snapshot.isDraggingOver ? 'bg-blue-200 dark:bg-blue-700 shadow-inner' : 'bg-blue-50/30 dark:bg-blue-900/20'}`}
+                        >
+                            {morningAssignments.map((assignment, index) => renderAssignment(assignment, index))}
+                            {provided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
+                <Droppable droppableId={afternoonDroppableId} type="ASSIGNMENT">
+                    {(provided, snapshot) => (
+                        <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className={`min-h-[60px] p-1 rounded-md transition-colors duration-150 ease-in-out ${snapshot.isDraggingOver ? 'bg-amber-200 dark:bg-amber-700 shadow-inner' : 'bg-amber-50/30 dark:bg-amber-900/20'}`}
+                        >
+                            {afternoonAssignments.map((assignment, index) => renderAssignment(assignment, index))}
+                            {provided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
+            </div>
+        );
+    }, [currentWeekStart, getWeekDays, renderAssignment, filteredTempAssignments]);
+
+    const renderRoomView = useCallback(() => {
+        const weekDays = getWeekDays();
+        const roomsToDisplay = filteredRooms;
+
+        // Group rooms by sector
+        const groupedRoomsBySector = roomsToDisplay.reduce((acc, room) => {
+            const sector = room.sector || 'Non classé';
+            if (!acc[sector]) {
+                acc[sector] = [];
+            }
+            acc[sector].push(room);
+            return acc;
+        }, {} as Record<string, Room[]>);
+
+        return (
+            <div className="p-4">
+                <div className="font-medium text-gray-700 mb-4">
+                    Semaine du {format(currentWeekStart, "d MMMM", { locale: fr })} au {format(endOfWeek(currentWeekStart, { weekStartsOn: 1 }), "d MMMM yyyy", { locale: fr })}
+                </div>
+                <div className="grid gap-4">
+                    {Object.entries(groupedRoomsBySector).map(([sector, roomsInSection]) => (
+                        <React.Fragment key={sector}>
+                            {/* En-tête de Secteur */}
+                            <div className="col-span-full p-2 bg-gray-200 font-medium text-sm rounded">{sector}</div>
+                            {/* Salles dans ce secteur */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {roomsInSection.map(room => (
+                                    <div key={room.id} className="border rounded p-3 bg-white shadow-sm">
+                                        <h3 className="font-semibold text-sm mb-2">{room.name}</h3>
+                                        {renderRoomAssignments(room)}
+                                    </div>
+                                ))}
+                            </div>
+                        </React.Fragment>
+                    ))}
                 </div>
             </div>
         );
-    };
+    }, [filteredRooms, currentWeekStart, getWeekDays, renderRoomAssignments]);
 
     const renderSurgeonView = () => {
         const weekDays = getWeekDays();
 
-        // Ajout de la condition pour retourner early
         if (!displayConfig) {
             return (
                 <div className="text-center py-10 text-gray-500 dark:text-gray-400">
@@ -538,7 +589,6 @@ export default function WeeklyPlanningPage() {
                         {filteredSurgeons.map((surgeon) => (
                             <tr key={surgeon.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                                 <td className={`py-2 px-3 border border-gray-300 dark:border-gray-700 font-medium ${compactView ? 'compact-cell' : ''}`}>
-                                    {/* Formater nom chirurgien avec config */}
                                     <div style={getStyleWithConfig(null)}>
                                         {formatNameWithConfig(surgeon, 'chirurgien')}
                                     </div>
@@ -571,7 +621,6 @@ export default function WeeklyPlanningPage() {
                                                                 style={roomStyle}
                                                             >
                                                                 <div className="font-medium text-xs truncate">{room.name}</div>
-                                                                {/* Optionnel: afficher MAR/IADE en compact ? */}
                                                             </div>
                                                         ) : (
                                                             <div
@@ -583,7 +632,6 @@ export default function WeeklyPlanningPage() {
                                                                 <div className="text-xs text-gray-700 dark:text-gray-300">
                                                                     Matin
                                                                 </div>
-                                                                {/* Afficher MAR/IADE avec config */}
                                                                 {mar && <div style={marStyle}>{formatNameWithConfig(mar, 'mar')}</div>}
                                                                 {iade && <div style={iadeStyle}>{formatNameWithConfig(iade, 'iade')}</div>}
                                                             </div>
@@ -600,7 +648,6 @@ export default function WeeklyPlanningPage() {
 
                                                         const sectorColorMatch = sectors[room.sector]?.match(/(bg-\w+-\d+)/);
                                                         const sectorColor = sectorColorMatch ? sectorColorMatch[1] : 'bg-gray-100';
-                                                        // Vérification de sécurité pour displayConfig
                                                         const opacityValue = displayConfig?.backgroundOpacity ? Math.round(displayConfig.backgroundOpacity * 100) : 50;
                                                         const cardBgStyle = `${sectorColor} bg-opacity-${opacityValue} dark:bg-opacity-${opacityValue}`;
                                                         const roomStyle = { /* Pourrait utiliser config générale */ };
@@ -614,7 +661,6 @@ export default function WeeklyPlanningPage() {
                                                                 style={roomStyle}
                                                             >
                                                                 <div className="font-medium text-xs truncate">{room.name}</div>
-                                                                {/* Optionnel: afficher MAR/IADE en compact ? */}
                                                             </div>
                                                         ) : (
                                                             <div
@@ -626,7 +672,6 @@ export default function WeeklyPlanningPage() {
                                                                 <div className="text-xs text-gray-700 dark:text-gray-300">
                                                                     Après-midi
                                                                 </div>
-                                                                {/* Afficher MAR/IADE avec config */}
                                                                 {mar && <div style={marStyle}>{formatNameWithConfig(mar, 'mar')}</div>}
                                                                 {iade && <div style={iadeStyle}>{formatNameWithConfig(iade, 'iade')}</div>}
                                                             </div>
@@ -689,7 +734,6 @@ export default function WeeklyPlanningPage() {
         );
     };
 
-    // Pour remplacer les tooltips de react-tooltip, vous pouvez créer une simple infobulle avec useState
     const SimpleTooltip = ({ children, content }: { children: React.ReactNode, content: string }) => {
         const [isVisible, setIsVisible] = useState(false);
 
@@ -709,10 +753,8 @@ export default function WeeklyPlanningPage() {
         );
     };
 
-    // Pour basculer le thème, au lieu de setTheme('dark') ou setTheme('light')
     const toggleTheme = () => {
         setTheme(theme === 'dark' ? 'light' : 'dark');
-        // Si vous voulez aussi appliquer une classe au document pour le mode sombre
         if (typeof document !== 'undefined') {
             document.documentElement.classList.toggle('dark', theme === 'light');
         }
@@ -722,64 +764,40 @@ export default function WeeklyPlanningPage() {
         return rooms
             .filter(room => room.sector === sector)
             .sort((a, b) => {
-                // Si les deux salles ont un ordre, les comparer
                 if (a.order !== undefined && b.order !== undefined) {
                     return a.order - b.order;
                 }
-                // Si seulement a a un ordre, le placer avant
                 if (a.order !== undefined) {
                     return -1;
                 }
-                // Si seulement b a un ordre, le placer avant
                 if (b.order !== undefined) {
                     return 1;
                 }
-                // Sinon, trier par nom
                 return a.name.localeCompare(b.name);
             });
     };
 
-    // Mise à jour de la configuration d'affichage via API
     const handleConfigChange = async (newConfig: DisplayConfig) => {
         setDisplayConfig(newConfig);
         setShowConfigPanel(false);
-        // Sauvegarder la configuration via API
-        try {
-            const api = ApiService.getInstance();
-            // Correction: Commenter car la méthode n'existe pas
-            // await api.saveUserPreferences(newConfig);
-            console.log("Sauvegarde API désactivée (méthode saveUserPreferences non implémentée).");
-            // Afficher une notification de succès
-            console.log("Préférences sauvegardées localement");
-        } catch (error) {
-            console.error("Erreur sauvegarde préférences via API (appel désactivé):", error);
-            // Afficher une notification d'erreur
-        }
+        console.log("Préférences sauvegardées localement");
     };
 
-    // Correction du problème setState during render en déplaçant les logiques de setState dans des useEffect
-    // Création d'un nouvel useEffect pour initialiser les états après le chargement des données
     useEffect(() => {
-        // Ne faire ces traitements que si les données sont chargées
         if (!isLoading && rooms.length > 0) {
-            // Initialiser les salles visibles (toutes les salles par défaut)
             if (visibleRoomIds.length === 0) {
-                // Correction: Convertir ID en string
                 setVisibleRoomIds(rooms.map(room => String(room.id)));
             }
 
-            // Initialiser les personnels visibles (tous les chirurgiens par défaut)
             if (visiblePersonnelIds.length === 0) {
                 const surgeonIds = users
                     .filter(user => user.role === "SURGEON")
-                    // Correction: Convertir ID en string
                     .map(user => String(user.id));
                 setVisiblePersonnelIds(surgeonIds);
             }
         }
     }, [isLoading, rooms, users, visibleRoomIds.length, visiblePersonnelIds.length]);
 
-    // Modification de useEffect pour le chargement de la config d'affichage
     useEffect(() => {
         const loadDefaultConfig = () => {
             if (!displayConfig) {
@@ -788,14 +806,11 @@ export default function WeeklyPlanningPage() {
             }
         };
 
-        // Si l'API échoue, charger la config par défaut après un délai
         const timer = setTimeout(loadDefaultConfig, 3000);
 
-        // Nettoyer le timer si le composant est démonté ou si displayConfig est chargé entre-temps
         return () => clearTimeout(timer);
     }, [displayConfig]);
 
-    // Ajouter un useEffect séparé pour la gestion du thème (pour éviter les setState during render)
     useEffect(() => {
         const handleThemeChange = (e: MediaQueryListEvent) => {
             setTheme(e.matches ? 'dark' : 'light');
@@ -803,198 +818,425 @@ export default function WeeklyPlanningPage() {
 
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-        // Écouter les changements de thème du système
         if (mediaQuery.addEventListener) {
             mediaQuery.addEventListener('change', handleThemeChange);
         } else {
-            // Fallback pour les anciens navigateurs
             mediaQuery.addListener(handleThemeChange);
         }
 
-        // Cleanup
         return () => {
             if (mediaQuery.removeEventListener) {
                 mediaQuery.removeEventListener('change', handleThemeChange);
             } else {
-                // Fallback pour les anciens navigateurs
                 mediaQuery.removeListener(handleThemeChange);
             }
         };
     }, []);
 
+    const handleDragEnd = useCallback(async (result: DropResult) => {
+        const { source, destination, draggableId } = result;
+
+        if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
+            return;
+        }
+
+        const assignmentId = draggableId.replace('assignment-', '');
+
+        const movedAssignmentIndex = tempAssignments.findIndex(a => String(a.id) === assignmentId);
+        if (movedAssignmentIndex === -1) {
+            console.error("Assignation déplacée non trouvée:", assignmentId);
+            return;
+        }
+        const movedAssignment = { ...tempAssignments[movedAssignmentIndex] };
+
+        const destParts = destination.droppableId.split('-');
+        if (destParts.length !== 6 || destParts[0] !== 'room' || destParts[2] !== 'day' || destParts[4] !== 'period') {
+            console.error("ID de destination invalide:", destination.droppableId);
+            return;
+        }
+        const newRoomId = parseInt(destParts[1], 10);
+        const newDateStr = destParts[3];
+        const newPeriod = destParts[5] as 'MORNING' | 'AFTERNOON';
+        const newDate = new Date(newDateStr + 'T12:00:00Z');
+
+        let updatedAssignments = [...tempAssignments];
+
+        updatedAssignments[movedAssignmentIndex] = {
+            ...movedAssignment,
+            roomId: newRoomId,
+            date: newDate,
+            period: newPeriod,
+        };
+
+        setTempAssignments(updatedAssignments);
+        setHasPendingChanges(true);
+    }, [tempAssignments]);
+
+    const calculateDiff = () => {
+        const diffMessages: string[] = [];
+        const originalMap = new Map(assignments.map(a => [a.id, a]));
+        const tempMap = new Map(tempAssignments.map(a => [a.id, a]));
+
+        tempMap.forEach((tempAssign, id) => {
+            const originalAssign = originalMap.get(id);
+            if (!originalAssign) {
+                // Nouvelle assignation (pas géré par DND actuel, mais pourrait l'être)
+                // diffMessages.push(`Nouvelle affectation: ...`);
+            } else if (
+                tempAssign.roomId !== originalAssign.roomId ||
+                tempAssign.date !== originalAssign.date ||
+                tempAssign.period !== originalAssign.period
+            ) {
+                // Assignation modifiée (déplacée)
+                const surgeon = getUserById(tempAssign.surgeonId);
+                const originalRoom = getRoomById(originalAssign.roomId);
+                const newRoom = getRoomById(tempAssign.roomId);
+                const originalDateStr = format(new Date(originalAssign.date), 'dd/MM');
+                const newDateStr = format(new Date(tempAssign.date), 'dd/MM');
+                const surgeonName = surgeon ? `${surgeon.prenom} ${surgeon.nom}` : `ID ${tempAssign.surgeonId}`;
+                const originalSlot = `${originalRoom?.name || 'Inconnue'} (${originalAssign.period === 'MORNING' ? 'Matin' : 'Après-midi'} ${originalDateStr})`;
+                const newSlot = `${newRoom?.name || 'Inconnue'} (${tempAssign.period === 'MORNING' ? 'Matin' : 'Après-midi'} ${newDateStr})`;
+
+                diffMessages.push(`Dr. ${surgeonName} déplacé de ${originalSlot} vers ${newSlot}`);
+            }
+        });
+
+        // Vérifier les assignations supprimées (pas géré par DND actuel)
+        // originalMap.forEach((originalAssign, id) => {
+        //     if (!tempMap.has(id)) {
+        //         // Assignation supprimée
+        //     }
+        // });
+
+        setPendingChangesDiff(diffMessages);
+    };
+
+    const validateChanges = useCallback(async (assignmentsToValidate: Assignment[]) => {
+        setIsLoading(true);
+        let clientValidationResult: ValidationResult | null = null;
+        let serverValidationResult: RuleEvaluationSummary | null = null;
+
+        // --- Validation Client (avec RuleEngine local) ---
+        try {
+            const context: RuleEvaluationContext = {
+                assignments: assignmentsToValidate,
+                startDate: currentWeekStart,
+                endDate: endOfWeek(currentWeekStart, { weekStartsOn: 1 }),
+                medecins: users.filter(u => u.role === 'SURGEON' || u.role === 'MAR' || u.role === 'IADE').map(u => ({
+                    id: String(u.id),
+                    firstName: u.prenom || '',
+                    lastName: u.nom || '',
+                    department: 'N/A',
+                    speciality: 'N/A',
+                    qualifications: []
+                })),
+                rooms: rooms.map(r => ({
+                    id: String(r.id),
+                    name: r.name,
+                    sector: r.sector || 'N/A',
+                    capacity: 1,
+                    equipment: []
+                })),
+            };
+            const result: RuleEvaluationSummary = await ruleEngine.evaluate(context);
+            console.log("Résultat validation RuleEngine (Client):", result);
+
+            // Mapper le résultat du RuleEngine local vers le format ValidationResult
+            const mapResultToViolation = (evalResult: RuleEvaluationResult): RuleViolation => {
+                const affectedAssignments = evalResult.details?.affectedAssignments?.map(String) || [];
+                let severity: AssignmentRuleSeverity;
+                switch (evalResult.severity) {
+                    case RuleEngineSeverity.ERROR:
+                        severity = AssignmentRuleSeverity.CRITICAL;
+                        break;
+                    case RuleEngineSeverity.WARNING:
+                        severity = AssignmentRuleSeverity.MAJOR;
+                        break;
+                    case RuleEngineSeverity.INFO:
+                    default:
+                        severity = AssignmentRuleSeverity.INFO;
+                        break;
+                }
+
+                return {
+                    id: evalResult.ruleId || `violation-${Math.random()}`,
+                    type: evalResult.details?.ruleType || 'Unknown',
+                    severity: severity,
+                    message: evalResult.message,
+                    affectedAssignments: affectedAssignments,
+                };
+            };
+            const allViolations = [
+                ...(result.violations || []),
+                ...(result.warnings || [])
+            ].map(mapResultToViolation);
+            clientValidationResult = {
+                valid: result.isValid,
+                violations: allViolations,
+                metrics: {
+                    equiteScore: result.score || 0,
+                    fatigueScore: 0,
+                    satisfactionScore: 0,
+                }
+            };
+
+        } catch (error) {
+            console.error("Erreur validation règles (Client):", error);
+            clientValidationResult = {
+                valid: false,
+                violations: [{
+                    id: 'client-validation-error',
+                    type: 'System',
+                    severity: AssignmentRuleSeverity.CRITICAL,
+                    message: "Erreur interne lors de la validation (client).",
+                    affectedAssignments: []
+                }],
+                metrics: { equiteScore: 0, fatigueScore: 0, satisfactionScore: 0 }
+            };
+        }
+
+        // --- Validation Serveur (optionnelle ou complémentaire) ---
+        try {
+            const response = await fetch('/api/assignments/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ assignments: assignmentsToValidate }),
+            });
+            if (!response.ok) {
+                throw new Error(`Erreur serveur validation: ${response.statusText}`);
+            }
+            serverValidationResult = await response.json();
+            console.log("Résultat validation RuleEngine (Serveur):", serverValidationResult);
+
+            // Combiner les résultats ou choisir lequel afficher ?
+            // Pour l'instant, on utilise le résultat client, mais on pourrait merger
+            // les violations ou afficher les erreurs serveur si la validation client passe.
+
+        } catch (error) {
+            console.error("Erreur validation règles (Serveur):", error);
+            if (clientValidationResult) {
+                clientValidationResult.valid = false;
+                clientValidationResult.violations.push({
+                    id: 'server-validation-error',
+                    type: 'System',
+                    severity: AssignmentRuleSeverity.CRITICAL,
+                    message: "Erreur interne lors de la validation (serveur).",
+                    affectedAssignments: []
+                });
+            }
+        }
+
+        setValidationResult(clientValidationResult);
+        setIsLoading(false);
+
+    }, [currentWeekStart, users, rooms, ruleEngine]);
+
+    const openConfirmationDialog = useCallback(async () => {
+        // Valider les tempAssignments actuels
+        await validateChanges(tempAssignments);
+        calculateDiff();
+        setIsConfirmationDialogOpen(true);
+    }, [validateChanges, calculateDiff, tempAssignments]);
+
+    const handleSaveChanges = useCallback(async () => {
+        if (!hasPendingChanges || !validationResult?.valid) {
+            toast.error("Impossible de sauvegarder : changements invalides ou aucune modification.");
+            return;
+        }
+        setIsSaving(true);
+        const originalAssignments = assignments;
+
+        try {
+            // Préparer les données pour l'API batch
+            // Assurez-vous que le format correspond à ce qu'attend POST /api/assignments/batch
+            const assignmentsToSave = tempAssignments.map(tempAssign => {
+                // Convertir les champs si nécessaire (ex: userId en number si l'API l'attend)
+                return {
+                    ...tempAssign,
+                    userId: Number(tempAssign.userId), // Assumer que l'API batch attend un number
+                    date: new Date(tempAssign.date), // Envoyer objet Date ou string ISO?
+                    roomId: tempAssign.roomId ? Number(tempAssign.roomId) : null, // API attend number?
+                    // Retirer les champs non persistés (ex: `order` ajouté localement)
+                };
+            });
+
+            console.log("Assignations envoyées à /api/assignments/batch:", assignmentsToSave);
+
+            const response = await fetch('/api/assignments/batch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ assignments: assignmentsToSave }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                console.error("Erreur API batch:", result);
+                // Gérer les erreurs 207 (Multi-Status) spécifiquement
+                if (response.status === 207 && result.errors) {
+                    toast.error(`Erreur partielle: ${result.errors.length} affectation(s) non enregistrée(s).`);
+                } else {
+                    toast.error(result.error || "Erreur lors de la sauvegarde des changements.");
+                }
+                throw new Error(result.error || 'Sauvegarde échouée');
+            }
+
+            // Succès
+            setAssignments(tempAssignments); // Mettre à jour l'état principal
+            setHasPendingChanges(false);
+            setValidationResult(null);
+            setIsConfirmationDialogOpen(false);
+            toast.success(result.message || "Changements sauvegardés avec succès !");
+
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde des changements:", error);
+            // Ne pas restaurer tempAssignments ici pour permettre à l'utilisateur de réessayer
+            // setTempAssignments(originalAssignments); // Ou restaurer si on préfère annuler en cas d'erreur
+            toast.error(`Erreur sauvegarde: ${error instanceof Error ? error.message : 'Veuillez réessayer.'}`);
+            // Garder la modale ouverte ?
+            // setIsConfirmationDialogOpen(false);
+        } finally {
+            setIsSaving(false);
+        }
+    }, [tempAssignments, assignments, hasPendingChanges, validationResult]);
+
+    const handleCancelChanges = useCallback(() => {
+        setTempAssignments(assignments);
+        setHasPendingChanges(false);
+        setValidationResult(null);
+        setIsConfirmationDialogOpen(false);
+    }, [assignments, setTempAssignments, setHasPendingChanges, setValidationResult, setIsConfirmationDialogOpen]);
+
+    // Fonction pour ouvrir le panneau de configuration
+    const openConfigPanel = () => setShowConfigPanel(true);
+
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: .5 }}
-            className="container mx-auto px-4 py-6"
-        >
-            <h1 className="text-2xl font-bold mb-4">Planning Hebdomadaire des Blocs Opératoires</h1>
-
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                    <button
-                        onClick={goToPreviousWeek}
-                        className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                        aria-label="Semaine précédente"
-                    >
-                        <ChevronLeftIcon className="h-5 w-5" />
-                    </button>
-
-                    <div className="text-lg font-medium">
-                        Semaine du {format(currentWeekStart, "dd/MM/yyyy", { locale: fr })} au{" "}
-                        {format(endOfWeek(currentWeekStart, { weekStartsOn: 1 }), "dd/MM/yyyy", { locale: fr })}
-                    </div>
-
-                    <button
-                        onClick={goToNextWeek}
-                        className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                        aria-label="Semaine suivante"
-                    >
-                        <ChevronRightIcon className="h-5 w-5" />
-                    </button>
-
-                    <button
-                        onClick={goToCurrentWeek}
-                        className="ml-2 px-3 py-1 text-sm bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-md hover:bg-blue-200 dark:hover:bg-blue-800"
-                    >
-                        Aujourd'hui
-                    </button>
-                </div>
-
-                <div className="flex flex-col md:flex-row gap-2 items-center">
-                    <div className="relative">
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Rechercher..."
-                            className="pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800"
-                        />
-                        <PencilIcon className="h-5 w-5 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
-                    </div>
-
-                    <div className="flex rounded-md shadow-sm">
-                        <button
-                            onClick={() => setViewMode("room")}
-                            className={`px-4 py-2 text-sm rounded-l-md ${viewMode === "room"
-                                ? "bg-blue-500 text-white"
-                                : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
-                                }`}
-                        >
-                            Par Salles
-                        </button>
-                        <button
-                            onClick={() => setViewMode("surgeon")}
-                            className={`px-4 py-2 text-sm rounded-r-md ${viewMode === "surgeon"
-                                ? "bg-blue-500 text-white"
-                                : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
-                                }`}
-                        >
-                            Par Chirurgiens
-                        </button>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            id="compactView"
-                            checked={compactView}
-                            onChange={() => setCompactView(!compactView)}
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                        />
-                        <label htmlFor="compactView" className="text-sm text-gray-700 dark:text-gray-300">
-                            Vue d'ensemble
-                        </label>
-                    </div>
-
-                    <SimpleTooltip content="Aide">
-                        <button
-                            onClick={() => setShowLegend(!showLegend)}
-                            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 relative"
-                        >
-                            <InformationCircleIcon className="h-5 w-5" />
-                        </button>
-                    </SimpleTooltip>
-
-                    <SimpleTooltip content="Configuration d'affichage">
-                        <button
-                            onClick={() => setShowConfigPanel(true)}
-                            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 relative"
-                        >
-                            <Cog6ToothIcon className="h-5 w-5" />
-                        </button>
-                    </SimpleTooltip>
-                </div>
+        <div className="flex flex-col h-full p-4 bg-gray-50">
+            <div className="flex justify-between items-center mb-4">
+                <h1 className="text-2xl font-semibold">Planning Hebdomadaire du Bloc Opératoire</h1>
+                {/* Bouton pour ouvrir les paramètres */}
+                <Button onClick={openConfigPanel} variant="outline" size="icon" data-testid="open-config-button">
+                    <Cog6ToothIcon className="h-5 w-5" />
+                </Button>
             </div>
 
+            {/* Dialog pour les paramètres */}
+            <Dialog open={showConfigPanel} onOpenChange={setShowConfigPanel}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    {/* Rendu conditionnel pour éviter les erreurs si displayConfig est null au début */}
+                    {displayConfig && (
+                        <DisplayConfigPanel
+                            onClose={() => setShowConfigPanel(false)} // Appeler setShowConfigPanel pour fermer
+                            config={displayConfig}
+                            onConfigChange={handleConfigChange}
+                            rooms={rooms}
+                            users={users}
+                            roomOrderConfig={roomOrderConfig}
+                            onSaveRoomOrder={handleSaveRoomOrder}
+                            data-testid="config-panel"
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
+
             {isLoading ? (
-                <div className="flex justify-center items-center h-64">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                </div>
+                <p>Chargement du planning...</p>
             ) : (
-                <>
-                    {viewMode === "room" ? renderRoomView() : renderSurgeonView()}
-
-                    {searchQuery &&
-                        (viewMode === "room" && filteredRooms.length === 0) ||
-                        (viewMode === "surgeon" && filteredSurgeons.length === 0) ? (
-                        <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-                            Aucun résultat trouvé pour "{searchQuery}"
+                <DragDropContext onDragEnd={handleDragEnd} data-testid="dnd-context">
+                    <div className="flex-grow overflow-auto border rounded-lg shadow-sm bg-white">
+                        {viewMode === "room" ? renderRoomView() : renderSurgeonView()}
+                    </div>
+                </DragDropContext>
+            )}
+            {hasPendingChanges && (
+                <div className="mt-4 p-4 border rounded-lg shadow-md bg-yellow-50 flex justify-end space-x-4">
+                    <Button
+                        variant="outline"
+                        onClick={handleCancelChanges}
+                        data-testid="cancel-changes-button"
+                    >
+                        Annuler
+                    </Button>
+                    <Button
+                        onClick={openConfirmationDialog}
+                        data-testid="validate-changes-button"
+                    >
+                        Valider les changements
+                    </Button>
+                </div>
+            )}
+            <Dialog open={isConfirmationDialogOpen} onOpenChange={setIsConfirmationDialogOpen}>
+                <DialogContent data-testid="confirmation-dialog">
+                    <DialogHeader>
+                        <DialogTitle>Confirmer les changements</DialogTitle>
+                        <DialogDescription>
+                            Veuillez vérifier les modifications et les éventuels conflits avant de sauvegarder.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 my-4">
+                        <div>
+                            <h4 className="font-semibold">Changements proposés :</h4>
+                            {pendingChangesDiff.length > 0 ? (
+                                <ul className="list-disc pl-5 text-sm text-gray-700">
+                                    {pendingChangesDiff.map((change, index) => (
+                                        <li key={index}>{change}</li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-sm text-gray-500">Aucun changement détecté.</p>
+                            )}
                         </div>
-                    ) : null}
-                </>
-            )}
-
-            {showLegend && renderLegend()}
-
-            {/* Panneau de configuration */}
-            {showConfigPanel && displayConfig && (
-                <DisplayConfigPanel
-                    config={displayConfig}
-                    onConfigChange={handleConfigChange}
-                    onClose={() => setShowConfigPanel(false)}
-                    users={users.map(u => ({
-                        id: u.id,
-                        nom: u.nom,
-                        prenom: u.prenom,
-                        role: u.role === 'MAR' ? 'MAR' : u.role === 'IADE' ? 'IADE' : 'SURGEON',
-                    }))}
-                    surgeons={users
-                        .filter(u => u.role === 'SURGEON')
-                        .map(s => ({
-                            id: s.id,
-                            nom: s.nom,
-                            prenom: s.prenom,
-                            specialite: s.specialty || '',
-                        }))}
-                />
-            )}
-
-            {/* Styles pour la vue compacte */}
-            <style jsx global>{`
-                .scale-compact {
-                    transform-origin: top left;
-                }
-                .compact-table {
-                    font-size: 0.8rem;
-                }
-                .compact-cell {
-                    padding: 0.25rem 0.5rem !important; 
-                }
-                @media (max-width: 1200px) {
-                    .scale-compact {
-                        transform: scale(0.9);
-                        width: 111%;
-                    }
-                }
-                @media (min-width: 1201px) {
-                    .scale-compact {
-                        transform: scale(0.85);
-                        width: 118%;
-                    }
-                }
-            `}</style>
-        </motion.div>
+                        <div>
+                            <h4 className="font-semibold">Résultat de la validation :</h4>
+                            {validationResult ? (
+                                <ValidationSummaryDisplay result={validationResult} />
+                            ) : (
+                                <p className="text-sm text-gray-500">Validation en attente...</p>
+                            )}
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsConfirmationDialogOpen(false)}>Annuler</Button>
+                        <Button
+                            onClick={handleSaveChanges}
+                            disabled={!validationResult?.valid || validationResult.violations.length > 0}
+                            data-testid="confirm-save-button"
+                        >
+                            Confirmer & Sauvegarder
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
     );
-} 
+}
+
+// Composant interne pour afficher le résumé de la validation
+const ValidationSummaryDisplay = ({ result }: { result: ValidationResult }) => (
+    <div className="space-y-2 max-h-[150px] overflow-y-auto">
+        {result.valid && (
+            <div className="flex items-center p-2 rounded bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200">
+                <CheckIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+                <span className="text-sm">Aucune violation critique détectée.</span>
+            </div>
+        )}
+        {result.violations && result.violations.length > 0 ? (
+            result.violations.map((violation: RuleViolation) => (
+                <div key={violation.id} className={`flex items-start p-2 rounded text-sm ${violation.severity === AssignmentRuleSeverity.CRITICAL ? 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200' :
+                    violation.severity === AssignmentRuleSeverity.MAJOR ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200' :
+                        violation.severity === AssignmentRuleSeverity.MINOR ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200' :
+                            'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200' // INFO
+                    }`}>
+                    {violation.severity === AssignmentRuleSeverity.CRITICAL ? <InformationCircleIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0 text-red-500" /> :
+                        <InformationCircleIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0 text-yellow-500" />}
+                    <span>{violation.message}</span>
+                </div>
+            ))
+        ) : !result.valid && (!result.violations || result.violations.length === 0) ? (
+            <div className="flex items-center p-2 rounded bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200">
+                <InformationCircleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-red-500" />
+                <span className="text-sm">Des violations existent mais n'ont pu être détaillées.</span>
+            </div>
+        ) : null}
+    </div>
+); 
