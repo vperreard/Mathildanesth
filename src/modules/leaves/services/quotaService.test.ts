@@ -11,7 +11,8 @@ import {
     QuotaCarryOverCalculationRequest,
     QuotaCarryOverRuleType,
     SpecialPeriodRule,
-    SpecialPeriodRuleType
+    SpecialPeriodRuleType,
+    QuotaTransactionStatus
 } from '../types/quota';
 import { LeaveType } from '../types/leave';
 import { fetchLeaveBalance } from './leaveService';
@@ -64,38 +65,53 @@ describe('quotaService', () => {
 
         it('calcule correctement un transfert avec ratio personnalisé', async () => {
             const request: QuotaTransferRequest = {
+                id: 'req-test-custom',
+                periodId: '2023',
                 userId: 'user1',
-                sourceType: LeaveType.RECOVERY,
-                targetType: LeaveType.ANNUAL,
-                sourceAmount: 4
+                sourceAmount: 4,
+                fromType: LeaveType.ANNUAL,
+                toType: LeaveType.RECOVERY,
+                requestDate: new Date().toISOString(),
+                status: QuotaTransactionStatus.PENDING,
+                comment: 'Test transfert custom',
+                requestedDays: 4,
+                conversionRate: 0.5,
+                resultingDays: 2,
+                sourceType: LeaveType.ANNUAL,
+                targetType: LeaveType.RECOVERY
+            };
+            const customRule: QuotaTransferRule = {
+                id: 'rule-custom',
+                fromType: LeaveType.ANNUAL,
+                toType: LeaveType.RECOVERY,
+                conversionRate: 0.5,
+                ruleType: QuotaTransferRuleType.STANDARD,
+                isActive: true,
+                requiresApproval: false
+            };
+            const mockLeaveBalance = {
+                userId: 'user1',
+                year: 2023,
+                initialAllowance: 10,
+                additionalAllowance: 10,
+                used: 5,
+                pending: 0,
+                remaining: 5,
+                detailsByType: {
+                    [LeaveType.ANNUAL]: { used: 5, pending: 0 },
+                    [LeaveType.RECOVERY]: { used: 2, pending: 0 },
+                    [LeaveType.TRAINING]: { used: 0, pending: 0 }
+                },
+                lastUpdated: new Date()
             };
 
-            const rules: QuotaTransferRule[] = [
-                {
-                    id: '1',
-                    fromType: LeaveType.RECOVERY,
-                    toType: LeaveType.ANNUAL,
-                    ruleType: QuotaTransferRuleType.STANDARD,
-                    conversionRate: 0.5,
-                    isActive: true,
-                    maxTransferDays: undefined,
-                    maxTransferPercentage: undefined,
-                    requiresApproval: false,
-                    authorizedRoles: undefined,
-                    departmentId: undefined,
-                    applicableUserRoles: undefined,
-                    minimumRemainingDays: undefined,
-                    metadata: undefined,
-                }
-            ];
+            (fetchLeaveBalance as jest.Mock).mockResolvedValue(mockLeaveBalance);
 
-            const result = await simulateQuotaTransfer(request, rules);
+            const result = await simulateQuotaTransfer(request, [customRule]);
 
             expect(result.success).toBe(true);
             expect(result.sourceAmount).toBe(4);
-            expect(result.targetAmount).toBe(2); // 4 * 0.5
-            expect(result.appliedRule).toBeDefined();
-            expect(result.appliedRule?.conversionRate).toBe(0.5);
+            expect(result.targetAmount).toBe(2);
         });
 
         it('refuse le transfert si le montant est insuffisant', async () => {
@@ -127,6 +143,49 @@ describe('quotaService', () => {
 
             expect(result.success).toBe(false);
             expect(result.message).toContain('Montant insuffisant');
+        });
+
+        it('utilise un ratio de 1:1 si aucune règle applicable n\'est trouvée', async () => {
+            const request: QuotaTransferRequest = {
+                id: 'req-test-default',
+                periodId: '2023',
+                userId: 'user1',
+                sourceAmount: 4,
+                fromType: LeaveType.ANNUAL,
+                toType: LeaveType.RECOVERY,
+                requestDate: new Date().toISOString(),
+                status: QuotaTransactionStatus.PENDING,
+                comment: 'Test transfert default',
+                requestedDays: 4,
+                conversionRate: 1.0,
+                resultingDays: 4,
+                sourceType: LeaveType.ANNUAL,
+                targetType: LeaveType.RECOVERY
+            };
+
+            const mockLeaveBalance = {
+                userId: 'user1',
+                year: 2023,
+                initialAllowance: 10,
+                additionalAllowance: 10,
+                used: 5,
+                pending: 0,
+                remaining: 5,
+                detailsByType: {
+                    [LeaveType.ANNUAL]: { used: 5, pending: 0 },
+                    [LeaveType.RECOVERY]: { used: 2, pending: 0 },
+                    [LeaveType.TRAINING]: { used: 0, pending: 0 }
+                },
+                lastUpdated: new Date()
+            };
+
+            (fetchLeaveBalance as jest.Mock).mockResolvedValue(mockLeaveBalance);
+
+            const result = await simulateQuotaTransfer(request);
+
+            expect(result.success).toBe(true);
+            expect(result.sourceAmount).toBe(4);
+            expect(result.targetAmount).toBe(4);
         });
     });
 

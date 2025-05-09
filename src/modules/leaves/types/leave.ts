@@ -17,7 +17,10 @@ export enum LeaveType {
     UNPAID = 'UNPAID',         // Sans solde
     OTHER = 'OTHER',          // Autre
     PATERNITY = 'PATERNITY',   // Paternité
-    PARENTAL = 'PARENTAL'      // Parental
+    PARENTAL = 'PARENTAL',      // Parental
+    // Alias français/historiques pour compatibilité avec anciens tests & calculs
+    CONGE_PAYE = 'ANNUAL',
+    RTT = 'RECOVERY'
 }
 
 /**
@@ -27,7 +30,11 @@ export enum LeaveStatus {
     PENDING = 'PENDING',     // En attente de validation
     APPROVED = 'APPROVED',   // Approuvé
     REJECTED = 'REJECTED',   // Rejeté
-    CANCELLED = 'CANCELLED'  // Annulé
+    CANCELLED = 'CANCELLED',  // Annulé
+    // Alias français historiques (pour compatibilité)
+    APPROUVE = 'APPROVED',
+    REJETE = 'REJECTED',
+    DRAFT = 'PENDING' // Alias simplifié pour les tests (statut brouillon)
 }
 
 /**
@@ -45,8 +52,11 @@ export enum RecurrenceFrequency {
  */
 export enum RecurrenceEndType {
     NEVER = 'NEVER',           // Pas de fin
-    ON_DATE = 'ON_DATE',       // Jusqu'à une date spécifique
-    AFTER_OCCURRENCES = 'AFTER_OCCURRENCES' // Nombre d'occurrences
+    // Alias legacy / compatibilité
+    UNTIL_DATE = 'UNTIL_DATE', // Jusqu'à une date spécifique (alias de ON_DATE)
+    ON_DATE = 'UNTIL_DATE',    // Nom historique conservé pour compatibilité
+    COUNT = 'COUNT',           // Nombre d'occurrences (alias de AFTER_OCCURRENCES)
+    AFTER_OCCURRENCES = 'COUNT' // Nom historique conservé pour compatibilité
 }
 
 /**
@@ -57,7 +67,9 @@ export interface RecurrencePattern {
     interval: number;                    // Intervalle (tous les X jours, semaines, etc.)
 
     // Jours spécifiques de la semaine (pour récurrence hebdomadaire)
-    daysOfWeek?: number[];                 // 0 = dimanche, 1 = lundi, etc.
+    daysOfWeek?: number[];               // 0 = dimanche, 1 = lundi, etc.
+    // Alias legacy pour compatibilité avec les anciens tests/code
+    weekdays?: number[];                 // 0 = dimanche, 1 = lundi, etc.
 
     // Pour récurrence mensuelle
     dayOfMonth?: number;                 // Jour du mois (1-31)
@@ -66,8 +78,10 @@ export interface RecurrencePattern {
 
     // Conditions de fin
     endType: RecurrenceEndType;          // Type de fin
-    endDate?: Date;                      // Date de fin (si endType = ON_DATE)
-    occurrences?: number;                   // Nombre d'occurrences (si endType = AFTER_OCCURRENCES)
+    endDate?: Date;                      // Date de fin (si endType = UNTIL_DATE / ON_DATE)
+    occurrences?: number;                // Nombre d'occurrences (si endType = AFTER_OCCURRENCES)
+    // Alias legacy utilisé dans certains tests
+    endCount?: number;
 
     // Configuration supplémentaire
     skipHolidays?: boolean;              // Ignorer les jours fériés
@@ -162,23 +176,6 @@ export interface LeaveResponse {
 }
 
 /**
- * Filtres pour la recherche de congés
- */
-export interface LeaveFilters {
-    userId?: string;
-    departmentId?: string;
-    startDate?: string;
-    endDate?: string;
-    status?: LeaveStatus | LeaveStatus[];
-    type?: LeaveType | LeaveType[];
-    page?: number;
-    limit?: number;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-    search?: string;
-}
-
-/**
  * Résultats paginés de recherche de congés
  */
 export interface PaginatedLeaveResults {
@@ -218,7 +215,7 @@ export interface LeaveBalance {
             acquired: number;
         };
     };
-    lastUpdated: string;
+    lastUpdated?: Date;
 }
 
 /**
@@ -229,7 +226,7 @@ export interface LeaveBalanceAdjustment {
     userId: string;
     leaveType: LeaveType;
     amount: number;       // Positif pour ajout, négatif pour retrait
-    reason: string;
+    reason?: string;
     appliedBy: string;
     appliedAt: Date;
 }
@@ -393,58 +390,31 @@ export interface LeaveDateValidationOptions {
 }
 
 /**
- * Interface représentant un utilisateur avec ses demandes de congés
+ * Interface pour une demande de congé (Définition principale)
  */
-export interface LeaveWithUser {
+export interface Leave {
     id: string;
     userId: string;
-    userName: string;
-    userEmail?: string;
-    departmentId: string;
-    departmentName: string;
-    startDate: string;
-    endDate: string;
-    halfDayStart?: boolean;
-    halfDayEnd?: boolean;
-    workingDaysCount: number;
+    requestDate: Date;
     type: LeaveType;
-    reason?: string;
     status: LeaveStatus;
-    requestDate: string;
-    approverId?: string;
-    approverName?: string;
-    approvalDate?: string;
-    rejectionReason?: string;
-    cancellationReason?: string;
-    documents?: LeaveDocument[];
-    history?: LeaveHistory[];
-    createdAt: string;
-    updatedAt: string;
-    user?: User; // Utilisateur associé (optionnel)
-}
-
-/**
- * Résultat du contrôle des droits à congés
- */
-export interface LeaveAllowanceCheckResult {
-    isAllowed: boolean;
-    remainingDays: number;
-    requestedDays: number;
-    exceededDays: number;
-    message?: string;
-}
-
-/**
- * Type pour la modification d'un congé
- */
-export interface LeaveToModify {
-    id: string;
     startDate: Date;
     endDate: Date;
-    type: LeaveType;
-    status: LeaveStatus;
+    countedDays: number;
     comment?: string;
-    userId: string;
+    reason?: string;
+    parentRequestId?: string;
+    isRecurring?: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    user?: User;
+}
+
+/**
+ * Interface étendue pour les congés avec utilisateur (Seule définition gardée)
+ */
+export interface LeaveWithUser extends Leave {
+    user: User;
 }
 
 /**
@@ -463,49 +433,7 @@ export interface LeaveHistory {
 }
 
 /**
- * Interface représentant l'historique des transferts de quotas entre types de congés
- */
-export interface TransferHistory {
-    id: string;
-    userId: string;
-    sourceType: LeaveType;
-    destinationType: LeaveType;
-    daysDebited: number;
-    daysCredit: number;
-    reason: string;
-    status: string;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-/**
- * Interface pour une demande de congé
- */
-export interface Leave {
-    id: string;
-    userId: string;
-    requestDate: Date;
-    type: LeaveType;
-    status: LeaveStatus;
-    startDate: Date;
-    endDate: Date;
-    countedDays: number;
-    comment?: string;
-    isRecurring?: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    user?: User;
-}
-
-/**
- * Interface étendue pour les congés avec utilisateur
- */
-export interface LeaveWithUser extends Leave {
-    user: User;
-}
-
-/**
- * Interface pour les filtres de congés
+ * Interface pour les filtres de congés (Seule définition gardée)
  */
 export interface LeaveFilters {
     userId?: string;
@@ -519,38 +447,15 @@ export interface LeaveFilters {
 }
 
 /**
- * Interface pour le solde de congés
- */
-export interface LeaveBalance {
-    userId: string;
-    type: LeaveType;
-    balance: number;
-    used: number;
-    initial: number;
-    year: number;
-    lastUpdated?: Date;
-}
-
-/**
  * Interface pour un ajustement de solde de congés
  */
 export interface LeaveBalanceAdjustment {
     userId: string;
     type: LeaveType;
     amount: number;
-    reason: string;
+    reason?: string;
     date: Date;
     operatorId: string;
-}
-
-/**
- * Résultat de la vérification de disponibilité des congés
- */
-export interface LeaveAllowanceCheckResult {
-    allowed: boolean;
-    remainingDays: number;
-    requiredDays: number;
-    message?: string;
 }
 
 /**
@@ -558,20 +463,7 @@ export interface LeaveAllowanceCheckResult {
  */
 export interface RecurringLeaveRequest extends Leave {
     recurrencePattern: RecurrencePattern;
+    patternStartDate: Date;
+    patternEndDate: Date;
     occurrences?: Leave[];
-}
-
-/**
- * Historique des transferts de quotas
- */
-export interface TransferHistory {
-    id: string;
-    userId: string;
-    sourceType: LeaveType;
-    targetType: LeaveType;
-    amount: number;
-    date: Date;
-    reason?: string;
-    operatorId?: string;
-    operator?: User;
 } 

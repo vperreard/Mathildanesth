@@ -22,8 +22,8 @@ describe('NotificationSettingsForm', () => {
             }
         },
         isLoading: false,
-        errorMessage: '',
-        successMessage: ''
+        errorMessage: null,
+        successMessage: null
     };
 
     beforeEach(() => {
@@ -35,8 +35,8 @@ describe('NotificationSettingsForm', () => {
 
         // Vérification des titres et sections
         expect(screen.getByText('Canaux de notification')).toBeInTheDocument();
-        expect(screen.getByText('Fréquence du résumé')).toBeInTheDocument();
-        expect(screen.getByText('Préférences de notification')).toBeInTheDocument();
+        expect(screen.getByText('Fréquence du digest')).toBeInTheDocument();
+        expect(screen.getByText('Me notifier pour')).toBeInTheDocument();
 
         // Vérification des toggles de canaux
         const emailLabel = screen.getByText('Email').closest('label');

@@ -19,12 +19,10 @@ import {
 } from 'lucide-react';
 
 // Importer les composants UI
-import {
-    Button,
-    Card,
-    CardContent,
-    cn
-} from '@/components/ui';
+import Button from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 // Chargement dynamique des composants avec préchargement
 const TypesCongesPage = dynamic(() => import('../types-conges/page'), {
@@ -76,6 +74,11 @@ const SurgeonAndSpecialtyPanel = dynamic(() => import('./SurgeonAndSpecialtyPane
     loading: () => <div>Chargement des chirurgiens et spécialités...</div>
 });
 
+// Ajout de l'import dynamique pour la gestion de la fatigue
+const FatigueManagementPanel = dynamic(() => import('./fatigue/page'), {
+    loading: () => <div>Chargement de la gestion de la fatigue...</div>
+});
+
 type ConfigMenuItem = {
     id: string;
     label: string;
@@ -90,85 +93,92 @@ const menuItems: ConfigMenuItem[] = [
         id: 'types',
         label: 'Types de Congés',
         icon: <Calendar className="h-5 w-5" />,
-        color: 'bg-blue-600',
-        hoverColor: 'hover:bg-blue-100'
+        color: 'bg-gradient-to-r from-primary-500 to-secondary-500',
+        hoverColor: 'hover:from-primary-400 hover:to-secondary-400'
     },
     {
         id: 'leave-management',
         label: 'Gestion des Congés Annuels',
         icon: <FileText className="h-5 w-5" />,
-        color: 'bg-purple-600',
-        hoverColor: 'hover:bg-purple-100'
+        color: 'bg-gradient-to-r from-primary-500 via-secondary-500 to-tertiary-500',
+        hoverColor: 'hover:from-primary-400 hover:via-secondary-400 hover:to-tertiary-400'
     },
     {
         id: 'professional-roles',
         label: 'Rôles Professionnels',
         icon: <Users className="h-5 w-5" />,
-        color: 'bg-green-600',
-        hoverColor: 'hover:bg-green-100'
+        color: 'bg-gradient-to-r from-secondary-500 to-tertiary-500',
+        hoverColor: 'hover:from-secondary-400 hover:to-tertiary-400'
     },
     {
         id: 'surgeons-specialties',
         label: 'Chirurgiens - Spécialités',
         icon: <Award className="h-5 w-5" />,
-        color: 'bg-teal-600',
-        hoverColor: 'hover:bg-teal-100'
+        color: 'bg-gradient-to-r from-tertiary-500 to-secondary-500',
+        hoverColor: 'hover:from-tertiary-400 hover:to-secondary-400'
     },
     {
         id: 'operating-rooms',
         label: 'Bloc Opératoire',
         icon: <Layout className="h-5 w-5" />,
-        color: 'bg-orange-600',
-        hoverColor: 'hover:bg-orange-100'
+        color: 'bg-gradient-to-r from-primary-500 to-tertiary-500',
+        hoverColor: 'hover:from-primary-400 hover:to-tertiary-400'
     },
     {
         id: 'operating-sectors',
         label: 'Secteurs du Bloc',
         icon: <Grid className="h-5 w-5" />,
-        color: 'bg-amber-500',
-        hoverColor: 'hover:bg-amber-100'
+        color: 'bg-gradient-to-r from-secondary-500 via-tertiary-500 to-primary-500',
+        hoverColor: 'hover:from-secondary-400 hover:via-tertiary-400 hover:to-primary-400'
     },
     {
         id: 'planning',
         label: 'Règles de Planning',
         icon: <Activity className="h-5 w-5" />,
-        color: 'bg-green-600',
-        hoverColor: 'hover:bg-green-100'
+        color: 'bg-gradient-to-r from-tertiary-500 via-primary-500 to-secondary-500',
+        hoverColor: 'hover:from-tertiary-400 hover:via-primary-400 hover:to-secondary-400'
+    },
+    {
+        id: 'fatigue-management',
+        label: 'Gestion de la Fatigue',
+        icon: <Activity className="h-5 w-5" />,
+        color: 'bg-gradient-to-r from-primary-500 via-secondary-500 to-tertiary-500',
+        hoverColor: 'hover:from-primary-400 hover:via-secondary-400 hover:to-tertiary-400'
     },
     {
         id: 'assignments',
         label: 'Affectations',
         icon: <Share2 className="h-5 w-5" />,
-        color: 'bg-indigo-600',
-        hoverColor: 'hover:bg-indigo-100'
+        color: 'bg-gradient-to-r from-primary-500 to-secondary-500',
+        hoverColor: 'hover:from-primary-400 hover:to-secondary-400'
     },
     {
         id: 'weekly-planning',
         label: 'Planning Hebdomadaire',
         icon: <TableProperties className="h-5 w-5" />,
-        color: 'bg-pink-600',
-        hoverColor: 'hover:bg-pink-100'
+        color: 'bg-gradient-to-r from-tertiary-500 to-primary-500',
+        hoverColor: 'hover:from-tertiary-400 hover:to-primary-400'
     },
     {
         id: 'trames',
         label: 'Trames',
         icon: <Clock className="h-5 w-5" />,
-        color: 'bg-cyan-600',
-        hoverColor: 'hover:bg-cyan-100'
+        color: 'bg-gradient-to-r from-secondary-500 to-tertiary-500',
+        hoverColor: 'hover:from-secondary-400 hover:to-tertiary-400'
     },
     {
         id: 'header',
         label: 'En-tête des Requêtes',
         icon: <FileText className="h-5 w-5" />,
-        color: 'bg-purple-600',
-        hoverColor: 'hover:bg-purple-100'
+        color: 'bg-gradient-to-r from-primary-500 via-tertiary-500 to-secondary-500',
+        hoverColor: 'hover:from-primary-400 hover:via-tertiary-400 hover:to-secondary-400'
     },
     {
         id: 'others',
         label: 'Autres Configurations',
         icon: <Settings className="h-5 w-5" />,
-        color: 'bg-red-600',
-        hoverColor: 'hover:bg-red-100'
+        color: 'bg-gradient-to-r from-primary-500 via-secondary-500 to-tertiary-500',
+        hoverColor: 'hover:from-primary-400 hover:via-secondary-400 hover:to-tertiary-400'
     },
 ];
 
@@ -195,38 +205,42 @@ const ConfigurationPanelPage: React.FC = () => {
         preloadAdjacentComponents(selectedItem);
     }, [selectedItem, preloadedComponents]);
 
+    // Fonction pour tester l'application des couleurs
+    const testColors = () => {
+        alert("Bouton de test des couleurs cliqué");
+    };
+
     const renderContent = () => {
         switch (selectedItem) {
             case 'types':
                 return <TypesCongesPage />;
-            case 'planning':
-                return <PlanningRulesConfigPanel />;
-            case 'header':
-                return <HeaderConfigPanel />;
+            case 'leave-management':
+                return <LeaveManagementPanel />;
+            case 'professional-roles':
+                return <ProfessionalRoleManagementPanel />;
             case 'surgeons-specialties':
                 return <SurgeonAndSpecialtyPanel />;
             case 'operating-rooms':
                 return <OperatingRoomsConfigPanel />;
             case 'operating-sectors':
                 return <SectorsConfigPanel />;
+            case 'planning':
+                return <PlanningRulesConfigPanel />;
+            case 'fatigue-management':
+                return preloadedComponents.has('fatigue-management') || selectedItem === 'fatigue-management' ? <FatigueManagementPanel /> : null;
             case 'assignments':
                 return <AssignmentsConfigPanel />;
             case 'weekly-planning':
-                return <WeeklyPlanningConfigPanel />;
-            case 'leave-management':
-                return <LeaveManagementPanel />;
-            case 'professional-roles':
-                return <ProfessionalRoleManagementPanel />;
+                return preloadedComponents.has('weekly-planning') || selectedItem === 'weekly-planning' ? <WeeklyPlanningConfigPanel /> : null;
             case 'trames':
-                return <TramesConfigPanel />;
+                return preloadedComponents.has('trames') || selectedItem === 'trames' ? <TramesConfigPanel /> : null;
+            case 'header':
+                return <HeaderConfigPanel />;
             case 'others':
                 return (
-                    <Card>
-                        <CardContent className="pt-6">
-                            <h2 className="text-2xl font-bold mb-4">Autres Configurations</h2>
-                            <p>Ici se trouveront d'autres configurations.</p>
-                        </CardContent>
-                    </Card>
+                    preloadedComponents.has('others') || selectedItem === 'others' ? (
+                        <div>Contenu pour Autres Configurations</div>
+                    ) : null
                 );
             default:
                 return null;
@@ -235,11 +249,40 @@ const ConfigurationPanelPage: React.FC = () => {
 
     return (
         <div className="flex min-h-screen">
-            <aside className="w-1/4 p-6 border-r bg-white border-gray-200">
-                <h1 className="text-3xl font-bold mb-6 text-gray-800 flex items-center">
-                    <Settings className="h-7 w-7 mr-2 text-primary-600" />
+            <aside className="w-1/4 p-6 border-r bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-700">
+                <h1
+                    className="text-3xl font-bold mb-6 bg-gradient-to-r from-primary-600 via-secondary-600 to-tertiary-600 bg-clip-text text-transparent dark:text-gray-100 flex items-center"
+                    style={{
+                        background: 'linear-gradient(to right, rgb(79, 70, 229), rgb(192, 38, 211), rgb(219, 39, 119))',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text'
+                    }}
+                >
+                    <Settings className="h-7 w-7 mr-2 text-primary-600 dark:text-primary-400" />
                     Configuration
                 </h1>
+
+                {/* Bouton de test des couleurs */}
+                <div className="mb-4">
+                    <button
+                        className="w-full bg-primary-500 text-white p-2 rounded-md mb-2"
+                        onClick={testColors}
+                        style={{ backgroundColor: 'rgb(99, 102, 241)' }}
+                    >
+                        Test Couleur Primaire
+                    </button>
+                    <button
+                        className="w-full bg-gradient-to-r from-primary-500 via-secondary-500 to-tertiary-500 text-white p-2 rounded-md"
+                        onClick={testColors}
+                        style={{
+                            background: 'linear-gradient(to right, rgb(99, 102, 241), rgb(217, 70, 239), rgb(236, 72, 153))'
+                        }}
+                    >
+                        Test Dégradé
+                    </button>
+                </div>
+
                 <nav>
                     <ul className="space-y-2">
                         {menuItems.map((item) => (
@@ -249,11 +292,11 @@ const ConfigurationPanelPage: React.FC = () => {
                                     onClick={() => setSelectedItem(item.id)}
                                     fullWidth
                                     className={cn(
-                                        "justify-start py-2.5 px-4 hover:bg-gray-100 transition-colors",
-                                        selectedItem === item.id && "text-white"
+                                        "justify-start py-2.5 px-4 transition-all",
+                                        selectedItem === item.id ? "text-white shadow-md" : "hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 text-gray-700 dark:text-gray-200 dark:hover:bg-slate-700"
                                     )}
                                 >
-                                    <span className="mr-3">{item.icon}</span>
+                                    <span className={`mr-3 ${selectedItem === item.id ? 'text-white' : 'text-primary-600 dark:text-primary-400'}`}>{item.icon}</span>
                                     {item.label}
                                 </Button>
                             </li>
@@ -261,8 +304,8 @@ const ConfigurationPanelPage: React.FC = () => {
                     </ul>
                 </nav>
             </aside>
-            <main className="flex-1 p-6 bg-gray-50">
-                <Suspense fallback={<div>Chargement...</div>}>
+            <main className="flex-1 p-6 bg-gray-50 dark:bg-slate-900">
+                <Suspense fallback={<div className="animate-pulse">Chargement...</div>}>
                     {renderContent()}
                 </Suspense>
             </main>

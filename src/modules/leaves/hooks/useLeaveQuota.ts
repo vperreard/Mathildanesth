@@ -24,7 +24,6 @@ import { formatDate } from '@/utils/dateUtils';
 import { WorkSchedule } from '../../profiles/types/workSchedule';
 import { calculateLeaveCountedDays } from '../services/leaveCalculator';
 import { calculateAnnualLeaveAllowance } from '../../profiles/services/workScheduleService';
-import { LeaveService } from '../services/LeaveService';
 
 /**
  * Interface pour les résultats du calcul de quota de congés
@@ -64,6 +63,7 @@ export interface LeaveTypeQuota {
 export interface UseLeaveQuotaOptions {
     userId: string;
     year?: number;
+    userSchedule?: WorkSchedule;
 }
 
 /**
@@ -155,9 +155,9 @@ export interface QuotaInfo {
  * @param options Options de configuration
  * @returns Interface de gestion des quotas
  */
-export const useLeaveQuota = ({ userId, year = new Date().getFullYear() }: UseLeaveQuotaOptions): UseLeaveQuotaReturn => {
+export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSchedule }: UseLeaveQuotaOptions): UseLeaveQuotaReturn => {
     const [quotasByType, setQuotasByType] = useState<LeaveTypeQuota[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<Error | null>(null);
     const [leaveBalance, setLeaveBalance] = useState<LeaveBalance | null>(null);
     const [totalBalance, setTotalBalance] = useState<{
@@ -262,22 +262,10 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear() }: UseLe
     const checkQuota = useCallback(async (params: CheckQuotaParams): Promise<QuotaCalculationResult> => {
         const { startDate, endDate, leaveType, userId } = params;
 
-        // Vérifier que les dates sont valides
         if (!startDate || !endDate) {
             return {
                 isValid: false,
-                message: 'Les dates de début et de fin sont requises',
-                requestedDays: 0,
-                availableDays: 0,
-                leaveType
-            };
-        }
-
-        // Vérifier que la date de début est avant la date de fin
-        if (startDate > endDate) {
-            return {
-                isValid: false,
-                message: 'La date de début doit être antérieure à la date de fin',
+                message: 'Les dates de début et de fin sont requises.',
                 requestedDays: 0,
                 availableDays: 0,
                 leaveType
@@ -285,44 +273,62 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear() }: UseLe
         }
 
         try {
-            // Calculer le nombre de jours décomptés
-            let countedDays = 0;
+            // Calculer le nombre réel de jours à décompter
+            // Utiliser userSchedule si fourni, sinon tenter d'utiliser workSchedule du leaveBalance
+            const schedule = userSchedule || leaveBalance?.workSchedule;
 
-            const calculationDetails = calculateLeaveCountedDays(startDate, endDate, leaveBalance?.workSchedule);
-            if (calculationDetails) {
-                // Utiliser countedDays du calcul qui prend en compte le planning spécifique
-                countedDays = calculationDetails.countedDays;
+            if (!schedule) {
+                return {
+                    isValid: false,
+                    message: 'Impossible de vérifier les quotas : planning de travail non disponible',
+                    requestedDays: 0,
+                    availableDays: 0,
+                    leaveType
+                };
             }
 
+            const calculationDetails = await calculateLeaveCountedDays(startDate, endDate, schedule);
+
+            if (!calculationDetails) {
+                return {
+                    isValid: false,
+                    message: 'Erreur lors du calcul des jours de congés',
+                    requestedDays: 0,
+                    availableDays: 0,
+                    leaveType
+                };
+            }
+
+            // Obtenir le nombre de jours comptés
+            const countedDays = calculationDetails.countedDays;
+
             // Vérifier auprès du service si l'utilisateur a assez de jours disponibles
-            const result = await checkLeaveAllowance(userId, leaveType, countedDays);
+            const allowanceCheckResult = await checkLeaveAllowance(userId, leaveType, countedDays);
 
             // Récupérer le quota pour ce type
-            const quota = getQuotaForType(leaveType);
-            const availableDays = quota?.remaining || 0;
+            const typeQuota = getQuotaForType(leaveType);
+            const availableDays = typeQuota?.remaining || 0;
 
             return {
-                isValid: result.isAllowed,
-                message: result.isAllowed
+                isValid: allowanceCheckResult.isAllowed,
+                message: allowanceCheckResult.isAllowed
                     ? `Demande valide. ${countedDays} jour(s) seront décomptés.`
                     : `Quota insuffisant. Il vous reste ${availableDays} jour(s) pour ce type de congé.`,
                 requestedDays: countedDays,
                 availableDays,
                 leaveType
             };
-        } catch (err) {
-            const error = err as Error;
-            console.error('Erreur lors de la vérification du quota :', error);
-
+        } catch (error) {
+            console.error('Erreur lors de la vérification des quotas', error);
             return {
                 isValid: false,
-                message: `Erreur lors de la vérification du quota : ${error.message}`,
+                message: 'Une erreur est survenue lors de la vérification des quotas.',
                 requestedDays: 0,
                 availableDays: 0,
                 leaveType
             };
         }
-    }, [leaveBalance?.workSchedule, getQuotaForType]);
+    }, [leaveBalance?.workSchedule, getQuotaForType, userSchedule]);
 
     /**
      * Effectue un transfert de quotas

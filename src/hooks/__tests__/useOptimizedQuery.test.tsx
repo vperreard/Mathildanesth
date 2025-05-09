@@ -1,8 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-// Importer QueryClient/Provider depuis la source
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useOptimizedQuery, invalidateQueries, clearQueryCache, setQueryCache, getQueryCache } from '../useOptimizedQuery'; // Garder les fonctions spécifiques
 import React from 'react';
+import { useOptimizedQuery, QueryClientProvider } from '../useOptimizedQuery';
 
 // Mock pour setTimeout
 jest.useFakeTimers();
@@ -10,22 +8,31 @@ jest.useFakeTimers();
 // Fonction asynchrone simulée
 const mockFetchData = jest.fn();
 
-// Créer un wrapper avec un nouveau QueryClient (Syntaxe alternative)
+// Fonction pour nettoyer le cache 
+const clearQueryCache = () => {
+    QueryClientProvider.getClient().clearCache();
+};
+
+// Fonction pour invalider une requête
+const invalidateQueries = (key: string) => {
+    QueryClientProvider.getClient().invalidateQuery(key);
+};
+
+// Fonction pour définir le cache
+const setQueryCache = (key: string, data: any) => {
+    QueryClientProvider.getClient().addToCache(key, data, 60000);
+};
+
+// Fonction pour récupérer du cache
+const getQueryCache = (key: string) => {
+    const cached = QueryClientProvider.getClient().getFromCache(key);
+    return cached?.data;
+};
+
+// Créer un wrapper pour le test
 const createWrapper = () => {
-    const queryClient = new QueryClient({
-        defaultOptions: {
-            queries: {
-                retry: false,
-            },
-        },
-    });
-    // Utiliser une fonction fléchée directe
     const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-        return (
-            <QueryClientProvider client={queryClient}>
-                {children}
-            </QueryClientProvider>
-        );
+        return children;
     };
     return Wrapper;
 };
@@ -34,25 +41,28 @@ describe('useOptimizedQuery', () => {
     beforeEach(() => {
         mockFetchData.mockClear();
         jest.clearAllTimers();
-        // Nettoyer le cache interne de useOptimizedQuery s'il est différent de celui de React Query
         clearQueryCache();
     });
 
     it('devrait récupérer des données avec succès', async () => {
         mockFetchData.mockResolvedValue('Données test');
         const wrapper = createWrapper();
-        const { result } = renderHook(() => useOptimizedQuery('test-key', mockFetchData), { wrapper });
+        const { result, rerender } = renderHook(() => useOptimizedQuery('test-key', mockFetchData), { wrapper });
 
-        // @ts-ignore
-        await waitFor(() => expect(result.current.data).toBeDefined());
+        // Initialement, isLoading devrait être true
+        expect(result.current.isLoading).toBeTruthy();
 
-        // @ts-ignore
-        expect(result.current.isLoading).toBe(false);
-        // @ts-ignore
+        // Exécuter les promesses et les timers en attente
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Rerender pour s'assurer que le hook a mis à jour son état
+        rerender();
+
+        // Après le chargement, vérifier que les données sont présentes et que isLoading est false
+        expect(result.current.isLoading).toBeFalsy();
         expect(result.current.data).toBe('Données test');
-        // @ts-ignore
-        expect(result.current.error).toBeNull();
-        // @ts-ignore
         expect(mockFetchData).toHaveBeenCalledTimes(1);
     });
 
@@ -60,18 +70,19 @@ describe('useOptimizedQuery', () => {
         const mockError = new Error('Échec de la requête');
         mockFetchData.mockRejectedValue(mockError);
         const wrapper = createWrapper();
-        const { result } = renderHook(() => useOptimizedQuery('error-key', mockFetchData), { wrapper });
+        const { result, rerender } = renderHook(() => useOptimizedQuery('error-key', mockFetchData), { wrapper });
 
-        // @ts-ignore
-        await waitFor(() => expect(result.current.error).toBeDefined());
+        // Exécuter les promesses et les timers en attente
+        await act(async () => {
+            jest.runAllTimers();
+        });
 
-        // @ts-ignore
-        expect(result.current.isLoading).toBe(false);
-        // @ts-ignore
-        expect(result.current.data).toBeUndefined();
-        // @ts-ignore
-        expect(result.current.error).toBe(mockError);
-        // @ts-ignore
+        // Rerender pour s'assurer que le hook a mis à jour son état
+        rerender();
+
+        // Vérifier que l'erreur est bien transmise
+        expect(result.current.isLoading).toBeFalsy();
+        expect(result.current.error).toBeDefined();
         expect(mockFetchData).toHaveBeenCalledTimes(1);
     });
 

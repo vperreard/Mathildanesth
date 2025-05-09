@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import {
     Card,
     CardContent,
-    CardFooter,
     CardHeader,
     CardTitle
 } from '@/components/ui/card';
@@ -12,42 +11,229 @@ import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Save, Trash, Copy, Download, Upload, Check, X, Clock, Calendar } from 'lucide-react';
+import { Plus, Save, Trash, Copy, Download, Upload, Edit, Eraser } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import {
-    Trame,
-    TramePeriod,
-    Assignment,
-    Post,
-    WeekType,
-    DayType,
-    PostType,
-    AssignmentType,
-    trameAffectationService
-} from '@/services/trameAffectationService';
+    TrameHebdomadaireService,
+    TrameHebdomadaireDTO,
+    AffectationTrameDTO,
+} from '@/modules/templates/services/TrameHebdomadaireService';
+import { TypeSemaine as ImportedTypeSemaine, JourSemaine as ImportedJourSemaine, PeriodeJour as ImportedPeriodeJour } from '@/app/parametres/trames/EditeurTramesHebdomadaires';
+import EditActivityModal from './EditActivityModal';
+import { PersonnelService, Personnel, RolePersonnel } from '@/modules/templates/services/PersonnelService';
+import { SalleService, OperatingRoomFromAPI } from '@/modules/templates/services/SalleService';
 
-// Composant principal
+// Nouveaux Enums et Interfaces pour une gestion détaillée des activités dans les trames
+export enum ActivityType {
+    GARDE = 'GARDE',
+    ASTREINTE = 'ASTREINTE',
+    CONSULTATION = 'CONSULTATION',
+    BLOC_SALLE = 'BLOC_SALLE',
+}
+
+export enum SlotStatus {
+    OUVERT = 'OUVERT',
+    FERME = 'FERME',
+    PLANIFIE = 'PLANIFIE',
+    VIDE = 'VIDE',
+}
+
+export interface DetailedActivityInTrame {
+    id: string; // uuid de l'activité dans la trame pour ce créneau
+    jourSemaine: ImportedJourSemaine;
+    periode: ImportedPeriodeJour;
+    typeActivite: ActivityType;
+    nomAffichage: string; // Ex: "GARDE", "ASTREINTE", "CONSULTATION X", "SALLE Y / Dr. Z"
+    activityRowKey?: string; // Clé de la ligne de la grille (ex: 'CONSULT_1')
+
+    salleId?: string | null;
+    chirurgienId?: string | null;
+    marId?: string | null; // Ajout pour affectation nominative
+    iadeId?: string | null; // Ajout pour affectation nominative
+    statutOuverture?: SlotStatus; // Principalement pour CONSULTATION et BLOC_SALLE (ouvert/fermé, planifié/vide)
+}
+// Fin des nouveaux Enums et Interfaces
+
+// L'interface Trame est maintenant typée avec DetailedActivityInTrame pour ses affectations
+// Ceci est un changement par rapport à TrameHebdomadaireDTO qui utilise AffectationTrameDTO
+// Nous devrons gérer la conversion lors de la sauvegarde si l'API attend toujours AffectationTrameDTO
+interface Trame extends Omit<TrameHebdomadaireDTO, 'affectations'> {
+    affectations: DetailedActivityInTrame[];
+}
+// type Trame = TrameHebdomadaireDTO; // Ancienne définition
+type Assignment = AffectationTrameDTO; // Reste pour la compatibilité avec des parties du code non encore migrées
+
 const BlocPlanningTemplateEditor: React.FC = () => {
-    // États
     const [trames, setTrames] = useState<Trame[]>([]);
     const [selectedTrameId, setSelectedTrameId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('edit');
+    const [personnel, setPersonnel] = useState<Personnel[]>([]);
+    const [salles, setSalles] = useState<OperatingRoomFromAPI[]>([]);
+    const [chirurgiens, setChirurgiens] = useState<Personnel[]>([]);
+    const [mars, setMars] = useState<Personnel[]>([]);
+    const [iades, setIades] = useState<Personnel[]>([]);
 
-    // Chargement initial des trames
+    // États pour la modale d'édition d'activité
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingActivity, setEditingActivity] = useState<DetailedActivityInTrame | null>(null);
+    const [currentEditingDay, setCurrentEditingDay] = useState<ImportedJourSemaine>(ImportedJourSemaine.LUNDI);
+    const [currentEditingPeriod, setCurrentEditingPeriod] = useState<ImportedPeriodeJour>(ImportedPeriodeJour.MATIN);
+    // Ajout des états pour mémoriser la cible de la modale
+    const [currentTargetActivityType, setCurrentTargetActivityType] = useState<ActivityType>(ActivityType.BLOC_SALLE);
+    const [currentTargetSalleId, setCurrentTargetSalleId] = useState<string | null | undefined>(null);
+    // Ajouter un état pour mémoriser la clé de la ligne cible
+    const [currentTargetActivityRowKey, setCurrentTargetActivityRowKey] = useState<string | null>(null);
+
+    // D'abord, ajoutons un nouvel état pour stocker la trame sélectionnée
+    const [selectedTrame, setSelectedTrame] = useState<Trame | null>(null);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+    // Ensuite, ajoutons un useEffect pour maintenir la synchronisation
+    useEffect(() => {
+        // Mettre à jour selectedTrame lorsque trames ou selectedTrameId change
+        if (selectedTrameId) {
+            const foundTrame = trames.find(t => t.id === selectedTrameId);
+            if (foundTrame) {
+                console.log("[BlocEditor] Mise à jour de selectedTrame:", foundTrame.id, "avec", foundTrame.affectations.length, "affectations");
+                setSelectedTrame(foundTrame);
+            } else {
+                console.log("[BlocEditor] Aucune trame trouvée avec ID:", selectedTrameId);
+                setSelectedTrame(null);
+                setHasUnsavedChanges(false);
+            }
+        } else {
+            setSelectedTrame(null);
+            setHasUnsavedChanges(false);
+        }
+    }, [trames, selectedTrameId]);
+
+    // Définir les lignes de la grille (types d'activités principaux et salles spécifiques)
+    const fixedActivityRows: Array<{ key: string; label: string; type: ActivityType; isFixed: true; specificSalleKey?: string; specificSalleId?: undefined; colorCode?: undefined }> = [
+        { key: 'GARDE', label: 'GARDE', type: ActivityType.GARDE, isFixed: true },
+        { key: 'ASTREINTE', label: 'ASTREINTE', type: ActivityType.ASTREINTE, isFixed: true },
+        { key: 'CONSULT_1', label: 'CONSULTATION 1', type: ActivityType.CONSULTATION, specificSalleKey: 'CONSULT_SALLE_1', isFixed: true },
+        { key: 'CONSULT_2', label: 'CONSULTATION 2', type: ActivityType.CONSULTATION, specificSalleKey: 'CONSULT_SALLE_2', isFixed: true },
+    ];
+
+    type FixedActivityRow = typeof fixedActivityRows[number]; // Type pour les lignes fixes
+    type DynamicSalleRow = {
+        key: string;
+        label: string;
+        type: ActivityType.BLOC_SALLE;
+        isFixed: false;
+        specificSalleId: string;
+        colorCode?: string | null;
+        specificSalleKey?: undefined;
+    };
+    type ActivityRowType = FixedActivityRow | DynamicSalleRow;
+
+    const activityRows: ActivityRowType[] = [
+        ...fixedActivityRows,
+        ...salles.map((salle): DynamicSalleRow => ({ // Assurer le type pour isFixed: false
+            key: `SALLE_${salle.id}`,
+            label: salle.name,
+            type: ActivityType.BLOC_SALLE,
+            specificSalleId: String(salle.id),
+            colorCode: salle.colorCode,
+            isFixed: false, // Explicitement false et correspond au type DynamicSalleRow
+        }))
+    ];
+
+    const joursDeSemaine = Object.values(ImportedJourSemaine);
+    // Filtrer pour ne garder que Matin et Apres-midi
+    const periodesDeJourVisibles = Object.values(ImportedPeriodeJour).filter(p => p === ImportedPeriodeJour.MATIN || p === ImportedPeriodeJour.APRES_MIDI);
+
     useEffect(() => {
         loadTrames();
+        loadSupportData();
     }, []);
 
-    // Fonction pour charger les trames
+    useEffect(() => {
+        // Cet effet est déclenché après chaque mise à jour des trames
+        // Il permet de s'assurer que le composant se re-rend correctement
+        console.log("[BlocEditor] useEffect pour mise à jour des trames:", selectedTrameId ? "Trame sélectionnée existe" : "Aucune trame sélectionnée");
+
+        // Si une trame est sélectionnée, s'assurer que selectedTrame reflète les dernières données
+        if (selectedTrameId) {
+            const currentSelectedTrame = trames.find(t => t.id === selectedTrameId);
+            if (currentSelectedTrame && currentSelectedTrame.affectations.length > 0) {
+                console.log("[BlocEditor] Trame sélectionnée a", currentSelectedTrame.affectations.length, "affectations");
+                // Forcer un re-render en déclenchant un log des dernières affectations
+                console.log("[BlocEditor] Dernières affectations:",
+                    currentSelectedTrame.affectations.slice(-3).map(a => ({
+                        id: a.id,
+                        jour: a.jourSemaine,
+                        periode: a.periode,
+                        nomAffichage: a.nomAffichage
+                    }))
+                );
+            }
+        }
+    }, [trames, selectedTrameId]);
+
     const loadTrames = async () => {
         setIsLoading(true);
         try {
-            const loadedTrames = await trameAffectationService.getAllTrames();
-            setTrames(loadedTrames);
-            if (loadedTrames.length > 0 && !selectedTrameId) {
-                setSelectedTrameId(loadedTrames[0].id);
+            const loadedTramesDTO = await TrameHebdomadaireService.getAllTrames();
+
+            const convertedTrames: Trame[] = loadedTramesDTO.map(dto => {
+                const detailedAffectations: DetailedActivityInTrame[] = dto.affectations.map((affDto): DetailedActivityInTrame => {
+                    // Logique de conversion initiale (sera affinée avec la modale)
+                    // Ceci est une conversion basique pour faire fonctionner le typage.
+                    // Le typeActivite, nomAffichage, etc. devront être déterminés plus intelligemment.
+                    let typeActivite: ActivityType = ActivityType.BLOC_SALLE; // Par défaut
+                    let nomAffichage = `Salle ${affDto.salleId || 'N/A'}`;
+                    if (affDto.chirurgienId) nomAffichage += ` / Chir ${affDto.chirurgienId}`;
+
+                    // TODO: Déterminer typeActivite plus finement basé sur la description/nom de la trame ou affDto
+                    // Par exemple, si affDto.salleId est null et chirId est null, ça pourrait être GARDE/ASTREINTE.
+                    // Pour l'instant, c'est une initialisation basique.
+
+                    return {
+                        id: affDto.id,
+                        jourSemaine: affDto.jourSemaine,
+                        periode: affDto.periode,
+                        typeActivite: typeActivite,
+                        nomAffichage: nomAffichage,
+                        salleId: affDto.salleId,
+                        chirurgienId: affDto.chirurgienId,
+                        marId: null,
+                        iadeId: null,
+                        statutOuverture: SlotStatus.OUVERT,
+                    };
+                });
+
+                return {
+                    id: dto.id,
+                    nom: dto.nom,
+                    typeSemaine: dto.typeSemaine,
+                    description: dto.description,
+                    affectations: detailedAffectations,
+                };
+            });
+
+            setTrames(convertedTrames);
+            if (convertedTrames.length > 0 && !selectedTrameId) {
+                // Si un selectedTrameId existe déjà (suite à une sauvegarde par ex), ne pas le changer
+                // pour éviter de perdre la sélection en cours d'édition.
+                // On ne met à jour que si aucun n'est sélectionné.
+                const currentSelected = trames.find(t => t.id === selectedTrameId);
+                if (!currentSelected && convertedTrames[0]) {
+                    setSelectedTrameId(convertedTrames[0].id);
+                } else if (selectedTrameId) {
+                    // Si un ID était sélectionné, s'assurer qu'il est toujours valide après rechargement
+                    const stillExists = convertedTrames.some(t => t.id === selectedTrameId);
+                    if (!stillExists && convertedTrames[0]) {
+                        setSelectedTrameId(convertedTrames[0].id);
+                    } else if (!stillExists) {
+                        setSelectedTrameId(null);
+                    }
+                }
+            } else if (convertedTrames.length === 0) {
+                setSelectedTrameId(null);
             }
+            setHasUnsavedChanges(false);
         } catch (error) {
             console.error('Erreur lors du chargement des trames:', error);
             toast.error('Impossible de charger les trames');
@@ -56,79 +242,146 @@ const BlocPlanningTemplateEditor: React.FC = () => {
         }
     };
 
-    // Trouver la trame sélectionnée
-    const selectedTrame = trames.find(t => t.id === selectedTrameId) || null;
+    const loadSupportData = async () => {
+        try {
+            // Appel unique pour les chirurgiens
+            const chirurgiensDataPromise = PersonnelService.getChirurgiens();
 
-    // Gestionnaire de changement de trame
+            const [sallesData, marsData, iadesData, loadedChirurgiens] = await Promise.all([
+                SalleService.getSalles(),
+                PersonnelService.getMARs(),
+                PersonnelService.getIADEs(),
+                chirurgiensDataPromise // Réutiliser la promesse
+            ]);
+
+            // Personnel est utilisé par la modale si elle a besoin d'une liste globale non filtrée.
+            // Pour l'instant, elle reçoit des listes filtrées (chirurgiens, mars, iades).
+            // Si un jour on a besoin de TOUT le personnel (ex: pour une recherche globale), il faudra ajuster.
+            setPersonnel(loadedChirurgiens as Personnel[]);
+            setSalles(sallesData);
+            setChirurgiens(loadedChirurgiens); // Déjà Personnel[]
+            setMars(marsData); // Déjà Personnel[]
+            setIades(iadesData); // Déjà Personnel[]
+
+            console.log("[BlocEditor] Données de support chargées (salles):", sallesData.slice(0, 2));
+        } catch (error) {
+            toast.error("Erreur lors du chargement des données de support.");
+            console.error("[BlocEditor] Erreur loadSupportData:", error);
+        }
+    };
+
     const handleTrameChange = (trameId: string) => {
         setSelectedTrameId(trameId);
+        const trameToSelect = trames.find(t => t.id === trameId);
+        if (trameToSelect) {
+            console.log("[BlocEditor] Trame sélectionnée:", trameToSelect.id);
+            setSelectedTrame(trameToSelect);
+        } else {
+            console.log("[BlocEditor] Aucune trame trouvée avec ID:", trameId);
+            setSelectedTrame(null);
+        }
+        setHasUnsavedChanges(false);
     };
 
-    // Fonction pour créer une nouvelle trame
     const handleCreateNewTrame = () => {
-        const newTrame: Trame = {
-            id: '',
-            name: 'Nouvelle trame',
+        // S'assurer que newTrameData est compatible avec la nouvelle interface Trame
+        // Pour l'instant, affectations sera vide et sera peuplé via la nouvelle UI
+        const newTrameDataOmitId: Omit<Trame, 'id'> = {
+            nom: 'Nouvelle trame de bloc',
+            typeSemaine: ImportedTypeSemaine.TOUTES,
             description: 'Description de la nouvelle trame',
-            weekType: 'ALL',
-            dayType: 'WEEKDAY',
-            isActive: true,
-            isLocked: false,
-            periods: [],
+            affectations: [], // Sera de type DetailedActivityInTrame[]
         };
 
-        setTrames([...trames, newTrame]);
-        setSelectedTrameId(newTrame.id);
+        const newTrameForState: Trame = {
+            ...newTrameDataOmitId,
+            id: `new-${Date.now()}`,
+        };
+
+        setTrames([...trames, newTrameForState]);
+        setSelectedTrameId(newTrameForState.id);
+        setHasUnsavedChanges(true);
+        toast('Nouvelle trame initialisée. Pensez à sauvegarder.');
     };
 
-    // Fonction pour sauvegarder une trame
     const handleSaveTrame = async () => {
         if (!selectedTrame) return;
+        if (!selectedTrame.nom || selectedTrame.nom.trim() === "") {
+            toast.error("Le nom de la trame ne peut pas être vide.");
+            return;
+        }
 
         setIsLoading(true);
         try {
-            const savedTrame = await trameAffectationService.saveTrame(selectedTrame);
-            if (savedTrame) {
-                toast.success('Trame sauvegardée avec succès');
+            let savedTrameDB;
+
+            // TEMPORAIRE: Transformation de DetailedActivityInTrame[] vers AffectationTrameDTO[]
+            // jusqu'à ce que l'API et le service soient mis à jour.
+            // Cette transformation sera basique et perdra de l'information.
+            const affectationsPourAPI: AffectationTrameDTO[] = selectedTrame.affectations.map(detailedAff => {
+                // Logique de transformation basique (à affiner)
+                // Attention: perte d'information ici (typeActivite, marRequis, etc. non directement mappables)
+                return {
+                    id: detailedAff.id, // Peut nécessiter une gestion différente si l'API s'attend à créer des ID
+                    jourSemaine: detailedAff.jourSemaine,
+                    periode: detailedAff.periode,
+                    salleId: detailedAff.salleId,
+                    chirurgienId: detailedAff.chirurgienId,
+                    // marId et iadeId de AffectationTrameDTO ne sont pas directement dans detailedAff
+                    // On pourrait les déduire ou les laisser null pour cette transformation temporaire
+                    marId: null, // TODO: A gérer si on veut préserver cette info
+                    iadeId: null, // TODO: A gérer
+                };
+            });
+
+            const tramePayloadForAPI: TrameHebdomadaireDTO = {
+                id: selectedTrame.id,
+                nom: selectedTrame.nom,
+                typeSemaine: selectedTrame.typeSemaine,
+                description: selectedTrame.description,
+                affectations: affectationsPourAPI, // Utilise les affectations transformées
+            };
+
+            if (selectedTrame.id.startsWith('new-')) {
+                const { id, ...payloadForCreate } = tramePayloadForAPI;
+                // Le service attend Omit<TrameHebdomadaireDTO, 'id'>
+                // Notre payloadForCreate est déjà comme ça grâce à la destructuration de l'id
+                savedTrameDB = await TrameHebdomadaireService.createTrame(payloadForCreate);
+            } else {
+                savedTrameDB = await TrameHebdomadaireService.updateTrame(selectedTrame.id, tramePayloadForAPI);
+            }
+
+            if (savedTrameDB) {
+                toast.success('Trame sauvegardée avec succès (transformation temporaire appliquée).');
                 await loadTrames();
+                setSelectedTrameId(savedTrameDB.id);
+                setHasUnsavedChanges(false);
             }
         } catch (error) {
             console.error('Erreur lors de la sauvegarde de la trame:', error);
-            toast.error('Impossible de sauvegarder la trame');
+            toast.error('Impossible de sauvegarder la trame. Vérifiez la console.');
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Fonction pour copier une trame
     const handleCopyTrame = async () => {
         if (!selectedTrame) return;
-
-        setIsLoading(true);
-        try {
-            const newName = `Copie de ${selectedTrame.name}`;
-            const copiedTrame = await trameAffectationService.copyTrame(selectedTrame.id, newName);
-            if (copiedTrame) {
-                toast.success('Trame copiée avec succès');
-                await loadTrames();
-                setSelectedTrameId(copiedTrame.id);
-            }
-        } catch (error) {
-            console.error('Erreur lors de la copie de la trame:', error);
-            toast.error('Impossible de copier la trame');
-        } finally {
-            setIsLoading(false);
-        }
+        toast('[AVERTISSEMENT] La fonctionnalité de copie n\'est pas encore implémentée.', { icon: '⚠️' });
     };
 
-    // Fonction pour exporter une trame
     const handleExportTrame = () => {
         if (!selectedTrame) return;
-        trameAffectationService.exportTrameToJSON(selectedTrame);
-        toast.success('Trame exportée avec succès');
+        const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
+            JSON.stringify(selectedTrame)
+        )}`;
+        const link = document.createElement("a");
+        link.href = jsonString;
+        link.download = `${selectedTrame.nom.replace(/\s+/g, '_')}.json`;
+        link.click();
+        toast.success('Trame exportée localement avec succès');
     };
 
-    // Fonction pour importer une trame
     const handleImportTrame = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -137,31 +390,156 @@ const BlocPlanningTemplateEditor: React.FC = () => {
         reader.onload = async (event) => {
             try {
                 const content = event.target?.result as string;
-                const importedTrame = JSON.parse(content) as Trame;
+                const importedTrameData = JSON.parse(content) as Partial<TrameHebdomadaireDTO>;
 
-                // Réinitialiser l'ID pour créer une nouvelle trame
-                importedTrame.id = '';
-                importedTrame.name = `Importé: ${importedTrame.name}`;
+                const trameToCreate: Omit<TrameHebdomadaireDTO, 'id'> = {
+                    nom: importedTrameData.nom || 'Trame importée',
+                    typeSemaine: importedTrameData.typeSemaine || ImportedTypeSemaine.TOUTES,
+                    description: importedTrameData.description,
+                    affectations: importedTrameData.affectations || []
+                };
 
                 setIsLoading(true);
-                const savedTrame = await trameAffectationService.saveTrame(importedTrame);
+                const savedTrame = await TrameHebdomadaireService.createTrame(trameToCreate);
                 if (savedTrame) {
-                    toast.success('Trame importée avec succès');
+                    toast.success('Trame importée et sauvegardée avec succès');
                     await loadTrames();
                     setSelectedTrameId(savedTrame.id);
                 }
             } catch (error) {
                 console.error('Erreur lors de l\'import de la trame:', error);
-                toast.error('Impossible d\'importer la trame: format invalide');
+                toast.error('Impossible d\'importer la trame: format invalide ou erreur.');
             } finally {
                 setIsLoading(false);
             }
         };
-
         reader.readAsText(file);
     };
 
-    // Contenu principal
+    const handleDeleteTrame = async () => {
+        if (!selectedTrame || selectedTrame.id.startsWith('new-')) {
+            toast.error('Sélectionnez une trame sauvegardée à supprimer.');
+            return;
+        }
+        if (!window.confirm(`Êtes-vous sûr de vouloir supprimer la trame "${selectedTrame.nom}" ?`)) {
+            return;
+        }
+        setIsLoading(true);
+        try {
+            await TrameHebdomadaireService.deleteTrame(selectedTrame.id);
+            toast.success('Trame supprimée avec succès');
+            setSelectedTrameId(null);
+            await loadTrames();
+        } catch (error) {
+            console.error('Erreur lors de la suppression de la trame:', error);
+            toast.error('Impossible de supprimer la trame.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleClearTrameAssignments = () => {
+        if (!selectedTrame) {
+            toast.error("Aucune trame sélectionnée.");
+            return;
+        }
+        if (selectedTrame.affectations.length === 0) {
+            toast("Cette trame est déjà vide.");
+            return;
+        }
+        if (window.confirm(`Êtes-vous sûr de vouloir vider toutes les affectations de la trame "${selectedTrame.nom}" ? Cette action est irréversible.`)) {
+            setTrames(currentTrames => {
+                const trameToUpdate = currentTrames.find(t => t.id === selectedTrameId);
+                if (!trameToUpdate) {
+                    console.error("[BlocEditor] Trame non trouvée lors de la tentative de vidage.");
+                    return currentTrames;
+                }
+                const clearedTrame = { ...trameToUpdate, affectations: [] };
+                console.log(`[BlocEditor] Vidage des affectations pour la trame ID: ${selectedTrameId}`);
+                return currentTrames.map(t =>
+                    t.id === selectedTrameId ? clearedTrame : t
+                );
+            });
+            toast.success(`Affectations de la trame "${selectedTrame.nom}" vidées.`);
+            setHasUnsavedChanges(true);
+        }
+    };
+
+
+    const handleSelectedTrameFieldChange = (fieldName: keyof Omit<Trame, 'affectations' | 'id'>, value: any) => {
+        if (selectedTrame) {
+            const updatedTrame = { ...selectedTrame, [fieldName]: value };
+            setTrames(prevTrames => prevTrames.map(t => t.id === selectedTrameId ? updatedTrame : t));
+            setSelectedTrame(updatedTrame);
+            setHasUnsavedChanges(true);
+        }
+    };
+
+    // Réintroduire la fonction getCellActivity
+    const getCellActivity = (trame: Trame | null, jour: ImportedJourSemaine, periode: ImportedPeriodeJour, activityRowKey: string): DetailedActivityInTrame | null => {
+        if (!trame) return null;
+        return trame.affectations.find(
+            (aff) =>
+                aff.jourSemaine === jour &&
+                aff.periode === periode &&
+                aff.activityRowKey === activityRowKey
+        ) || null;
+    };
+
+    const handleOpenEditModal = (jour: ImportedJourSemaine, periode: ImportedPeriodeJour, activityRow: ActivityRowType) => {
+        const currentActivity = getCellActivity(selectedTrame, jour, periode, activityRow.key);
+        setEditingActivity(currentActivity);
+        setCurrentEditingDay(jour);
+        setCurrentEditingPeriod(periode);
+        setCurrentTargetActivityType(activityRow.type);
+        // Gérer specificSalleId qui est maintenant optionnel et lié au type de activityRow
+        const targetSalleId = activityRow.isFixed === false && activityRow.specificSalleId ? activityRow.specificSalleId : null;
+        setCurrentTargetSalleId(targetSalleId);
+        setCurrentTargetActivityRowKey(activityRow.key);
+        setIsEditModalOpen(true);
+    };
+
+    const handleSaveActivity = (activity: DetailedActivityInTrame) => {
+        if (!selectedTrameId) { // Utiliser selectedTrameId car selectedTrame peut être obsolète dans la portée
+            toast.error("Aucune trame sélectionnée pour sauvegarder l'activité.");
+            return;
+        }
+
+        console.log("[BlocEditor] Activité reçue par handleSaveActivity:", JSON.stringify(activity, null, 2));
+
+        // Vérifier si l'activité est valide avant de l'ajouter
+        if (!activity.nomAffichage || !activity.typeActivite) {
+            console.error("[BlocEditor] Activité invalide sans nomAffichage ou typeActivite:", activity);
+            toast.error("Erreur: données d'activité incomplètes");
+            return;
+        }
+
+        setTrames(currentTrames =>
+            currentTrames.map(t => {
+                if (t.id === selectedTrameId) {
+                    // Travailler sur une copie des affectations de la trame actuelle de l'itération
+                    const newAffectations = [...t.affectations];
+                    const existingIndex = newAffectations.findIndex(a => a.id === activity.id);
+
+                    if (existingIndex > -1) {
+                        console.log(`[BlocEditor] Mise à jour de l'activité existante ID: ${activity.id} pour la période ${activity.periode}`);
+                        newAffectations[existingIndex] = activity;
+                    } else {
+                        console.log(`[BlocEditor] Ajout d'une nouvelle activité ID: ${activity.id} pour la période ${activity.periode}`);
+                        newAffectations.push(activity);
+                    }
+                    return { ...t, affectations: newAffectations };
+                }
+                return t;
+            })
+        );
+
+        setHasUnsavedChanges(true);
+
+        toast.success(`Activité pour ${activity.jourSemaine} - ${activity.periode} sauvegardée localement.`);
+        // setIsEditModalOpen(false); // La modale est fermée par son propre onClose
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -174,10 +552,10 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                         <SelectTrigger className="w-[300px]">
                             <SelectValue placeholder="Sélectionner une trame" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md">
                             {trames.map((trame) => (
                                 <SelectItem key={trame.id} value={trame.id}>
-                                    {trame.name}
+                                    {trame.nom}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -194,15 +572,16 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                     </Button>
                 </div>
 
-                <div className="flex space-x-2">
+                <div className="flex space-x-3">
                     <Button
-                        variant="outline"
+                        variant={hasUnsavedChanges || (selectedTrame && selectedTrame.id.startsWith('new-')) ? "default" : "outline"}
                         size="sm"
                         onClick={handleSaveTrame}
                         disabled={isLoading || !selectedTrame}
+                        className={(hasUnsavedChanges || (selectedTrame && selectedTrame.id.startsWith('new-'))) ? "border-2 border-green-500 shadow-lg hover:bg-green-600" : ""}
                     >
                         <Save className="h-4 w-4 mr-1" />
-                        Enregistrer
+                        Enregistrer {hasUnsavedChanges && "*"}
                     </Button>
 
                     <Button
@@ -213,6 +592,15 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                     >
                         <Copy className="h-4 w-4 mr-1" />
                         Dupliquer
+                    </Button>
+                    <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleDeleteTrame}
+                        disabled={isLoading || !selectedTrame || (selectedTrame && selectedTrame.id.startsWith('new-'))}
+                    >
+                        <Trash className="h-4 w-4 mr-1" />
+                        Supprimer
                     </Button>
 
                     <Button
@@ -228,14 +616,14 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => document.getElementById('import-file')?.click()}
+                        onClick={() => document.getElementById('import-file-bloc')?.click()}
                         disabled={isLoading}
                     >
                         <Upload className="h-4 w-4 mr-1" />
                         Importer
                     </Button>
                     <input
-                        id="import-file"
+                        id="import-file-bloc"
                         type="file"
                         accept=".json"
                         className="hidden"
@@ -245,125 +633,222 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             </div>
 
             {selectedTrame ? (
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList>
-                        <TabsTrigger value="edit">Éditer</TabsTrigger>
-                        <TabsTrigger value="preview">Prévisualiser</TabsTrigger>
-                        <TabsTrigger value="validate">Valider</TabsTrigger>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 bg-gray-100 rounded-md p-1 mb-6">
+                        <TabsTrigger
+                            value="edit"
+                            className="px-3 py-1.5 text-sm font-medium rounded-sm data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm transition-all duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 outline-none"
+                        >
+                            Éditer Trame
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="assignments"
+                            className="px-3 py-1.5 text-sm font-medium rounded-sm data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm transition-all duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 outline-none"
+                        >
+                            Gérer Affectations (Bloc)
+                        </TabsTrigger>
                     </TabsList>
-
                     <TabsContent value="edit">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Édition de la trame</CardTitle>
+                                <CardTitle>
+                                    Configuration de: {selectedTrame.nom}
+                                    {selectedTrame.id.startsWith('new-') && <span className="text-sm text-yellow-500 ml-2 p-1 bg-yellow-100 rounded">(Non sauvegardé)</span>}
+                                </CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <p className="text-muted-foreground mb-4">
-                                    Les fonctionnalités d'édition complètes seront disponibles prochainement.
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <label htmlFor="trameNameBloc" className="block text-sm font-medium">Nom</label>
+                                    <Input
+                                        id="trameNameBloc"
+                                        value={selectedTrame.nom}
+                                        onChange={(e) => handleSelectedTrameFieldChange('nom', e.target.value)}
+                                        className="mt-1"
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="trameDescriptionBloc" className="block text-sm font-medium">Description</label>
+                                    <Input
+                                        id="trameDescriptionBloc"
+                                        value={selectedTrame.description || ''}
+                                        onChange={(e) => handleSelectedTrameFieldChange('description', e.target.value)}
+                                        className="mt-1"
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="trameTypeSemaineBloc" className="block text-sm font-medium">Type de semaine</label>
+                                    <Select
+                                        value={selectedTrame.typeSemaine}
+                                        onValueChange={(value) => handleSelectedTrameFieldChange('typeSemaine', value as ImportedTypeSemaine)}
+                                        disabled={isLoading}
+                                    >
+                                        <SelectTrigger id="trameTypeSemaineBloc" className="mt-1">
+                                            <SelectValue placeholder="Sélectionner type" />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md">
+                                            {Object.values(ImportedTypeSemaine).map(type => (
+                                                <SelectItem key={type} value={type}>{type}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <p className="text-orange-600 font-semibold mt-6 p-3 bg-orange-50 rounded-md border border-orange-200">
+                                    Note: La structure de base de la trame (ID: {selectedTrame.id}) est éditée ici.
+                                    La gestion détaillée des affectations spécifiques au bloc (jours, périodes flexibles, personnel, salles)
+                                    se fait dans l'onglet "Gérer Affectations (Bloc)" et nécessite une adaptation majeure.
                                 </p>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-medium mb-1">Nom de la trame</label>
-                                            <Input
-                                                value={selectedTrame.name}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                    setTrames(trames.map(t =>
-                                                        t.id === selectedTrame.id
-                                                            ? { ...t, name: e.target.value }
-                                                            : t
-                                                    ));
-                                                }}
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium mb-1">Description</label>
-                                            <Input
-                                                value={selectedTrame.description || ''}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                    setTrames(trames.map(t =>
-                                                        t.id === selectedTrame.id
-                                                            ? { ...t, description: e.target.value }
-                                                            : t
-                                                    ));
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-medium mb-1">Type de semaine</label>
-                                            <Select
-                                                value={selectedTrame.weekType}
-                                                onValueChange={(value) => {
-                                                    setTrames(trames.map(t =>
-                                                        t.id === selectedTrame.id
-                                                            ? { ...t, weekType: value as WeekType }
-                                                            : t
-                                                    ));
-                                                }}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Type de semaine" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="ALL">Toutes les semaines</SelectItem>
-                                                    <SelectItem value="EVEN">Semaines paires</SelectItem>
-                                                    <SelectItem value="ODD">Semaines impaires</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium mb-1">Type de jour</label>
-                                            <Select
-                                                value={selectedTrame.dayType}
-                                                onValueChange={(value) => {
-                                                    setTrames(trames.map(t =>
-                                                        t.id === selectedTrame.id
-                                                            ? { ...t, dayType: value as DayType }
-                                                            : t
-                                                    ));
-                                                }}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Type de jour" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="WEEKDAY">Semaine</SelectItem>
-                                                    <SelectItem value="WEEKEND">Week-end</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                </div>
                             </CardContent>
                         </Card>
                     </TabsContent>
-
-                    <TabsContent value="preview">
+                    <TabsContent value="assignments">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Prévisualisation</CardTitle>
+                                <CardTitle>Gérer les affectations pour la trame: {selectedTrame.nom}</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="p-4 text-center text-muted-foreground">
-                                    La prévisualisation sera disponible prochainement.
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                                <p className="text-blue-600 font-semibold p-3 bg-blue-50 rounded-md border border-blue-200 mb-4">
+                                    Cliquez sur une case pour ajouter ou modifier une activité pour ce créneau et ce type d'activité.
+                                    Les modifications sont locales jusqu'à la sauvegarde générale de la trame.
+                                </p>
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full border-collapse border border-gray-300">
+                                        <thead>
+                                            <tr className="bg-gray-100 dark:bg-gray-800">
+                                                <th className="sticky left-0 z-10 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 text-left font-semibold">Activité / Salle</th>
+                                                {joursDeSemaine.map(jour => (
+                                                    <th key={jour} className="border border-gray-300 dark:border-gray-700 p-2 text-center font-semibold" colSpan={periodesDeJourVisibles.length}>
+                                                        {jour.charAt(0).toUpperCase() + jour.slice(1).toLowerCase()}
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                            <tr className="bg-gray-50 dark:bg-gray-700">
+                                                <th className="sticky left-0 z-10 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-700 p-2"></th>
+                                                {joursDeSemaine.map(jour => (
+                                                    <React.Fragment key={`${jour}-periods`}>
+                                                        {periodesDeJourVisibles.map(periode => (
+                                                            <th key={`${jour}-${periode}`} className="border border-gray-300 dark:border-gray-700 p-1 text-xs font-medium text-center text-gray-500 dark:text-gray-400">
+                                                                {periode === ImportedPeriodeJour.MATIN ? 'M' : 'AM'}
+                                                            </th>
+                                                        ))}
+                                                    </React.Fragment>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {activityRows.map(row => (
+                                                <tr key={row.key} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                                                    <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-700 p-2 font-medium whitespace-nowrap">
+                                                        {row.label}
+                                                    </td>
+                                                    {joursDeSemaine.map(jour => {
+                                                        // Cas spécial pour Garde/Astreinte: fusionner les cellules
+                                                        if (row.type === ActivityType.GARDE || row.type === ActivityType.ASTREINTE) {
+                                                            const activity = selectedTrame?.affectations.find(
+                                                                aff => aff.jourSemaine === jour &&
+                                                                    (aff.periode === ImportedPeriodeJour.MATIN || aff.periode === ImportedPeriodeJour.APRES_MIDI || aff.periode === ImportedPeriodeJour.JOURNEE_COMPLETE) &&
+                                                                    aff.typeActivite === row.type
+                                                            );
+                                                            const marName = activity?.marId ? (personnel.find(p => p.id === activity.marId)?.nom || `ID:${activity.marId.substring(0, 4)}`) : null;
 
-                    <TabsContent value="validate">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Validation</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="p-4 text-center text-muted-foreground">
-                                    La validation sera disponible prochainement.
+                                                            return (
+                                                                <td
+                                                                    key={`${jour}-merged-${row.key}`}
+                                                                    colSpan={periodesDeJourVisibles.length}
+                                                                    className={`border border-gray-300 dark:border-gray-700 p-1 text-xs min-w-[160px] h-[50px] align-top relative group cursor-pointer ${activity ? 'bg-yellow-50 dark:bg-yellow-900/30' : 'bg-gray-50 dark:bg-slate-800/30'}`}
+                                                                    onClick={() => handleOpenEditModal(jour, ImportedPeriodeJour.JOURNEE_COMPLETE, row)}
+                                                                >
+                                                                    {activity ? (
+                                                                        <div className="flex flex-col h-full text-center items-center justify-center">
+                                                                            <span className="font-semibold block truncate">
+                                                                                {marName ? marName : <span className="text-gray-400">-</span>}
+                                                                            </span>
+                                                                            <span className="text-blue-700 dark:text-blue-400 text-[10px] mt-0.5">
+                                                                                {activity.marId && "M"}
+                                                                            </span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="text-gray-300 dark:text-gray-600"></span>
+                                                                    )}
+                                                                    <Button variant="ghost" size="icon" className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 p-0.5 w-5 h-5">
+                                                                        <Edit size={12} />
+                                                                    </Button>
+                                                                </td>
+                                                            );
+                                                        } else {
+                                                            // Cas normal: une cellule par période visible
+                                                            return periodesDeJourVisibles.map(periode => {
+                                                                const cellKey = `${jour}-${periode}-${row.key}`;
+
+                                                                // Condition de recherche simplifiée et fiabilisée
+                                                                const activityForCell = selectedTrame?.affectations.find(
+                                                                    aff =>
+                                                                        aff.jourSemaine === jour &&
+                                                                        aff.periode === periode &&
+                                                                        aff.activityRowKey === row.key
+                                                                    // La vérification de type est redondante si activityRowKey est unique par type
+                                                                    // && aff.typeActivite === row.type 
+                                                                );
+
+                                                                // Log simplifié pour la consultation
+                                                                if (row.key === 'CONSULT_1' && jour === 'LUNDI' && periode === 'MATIN') {
+                                                                    console.log(`[BlocEditor RENDER CONSULT] LUN-MATIN-CONSULT_1 - activityRowKey: ${activityForCell?.activityRowKey}, marId: ${activityForCell?.marId}, found: ${!!activityForCell}`);
+                                                                }
+
+                                                                const marName = activityForCell?.marId ? (personnel.find(p => String(p.id) === String(activityForCell.marId))?.nom || `ID:${String(activityForCell.marId)?.substring(0, 4)}`) : null;
+                                                                const chirName = activityForCell?.chirurgienId ? (personnel.find(p => String(p.id) === String(activityForCell.chirurgienId))?.nom || `ID:${String(activityForCell.chirurgienId)?.substring(0, 4)}`) : null;
+                                                                const iadePersonnel = activityForCell?.iadeId ? personnel.find(p => String(p.id) === String(activityForCell.iadeId)) : null;
+                                                                const iadeDisplayName = iadePersonnel?.prenom || iadePersonnel?.nom || (activityForCell?.iadeId ? `ID:${String(activityForCell.iadeId)}` : null);
+
+                                                                return (
+                                                                    <td
+                                                                        key={cellKey}
+                                                                        className={`border border-gray-300 dark:border-gray-700 p-1 text-xs min-w-[80px] h-[50px] align-top relative group cursor-pointer ${activityForCell ? 'bg-white dark:bg-slate-800' : 'bg-gray-50 dark:bg-slate-800/30'}`}
+                                                                        onClick={() => handleOpenEditModal(jour, periode, row)}
+                                                                    >
+                                                                        {activityForCell ? (
+                                                                            <div className="flex flex-col h-full text-center items-center justify-center leading-tight">
+                                                                                {/* Affichage principal (Chir, Statut Consult, Placeholder) */}
+                                                                                {(activityForCell.typeActivite === ActivityType.BLOC_SALLE && chirName) ? (
+                                                                                    <span className="font-semibold block truncate" title={chirName}>{chirName}</span>
+                                                                                ) : activityForCell.typeActivite === ActivityType.CONSULTATION && activityForCell.statutOuverture === SlotStatus.OUVERT ? (
+                                                                                    <span className="text-green-600 font-semibold">Ouvert</span>
+                                                                                ) : activityForCell.typeActivite === ActivityType.CONSULTATION && activityForCell.statutOuverture === SlotStatus.FERME ? (
+                                                                                    <span className="text-red-600 font-semibold">Fermé</span>
+                                                                                ) : (
+                                                                                    <span className="text-gray-400">-</span> // Placeholder par défaut
+                                                                                )}
+
+                                                                                {/* Affichage secondaire (MAR, IADE) */}
+                                                                                {marName && (
+                                                                                    <span className="text-blue-700 dark:text-blue-400 block truncate text-xs" title={`MAR: ${personnel.find(p => String(p.id) === String(activityForCell.marId))?.nom || ''}`}>
+                                                                                        M: {marName}
+                                                                                    </span>
+                                                                                )}
+                                                                                {iadeDisplayName && (
+                                                                                    <span className="text-purple-500 dark:text-purple-400 block truncate text-xs" title={`IADE: ${personnel.find(p => String(p.id) === String(activityForCell.iadeId))?.nom || ''}`}>
+                                                                                        I: {iadeDisplayName}
+                                                                                    </span>
+                                                                                )}
+
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-gray-300 dark:text-gray-600"></span>
+                                                                        )}
+                                                                        {/* Icône d'édition */}
+                                                                        <Button variant="ghost" size="icon" className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 p-0.5 w-5 h-5">
+                                                                            <Edit size={12} />
+                                                                        </Button>
+                                                                    </td>
+                                                                );
+                                                            }); // Fin map periode
+                                                        }
+                                                    })}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </CardContent>
                         </Card>
@@ -371,14 +856,30 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                 </Tabs>
             ) : (
                 <Card>
-                    <CardContent className="p-6 text-center text-muted-foreground">
-                        {isLoading ? (
-                            <p>Chargement des trames...</p>
-                        ) : (
-                            <p>Sélectionnez une trame existante ou créez-en une nouvelle.</p>
-                        )}
+                    <CardContent className="pt-6">
+                        <p className="text-center text-gray-500">
+                            {isLoading ? 'Chargement des trames...' : "Sélectionnez une trame pour l'éditer ou créez-en une nouvelle."}
+                        </p>
                     </CardContent>
                 </Card>
+            )}
+
+            {selectedTrame && (
+                <EditActivityModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    onSave={handleSaveActivity}
+                    initialActivity={editingActivity}
+                    jour={currentEditingDay}
+                    periode={currentEditingPeriod}
+                    targetActivityType={currentTargetActivityType}
+                    targetSalleId={currentTargetSalleId}
+                    targetActivityRowKey={currentTargetActivityRowKey}
+                    salles={salles}
+                    chirurgiens={chirurgiens}
+                    mars={mars}
+                    iades={iades}
+                />
             )}
         </div>
     );

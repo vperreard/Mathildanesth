@@ -30,7 +30,7 @@ export async function generateAuthToken(payload: any) {
     return token;
 }
 
-export async function verifyAuthToken(token?: string) {
+export async function verifyAuthToken(token?: string | null) {
     try {
         // Si aucun token n'est explicitement fourni, le récupérer via la fonction asynchrone
         if (!token) {
@@ -75,7 +75,7 @@ export async function verifyAuthToken(token?: string) {
 
 export async function getAuthToken() {
     try {
-        const cookieStore = cookies();
+        const cookieStore = await cookies();
         return cookieStore.get('auth_token')?.value;
     } catch (error) {
         console.error('Erreur lors de la récupération du token:', error);
@@ -85,7 +85,7 @@ export async function getAuthToken() {
 
 export async function setAuthToken(token: string) {
     try {
-        const cookieStore = cookies();
+        const cookieStore = await cookies();
         cookieStore.set('auth_token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -100,7 +100,7 @@ export async function setAuthToken(token: string) {
 
 export async function removeAuthToken() {
     try {
-        const cookieStore = cookies();
+        const cookieStore = await cookies();
         cookieStore.delete('auth_token');
     } catch (error) {
         console.error('Erreur lors de la suppression du token:', error);

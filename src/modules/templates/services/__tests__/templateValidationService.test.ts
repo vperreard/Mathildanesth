@@ -45,8 +45,13 @@ describe('templateValidationService', () => {
         const template = createValidTemplate();
         const result = templateValidationService.validateTemplate(template);
 
+        // Vérifier qu'il n'y a pas d'erreurs bloquantes
         expect(result.isValid).toBe(true);
-        expect(result.errors.length).toBe(0);
+        expect(result.errors.filter(e => e.severity === 'ERROR').length).toBe(0);
+
+        // Vérifier qu'il y a bien 6 avertissements (pour les jours sans affectation ouverte)
+        expect(result.warnings.length).toBe(6);
+        expect(result.warnings.every(w => w.severity === 'WARNING' && w.type === 'BUSINESS_RULE')).toBe(true);
     });
 
     test('devrait détecter un nom de trame manquant', () => {

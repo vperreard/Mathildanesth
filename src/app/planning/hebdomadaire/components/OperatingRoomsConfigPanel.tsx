@@ -103,7 +103,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                     </DialogHeader>
 
                     <DragDropContext onDragEnd={handleDragEnd}>
-                        <Droppable droppableId="all-sectors" type="SECTOR">
+                        <Droppable droppableId="all-sectors" type="SECTOR" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
                             {(provided) => (
                                 <div
                                     {...provided.droppableProps}
@@ -130,7 +130,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                                         <GripVertical className="h-5 w-5 text-gray-400" />
                                                     </div>
 
-                                                    <Droppable droppableId={sector} type="ROOM">
+                                                    <Droppable droppableId={sector} type="ROOM" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
                                                         {(provided) => (
                                                             <div
                                                                 {...provided.droppableProps}

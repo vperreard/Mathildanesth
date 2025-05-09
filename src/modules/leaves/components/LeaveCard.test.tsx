@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -23,20 +25,16 @@ const mockOnView = jest.fn();
 // Mock framer-motion sans utiliser l'opérateur rest dans la factory
 jest.mock('framer-motion', () => {
     const actual = jest.requireActual('framer-motion');
+    const React = require('react');
     return {
         ...actual,
         motion: {
             ...actual.motion,
             div: jest.fn().mockImplementation(props => {
-                const { children } = props;
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const _filteredProps = { ...props };
-                delete _filteredProps.children;
-                return <div {..._filteredProps}>{children}</div>;
+                return React.createElement('div', { onClick: props.onClick }, props.children);
             }),
-            // Ajouter d'autres éléments motion si nécessaire
         },
-        AnimatePresence: jest.fn().mockImplementation(({ children }) => <>{children}</>),
+        AnimatePresence: jest.fn().mockImplementation(({ children }) => children),
     };
 });
 
@@ -60,7 +58,7 @@ const mockLeave = {
     }
 };
 
-describe.skip('LeaveCard', () => {
+describe('LeaveCard', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });

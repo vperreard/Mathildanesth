@@ -6,17 +6,18 @@ import { cn } from '@/lib/utils';
 
 // Définir les variantes de bouton basées sur les classes Tailwind existantes
 export const buttonVariants = cva(
-    "inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium text-sm shadow-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2",
+    "inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium text-sm shadow-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:ring-offset-2 dark:focus:ring-offset-slate-900",
     {
         variants: {
             variant: {
-                primary: "bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:shadow-md hover:-translate-y-0.5",
-                secondary: "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm",
-                outline: "border border-primary-500 text-primary-600 hover:bg-primary-50",
-                ghost: "bg-transparent hover:bg-gray-100 text-gray-700",
-                danger: "bg-red-500 hover:bg-red-600 text-white",
-                default: "bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:shadow-md hover:-translate-y-0.5",
-                destructive: "bg-red-500 hover:bg-red-600 text-white",
+                default: "bg-gradient-to-r from-primary-500 via-secondary-500 to-tertiary-500 text-white hover:shadow-md hover:-translate-y-0.5",
+                primary: "bg-gradient-to-r from-primary-500 via-secondary-500 to-tertiary-500 text-white hover:shadow-md hover:-translate-y-0.5",
+                secondary: "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-600 dark:hover:border-slate-500",
+                outline: "border border-primary-500 text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:border-primary-500 dark:hover:bg-primary-500/[.15] dark:hover:text-primary-300",
+                ghost: "bg-transparent hover:bg-gray-100 text-gray-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-100",
+                danger: "bg-red-500 hover:bg-red-600 text-white dark:bg-red-600 dark:hover:bg-red-700",
+                destructive: "bg-red-500 hover:bg-red-600 text-white dark:bg-red-600 dark:hover:bg-red-700",
+                subtle: "bg-gradient-to-r from-primary-500 to-secondary-500 text-white hover:shadow-md hover:-translate-y-0.5",
             },
             size: {
                 sm: "px-3 py-1.5 text-xs",
@@ -41,13 +42,29 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
     isLoading?: boolean;
     ariaLabel?: string;
+    asChild?: boolean;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-    ({ className, variant, size, fullWidth, isLoading, children, ariaLabel, ...props }, ref) => {
+    ({ className, variant, size, fullWidth, isLoading, children, ariaLabel, asChild, ...props }, ref) => {
+        const Comp = asChild ? React.Fragment : 'button';
+
+        if (asChild && React.isValidElement(children)) {
+            return React.cloneElement(children, {
+                className: cn(buttonVariants({ variant, size, fullWidth }), className, children.props.className),
+                ref: ref,
+                disabled: isLoading || props.disabled || children.props.disabled,
+                'aria-label': ariaLabel || children.props['aria-label'],
+                'aria-busy': isLoading || children.props['aria-busy'],
+                'aria-disabled': isLoading || props.disabled || children.props['aria-disabled'],
+                ...props,
+                ...children.props,
+            } as any);
+        }
+
         return (
             <button
-                className={cn(buttonVariants({ variant, size, fullWidth, className }))}
+                className={cn(buttonVariants({ variant, size, fullWidth }), className)}
                 ref={ref}
                 disabled={isLoading || props.disabled}
                 aria-label={ariaLabel}

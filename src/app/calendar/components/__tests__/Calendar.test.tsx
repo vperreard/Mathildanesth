@@ -2,8 +2,10 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-// IMPORTANT: Mock complet du module Calendar sans référence au module original
+// @ts-nocheck
+
 jest.mock('../Calendar', () => {
+    const React = require('react');
     return {
         __esModule: true,
         Calendar: jest.fn(({
@@ -19,28 +21,38 @@ jest.mock('../Calendar', () => {
             title = 'Calendrier',
             description = '',
             extraHeaderActions
-        }) => (
-            <div data-testid="mocked-calendar">
-                <div data-testid="header">
-                    <div>Title: {title}</div>
-                    {description && <div>Description: {description}</div>}
-                    <div>View: {initialView}</div>
-                    <button onClick={() => onEventClick && events[0] && onEventClick(events[0])}>
-                        Cliquer sur événement
-                    </button>
-                    <button onClick={() => onDateSelect && onDateSelect(new Date(), new Date())}>
-                        Sélectionner date
-                    </button>
-                    <div>Loading: {loading ? 'true' : 'false'}</div>
-                    {extraHeaderActions && <div data-testid="extra-actions">{extraHeaderActions}</div>}
-                </div>
-                <div data-testid="grid">
-                    <div>Events Count: {events.length}</div>
-                    <div>Editable: {editable ? 'true' : 'false'}</div>
-                    <div>Selectable: {selectable ? 'true' : 'false'}</div>
-                </div>
-            </div>
-        ))
+        }) => {
+            const headerChildren = [];
+            headerChildren.push(React.createElement('div', { key: 'title' }, `Title: ${title}`));
+            if (description) {
+                headerChildren.push(React.createElement('div', { key: 'description' }, `Description: ${description}`));
+            }
+            headerChildren.push(React.createElement('div', { key: 'view' }, `View: ${initialView}`));
+            headerChildren.push(
+                React.createElement('button', { key: 'click-event', onClick: () => onEventClick && events[0] && onEventClick(events[0]) }, 'Cliquer sur événement')
+            );
+            headerChildren.push(
+                React.createElement('button', { key: 'select-date', onClick: () => onDateSelect && onDateSelect(new Date(), new Date()) }, 'Sélectionner date')
+            );
+            headerChildren.push(React.createElement('div', { key: 'loading' }, `Loading: ${loading ? 'true' : 'false'}`));
+            if (extraHeaderActions) {
+                headerChildren.push(
+                    React.createElement('div', { key: 'extra', 'data-testid': 'extra-actions' }, extraHeaderActions)
+                );
+            }
+
+            const gridChildren = [];
+            gridChildren.push(React.createElement('div', { key: 'count' }, `Events Count: ${events.length}`));
+            gridChildren.push(React.createElement('div', { key: 'editable' }, `Editable: ${editable ? 'true' : 'false'}`));
+            gridChildren.push(React.createElement('div', { key: 'selectable' }, `Selectable: ${selectable ? 'true' : 'false'}`));
+
+            return React.createElement(
+                'div',
+                { 'data-testid': 'mocked-calendar' },
+                React.createElement('div', { 'data-testid': 'header', key: 'header' }, headerChildren),
+                React.createElement('div', { 'data-testid': 'grid', key: 'grid' }, gridChildren)
+            );
+        })
     };
 });
 

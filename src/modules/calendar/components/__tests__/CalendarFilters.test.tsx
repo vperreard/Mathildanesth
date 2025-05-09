@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+/// <reference types="@testing-library/jest-dom" />
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -46,7 +48,7 @@ describe('CalendarFilters', () => {
         );
 
         // Vérifier que la barre de recherche est présente
-        expect(screen.getByPlaceholderText('Rechercher...')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Rechercher...')).toBeTruthy();
 
         // Vérifier que les boutons de filtre de type d'événement sont présents
         const leaveButton = screen.getByText(/congés/i);
@@ -124,7 +126,7 @@ describe('CalendarFilters', () => {
             />
         );
 
-        expect(screen.queryByPlaceholderText('Rechercher...')).not.toBeInTheDocument();
+        expect(screen.queryByPlaceholderText('Rechercher...')).toBeNull();
     });
 
     test('réinitialise tous les filtres quand on clique sur le bouton réinitialiser', () => {
@@ -173,9 +175,9 @@ describe('CalendarFilters', () => {
         );
 
         // Vérifier que seuls les types disponibles sont affichés
-        expect(screen.getByText(/congés/i)).toBeInTheDocument();
-        expect(screen.getByText(/rendez-vous/i)).toBeInTheDocument();
-        expect(screen.queryByText(/gardes/i)).not.toBeInTheDocument();
-        expect(screen.queryByText(/formation/i)).not.toBeInTheDocument();
+        expect(screen.getByText(/congés/i)).toBeTruthy();
+        expect(screen.getByText(/rendez-vous/i)).toBeTruthy();
+        expect(screen.queryByText(/gardes/i)).toBeNull();
+        expect(screen.queryByText(/formation/i)).toBeNull();
     });
 }); 

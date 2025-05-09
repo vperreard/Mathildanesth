@@ -45,12 +45,13 @@ export const OperatingRoomSchema = z.object({
     number: z.string().min(1, "Le numéro de la salle est obligatoire"),
     // Accepter soit sectorId comme nombre ou secteur comme chaîne
     sectorId: z.number().optional(),
-    sector: z.string().optional(),
-    colorCode: z.string().optional().default('#000000'),
+    sector: z.string().optional(), // Nom du secteur, peut être utile pour l'affichage
+    colorCode: z.string().nullable().optional(), // Doit accepter null depuis Prisma
     isActive: z.boolean().optional().default(true),
     supervisionRules: z.record(z.any()).optional().default({}),
     createdAt: z.date().optional(),
-    updatedAt: z.date().optional()
+    updatedAt: z.date().optional(),
+    displayOrder: z.number().int().default(0).optional(), // Ajout du champ d'ordre
 }).refine(data => {
     // Au moins l'un des deux (sectorId ou sector) doit être présent
     return data.sectorId !== undefined || data.sector !== undefined;
@@ -87,6 +88,9 @@ export const OperatingSectorSchema = z.object({
     rules: z.any().default({ maxRoomsPerSupervisor: 2 }),
     createdAt: z.date().optional(),
     updatedAt: z.date().optional(),
+    displayOrder: z.number().int().default(0).optional(), // Ajout du champ d'ordre
+    siteId: z.string().optional(), // Ajout de la référence au site (optionnel pour l'instant)
+    // On pourrait ajouter un `site: SiteSchema.optional()` si on définissait SiteSchema
 });
 
 export type OperatingSector = z.infer<typeof OperatingSectorSchema>;

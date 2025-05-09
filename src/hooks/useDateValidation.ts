@@ -416,6 +416,16 @@ export function useDateValidation(options: DateValidationOptions = {}) {
             return false;
         }
 
+        // Vérification des périodes de blackout
+        const { blackoutPeriods } = options;
+        if (blackoutPeriods && blackoutPeriods.length > 0 && isInBlackoutPeriod(normalizedDate, blackoutPeriods)) {
+            setError(fieldName, DateValidationErrorType.BLACKOUT_PERIOD, 'La date est dans une période non autorisée');
+            return false;
+        }
+
+        // TODO: Ajouter la vérification minAdvanceNotice/maxAdvanceBooking si nécessaire
+        // TODO: Ajouter la vérification customValidation si nécessaire
+
         return true;
     }, [options, setError, clearValidationError]);
 

@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '@/lib/prisma';
+import { verifyAuthToken } from '@/lib/auth-utils';
+import { headers } from 'next/headers';
 
 // GET /api/trames - Récupérer toutes les trames
 export async function GET(request: NextRequest) {
     try {
-        const session = await getServerSession();
-        if (!session) {
-            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        const authResult = await verifyAuthToken();
+        if (!authResult.authenticated) {
+            const headersList = await headers();
+            const userRole = headersList.get('x-user-role');
+            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
+                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+            }
+            console.log('[DEV MODE] Authentification par en-tête pour GET /api/trames');
         }
 
         const trames = await prisma.trameAffectation.findMany({
@@ -45,9 +51,14 @@ export async function GET(request: NextRequest) {
 // POST /api/trames - Créer une nouvelle trame
 export async function POST(request: NextRequest) {
     try {
-        const session = await getServerSession();
-        if (!session) {
-            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        const authResult = await verifyAuthToken();
+        if (!authResult.authenticated) {
+            const headersList = await headers();
+            const userRole = headersList.get('x-user-role');
+            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
+                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+            }
+            console.log('[DEV MODE] Authentification par en-tête pour POST /api/trames');
         }
 
         const body = await request.json();
@@ -66,7 +77,7 @@ export async function POST(request: NextRequest) {
                 isActive: body.isActive,
                 isLocked: body.isLocked,
                 version: 1,
-                createdBy: session.user?.email || null,
+                createdBy: body.createdBy,
                 periods: {
                     create: body.periods.map((period: any) => {
                         const periodId = uuidv4();

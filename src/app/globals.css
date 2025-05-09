@@ -3,53 +3,145 @@
 @tailwind utilities;
 
 :root {
+    /* Variables de base - Valeurs explicites */
     --foreground-rgb: 0, 0, 0;
     --background-rgb: 255, 255, 255;
+    --card-rgb: 255, 255, 255;
+    --card-foreground-rgb: 17, 24, 39;
+    --border-rgb: 229, 231, 235;
+    --muted-foreground-rgb: 107, 114, 128;
 
-    /* Primary colors */
-    --primary-50: rgb(238, 242, 255);
-    --primary-100: rgb(224, 231, 255);
-    --primary-200: rgb(199, 210, 254);
-    --primary-300: rgb(165, 180, 252);
-    --primary-400: rgb(129, 140, 248);
-    --primary-500: rgb(99, 102, 241);
-    --primary-600: rgb(79, 70, 229);
-    --primary-700: rgb(67, 56, 202);
-    --primary-800: rgb(55, 48, 163);
-    --primary-900: rgb(49, 46, 129);
+    /* Primary colors - Indigo - Valeurs explicites */
+    --primary-50: 238, 242, 255;
+    /* indigo-50 */
+    --primary-100: 224, 231, 255;
+    /* indigo-100 */
+    --primary-200: 199, 210, 254;
+    /* indigo-200 */
+    --primary-300: 165, 180, 252;
+    /* indigo-300 */
+    --primary-400: 129, 140, 248;
+    /* indigo-400 */
+    --primary-500: 99, 102, 241;
+    /* indigo-500 */
+    --primary-600: 79, 70, 229;
+    /* indigo-600 */
+    --primary-700: 67, 56, 202;
+    /* indigo-700 */
+    --primary-800: 55, 48, 163;
+    /* indigo-800 */
+    --primary-900: 49, 46, 129;
+    /* indigo-900 */
 
-    /* Secondary colors */
-    --secondary-500: rgb(217, 70, 239);
-    --secondary-600: rgb(192, 38, 211);
+    /* Secondary colors - Fuschia - Valeurs explicites */
+    --secondary-50: 253, 244, 255;
+    /* fuschia-50 */
+    --secondary-100: 250, 232, 255;
+    /* fuschia-100 */
+    --secondary-200: 245, 208, 254;
+    /* fuschia-200 */
+    --secondary-300: 240, 171, 252;
+    /* fuschia-300 */
+    --secondary-400: 232, 121, 249;
+    /* fuschia-400 */
+    --secondary-500: 217, 70, 239;
+    /* fuschia-500 */
+    --secondary-600: 192, 38, 211;
+    /* fuschia-600 */
+    --secondary-700: 162, 28, 175;
+    /* fuschia-700 */
+    --secondary-800: 134, 25, 143;
+    /* fuschia-800 */
+    --secondary-900: 112, 26, 117;
+    /* fuschia-900 */
 
-    /* Tertiary colors */
-    --tertiary-500: rgb(236, 72, 153);
-    --tertiary-600: rgb(219, 39, 119);
+    /* Tertiary colors - Pink - Valeurs explicites */
+    --tertiary-50: 253, 242, 248;
+    /* pink-50 */
+    --tertiary-100: 252, 231, 243;
+    /* pink-100 */
+    --tertiary-200: 251, 207, 232;
+    /* pink-200 */
+    --tertiary-300: 249, 168, 212;
+    /* pink-300 */
+    --tertiary-400: 244, 114, 182;
+    /* pink-400 */
+    --tertiary-500: 236, 72, 153;
+    /* pink-500 */
+    --tertiary-600: 219, 39, 119;
+    /* pink-600 */
+    --tertiary-700: 190, 24, 93;
+    /* pink-700 */
+    --tertiary-800: 157, 23, 77;
+    /* pink-800 */
+    --tertiary-900: 131, 24, 67;
+    /* pink-900 */
 
-    /* Spacing */
+    /* Autres variables restent inchangées */
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
     --spacing-lg: 1.5rem;
     --spacing-xl: 2rem;
 
-    /* Border radius */
     --radius-sm: 0.25rem;
     --radius-md: 0.5rem;
     --radius-lg: 1rem;
     --radius-xl: 1.5rem;
     --radius-full: 9999px;
 
-    /* Transitions */
     --transition-fast: 150ms;
     --transition-normal: 250ms;
     --transition-slow: 350ms;
 
-    /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-soft: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+
+    /* Variables CSS pour les typographies */
+    --font-size-base: 1rem;
+    --line-height: 1.5;
+    --font-weight: 400;
+    --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.dark {
+    /* Variables de base - Mode sombre - Valeurs explicites */
+    --foreground-rgb: 229, 231, 235;
+    --background-rgb: 17, 24, 39;
+    --card-rgb: 30, 41, 59;
+    --card-foreground-rgb: 226, 232, 240;
+    --border-rgb: 51, 65, 85;
+    --muted-foreground-rgb: 148, 163, 184;
+}
+
+/* Ajouter certaines règles directement pour forcer l'application des couleurs */
+.bg-primary-500 {
+    background-color: rgb(99, 102, 241) !important;
+}
+
+.bg-secondary-500 {
+    background-color: rgb(217, 70, 239) !important;
+}
+
+.bg-tertiary-500 {
+    background-color: rgb(236, 72, 153) !important;
+}
+
+.from-primary-500 {
+    --tw-gradient-from: rgb(99, 102, 241) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(99 102 241 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.via-secondary-500 {
+    --tw-gradient-to: rgb(217 70 239 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), rgb(217, 70, 239) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+
+.to-tertiary-500 {
+    --tw-gradient-to: rgb(236, 72, 153) var(--tw-gradient-to-position) !important;
 }
 
 body {
@@ -70,8 +162,12 @@ button {
 
 /* Amélioration des focus */
 :focus-visible {
-    outline: 2px solid var(--primary-500);
+    outline: 2px solid rgb(var(--primary-500));
     outline-offset: 2px;
+}
+
+.dark :focus-visible {
+    outline-color: rgb(var(--primary-400));
 }
 
 /* Styles pour les scrollbars */
@@ -85,13 +181,25 @@ button {
     border-radius: var(--radius-full);
 }
 
+.dark ::-webkit-scrollbar-track {
+    background: rgb(30, 41, 59);
+}
+
 ::-webkit-scrollbar-thumb {
     background: rgb(209, 213, 219);
     border-radius: var(--radius-full);
 }
 
+.dark ::-webkit-scrollbar-thumb {
+    background: rgb(51, 65, 85);
+}
+
 ::-webkit-scrollbar-thumb:hover {
     background: rgb(156, 163, 175);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgb(71, 85, 105);
 }
 
 /* Animations de base */
@@ -132,19 +240,23 @@ button {
     }
 
     .btn-primary {
-        @apply bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:shadow-md hover:-translate-y-0.5;
+        @apply bg-gradient-to-r from-primary-500 via-secondary-500 to-tertiary-500 text-white hover:shadow-md hover:-translate-y-0.5 dark:from-primary-600 dark:via-primary-500 dark:to-primary-700;
+    }
+
+    .btn-primary-subtle {
+        @apply bg-gradient-to-r from-primary-500 to-secondary-500 text-white hover:shadow-md hover:-translate-y-0.5 dark:from-primary-600 dark:to-primary-700;
     }
 
     .btn-secondary {
-        @apply bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm;
+        @apply bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-600;
     }
 
     .input {
-        @apply px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm;
+        @apply px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:focus:ring-primary-500 dark:focus:border-primary-500 dark:placeholder-slate-400;
     }
 
     .card {
-        @apply bg-white rounded-xl shadow-md border border-gray-100 p-6;
+        @apply bg-white rounded-xl shadow-md border border-gray-100 p-6 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100;
     }
 
     .badge {
@@ -152,10 +264,138 @@ button {
     }
 
     .badge-primary {
-        @apply bg-primary-100 text-primary-700;
+        @apply bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200;
     }
 
     .badge-secondary {
-        @apply bg-secondary-100 text-secondary-700;
+        @apply bg-secondary-100 text-secondary-700 dark:bg-secondary-900 dark:text-secondary-200;
     }
+
+    .gradient-text {
+        @apply bg-gradient-to-r from-primary-600 via-secondary-500 to-tertiary-500 bg-clip-text text-transparent;
+    }
+
+    .gradient-bg {
+        @apply bg-gradient-to-r from-primary-500 via-secondary-500 to-tertiary-500;
+    }
+
+    .gradient-bg-subtle {
+        @apply bg-gradient-to-r from-primary-500 to-secondary-500;
+    }
+}
+
+/* Classes pour les préférences d'accessibilité */
+.high-contrast {
+    --contrast-factor: 1.2;
+}
+
+.high-contrast .text-gray-500,
+.high-contrast .text-gray-400,
+.high-contrast .text-slate-500,
+.high-contrast .text-slate-400 {
+    color: rgb(64, 64, 64) !important;
+}
+
+.dark.high-contrast .text-gray-500,
+.dark.high-contrast .text-gray-400,
+.dark.high-contrast .text-slate-500,
+.dark.high-contrast .text-slate-400 {
+    color: rgb(200, 200, 200) !important;
+}
+
+.high-contrast a,
+.high-contrast button:not(.bg-primary-500):not(.bg-secondary-500):not(.bg-tertiary-500):not(.bg-red-500) {
+    color: rgb(0, 0, 200) !important;
+}
+
+.dark.high-contrast a,
+.dark.high-contrast button:not(.bg-primary-500):not(.bg-secondary-500):not(.bg-tertiary-500):not(.bg-red-500) {
+    color: rgb(100, 150, 255) !important;
+}
+
+/* Réduction du mouvement */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+    animation-duration: 0.001s !important;
+    transition-duration: 0.001s !important;
+    transition-delay: 0s !important;
+}
+
+/* Grandes cibles de clic */
+.large-targets button,
+.large-targets a,
+.large-targets input[type="checkbox"],
+.large-targets input[type="radio"],
+.large-targets select,
+.large-targets .clickable {
+    min-height: 2.5rem !important;
+    min-width: 2.5rem !important;
+    padding: 0.75rem !important;
+}
+
+.large-targets label {
+    font-size: 1.1rem !important;
+}
+
+/* Appliquer les variables de typographie */
+body,
+.font-base {
+    font-size: var(--font-size-base);
+    line-height: var(--line-height);
+    font-weight: var(--font-weight);
+    font-family: var(--font-family);
+}
+
+/* Effets de transparence */
+.transparency-effects .card,
+.transparency-effects .bg-white,
+.transparency-effects .bg-card {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(8px);
+}
+
+.dark.transparency-effects .card,
+.dark.transparency-effects .bg-slate-800,
+.dark.transparency-effects .bg-card {
+    background-color: rgba(30, 41, 59, 0.8) !important;
+    backdrop-filter: blur(8px);
+}
+
+/* Classes de thèmes visuels */
+.theme-ocean .gradient-text,
+.theme-ocean .bg-clip-text {
+    background-image: linear-gradient(to right, rgb(14, 165, 233), rgb(6, 182, 212), rgb(8, 145, 178)) !important;
+}
+
+.theme-sunset .gradient-text,
+.theme-sunset .bg-clip-text {
+    background-image: linear-gradient(to right, rgb(249, 115, 22), rgb(239, 68, 68), rgb(220, 38, 38)) !important;
+}
+
+.theme-forest .gradient-text,
+.theme-forest .bg-clip-text {
+    background-image: linear-gradient(to right, rgb(34, 197, 94), rgb(22, 163, 74), rgb(21, 128, 61)) !important;
+}
+
+.theme-lavender .gradient-text,
+.theme-lavender .bg-clip-text {
+    background-image: linear-gradient(to right, rgb(139, 92, 246), rgb(168, 85, 247), rgb(217, 70, 239)) !important;
+}
+
+.theme-monochrome .gradient-text,
+.theme-monochrome .bg-clip-text {
+    background-image: linear-gradient(to right, rgb(82, 82, 82), rgb(115, 115, 115), rgb(163, 163, 163)) !important;
+}
+
+/* Modification de l'en-tête selon le style */
+header.header-solid {
+    background: rgb(var(--background-rgb)) !important;
+    backdrop-filter: none !important;
+}
+
+header.header-transparent {
+    background: transparent !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid rgba(var(--border-rgb), 0.1) !important;
 }

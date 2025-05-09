@@ -36,8 +36,16 @@ export async function GET(request: NextRequest) {
 
         // Le token est valide, récupérer les informations complètes de l'utilisateur
         try {
-            const userId = Number(authResult.user.id);
+            const userId = Number(authResult.user.userId);
             console.log(`## API /auth/me: Récupération des infos utilisateur pour id=${userId}`);
+
+            if (isNaN(userId)) {
+                console.error("## API /auth/me: userId invalide après conversion depuis le token", authResult.user);
+                return NextResponse.json(
+                    { authenticated: false, error: 'ID utilisateur invalide dans le token' },
+                    { status: 400 }
+                );
+            }
 
             const user = await prisma.user.findUnique({
                 where: { id: userId }

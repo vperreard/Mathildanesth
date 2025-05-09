@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import {
     OperatingRoom,
@@ -6,7 +6,6 @@ import {
     SupervisionRule,
     BlocDayPlanning,
     BlocRoomAssignment,
-    BlocSupervisor,
     BlocPlanningConflict,
     ValidationResult,
     BlocPlanningStatus,
@@ -15,6 +14,8 @@ import {
     BlocPeriod,
     BlocStaffRole
 } from '../models/BlocModels';
+import { OperatingRoomSchema, OperatingSectorSchema } from '../models/BlocModels';
+import * as z from 'zod';
 
 // Instance Prisma
 const prisma = new PrismaClient();
@@ -29,64 +30,154 @@ export class BlocPlanningService {
      */
 
     /**
-     * Récupère toutes les salles d'opération
+     * Récupère toutes les salles d'opération, triées par Site -> Secteur -> Salle
      */
-    async getAllOperatingRooms(includeSector = false): Promise<OperatingRoom[]> {
+    async getAllOperatingRooms(includeRelations = true): Promise<OperatingRoom[]> {
         try {
-            const rooms = await prisma.operatingRoom.findMany({
+            const roomsData = await prisma.operatingRoom.findMany({
                 where: {},
-                include: {
-                    sector: includeSector
-                },
-                orderBy: {
-                    number: 'asc'
-                }
+                include: includeRelations ? {
+                    sector: {
+                        include: {
+                            site: true // Inclure le site pour pouvoir trier et l'afficher
+                        }
+                    }
+                } : undefined,
+                orderBy: [
+                    { sector: { site: { displayOrder: 'asc' } } },
+                    { sector: { displayOrder: 'asc' } },
+                    { displayOrder: 'asc' },
+                    { sector: { site: { name: 'asc' } } },
+                    { sector: { name: 'asc' } },
+                    { number: 'asc' }
+                ]
             });
 
-            return rooms;
+            const validatedRooms = roomsData.map(room => {
+                const roomForValidation: OperatingRoom = {
+                    id: room.id,
+                    name: room.name,
+                    number: room.number,
+                    colorCode: room.colorCode,
+                    isActive: room.isActive,
+                    supervisionRules: (room.supervisionRules && typeof room.supervisionRules === 'object' && !Array.isArray(room.supervisionRules)) ? room.supervisionRules as Record<string, any> : {},
+                    createdAt: room.createdAt,
+                    updatedAt: room.updatedAt,
+                    displayOrder: room.displayOrder,
+                    sector: (room as any).sector?.name,
+                    sectorId: room.sectorId,
+                };
+                // Utiliser safeParse pour gérer les erreurs de validation sans bloquer
+                const parseResult = OperatingRoomSchema.safeParse(roomForValidation);
+                if (!parseResult.success) {
+                    console.warn(`Données invalides pour la salle ID ${room.id}, elle sera ignorée:`, parseResult.error.errors);
+                    return null; // Ignorer les salles invalides
+                }
+                return parseResult.data;
+            });
+            // Filtrer les résultats null (salles ignorées)
+            return validatedRooms.filter((room): room is OperatingRoom => room !== null);
         } catch (error) {
-            console.error('Erreur lors de la récupération des salles d\'opération:', error);
-            throw new Error('Impossible de récupérer les salles d\'opération');
+            // Catch les erreurs générales (ex: problème DB)
+            console.error("Erreur lors de la récupération des salles d'opération: ", error);
+            throw new Error("Impossible de récupérer les salles d'opération");
         }
     }
 
     /**
      * Récupère les salles d'opération actives
      */
-    async getActiveOperatingRooms(includeSector = false): Promise<OperatingRoom[]> {
+    async getActiveOperatingRooms(includeRelations = true): Promise<OperatingRoom[]> {
         try {
-            const rooms = await prisma.operatingRoom.findMany({
+            const roomsData = await prisma.operatingRoom.findMany({
                 where: {
                     isActive: true
                 },
-                include: {
-                    sector: includeSector
-                },
-                orderBy: {
-                    number: 'asc'
-                }
+                include: includeRelations ? {
+                    sector: {
+                        include: {
+                            site: true
+                        }
+                    }
+                } : undefined,
+                orderBy: [
+                    { sector: { site: { displayOrder: 'asc' } } },
+                    { sector: { displayOrder: 'asc' } },
+                    { displayOrder: 'asc' },
+                    { sector: { site: { name: 'asc' } } },
+                    { sector: { name: 'asc' } },
+                    { number: 'asc' }
+                ]
             });
 
-            return rooms;
+            const validatedRooms = roomsData.map(room => {
+                const roomForValidation: OperatingRoom = {
+                    id: room.id,
+                    name: room.name,
+                    number: room.number,
+                    colorCode: room.colorCode,
+                    isActive: room.isActive,
+                    supervisionRules: (room.supervisionRules && typeof room.supervisionRules === 'object' && !Array.isArray(room.supervisionRules)) ? room.supervisionRules as Record<string, any> : {},
+                    createdAt: room.createdAt,
+                    updatedAt: room.updatedAt,
+                    displayOrder: room.displayOrder,
+                    sector: (room as any).sector?.name,
+                    sectorId: room.sectorId,
+                };
+                const parseResult = OperatingRoomSchema.safeParse(roomForValidation);
+                if (!parseResult.success) {
+                    console.warn(`Données invalides pour la salle active ID ${room.id}, elle sera ignorée:`, parseResult.error.errors);
+                    return null;
+                }
+                return parseResult.data;
+            });
+            return validatedRooms.filter((room): room is OperatingRoom => room !== null);
+
         } catch (error) {
-            console.error('Erreur lors de la récupération des salles d\'opération actives:', error);
-            throw new Error('Impossible de récupérer les salles d\'opération actives');
+            console.error("Erreur lors de la récupération des salles d'opération actives: ", error);
+            throw new Error("Impossible de récupérer les salles d'opération actives");
         }
     }
 
     /**
      * Récupère une salle d'opération par son ID
      */
-    async getOperatingRoomById(id: number, includeSector = false): Promise<OperatingRoom | null> {
+    async getOperatingRoomById(id: number, includeRelations = true): Promise<OperatingRoom | null> {
         try {
-            const room = await prisma.operatingRoom.findUnique({
+            const roomData = await prisma.operatingRoom.findUnique({
                 where: { id },
-                include: {
-                    sector: includeSector
-                }
+                include: includeRelations ? {
+                    sector: {
+                        include: {
+                            site: true
+                        }
+                    }
+                } : undefined
             });
 
-            return room;
+            if (!roomData) return null;
+
+            const roomForValidation: OperatingRoom = {
+                id: roomData.id,
+                name: roomData.name,
+                number: roomData.number,
+                colorCode: roomData.colorCode,
+                isActive: roomData.isActive,
+                supervisionRules: (roomData.supervisionRules && typeof roomData.supervisionRules === 'object' && !Array.isArray(roomData.supervisionRules)) ? roomData.supervisionRules as Record<string, any> : {},
+                createdAt: roomData.createdAt,
+                updatedAt: roomData.updatedAt,
+                displayOrder: roomData.displayOrder,
+                sector: includeRelations ? (roomData as any).sector?.name : undefined,
+                sectorId: roomData.sectorId,
+            };
+            const parseResult = OperatingRoomSchema.safeParse(roomForValidation);
+            if (!parseResult.success) {
+                console.error(`Données invalides pour la salle ${id} reçues de la base:`, parseResult.error.errors);
+                // On pourrait choisir de retourner null ou de jeter une erreur ici
+                return null;
+            }
+            return parseResult.data;
+
         } catch (error) {
             console.error(`Erreur lors de la récupération de la salle d'opération ${id}:`, error);
             throw new Error(`Impossible de récupérer la salle d'opération ${id}`);
@@ -98,38 +189,53 @@ export class BlocPlanningService {
      */
     async createOperatingRoom(data: Omit<OperatingRoom, 'id' | 'createdAt' | 'updatedAt'>): Promise<OperatingRoom> {
         try {
+            if (typeof data.sectorId !== 'number') {
+                throw new Error("sectorId (number) is required to create an operating room and was not provided or was not a number.");
+            }
+            const sectorIdVerified: number = data.sectorId;
+
             // Vérifier que le secteur existe
             const sector = await prisma.operatingSector.findUnique({
-                where: { id: data.sectorId }
+                where: { id: sectorIdVerified }
             });
 
             if (!sector) {
-                throw new Error(`Le secteur avec l'ID ${data.sectorId} n'existe pas`);
+                throw new Error(`Le secteur avec l'ID ${sectorIdVerified} n'existe pas`);
             }
 
             // Vérifier que le numéro de salle est unique
-            const existingRoom = await prisma.operatingRoom.findUnique({
+            const existingRoomWithNumber = await prisma.operatingRoom.findUnique({
                 where: { number: data.number }
             });
 
-            if (existingRoom) {
+            if (existingRoomWithNumber) {
                 throw new Error(`Une salle avec le numéro ${data.number} existe déjà`);
             }
 
-            const newRoom = await prisma.operatingRoom.create({
-                data: {
-                    name: data.name,
-                    number: data.number,
-                    sectorId: data.sectorId,
-                    colorCode: data.colorCode,
-                    isActive: data.isActive,
-                    supervisionRules: data.supervisionRules || {}
-                }
+            const createData: Prisma.OperatingRoomUncheckedCreateInput = {
+                name: data.name,
+                number: data.number,
+                sectorId: sectorIdVerified,
+                colorCode: data.colorCode,
+                isActive: data.isActive ?? true,
+                supervisionRules: (data.supervisionRules && typeof data.supervisionRules === 'object' && !Array.isArray(data.supervisionRules)) ? data.supervisionRules : {},
+                displayOrder: data.displayOrder ?? 0,
+            };
+
+            const newRoomRecord = await prisma.operatingRoom.create({
+                data: createData
             });
 
-            return newRoom;
+            // Valider et transformer pour le type de retour Zod OperatingRoom
+            const result = OperatingRoomSchema.parse({
+                ...newRoomRecord,
+                supervisionRules: (newRoomRecord.supervisionRules && typeof newRoomRecord.supervisionRules === 'object' && !Array.isArray(newRoomRecord.supervisionRules)) ? newRoomRecord.supervisionRules : {},
+                sector: sector.name, // Ajouter le nom du secteur pour satisfaire OperatingRoomSchema si besoin
+            });
+            return result;
+
         } catch (error) {
-            console.error('Erreur lors de la création de la salle d\'opération:', error);
+            console.error("Erreur lors de la création de la salle d'opération:", error);
             throw error;
         }
     }
@@ -141,7 +247,8 @@ export class BlocPlanningService {
         try {
             // Vérifier que la salle existe
             const existingRoom = await prisma.operatingRoom.findUnique({
-                where: { id }
+                where: { id },
+                include: { sector: true } // Inclure le secteur pour avoir son nom
             });
 
             if (!existingRoom) {
@@ -153,29 +260,64 @@ export class BlocPlanningService {
                 const roomWithSameNumber = await prisma.operatingRoom.findUnique({
                     where: { number: data.number }
                 });
-
-                if (roomWithSameNumber) {
+                if (roomWithSameNumber && roomWithSameNumber.id !== id) {
                     throw new Error(`Une salle avec le numéro ${data.number} existe déjà`);
                 }
             }
 
-            // Si le secteur est modifié, vérifier qu'il existe
-            if (data.sectorId) {
-                const sector = await prisma.operatingSector.findUnique({
-                    where: { id: data.sectorId }
-                });
+            let currentSectorName = existingRoom.sector.name;
+            let currentSectorId = existingRoom.sectorId;
 
-                if (!sector) {
-                    throw new Error(`Le secteur avec l'ID ${data.sectorId} n'existe pas`);
+            const updatePayload: Prisma.OperatingRoomUpdateInput = {};
+
+            if (data.name !== undefined) updatePayload.name = data.name;
+            if (data.number !== undefined) updatePayload.number = data.number;
+            if (data.colorCode !== undefined) updatePayload.colorCode = data.colorCode;
+            if (data.isActive !== undefined) updatePayload.isActive = data.isActive;
+            if (data.displayOrder !== undefined) updatePayload.displayOrder = data.displayOrder;
+
+            if (data.sectorId !== undefined) {
+                if (typeof data.sectorId !== 'number') {
+                    throw new Error('sectorId must be a number if provided for update.');
+                }
+                if (data.sectorId !== existingRoom.sectorId) {
+                    const newSector = await prisma.operatingSector.findUnique({
+                        where: { id: data.sectorId }
+                    });
+                    if (!newSector) {
+                        throw new Error(`Le secteur avec l'ID ${data.sectorId} n'existe pas`);
+                    }
+                    currentSectorName = newSector.name;
+                    currentSectorId = newSector.id; // Mettre à jour l'ID du secteur pour le retour
+                    updatePayload.sector = { connect: { id: data.sectorId } };
+                } // Si sectorId est le même, on ne fait rien ici pour updatePayload.sector
+            }
+
+            if (data.hasOwnProperty('supervisionRules')) {
+                if (data.supervisionRules === null || (typeof data.supervisionRules === 'object' && Object.keys(data.supervisionRules!).length === 0)) {
+                    updatePayload.supervisionRules = Prisma.JsonNull;
+                } else if (typeof data.supervisionRules === 'object' && !Array.isArray(data.supervisionRules)) {
+                    updatePayload.supervisionRules = data.supervisionRules; // Assumes data.supervisionRules is already InputJsonValue compatible if object
+                } else {
+                    // Optionnel: Gérer le cas où supervisionRules n'est ni null, ni objet valide (ex: string, array)
+                    // throw new Error('Invalid format for supervisionRules');
                 }
             }
 
-            const updatedRoom = await prisma.operatingRoom.update({
+            const updatedRoomRecord = await prisma.operatingRoom.update({
                 where: { id },
-                data
+                data: updatePayload
             });
 
-            return updatedRoom;
+            // Valider et transformer pour le type de retour Zod OperatingRoom
+            const result = OperatingRoomSchema.parse({
+                ...updatedRoomRecord,
+                supervisionRules: (updatedRoomRecord.supervisionRules && typeof updatedRoomRecord.supervisionRules === 'object' && !Array.isArray(updatedRoomRecord.supervisionRules)) ? updatedRoomRecord.supervisionRules : {},
+                sector: currentSectorName,
+                sectorId: currentSectorId
+            });
+            return result;
+
         } catch (error) {
             console.error(`Erreur lors de la mise à jour de la salle d'opération ${id}:`, error);
             throw error;
@@ -217,16 +359,32 @@ export class BlocPlanningService {
      */
     async getAllOperatingSectors(includeRooms = false): Promise<OperatingSector[]> {
         try {
-            const sectors = await prisma.operatingSector.findMany({
+            const sectorsFromPrisma = await prisma.operatingSector.findMany({
                 include: {
-                    operatingRooms: includeRooms
+                    operatingRooms: includeRooms,
+                    site: true // Inclure le site pour le tri
                 },
-                orderBy: {
-                    name: 'asc'
-                }
+                orderBy: [
+                    { site: { displayOrder: 'asc' } },
+                    { displayOrder: 'asc' },
+                    { name: 'asc' }
+                ]
             });
 
-            return sectors;
+            const validatedSectors = sectorsFromPrisma.map(sectorPrisma => {
+                // Le champ `site` est inclus pour le tri mais n'est pas dans OperatingSectorSchema
+                const { site, ...sectorDataPrisma } = sectorPrisma;
+                return OperatingSectorSchema.parse({
+                    ...sectorDataPrisma,
+                    description: sectorDataPrisma.description === null ? undefined : sectorDataPrisma.description,
+                    siteId: sectorDataPrisma.siteId === null ? undefined : sectorDataPrisma.siteId,
+                    // rules dans Prisma est JsonValue, Zod attend any avec un default.
+                    // Si Prisma retourne null pour rules, on applique le default de Zod via le parse.
+                    // Si Prisma retourne un objet JSON, il devrait être compatible avec z.any().
+                    rules: sectorDataPrisma.rules === null ? { maxRoomsPerSupervisor: 2 } : sectorDataPrisma.rules,
+                });
+            });
+            return validatedSectors;
         } catch (error) {
             console.error('Erreur lors de la récupération des secteurs opératoires:', error);
             throw new Error('Impossible de récupérer les secteurs opératoires');
@@ -238,7 +396,7 @@ export class BlocPlanningService {
      */
     async getActiveOperatingSectors(includeRooms = false): Promise<OperatingSector[]> {
         try {
-            const sectors = await prisma.operatingSector.findMany({
+            const sectorsFromPrisma = await prisma.operatingSector.findMany({
                 where: {
                     isActive: true
                 },
@@ -247,14 +405,26 @@ export class BlocPlanningService {
                         where: {
                             isActive: true
                         }
-                    } : false
+                    } : false,
+                    site: true // Inclure le site pour le tri
                 },
-                orderBy: {
-                    name: 'asc'
-                }
+                orderBy: [
+                    { site: { displayOrder: 'asc' } },
+                    { displayOrder: 'asc' },
+                    { name: 'asc' }
+                ]
             });
 
-            return sectors;
+            const validatedSectors = sectorsFromPrisma.map(sectorPrisma => {
+                const { site, ...sectorDataPrisma } = sectorPrisma;
+                return OperatingSectorSchema.parse({
+                    ...sectorDataPrisma,
+                    description: sectorDataPrisma.description === null ? undefined : sectorDataPrisma.description,
+                    siteId: sectorDataPrisma.siteId === null ? undefined : sectorDataPrisma.siteId,
+                    rules: sectorDataPrisma.rules === null ? { maxRoomsPerSupervisor: 2 } : sectorDataPrisma.rules,
+                });
+            });
+            return validatedSectors;
         } catch (error) {
             console.error('Erreur lors de la récupération des secteurs opératoires actifs:', error);
             throw new Error('Impossible de récupérer les secteurs opératoires actifs');
@@ -266,14 +436,23 @@ export class BlocPlanningService {
      */
     async getOperatingSectorById(id: number, includeRooms = false): Promise<OperatingSector | null> {
         try {
-            const sector = await prisma.operatingSector.findUnique({
+            const sectorPrisma = await prisma.operatingSector.findUnique({
                 where: { id },
                 include: {
-                    operatingRooms: includeRooms
+                    operatingRooms: includeRooms,
+                    site: true
                 }
             });
 
-            return sector;
+            if (!sectorPrisma) return null;
+
+            const { site, ...sectorDataPrisma } = sectorPrisma;
+            return OperatingSectorSchema.parse({
+                ...sectorDataPrisma,
+                description: sectorDataPrisma.description === null ? undefined : sectorDataPrisma.description,
+                siteId: sectorDataPrisma.siteId === null ? undefined : sectorDataPrisma.siteId,
+                rules: sectorDataPrisma.rules === null ? { maxRoomsPerSupervisor: 2 } : sectorDataPrisma.rules,
+            });
         } catch (error) {
             console.error(`Erreur lors de la récupération du secteur opératoire ${id}:`, error);
             throw new Error(`Impossible de récupérer le secteur opératoire ${id}`);
@@ -285,26 +464,30 @@ export class BlocPlanningService {
      */
     async createOperatingSector(data: Omit<OperatingSector, 'id' | 'createdAt' | 'updatedAt'>): Promise<OperatingSector> {
         try {
-            // Vérifier que le nom du secteur est unique
-            const existingSector = await prisma.operatingSector.findUnique({
-                where: { name: data.name }
+            // Vérifier que le nom du secteur est unique (optionnel, dépend des règles métier)
+            // const existingSectorByName = await prisma.operatingSector.findUnique({ where: { name: data.name } });
+            // if (existingSectorByName) { throw new Error(`Un secteur avec le nom ${data.name} existe déjà`); }
+
+            const createDataPrisma: Prisma.OperatingSectorUncheckedCreateInput = {
+                name: data.name, // Requis par Zod
+                colorCode: data.colorCode ?? '#000000', // Default Zod
+                isActive: data.isActive ?? true, // Default Zod
+                description: data.description, // Optionnel Zod (string|undefined) -> Prisma (string|null)
+                rules: data.rules ?? { maxRoomsPerSupervisor: 2 }, // Default Zod, Prisma attend JsonValue
+                displayOrder: data.displayOrder ?? 0, // Default Zod
+                siteId: data.siteId, // Optionnel Zod (string|undefined) -> Prisma (string|null)
+            };
+
+            const newSectorPrisma = await prisma.operatingSector.create({
+                data: createDataPrisma
             });
 
-            if (existingSector) {
-                throw new Error(`Un secteur avec le nom ${data.name} existe déjà`);
-            }
-
-            const newSector = await prisma.operatingSector.create({
-                data: {
-                    name: data.name,
-                    colorCode: data.colorCode || '#000000',
-                    isActive: data.isActive ?? true,
-                    description: data.description,
-                    rules: data.rules || { maxRoomsPerSupervisor: 2 }
-                }
+            return OperatingSectorSchema.parse({
+                ...newSectorPrisma,
+                description: newSectorPrisma.description === null ? undefined : newSectorPrisma.description,
+                siteId: newSectorPrisma.siteId === null ? undefined : newSectorPrisma.siteId,
+                rules: newSectorPrisma.rules === null ? { maxRoomsPerSupervisor: 2 } : newSectorPrisma.rules,
             });
-
-            return newSector;
         } catch (error) {
             console.error('Erreur lors de la création du secteur opératoire:', error);
             throw error;
@@ -316,7 +499,6 @@ export class BlocPlanningService {
      */
     async updateOperatingSector(id: number, data: Partial<Omit<OperatingSector, 'id' | 'createdAt' | 'updatedAt'>>): Promise<OperatingSector> {
         try {
-            // Vérifier que le secteur existe
             const existingSector = await prisma.operatingSector.findUnique({
                 where: { id }
             });
@@ -325,23 +507,51 @@ export class BlocPlanningService {
                 throw new Error(`Le secteur opératoire avec l'ID ${id} n'existe pas`);
             }
 
-            // Si le nom du secteur est modifié, vérifier qu'il est unique
-            if (data.name && data.name !== existingSector.name) {
-                const sectorWithSameName = await prisma.operatingSector.findUnique({
-                    where: { name: data.name }
-                });
+            // Si le nom du secteur est modifié, vérifier qu'il est unique (optionnel)
+            // if (data.name && data.name !== existingSector.name) { ... }
 
-                if (sectorWithSameName) {
-                    throw new Error(`Un secteur avec le nom ${data.name} existe déjà`);
+            const updatePayload: Prisma.OperatingSectorUpdateInput = {};
+            if (data.name !== undefined) updatePayload.name = data.name;
+            if (data.colorCode !== undefined) updatePayload.colorCode = data.colorCode;
+            if (data.isActive !== undefined) updatePayload.isActive = data.isActive;
+            if (data.description !== undefined) updatePayload.description = data.description; // string | undefined
+            if (data.displayOrder !== undefined) updatePayload.displayOrder = data.displayOrder;
+
+            // Gérer la mise à jour de la relation site via siteId
+            if (data.hasOwnProperty('siteId')) { // Vérifier si siteId est explicitement dans data
+                if (data.siteId === null || data.siteId === undefined) { // Pour déconnecter ou si undefined est passé comme intention de vider
+                    updatePayload.site = { disconnect: true };
+                } else {
+                    // Assurer que siteId est une chaîne valide si non null/undefined
+                    if (typeof data.siteId === 'string') {
+                        updatePayload.site = { connect: { id: data.siteId } };
+                    } else {
+                        // Gérer le cas où siteId est fourni mais n'est pas une chaîne (erreur de type)
+                        // Cela ne devrait pas arriver si 'data' est bien typé selon OperatingSector
+                        console.warn('Invalid siteId type for update, skipping site update.');
+                    }
                 }
             }
 
-            const updatedSector = await prisma.operatingSector.update({
+            if (data.hasOwnProperty('rules')) {
+                if (data.rules === null || (typeof data.rules === 'object' && Object.keys(data.rules!).length === 0)) {
+                    updatePayload.rules = Prisma.JsonNull;
+                } else if (typeof data.rules === 'object' && !Array.isArray(data.rules)) {
+                    updatePayload.rules = data.rules;
+                }
+            }
+
+            const updatedSectorPrisma = await prisma.operatingSector.update({
                 where: { id },
-                data
+                data: updatePayload
             });
 
-            return updatedSector;
+            return OperatingSectorSchema.parse({
+                ...updatedSectorPrisma,
+                description: updatedSectorPrisma.description === null ? undefined : updatedSectorPrisma.description,
+                siteId: updatedSectorPrisma.siteId === null ? undefined : updatedSectorPrisma.siteId,
+                rules: updatedSectorPrisma.rules === null ? { maxRoomsPerSupervisor: 2 } : updatedSectorPrisma.rules,
+            });
         } catch (error) {
             console.error(`Erreur lors de la mise à jour du secteur opératoire ${id}:`, error);
             throw error;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { QuotaManagementService, QuotaManagementEvents } from '../services/QuotaManagementService';
 import { QuotaTransaction, QuotaTransactionType, UserQuotaSummary } from '../types/quota';
-import { QuotaManagementService, QuotaManagementEvents } from '../services/quotaManagementService';
 import { LeaveType } from '../types/leave';
 
 /**

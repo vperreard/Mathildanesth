@@ -200,6 +200,7 @@ export const defaultRulesConfiguration: RulesConfiguration = {
 
 // Système de points de fatigue
 export interface FatigueConfig {
+    enabled?: boolean;
     points: {
         // Points de fatigue par type d'affectation
         garde: number;  // défaut +30
@@ -225,6 +226,7 @@ export interface FatigueConfig {
 
 // Configuration par défaut du système de fatigue
 export const defaultFatigueConfig: FatigueConfig = {
+    enabled: true,
     points: {
         garde: 30,
         astreinte: 10,

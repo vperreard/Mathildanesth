@@ -109,8 +109,8 @@ export default function LeavesPage() {
         return leaves
             .filter(leave => {
                 // Filtrer par statut si un filtre est activé
-                if (filters.status && Array.isArray(filters.status) && filters.status.length > 0) {
-                    if (!filters.status.includes(leave.status)) {
+                if (filters.statuses && Array.isArray(filters.statuses) && filters.statuses.length > 0) {
+                    if (!filters.statuses.includes(leave.status)) {
                         return false;
                     }
                 }
@@ -159,7 +159,7 @@ export default function LeavesPage() {
                     ? valueA.localeCompare(valueB)
                     : valueB.localeCompare(valueA);
             });
-    }, [leaves, filters.status, searchTerm, currentSort]);
+    }, [leaves, filters.statuses, searchTerm, currentSort]);
 
     // Gestionnaires d'événements
     const handleNewLeaveClick = () => {
@@ -206,12 +206,12 @@ export default function LeavesPage() {
     };
 
     const handleStatusFilterChange = (status: LeaveStatus) => {
-        const currentStatusFilters = filters.status as LeaveStatus[] || [];
+        const currentStatusFilters = filters.statuses as LeaveStatus[] || [];
 
         if (currentStatusFilters.includes(status)) {
-            setFilter('status', currentStatusFilters.filter(s => s !== status));
+            setFilter('statuses', currentStatusFilters.filter(s => s !== status));
         } else {
-            setFilter('status', [...currentStatusFilters, status]);
+            setFilter('statuses', [...currentStatusFilters, status]);
         }
     };
 
@@ -250,33 +250,36 @@ export default function LeavesPage() {
         cancelled: leaves.filter(r => r.status === LeaveStatus.CANCELLED).length,
     };
 
-    if (authLoading) {
+    // Composant d'état et indicateur de chargement préliminaire
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Affichage de l'état de chargement
+    if (authLoading || !mounted) {
         return (
-            <div className="flex justify-center items-center h-96">
-                <LoadingSpinner />
+            <div className="flex justify-center items-center h-64 w-full">
+                <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
 
+    // Vérification de l'authentification
     if (!user) {
         return (
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-6">
-                <div className="flex">
-                    <div className="flex-shrink-0">
-                        <AlertTriangle className="h-5 w-5 text-yellow-400" />
-                    </div>
-                    <div className="ml-3">
-                        <p className="text-sm text-yellow-700">
-                            Veuillez vous connecter pour accéder à la gestion des congés.
-                        </p>
-                    </div>
+            <div className="container mx-auto px-4 py-8">
+                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
+                    <p className="font-bold">Accès refusé</p>
+                    <p>Vous devez être connecté pour accéder à cette page.</p>
                 </div>
             </div>
         );
     }
 
+    // Rendu du composant sans le SessionProvider car il est déjà dans le provider global
     return (
-        <div className="container mx-auto p-4 md:p-8">
+        <motion.div className="max-w-screen-xl mx-auto px-4 py-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
             <motion.div
                 initial="hidden"
                 animate="visible"
@@ -301,7 +304,7 @@ export default function LeavesPage() {
                     {leaveBalance && (
                         <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md flex items-center justify-between">
                             <p className="text-sm text-blue-700">
-                                Solde de congés payés pour {leaveBalance.year} : <span className="font-semibold">{leaveBalance.balance}</span> jours restants sur {leaveBalance.totalAllowance}
+                                Solde de congés payés pour {leaveBalance.year} : <span className="font-semibold">{leaveBalance.balances?.ANNUAL?.remaining || 0}</span> jours restants sur {leaveBalance.balances?.ANNUAL?.initial || 0}
                             </p>
                             {/* TODO: Ajouter peut-être un lien vers la gestion des quotas */}
                         </div>
@@ -328,7 +331,7 @@ export default function LeavesPage() {
                             <button
                                 key={status}
                                 onClick={() => handleStatusFilterChange(status)}
-                                className={`px-3 py-1 text-xs rounded-full border ${(filters.status as LeaveStatus[] || []).includes(status)
+                                className={`px-3 py-1 text-xs rounded-full border ${(filters.statuses as LeaveStatus[] || []).includes(status)
                                     ? 'bg-blue-100 text-blue-700 border-blue-300'
                                     : 'bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200'
                                     }`}
@@ -352,7 +355,7 @@ export default function LeavesPage() {
                 {!isLoading && error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                         <strong className="font-bold">Erreur !</strong>
-                        <span className="block sm:inline"> {error.message || 'Impossible de charger les congés.'}</span>
+                        <span className="block sm:inline"> {error}</span>
                     </div>
                 )}
 
@@ -373,7 +376,7 @@ export default function LeavesPage() {
                                     leave={leave}
                                     onEdit={() => handleEditLeaveClick(leave)}
                                     onCancel={() => handleCancelLeaveClick(leave)}
-                                    onViewDetails={() => handleViewLeaveDetails(leave)}
+                                    onView={() => handleViewLeaveDetails(leave)}
                                 />
                             </motion.div>
                         ))}
@@ -383,14 +386,28 @@ export default function LeavesPage() {
 
             {/* Modale pour créer/modifier un congé */}
             {isModalOpen && (
-                <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"><LoadingSpinner /></div>}>
-                    <LeaveForm
-                        isOpen={isModalOpen}
-                        onClose={handleCloseModal}
-                        onSubmit={handleLeaveCreatedOrUpdated}
-                        initialData={leaveToEdit ?? undefined}
-                        isLoading={isSubmitting}
-                    />
+                <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"><LoadingSpinner size="lg" /></div>}>
+                    <div className="fixed inset-0 z-50 overflow-y-auto">
+                        <div className="flex items-center justify-center min-h-screen p-4 text-center">
+                            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+                                <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+                            </div>
+                            <div className="inline-block w-full max-w-3xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
+                                <button
+                                    type="button"
+                                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-500"
+                                    onClick={handleCloseModal}
+                                >
+                                    <span className="sr-only">Fermer</span>
+                                    <XCircle className="h-6 w-6" />
+                                </button>
+                                <LeaveForm
+                                    userId={user?.id || 0}
+                                    onSuccess={handleLeaveCreatedOrUpdated}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </Suspense>
             )}
 
@@ -400,7 +417,13 @@ export default function LeavesPage() {
                     <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg relative">
                         <button onClick={handleCloseDetailModal} className="absolute top-2 right-2 text-gray-500 hover:text-gray-700">&times;</button>
                         <h2 className="text-xl font-semibold mb-4">Détails du Congé</h2>
-                        <LeaveCard leave={selectedLeave} isDetailView={true} />
+                        <LeaveCard
+                            leave={selectedLeave}
+                            onEdit={() => { }}
+                            onCancel={() => { }}
+                            onView={() => { }}
+                            isExpanded={true}
+                        />
                         {/* Ajouter ici d'autres détails si nécessaire */}
                     </div>
                 </div>
@@ -413,10 +436,10 @@ export default function LeavesPage() {
                 onConfirm={handleConfirmCancelLeave}
                 title="Confirmer l'annulation"
                 message={`Êtes-vous sûr de vouloir annuler cette demande de congé (${leaveToCancel?.type} du ${leaveToCancel ? format(new Date(leaveToCancel.startDate), 'dd/MM/yyyy') : ''}) ?`}
-                confirmText="Confirmer l'annulation"
-                cancelText="Ne pas annuler"
+                confirmButtonText="Confirmer l'annulation"
+                cancelButtonText="Ne pas annuler"
                 isLoading={isSubmitting}
             />
-        </div>
+        </motion.div>
     );
 }

@@ -78,13 +78,28 @@ export const QueryClientProvider = {
  * @returns État de la requête avec méthodes pour rafraîchir ou annuler
  */
 export function useOptimizedQuery<T = any>(
-    queryFn: () => Promise<T>,
-    options: QueryOptions = {}
+    arg1: string | (() => Promise<T>),
+    arg2?: (() => Promise<T>) | QueryOptions,
+    arg3: QueryOptions = {}
 ) {
+    // Supporter deux signatures : (queryFn, options) ou (cacheKey, queryFn, options)
+    let queryFn: () => Promise<T>;
+    let options: QueryOptions;
+
+    if (typeof arg1 === 'string' && typeof arg2 === 'function') {
+        // Signature : (cacheKey, queryFn, options)
+        queryFn = arg2;
+        options = arg3;
+        options.cacheKey = arg1;
+    } else {
+        // Signature : (queryFn, options)
+        queryFn = arg1 as () => Promise<T>;
+        options = (arg2 as QueryOptions) || {};
+    }
     const {
         cacheKey,
         cacheTTL = 5 * 60 * 1000, // 5 minutes par défaut
-        staleTime = 60 * 1000, // 1 minute par défaut
+        staleTime = 60 * 1000,     // 1 minute par défaut
         retryCount = 3,
         retryDelay = 1000,
         dependsOn = [],

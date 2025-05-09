@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { headers } from 'next/headers';
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { OperatingRoomSchema } from '@/modules/planning/bloc-operatoire/models/BlocModels';
+import { BlocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 
 // Contexte pour les paramètres d'URL
 interface Context {
@@ -12,6 +13,7 @@ interface Context {
 }
 
 const prisma = new PrismaClient();
+const planningService = new BlocPlanningService();
 
 // Fonction utilitaire pour normaliser les noms de secteurs (identique à route.ts)
 const normalizeSectorName = (name: string): string => {
@@ -84,10 +86,8 @@ export async function GET(request: Request, context: Context) {
     }
 
     try {
-        const room = await prisma.operatingRoom.findUnique({
-            where: { id: roomId },
-            include: { sector: true }
-        });
+        // Utiliser le service BlocPlanningService qui trie correctement par displayOrder
+        const room = await planningService.getOperatingRoomById(roomId, true);
 
         if (!room) {
             return new NextResponse(JSON.stringify({ message: 'Salle non trouvée' }), { status: 404 });
@@ -107,7 +107,7 @@ export async function PUT(request: Request, context: Context) {
 
         if (!authResult.authenticated) {
             // Vérifier si l'en-tête x-user-role est présent (pour le développement)
-            const headersList = headers();
+            const headersList = await headers();
             const userRole = headersList.get('x-user-role');
 
             if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
@@ -198,40 +198,52 @@ export async function PUT(request: Request, context: Context) {
 
 // DELETE : Supprimer une salle
 export async function DELETE(request: Request, context: Context) {
-    const headersList = headers();
-    const userRoleString = headersList.get('x-user-role');
-
-    if (userRoleString !== 'ADMIN_TOTAL') {
-        return new NextResponse(JSON.stringify({ message: 'Accès non autorisé. Seul un administrateur total peut supprimer une salle.' }), { status: 403 });
-    }
-
-    const { id } = context.params;
-    const roomId = parseInt(id);
-
-    if (isNaN(roomId)) {
-        return new NextResponse(JSON.stringify({ message: 'ID invalide' }), { status: 400 });
-    }
-
     try {
-        const room = await prisma.operatingRoom.findUnique({
-            where: { id: roomId }
-        });
+        // Vérifier l'authentification
+        const authResult = await verifyAuthToken();
 
-        if (!room) {
-            return new NextResponse(JSON.stringify({ message: 'Salle non trouvée' }), { status: 404 });
+        if (!authResult.authenticated) {
+            // Vérifier si l'en-tête x-user-role est présent (pour le développement)
+            const headersList = await headers();
+            const userRole = headersList.get('x-user-role');
+
+            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
+                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+            }
+            console.log('[DEV MODE] Authentification par en-tête uniquement pour DELETE /api/operating-rooms');
         }
 
-        // TODO: Vérifier si la salle est utilisée dans des plannings existants
-        // Si c'est le cas, on pourrait renvoyer une erreur ou proposer une solution alternative
+        const { id } = context.params;
+        const roomId = parseInt(id);
 
-        // Supprimer la salle
-        await prisma.operatingRoom.delete({
-            where: { id: roomId }
-        });
+        if (isNaN(roomId)) {
+            return new NextResponse(JSON.stringify({ message: 'ID invalide' }), { status: 400 });
+        }
 
-        return new NextResponse(null, { status: 204 });
+        try {
+            const room = await prisma.operatingRoom.findUnique({
+                where: { id: roomId }
+            });
+
+            if (!room) {
+                return new NextResponse(JSON.stringify({ message: 'Salle non trouvée' }), { status: 404 });
+            }
+
+            // TODO: Vérifier si la salle est utilisée dans des plannings existants
+            // Si c'est le cas, on pourrait renvoyer une erreur ou proposer une solution alternative
+
+            // Supprimer la salle
+            await prisma.operatingRoom.delete({
+                where: { id: roomId }
+            });
+
+            return new NextResponse(null, { status: 204 });
+        } catch (error) {
+            console.error(`Erreur DELETE /api/operating-rooms/${id}:`, error);
+            return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
+        }
     } catch (error) {
-        console.error(`Erreur DELETE /api/operating-rooms/${id}:`, error);
-        return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
+        console.error(`Erreur DELETE /api/operating-rooms/${context.params.id}:`, error);
+        return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
     }
 } 

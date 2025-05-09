@@ -2,19 +2,21 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "jsx": "react-jsx",
-        "module": "commonjs",
         "types": [
             "jest",
             "@testing-library/jest-dom"
+        ],
+        "lib": [
+            "dom",
+            "esnext"
         ]
     },
     "include": [
         "next-env.d.ts",
         "src/**/*.ts",
         "src/**/*.tsx",
-        "tests/**/*.ts",
-        "tests/**/*.tsx",
         "jest.setup.js",
+        "jest.polyfills.js",
         "src/tests/setup/setup.ts"
     ],
     "exclude": [

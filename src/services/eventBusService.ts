@@ -59,6 +59,14 @@ export class EventBusService {
     }
 
     /**
+     * Alias pour compatibilité : publier un événement
+     * @param event Objet événement contenant au minimum un type
+     */
+    public publish(event: { type: string; data?: any }): void {
+        this.emit(event);
+    }
+
+    /**
      * Supprime tous les abonnements pour un type d'événement donné
      * @param eventType Type d'événement à nettoyer
      */

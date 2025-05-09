@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+/// <reference types="@testing-library/jest-dom" />
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CalendarHeader, CalendarViewType } from '../CalendarHeader';
@@ -31,15 +33,15 @@ describe('CalendarHeader', () => {
             />
         );
 
-        expect(screen.getByText(title)).toBeInTheDocument();
-        expect(screen.getByText(description)).toBeInTheDocument();
+        expect(screen.getByText(title)).toBeTruthy();
+        expect(screen.getByText(description)).toBeTruthy();
     });
 
     test('affiche la plage de dates correctement en format mois', () => {
         render(<CalendarHeader {...mockProps} />);
 
         // Pour janvier 2023 en français
-        expect(screen.getByText(/janvier 2023/i)).toBeInTheDocument();
+        expect(screen.getByText(/janvier 2023/i)).toBeTruthy();
     });
 
     test('appelle onPrevious quand le bouton précédent est cliqué', () => {
@@ -125,20 +127,20 @@ describe('CalendarHeader', () => {
             />
         );
 
-        expect(screen.getByText(/action supplémentaire/i)).toBeInTheDocument();
+        expect(screen.getByText(/action supplémentaire/i)).toBeTruthy();
     });
 
     test('ne montre pas le sélecteur de vue quand showViewSelector est false', () => {
         render(<CalendarHeader {...mockProps} showViewSelector={false} />);
 
         // Les boutons spécifiques (Mois, Semaine, Jour, Liste) ne doivent pas être là
-        expect(screen.queryByRole('button', { name: /^Mois$/i })).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: /semaine/i })).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: /^Jour$/i })).not.toBeInTheDocument(); // Utiliser une regex exacte
-        expect(screen.queryByRole('button', { name: /liste/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /^Mois$/i })).toBeNull();
+        expect(screen.queryByRole('button', { name: /semaine/i })).toBeNull();
+        expect(screen.queryByRole('button', { name: /^Jour$/i })).toBeNull(); // Utiliser une regex exacte
+        expect(screen.queryByRole('button', { name: /liste/i })).toBeNull();
 
         // Le bouton "Aujourd'hui" peut toujours être présent
-        // expect(screen.queryByRole('button', { name: /aujourd'hui/i })).toBeInTheDocument(); // Optionnel
+        // expect(screen.queryByRole('button', { name: /aujourd'hui/i })).toBeTruthy(); // Optionnel
     });
 
     test('ne montre pas la plage de dates quand showDateRange est false', () => {
@@ -149,6 +151,6 @@ describe('CalendarHeader', () => {
             />
         );
 
-        expect(screen.queryByText(/janvier 2023/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/janvier 2023/i)).toBeNull();
     });
 }); 

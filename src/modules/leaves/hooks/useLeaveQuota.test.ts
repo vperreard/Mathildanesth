@@ -4,6 +4,7 @@ import { fetchLeaveBalance, checkLeaveAllowance } from '../services/leaveService
 import { LeaveType } from '../types/leave';
 import { addDays } from 'date-fns';
 import { QuotaCalculationResult } from './useLeaveQuota';
+import { calculateLeaveCountedDays } from '../services/leaveCalculator';
 
 // Mocks pour les services
 jest.mock('../services/leaveService', () => ({
@@ -11,10 +12,16 @@ jest.mock('../services/leaveService', () => ({
     checkLeaveAllowance: jest.fn()
 }));
 
+// Mock pour calculateLeaveCountedDays
+jest.mock('../services/leaveCalculator', () => ({
+    calculateLeaveCountedDays: jest.fn()
+}));
+
 describe('useLeaveQuota', () => {
     const today = new Date();
     const userId = 'user123';
     const mockUserSchedule = {
+        id: 'schedule123',
         workingDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
         workingTimePercentage: 100
     };
@@ -48,14 +55,24 @@ describe('useLeaveQuota', () => {
         message: 'Demande valide'
     };
 
+    const mockCalculationDetails = {
+        countedDays: 3,
+        naturalDays: 3,
+        workDays: 3,
+        publicHolidays: [],
+        weekends: [],
+        detail: []
+    };
+
     beforeEach(() => {
         jest.clearAllMocks();
         (fetchLeaveBalance as jest.Mock).mockResolvedValue(mockLeaveBalance);
         (checkLeaveAllowance as jest.Mock).mockResolvedValue(mockAllowanceCheckResult);
+        (calculateLeaveCountedDays as jest.Mock).mockResolvedValue(mockCalculationDetails);
     });
 
     it('devrait initialiser correctement l\'état', () => {
-        const { result } = renderHook(() => useLeaveQuota());
+        const { result } = renderHook(() => useLeaveQuota({ userId }));
 
         expect(result.current.loading).toBe(false);
         expect(result.current.error).toBeNull();
@@ -69,7 +86,7 @@ describe('useLeaveQuota', () => {
     });
 
     it('devrait charger les quotas de congés', async () => {
-        const { result } = renderHook(() => useLeaveQuota());
+        const { result } = renderHook(() => useLeaveQuota({ userId }));
 
         await act(async () => {
             await result.current.refreshQuotas(userId);
@@ -81,11 +98,11 @@ describe('useLeaveQuota', () => {
         expect(result.current.totalBalance.used).toBe(10);
         expect(result.current.totalBalance.pending).toBe(5);
         expect(result.current.totalBalance.remaining).toBe(20);
-        expect(result.current.quotasByType.length).toBe(8); // Pour tous les types de LeaveType
+        expect(result.current.quotasByType.length).toBe(12); // Mise à jour pour tous les types incluant PATERNITY et PARENTAL
     });
 
     it('devrait récupérer le quota pour un type spécifique', async () => {
-        const { result } = renderHook(() => useLeaveQuota());
+        const { result } = renderHook(() => useLeaveQuota({ userId }));
 
         await act(async () => {
             await result.current.refreshQuotas(userId);
@@ -104,6 +121,7 @@ describe('useLeaveQuota', () => {
 
     it('devrait vérifier si une demande respecte les quotas', async () => {
         const { result } = renderHook(() => useLeaveQuota({
+            userId,
             userSchedule: mockUserSchedule as any
         }));
 
@@ -124,6 +142,7 @@ describe('useLeaveQuota', () => {
             });
         });
 
+        expect(calculateLeaveCountedDays).toHaveBeenCalled();
         expect(checkLeaveAllowance).toHaveBeenCalledWith(userId, LeaveType.ANNUAL, 3);
         expect(quotaResult).toBeDefined();
         if (quotaResult) {
@@ -144,6 +163,7 @@ describe('useLeaveQuota', () => {
         });
 
         const { result } = renderHook(() => useLeaveQuota({
+            userId,
             userSchedule: mockUserSchedule as any
         }));
 
@@ -175,7 +195,7 @@ describe('useLeaveQuota', () => {
         const errorMessage = 'Erreur de chargement des quotas';
         (fetchLeaveBalance as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
-        const { result } = renderHook(() => useLeaveQuota());
+        const { result } = renderHook(() => useLeaveQuota({ userId }));
 
         await act(async () => {
             await result.current.refreshQuotas(userId);

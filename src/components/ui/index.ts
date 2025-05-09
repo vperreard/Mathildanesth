@@ -1,5 +1,5 @@
 // Exporter tous les composants UI
-export { default as Button } from './button';
+export { default as Button, buttonVariants } from './button';
 export { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from './card';
 export { default as Input } from './input';
 export { DatePickerComponent as DatePicker } from './date-picker';
@@ -22,8 +22,9 @@ export { ScrollArea, ScrollBar } from './scroll-area';
 export { Separator } from './separator';
 export { Slider } from './slider';
 export { default as PageHeader } from './PageHeader';
+export { default as SectionTitle } from './SectionTitle';
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip';
-export { Notification, type NotificationProps } from './notification';
+export { Notification } from './notification';
 export { RuleViolationIndicator } from './RuleViolationIndicator';
 export { UnsavedChangesIndicator } from './UnsavedChangesIndicator';
 export {
@@ -41,9 +42,4 @@ export { useToast, toast } from './use-toast';
 export { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose, ToastAction, type ToastProps, type ToastActionProps } from './toast';
 
 // Export des utilitaires UI
-export { cn } from '@/lib/utils';
-
-// Exporter les nouveaux composants d'UI
-export * from './notification';
-export * from './UnsavedChangesIndicator';
-export * from './RuleViolationIndicator'; 
+export { cn } from '@/lib/utils'; 

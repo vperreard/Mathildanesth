@@ -2,7 +2,7 @@
 
 Ce document présente les prochaines étapes prioritaires de développement pour l'application Mathildanesth, basées sur l'analyse du code actuel, de la roadmap, et des fonctionnalités restant à implémenter.
 
-## État actuel (Mai 2025)
+## État actuel (Juin 2025)
 
 ### Modules complétés
 
@@ -39,6 +39,12 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - Support des shifts multiples dans la même journée
   - Compatibilité avec les interfaces User complètes
   - Tests d'intégration robustes
+  
+- ✅ **Documentation consolidée**
+  - Fusion des documentations mathildanesth et MATHILDA
+  - Structure organisée et hiérarchique
+  - Documentation technique et fonctionnelle unifiée
+  - Base documentaire évolutive pour le développement futur
 
 ### Modules en cours
 
@@ -104,7 +110,29 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - Prise en compte des règles dynamiques lors de la génération
   - Feedback visuel sur le respect des règles
 
-### 3. Gestion des indisponibilités et validations (Priorité moyenne)
+### 3. Documentation et gestion des connaissances (Nouvelle priorité haute)
+
+- [x] **Consolidation de la documentation technique**
+  - ✓ Création du dossier `docs-consolidated` avec structure hiérarchique
+  - ✓ Documentation centralisée des modules clés
+  - ✓ Unification des approches de mathildanesth et MATHILDA
+
+- [ ] **Complétion de la documentation manquante**
+  - Documentation détaillée de l'algorithme de génération de planning
+  - Documentation des interfaces utilisateur avec captures d'écran
+  - Diagrammes d'architecture et de flux de données
+
+- [ ] **Guides pour nouveaux développeurs**
+  - Guide d'onboarding et de prise en main
+  - Documentation des standards de code et conventions
+  - Tutoriels pour les composants et modules principaux
+
+- [ ] **Maintenance de la documentation**
+  - Processus d'actualisation régulière de la documentation
+  - Vérification de la cohérence avec le code source
+  - Mise à jour des statuts et prochaines étapes
+
+### 4. Gestion des indisponibilités et validations (Priorité moyenne)
 
 - [ ] **Système d'indisponibilités utilisateurs**
   - Interface de saisie des indisponibilités
@@ -116,7 +144,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - Historique des modifications
   - Système de commentaires et annotations
 
-### 4. Améliorations UX et optimisations (Priorité moyenne)
+### 5. Améliorations UX et optimisations (Priorité moyenne)
 
 - [x] **Améliorations UX prioritaires**
   - ✓ Système de filtrage avancé réutilisable (`AdvancedFilter.tsx`)
@@ -281,7 +309,81 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 
 Ce document sera révisé mensuellement pour refléter l'avancement du projet et l'évolution des priorités. La prochaine mise à jour majeure est prévue pour fin juin 2025.
 
-*Dernière mise à jour : Mai 2025*
+*Dernière mise à jour : Juin 2025*
 
 *   **(P1)** ✅ Mise en place/Refactorisation d'un système de validation des dates robuste et centralisé.
 -   ✓ Correction du hook `useDateValidation` pour alignement avec `useErrorHandler` et correction de la signature et des props d'erreur. 
+
+## Améliorations récentes (Juin 2025)
+
+### Correction du bug de SessionProvider dans le module des congés (Juin 2025)
+
+- **Récemment achevé ✅**
+  - Identification et correction d'une erreur critique dans le module de congés : `Error: [next-auth]: useSession must be wrapped in a <SessionProvider />`
+  - Ajout du composant `SessionProvider` de next-auth/react dans le fichier `src/app/providers.tsx`
+  - Suppression du `SessionProvider` redondant au niveau de la page `src/app/leaves/page.tsx` qui créait des conflits
+  - Corrections des propriétés des composants pour respecter les interfaces TypeScript
+  - Structure de l'authentification maintenant plus robuste pour l'ensemble de l'application
+
+### Implémentation du thème sombre (dark mode) avec préservation des dégradés élégants (Mai 2025)
+
+- **Récemment achevé ✅** 
+  - Configuration de Tailwind avec `darkMode: 'class'` dans `tailwind.config.js`.
+  - Création d'un contexte `ThemeContext` avec un `ThemeProvider` pour gérer l'état du thème.
+  - Intégration du `ThemeProvider` dans `src/app/layout.tsx`.
+  - Développement d'un composant `ThemeSwitcher` avec icônes soleil/lune pour alterner entre les thèmes.
+  - Ajout du `ThemeSwitcher` dans le `Header` et le menu utilisateur `UserProfile`.
+  - Ajout de variables CSS personnalisées pour le mode sombre dans `globals.css`.
+  - Application complète du thème sombre à tous les composants majeurs tout en préservant le thème clair original avec ses beaux dégradés bleu-violet-rose:
+    - Éléments d'interface: boutons, badges, cartes, entrées
+    - Navigation et menus
+    - En-tête et pied de page
+    - Bannières de notifications
+
+## Prochaines étapes prioritaires
+
+### 1. Finalisation du module de gestion des congés récurrents
+
+- **Statut**: En cours
+- **Priorité**: Haute
+- **Tâches**:
+  - Compléter les tests unitaires et d'intégration pour le module de congés récurrents
+  - Finaliser l'interface administrateur pour la gestion des congés récurrents
+  - Implémenter le système de notification pour les congés récurrents
+  - Ajouter une visualisation calendrier pour les congés récurrents
+
+### 2. Optimisation des performances de l'application
+
+- **Statut**: À faire
+- **Priorité**: Haute
+- **Tâches**:
+  - Réduire le temps de chargement initial des pages principales
+  - Optimiser les requêtes API avec la mise en cache
+  - Implémenter le chargement progressif des données volumineuses
+  - Analyser et corriger les problèmes de rerenders inutiles
+
+### 3. Intégration avec le système de planning hospitalier externe
+
+- **Statut**: À faire
+- **Priorité**: Moyenne
+- **Tâches**:
+  - Développer l'API d'intégration avec le système externe
+  - Implémenter la synchronisation bidirectionnelle des plannings
+  - Gérer les conflits de planning entre les deux systèmes
+  - Tester l'intégration dans un environnement de préproduction
+
+## Bugs et problèmes connus
+
+- Problème d'affichage des graphiques dans le dashboard sur certains navigateurs mobiles
+- Performances ralenties sur les grands ensembles de données dans le module de planning
+- Quelques problèmes UI/UX mineurs identifiés dans le module de paramètres administrateur
+
+## Comment contribuer
+
+Pour contribuer au développement de Mathildanesth, veuillez suivre ces étapes:
+
+1. Consultez la documentation technique dans le dossier `/docs/technique/`
+2. Vérifiez les issues ouvertes dans le système de gestion de projet
+3. Créez une branche par fonctionnalité ou correction
+4. Assurez-vous que vos changements respectent les standards de code
+5. Soumettez une PR avec une description détaillée de vos modifications 

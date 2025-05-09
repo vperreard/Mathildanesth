@@ -78,7 +78,7 @@ export async function GET() {
 
         if (!authResult.authenticated) {
             // Vérifier si l'en-tête x-user-role est présent (pour le développement)
-            const headersList = headers();
+            const headersList = await headers();
             const userRole = headersList.get('x-user-role');
 
             // Si nous sommes en développement et que le rôle admin est fourni dans l'en-tête
@@ -89,7 +89,12 @@ export async function GET() {
             }
         }
 
+        // Utiliser le service qui trie correctement les salles par displayOrder
         const rooms = await planningService.getAllOperatingRooms(true);
+
+        // Journalisation pour le débogage
+        console.log(`GET /api/operating-rooms: ${rooms.length} salles récupérées et triées par displayOrder et sector`);
+
         return NextResponse.json(rooms);
     } catch (error) {
         console.error('Erreur lors de la récupération des salles d\'opération:', error);
@@ -104,7 +109,7 @@ export async function POST(request: Request) {
 
         if (!authResult.authenticated) {
             // Vérifier si l'en-tête x-user-role est présent (pour le développement)
-            const headersList = headers();
+            const headersList = await headers();
             const userRole = headersList.get('x-user-role');
 
             if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {

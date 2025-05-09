@@ -59,6 +59,7 @@ model User {
   tramesCreated                 TrameAffectation[]    @relation("CreatedTrames")
   departmentId                  String?
   department                    Department?             @relation(fields: [departmentId], references: [id])
+  sites                         Site[]                @relation("SiteUsers")
 
   @@map("users")
 }
@@ -132,6 +133,7 @@ model OperatingRoom {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   sector           OperatingSector @relation(fields: [sectorId], references: [id])
+  displayOrder     Int             @default(0)
 
   @@index([sectorId])
 }
@@ -289,6 +291,11 @@ model OperatingSector {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   operatingRooms OperatingRoom[]
+  displayOrder   Int             @default(0)
+  siteId         String?
+  site           Site?           @relation(fields: [siteId], references: [id])
+
+  @@index([siteId])
 }
 
 model UserCalendarSettings {
@@ -647,11 +654,29 @@ model Department {
   id           String     @id @default(cuid())
   name         String
   description  String?
+  location     String?
+  contactEmail String?
+  contactPhone String?
+  isActive     Boolean    @default(true)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   users        User[]
 
   @@map("departments")
+}
+
+model Site {
+  id                 String            @id @default(cuid())
+  name               String
+  description        String?
+  isActive           Boolean           @default(true)
+  displayOrder       Int               @default(0)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  operatingSectors   OperatingSector[]
+  users              User[]            @relation("SiteUsers")
+
+  @@map("sites")
 }
 
 enum Role {

@@ -121,7 +121,7 @@ export function generateRecurringDates(
     while (
         occurrenceCount < maxOccurrences &&
         (recurrencePattern.endType === RecurrenceEndType.NEVER ||
-            (recurrencePattern.endType === RecurrenceEndType.COUNT && occurrenceCount < (recurrencePattern.endCount || 0)) ||
+            (recurrencePattern.endType === RecurrenceEndType.COUNT && occurrenceCount < ((recurrencePattern.endCount ?? recurrencePattern.occurrences) || 0)) ||
             (recurrencePattern.endType === RecurrenceEndType.UNTIL_DATE &&
                 (recurrencePattern.endDate && isBefore(currentDate, recurrencePattern.endDate))))
     ) {

@@ -39,8 +39,8 @@ export class QuotaManagementService {
     private static instance: QuotaManagementService;
     private eventBus: EventBusService;
 
-    private constructor() {
-        this.eventBus = EventBusService.getInstance();
+    public constructor(eventBusInstance?: EventBusService) {
+        this.eventBus = eventBusInstance || EventBusService.getInstance();
     }
 
     /**
@@ -67,10 +67,14 @@ export class QuotaManagementService {
 
             return await response.json();
         } catch (error) {
-            console.error('Échec de récupération des règles de transfert:', error);
-            this.eventBus.publish(QuotaManagementEvents.ERROR_OCCURRED, {
-                message: "Impossible de récupérer les règles de transfert",
-                error
+            // console.error('Échec de récupération des règles de transfert:');
+            console.log('>>> DEBUG: Dans catch getTransferRules'); // Log de débogage
+            this.eventBus.publish({
+                type: QuotaManagementEvents.ERROR_OCCURRED,
+                data: {
+                    message: "Impossible de récupérer les règles de transfert",
+                    error
+                }
             });
             return [];
         }
@@ -90,10 +94,14 @@ export class QuotaManagementService {
 
             return await response.json();
         } catch (error) {
-            console.error('Échec de récupération des règles de report:', error);
-            this.eventBus.publish(QuotaManagementEvents.ERROR_OCCURRED, {
-                message: "Impossible de récupérer les règles de report",
-                error
+            // console.error('Échec de récupération des règles de report:');
+            console.log('>>> DEBUG: Dans catch getCarryOverRules'); // Log de débogage
+            this.eventBus.publish({
+                type: QuotaManagementEvents.ERROR_OCCURRED,
+                data: {
+                    message: "Impossible de récupérer les règles de report",
+                    error
+                }
             });
             return [];
         }
@@ -112,10 +120,14 @@ export class QuotaManagementService {
 
             return await response.json();
         } catch (error) {
-            console.error('Échec de récupération des périodes actives:', error);
-            this.eventBus.publish(QuotaManagementEvents.ERROR_OCCURRED, {
-                message: "Impossible de récupérer les périodes actives",
-                error
+            // console.error('Échec de récupération des périodes actives:');
+            console.log('>>> DEBUG: Dans catch getActivePeriods'); // Log de débogage
+            this.eventBus.publish({
+                type: QuotaManagementEvents.ERROR_OCCURRED,
+                data: {
+                    message: "Impossible de récupérer les périodes actives",
+                    error
+                }
             });
             return [];
         }
@@ -137,10 +149,14 @@ export class QuotaManagementService {
 
             return await response.json();
         } catch (error) {
-            console.error('Échec de récupération du bilan des quotas:', error);
-            this.eventBus.publish(QuotaManagementEvents.ERROR_OCCURRED, {
-                message: "Impossible de récupérer le bilan des quotas",
-                error
+            // console.error('Échec de récupération du bilan des quotas:');
+            console.log('>>> DEBUG: Dans catch getUserQuotaSummary'); // Log de débogage
+            this.eventBus.publish({
+                type: QuotaManagementEvents.ERROR_OCCURRED,
+                data: {
+                    message: "Impossible de récupérer le bilan des quotas",
+                    error
+                }
             });
             return null;
         }
@@ -170,10 +186,14 @@ export class QuotaManagementService {
 
             return await response.json();
         } catch (error) {
-            console.error('Échec de récupération de l\'historique des transactions:', error);
-            this.eventBus.publish(QuotaManagementEvents.ERROR_OCCURRED, {
-                message: "Impossible de récupérer l'historique des transactions",
-                error
+            // console.error('Échec de récupération de l\'historique des transactions:');
+            console.log('>>> DEBUG: Dans catch getUserTransactionHistory'); // Log de débogage
+            this.eventBus.publish({
+                type: QuotaManagementEvents.ERROR_OCCURRED,
+                data: {
+                    message: "Impossible de récupérer l'historique des transactions",
+                    error
+                }
             });
             return [];
         }
@@ -221,10 +241,14 @@ export class QuotaManagementService {
 
             return await response.json();
         } catch (error) {
-            console.error('Échec de la simulation du transfert:', error);
-            this.eventBus.publish(QuotaManagementEvents.ERROR_OCCURRED, {
-                message: "Impossible de simuler le transfert",
-                error
+            // console.error('Échec de la simulation du transfert:');
+            console.log('>>> DEBUG: Dans catch simulateTransfer'); // Log de débogage
+            this.eventBus.publish({
+                type: QuotaManagementEvents.ERROR_OCCURRED,
+                data: {
+                    message: "Impossible de simuler le transfert",
+                    error
+                }
             });
             return {
                 isValid: false,
@@ -274,14 +298,18 @@ export class QuotaManagementService {
 
             const result = await response.json();
 
-            this.eventBus.publish(QuotaManagementEvents.TRANSFER_REQUESTED, result);
+            this.eventBus.publish({ type: QuotaManagementEvents.TRANSFER_REQUESTED, data: result });
 
             return result;
         } catch (error) {
-            console.error('Échec de la demande de transfert:', error);
-            this.eventBus.publish(QuotaManagementEvents.ERROR_OCCURRED, {
-                message: "Impossible de créer la demande de transfert",
-                error
+            // console.error('Échec de la demande de transfert:');
+            console.log('>>> DEBUG: Dans catch requestTransfer'); // Log de débogage
+            this.eventBus.publish({
+                type: QuotaManagementEvents.ERROR_OCCURRED,
+                data: {
+                    message: "Impossible de créer la demande de transfert",
+                    error
+                }
             });
             return null;
         }
@@ -319,14 +347,17 @@ export class QuotaManagementService {
 
             const result = await response.json();
 
-            this.eventBus.publish(QuotaManagementEvents.TRANSFER_PROCESSED, result);
+            this.eventBus.publish({ type: QuotaManagementEvents.TRANSFER_PROCESSED, data: result });
 
             return true;
         } catch (error) {
-            console.error('Échec du traitement de la demande de transfert:', error);
-            this.eventBus.publish(QuotaManagementEvents.ERROR_OCCURRED, {
-                message: "Impossible de traiter la demande de transfert",
-                error
+            console.error('Échec du traitement de la demande de transfert:');
+            this.eventBus.publish({
+                type: QuotaManagementEvents.ERROR_OCCURRED,
+                data: {
+                    message: "Impossible de traiter la demande de transfert",
+                    error
+                }
             });
             return false;
         }
@@ -374,10 +405,13 @@ export class QuotaManagementService {
 
             return await response.json();
         } catch (error) {
-            console.error('Échec de la simulation du report:', error);
-            this.eventBus.publish(QuotaManagementEvents.ERROR_OCCURRED, {
-                message: "Impossible de simuler le report",
-                error
+            console.error('Échec de la simulation du report:');
+            this.eventBus.publish({
+                type: QuotaManagementEvents.ERROR_OCCURRED,
+                data: {
+                    message: "Impossible de simuler le report",
+                    error
+                }
             });
             return {
                 isValid: false,
@@ -426,14 +460,17 @@ export class QuotaManagementService {
 
             const result = await response.json();
 
-            this.eventBus.publish(QuotaManagementEvents.CARRY_OVER_REQUESTED, result);
+            this.eventBus.publish({ type: QuotaManagementEvents.CARRY_OVER_REQUESTED, data: result });
 
             return result;
         } catch (error) {
-            console.error('Échec de la demande de report:', error);
-            this.eventBus.publish(QuotaManagementEvents.ERROR_OCCURRED, {
-                message: "Impossible de créer la demande de report",
-                error
+            console.error('Échec de la demande de report:');
+            this.eventBus.publish({
+                type: QuotaManagementEvents.ERROR_OCCURRED,
+                data: {
+                    message: "Impossible de créer la demande de report",
+                    error
+                }
             });
             return null;
         }
@@ -471,14 +508,17 @@ export class QuotaManagementService {
 
             const result = await response.json();
 
-            this.eventBus.publish(QuotaManagementEvents.CARRY_OVER_PROCESSED, result);
+            this.eventBus.publish({ type: QuotaManagementEvents.CARRY_OVER_PROCESSED, data: result });
 
             return true;
         } catch (error) {
-            console.error('Échec du traitement de la demande de report:', error);
-            this.eventBus.publish(QuotaManagementEvents.ERROR_OCCURRED, {
-                message: "Impossible de traiter la demande de report",
-                error
+            console.error('Échec du traitement de la demande de report:');
+            this.eventBus.publish({
+                type: QuotaManagementEvents.ERROR_OCCURRED,
+                data: {
+                    message: "Impossible de traiter la demande de report",
+                    error
+                }
             });
             return false;
         }
@@ -517,10 +557,13 @@ export class QuotaManagementService {
 
             return await response.json();
         } catch (error) {
-            console.error('Échec du calcul de disponibilité:', error);
-            this.eventBus.publish(QuotaManagementEvents.ERROR_OCCURRED, {
-                message: "Impossible de calculer la disponibilité du quota",
-                error
+            console.error('Échec du calcul de disponibilité:');
+            this.eventBus.publish({
+                type: QuotaManagementEvents.ERROR_OCCURRED,
+                data: {
+                    message: "Impossible de calculer la disponibilité du quota",
+                    error
+                }
             });
             return {
                 eligible: false,
@@ -552,23 +595,26 @@ export class QuotaManagementService {
                     const daysUntilExpiry = Math.ceil((expirationDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
                     if (daysUntilExpiry <= 30) {
-                        this.eventBus.publish('notification:create', {
-                            userId,
-                            type: 'quota:expiring',
-                            title: `Expiration de quota à venir`,
-                            message: `${item.days} jours de ${leaveType} vont expirer le ${new Date(item.expirationDate).toLocaleDateString()}`,
+                        this.eventBus.publish({
+                            type: 'notification:create',
                             data: {
-                                leaveType,
-                                days: item.days,
-                                expirationDate: item.expirationDate
-                            },
-                            priority: daysUntilExpiry <= 7 ? 'high' : 'medium'
+                                userId,
+                                type: 'quota:expiring',
+                                title: `Expiration de quota à venir`,
+                                message: `${item.days} jours de ${leaveType} vont expirer le ${new Date(item.expirationDate).toLocaleDateString()}`,
+                                data: {
+                                    leaveType,
+                                    days: item.days,
+                                    expirationDate: item.expirationDate
+                                },
+                                priority: daysUntilExpiry <= 7 ? 'high' : 'medium'
+                            }
                         });
                     }
                 }
             }
         } catch (error) {
-            console.error('Erreur lors de la notification des alertes de quota:', error);
+            console.error('Erreur lors de la notification des alertes de quota:');
         }
     }
 
@@ -611,14 +657,17 @@ export class QuotaManagementService {
 
             const result = await response.json();
 
-            this.eventBus.publish(QuotaManagementEvents.QUOTA_UPDATED, result);
+            this.eventBus.publish({ type: QuotaManagementEvents.QUOTA_UPDATED, data: result });
 
             return true;
         } catch (error) {
-            console.error('Échec de l\'ajustement du quota:', error);
-            this.eventBus.publish(QuotaManagementEvents.ERROR_OCCURRED, {
-                message: "Impossible d'ajuster le quota",
-                error
+            console.error('Échec de l\'ajustement du quota:');
+            this.eventBus.publish({
+                type: QuotaManagementEvents.ERROR_OCCURRED,
+                data: {
+                    message: "Impossible d'ajuster le quota",
+                    error
+                }
             });
             return false;
         }
@@ -630,11 +679,7 @@ export class QuotaManagementService {
      * @param callback Fonction à appeler
      */
     public subscribe(event: QuotaManagementEvents, callback: (data: any) => void): () => void {
-        this.eventBus.subscribe(event, callback);
-        // Retourner une fonction pour se désabonner
-        return () => {
-            // Corriger le bug en utilisant le eventBus.unsubscribe correctement
-            this.eventBus.unsubscribe(event, callback);
-        };
+        // Retourner directement la fonction de désabonnement de l'eventBus réel
+        return this.eventBus.subscribe(event, callback);
     }
 } 

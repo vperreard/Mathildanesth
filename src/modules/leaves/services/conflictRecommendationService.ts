@@ -71,15 +71,20 @@ export class ConflictRecommendationService {
         leaveRequest: Partial<LeaveRequest>,
         user?: User
     ): ConflictAnalysisResult {
-        if (!conflicts.length) {
-            return this.createEmptyAnalysisResult();
+        console.log('[Service Debug] analyzeConflicts - conflicts.length:', conflicts.length);
+        if (!conflicts || conflicts.length === 0) {
+            console.log('[Service Debug] Aucun conflit, appel de createEmptyAnalysisResult');
+            const emptyResult = this.createEmptyAnalysisResult();
+            console.log('[Service Debug] emptyResult:', JSON.stringify(emptyResult));
+            return emptyResult;
         }
 
         try {
-            // Générer des recommandations pour chaque conflit
+            console.log('[Service Debug] analyzeConflicts - generating recommendations...');
             const recommendations: ConflictRecommendation[] = conflicts.map(
                 conflict => this.analyzeConflict(conflict, leaveRequest, user)
             );
+            console.log('[Service Debug] analyzeConflicts - generated recommendations:', JSON.stringify(recommendations));
 
             // Compter les résolutions automatiques et manuelles
             const automatedResolutionsCount = recommendations.filter(r => r.automaticResolution).length;
@@ -114,7 +119,10 @@ export class ConflictRecommendationService {
             };
             logError('Erreur lors de l\'analyse des conflits', errorDetails);
             // Retourner un résultat vide en cas d'erreur
-            return this.createEmptyAnalysisResult();
+            console.log('[Service Debug] Erreur, appel de createEmptyAnalysisResult dans catch');
+            const errorEmptyResult = this.createEmptyAnalysisResult();
+            console.log('[Service Debug] errorEmptyResult:', JSON.stringify(errorEmptyResult));
+            return errorEmptyResult;
         }
     }
 
@@ -551,19 +559,15 @@ export class ConflictRecommendationService {
      * Créer un résultat d'analyse vide
      */
     private createEmptyAnalysisResult(): ConflictAnalysisResult {
-        return {
+        const result = {
             recommendations: [],
             automatedResolutionsCount: 0,
             manualResolutionsCount: 0,
-            priorityDistribution: {
-                [ConflictPriority.VERY_LOW]: 0,
-                [ConflictPriority.LOW]: 0,
-                [ConflictPriority.MEDIUM]: 0,
-                [ConflictPriority.HIGH]: 0,
-                [ConflictPriority.VERY_HIGH]: 0
-            },
+            priorityDistribution: {} as Record<ConflictPriority, number>,
             highestPriorityConflicts: []
         };
+        // console.log('[Service Debug] createEmptyAnalysisResult retourne:', JSON.stringify(result)); // Log déjà ajouté plus haut
+        return result;
     }
 
     /**
@@ -652,13 +656,13 @@ export class ConflictRecommendationService {
     /**
      * Définir les règles par défaut
      */
-    private getDefaultRules(): ConflictResolutionRules {
+    public getDefaultRules(): ConflictResolutionRules {
         return {
             priorityRules: {
                 [ConflictType.USER_LEAVE_OVERLAP]: {
                     [ConflictSeverity.INFORMATION]: ConflictPriority.LOW,
                     [ConflictSeverity.AVERTISSEMENT]: ConflictPriority.MEDIUM,
-                    [ConflictSeverity.BLOQUANT]: ConflictPriority.HIGH
+                    [ConflictSeverity.BLOQUANT]: ConflictPriority.VERY_HIGH
                 },
                 [ConflictType.TEAM_ABSENCE]: {
                     [ConflictSeverity.INFORMATION]: ConflictPriority.MEDIUM,

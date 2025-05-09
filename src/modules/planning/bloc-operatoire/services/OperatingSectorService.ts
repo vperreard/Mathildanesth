@@ -1,13 +1,17 @@
 import { v4 as uuidv4 } from 'uuid';
 import { OperatingSector, OperatingRoom } from '../types';
-import { operatingRoomService } from './OperatingRoomService';
+import { blocPlanningService, BlocPlanningService } from './blocPlanningService';
+import { OperatingSector as BlocOperatingSector } from '../models/BlocModels';
 
 /**
  * Service pour gérer les secteurs opératoires
  * Fournit les méthodes CRUD pour les secteurs
  */
 export class OperatingSectorService {
-    private sectors: Map<string, OperatingSector> = new Map();
+    // Plus de map en mémoire ni de loadData
+
+    // Instance du service réel
+    private realService: BlocPlanningService;
 
     // Erreurs possibles
     private static readonly ERRORS = {
@@ -16,252 +20,158 @@ export class OperatingSectorService {
         UPDATE_FAILED: 'Échec de la mise à jour du secteur',
         DELETE_FAILED: 'Échec de la suppression du secteur',
         HAS_ROOMS: 'Impossible de supprimer un secteur qui contient des salles',
-        INVALID_DATA: 'Données de secteur invalides'
+        INVALID_DATA: 'Données de secteur invalides',
+        NOT_IMPLEMENTED: 'Fonctionnalité non implémentée avec le nouveau service'
     };
 
     constructor() {
-        this.loadData();
+        this.realService = blocPlanningService; // Utiliser l'instance exportée
     }
 
     /**
-     * Charge les données initiales des secteurs
+     * Récupère tous les secteurs triés depuis BlocPlanningService
+     * @returns Liste de tous les secteurs mappés au type local
      */
-    private loadData(): void {
+    public async getAll(): Promise<OperatingSector[]> {
         try {
-            // Secteurs initiaux pour les tests
-            const initialSectors: OperatingSector[] = [
-                {
-                    id: uuidv4(),
-                    nom: 'Chirurgie Générale',
-                    description: 'Secteur principal pour la chirurgie générale',
-                    couleur: '#4f46e5', // indigo
-                    estActif: true,
-                    salles: []
-                },
-                {
-                    id: uuidv4(),
-                    nom: 'Orthopédie',
-                    description: 'Secteur dédié à la chirurgie orthopédique',
-                    couleur: '#059669', // emerald
-                    estActif: true,
-                    salles: []
-                },
-                {
-                    id: uuidv4(),
-                    nom: 'Cardiologie',
-                    description: 'Interventions cardiaques et vasculaires',
-                    couleur: '#dc2626', // red
-                    estActif: true,
-                    salles: []
-                },
-                {
-                    id: uuidv4(),
-                    nom: 'Neurochirurgie',
-                    description: 'Interventions neurologiques spécialisées',
-                    couleur: '#7c3aed', // violet
-                    estActif: true,
-                    salles: []
-                },
-                {
-                    id: uuidv4(),
-                    nom: 'Pédiatrie',
-                    description: 'Chirurgie pour enfants',
-                    couleur: '#0ea5e9', // sky
-                    estActif: false,
-                    salles: []
-                }
-            ];
+            const sectorsFromRealService: BlocOperatingSector[] = await this.realService.getAllOperatingSectors(false);
 
-            // Ajouter les secteurs à la Map
-            initialSectors.forEach(sector => {
-                this.sectors.set(sector.id, sector);
+            return sectorsFromRealService.map(sectorPrisma => {
+                const mappedSector: OperatingSector = {
+                    id: sectorPrisma.id!.toString(), // id est number dans Zod, string ici. Assumons qu'il est défini.
+                    nom: sectorPrisma.name,
+                    description: sectorPrisma.description === null ? undefined : sectorPrisma.description,
+                    couleur: sectorPrisma.colorCode || '#000000', // colorCode est string | null dans Zod
+                    salles: [], // Laisser vide pour l'instant, car non inclus dans getAllOperatingSectors(false)
+                    estActif: sectorPrisma.isActive,
+                    // Les champs suivants ne sont pas dans BlocOperatingSector, donc undefined par défaut:
+                    // specialites?: string[];
+                    // requiresSpecificSkills?: boolean;
+                    // supervisionSpeciale?: boolean;
+                    // responsableId?: string;
+                };
+                return mappedSector;
             });
-
-            console.log(`${initialSectors.length} secteurs chargés avec succès`);
         } catch (error) {
-            console.error('Erreur lors du chargement des données initiales des secteurs', error);
+            console.error('Erreur lors de la récupération des secteurs via BlocPlanningService:', error);
+            // Retourner un tableau vide ou jeter une erreur spécifique au service client
+            return [];
         }
     }
 
     /**
-     * Récupère tous les secteurs
-     * @returns Liste de tous les secteurs
-     */
-    public getAll(): OperatingSector[] {
-        return Array.from(this.sectors.values());
-    }
-
-    /**
      * Récupère un secteur par son ID
-     * @param id ID du secteur à récupérer
+     * @param id ID du secteur à récupérer (string)
      * @returns Le secteur trouvé ou null s'il n'existe pas
      */
-    public getById(id: string): OperatingSector | null {
-        const sector = this.sectors.get(id);
-        return sector || null;
+    public async getById(id: string): Promise<OperatingSector | null> {
+        try {
+            const numericId = parseInt(id, 10);
+            if (isNaN(numericId)) {
+                console.warn(`ID de secteur invalide fourni: ${id}`);
+                return null;
+            }
+            const sectorPrisma = await this.realService.getOperatingSectorById(numericId, false);
+
+            if (!sectorPrisma) {
+                return null;
+            }
+
+            const mappedSector: OperatingSector = {
+                id: sectorPrisma.id!.toString(),
+                nom: sectorPrisma.name,
+                description: sectorPrisma.description === null ? undefined : sectorPrisma.description,
+                couleur: sectorPrisma.colorCode || '#000000',
+                salles: [],
+                estActif: sectorPrisma.isActive,
+            };
+            return mappedSector;
+        } catch (error) {
+            console.error(`Erreur lors de la récupération du secteur ${id} via BlocPlanningService:`, error);
+            return null;
+        }
     }
 
     /**
      * Récupère tous les secteurs actifs
      * @returns Liste des secteurs actifs
      */
-    public getActive(): OperatingSector[] {
-        return this.getAll().filter(sector => sector.estActif);
+    public async getActive(): Promise<OperatingSector[]> {
+        // BlocPlanningService.getActiveOperatingSectors() fait déjà ce filtrage.
+        // On pourrait appeler this.realService.getActiveOperatingSectors()
+        // ou filtrer sur le résultat de getAll() ici.
+        // Pour l'instant, filtrons le résultat mappé de getAll().
+        const allSectors = await this.getAll();
+        return allSectors.filter(sector => sector.estActif);
     }
 
     /**
-     * Crée un nouveau secteur
-     * @param data Données du secteur à créer
-     * @returns Le secteur créé
+     * Crée un nouveau secteur - NON IMPLÉMENTÉ AVEC LE NOUVEAU SERVICE
      */
     public create(data: Omit<OperatingSector, 'id'>): OperatingSector {
-        try {
-            // Créer un nouvel ID unique pour le secteur
-            const id = uuidv4();
-
-            // Créer le secteur avec ses données
-            const newSector: OperatingSector = {
-                id,
-                ...data,
-                salles: data.salles || [] // S'assurer que salles existe
-            };
-
-            // Ajouter à la Map
-            this.sectors.set(id, newSector);
-
-            console.log(`Secteur '${newSector.nom}' créé avec succès (ID: ${id})`);
-            return newSector;
-        } catch (error) {
-            console.error(`Erreur lors de la création du secteur: ${data.nom}`, error);
-            throw new Error(OperatingSectorService.ERRORS.CREATION_FAILED);
-        }
+        console.warn('OperatingSectorService.create non implémenté avec le nouveau service de backend.');
+        throw new Error(OperatingSectorService.ERRORS.NOT_IMPLEMENTED);
+        // Logique de création avec this.realService.createOperatingSector(mappedData) serait nécessaire.
+        // Il faudrait mapper `data` (type local) vers `BlocOperatingSector` (type Zod) pour l'envoyer.
     }
 
     /**
-     * Met à jour un secteur existant
-     * @param id ID du secteur à mettre à jour
-     * @param data Données partielles du secteur à mettre à jour
-     * @returns Le secteur mis à jour ou null si non trouvé
+     * Met à jour un secteur existant - NON IMPLÉMENTÉ AVEC LE NOUVEAU SERVICE
      */
     public update(id: string, data: Partial<OperatingSector>): OperatingSector {
-        try {
-            const existingSector = this.sectors.get(id);
-
-            if (!existingSector) {
-                console.warn(`Tentative de mise à jour d'un secteur inexistant (ID: ${id})`);
-                throw new Error(OperatingSectorService.ERRORS.SECTOR_NOT_FOUND);
-            }
-
-            // Mettre à jour le secteur
-            const updatedSector: OperatingSector = {
-                ...existingSector,
-                ...data,
-                id, // S'assurer que l'ID n'est pas modifié
-                salles: data.salles || existingSector.salles // Maintenir les salles existantes si non spécifiées
-            };
-
-            // Enregistrer la mise à jour
-            this.sectors.set(id, updatedSector);
-
-            console.log(`Secteur '${updatedSector.nom}' mis à jour avec succès (ID: ${id})`);
-            return updatedSector;
-        } catch (error) {
-            console.error(`Erreur lors de la mise à jour du secteur (ID: ${id})`, error);
-            throw new Error(OperatingSectorService.ERRORS.UPDATE_FAILED);
-        }
+        console.warn('OperatingSectorService.update non implémenté avec le nouveau service de backend.');
+        throw new Error(OperatingSectorService.ERRORS.NOT_IMPLEMENTED);
+        // Logique de mise à jour avec this.realService.updateOperatingSector(numericId, mappedData)
     }
 
     /**
-     * Supprime un secteur
-     * @param id ID du secteur à supprimer
-     * @returns true si la suppression a réussi, false sinon
+     * Supprime un secteur - NON IMPLÉMENTÉ AVEC LE NOUVEAU SERVICE
      */
     public delete(id: string): boolean {
-        try {
-            const sector = this.sectors.get(id);
-
-            if (!sector) {
-                console.warn(`Tentative de suppression d'un secteur inexistant (ID: ${id})`);
-                return false;
-            }
-
-            // Vérifier si des salles sont associées à ce secteur
-            const rooms = operatingRoomService.getSectorRooms(id);
-            if (rooms.length > 0) {
-                console.warn(`Impossible de supprimer le secteur '${sector.nom}' car il contient ${rooms.length} salle(s)`);
-                throw new Error(OperatingSectorService.ERRORS.HAS_ROOMS);
-            }
-
-            // Supprimer le secteur
-            const result = this.sectors.delete(id);
-
-            if (result) {
-                console.log(`Secteur '${sector.nom}' supprimé avec succès (ID: ${id})`);
-            }
-
-            return result;
-        } catch (error) {
-            console.error(`Erreur lors de la suppression du secteur (ID: ${id})`, error);
-            throw new Error(OperatingSectorService.ERRORS.DELETE_FAILED);
-        }
+        console.warn('OperatingSectorService.delete non implémenté avec le nouveau service de backend.');
+        throw new Error(OperatingSectorService.ERRORS.NOT_IMPLEMENTED);
+        // Logique de suppression avec this.realService.deleteOperatingSector(numericId)
     }
 
+    // Les méthodes getWithRooms, getAllWithRooms, updateRooms sont également à adapter ou supprimer si non utilisées.
+    // Pour l'instant, elles dépendent de operatingRoomService qui est aussi probablement mocké.
+    // Je vais les commenter pour éviter des erreurs de compilation avec operatingRoomService si celui-ci est modifié/supprimé.
+
     /**
-     * Récupère un secteur avec les salles associées
-     * @param id ID du secteur
-     * @returns Le secteur avec ses salles ou null si non trouvé
+     * Récupère un secteur avec les salles associées - DÉPEND DE OPERATINGROOMSERVICE
      */
+    /*
     public getWithRooms(id: string): (OperatingSector & { roomObjects: OperatingRoom[] }) | null {
-        const sector = this.getById(id);
-
-        if (!sector) {
-            return null;
-        }
-
-        const roomObjects = operatingRoomService.getSectorRooms(id);
-
-        return {
-            ...sector,
-            roomObjects
-        };
+        // ... ancienne logique ...
+        // Nécessiterait d'appeler this.realService.getOperatingSectorById(numericId, true)
+        // puis de mapper les salles aussi.
+        console.warn('OperatingSectorService.getWithRooms non adapté au nouveau service.');
+        return null; 
     }
+    */
 
     /**
-     * Récupère tous les secteurs avec leurs salles associées
-     * @returns Liste des secteurs avec leurs salles
+     * Récupère tous les secteurs avec leurs salles associées - DÉPEND DE OPERATINGROOMSERVICE
      */
+    /*
     public getAllWithRooms(): (OperatingSector & { roomObjects: OperatingRoom[] })[] {
-        return this.getAll().map(sector => {
-            const roomObjects = operatingRoomService.getSectorRooms(sector.id);
-            return {
-                ...sector,
-                roomObjects
-            };
-        });
+        // ... ancienne logique ...
+        console.warn('OperatingSectorService.getAllWithRooms non adapté au nouveau service.');
+        return [];
     }
+    */
 
     /**
-     * Met à jour les IDs des salles associées à un secteur
-     * @param sectorId ID du secteur
-     * @param roomIds Liste des IDs de salles
-     * @returns Le secteur mis à jour ou null si non trouvé
+     * Met à jour les IDs des salles associées à un secteur - DÉPEND DE OPERATINGROOMSERVICE
      */
+    /*
     public updateRooms(sectorId: string, roomIds: string[]): OperatingSector | null {
-        const sector = this.getById(sectorId);
-
-        if (!sector) {
-            return null;
-        }
-
-        const updatedSector = {
-            ...sector,
-            salles: roomIds
-        };
-
-        this.sectors.set(sectorId, updatedSector);
-        return updatedSector;
+        // ... ancienne logique ...
+        console.warn('OperatingSectorService.updateRooms non adapté au nouveau service.');
+        return null;
     }
+    */
 }
 
-// Export d'une instance unique du service (pattern Singleton)
-export const operatingSectorService = new OperatingSectorService(); 
+// Exporter une instance pour une utilisation facile (singleton pattern simple)
+// export const operatingSectorService = new OperatingSectorService(); // Déjà fait dans le hook 

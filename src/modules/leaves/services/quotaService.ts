@@ -485,11 +485,11 @@ export const simulateQuotaTransfer = async (
         );
     }
 
-    // Si aucune règle trouvée, utiliser un ratio par défaut de 1:1
-    const ratio = applicableRule?.ratio || 1.0;
+    // Si aucune règle trouvée, utiliser un taux de conversion par défaut de 1:1
+    const conversionRate = applicableRule?.conversionRate ?? 1.0;
 
     // Calculer le montant cible
-    const targetAmount = request.sourceAmount / ratio;
+    const targetAmount = request.sourceAmount * conversionRate;
 
     // Simuler la mise à jour des quotas
     const sourceRemaining = sourceQuota.remaining - request.sourceAmount;
@@ -503,7 +503,7 @@ export const simulateQuotaTransfer = async (
         sourceRemaining,
         targetTotal,
         appliedRule: applicableRule,
-        message: `Transfert de ${request.sourceAmount} jours de ${getLeaveTypeLabel(request.sourceType)} vers ${getLeaveTypeLabel(request.targetType)} avec un ratio de ${ratio}.`
+        message: `Transfert de ${request.sourceAmount} jours de ${getLeaveTypeLabel(request.sourceType)} vers ${getLeaveTypeLabel(request.targetType)} avec un taux de conversion de ${conversionRate}.`
     };
 };
 

@@ -27,7 +27,12 @@ export async function GET() {
             }
         }
 
+        // Utiliser le service qui ordonne correctement les secteurs
         const sectors = await planningService.getAllOperatingSectors();
+
+        // Journalisation pour le débogage
+        console.log(`GET /api/operating-sectors: ${sectors.length} secteurs triés par displayOrder et site récupérés`);
+
         return NextResponse.json(sectors);
     } catch (error) {
         console.error('Erreur lors de la récupération des secteurs opératoires:', error);

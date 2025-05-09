@@ -22,7 +22,6 @@ import 'tippy.js/themes/light.css';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from 'react-hot-toast';
-import { publicHolidayService } from '../services/publicHolidayService';
 import { useLeaveCalculation } from '../hooks/useLeaveCalculation';
 
 // Enregistrer la locale française pour le DatePicker
@@ -34,6 +33,12 @@ interface SelectableLeaveType {
     code: string;
     label: string;
     description?: string;
+}
+
+// Interface pour les jours fériés
+interface PublicHoliday {
+    date: string;
+    name: string;
 }
 
 // Traductions françaises pour les types de congés
@@ -79,14 +84,32 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
     const [errors, setErrors] = useState<Record<string, string | undefined>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Nouveaux états pour les jours fériés
-    const [publicHolidays, setPublicHolidays] = useState<Array<{ date: string, name: string }>>([]);
+    // Utiliser le hook de calcul des jours de congés
+    const {
+        publicHolidays = [] as PublicHoliday[],
+        status = 'idle',
+        error,
+        workingDays = 0,
+        estimatedDays = null,
+        hasValidDates = false,
+        details = { businessDays: null }
+    } = useLeaveCalculation({ startDate, endDate });
+
+    // Gérer les dates à exclure et à mettre en évidence
     const [excludeDates, setExcludeDates] = useState<Date[]>([]);
     const [highlightDates, setHighlightDates] = useState<Date[]>([]);
 
-    // Utiliser le hook de calcul des jours de congés
-    const { calculateLeaveDays, isCalculating } = useLeaveCalculation();
-    const [estimatedDays, setEstimatedDays] = useState<number | null>(null);
+    // Mettre à jour les dates exclues et mises en évidence lorsque les jours fériés changent
+    useEffect(() => {
+        if (publicHolidays && publicHolidays.length > 0) {
+            // Convertir les dates des jours fériés en objets Date pour le DatePicker
+            const holidayDates = publicHolidays
+                .map(holiday => parseDate(holiday.date))
+                .filter(isValidDateObject);
+
+            setHighlightDates(holidayDates);
+        }
+    }, [publicHolidays]);
 
     // Charger les types de congés au montage
     useEffect(() => {
@@ -121,53 +144,6 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
         fetchTypes();
     }, []);
 
-    // Fonction pour charger les jours fériés dans une plage de dates
-    const loadHolidays = useCallback(async (start: Date | null, end: Date | null) => {
-        if (!start) return;
-
-        // Par défaut, si pas de date de fin, regarder sur les 3 prochains mois
-        const endDate = end || addDaysToDate(start, 90);
-        if (!endDate) return;
-
-        try {
-            const startStr = formatDate(start, ISO_DATE_FORMAT);
-            const endStr = formatDate(endDate, ISO_DATE_FORMAT);
-
-            const holidays = await publicHolidayService.getPublicHolidaysInRange(startStr, endStr);
-            setPublicHolidays(holidays);
-
-            // Créer un tableau de dates pour le DatePicker
-            const holidayDates = holidays.map(h => parseDate(h.date));
-            setHighlightDates(holidayDates.filter(Boolean) as Date[]);
-        } catch (error) {
-            console.error("Erreur lors du chargement des jours fériés:", error);
-        }
-    }, []);
-
-    // Charger les jours fériés quand la date de début change
-    useEffect(() => {
-        loadHolidays(startDate, endDate);
-    }, [startDate, endDate, loadHolidays]);
-
-    // Calculer une estimation du nombre de jours ouvrés entre les dates
-    useEffect(() => {
-        const calculateDays = async () => {
-            if (startDate && endDate && endDate >= startDate) {
-                try {
-                    const result = await calculateLeaveDays(startDate, endDate);
-                    setEstimatedDays(result.businessDays);
-                } catch (error) {
-                    console.error("Erreur lors du calcul des jours de congés:", error);
-                    setEstimatedDays(null);
-                }
-            } else {
-                setEstimatedDays(null);
-            }
-        };
-
-        calculateDays();
-    }, [startDate, endDate, calculateLeaveDays]);
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrors({});
@@ -200,13 +176,13 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                 endDate: formatDate(validData.endDate, ISO_DATE_FORMAT),
                 typeCode: validData.leaveType,
                 reason: validData.reason,
+                countedDays: estimatedDays, // Utilise la valeur calculée par le hook
             });
             toast.success("Demande de congé soumise avec succès.");
             onSuccess(response.data);
             setStartDate(null);
             setEndDate(null);
             setReason('');
-            setEstimatedDays(null);
         } catch (err: any) {
             console.error("Erreur lors de la soumission de la demande:", err);
             const apiError = err.response?.data?.error || 'Une erreur est survenue lors de la soumission.';
@@ -254,7 +230,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                     dayClassName={(date) => {
                         // Ajouter une classe spéciale pour les jours fériés
                         const dateStr = formatDate(date, ISO_DATE_FORMAT);
-                        if (publicHolidays.some(h => h.date === dateStr)) {
+                        if (publicHolidays.some(h => formatDate(parseDate(h.date), ISO_DATE_FORMAT) === dateStr)) {
                             return "holiday-date";
                         }
                         return "";
@@ -265,13 +241,13 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                 </div>
 
                 {/* Tooltip pour afficher le nom du jour férié */}
-                {selected && publicHolidays.some(h => h.date === formatDate(selected, ISO_DATE_FORMAT)) && (
+                {selected && publicHolidays.some(h => parseDate(h.date) && formatDate(parseDate(h.date) as Date, ISO_DATE_FORMAT) === formatDate(selected, ISO_DATE_FORMAT)) && (
                     <div className="absolute bottom-full left-0 mb-1">
                         <Tippy
                             content={
                                 <div className="p-2 text-sm">
                                     <span className="font-bold">
-                                        {publicHolidays.find(h => h.date === formatDate(selected, ISO_DATE_FORMAT))?.name}
+                                        {publicHolidays.find(h => parseDate(h.date) && formatDate(parseDate(h.date) as Date, ISO_DATE_FORMAT) === formatDate(selected, ISO_DATE_FORMAT))?.name}
                                     </span>
                                     <span className="ml-1">(Jour férié)</span>
                                 </div>
@@ -287,6 +263,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                     </div>
                 )}
             </div>
+            {errors[id] && <p className="text-xs text-red-600 mt-1">{errors[id]}</p>}
         </div>
     );
 
@@ -353,14 +330,14 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                     {renderDateInput(endDate, setEndDate, "endDate", "Date de fin", startDate || undefined)}
                 </div>
 
-                {/* Affigage des jours ouvrables estimés avec prise en compte des jours fériés */}
-                {estimatedDays !== null && (
-                    <div className="bg-blue-50 p-4 rounded-md border border-blue-200">
+                {/* Affichage des jours ouvrables estimés avec prise en compte des jours fériés */}
+                {details && details.businessDays !== null && (
+                    <div className="bg-blue-50 p-4 mt-4 rounded-md border border-blue-200">
                         <div className="flex items-start">
                             <Info className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />
                             <div>
                                 <p className="text-sm text-blue-700">
-                                    <span className="font-medium">Jours ouvrables estimés : {estimatedDays}</span>
+                                    <span className="font-medium">Jours ouvrables estimés : {details.businessDays}</span>
                                 </p>
                                 {publicHolidays.length > 0 && startDate && endDate && (
                                     <div className="mt-2">
@@ -375,7 +352,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                                                 })
                                                 .map(h => (
                                                     <li key={h.date}>
-                                                        {formatDate(parseDate(h.date), 'dd/MM/yyyy')} - {h.name}
+                                                        {formatDate(parseDate(h.date) as Date, 'dd/MM/yyyy')} - {h.name}
                                                     </li>
                                                 ))}
                                         </ul>
@@ -386,7 +363,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                     </div>
                 )}
 
-                <div className="mb-6">
+                <div className="mb-6 mt-6">
                     <div className="flex items-center justify-between">
                         <label htmlFor="reason" className="block text-sm font-medium text-gray-700">Motif (optionnel)</label>
                         <span className="text-xs text-gray-500">Max. 200 caractères</span>
@@ -402,12 +379,42 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                         placeholder="Précisez le motif de votre demande si nécessaire..."
                     />
                 </div>
+
+                {/* Affichage des jours calculés */}
+                {hasValidDates && status === 'success' && estimatedDays !== null && (
+                    <div className="bg-blue-50 p-4 rounded-md border border-blue-200 mt-4">
+                        <div className="flex items-start">
+                            <Info className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />
+                            <div>
+                                <p className="text-sm text-blue-700">
+                                    <span className="font-medium">Jours décomptés estimés : {estimatedDays}</span>
+                                    {workingDays !== estimatedDays && ` (${workingDays} jours ouvrables)`}
+                                </p>
+                                {publicHolidays.length > 0 && (
+                                    <p className="text-xs text-blue-600 mt-1">
+                                        ({publicHolidays.length} jour(s) férié(s) inclus dans la période)
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {status === 'loading' && (
+                    <div className="bg-gray-50 p-4 rounded-md border border-gray-200 text-sm text-gray-600">
+                        Calcul des jours en cours...
+                    </div>
+                )}
+                {status === 'error' && error && (
+                    <div className="bg-red-50 p-4 rounded-md border border-red-200 text-sm text-red-700">
+                        Erreur lors du calcul des jours: {error.message}
+                    </div>
+                )}
             </div>
 
             <div className="flex justify-end">
                 <button
                     type="submit"
-                    disabled={isSubmitting || isLoadingTypes}
+                    disabled={isSubmitting || isLoadingTypes || status === 'loading' || !hasValidDates}
                     className="inline-flex items-center justify-center px-6 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                 >
                     {isSubmitting ? 'Envoi en cours...' : 'Soumettre la demande'}

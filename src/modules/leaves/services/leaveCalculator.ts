@@ -96,36 +96,41 @@ export const calculateLeaveCountedDays = async (
 ): Promise<LeaveCalculationDetails | null> => {
     const logger = await getLogger();
     try {
-        // Valider et parser les dates en entrée
+        // Valeurs par défaut des options
+        const skipHolidays = options?.skipHolidays !== false;
+        const countHalfDays = options?.countHalfDays === true;
+        const countHolidaysOnWeekends = options?.countHolidaysOnWeekends === true;
+        const forceCacheRefresh = options?.forceCacheRefresh || false;
+
+        // Parsing des dates
         const startDate = parseDate(startDateInput);
         const endDate = parseDate(endDateInput);
 
-        if (!startDate || !endDate || isAfter(startDate, endDate)) {
+        if (!startDate || !endDate) {
             logger.warn('Invalid dates provided to calculateLeaveCountedDays', { startDateInput, endDateInput });
-            throw new Error("Dates de début ou de fin invalides pour le calcul des congés");
+            return null;
         }
 
-        // Options par défaut
-        const skipHolidays = options?.skipHolidays !== undefined ? options.skipHolidays : true;
-        const countHalfDays = options?.countHalfDays || false;
-        const countHolidaysOnWeekends = options?.countHolidaysOnWeekends || false;
-        const forceCacheRefresh = options?.forceCacheRefresh || false;
+        // Vérifier que la date de fin est après la date de début
+        if (isAfter(startDate, endDate)) {
+            logger.warn('Invalid dates provided to calculateLeaveCountedDays', { startDateInput, endDateInput });
+            return null;
+        }
 
-        // Vérifier le cache si le rafraîchissement n'est pas forcé
-        if (!forceCacheRefresh && schedule.id) {
-            const cacheKey = generateCacheKey({
-                startDate: format(startDate, 'yyyy-MM-dd'),
-                endDate: format(endDate, 'yyyy-MM-dd'),
-                scheduleId: schedule.id,
-                skipHolidays,
-                countHalfDays,
-                countHolidaysOnWeekends
-            });
+        // Créer une clé de cache unique
+        const cacheKey = generateCacheKey({
+            startDate: format(startDate, 'yyyy-MM-dd'),
+            endDate: format(endDate, 'yyyy-MM-dd'),
+            scheduleId: schedule.id,
+            skipHolidays,
+            countHalfDays,
+            countHolidaysOnWeekends
+        });
 
-            const cachedEntry = calculationCache.get(cacheKey);
-            if (cachedEntry && (Date.now() - cachedEntry.timestamp) < CACHE_TTL) {
-                return cachedEntry.result;
-            }
+        // Vérifier si le calcul est déjà en cache
+        const cachedEntry = calculationCache.get(cacheKey);
+        if (cachedEntry && (Date.now() - cachedEntry.timestamp) < CACHE_TTL) {
+            return cachedEntry.result;
         }
 
         logger.info('Starting leave counted days calculation...', { startDate: formatDate(startDate), endDate: formatDate(endDate), scheduleId: schedule.id, options });
@@ -181,6 +186,11 @@ export const calculateLeaveCountedDays = async (
         let currentWeekCountedDays = 0;
         let currentWeekHalfDays = 0;
 
+        // Set d'IDs pour les jours fériés pour recherche rapide
+        const holidayDateSet = new Set(publicHolidays.map(h =>
+            typeof h.date === 'string' ? h.date : format(new Date(h.date), 'yyyy-MM-dd')
+        ));
+
         for (const day of days) {
             const dayWeekEnd = getEndOfWeek(day);
             if (!dayWeekEnd) {
@@ -201,16 +211,12 @@ export const calculateLeaveCountedDays = async (
                         halfDays: currentWeekHalfDays,
                         isWorkingWeek: isWorkingWeekForUser(schedule, currentWeekType)
                     });
-                } else {
-                    throw new Error("Données de semaine invalides avant de pousser dans weeklyBreakdown");
                 }
 
+                // Réinitialiser pour la nouvelle semaine
                 currentWeekStart = getStartOfWeek(day);
                 currentWeekEnd = dayWeekEnd;
                 currentWeekNumber = getWeekNumber(day);
-                if (!currentWeekStart || !currentWeekEnd || currentWeekNumber === null) {
-                    throw new Error("Erreur lors de la réinitialisation des informations de la semaine");
-                }
                 currentWeekType = isEvenWeek(day) ? 'EVEN' : 'ODD';
                 currentWeekDays = 0;
                 currentWeekCountedDays = 0;
@@ -219,84 +225,70 @@ export const calculateLeaveCountedDays = async (
 
             currentWeekDays++;
 
-            // Format de la date pour comparaison
-            const dayFormatted = format(day, 'yyyy-MM-dd');
-
-            // Déterminer si c'est un jour férié
-            const isPublicHoliday = publicHolidays.some(holiday => {
-                const holidayDate = typeof holiday.date === 'string'
-                    ? holiday.date
-                    : format(new Date(holiday.date), 'yyyy-MM-dd');
-                return holidayDate === dayFormatted;
-            });
-
-            // Déterminer si c'est un weekend
+            // Déterminer si c'est un jour travaillé et décompté
+            const formattedDay = format(day, 'yyyy-MM-dd');
             const isWeekend = isDateWeekend(day);
+            const isHoliday = holidayDateSet.has(formattedDay);
 
-            // Déterminer si c'est une demi-journée (par exemple, vendredi après-midi)
-            // Ceci est un exemple, la logique réelle dépendra des besoins spécifiques
-            const isHalfDay = countHalfDays &&
-                day.getDay() === 5 && // Vendredi
-                !isPublicHoliday &&
-                !isWeekend &&
-                isScheduledWorkingDay(schedule, day);
+            // Vérifier si ce jour est un jour ouvré (non weekend et non férié si skipHolidays est vrai)
+            const isWorkDay = !isWeekend && (!isHoliday || !skipHolidays);
 
-            // Déterminer le type de jour
-            let dayType: LeaveDayType = 'REGULAR';
-            if (isWeekend) dayType = 'WEEKEND';
-            else if (isPublicHoliday) dayType = 'HOLIDAY';
-            else if (!isScheduledWorkingDay(schedule, day)) dayType = 'NON_WORKING';
-
-            // Déterminer si le jour est compté dans les jours de congé
-            let isCounted = false;
-            if (isWeekend && !countHolidaysOnWeekends && !isPublicHoliday) {
-                isCounted = false; // Weekend non travaillé, non férié
-            } else if (isPublicHoliday && skipHolidays && (!isWeekend || !countHolidaysOnWeekends)) {
-                isCounted = false; // Férié à ignorer
-            } else if (!isScheduledWorkingDay(schedule, day)) {
-                isCounted = false; // Jour non travaillé selon le planning
-            } else {
-                isCounted = true; // Si aucune exclusion, le jour est compté
+            // Si c'est un jour ouvré, on l'ajoute au décompte
+            if (isWorkDay) {
+                workDays++;
             }
 
-            // Gestion du cas où un jour férié tombe un weekend
-            if (isWeekend && isPublicHoliday && countHolidaysOnWeekends) {
-                // Si on compte les jours fériés tombant le weekend
-                if (!skipHolidays) {
-                    workDays++;
+            // Traitement spécial pour les jours fériés tombant le weekend
+            const isWeekendHoliday = isWeekend && isHoliday;
+            if (isWeekendHoliday && countHolidaysOnWeekends && !skipHolidays) {
+                workDays++; // On compte ce jour comme un jour ouvré supplémentaire
+            }
+
+            // Vérifier si ce jour est travaillé pour l'utilisateur selon son planning
+            // Attention : pour les vendredis, il faut s'assurer qu'ils sont toujours comptés 
+            // même si on ne compte pas les jours fériés weekend
+            const isActualWorkDay = isWorkDay && isScheduledWorkingDay(schedule, day);
+
+            // Cas spécial pour vendredi qui doit toujours être compté quand il est travaillé
+            const isFriday = format(day, 'EEEE', { locale: fr }) === 'vendredi';
+            const isScheduledFriday = isFriday && isScheduledWorkingDay(schedule, day);
+
+            // Déterminer si on doit compter ce jour dans les jours décomptés
+            const shouldCountWeekendHoliday = isWeekendHoliday && countHolidaysOnWeekends && !skipHolidays;
+            const shouldCountDay = isActualWorkDay || shouldCountWeekendHoliday || isScheduledFriday;
+
+            // Si c'est un jour travaillé selon le planning ou un jour férié weekend à compter, on le décompte
+            if (shouldCountDay) {
+                // Gestion des demi-journées si activée
+                if (countHalfDays && isFriday) {
+                    countedDays += 0.5;
+                    currentWeekCountedDays += 0.5;
+                    halfDays++;
+                    currentWeekHalfDays++;
+                    dayDetails.push({
+                        date: day,
+                        type: isHoliday ? 'HOLIDAY' : (isWeekend ? 'WEEKEND' : 'HALF_DAY'),
+                        isCounted: true,
+                        isHalfDay: true
+                    });
+                } else {
                     countedDays++;
                     currentWeekCountedDays++;
-                    isCounted = true;
+                    dayDetails.push({
+                        date: day,
+                        type: isHoliday ? 'HOLIDAY' : (isWeekend ? 'WEEKEND' : 'REGULAR'),
+                        isCounted: true,
+                        isHalfDay: false
+                    });
                 }
+            } else {
+                dayDetails.push({
+                    date: day,
+                    type: isHoliday ? 'HOLIDAY' : (isWeekend ? 'WEEKEND' : 'NON_WORKING'),
+                    isCounted: false,
+                    isHalfDay: false
+                });
             }
-            // Gestion des jours normaux (non weekend)
-            else if (!isWeekend) {
-                // Si ce n'est pas un jour férié ou si on ne les ignore pas
-                if (!isPublicHoliday || !skipHolidays) {
-                    workDays++;
-
-                    if (isScheduledWorkingDay(schedule, day)) {
-                        if (isHalfDay) {
-                            countedDays += 0.5;
-                            halfDays++;
-                            currentWeekHalfDays++;
-                            currentWeekCountedDays += 0.5;
-                        } else {
-                            countedDays++;
-                            currentWeekCountedDays++;
-                        }
-                        isCounted = true;
-                    }
-                }
-            }
-
-            // Ajouter les détails du jour pour le suivi
-            dayDetails.push({
-                date: new Date(day),
-                type: dayType,
-                isCounted,
-                isHalfDay: isHalfDay && isCounted
-            });
         }
 
         // Ajouter la dernière semaine
@@ -336,15 +328,6 @@ export const calculateLeaveCountedDays = async (
 
         // Stocker dans le cache si un ID de planning est disponible
         if (schedule.id) {
-            const cacheKey = generateCacheKey({
-                startDate: format(startDate, 'yyyy-MM-dd'),
-                endDate: format(endDate, 'yyyy-MM-dd'),
-                scheduleId: schedule.id,
-                skipHolidays,
-                countHalfDays,
-                countHolidaysOnWeekends
-            });
-
             calculationCache.set(cacheKey, {
                 result,
                 timestamp: Date.now()
@@ -525,4 +508,4 @@ const isWorkingWeekForUser = (
 
     // Pour les autres types de planning, vérifier s'il y a des jours travaillés
     return (schedule.workingDays?.length || 0) > 0;
-}; 
+};

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import ErrorBoundary from '../../components/ErrorBoundary';
 import { logError } from '../../services/errorLoggingService';
 import { CustomErrorFallback } from '../../components/Calendar/ErrorFallbacks';
@@ -43,17 +43,19 @@ describe('ErrorBoundary Component', () => {
         jest.clearAllMocks();
     });
 
-    test('devrait afficher les enfants quand il n\'y a pas d\'erreur', () => {
+    test('devrait afficher les enfants quand il n\'y a pas d\'erreur', async () => {
         render(
             <ErrorBoundary>
                 <div>Contenu normal</div>
             </ErrorBoundary>
         );
 
-        expect(screen.getByText('Contenu normal')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('Contenu normal')).toBeInTheDocument();
+        });
     });
 
-    test('devrait capturer les erreurs et afficher un fallback par défaut', () => {
+    test('devrait capturer les erreurs et afficher un fallback par défaut', async () => {
         // Supprimer temporairement les erreurs de la console pour ce test
         jest.spyOn(console, 'error').mockImplementation(() => { });
 
@@ -64,9 +66,11 @@ describe('ErrorBoundary Component', () => {
         );
 
         // Vérifier que le ErrorDisplay par défaut est rendu
-        expect(screen.getByText('Une erreur est survenue')).toBeInTheDocument();
-        expect(screen.getByText('Test error')).toBeInTheDocument();
-        expect(screen.getByText('Réessayer')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('Une erreur est survenue')).toBeInTheDocument();
+            expect(screen.getByText('Test error')).toBeInTheDocument();
+            expect(screen.getByText('Réessayer')).toBeInTheDocument();
+        });
 
         // Vérifier que logError a été appelé avec les bons arguments
         expect(logError).toHaveBeenCalledWith('react_error_boundary', expect.objectContaining({
@@ -75,7 +79,7 @@ describe('ErrorBoundary Component', () => {
         }));
     });
 
-    test('devrait afficher un fallback personnalisé sous forme de nœud React', () => {
+    test('devrait afficher un fallback personnalisé sous forme de nœud React', async () => {
         // Supprimer temporairement les erreurs de la console pour ce test
         jest.spyOn(console, 'error').mockImplementation(() => { });
 
@@ -87,7 +91,9 @@ describe('ErrorBoundary Component', () => {
             </ErrorBoundary>
         );
 
-        expect(screen.getByText('Fallback personnalisé')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('Fallback personnalisé')).toBeInTheDocument();
+        });
     });
 
     test('devrait appeler onError quand une erreur se produit', () => {
@@ -108,7 +114,7 @@ describe('ErrorBoundary Component', () => {
         );
     });
 
-    test('devrait afficher un composant fallback personnalisé', () => {
+    test('devrait afficher un composant fallback personnalisé', async () => {
         // Supprimer temporairement les erreurs de la console pour ce test
         jest.spyOn(console, 'error').mockImplementation(() => { });
 
@@ -118,11 +124,13 @@ describe('ErrorBoundary Component', () => {
             </ErrorBoundary>
         );
 
-        expect(screen.getByText('Message personnalisé: Test error')).toBeInTheDocument();
-        expect(screen.getByText('Reset personnalisé')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('Message personnalisé: Test error')).toBeInTheDocument();
+            expect(screen.getByText('Reset personnalisé')).toBeInTheDocument();
+        });
     });
 
-    test('devrait utiliser un composant fallback avec des props personnalisées', () => {
+    test('devrait utiliser un composant fallback avec des props personnalisées', async () => {
         // Supprimer temporairement les erreurs de la console pour ce test
         jest.spyOn(console, 'error').mockImplementation(() => { });
 
@@ -140,7 +148,9 @@ describe('ErrorBoundary Component', () => {
             </ErrorBoundary>
         );
 
-        expect(screen.getByText('Message de test: Test error')).toBeInTheDocument();
-        expect(screen.getByText('Réinitialiser')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('Message de test: Test error')).toBeInTheDocument();
+            expect(screen.getByText('Réinitialiser')).toBeInTheDocument();
+        });
     });
 }); 

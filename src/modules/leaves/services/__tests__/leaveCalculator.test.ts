@@ -1,3 +1,5 @@
+/// <reference types="@testing-library/jest-dom" />
+import '@testing-library/jest-dom';
 import {
     calculateLeaveCountedDays,
     calculateWorkingDays,
@@ -6,7 +8,7 @@ import {
 } from '../leaveCalculator';
 import { publicHolidayService } from '../publicHolidayService';
 import { WorkFrequency, WeekType } from '../../../profiles/types/workSchedule';
-import { parseISO, addDays } from 'date-fns';
+import { parseISO, addDays, format } from 'date-fns';
 
 // Mock du service de jours fériés
 jest.mock('../publicHolidayService', () => ({
@@ -26,7 +28,7 @@ const fullTimeSchedule = {
     workingTimePercentage: 100,
     annualLeaveAllowance: 25,
     isActive: true,
-    validFrom: new Date()
+    validFrom: new Date(2000, 0, 1) // Date fixe dans le passé
 };
 
 // Exemple d'emploi du temps à temps partiel
@@ -39,7 +41,7 @@ const partTimeSchedule = {
     workingTimePercentage: 50,
     annualLeaveAllowance: 12.5,
     isActive: true,
-    validFrom: new Date()
+    validFrom: new Date(2000, 0, 1) // Date fixe dans le passé
 };
 
 describe('Leave Calculator Service', () => {
@@ -149,6 +151,7 @@ describe('Leave Calculator Service', () => {
             expect(resultWithoutCount).not.toBeNull();
             expect(resultWithoutCount?.naturalDays).toBe(3);
             expect(resultWithoutCount?.workDays).toBe(1); // Seulement le vendredi
+
             expect(resultWithoutCount?.countedDays).toBe(1);
 
             // En comptant les jours fériés weekend

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
+import { QuotaManagementService, QuotaManagementEvents } from '../services/QuotaManagementService';
 import { LeaveType } from '../types/leave';
 import { QuotaCarryOverRule, QuotaCarryOverRequest } from '../types/quota';
-import { QuotaManagementService } from '../services/quotaManagementService';
 
 /**
  * Hook pour la gestion des reports de quotas d'une période à une autre

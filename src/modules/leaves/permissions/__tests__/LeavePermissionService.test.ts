@@ -1,15 +1,16 @@
 import { LeavePermissionService, LeavePermission, LeaveRole } from '../LeavePermissionService';
-import { getSession } from 'next-auth/react';
+import { getSession, GetSessionParams } from 'next-auth/react';
 import { User, Role, ExperienceLevel } from '@/types/user';
-import { auditService } from '../../services/AuditService';
+import { auditService, AuditActionType, AuditSeverity } from '../../services/AuditService';
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import AuditService from '@/services/AuditService';
+import { Session } from "next-auth";
 
 // Mock des dépendances
-jest.mock('next-auth/react');
+// supprimer jest.mock('next-auth/react'); car un mock manuel est fourni
 jest.mock('../../services/AuditService', () => ({
     auditService: {
-        logPermissionChange: jest.fn().mockResolvedValue(undefined)
+        logPermissionChange: jest.fn<() => Promise<void>>().mockResolvedValue(undefined)
     }
 }));
 
@@ -18,7 +19,7 @@ jest.mock('@/services/AuditService');
 
 describe('LeavePermissionService', () => {
     let permissionService: LeavePermissionService;
-    let mockFetch: jest.Mock;
+    let mockFetch: jest.Mock<typeof global.fetch>;
 
     // Utilisateurs de test
     const mockEmployeeUser: User = {
@@ -107,13 +108,22 @@ describe('LeavePermissionService', () => {
                 return Promise.resolve(mockEmployeeUser);
             });
 
-        // Mock de getSession
-        (getSession as jest.Mock).mockResolvedValue({
-            user: mockEmployeeUser
-        });
+        // Préparer l'utilisateur pour la session avec le type Role correct
+        const sessionUser = {
+            ...mockEmployeeUser,
+            id: mockEmployeeUser.id,
+            role: 'USER' as Role
+        };
+
+        // getSession est notre mock manuel (un jest.fn()), il faut le caster pour utiliser mockImplementation
+        (getSession as jest.Mock).mockImplementation(() => Promise.resolve({
+            user: sessionUser,
+            expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            accessToken: 'mock-access-token'
+        } as Session | null));
 
         // Mock fetch
-        mockFetch = jest.fn();
+        mockFetch = jest.fn() as jest.Mock<typeof global.fetch>;
         global.fetch = mockFetch;
     });
 
@@ -227,9 +237,9 @@ describe('LeavePermissionService', () => {
         it('devrait vérifier les permissions relatives à l\'équipe correctement', async () => {
             // Arrange
             jest.spyOn(permissionService as any, 'isUserInTeam')
-                .mockImplementation((userId: string, managerId: string) => {
+                .mockImplementation(async (userId: unknown, managerId: unknown) => {
                     // Simuler que l'utilisateur 'employee-123' est dans l'équipe du manager 'manager-456'
-                    return Promise.resolve(userId === 'employee-123' && managerId === 'manager-456');
+                    return userId === 'employee-123' && managerId === 'manager-456';
                 });
 
             // Act & Assert
@@ -302,15 +312,15 @@ describe('LeavePermissionService', () => {
     describe('grantPermission', () => {
         it('devrait accorder une permission à un utilisateur', async () => {
             // Arrange
-            const userId = 'user-123';
-            const permission = LeavePermission.APPROVE_ALL_LEAVES;
-            mockFetch.mockResolvedValueOnce({ // Config spécifique pour ce test
+            const userId = 'test-user';
+            const permissionToGrant = LeavePermission.VIEW_REPORTS;
+            mockFetch.mockResolvedValueOnce({
                 ok: true,
-                json: async () => ({ success: true })
-            });
+                json: () => Promise.resolve({ success: true })
+            } as Response);
 
             // Act
-            const result = await permissionService.grantPermission(userId, permission);
+            const result = await permissionService.grantPermission(userId, permissionToGrant);
 
             // Assert
             expect(result).toBe(true);
@@ -319,38 +329,64 @@ describe('LeavePermissionService', () => {
                 expect.objectContaining({
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ permission })
+                    body: JSON.stringify({ permission: permissionToGrant })
                 })
             );
         });
 
-        it("devrait retourner false si l'API échoue", async () => {
+        it('devrait retourner false si l\'API échoue', async () => {
             // Arrange
-            const userId = 'user-123';
-            const permission = LeavePermission.APPROVE_ALL_LEAVES;
-            mockFetch.mockResolvedValueOnce({ // Config spécifique pour l'échec
+            const userId = 'test-user';
+            const permissionToGrant = LeavePermission.VIEW_REPORTS;
+            mockFetch.mockResolvedValueOnce({
                 ok: false,
                 status: 500,
-                json: async () => ({ message: 'Server Error' })
-            });
+                json: () => Promise.resolve({ message: 'API Error' })
+            } as Response);
+
+            const getCurrentUserSpy = jest.spyOn(permissionService as any, 'getCurrentUser').mockResolvedValue(mockManagerUser);
+
+            const hasPermissionSpy = jest.spyOn(permissionService, 'hasPermission')
+                .mockImplementation(async (permission: LeavePermission, user?: User) => {
+                    if (user?.id === mockManagerUser.id && permission === LeavePermission.MANAGE_LEAVE_RULES) {
+                        return true; // Permettre de passer la garde pour ce test
+                    }
+                    // Pour tous les autres appels à hasPermission durant ce test spécifique, retourner false.
+                    // Cela isole la logique que nous testons (l'échec de fetch).
+                    return false;
+                });
 
             // Act
-            const result = await permissionService.grantPermission(userId, permission);
+            const result = await permissionService.grantPermission(userId, permissionToGrant);
 
             // Assert
             expect(result).toBe(false);
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+            expect(auditService.logPermissionChange).toHaveBeenCalledWith(
+                expect.anything(), // AuditActionType.PERMISSION_GRANT_FAILED - utiliser expect.anything() pour l'instant
+                expect.stringContaining('Échoué (API: 500)'),
+                expect.anything(), // AuditSeverity.ERROR - utiliser expect.anything() pour l'instant
+                expect.objectContaining({ userId, permission: permissionToGrant, granterId: mockManagerUser.id })
+            );
+
+            // Restaurer les spies
+            getCurrentUserSpy.mockRestore();
+            hasPermissionSpy.mockRestore();
         });
     });
 
     describe('revokePermission', () => {
         it('devrait révoquer une permission d\'un utilisateur', async () => {
             // Arrange
-            const userId = 'user-123';
-            const permission = LeavePermission.APPROVE_ALL_LEAVES;
-            mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) });
+            const userId = 'test-user';
+            const permissionToRevoke = LeavePermission.VIEW_REPORTS;
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                json: () => Promise.resolve({ success: true })
+            } as Response);
 
             // Act
-            const result = await permissionService.revokePermission(userId, permission);
+            const result = await permissionService.revokePermission(userId, permissionToRevoke);
 
             // Assert
             expect(result).toBe(true);
@@ -358,66 +394,94 @@ describe('LeavePermissionService', () => {
                 `/api/leaves/permissions/${userId}/revoke`,
                 expect.objectContaining({
                     method: 'POST',
-                    body: JSON.stringify({ permission })
+                    body: JSON.stringify({ permission: permissionToRevoke })
                 })
             );
         });
 
         it('devrait retourner false si l\'API échoue', async () => {
             // Arrange
-            const userId = 'user-123';
-            const permission = LeavePermission.APPROVE_ALL_LEAVES;
-            mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
+            const userId = 'test-user';
+            const permissionToRevoke = LeavePermission.VIEW_REPORTS;
+            mockFetch.mockResolvedValueOnce({
+                ok: false,
+                status: 500,
+                json: () => Promise.resolve({ message: 'API Error' })
+            } as Response);
+
+            const getCurrentUserSpy = jest.spyOn(permissionService as any, 'getCurrentUser').mockResolvedValue(mockManagerUser);
+            const hasPermissionSpy = jest.spyOn(permissionService, 'hasPermission')
+                .mockImplementation(async (permission: LeavePermission, user?: User) => {
+                    if (user?.id === mockManagerUser.id && permission === LeavePermission.MANAGE_LEAVE_RULES) {
+                        return true;
+                    }
+                    return false;
+                });
 
             // Act
-            const result = await permissionService.revokePermission(userId, permission);
+            const result = await permissionService.revokePermission(userId, permissionToRevoke);
 
             // Assert
             expect(result).toBe(false);
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+            expect(auditService.logPermissionChange).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.stringContaining('Échoué (API: 500)'),
+                expect.anything(),
+                expect.objectContaining({ userId, permission: permissionToRevoke, granterId: mockManagerUser.id })
+            );
+            getCurrentUserSpy.mockRestore();
+            hasPermissionSpy.mockRestore();
         });
     });
 
     describe('getUserPermissions', () => {
         it('devrait retourner toutes les permissions d\'un utilisateur', async () => {
             // Arrange
-            const userId = 'user-123';
-            const expectedPermissions = [
-                LeavePermission.VIEW_OWN_LEAVES,
-                LeavePermission.REQUEST_LEAVE,
-                LeavePermission.VIEW_TEAM_LEAVES,
-                LeavePermission.VIEW_REPORTS // Permission accordée spécifiquement
-            ];
-            mockFetch.mockResolvedValueOnce({ // Config spécifique
+            const userId = 'test-user';
+            const mockPermissions = [LeavePermission.VIEW_REPORTS, LeavePermission.REQUEST_LEAVE];
+            mockFetch.mockResolvedValueOnce({
                 ok: true,
-                json: async () => ({ permissions: expectedPermissions })
-            });
+                json: () => Promise.resolve({ permissions: mockPermissions })
+            } as Response);
 
             // Act
             const permissions = await permissionService.getUserPermissions(userId);
 
             // Assert
             expect(mockFetch).toHaveBeenCalledWith(`/api/leaves/permissions/${userId}`);
-            expect(permissions).toEqual(expectedPermissions);
+            expect(permissions).toEqual(mockPermissions);
         });
 
         it('devrait retourner un tableau vide si l\'API échoue', async () => {
             // Arrange
-            const userId = 'user-123';
-            mockFetch.mockResolvedValueOnce({ ok: false, status: 404 });
+            const userId = 'test-user';
+            mockFetch.mockResolvedValueOnce({
+                ok: false,
+                status: 500,
+                json: () => Promise.resolve({ message: 'API Error' })
+            } as Response);
+            // Pas besoin de getCurrentUserSpy ou hasPermissionSpy si la méthode getUserPermissions
+            // ne vérifie pas les droits de l'appelant de cette manière.
 
             // Act
             const permissions = await permissionService.getUserPermissions(userId);
 
             // Assert
             expect(permissions).toEqual([]);
+            // Ajouter une vérification pour log d'audit si getUserPermissions en fait un en cas d'échec.
+            // D'après le code du service, il ne semble pas le faire, il logue seulement en cas d'erreur interne.
         });
     });
 
     describe('resetUserPermissions', () => {
         it('devrait réinitialiser les permissions personnalisées d\'un utilisateur', async () => {
             // Arrange
-            const userId = 'user-123';
-            mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) });
+            const userId = 'custom-user-123'; // Un utilisateur avec des permissions personnalisées
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                json: () => Promise.resolve({ success: true })
+            } as Response);
 
             // Act
             const result = await permissionService.resetUserPermissions(userId);
@@ -432,14 +496,35 @@ describe('LeavePermissionService', () => {
 
         it('devrait retourner false si l\'API échoue', async () => {
             // Arrange
-            const userId = 'user-123';
-            mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
+            const userId = 'test-user';
+            mockFetch.mockResolvedValueOnce({
+                ok: false,
+                status: 500,
+                json: () => Promise.resolve({ message: 'API Error' })
+            } as Response);
+
+            const getCurrentUserSpy = jest.spyOn(permissionService as any, 'getCurrentUser').mockResolvedValue(mockManagerUser);
+            const hasPermissionSpy = jest.spyOn(permissionService, 'hasPermission')
+                .mockImplementation(async (permission: LeavePermission, user?: User) => {
+                    if (user?.id === mockManagerUser.id && permission === LeavePermission.MANAGE_LEAVE_RULES) {
+                        return true;
+                    }
+                    return false;
+                });
 
             // Act
             const result = await permissionService.resetUserPermissions(userId);
 
             // Assert
             expect(result).toBe(false);
+            expect(auditService.logPermissionChange).toHaveBeenCalledWith(
+                expect.anything(), // AuditActionType.PERMISSION_RESET_FAILED
+                expect.stringContaining('Échoué (API: 500)'),
+                expect.anything(), // AuditSeverity.ERROR
+                expect.objectContaining({ userId, granterId: mockManagerUser.id })
+            );
+            getCurrentUserSpy.mockRestore();
+            hasPermissionSpy.mockRestore();
         });
     });
 }); 

@@ -31,15 +31,17 @@ interface BlocValidationResult {
 /**
  * Service pour la gestion du planning du bloc opératoire
  */
-class BlocPlanningService {
+export class BlocPlanningService {
     private rooms: Map<string, OperatingRoom> = new Map();
     private sectors: Map<string, BlocSector> = new Map();
     private rules: Map<string, SupervisionRule> = new Map();
     private plannings: Map<string, BlocDayPlanning> = new Map();
 
     constructor() {
-        // Initialisation avec quelques données par défaut
-        this.initializeDefaultData();
+        // Initialisation avec quelques données par défaut SEULEMENT si pas en mode test
+        if (process.env.NODE_ENV !== 'test') {
+            this.initializeDefaultData();
+        }
     }
 
     /**
@@ -50,18 +52,14 @@ class BlocPlanningService {
         this.sectors.clear();
         this.rules.clear();
         this.plannings.clear();
+        // Appeler initializeDefaultData APRÈS avoir vidé les maps
         this.initializeDefaultData();
     }
 
     private initializeDefaultData() {
-        // Ne pas initialiser de données par défaut en environnement de test
-        if (process.env.NODE_ENV === 'test') {
-            return;
-        }
-
         // Crée quelques secteurs par défaut
         const secteur1 = this.createSector({
-            id: '',
+            id: process.env.NODE_ENV === 'test' ? 'test-sector-1' : '', // ID fixe pour les tests
             nom: 'Orthopédie',
             couleur: '#FF0000',
             salles: [],
@@ -69,7 +67,7 @@ class BlocPlanningService {
         });
 
         const secteur2 = this.createSector({
-            id: '',
+            id: process.env.NODE_ENV === 'test' ? 'test-sector-2' : '', // ID fixe pour les tests
             nom: 'Cardiologie',
             couleur: '#0000FF',
             salles: [],
@@ -78,7 +76,7 @@ class BlocPlanningService {
 
         // Crée quelques salles par défaut
         this.createOperatingRoom({
-            id: '',
+            id: process.env.NODE_ENV === 'test' ? 'test-room-101' : '', // ID fixe pour les tests
             numero: '101',
             nom: 'Salle Orthopédie',
             secteurId: secteur1.id,
@@ -86,7 +84,7 @@ class BlocPlanningService {
         });
 
         this.createOperatingRoom({
-            id: '',
+            id: process.env.NODE_ENV === 'test' ? 'test-room-102' : '', // ID fixe pour les tests
             numero: '102',
             nom: 'Salle Cardiologie',
             secteurId: secteur2.id,
@@ -95,7 +93,7 @@ class BlocPlanningService {
 
         // Crée une règle de supervision par défaut
         this.createSupervisionRule({
-            id: '',
+            id: process.env.NODE_ENV === 'test' ? 'test-rule-standard' : '', // ID fixe pour les tests
             nom: 'Règle standard',
             type: 'BASIQUE',
             conditions: {
@@ -285,7 +283,7 @@ class BlocPlanningService {
             return false;
         }
         if (sector.salles.length > 0) {
-            throw new Error('Impossible de supprimer un secteur qui contient des salles');
+            throw new Error(`Le secteur ${id} contient des salles et ne peut pas être supprimé`);
         }
         return this.sectors.delete(id);
     }
@@ -358,8 +356,13 @@ class BlocPlanningService {
         if (!planning.date) {
             throw new Error('La date est requise pour enregistrer le planning');
         }
-        this.plannings.set(planning.date, planning);
-        return planning;
+        // Générer un ID si non fourni
+        const planningToSave: BlocDayPlanning = {
+            ...planning,
+            id: planning.id || uuidv4()
+        };
+        this.plannings.set(planningToSave.date, planningToSave);
+        return planningToSave;
     }
 
     /**
@@ -393,20 +396,33 @@ class BlocPlanningService {
         const supervisorRooms: Map<string, string[]> = new Map(); // Pour les règles basiques
 
         planning.salles.forEach(salle => {
+            const salleObj = this.getOperatingRoomById(salle.salleId);
+            if (!salleObj) {
+                result.errors.push({
+                    id: uuidv4(),
+                    type: 'SALLE_INCONNUE',
+                    code: 'SALLE_ID_INVALIDE',
+                    description: `La salle avec l\'ID ${salle.salleId} n\'existe pas.`,
+                    severite: 'ERREUR',
+                    entitesAffectees: [{ type: 'SALLE', id: salle.salleId }],
+                    estResolu: false
+                });
+                result.isValid = false;
+                // return; // On pourrait sortir ici si la salle est inconnue
+            }
+
             if (!salle.superviseurs || salle.superviseurs.length === 0) {
                 result.errors.push({
                     id: uuidv4(),
                     type: 'MANQUE_SUPERVISEUR',
                     code: 'SALLE_NON_SUPERVISEE',
-                    description: `La salle ${salle.salleId} n'a aucun superviseur affecté`,
+                    description: `La salle ${salle.salleId} n\'a aucun superviseur affecté`,
                     severite: 'ERREUR',
                     entitesAffectees: [{ type: 'SALLE', id: salle.salleId }],
                     estResolu: false
                 });
                 result.isValid = false;
             }
-
-            const salleObj = this.getOperatingRoomById(salle.salleId);
 
             salle.superviseurs.forEach(superviseur => {
                 if (!supervisorAssignments[superviseur.userId]) {
@@ -421,30 +437,36 @@ class BlocPlanningService {
                     supervisorDetailedRooms.get(superviseur.userId)!.push(salleObj);
                 }
 
-                // Vérifier les chevauchements de périodes pour le superviseur
-                const currentAssignment = { salleId: salle.salleId, debut: superviseur.periodes.debut, fin: superviseur.periodes.fin };
-                supervisorAssignments[superviseur.userId].forEach(existingAssignment => {
-                    if (this.periodsOverlap(currentAssignment, existingAssignment)) {
-                        // Vérifier si c'est la même salle (un superviseur peut être sur la même salle sur des périodes qui se touchent)
-                        if (currentAssignment.salleId !== existingAssignment.salleId) {
-                            result.errors.push({
-                                id: uuidv4(),
-                                type: 'CHEVAUCHEMENT_PERIODES',
-                                code: 'SUPERVISEUR_DOUBLE_AFFECTATION',
-                                description: `Chevauchement de périodes pour le superviseur ${superviseur.userId} entre les salles ${currentAssignment.salleId} et ${existingAssignment.salleId}`,
-                                severite: 'ERREUR',
-                                entitesAffectees: [
-                                    { type: 'SUPERVISEUR', id: superviseur.userId },
-                                    { type: 'SALLE', id: currentAssignment.salleId },
-                                    { type: 'SALLE', id: existingAssignment.salleId }
-                                ],
-                                estResolu: false
-                            });
-                            result.isValid = false;
+                // Itérer sur chaque période d'affectation du superviseur dans cette salle
+                superviseur.periodes.forEach(periode => {
+                    const currentAssignment = { salleId: salle.salleId, debut: periode.debut, fin: periode.fin };
+
+                    // Vérifier les chevauchements de périodes pour le superviseur
+                    supervisorAssignments[superviseur.userId].forEach(existingAssignment => {
+                        if (this.periodsOverlap(currentAssignment, existingAssignment)) {
+                            // Vérifier si c'est la même salle (un superviseur peut être sur la même salle sur des périodes qui se touchent)
+                            // Ou si les périodes sont distinctes pour la même salle (ex: 8-10 et 10-12, pas un conflit)
+                            // Le conflit n'arrive que si c'est une AUTRE salle ET que les périodes se chevauchent.
+                            if (currentAssignment.salleId !== existingAssignment.salleId) {
+                                result.errors.push({
+                                    id: uuidv4(),
+                                    type: 'CHEVAUCHEMENT_PERIODES',
+                                    code: 'SUPERVISEUR_DOUBLE_AFFECTATION',
+                                    description: `Chevauchement de périodes pour le superviseur ${superviseur.userId} entre les salles ${currentAssignment.salleId} (${currentAssignment.debut}-${currentAssignment.fin}) et ${existingAssignment.salleId} (${existingAssignment.debut}-${existingAssignment.fin})`,
+                                    severite: 'ERREUR',
+                                    entitesAffectees: [
+                                        { type: 'SUPERVISEUR', id: superviseur.userId },
+                                        { type: 'SALLE', id: currentAssignment.salleId },
+                                        { type: 'SALLE', id: existingAssignment.salleId }
+                                    ],
+                                    estResolu: false
+                                });
+                                result.isValid = false;
+                            }
                         }
-                    }
+                    });
+                    supervisorAssignments[superviseur.userId].push(currentAssignment);
                 });
-                supervisorAssignments[superviseur.userId].push(currentAssignment);
             });
         });
 

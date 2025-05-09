@@ -1,6 +1,16 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
 import UserProfile from '../UserProfile';
+import { ThemeProvider } from '@/context/ThemeContext';
+
+// Mock du ThemeContext
+jest.mock('@/context/ThemeContext', () => ({
+    ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
+    useTheme: () => ({
+        theme: 'light',
+        setTheme: jest.fn()
+    })
+}));
 
 describe('UserProfile', () => {
     const mockUser = {
@@ -30,22 +40,26 @@ describe('UserProfile', () => {
         jest.clearAllMocks();
     });
 
+    const renderWithTheme = (ui: React.ReactElement) => {
+        return render(<ThemeProvider>{ui}</ThemeProvider>);
+    };
+
     it('affiche le nom et prénom de l\'utilisateur', () => {
-        render(<UserProfile user={mockUser} onLogout={mockOnLogout} />);
+        renderWithTheme(<UserProfile user={mockUser} onLogout={mockOnLogout} />);
         const userNameElements = screen.getAllByText('John Doe');
         expect(userNameElements.length).toBeGreaterThan(0);
         expect(userNameElements[0]).toBeInTheDocument();
     });
 
     it('affiche le menu déroulant au clic', () => {
-        render(<UserProfile user={mockUser} onLogout={mockOnLogout} />);
+        renderWithTheme(<UserProfile user={mockUser} onLogout={mockOnLogout} />);
         const profileButton = screen.getByRole('button', { name: new RegExp(`${mockUser.prenom}\\s+${mockUser.nom}`, 'i') });
         fireEvent.click(profileButton);
         expect(screen.getByText('Mon profil')).toBeInTheDocument();
     });
 
     it('appelle onLogout lors du clic sur le bouton de déconnexion', () => {
-        render(<UserProfile user={mockUser} onLogout={mockOnLogout} />);
+        renderWithTheme(<UserProfile user={mockUser} onLogout={mockOnLogout} />);
         const profileButton = screen.getByRole('button', { name: new RegExp(`${mockUser.prenom}\\s+${mockUser.nom}`, 'i') });
         fireEvent.click(profileButton); // Ouvrir d'abord le menu
         const logoutButton = screen.getByText('Déconnexion');
@@ -54,17 +68,17 @@ describe('UserProfile', () => {
     });
 
     it('affiche le bon rôle utilisateur', () => {
-        render(<UserProfile user={mockUser} onLogout={mockOnLogout} />);
+        renderWithTheme(<UserProfile user={mockUser} onLogout={mockOnLogout} />);
         expect(screen.getByText('Administrateur')).toBeInTheDocument();
     });
 
     it('affiche le bon rôle pour un admin partiel', () => {
-        render(<UserProfile user={partialAdminUser} onLogout={mockOnLogout} />);
+        renderWithTheme(<UserProfile user={partialAdminUser} onLogout={mockOnLogout} />);
         expect(screen.getByText('Admin Partiel')).toBeInTheDocument();
     });
 
     it('affiche le bon rôle pour un utilisateur normal', () => {
-        render(<UserProfile user={normalUser} onLogout={mockOnLogout} />);
+        renderWithTheme(<UserProfile user={normalUser} onLogout={mockOnLogout} />);
         expect(screen.getByText('Utilisateur')).toBeInTheDocument();
     });
 }); 

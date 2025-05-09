@@ -1,17 +1,10 @@
-import '@testing-library/jest-dom';
+// import '@testing-library/jest-dom';
 import { TextEncoder, TextDecoder } from 'util';
-import { server } from '../mocks/server';
+// Désactivation temporaire de MSW jusqu'à résolution du problème de TextEncoder
+// import { server } from '../mocks/server';
 
 // Configuration pour les mocks MSW
-// let serverMock: any;
-
-try {
-    // Importer MSW server si disponible
-    // const { server } = require('../mocks/server');
-    // serverMock = server;
-} catch (error) {
-    console.warn('MSW serveur non configuré. Les appels API ne seront pas mockés par défaut.');
-}
+// let serverMock = server;
 
 // Capture des logs d'erreur console pour les tests
 const originalConsoleError = console.error;
@@ -32,22 +25,25 @@ jest.spyOn(console, 'error');
 
 // Setup MSW pour mocker les requêtes réseau si disponible
 beforeAll(() => {
-    if (server) {
-        server.listen();
-    }
+    // Désactivation temporaire
+    /*if (serverMock) {
+        serverMock.listen();
+    }*/
 });
 
 afterEach(() => {
-    if (server) {
-        server.resetHandlers();
-    }
+    // Désactivation temporaire
+    /*if (serverMock) {
+        serverMock.resetHandlers();
+    }*/
     jest.clearAllMocks();
 });
 
 afterAll(() => {
-    if (server) {
-        server.close();
-    }
+    // Désactivation temporaire
+    /*if (serverMock) {
+        serverMock.close();
+    }*/
 });
 
 // Mock localStorage and sessionStorage

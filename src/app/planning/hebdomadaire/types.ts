@@ -119,6 +119,8 @@ export type Assignment = {
     marId?: string | number | null;
     iadeId?: string | number | null;
     period?: 'MORNING' | 'AFTERNOON' | 'FULL_DAY';
+    // Type d'assignation (pour types spéciaux comme GARDE, ASTREINTE, etc.)
+    type?: string;
 };
 
 export type AssignmentConflict = {

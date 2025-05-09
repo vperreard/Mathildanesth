@@ -10,6 +10,7 @@ import { NotificationCenter } from '@/components/notifications/NotificationCente
 import ErrorBoundary from '@/components/ErrorBoundary';
 import ErrorDisplay from '@/components/ErrorDisplay';
 import { LayoutErrorFallback } from '@/components/Calendar/ErrorFallbacks';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 // Police principale pour le texte
 // const inter = Inter({
@@ -47,51 +48,38 @@ export default function RootLayout({
         // <html lang="fr" className={`${inter.variable} ${montserrat.variable}`}>
         <html lang="fr">
             {/* <body className={`${inter.className} flex flex-col min-h-screen bg-gray-50`}> */}
-            <body className="flex flex-col min-h-screen bg-gray-50">
+            <body className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
                 <Providers>
-                    <div className="flex flex-col min-h-screen">
-                        <Header />
-                        <main className="flex-grow container mx-auto px-4 py-8">
-                            <ErrorBoundary
-                                fallbackComponent={LayoutErrorFallback}
-                            >
-                                {children}
-                            </ErrorBoundary>
-                            <ToastContainer
-                                position="top-right"
-                                autoClose={5000}
-                                hideProgressBar={false}
-                                newestOnTop={false}
-                                closeOnClick
-                                rtl={false}
-                                pauseOnFocusLoss
-                                draggable
-                                pauseOnHover
-                                theme="colored"
-                                toastClassName="rounded-lg shadow-md"
-                            />
-                            <div className="fixed bottom-4 right-4 z-50">
-                                <NotificationCenter />
-                            </div>
-                        </main>
-                        <Footer />
-                    </div>
+                    <ThemeProvider>
+                        <div className="flex flex-col min-h-screen">
+                            <Header />
+                            <main className="flex-grow container mx-auto px-4 py-8">
+                                <ErrorBoundary
+                                    fallbackComponent={LayoutErrorFallback}
+                                >
+                                    {children}
+                                </ErrorBoundary>
+                                <ToastContainer
+                                    position="top-right"
+                                    autoClose={5000}
+                                    hideProgressBar={false}
+                                    newestOnTop={false}
+                                    closeOnClick
+                                    rtl={false}
+                                    pauseOnFocusLoss
+                                    draggable
+                                    pauseOnHover
+                                    theme="colored"
+                                    toastClassName="rounded-lg shadow-md"
+                                />
+                                <div className="fixed bottom-4 right-4 z-50">
+                                    <NotificationCenter />
+                                </div>
+                            </main>
+                            <Footer />
+                        </div>
+                    </ThemeProvider>
                 </Providers>
-
-                {/* Script pour vérifier le thème système */}
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `
-                            try {
-                                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                                    document.documentElement.classList.add('dark');
-                                } else {
-                                    document.documentElement.classList.remove('dark');
-                                }
-                            } catch (_) {}
-                        `,
-                    }}
-                />
             </body>
         </html>
     );

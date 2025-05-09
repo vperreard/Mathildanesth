@@ -8,8 +8,9 @@ import {
     CheckIcon,
     InformationCircleIcon,
     Cog6ToothIcon,
+    CalendarIcon,
 } from "@heroicons/react/24/outline";
-import { format, addWeeks, startOfWeek, endOfWeek, isToday, isWeekend, eachDayOfInterval } from "date-fns";
+import { format, addWeeks, startOfWeek, endOfWeek, isToday, isWeekend, eachDayOfInterval, getISOWeek, isAfter, isBefore, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { motion } from "framer-motion";
 import { ApiService } from "@/services/api";
@@ -30,8 +31,11 @@ import { RuleEngine, RuleEvaluationSummary } from '@/modules/rules/engine/rule-e
 import { RuleEvaluationResult, RuleEvaluationContext, RuleSeverity as RuleEngineSeverity } from '@/modules/rules/types/rule';
 import { AssignmentType } from '@/types/assignment';
 import { ShiftType } from '@/types/common';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
-import DisplayConfigPanel, { defaultDisplayConfig } from "./DisplayConfigPanel";
+import DisplayConfigPanel from "./DisplayConfigPanel";
+import { defaultDisplayConfig } from "./defaultConfig";
 import { toast } from "react-hot-toast";
 
 const sectors: Record<string, string> = {
@@ -97,8 +101,20 @@ const MemoizedAssignment = memo(({ assignment, users }: { assignment: Assignment
 });
 MemoizedAssignment.displayName = 'MemoizedAssignment';
 
+// Fonction pour obtenir le numéro de la semaine
+const getWeekNumber = (date: Date): number => {
+    return getISOWeek(date);
+};
+
 export default function WeeklyPlanningPage() {
     const [currentWeekStart, setCurrentWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+    // Nouveaux états pour la plage de dates personnalisée
+    const [activeDateRangeType, setActiveDateRangeType] = useState<'week' | 'custom'>('week');
+    const [customStartDate, setCustomStartDate] = useState<Date | null>(null);
+    const [customEndDate, setCustomEndDate] = useState<Date | null>(null);
+    // État pour le sélecteur de plage de dates
+    const [isDateRangeSelectorOpen, setIsDateRangeSelectorOpen] = useState(false);
+
     const [searchQuery, setSearchQuery] = useState("");
     const [viewMode, setViewMode] = useState<"room" | "surgeon">("room");
     const [showLegend, setShowLegend] = useState(false);
@@ -130,92 +146,158 @@ export default function WeeklyPlanningPage() {
 
     const [isLoadingData, setIsLoadingData] = useState(true);
 
-    useEffect(() => {
-        const fetchDataAndConfig = async () => {
-            setIsLoadingData(true);
-            setIsLoading(true);
-            let finalConfig = defaultDisplayConfig;
+    // Fonction de chargement des données, appelée manuellement
+    const fetchDataAndConfig = useCallback(async () => {
+        console.log("[WeeklyPlanningPage] Chargement des données pour la période cible");
+        setIsLoadingData(true);
+        setIsLoading(true);
+        let finalConfig = { ...defaultDisplayConfig };
+        console.log("[WeeklyPlanningPage] finalConfig :", finalConfig);
 
-            try {
-                const api = ApiService.getInstance();
-                const configData = await api.getUserPreferences();
-                if (configData && typeof configData === 'object') {
-                    finalConfig = { ...defaultDisplayConfig, ...configData } as DisplayConfig;
-                } else {
-                    console.warn("Préférences utilisateur invalides reçues, utilisation des défauts.");
-                }
-            } catch (error) {
-                console.error('Erreur lors du chargement de la config d\'affichage:', error);
-            } finally {
-                setDisplayConfig(finalConfig);
+        try {
+            // Déterminer la plage de dates active
+            let startDate: Date;
+            let endDate: Date;
+            if (activeDateRangeType === 'custom' && customStartDate && customEndDate) {
+                startDate = customStartDate;
+                endDate = customEndDate;
+            } else {
+                startDate = startOfWeek(currentWeekStart, { weekStartsOn: 1 });
+                endDate = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
             }
+            console.log(`[WeeklyPlanningPage] Période : ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`);
 
-            try {
-                const weekStart = startOfWeek(currentWeekStart, { weekStartsOn: 1 });
-                const weekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
+            const responses = await Promise.all([
+                fetch('/api/utilisateurs'),
+                fetch('/api/operating-rooms'),
+                fetch(`/api/assignments?start=${startDate.toISOString()}&end=${endDate.toISOString()}`)
+            ]);
 
-                const [usersResponse, roomsResponse, assignmentsResponse] = await Promise.all([
-                    fetch('/api/utilisateurs'),
-                    fetch('/api/operating-rooms'),
-                    fetch(`/api/assignments?start=${weekStart.toISOString()}&end=${weekEnd.toISOString()}`)
-                ]);
+            const [usersResponseData, roomsResponseData, assignmentsResponseData] = await Promise.all(
+                responses.map(res => {
+                    if (!res.ok) {
+                        console.error(`[WeeklyPlanningPage] Erreur API ${res.url}: ${res.status} ${res.statusText}`);
+                        // Retourner une structure par défaut pour éviter de casser Promise.all plus tard
+                        if (res.url.includes('/api/utilisateurs')) return { users: [] };
+                        if (res.url.includes('/api/operating-rooms')) return { rooms: [] };
+                        if (res.url.includes('/api/assignments')) return { assignments: [] };
+                        return {}; // Cas générique, peu probable ici
+                    }
+                    return res.json();
+                })
+            );
 
-                if (!usersResponse.ok || !roomsResponse.ok || !assignmentsResponse.ok) {
-                    throw new Error('Erreur lors du chargement des données initiales');
-                }
+            console.log("[WeeklyPlanningPage] Données parsées API - Utilisateurs:", usersResponseData);
+            console.log("[WeeklyPlanningPage] Données parsées API - Salles:", roomsResponseData);
+            console.log("[WeeklyPlanningPage] Données parsées API - Assignations:", assignmentsResponseData);
 
-                const usersData = await usersResponse.json();
-                const roomsData = await roomsResponse.json();
-                const assignmentsData = await assignmentsResponse.json();
+            // Correction: Ne pas supposer des formats spécifiques avec .users, .rooms, mais utiliser directement les tableaux
+            // si la réponse est déjà un tableau
+            const usersData = Array.isArray(usersResponseData) ? usersResponseData :
+                (usersResponseData && Array.isArray(usersResponseData.users) ? usersResponseData.users : []);
 
-                setUsers(usersData.users || []);
-                const fetchedRooms = roomsData.rooms || [];
+            const roomsData = Array.isArray(roomsResponseData) ? roomsResponseData :
+                (roomsResponseData && Array.isArray(roomsResponseData.rooms) ? roomsResponseData.rooms : []);
 
-                let currentRoomOrder: string[] = [];
-                if (typeof window !== 'undefined') {
-                    const savedRoomOrder = localStorage.getItem('roomOrderConfig');
-                    if (savedRoomOrder) {
-                        try {
-                            const parsedOrder = JSON.parse(savedRoomOrder);
-                            if (parsedOrder && Array.isArray(parsedOrder.orderedRoomIds)) {
-                                currentRoomOrder = parsedOrder.orderedRoomIds.map(String);
-                                setRoomOrderConfig({ orderedRoomIds: currentRoomOrder });
-                            }
-                        } catch (e) {
-                            console.error('Erreur lecture roomOrderConfig:', e);
+            const assignmentsData = Array.isArray(assignmentsResponseData) ? assignmentsResponseData :
+                (assignmentsResponseData && Array.isArray(assignmentsResponseData.assignments) ? assignmentsResponseData.assignments : []);
+
+            setUsers(usersData);
+            console.log("[WeeklyPlanningPage] état users mis à jour avec:", usersData.length, "utilisateurs");
+
+            const fetchedRooms = roomsData;
+            let currentRoomOrder: string[] = [];
+            if (typeof window !== 'undefined') {
+                const savedRoomOrder = localStorage.getItem('roomOrderConfig');
+                if (savedRoomOrder) {
+                    try {
+                        const parsedOrder = JSON.parse(savedRoomOrder);
+                        if (parsedOrder && Array.isArray(parsedOrder.orderedRoomIds)) {
+                            currentRoomOrder = parsedOrder.orderedRoomIds.map(String);
+                            setRoomOrderConfig({ orderedRoomIds: currentRoomOrder });
                         }
+                    } catch (e) {
+                        console.error('[WeeklyPlanningPage] Erreur lecture roomOrderConfig localStorage:', e);
                     }
                 }
-                const orderedRooms = fetchedRooms.map((room: Room) => {
-                    const orderIndex = currentRoomOrder.indexOf(String(room.id));
-                    return { ...room, order: orderIndex === -1 ? Infinity : orderIndex };
-                });
-                const sortedRooms = [...orderedRooms].sort((a, b) => {
-                    if (a.order !== b.order) return a.order - b.order;
-                    if (a.sector && b.sector && a.sector !== b.sector) return a.sector.localeCompare(b.sector);
-                    return a.name.localeCompare(b.name);
-                });
-                setRooms(sortedRooms);
-
-                const fetchedAssignments = assignmentsData.assignments || [];
-                setAssignments(fetchedAssignments);
-                setTempAssignments(fetchedAssignments);
-
-            } catch (error) {
-                console.error('Erreur lors du chargement des données (users/rooms/assignments):', error);
-                toast.error("Erreur lors du chargement des données du planning.");
-                setUsers([]);
-                setRooms([]);
-                setAssignments([]);
-                setTempAssignments([]);
-            } finally {
-                setIsLoadingData(false);
-                setIsLoading(false);
             }
-        };
 
+            // Normaliser les données des salles en préservant l'ordre de l'API (basé sur displayOrder)
+            const orderedRooms = fetchedRooms.map((room: Room) => {
+                // Normalisation du champ sector
+                let sectorName = '';
+                const sector: any = room.sector;
+                if (typeof sector === 'string') {
+                    sectorName = sector;
+                } else if (sector && typeof sector === 'object' && 'name' in sector) {
+                    sectorName = sector.name;
+                } else {
+                    sectorName = 'Non classé';
+                }
+
+                // Utiliser l'ordre personnalisé si disponible, sinon conserver l'ordre de l'API
+                const orderIndex = currentRoomOrder.indexOf(String(room.id));
+
+                // Si la salle est dans l'ordre personnalisé, lui donner la priorité
+                // sinon préserver l'ordre venant de l'API (qui utilise déjà displayOrder)
+                const roomWithSector = {
+                    ...room,
+                    sector: sectorName,
+                    order: orderIndex === -1 ? Infinity : orderIndex
+                };
+
+                return roomWithSector;
+            });
+
+            // Trier les salles: d'abord par ordre personnalisé s'il existe,
+            // sinon conserver l'ordre original venant de l'API (trié par displayOrder)
+            const sortedRooms = [...orderedRooms].sort((a, b) => {
+                // Si les deux salles ont un ordre personnalisé, les trier par cet ordre
+                if (a.order !== Infinity && b.order !== Infinity) {
+                    return a.order - b.order;
+                }
+
+                // Si seulement l'une des salles a un ordre personnalisé, la placer en premier
+                if (a.order !== Infinity) return -1;
+                if (b.order !== Infinity) return 1;
+
+                // Si aucune n'a d'ordre personnalisé, préserver l'ordre original de l'API
+                // qui est déjà trié par site.displayOrder, sector.displayOrder, salle.displayOrder
+                return 0;
+            });
+
+            console.log("[WeeklyPlanningPage] état rooms mis à jour avec:", sortedRooms.length, "salles (triées par displayOrder)");
+            setRooms(sortedRooms);
+
+            const fetchedAssignments = assignmentsData;
+            setAssignments(fetchedAssignments);
+            setTempAssignments(fetchedAssignments);
+            console.log("[WeeklyPlanningPage] état assignments mis à jour avec:", fetchedAssignments.length, "assignations");
+
+            if (usersData.length === 0 && roomsData.length === 0 && assignmentsData.length === 0) {
+                console.warn("[WeeklyPlanningPage] Toutes les listes de données (utilisateurs, salles, assignations) sont vides après le fetch initial.");
+                // Utiliser toast simple, pas toast.info si non disponible
+                toast("Aucune donnée de planning à afficher pour cette semaine.", { duration: 4000, icon: 'ℹ️' });
+            }
+
+        } catch (error) {
+            console.error('[WeeklyPlanningPage] Erreur chargement data:', error);
+            toast.error("Erreur critique lors du chargement des données du planning.");
+            setUsers([]);
+            setRooms([]);
+            setAssignments([]);
+            setTempAssignments([]);
+        } finally {
+            setIsLoadingData(false);
+            setIsLoading(false);
+            console.log("[WeeklyPlanningPage] Chargement terminé");
+        }
+    }, []);
+
+    // Chargement initial au montage uniquement
+    useEffect(() => {
         fetchDataAndConfig();
-    }, [currentWeekStart]);
+    }, []);
 
     const handleSaveRoomOrder = (orderedRoomIds: string[]) => {
         const newConfig = { orderedRoomIds };
@@ -223,21 +305,38 @@ export default function WeeklyPlanningPage() {
         if (typeof window !== 'undefined') {
             localStorage.setItem('roomOrderConfig', JSON.stringify(newConfig));
         }
+
+        // Mettre à jour les salles avec le nouvel ordre personnalisé
         const orderedRooms = rooms.map((room: Room) => {
             const orderIndex = orderedRoomIds.indexOf(String(room.id));
             return { ...room, order: orderIndex === -1 ? Infinity : orderIndex };
         });
+
+        // Trier les salles: d'abord par ordre personnalisé s'il existe,
+        // sinon conserver l'ordre original venant de l'API (trié par displayOrder)
         const sortedRooms = [...orderedRooms].sort((a, b) => {
-            if (a.order !== b.order) return a.order - b.order;
-            if (a.sector !== b.sector) return a.sector.localeCompare(b.sector);
-            return a.name.localeCompare(b.name);
+            // Si les deux salles ont un ordre personnalisé, les trier par cet ordre
+            if (a.order !== Infinity && b.order !== Infinity) {
+                return a.order - b.order;
+            }
+
+            // Si seulement l'une des salles a un ordre personnalisé, la placer en premier
+            if (a.order !== Infinity) return -1;
+            if (b.order !== Infinity) return 1;
+
+            // Si aucune n'a d'ordre personnalisé, préserver l'ordre original de l'API
+            // qui est déjà trié par site.displayOrder, sector.displayOrder, salle.displayOrder
+            return 0;
         });
+
         setRooms(sortedRooms);
+
+        // Mettre à jour la configuration d'affichage si elle existe
         if (displayConfig) {
             const newConfig = { ...displayConfig, roomOrder: orderedRoomIds };
             setDisplayConfig(newConfig);
             try {
-                console.log("Préférences d'ordre des salles (simulé) sauvegardées.");
+                console.log("Préférences d'ordre des salles sauvegardées.");
             } catch (error) {
                 console.error("Erreur sauvegarde préférences ordre salles:", error);
             }
@@ -401,10 +500,26 @@ export default function WeeklyPlanningPage() {
     };
 
     const getWeekDays = () => {
-        return eachDayOfInterval({
-            start: currentWeekStart,
-            end: endOfWeek(currentWeekStart, { weekStartsOn: 1 })
-        }).filter(day => !isWeekend(day));
+        let intervalStart: Date;
+        let intervalEnd: Date;
+
+        if (activeDateRangeType === 'custom' && customStartDate && customEndDate) {
+            intervalStart = customStartDate;
+            intervalEnd = customEndDate;
+            // Pour une plage personnalisée, on inclut tous les jours, y compris les week-ends
+            return eachDayOfInterval({
+                start: intervalStart,
+                end: intervalEnd
+            });
+        } else {
+            intervalStart = currentWeekStart;
+            intervalEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
+            // Pour la vue semaine, on inclut également les week-ends pour pouvoir les afficher différemment
+            return eachDayOfInterval({
+                start: intervalStart,
+                end: intervalEnd
+            });
+        }
     };
 
     const getSurgeonDailyAssignments = (date: Date, surgeonId: string | number) => {
@@ -438,20 +553,20 @@ export default function WeeklyPlanningPage() {
 
         const content = (
             <div
-                className={`p-1 rounded text-xs mb-1 shadow-sm ${cardBgStyle}`}
-                style={{ color: textColor }}
+                className={`p-1 rounded text-xs mb-1 shadow-sm overflow-hidden ${cardBgStyle}`}
+                style={{ color: textColor, maxHeight: '58px' }}
             >
-                <div style={surgeonStyle}>
+                <div style={{ ...surgeonStyle, fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {formatNameWithConfig(surgeon, 'chirurgien')}
                 </div>
-                <div className="flex flex-wrap gap-1 mt-1">
+                <div className="flex flex-wrap gap-1 text-xs">
                     {mar && (
-                        <span style={marStyle}>
+                        <span style={{ ...marStyle, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} className="block truncate">
                             {formatNameWithConfig(mar, 'mar')}
                         </span>
                     )}
                     {iade && (
-                        <span style={iadeStyle} className={mar ? 'ml-2' : ''}>
+                        <span style={{ ...iadeStyle, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} className={mar ? 'ml-1 block truncate' : 'block truncate'}>
                             {formatNameWithConfig(iade, 'iade')}
                         </span>
                     )}
@@ -489,7 +604,7 @@ export default function WeeklyPlanningPage() {
 
         return (
             <div className="grid grid-cols-2 gap-1 h-full">
-                <Droppable droppableId={morningDroppableId} type="ASSIGNMENT">
+                <Droppable droppableId={morningDroppableId} type="ASSIGNMENT" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
                     {(provided, snapshot) => (
                         <div
                             ref={provided.innerRef}
@@ -501,7 +616,7 @@ export default function WeeklyPlanningPage() {
                         </div>
                     )}
                 </Droppable>
-                <Droppable droppableId={afternoonDroppableId} type="ASSIGNMENT">
+                <Droppable droppableId={afternoonDroppableId} type="ASSIGNMENT" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
                     {(provided, snapshot) => (
                         <div
                             ref={provided.innerRef}
@@ -521,7 +636,7 @@ export default function WeeklyPlanningPage() {
         const weekDays = getWeekDays();
         const roomsToDisplay = filteredRooms;
 
-        // Group rooms by sector
+        // Grouper les salles par secteur tout en préservant l'ordre de l'API
         const groupedRoomsBySector = roomsToDisplay.reduce((acc, room) => {
             const sector = room.sector || 'Non classé';
             if (!acc[sector]) {
@@ -531,31 +646,211 @@ export default function WeeklyPlanningPage() {
             return acc;
         }, {} as Record<string, Room[]>);
 
+        // S'assurer que les salles sont triées par displayOrder au sein de chaque secteur
+        // (cet ordre est déjà présent dans l'API mais nous le préservons ici)
+        Object.keys(groupedRoomsBySector).forEach(sector => {
+            groupedRoomsBySector[sector].sort((a, b) => {
+                // Si les deux salles ont un order défini
+                if (a.order !== undefined && b.order !== undefined && a.order !== Infinity && b.order !== Infinity) {
+                    return a.order - b.order;
+                }
+                // Si seulement a a un ordre
+                if (a.order !== undefined && a.order !== Infinity) {
+                    return -1;
+                }
+                // Si seulement b a un ordre
+                if (b.order !== undefined && b.order !== Infinity) {
+                    return 1;
+                }
+                // Par défaut, conserver l'ordre original (qui vient de l'API avec displayOrder)
+                return 0;
+            });
+        });
+
+        // Récupérer les noms des secteurs, en préservant l'ordre de tri des secteurs 
+        // tel que fourni par l'API (grâce au premier élément de chaque groupe)
+        const orderedSectorNames = roomsToDisplay
+            .map(room => room.sector || 'Non classé')
+            .filter((sector, index, self) => self.indexOf(sector) === index); // Éliminer les doublons
+
+        const specialTypes = ['GARDE', 'ASTREINTE', 'CONSULTATION 1', 'CONSULTATION 2', 'CONSULTATION 3'];
+
         return (
             <div className="p-4">
-                <div className="font-medium text-gray-700 mb-4">
-                    Semaine du {format(currentWeekStart, "d MMMM", { locale: fr })} au {format(endOfWeek(currentWeekStart, { weekStartsOn: 1 }), "d MMMM yyyy", { locale: fr })}
+                <div className="font-medium text-gray-700 dark:text-gray-200 mb-4">
+                    {
+                        activeDateRangeType === 'custom' && customStartDate && customEndDate ?
+                            `Période du ${format(customStartDate, "d MMMM", { locale: fr })} au ${format(customEndDate, "d MMMM yyyy", { locale: fr })}` :
+                            `Semaine du ${format(currentWeekStart, "d MMMM", { locale: fr })} au ${format(endOfWeek(currentWeekStart, { weekStartsOn: 1 }), "d MMMM yyyy", { locale: fr })}`
+                    }
                 </div>
-                <div className="grid gap-4">
-                    {Object.entries(groupedRoomsBySector).map(([sector, roomsInSection]) => (
-                        <React.Fragment key={sector}>
-                            {/* En-tête de Secteur */}
-                            <div className="col-span-full p-2 bg-gray-200 font-medium text-sm rounded">{sector}</div>
-                            {/* Salles dans ce secteur */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {roomsInSection.map(room => (
-                                    <div key={room.id} className="border rounded p-3 bg-white shadow-sm">
-                                        <h3 className="font-semibold text-sm mb-2">{room.name}</h3>
-                                        {renderRoomAssignments(room)}
-                                    </div>
+
+                <div className="overflow-x-auto relative">
+                    <table className="min-w-full border-collapse table-fixed">
+                        <thead>
+                            <tr className="bg-gray-50 dark:bg-slate-800">
+                                <th className="sticky left-0 z-20 py-2 px-3 border border-gray-300 dark:border-slate-700 text-left w-48 md:w-56 bg-gray-50 dark:bg-slate-800">
+                                    Salles / Jours
+                                </th>
+                                {weekDays.map((day) => (
+                                    <th
+                                        key={day.toISOString()}
+                                        colSpan={2}
+                                        className={`py-2 px-3 border border-gray-300 dark:border-slate-700 text-center 
+                                               ${isToday(day) ? "bg-blue-100 dark:bg-blue-900/50" : ""} 
+                                               ${isWeekend(day) ? "w-16 md:w-20 opacity-80 bg-gray-100 dark:bg-slate-800/80" : "w-36 md:w-44"}`}
+                                    >
+                                        <div className={`font-medium capitalize ${isWeekend(day) ? "text-xs md:text-sm text-gray-500 dark:text-gray-400" : ""}`}>
+                                            {format(day, "EEEE", { locale: fr })}
+                                        </div>
+                                        <div className={`${isWeekend(day) ? "text-xs text-gray-500 dark:text-gray-400" : "text-sm"}`}>
+                                            {format(day, "dd/MM", { locale: fr })}
+                                        </div>
+                                    </th>
                                 ))}
-                            </div>
-                        </React.Fragment>
-                    ))}
+                            </tr>
+                            <tr className="bg-gray-100 dark:bg-slate-700">
+                                <th className="sticky left-0 z-20 py-1 px-3 border border-gray-300 dark:border-slate-600 bg-gray-100 dark:bg-slate-700"></th>
+                                {weekDays.map((day) => (
+                                    <React.Fragment key={`${day.toISOString()}-periods`}>
+                                        <th className={`py-1 px-2 border border-gray-300 dark:border-slate-600 text-center bg-blue-50 dark:bg-blue-900/40 
+                                                   ${isWeekend(day) ? "w-8 md:w-10 text-xs opacity-80" : "w-18 md:w-22"}`}>
+                                            {isWeekend(day) ? "M" : "Matin"}
+                                        </th>
+                                        <th className={`py-1 px-2 border border-gray-300 dark:border-slate-600 text-center bg-amber-50 dark:bg-amber-900/40 
+                                                   ${isWeekend(day) ? "w-8 md:w-10 text-xs opacity-80" : "w-18 md:w-22"}`}>
+                                            {isWeekend(day) ? "A" : "Après-midi"}
+                                        </th>
+                                    </React.Fragment>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {/* Lignes pour les types spéciaux */}
+                            {specialTypes.map((type) => (
+                                <tr key={type} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                                    <td className="sticky left-0 z-10 py-2 px-3 border border-gray-300 dark:border-slate-700 font-semibold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200">
+                                        {type}
+                                    </td>
+                                    {weekDays.map((day) => (
+                                        <React.Fragment key={`${day.toISOString()}-special-${type}`}>
+                                            <td className={`p-0 border border-gray-300 dark:border-slate-700 bg-blue-50/30 dark:bg-blue-900/20 
+                                                       ${isWeekend(day) ? "w-8 md:w-10 opacity-80" : "w-18 md:w-22"}`}>
+                                                <Droppable droppableId={`special-${type}-day-${format(day, 'yyyy-MM-dd')}-period-MORNING`} type="ASSIGNMENT" isDropDisabled={false}>
+                                                    {(provided, snapshot) => (
+                                                        <div
+                                                            ref={provided.innerRef}
+                                                            {...provided.droppableProps}
+                                                            className={`p-1 transition-colors duration-150 ease-in-out ${snapshot.isDraggingOver ? 'bg-blue-200 dark:bg-blue-700 shadow-inner' : ''}`}
+                                                            style={{ height: '60px', overflow: 'auto' }}
+                                                        >
+                                                            {tempAssignments
+                                                                .filter(a =>
+                                                                    format(new Date(a.date), "yyyy-MM-dd") === format(day, "yyyy-MM-dd") &&
+                                                                    a.period === "MORNING" &&
+                                                                    a.type === type
+                                                                )
+                                                                .map((assignment, index) => renderAssignment(assignment, index))}
+                                                            {provided.placeholder}
+                                                        </div>
+                                                    )}
+                                                </Droppable>
+                                            </td>
+                                            <td className={`p-0 border border-gray-300 dark:border-slate-700 bg-amber-50/30 dark:bg-amber-900/20 
+                                                       ${isWeekend(day) ? "w-8 md:w-10 opacity-80" : "w-18 md:w-22"}`}>
+                                                <Droppable droppableId={`special-${type}-day-${format(day, 'yyyy-MM-dd')}-period-AFTERNOON`} type="ASSIGNMENT" isDropDisabled={false}>
+                                                    {(provided, snapshot) => (
+                                                        <div
+                                                            ref={provided.innerRef}
+                                                            {...provided.droppableProps}
+                                                            className={`p-1 transition-colors duration-150 ease-in-out ${snapshot.isDraggingOver ? 'bg-amber-200 dark:bg-amber-700 shadow-inner' : ''}`}
+                                                            style={{ height: '60px', overflow: 'auto' }}
+                                                        >
+                                                            {tempAssignments
+                                                                .filter(a =>
+                                                                    format(new Date(a.date), "yyyy-MM-dd") === format(day, "yyyy-MM-dd") &&
+                                                                    a.period === "AFTERNOON" &&
+                                                                    a.type === type
+                                                                )
+                                                                .map((assignment, index) => renderAssignment(assignment, index))}
+                                                            {provided.placeholder}
+                                                        </div>
+                                                    )}
+                                                </Droppable>
+                                            </td>
+                                        </React.Fragment>
+                                    ))}
+                                </tr>
+                            ))}
+                            {/* Lignes pour les salles par secteur (en utilisant l'ordre des secteurs préservé) */}
+                            {orderedSectorNames.map(sector => (
+                                <React.Fragment key={sector}>
+                                    <tr>
+                                        <td
+                                            colSpan={weekDays.length * 2 + 1}
+                                            className="sticky left-0 z-10 p-2 bg-gray-200 dark:bg-slate-700 font-medium text-sm border-t border-b border-gray-300 dark:border-slate-600"
+                                        >
+                                            {sector}
+                                        </td>
+                                    </tr>
+                                    {groupedRoomsBySector[sector].map(room => (
+                                        <tr key={room.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                                            <td className="sticky left-0 z-10 py-2 px-3 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800">
+                                                <div className="font-semibold text-sm">{room.name}</div>
+                                            </td>
+                                            {weekDays.map((day) => {
+                                                const dailyAssignments = getDailyAssignments(day, room.id);
+                                                const morningAssignments = dailyAssignments.filter(a => a.period === 'MORNING');
+                                                const afternoonAssignments = dailyAssignments.filter(a => a.period === 'AFTERNOON');
+                                                const morningDroppableId = `room-${room.id}-day-${format(day, 'yyyy-MM-dd')}-period-MORNING`;
+                                                const afternoonDroppableId = `room-${room.id}-day-${format(day, 'yyyy-MM-dd')}-period-AFTERNOON`;
+                                                return (
+                                                    <React.Fragment key={`${day.toISOString()}-room-${room.id}`}>
+                                                        <td className={`p-0 border border-gray-300 dark:border-slate-700 bg-blue-50/30 dark:bg-blue-900/20 
+                                                                  ${isWeekend(day) ? "w-8 md:w-10 opacity-80" : "w-18 md:w-22"}`}>
+                                                            <Droppable droppableId={morningDroppableId} type="ASSIGNMENT" isDropDisabled={false}>
+                                                                {(provided, snapshot) => (
+                                                                    <div
+                                                                        ref={provided.innerRef}
+                                                                        {...provided.droppableProps}
+                                                                        className={`p-1 transition-colors duration-150 ease-in-out ${snapshot.isDraggingOver ? 'bg-blue-200 dark:bg-blue-700 shadow-inner' : ''}`}
+                                                                        style={{ height: '60px', overflow: 'auto' }}
+                                                                    >
+                                                                        {morningAssignments.map((assignment, index) => renderAssignment(assignment, index))}
+                                                                        {provided.placeholder}
+                                                                    </div>
+                                                                )}
+                                                            </Droppable>
+                                                        </td>
+                                                        <td className={`p-0 border border-gray-300 dark:border-slate-700 bg-amber-50/30 dark:bg-amber-900/20
+                                                                  ${isWeekend(day) ? "w-8 md:w-10 opacity-80" : "w-18 md:w-22"}`}>
+                                                            <Droppable droppableId={afternoonDroppableId} type="ASSIGNMENT" isDropDisabled={false}>
+                                                                {(provided, snapshot) => (
+                                                                    <div
+                                                                        ref={provided.innerRef}
+                                                                        {...provided.droppableProps}
+                                                                        className={`p-1 transition-colors duration-150 ease-in-out ${snapshot.isDraggingOver ? 'bg-amber-200 dark:bg-amber-700 shadow-inner' : ''}`}
+                                                                        style={{ height: '60px', overflow: 'auto' }}
+                                                                    >
+                                                                        {afternoonAssignments.map((assignment, index) => renderAssignment(assignment, index))}
+                                                                        {provided.placeholder}
+                                                                    </div>
+                                                                )}
+                                                            </Droppable>
+                                                        </td>
+                                                    </React.Fragment>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </React.Fragment>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         );
-    }, [filteredRooms, currentWeekStart, getWeekDays, renderRoomAssignments]);
+    }, [filteredRooms, currentWeekStart, activeDateRangeType, customStartDate, customEndDate, getWeekDays, getDailyAssignments, renderAssignment, tempAssignments]);
 
     const renderSurgeonView = () => {
         const weekDays = getWeekDays();
@@ -597,86 +892,116 @@ export default function WeeklyPlanningPage() {
                                     const surgeonAssignments = getSurgeonDailyAssignments(day, surgeon.id);
                                     const morningAssignments = surgeonAssignments.filter(a => a.period === "MORNING");
                                     const afternoonAssignments = surgeonAssignments.filter(a => a.period === "AFTERNOON");
+                                    const morningDroppableId = `surgeon-${surgeon.id}-day-${format(day, 'yyyy-MM-dd')}-period-MORNING`;
+                                    const afternoonDroppableId = `surgeon-${surgeon.id}-day-${format(day, 'yyyy-MM-dd')}-period-AFTERNOON`;
 
                                     return (
                                         <td key={day.toISOString()} className={`py-2 px-3 border border-gray-300 dark:border-gray-700 ${compactView ? 'compact-cell' : ''}`}>
                                             <div className="flex gap-2">
                                                 <div className="flex-1">
-                                                    {morningAssignments.map(assignment => {
-                                                        const room = getRoomById(assignment.roomId);
-                                                        const mar = assignment.marId ? getUserById(assignment.marId) : null;
-                                                        const iade = assignment.iadeId ? getUserById(assignment.iadeId) : null;
-
-                                                        if (!room) return null;
-
-                                                        const cardBgStyle = sectors[room.sector];
-                                                        const roomStyle = { /* Pourrait utiliser config générale */ };
-                                                        const marStyle = getStyleWithConfig(assignment);
-                                                        const iadeStyle = getStyleWithConfig(assignment);
-
-                                                        return compactView ? (
+                                                    <Droppable droppableId={morningDroppableId} type="ASSIGNMENT_SURGEON_VIEW" isDropDisabled={false}>
+                                                        {(provided, snapshot) => (
                                                             <div
-                                                                key={assignment.id}
-                                                                className={`p-1 mb-1 rounded border text-xs ${cardBgStyle} border-l-2`}
-                                                                style={roomStyle}
+                                                                ref={provided.innerRef}
+                                                                {...provided.droppableProps}
+                                                                className={`min-h-[40px] p-0.5 rounded ${snapshot.isDraggingOver ? 'bg-blue-100 dark:bg-blue-800' : ''}`}
                                                             >
-                                                                <div className="font-medium text-xs truncate">{room.name}</div>
+                                                                {morningAssignments.map((assignment, index) => {
+                                                                    const room = getRoomById(assignment.roomId);
+                                                                    const mar = assignment.marId ? getUserById(assignment.marId) : null;
+                                                                    const iade = assignment.iadeId ? getUserById(assignment.iadeId) : null;
+
+                                                                    if (!room) return null;
+
+                                                                    const cardBgStyle = sectors[room.sector] || sectors['default'];
+                                                                    const marStyle = mar ? getStyleWithConfig(assignment) : {};
+                                                                    const iadeStyle = iade ? getStyleWithConfig(assignment) : {};
+                                                                    const roomStyle = {}; // Placeholder
+
+                                                                    return (
+                                                                        <Draggable key={assignment.id} draggableId={`assignment-${assignment.id}-surgeonview-morning-${index}`} index={index}>
+                                                                            {(dragProvided, dragSnapshot) => (
+                                                                                <div
+                                                                                    ref={dragProvided.innerRef}
+                                                                                    {...dragProvided.draggableProps}
+                                                                                    {...dragProvided.dragHandleProps}
+                                                                                    className={`p-1 mb-1 rounded border text-xs ${cardBgStyle} border-l-2 ${dragSnapshot.isDragging ? 'shadow-lg' : ''}`}
+                                                                                    style={roomStyle} // Appliquer roomStyle ici
+                                                                                >
+                                                                                    <div className="font-medium text-xs truncate">{room.name} (M)</div>
+                                                                                    {!compactView && mar && (
+                                                                                        <div style={marStyle} className="text-xs truncate">
+                                                                                            {formatNameWithConfig(mar, 'mar')}
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {!compactView && iade && (
+                                                                                        <div style={iadeStyle} className="text-xs truncate">
+                                                                                            {formatNameWithConfig(iade, 'iade')}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                        </Draggable>
+                                                                    );
+                                                                })}
+                                                                {provided.placeholder}
                                                             </div>
-                                                        ) : (
-                                                            <div
-                                                                key={assignment.id}
-                                                                className={`p-2 mb-1 rounded border ${cardBgStyle} border-l-4`}
-                                                                style={roomStyle}
-                                                            >
-                                                                <div className="font-semibold text-sm">{room.name}</div>
-                                                                <div className="text-xs text-gray-700 dark:text-gray-300">
-                                                                    Matin
-                                                                </div>
-                                                                {mar && <div style={marStyle}>{formatNameWithConfig(mar, 'mar')}</div>}
-                                                                {iade && <div style={iadeStyle}>{formatNameWithConfig(iade, 'iade')}</div>}
-                                                            </div>
-                                                        );
-                                                    })}
+                                                        )}
+                                                    </Droppable>
                                                 </div>
                                                 <div className="flex-1">
-                                                    {afternoonAssignments.map(assignment => {
-                                                        const room = getRoomById(assignment.roomId);
-                                                        const mar = assignment.marId ? getUserById(assignment.marId) : null;
-                                                        const iade = assignment.iadeId ? getUserById(assignment.iadeId) : null;
-
-                                                        if (!room) return null;
-
-                                                        const sectorColorMatch = sectors[room.sector]?.match(/(bg-\w+-\d+)/);
-                                                        const sectorColor = sectorColorMatch ? sectorColorMatch[1] : 'bg-gray-100';
-                                                        const opacityValue = displayConfig?.backgroundOpacity ? Math.round(displayConfig.backgroundOpacity * 100) : 50;
-                                                        const cardBgStyle = `${sectorColor} bg-opacity-${opacityValue} dark:bg-opacity-${opacityValue}`;
-                                                        const roomStyle = { /* Pourrait utiliser config générale */ };
-                                                        const marStyle = getStyleWithConfig(assignment);
-                                                        const iadeStyle = getStyleWithConfig(assignment);
-
-                                                        return compactView ? (
+                                                    <Droppable droppableId={afternoonDroppableId} type="ASSIGNMENT_SURGEON_VIEW" isDropDisabled={false}>
+                                                        {(provided, snapshot) => (
                                                             <div
-                                                                key={assignment.id}
-                                                                className={`p-1 mb-1 rounded border text-xs ${cardBgStyle} border-r-2`}
-                                                                style={roomStyle}
+                                                                ref={provided.innerRef}
+                                                                {...provided.droppableProps}
+                                                                className={`min-h-[40px] p-0.5 rounded ${snapshot.isDraggingOver ? 'bg-amber-100 dark:bg-amber-800' : ''}`}
                                                             >
-                                                                <div className="font-medium text-xs truncate">{room.name}</div>
+                                                                {afternoonAssignments.map((assignment, index) => {
+                                                                    const room = getRoomById(assignment.roomId);
+                                                                    const mar = assignment.marId ? getUserById(assignment.marId) : null;
+                                                                    const iade = assignment.iadeId ? getUserById(assignment.iadeId) : null;
+
+                                                                    if (!room) return null;
+
+                                                                    const sectorColorMatch = sectors[room.sector]?.match(/(bg-\w+-\d+)/);
+                                                                    const sectorColor = sectorColorMatch ? sectorColorMatch[1] : 'bg-gray-100';
+                                                                    const opacityValue = displayConfig?.backgroundOpacity ? Math.round(displayConfig.backgroundOpacity * 100) : 50;
+                                                                    const cardBgStyle = `${sectorColor} bg-opacity-${opacityValue} dark:bg-opacity-${opacityValue}`;
+                                                                    const marStyle = mar ? getStyleWithConfig(assignment) : {};
+                                                                    const iadeStyle = iade ? getStyleWithConfig(assignment) : {};
+                                                                    const roomStyle = {}; // Placeholder
+
+                                                                    return (
+                                                                        <Draggable key={assignment.id} draggableId={`assignment-${assignment.id}-surgeonview-afternoon-${index}`} index={index}>
+                                                                            {(dragProvided, dragSnapshot) => (
+                                                                                <div
+                                                                                    ref={dragProvided.innerRef}
+                                                                                    {...dragProvided.draggableProps}
+                                                                                    {...dragProvided.dragHandleProps}
+                                                                                    className={`p-1 mb-1 rounded border text-xs ${cardBgStyle} border-r-2 ${dragSnapshot.isDragging ? 'shadow-lg' : ''}`}
+                                                                                    style={roomStyle} // Appliquer roomStyle ici
+                                                                                >
+                                                                                    <div className="font-medium text-xs truncate">{room.name} (A)</div>
+                                                                                    {!compactView && mar && (
+                                                                                        <div style={marStyle} className="text-xs truncate">
+                                                                                            {formatNameWithConfig(mar, 'mar')}
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {!compactView && iade && (
+                                                                                        <div style={iadeStyle} className="text-xs truncate">
+                                                                                            {formatNameWithConfig(iade, 'iade')}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                        </Draggable>
+                                                                    );
+                                                                })}
+                                                                {provided.placeholder}
                                                             </div>
-                                                        ) : (
-                                                            <div
-                                                                key={assignment.id}
-                                                                className={`p-2 mb-1 rounded border ${cardBgStyle} border-r-4`}
-                                                                style={roomStyle}
-                                                            >
-                                                                <div className="font-semibold text-sm">{room.name}</div>
-                                                                <div className="text-xs text-gray-700 dark:text-gray-300">
-                                                                    Après-midi
-                                                                </div>
-                                                                {mar && <div style={marStyle}>{formatNameWithConfig(mar, 'mar')}</div>}
-                                                                {iade && <div style={iadeStyle}>{formatNameWithConfig(iade, 'iade')}</div>}
-                                                            </div>
-                                                        );
-                                                    })}
+                                                        )}
+                                                    </Droppable>
                                                 </div>
                                             </div>
                                         </td>
@@ -1110,24 +1435,281 @@ export default function WeeklyPlanningPage() {
     // Fonction pour ouvrir le panneau de configuration
     const openConfigPanel = () => setShowConfigPanel(true);
 
+    const handleDateRangeChange = (startDate: Date, endDate: Date) => {
+        // Vérifier que la plage est valide (startDate avant endDate)
+        if (isAfter(startDate, endDate)) {
+            toast.error("La date de début doit être antérieure à la date de fin.");
+            return;
+        }
+
+        // Vérifier que la plage n'est pas trop grande (max 31 jours pour éviter des performances dégradées)
+        const daysDiff = differenceInDays(endDate, startDate);
+        if (daysDiff > 31) {
+            toast.error("La plage de dates ne peut pas dépasser 31 jours.");
+            return;
+        }
+
+        setCustomStartDate(startDate);
+        setCustomEndDate(endDate);
+        setActiveDateRangeType('custom');
+        setIsDateRangeSelectorOpen(false);
+    };
+
+    const switchToWeekView = () => {
+        setActiveDateRangeType('week');
+        // Optionnel: On peut aussi réinitialiser les dates personnalisées
+        // setCustomStartDate(null);
+        // setCustomEndDate(null);
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col h-full p-4 bg-gray-50 items-center justify-center">
+                <p className="text-lg text-gray-700">Chargement du planning en cours...</p>
+            </div>
+        );
+    }
+
+    if (!displayConfig) {
+        return (
+            <div className="flex flex-col h-full p-4 bg-gray-50 items-center justify-center">
+                <p className="text-lg text-gray-700">Chargement de la configuration d'affichage...</p>
+            </div>
+        );
+    }
+
     return (
-        <div className="flex flex-col h-full p-4 bg-gray-50">
-            <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-semibold">Planning Hebdomadaire du Bloc Opératoire</h1>
-                {/* Bouton pour ouvrir les paramètres */}
-                <Button onClick={openConfigPanel} variant="outline" size="icon" data-testid="open-config-button">
-                    <Cog6ToothIcon className="h-5 w-5" />
-                </Button>
+        <div className="flex flex-col h-full p-4 md:p-6 bg-gray-50 dark:bg-slate-900">
+            {/* En-tête principal */}
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                {/* Section Titre et Navigation Date */}
+                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full md:w-auto">
+                    <h1 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 whitespace-nowrap">
+                        Planning {activeDateRangeType === 'week' ? 'Hebdomadaire' : 'Personnalisé'}
+                    </h1>
+
+                    {activeDateRangeType === 'week' ? (
+                        <div className="flex items-center border border-gray-300 dark:border-slate-700 rounded-md shadow-sm overflow-hidden">
+                            <Button onClick={goToPreviousWeek} variant="ghost" size="icon" aria-label="Semaine précédente" className="p-2 rounded-none hover:bg-gray-100 dark:hover:bg-slate-700">
+                                <ChevronLeftIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                            </Button>
+                            <Button onClick={goToCurrentWeek} variant="ghost" size="sm" className="px-3 py-2 border-l border-r border-gray-300 dark:border-slate-700 rounded-none text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">
+                                Aujourd'hui
+                            </Button>
+                            <Button onClick={goToNextWeek} variant="ghost" size="icon" aria-label="Semaine suivante" className="p-2 rounded-none hover:bg-gray-100 dark:hover:bg-slate-700">
+                                <ChevronRightIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <Button
+                                onClick={switchToWeekView}
+                                variant="outline"
+                                size="sm"
+                                className="text-sm"
+                            >
+                                Vue semaine
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Section Date et Numéro de semaine */}
+                <div className="flex items-baseline text-center md:text-left">
+                    {
+                        activeDateRangeType === 'custom' && customStartDate && customEndDate ?
+                            <div className="flex items-center gap-2">
+                                <span className="font-medium text-lg text-gray-700 dark:text-gray-300">
+                                    {format(customStartDate, "d MMM", { locale: fr })} - {format(customEndDate, "d MMM yyyy", { locale: fr })}
+                                </span>
+                                <Button
+                                    onClick={() => setIsDateRangeSelectorOpen(true)}
+                                    variant="ghost"
+                                    size="icon"
+                                    className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700"
+                                >
+                                    <CalendarIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                                </Button>
+                            </div> :
+                            <>
+                                <span className="font-medium text-xl text-gray-700 dark:text-gray-300">
+                                    {format(currentWeekStart, "MMMM yyyy", { locale: fr })}
+                                </span>
+                                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                                    (Sem. {getWeekNumber(currentWeekStart)})
+                                </span>
+                                <Button
+                                    onClick={() => setIsDateRangeSelectorOpen(true)}
+                                    variant="ghost"
+                                    size="icon"
+                                    className="p-1 ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700"
+                                >
+                                    <CalendarIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                                </Button>
+                            </>
+                    }
+                </div>
+
+                {/* Sélecteur inline de la plage de dates */}
+                <div className="flex items-center gap-2">
+                    <DatePicker
+                        selected={customStartDate ?? startOfWeek(currentWeekStart, { weekStartsOn: 1 })}
+                        onChange={(date: Date | null) => { if (date) { setCustomStartDate(date); setActiveDateRangeType('custom'); } }}
+                        dateFormat="dd/MM/yyyy"
+                        className="px-2 py-1 border border-gray-300 dark:border-slate-700 rounded"
+                    />
+                    <DatePicker
+                        selected={customEndDate ?? endOfWeek(currentWeekStart, { weekStartsOn: 1 })}
+                        onChange={(date: Date | null) => { if (date) { setCustomEndDate(date); setActiveDateRangeType('custom'); } }}
+                        dateFormat="dd/MM/yyyy"
+                        className="px-2 py-1 border border-gray-300 dark:border-slate-700 rounded"
+                    />
+                    <Button onClick={fetchDataAndConfig} size="sm" className="ml-2">
+                        Actualiser
+                    </Button>
+                </div>
+
+                {/* Section Recherche et Paramètres */}
+                <div className="flex items-center space-x-2 w-full md:w-auto justify-center md:justify-end">
+                    <input
+                        type="text"
+                        placeholder="Rechercher salle/chir..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-slate-800 dark:text-gray-200 w-full sm:w-auto max-w-xs"
+                    />
+                    <Button
+                        onClick={openConfigPanel}
+                        variant="outline"
+                        size="icon"
+                        data-testid="open-config-button"
+                        aria-label="Configurer l'affichage"
+                        className="border-gray-300 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700"
+                    >
+                        <Cog6ToothIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                    </Button>
+                </div>
             </div>
 
-            {/* Dialog pour les paramètres */}
+            {/* Sélecteur de plage de dates */}
+            <Dialog open={isDateRangeSelectorOpen} onOpenChange={setIsDateRangeSelectorOpen}>
+                <DialogContent className="max-w-md dark:bg-slate-800">
+                    <DialogHeader>
+                        <DialogTitle className="dark:text-gray-100">Sélectionnez une plage de dates</DialogTitle>
+                        <DialogDescription className="dark:text-gray-400">
+                            Choisissez une semaine ou une plage personnalisée.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="radio"
+                                    id="week-view"
+                                    name="date-range-type"
+                                    checked={activeDateRangeType === 'week'}
+                                    onChange={() => switchToWeekView()}
+                                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                />
+                                <label htmlFor="week-view" className="text-sm font-medium dark:text-gray-200">
+                                    Vue semaine
+                                </label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="radio"
+                                    id="custom-range"
+                                    name="date-range-type"
+                                    checked={activeDateRangeType === 'custom'}
+                                    onChange={() => {
+                                        // Si aucune date n'est encore sélectionnée, définir celle de la semaine actuelle
+                                        if (!customStartDate || !customEndDate) {
+                                            setCustomStartDate(currentWeekStart);
+                                            setCustomEndDate(endOfWeek(currentWeekStart, { weekStartsOn: 1 }));
+                                        }
+                                        setActiveDateRangeType('custom');
+                                    }}
+                                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                />
+                                <label htmlFor="custom-range" className="text-sm font-medium dark:text-gray-200">
+                                    Plage personnalisée
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Sélecteur de dates personnalisées */}
+                        {activeDateRangeType === 'custom' && (
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <div className="flex-1">
+                                    <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                        Date de début
+                                    </label>
+                                    <DatePicker
+                                        id="start-date"
+                                        selected={customStartDate}
+                                        onChange={(date: Date | null) => {
+                                            if (date) {
+                                                setCustomStartDate(date);
+                                                // Si la date de fin est avant la nouvelle date de début, ajuster la fin
+                                                if (customEndDate && isBefore(customEndDate, date)) {
+                                                    setCustomEndDate(date);
+                                                }
+                                            }
+                                        }}
+                                        dateFormat="dd/MM/yyyy"
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-slate-800 dark:text-gray-200"
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                        Date de fin
+                                    </label>
+                                    <DatePicker
+                                        id="end-date"
+                                        selected={customEndDate}
+                                        onChange={(date: Date | null) => date && setCustomEndDate(date)}
+                                        dateFormat="dd/MM/yyyy"
+                                        minDate={customStartDate || undefined}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-slate-800 dark:text-gray-200"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsDateRangeSelectorOpen(false)} className="dark:text-gray-200 dark:border-slate-600 dark:hover:bg-slate-700">
+                            Annuler
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                if (activeDateRangeType === 'custom' && customStartDate && customEndDate) {
+                                    handleDateRangeChange(customStartDate, customEndDate);
+                                } else {
+                                    switchToWeekView();
+                                    setIsDateRangeSelectorOpen(false);
+                                }
+                            }}
+                            disabled={activeDateRangeType === 'custom' && (!customStartDate || !customEndDate)}
+                            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                        >
+                            Appliquer
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             <Dialog open={showConfigPanel} onOpenChange={setShowConfigPanel}>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                    {/* Rendu conditionnel pour éviter les erreurs si displayConfig est null au début */}
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
+                    <DialogHeader>
+                        <DialogTitle className="dark:text-gray-100">Configuration de l'affichage</DialogTitle>
+                        <DialogDescription className="dark:text-gray-400">
+                            Personnalisez les options d'affichage du planning hebdomadaire.
+                        </DialogDescription>
+                    </DialogHeader>
                     {displayConfig && (
                         <DisplayConfigPanel
-                            onClose={() => setShowConfigPanel(false)} // Appeler setShowConfigPanel pour fermer
-                            config={displayConfig}
+                            onClose={() => setShowConfigPanel(false)}
+                            config={displayConfig!}
                             onConfigChange={handleConfigChange}
                             rooms={rooms}
                             users={users}
@@ -1139,70 +1721,70 @@ export default function WeeklyPlanningPage() {
                 </DialogContent>
             </Dialog>
 
-            {isLoading ? (
-                <p>Chargement du planning...</p>
-            ) : (
-                <DragDropContext onDragEnd={handleDragEnd} data-testid="dnd-context">
-                    <div className="flex-grow overflow-auto border rounded-lg shadow-sm bg-white">
-                        {viewMode === "room" ? renderRoomView() : renderSurgeonView()}
-                    </div>
-                </DragDropContext>
-            )}
+            <DragDropContext onDragEnd={handleDragEnd} data-testid="dnd-context">
+                <div className="flex-grow overflow-auto border rounded-lg shadow-sm bg-white dark:bg-slate-800">
+                    {viewMode === "room" ? renderRoomView() : renderSurgeonView()}
+                </div>
+            </DragDropContext>
+
             {hasPendingChanges && (
-                <div className="mt-4 p-4 border rounded-lg shadow-md bg-yellow-50 flex justify-end space-x-4">
+                <div className="mt-4 p-4 border rounded-lg shadow-md bg-yellow-50 dark:bg-yellow-900/30 flex justify-end space-x-4">
                     <Button
                         variant="outline"
                         onClick={handleCancelChanges}
                         data-testid="cancel-changes-button"
+                        className="dark:text-gray-200 dark:border-slate-600 dark:hover:bg-slate-700"
                     >
                         Annuler
                     </Button>
                     <Button
                         onClick={openConfirmationDialog}
                         data-testid="validate-changes-button"
+                        className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                     >
                         Valider les changements
                     </Button>
                 </div>
             )}
             <Dialog open={isConfirmationDialogOpen} onOpenChange={setIsConfirmationDialogOpen}>
-                <DialogContent data-testid="confirmation-dialog">
+                <DialogContent data-testid="confirmation-dialog" className="dark:bg-slate-800">
                     <DialogHeader>
-                        <DialogTitle>Confirmer les changements</DialogTitle>
-                        <DialogDescription>
+                        <DialogTitle className="dark:text-gray-100">Confirmer les changements</DialogTitle>
+                        <DialogDescription className="dark:text-gray-400">
                             Veuillez vérifier les modifications et les éventuels conflits avant de sauvegarder.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 my-4">
                         <div>
-                            <h4 className="font-semibold">Changements proposés :</h4>
+                            <h4 className="font-semibold dark:text-gray-200">Changements proposés :</h4>
                             {pendingChangesDiff.length > 0 ? (
-                                <ul className="list-disc pl-5 text-sm text-gray-700">
+                                <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-gray-300">
                                     {pendingChangesDiff.map((change, index) => (
                                         <li key={index}>{change}</li>
                                     ))}
                                 </ul>
                             ) : (
-                                <p className="text-sm text-gray-500">Aucun changement détecté.</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Aucun changement détecté.</p>
                             )}
                         </div>
                         <div>
-                            <h4 className="font-semibold">Résultat de la validation :</h4>
+                            <h4 className="font-semibold dark:text-gray-200">Résultat de la validation :</h4>
                             {validationResult ? (
-                                <ValidationSummaryDisplay result={validationResult} />
+                                <ValidationSummaryDisplay result={validationResult!} />
                             ) : (
-                                <p className="text-sm text-gray-500">Validation en attente...</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Validation en attente...</p>
                             )}
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsConfirmationDialogOpen(false)}>Annuler</Button>
+                        <Button variant="outline" onClick={() => setIsConfirmationDialogOpen(false)} className="dark:text-gray-200 dark:border-slate-600 dark:hover:bg-slate-700">Annuler</Button>
                         <Button
                             onClick={handleSaveChanges}
-                            disabled={!validationResult?.valid || validationResult.violations.length > 0}
+                            disabled={isSaving || !validationResult?.valid || (validationResult?.violations?.some(v => v.severity === AssignmentRuleSeverity.CRITICAL) ?? false)}
                             data-testid="confirm-save-button"
+                            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                         >
-                            Confirmer & Sauvegarder
+                            {isSaving ? "Sauvegarde..." : "Confirmer & Sauvegarder"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -1211,7 +1793,6 @@ export default function WeeklyPlanningPage() {
     );
 }
 
-// Composant interne pour afficher le résumé de la validation
 const ValidationSummaryDisplay = ({ result }: { result: ValidationResult }) => (
     <div className="space-y-2 max-h-[150px] overflow-y-auto">
         {result.valid && (

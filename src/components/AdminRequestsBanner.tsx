@@ -104,12 +104,12 @@ const AdminRequestsBanner: React.FC = () => {
     }
 
     return (
-        <div className="bg-gradient-to-r from-amber-50 to-amber-100 py-2 px-4 border-b border-amber-200">
+        <div className="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 py-2 px-4 border-b border-amber-200 dark:border-amber-800/50">
             <div className="max-w-7xl mx-auto">
-                <h3 className="text-sm font-medium text-amber-800 mb-2">Demandes de congés en attente</h3>
+                <h3 className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-2">Demandes de congés en attente</h3>
 
                 {error && (
-                    <div className="text-xs text-red-600 mb-2 p-1 bg-red-50 rounded">
+                    <div className="text-xs text-red-600 dark:text-red-400 mb-2 p-1 bg-red-50 dark:bg-red-900/20 rounded">
                         {error}
                     </div>
                 )}
@@ -119,7 +119,7 @@ const AdminRequestsBanner: React.FC = () => {
                         {pendingLeaves.map((leave) => (
                             <motion.div
                                 key={leave.id}
-                                className="bg-white p-3 rounded-md shadow-sm hover:shadow-md transition-shadow duration-200 border border-amber-200"
+                                className="bg-white dark:bg-slate-800 p-3 rounded-md shadow-sm hover:shadow-md transition-shadow duration-200 border border-amber-200 dark:border-amber-800/50"
                                 initial={{ opacity: 0, y: -20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
@@ -127,13 +127,13 @@ const AdminRequestsBanner: React.FC = () => {
                             >
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <div className="font-medium">
+                                        <div className="font-medium dark:text-slate-100">
                                             {leave.user.prenom || leave.user.firstName} {leave.user.nom || leave.user.lastName}
                                         </div>
-                                        <div className="text-xs text-gray-600 mt-1">
+                                        <div className="text-xs text-gray-600 dark:text-slate-400 mt-1">
                                             Type: <span className="font-medium">{leave.type}</span>
                                         </div>
-                                        <div className="text-xs text-gray-600">
+                                        <div className="text-xs text-gray-600 dark:text-slate-400">
                                             Période: <span className="font-medium">{formatDate(leave.startDate)} - {formatDate(leave.endDate)}</span>
                                         </div>
                                     </div>
@@ -141,7 +141,7 @@ const AdminRequestsBanner: React.FC = () => {
                                         <button
                                             onClick={() => handleApprove(leave.id)}
                                             disabled={processingId === leave.id}
-                                            className="flex items-center justify-center bg-green-50 hover:bg-green-100 text-green-700 rounded-full p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="flex items-center justify-center bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-800/50 text-green-700 dark:text-green-400 rounded-full p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             title="Approuver la demande"
                                         >
                                             <CheckCircleIcon className="h-6 w-6" />
@@ -149,7 +149,7 @@ const AdminRequestsBanner: React.FC = () => {
                                         <button
                                             onClick={() => handleReject(leave.id)}
                                             disabled={processingId === leave.id}
-                                            className="flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-700 rounded-full p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="flex items-center justify-center bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-800/50 text-red-700 dark:text-red-400 rounded-full p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             title="Rejeter la demande"
                                         >
                                             <XCircleIcon className="h-6 w-6" />
@@ -157,8 +157,8 @@ const AdminRequestsBanner: React.FC = () => {
                                     </div>
                                 </div>
                                 {processingId === leave.id && (
-                                    <div className="mt-2 text-xs text-gray-500 flex items-center">
-                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <div className="mt-2 text-xs text-gray-500 dark:text-slate-400 flex items-center">
+                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700 dark:text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>

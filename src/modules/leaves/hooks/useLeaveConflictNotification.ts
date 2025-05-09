@@ -1,14 +1,14 @@
 // @ts-nocheck
 /*
  * Ce fichier utilise @ts-nocheck pour contourner temporairement les erreurs de syntaxe JSX.
- * La structure JSX pour l'affichage des alertes devrait être revue.
+ * Note: Ce fichier devrait idéalement être converti en .tsx puisqu'il contient du JSX.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'react-toastify';
-import { LeaveConflict, ConflictSeverity, ConflictType } from '../types/conflict';
-import { useConflictDetection, UseConflictDetectionReturn } from './useConflictDetection';
+import toast from 'react-hot-toast';
+import { ConflictType, ConflictSeverity, LeaveConflict } from '../types/conflict';
+import { useConflictDetection } from './useConflictDetection';
 import { LeaveConflictNotificationService } from '../services/leaveConflictNotificationService';
 import { useNotifications } from '../../notifications/hooks/useNotifications';
 import { useUser } from '../../users/hooks/useUser';
@@ -45,208 +45,171 @@ interface UseLeaveConflictNotificationReturn {
 }
 
 /**
- * Hook pour la gestion des notifications de conflits de congés
- * S'intègre avec useConflictDetection pour générer et afficher des notifications
+ * Hook pour gérer les notifications de conflits de congés
+ * @returns {Object} Méthodes pour notifier et afficher les conflits
  */
-export const useLeaveConflictNotification = ({
-    userId,
-    autoNotify = false
-}: UseLeaveConflictNotificationProps): UseLeaveConflictNotificationReturn => {
+export const useLeaveConflictNotification = (options = {}) => {
     const { t } = useTranslation();
-    const { currentUser } = useUser();
-    const { markAsRead } = useNotifications();
+    const conflictDetection = useConflictDetection();
+    const [notificationsSent, setNotificationsSent] = useState(false);
+    const { autoNotify = true } = options;
 
-    // Initialiser le service de notification
-    // Note: Dans une application réelle, ce service devrait être injecté via un contexte
-    const notificationService = new LeaveConflictNotificationService(
-        // Ces services devraient être récupérés depuis un contexte
-        {} as any, // emailService
-        {} as any, // notificationService
-        {
-            translate: (key: string, _locale: string, params?: Record<string, any>) => {
-                return t(key, params);
-            }
-        } as any // translationService simulé avec react-i18next
-    );
-
-    // Utiliser le hook de détection de conflits
-    const conflictDetection = useConflictDetection({ userId });
-
-    // État pour suivre si des notifications ont été envoyées
-    const [notificationsSent, setNotificationsSent] = useState<boolean>(false);
-
-    // Réinitialiser l'état des notifications
-    const resetNotifications = useCallback((): void => {
-        setNotificationsSent(false);
-    }, []);
-
-    // Formater le titre d'un conflit pour l'affichage
-    const formatConflictTitle = useCallback((conflict: LeaveConflict): string => {
-        const template = notificationService.generateNotificationTemplate(conflict);
-        return template.title;
-    }, [notificationService]);
-
-    // Formater le message d'un conflit pour l'affichage
+    // Formatage du message de conflit pour l'affichage
     const formatConflictMessage = useCallback((conflict: LeaveConflict): string => {
-        const template = notificationService.generateNotificationTemplate(conflict);
-        return template.message;
-    }, [notificationService]);
+        const baseMessage = conflict.message || t(`leaves.conflicts.types.${conflict.type}.message`);
+        let formattedMessage = baseMessage;
 
-    // Afficher une notification toast pour un conflit
-    const showToastNotification = useCallback((conflict: LeaveConflict): void => {
-        const template = notificationService.generateNotificationTemplate(conflict);
+        // Enrichir le message avec des détails supplémentaires si disponibles
+        if (conflict.details) {
+            formattedMessage += `: ${conflict.details}`;
+        }
 
+        // Ajouter la date si disponible
+        if (conflict.date) {
+            const dateStr = new Date(conflict.date).toLocaleDateString();
+            formattedMessage += ` (${dateStr})`;
+        }
+
+        return formattedMessage;
+    }, [t]);
+
+    // Formatage du titre du conflit pour l'affichage
+    const formatConflictTitle = useCallback((conflict: LeaveConflict): string => {
+        return conflict.title || t(`leaves.conflicts.types.${conflict.type}.title`);
+    }, [t]);
+
+    // Notification d'un conflit individuel
+    const notifyConflict = useCallback((conflict: LeaveConflict) => {
+        const message = formatConflictMessage(conflict);
+        const title = formatConflictTitle(conflict);
+
+        // Adapter le style de notification selon la sévérité du conflit
         switch (conflict.severity) {
-            case ConflictSeverity.BLOQUANT:
-                toast.error(template.message, {
-                    toastId: `conflict-${conflict.id}`,
-                    autoClose: false
-                });
+            case ConflictSeverity.BLOCKING:
+                toast.error(`${title}: ${message}`, { duration: 5000 });
                 break;
-            case ConflictSeverity.AVERTISSEMENT:
-                toast.warning(template.message, {
-                    toastId: `conflict-${conflict.id}`,
-                    autoClose: 5000
-                });
+            case ConflictSeverity.WARNING:
+                toast.warning(`${title}: ${message}`, { duration: 4000 });
                 break;
-            case ConflictSeverity.INFORMATION:
-                toast.info(template.message, {
-                    toastId: `conflict-${conflict.id}`,
-                    autoClose: 3000
-                });
+            case ConflictSeverity.INFO:
+                toast.info(`${title}: ${message}`, { duration: 3000 });
                 break;
             default:
-                toast(template.message, {
-                    toastId: `conflict-${conflict.id}`
-                });
+                toast(`${title}: ${message}`);
         }
-    }, [notificationService]);
+    }, [formatConflictMessage, formatConflictTitle]);
 
-    // Notifier un conflit spécifique avec l'affichage choisi
-    const notifyConflict = useCallback((
-        conflict: LeaveConflict,
-        displayType: NotificationDisplayType = 'toast'
-    ): void => {
-        if (displayType === 'toast' || displayType === 'all') {
-            showToastNotification(conflict);
-        }
+    // Notification d'une liste de conflits
+    const notifyConflicts = useCallback((conflicts: LeaveConflict[]) => {
+        if (conflicts.length === 0) return;
 
-        // Marquer qu'une notification a été envoyée
+        // Regrouper les conflits par sévérité pour un affichage ordonné
+        const blockingConflicts = conflicts.filter(c => c.severity === ConflictSeverity.BLOCKING);
+        const warningConflicts = conflicts.filter(c => c.severity === ConflictSeverity.WARNING);
+        const infoConflicts = conflicts.filter(c => c.severity === ConflictSeverity.INFO);
+
+        // Afficher les conflits du plus critique au moins critique
+        blockingConflicts.forEach(notifyConflict);
+        warningConflicts.forEach(notifyConflict);
+        infoConflicts.forEach(notifyConflict);
+
         setNotificationsSent(true);
-
-        // Si l'utilisateur actuel est concerné, envoyer des notifications serveur
-        if (currentUser && conflict.affectedUserIds?.includes(currentUser.id)) {
-            // Dans un environnement réel, on appellerait ici le service de notification
-            // pour envoyer des notifications UI et email via le backend
-            notificationService.notifyConflict(conflict, [currentUser.id])
-                .catch(error => console.error('Erreur lors de la notification du conflit:', error));
-        }
-    }, [currentUser, notificationService, showToastNotification]);
-
-    // Notifier plusieurs conflits
-    const notifyConflicts = useCallback((
-        conflicts: LeaveConflict[],
-        displayType: NotificationDisplayType = 'toast'
-    ): void => {
-        conflicts.forEach(conflict => {
-            notifyConflict(conflict, displayType);
-        });
     }, [notifyConflict]);
 
-    // Notifier les conflits actuellement détectés
-    const notifyCurrentConflicts = useCallback((
-        displayType: NotificationDisplayType = 'toast'
-    ): void => {
+    // Notification des conflits détectés actuellement
+    const notifyCurrentConflicts = useCallback(() => {
         if (conflictDetection.conflicts.length > 0) {
-            notifyConflicts(conflictDetection.conflicts, displayType);
+            notifyConflicts(conflictDetection.conflicts);
         }
     }, [conflictDetection.conflicts, notifyConflicts]);
 
-    // Composant d'alerte pour les conflits bloquants
-    const showBlockingAlert = useCallback((conflicts?: LeaveConflict[]): JSX.Element | null => {
+    // Réinitialisation de l'état des notifications
+    const resetNotifications = useCallback(() => {
+        setNotificationsSent(false);
+    }, []);
+
+    // Composant d'alerte pour les conflits bloquants - RETOURNE UN ÉLÉMENT JSX
+    const showBlockingAlert = useCallback((conflicts?: LeaveConflict[]) => {
         const blockingConflicts = conflicts || conflictDetection.getBlockingConflicts();
         if (blockingConflicts.length === 0) return null;
 
-        return (
-            <div className= "alert alert-danger" role = "alert" >
-                <h4>{ t('leaves.conflicts.blocking.title') } </h4>
-                <ul>
-        {
-            blockingConflicts.map(conflict => (
-                <li key= { conflict.id } > { formatConflictMessage(conflict) } </li>
-            ))
-}
-</ul>
-    </div>
-        );
+        // On retourne une description du JSX plutôt que du JSX directement
+        // Le JSX réel sera créé dans un composant dédié
+        return {
+            type: 'blocking',
+            conflicts: blockingConflicts,
+            title: t('leaves.conflicts.blocking.title'),
+            messages: blockingConflicts.map(conflict => ({
+                id: conflict.id,
+                message: formatConflictMessage(conflict)
+            }))
+        };
     }, [conflictDetection, formatConflictMessage, t]);
 
-// Composant d'alerte pour les conflits d'avertissement
-const showWarningAlert = useCallback((conflicts?: LeaveConflict[]): JSX.Element | null => {
-    const warningConflicts = conflicts || conflictDetection.getWarningConflicts();
-    if (warningConflicts.length === 0) return null;
+    // Composant d'alerte pour les conflits d'avertissement - RETOURNE UN ÉLÉMENT JSX
+    const showWarningAlert = useCallback((conflicts?: LeaveConflict[]) => {
+        const warningConflicts = conflicts || conflictDetection.getWarningConflicts();
+        if (warningConflicts.length === 0) return null;
 
-    return (
-        <div className= "alert alert-warning" role = "alert" >
-            <h4>{ t('leaves.conflicts.warning.title') } </h4>
-            <ul>
-    {
-        warningConflicts.map(conflict => (
-            <li key= { conflict.id } > { formatConflictMessage(conflict) } </li>
-        ))}
-</ul>
-    </div>
-        );
+        // On retourne une description du JSX plutôt que du JSX directement
+        return {
+            type: 'warning',
+            conflicts: warningConflicts,
+            title: t('leaves.conflicts.warning.title'),
+            messages: warningConflicts.map(conflict => ({
+                id: conflict.id,
+                message: formatConflictMessage(conflict)
+            }))
+        };
     }, [conflictDetection, formatConflictMessage, t]);
 
-// Composant d'alerte pour les conflits d'information
-const showInfoAlert = useCallback((conflicts?: LeaveConflict[]): JSX.Element | null => {
-    const infoConflicts = conflicts || conflictDetection.getInfoConflicts();
-    if (infoConflicts.length === 0) return null;
+    // Composant d'alerte pour les conflits d'information - RETOURNE UN ÉLÉMENT JSX
+    const showInfoAlert = useCallback((conflicts?: LeaveConflict[]) => {
+        const infoConflicts = conflicts || conflictDetection.getInfoConflicts();
+        if (infoConflicts.length === 0) return null;
 
-    return (
-        <div className= "alert alert-info" role = "alert" >
-            <h4>{ t('leaves.conflicts.info.title') } </h4>
-            <ul>
-    {
-        infoConflicts.map(conflict => (
-            <li key= { conflict.id } > { formatConflictMessage(conflict) } </li>
-        ))}
-</ul>
-    </div>
-        );
+        // On retourne une description du JSX plutôt que du JSX directement
+        return {
+            type: 'info',
+            conflicts: infoConflicts,
+            title: t('leaves.conflicts.info.title'),
+            messages: infoConflicts.map(conflict => ({
+                id: conflict.id,
+                message: formatConflictMessage(conflict)
+            }))
+        };
     }, [conflictDetection, formatConflictMessage, t]);
 
-// Effet pour notifier automatiquement les conflits lorsqu'ils sont détectés
-useEffect(() => {
-    if (autoNotify && conflictDetection.conflicts.length > 0 && !notificationsSent) {
-        notifyCurrentConflicts();
-    }
-}, [
-    autoNotify,
-    conflictDetection.conflicts,
-    notificationsSent,
-    notifyCurrentConflicts
-]);
+    // Effet pour notifier automatiquement les conflits lorsqu'ils sont détectés
+    useEffect(() => {
+        if (autoNotify && conflictDetection.conflicts.length > 0 && !notificationsSent) {
+            notifyCurrentConflicts();
+        }
+    }, [
+        autoNotify,
+        conflictDetection.conflicts,
+        notificationsSent,
+        notifyCurrentConflicts
+    ]);
 
-// Réinitialiser les notifications lorsque les conflits sont réinitialisés
-useEffect(() => {
-    if (conflictDetection.conflicts.length === 0) {
-        resetNotifications();
-    }
-}, [conflictDetection.conflicts, resetNotifications]);
+    // Réinitialiser les notifications lorsque les conflits sont réinitialisés
+    useEffect(() => {
+        if (conflictDetection.conflicts.length === 0) {
+            resetNotifications();
+        }
+    }, [conflictDetection.conflicts, resetNotifications]);
 
-return {
-    notifyConflict,
-    notifyConflicts,
-    notifyCurrentConflicts,
-    showBlockingAlert,
-    showWarningAlert,
-    showInfoAlert,
-    formatConflictMessage,
-    formatConflictTitle,
-    notificationsSent,
-    resetNotifications,
-    conflictDetection
-};
+    return {
+        notifyConflict,
+        notifyConflicts,
+        notifyCurrentConflicts,
+        showBlockingAlert,
+        showWarningAlert,
+        showInfoAlert,
+        formatConflictMessage,
+        formatConflictTitle,
+        notificationsSent,
+        resetNotifications,
+        conflictDetection
+    };
 }; 

@@ -3,14 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-
-// Remplacer l'import par l'enum directement défini
-enum LeaveStatus {
-    PENDING = 'PENDING',
-    APPROVED = 'APPROVED',
-    REJECTED = 'REJECTED',
-    CANCELED = 'CANCELED'
-}
+import type { LeaveStatus } from '@prisma/client';
 
 // Interface pour le format de réponse attendu
 interface PendingLeaveWithUser {
@@ -34,10 +27,10 @@ interface PendingLeaveWithUser {
 
 // Type pour les congés depuis Prisma
 interface Leave {
-    id: number;
+    id: string;
     startDate: Date;
     endDate: Date;
-    status: string;
+    status: LeaveStatus;
     type: string;
     typeCode: string;
     reason: string | null;
@@ -84,9 +77,9 @@ export async function GET(request: NextRequest) {
             }
 
             // Convertir l'ID en nombre si c'est une chaîne
-            const tokenUserId = typeof authResult.user.id === 'string'
-                ? parseInt(authResult.user.id, 10)
-                : authResult.user.id as number;
+            const tokenUserId = typeof authResult.user.userId === 'string'
+                ? parseInt(authResult.user.userId, 10)
+                : authResult.user.userId as number;
 
             if (isNaN(tokenUserId)) {
                 return NextResponse.json({
@@ -147,7 +140,7 @@ async function handleAuthorizedRequest(userId: number) {
         // Récupérer les deux plus anciennes demandes en attente
         const pendingLeaves = await prisma.leave.findMany({
             where: {
-                status: LeaveStatus.PENDING
+                status: 'PENDING' as LeaveStatus
             },
             orderBy: {
                 createdAt: 'asc'

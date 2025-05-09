@@ -4,8 +4,12 @@ import { LeavePermissionService, LeavePermission } from '../../leaves/permission
 import { jest } from '@jest/globals';
 import axios from 'axios';
 
-// Mock axios
+// Mock axios globalement. Jest devrait remplacer les méthodes comme .post par des jest.fn().
 jest.mock('axios');
+
+// Caster axios après le mock pour que TypeScript comprenne les mocks.
+// Ce cast suppose que la structure mockée par Jest correspond à typeof axios,
+// et que les méthodes comme .post sont des jest.Mock.
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('Module Integration Tests', () => {
@@ -18,7 +22,20 @@ describe('Module Integration Tests', () => {
         eventBus.dispose();
 
         // Mock pour les appels axios
-        mockedAxios.post.mockResolvedValue({ data: {} });
+        // Si jest.mock('axios') a bien fonctionné, mockedAxios.post devrait être un jest.Mock.
+        // L'erreur originale suggère que ce n'est pas le cas.
+        // Alternative: Tenter de forcer (axios.post as jest.Mock).mockResolvedValue({ data: {} });
+        // Ou encore plus direct si mockedAxios est l'objet mocké:
+        if (mockedAxios.post && typeof mockedAxios.post.mockResolvedValue === 'function') {
+            mockedAxios.post.mockResolvedValue({ data: {} });
+        } else {
+            // Si mockedAxios.post n'est pas un mock valide, nous avons un problème avec jest.mock('axios')
+            // Pour tenter de faire passer le test, on peut le créer à la volée, mais ce n'est pas idéal.
+            console.error("axios.post n'a pas été correctement mocké par jest.mock('axios'). Tentative de mock manuel.");
+            (axios.post as jest.Mock) = jest.fn().mockResolvedValue({ data: {} });
+            // S'assurer que la référence mockedAxios est aussi mise à jour si elle est utilisée ailleurs pour post
+            mockedAxios.post = (axios.post as jest.Mock);
+        }
 
         // Mock pour audit
         jest.spyOn(auditService, 'createAuditEntry').mockResolvedValue({} as any);

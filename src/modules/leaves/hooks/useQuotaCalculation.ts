@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { QuotaManagementService, QuotaManagementEvents } from '../services/QuotaManagementService';
 import { LeaveType } from '../types/leave';
 import { QuotaCalculationResult, QuotaTransferRule } from '../types/quota';
-import { QuotaManagementService } from '../services/quotaManagementService';
 
 /**
  * Hook pour le calcul des quotas de congés disponibles

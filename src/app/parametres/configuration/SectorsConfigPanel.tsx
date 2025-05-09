@@ -36,6 +36,7 @@ type Sector = {
     };
     isActive: boolean;
     siteId: number;
+    displayOrder?: number;
 };
 
 type SectorFormData = {
@@ -689,12 +690,51 @@ const SectorsConfigPanel: React.FC = () => {
 
     // Gestion du mode réorganisation
     const handleReorderingToggle = () => {
-        console.log("Toggle reordering mode, current state:", isReordering);
-        setIsReordering(prev => !prev);
-        // Si on désactive le mode, sauvegarder l'ordre actuel
         if (isReordering) {
-            console.log("Saving current order:", sectorOrder);
-            saveSectorOrderToStorage(sectorOrder);
+            // Si on termine la réorganisation, sauvegarder les ordres dans la base de données
+            saveSectorOrderToDatabase();
+        }
+        setIsReordering(!isReordering);
+    };
+
+    // Nouvelle fonction pour enregistrer l'ordre en base de données
+    const saveSectorOrderToDatabase = async () => {
+        try {
+            setSaveMessage('Enregistrement des modifications...');
+
+            // Récupérer tous les secteurs ordonnés par site
+            const updatedSectors = [...sectors];
+            const orderedIdsBySite = sectorOrder.orderedSectorIdsBySite;
+
+            // Assigner un displayOrder à chaque secteur en fonction de son ordre dans le site
+            for (const siteId in orderedIdsBySite) {
+                const siteIdNum = parseInt(siteId);
+                const sectorIds = orderedIdsBySite[siteIdNum];
+
+                sectorIds.forEach((sectorId, index) => {
+                    const sectorIndex = updatedSectors.findIndex(s => s.id === sectorId);
+                    if (sectorIndex !== -1) {
+                        updatedSectors[sectorIndex].displayOrder = index + 1; // Commencer à 1
+                    }
+                });
+            }
+
+            // Appel API pour sauvegarder l'ordre
+            const response = await axios.post('/api/sectors/reorder', {
+                sectors: updatedSectors.map(s => ({ id: s.id, displayOrder: s.displayOrder }))
+            });
+
+            if (response.status === 200) {
+                setSaveMessage('');
+                toast.success('Les secteurs ont été réorganisés avec succès');
+
+                // Mettre à jour les secteurs locaux avec les nouveaux displayOrder
+                setSectors(updatedSectors);
+            }
+        } catch (error) {
+            console.error("Erreur lors de l'enregistrement de l'ordre des secteurs:", error);
+            toast.error("Erreur lors de l'enregistrement de l'ordre des secteurs");
+            setSaveMessage('');
         }
     };
 

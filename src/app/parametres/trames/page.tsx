@@ -1,7 +1,10 @@
+'use client';
+
 import React from 'react';
 import BlocPlanningTemplateEditor from '@/components/trames/BlocPlanningTemplateEditor';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import EditeurTramesHebdomadaires from './EditeurTramesHebdomadaires';
 
 export default function TramesPlanningPage() {
     return (
@@ -32,9 +35,7 @@ export default function TramesPlanningPage() {
                             <CardTitle>Trames de planning standard</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-gray-500">
-                                Module en développement. Disponible prochainement.
-                            </p>
+                            <EditeurTramesHebdomadaires />
                         </CardContent>
                     </Card>
                 </TabsContent>

@@ -238,7 +238,7 @@ describe('LeaveReportApi', () => {
     describe('exportReport', () => {
         it('devrait lancer une tâche d\'exportation', async () => {
             // Arrange
-            const exportOptions = {
+            const mockExportOptions = {
                 format: ExportFormat.CSV,
                 fileName: 'rapport-conges-2023.csv',
                 includeHeaders: true
@@ -248,17 +248,21 @@ describe('LeaveReportApi', () => {
             const taskId = await reportApi.exportReport(
                 ReportType.LEAVE_USAGE,
                 mockFilters,
-                exportOptions
+                mockExportOptions
             );
 
             // Assert
             expect(axios.post).toHaveBeenCalledWith(
                 `/api/leaves/reports/leave_usage/export`,
                 expect.objectContaining({
-                    filters: mockFilters,
-                    exportOptions: exportOptions
+                    filters: {
+                        ...mockFilters,
+                        startDate: format(mockFilters.startDate as Date, 'yyyy-MM-dd'),
+                        endDate: format(mockFilters.endDate as Date, 'yyyy-MM-dd'),
+                    },
+                    exportOptions: mockExportOptions
                 }),
-                expect.any(Object)
+                expect.any(Object) // Pour les headers
             );
             expect(taskId).toBe('export-task-1');
             expect(performanceTracker.measure).toHaveBeenCalledWith(

@@ -158,6 +158,7 @@ type OperatingRoom = {
     supervisionRules: any;
     createdAt: string;
     updatedAt: string;
+    displayOrder?: number; // Ajout de la propriété displayOrder
 };
 
 // Type pour l'ordre des salles (adapté pour les ID numériques ET par secteur)
@@ -379,8 +380,11 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                 const response = await axios.get(`${apiBaseUrl}/api/operating-sectors`, {
                     params: { _t: Date.now() }
                 });
+                // Les secteurs sont déjà triés par displayOrder dans l'API
                 setSectors(response.data);
+
                 // Mettre à jour les noms et couleurs pour les listes déroulantes
+                // en préservant l'ordre des secteurs tel que retourné par l'API
                 const names = response.data.map((s: Sector) => s.name);
                 setSectorNames(names);
 
@@ -389,6 +393,8 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                     colors[s.name] = s.colorCode;
                 });
                 setSectorColors(colors);
+
+                console.log('Secteurs chargés avec tri par displayOrder:', names);
             } catch (error) {
                 console.error("Erreur lors du chargement des secteurs:", error);
                 setError("Impossible de charger les secteurs. Veuillez réessayer plus tard.");
@@ -1015,29 +1021,79 @@ const OperatingRoomsConfigPanel: React.FC = () => {
     }, []); // Dépendance vide = une seule exécution
     // --- FIN DE LA CONFIGURATION DE TEST ---
 
+    // Pour le test du mode simulation
+    const DEBUG_MODE = false;
+
+    // Fonction pour activer/désactiver le mode réorganisation
+    const handleReorderingToggle = () => {
+        if (isReordering) {
+            // Si on termine la réorganisation, sauvegarder les ordres dans la base de données
+            saveRoomOrderToDatabase();
+        }
+        setIsReordering(!isReordering);
+    };
+
+    // Nouvelle fonction pour enregistrer l'ordre en base de données
+    const saveRoomOrderToDatabase = async () => {
+        try {
+            setSaveMessage('Enregistrement des modifications des salles...');
+
+            // Récupérer tous les salles ordonnées par secteur
+            const updatedRooms = [...rooms];
+            const orderedIdsBySector = roomOrder.orderedRoomIdsBySector;
+
+            // Assigner un displayOrder à chaque salle en fonction de son ordre dans le secteur
+            for (const sectorName in orderedIdsBySector) {
+                const roomIds = orderedIdsBySector[sectorName];
+
+                roomIds.forEach((roomId, index) => {
+                    const roomIndex = updatedRooms.findIndex(r => r.id === roomId);
+                    if (roomIndex !== -1) {
+                        updatedRooms[roomIndex].displayOrder = index + 1; // Commencer à 1
+                    }
+                });
+            }
+
+            // Appel API pour sauvegarder l'ordre
+            const response = await axios.post('/api/operating-rooms/reorder', {
+                rooms: updatedRooms.map(r => ({ id: r.id, displayOrder: r.displayOrder }))
+            });
+
+            if (response.status === 200) {
+                setSaveMessage('');
+                toast.success('Les salles ont été réorganisées avec succès');
+
+                // Mettre à jour les salles locales avec les nouveaux displayOrder
+                setRooms(updatedRooms);
+            }
+        } catch (error) {
+            console.error("Erreur lors de l'enregistrement de l'ordre des salles:", error);
+            toast.error("Erreur lors de l'enregistrement de l'ordre des salles");
+            setSaveMessage('');
+        }
+    };
+
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Configuration des salles d'opération</h2>
-
-                <div className="flex items-center space-x-2">
-                    <Button
-                        onClick={handleAddClick}
-                        size="sm"
-                        className="flex items-center"
-                    >
-                        <PlusIcon className="h-4 w-4 mr-1" />
-                        Nouvelle salle
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Configuration des Salles d'Opération</h2>
+                <div className="flex space-x-4">
+                    <Button onClick={handleAddClick} className="flex items-center">
+                        <PlusIcon className="h-5 w-5 mr-2" />
+                        Ajouter une Salle
                     </Button>
-
                     <Button
-                        onClick={() => setIsReordering(prev => !prev)}
-                        size="sm"
-                        variant={isReordering ? "default" : "outline"}
+                        onClick={handleReorderingToggle}
+                        variant={isReordering ? "danger" : "outline"}
                         className="flex items-center"
+                        disabled={rooms.length < 2}
                     >
-                        <ArrowsUpDownIcon className="h-4 w-4 mr-1" />
-                        {isReordering ? "Terminer réorganisation" : "Réorganiser les salles"}
+                        {isReordering ? (
+                            <CheckIcon className="h-5 w-5 mr-2" />
+                        ) : (
+                            <ArrowsUpDownIcon className="h-5 w-5 mr-2" />
+                        )}
+                        {isReordering ? "Terminer" : "Réorganiser"}
                     </Button>
                 </div>
             </div>

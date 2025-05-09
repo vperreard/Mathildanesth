@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient, Prisma } from '@prisma/client';
-import { defaultDisplayConfig } from '@/app/planning/hebdomadaire/DisplayConfigPanel'; // Ajuster le chemin si nécessaire
+import { defaultDisplayConfig } from '@/app/planning/hebdomadaire/defaultConfig'; // Modification de l'importation
 import { DisplayConfig } from '@/app/planning/hebdomadaire/types'; // Ajuster le chemin si nécessaire
 import { verifyAuthToken, UserJWTPayload } from '@/lib/auth-utils'; // Importer la fonction de vérification et UserJWTPayload
 
@@ -44,7 +44,14 @@ export async function GET() {
         if (user.displayPreferences && typeof user.displayPreferences === 'object' && !Array.isArray(user.displayPreferences)) {
             return NextResponse.json(user.displayPreferences as DisplayConfig);
         } else {
-            return NextResponse.json(defaultDisplayConfig);
+            console.log("## API /user/preferences: Tentative de retour de defaultDisplayConfig:", JSON.stringify(defaultDisplayConfig, null, 2));
+            try {
+                return NextResponse.json(defaultDisplayConfig);
+            } catch (serializationError) {
+                console.error("## API /user/preferences: Erreur explicite de sérialisation JSON pour defaultDisplayConfig:", serializationError);
+                // Retourner une erreur plus spécifique si la sérialisation échoue explicitement ici
+                return NextResponse.json({ error: 'Erreur de sérialisation interne pour defaultDisplayConfig' }, { status: 500 });
+            }
         }
     } catch (error) {
         console.error("Erreur API GET /user/preferences:", error);

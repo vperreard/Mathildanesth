@@ -124,7 +124,8 @@ export const planningRules = {
             isActive: true,
             configuration: {
                 restDaysAfter: 1,
-                applicableRoles: ["MAR"]
+                applicableRoles: ["MAR"],
+                incompatibleWith: ["CONSULTATION", "BLOC", "ASTREINTE"]
             }
         },
         {
@@ -148,6 +149,18 @@ export const planningRules = {
                 maxPerPeriod: 3,
                 periodDays: 30,
                 exceptionalMax: 4
+            }
+        },
+        {
+            name: "Incompatibilité Astreinte",
+            description: "Astreinte incompatible avec Garde et Repos de Garde",
+            type: "DUTY_INCOMPATIBILITY", // Utiliser un type spécifique ou adapter la logique existante
+            priority: "HIGH",
+            isActive: true,
+            configuration: {
+                assignmentType: "ASTREINTE", // Le type d'affectation concerné par la règle
+                incompatibleWith: ["GARDE", "REPOS_GARDE"] // Les types avec lesquels elle est incompatible
+                // Note: Il faudra peut-être ajuster le moteur de règles pour gérer ce type de règle
             }
         }
     ],
@@ -174,7 +187,8 @@ export const planningRules = {
                 maxRoomsByDefault: 2,
                 exceptionalMax: 3,
                 sectorExceptions: {
-                    "Ophtalmo": 3
+                    "Ophtalmo": 3,
+                    "Endoscopie": 2
                 }
             }
         },
@@ -222,8 +236,55 @@ export const planningRules = {
                 sectorId: "Septique",
                 restrictionType: "CONTIGUOUS_ROOMS_ONLY"
             }
+        },
+        {
+            name: "Supervision Ophtalmo Source",
+            description: "Ophtalmo peut être supervisé depuis S6 ou S7",
+            type: "ASSIGNMENT_SUPERVISION_SOURCE",
+            priority: "MEDIUM",
+            isActive: true,
+            configuration: {
+                targetSectorId: "Ophtalmo",
+                allowedSourceRooms: ["S6", "S7"]
+            }
+        },
+        {
+            name: "Supervision Endoscopie Source",
+            description: "Endoscopie peut être supervisé depuis S10, S11 ou S12B",
+            type: "ASSIGNMENT_SUPERVISION_SOURCE",
+            priority: "MEDIUM",
+            isActive: true,
+            configuration: {
+                targetSectorId: "Endoscopie",
+                allowedSourceRooms: ["S10", "S11", "S12B"]
+            }
         }
-    ]
+    ],
+
+    // Règles pour la fatigue (NOUVELLE SECTION)
+    fatigueRules: {
+        enabled: true,
+        points: {
+            garde: 30,
+            astreinte: 10,
+            supervisionMultiple: 15, // Pour 3+ salles
+            pediatrie: 10,
+            specialiteLourde: 8
+        },
+        recovery: {
+            jourOff: 20,
+            weekendOff: 30,
+            demiJourneeOff: 10
+        },
+        thresholds: {
+            alert: 80,
+            critical: 120
+        },
+        weighting: { // Pondération pour l'algo d'optimisation
+            equity: 0.6,
+            fatigue: 0.4
+        }
+    }
 };
 
 // Configuration des types de congés (déjà importée mais conservée ici pour référence)

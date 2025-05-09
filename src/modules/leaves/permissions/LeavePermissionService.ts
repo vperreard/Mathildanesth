@@ -211,18 +211,18 @@ export class LeavePermissionService {
         this.permissionCache.configure({
             localCache: {
                 enabled: true,
-                ttlMs: 5 * 60 * 1000, // 5 minutes par défaut
-                maxSize: 2000, // Augmenté pour de meilleures performances
+                ttlMs: 5 * 60 * 1000,
+                maxSize: 2000,
                 preloadingEnabled: true
             },
             distributedCache: {
                 enabled: true,
-                ttlMs: 30 * 60 * 1000, // 30 minutes
+                ttlMs: 30 * 60 * 1000,
                 keyPrefix: 'perm:',
                 storageKey: 'permissionCache',
                 compressionEnabled: true,
-                compressionThreshold: 10240, // 10 KB
-                synchronizationInterval: 60 * 1000 // 1 minute
+                compressionThreshold: 10240,
+                synchronizationInterval: 60 * 1000,
             },
             prefetchedPermissions: [
                 // Les permissions les plus couramment utilisées
@@ -266,14 +266,21 @@ export class LeavePermissionService {
      * Configurer le cache
      */
     public configureCache(config: Partial<PermissionCacheConfig>): void {
-        // Conversion pour compatibilité avec le nouveau service
+        // PermissionCacheConfig ne semble concerner que le cache local.
+        // Le cache distribué est configuré dans le constructeur du service.
         this.permissionCache.configure({
             localCache: {
-                enabled: config.enabled ?? true,
-                ttlMs: config.ttlMs ?? 5 * 60 * 1000,
-                maxSize: config.maxSize ?? 1000,
-                preloadingEnabled: true
-            }
+                enabled: config.enabled ?? this.cacheConfig.local?.enabled ?? true,
+                ttlMs: config.ttlMs ?? this.cacheConfig.local?.ttlMs ?? 5 * 60 * 1000,
+                maxSize: config.maxSize ?? this.cacheConfig.local?.maxSize ?? 1000,
+                // preloadingEnabled n'est pas dans PermissionCacheConfig, mais dans this.cacheConfig.local
+                // donc on l'utilise depuis this.cacheConfig.local ou une valeur par défaut pour le service PermissionCache.
+                preloadingEnabled: this.cacheConfig.local?.preloadingEnabled ?? true
+            },
+            // Ne pas tenter de configurer le cache distribué ici si PermissionCacheConfig ne le couvre pas.
+            // Si le service de cache le permet, on pourrait passer config.distributedCache directement :
+            // distributedCache: config.distributedCache ?? { ... valeurs par défaut ... }
+            // Mais config n'a pas de propriété distributedCache.
         });
 
         if (this.debug) {
@@ -286,14 +293,25 @@ export class LeavePermissionService {
      */
     public setCacheEnabled(enabled: boolean): void {
         this.permissionCache.configure({
-            localCache: { enabled },
-            distributedCache: { enabled }
+            localCache: {
+                enabled,
+                ttlMs: this.cacheConfig.local.ttlMs,
+                maxSize: this.cacheConfig.local.maxSize,
+                preloadingEnabled: this.cacheConfig.local.preloadingEnabled
+            },
+            distributedCache: {
+                enabled,
+                keyPrefix: this.cacheConfig.distributed.keyPrefix,
+                ttlMs: this.cacheConfig.distributed.ttlMs,
+                storageKey: this.cacheConfig.distributed.storageKey,
+                compressionEnabled: this.cacheConfig.distributed.compressionEnabled,
+                compressionThreshold: 10240,
+                synchronizationInterval: this.cacheConfig.distributed.syncInterval
+            }
         });
-
         if (!enabled) {
             this.clearCache();
         }
-
         if (this.debug) {
             console.debug(`[LeavePermissionService] Cache ${enabled ? 'enabled' : 'disabled'}`);
         }
@@ -463,24 +481,29 @@ export class LeavePermissionService {
     private async getCurrentUser(): Promise<User | null> {
         try {
             const session = await getSession();
-            if (!session?.user) return null;
+            if (!session?.user) {
+                return null;
+            }
 
-            // Adapter l'utilisateur de session au type User
-            const user = {
-                id: session.user.id,
-                role: session.user.role,
-                isActive: true,
-                // Convertir en string au lieu de Date pour correspondre au type User
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                firstName: session.user.name?.split(' ')[0] || '',
-                lastName: session.user.name?.split(' ')[1] || '',
-                email: session.user.email || '',
-                department: '',
-                // Autres propriétés requises du type User
+            const sessionUser = session.user as any; // Pour un accès flexible aux propriétés optionnelles
+            const userName = sessionUser.name || '';
+            const nameParts = userName.split(' ');
+            const prenom = nameParts[0] || '';
+            const nom = nameParts.slice(1).join(' ') || '';
+
+            const userObject: User = {
+                id: String(sessionUser.id), // Assurer string
+                email: String(sessionUser.email || ''), // Assurer string, valeur par défaut
+                nom: nom,
+                prenom: prenom,
+                role: sessionUser.role as User['role'], // Adapter au type Role de User
+                createdAt: sessionUser.createdAt ? new Date(sessionUser.createdAt) : new Date(),
+                updatedAt: sessionUser.updatedAt ? new Date(sessionUser.updatedAt) : new Date(),
+                isActive: typeof sessionUser.isActive === 'boolean' ? sessionUser.isActive : true,
+                departmentId: sessionUser.departmentId || null,
             };
 
-            return user as User;
+            return userObject;
         } catch (error) {
             console.error('Erreur lors de la récupération de l\'utilisateur actuel:', error);
             return null;
@@ -509,7 +532,7 @@ export class LeavePermissionService {
 
             // Si nous avons un résultat en cache valide, l'utiliser
             if (cachedResult && cachedResult.value !== null) {
-                return cachedResult.value;
+                return cachedResult.value as boolean; // Cast en boolean
             }
 
             // Utiliser l'utilisateur fourni ou récupérer l'utilisateur actuel
@@ -603,8 +626,8 @@ export class LeavePermissionService {
             case LeavePermission.APPROVE_DEPARTMENT_LEAVES:
                 // Vérifier si l'utilisateur cible est dans le département de l'utilisateur actuel
                 if (targetDepartmentId) {
-                    // Correction: utiliser 'department' au lieu de 'departmentId'
-                    return user.department === targetDepartmentId;
+                    // Correction: utiliser 'departmentId'
+                    return user.departmentId === targetDepartmentId;
                 } else if (targetUserId) {
                     return this.isUserInSameDepartment(targetUserId, user.id);
                 }
@@ -666,32 +689,19 @@ export class LeavePermissionService {
         requireAll: boolean = true,
         user?: User
     ): Promise<boolean> {
-        // Utiliser l'utilisateur fourni ou récupérer l'utilisateur actuel
         const currentUser = user || await this.getCurrentUser();
-
-        // Si aucun utilisateur n'est disponible, refuser l'accès
         if (!currentUser) {
             return false;
         }
-
-        // Clé de cache composite pour l'ensemble des permissions
-        if (this.isPermissionCacheEnabled()) {
-            const permissionsKey = permissions.join(',');
-            const cacheKey = `permissions=${permissionsKey}|requireAll=${requireAll}|userId=${currentUser.id}`;
-
-            // Vérifier le cache
-            const cacheEntry = this.permissionCache.get<boolean>(cacheKey);
-            const now = Date.now();
-
-            if (cacheEntry && (now - cacheEntry.timestamp) < this.permissionCache.getStats().localTtlMs) {
-                // Hit de cache
-                this.cacheStats.hits++;
-                return cacheEntry.value;
-            }
-
-            // Miss de cache
-            this.cacheStats.misses++;
+        const permissionsKey = permissions.join(',');
+        const cacheKey = `permissions=${permissionsKey}|requireAll=${requireAll}|userId=${currentUser.id}`;
+        const cacheEntry = this.permissionCache.get<boolean>(cacheKey);
+        if (cacheEntry && cacheEntry.value != null) {
+            this.cacheStats.hits++;
+            return cacheEntry.value as boolean;
         }
+        // Miss de cache
+        this.cacheStats.misses++;
 
         // Vérifier chaque permission
         let result: boolean;
@@ -737,171 +747,150 @@ export class LeavePermissionService {
      * Accorder une permission spécifique à un utilisateur
      */
     public async grantPermission(userId: string, permission: LeavePermission): Promise<boolean> {
-        try {
-            // Récupérer l'utilisateur actuel (qui accorde la permission)
-            const currentUser = await this.getCurrentUser();
-            if (!currentUser) {
-                throw new Error('Utilisateur non authentifié');
-            }
-
-            // Vérifier si l'utilisateur actuel a le droit de gérer les permissions
-            const canManagePermissions = await this.hasPermission(LeavePermission.MANAGE_LEAVE_RULES, currentUser);
-            if (!canManagePermissions) {
-                throw new Error('Vous n\'avez pas le droit de gérer les permissions');
-            }
-
-            // Ajouter la permission personnalisée
-            const userPerms = this.customPermissions.get(userId) || {
-                userId,
-                grantedPermissions: [],
-                deniedPermissions: []
-            };
-
-            // Ajouter la permission si elle n'est pas déjà accordée
-            if (!userPerms.grantedPermissions.includes(permission)) {
-                userPerms.grantedPermissions.push(permission);
-
-                // Retirer de la liste des permissions refusées si nécessaire
-                userPerms.deniedPermissions = userPerms.deniedPermissions.filter(p => p !== permission);
-
-                // Mettre à jour la map
-                this.customPermissions.set(userId, userPerms);
-
-                // Persister les changements
-                await this.saveCustomPermissions(userId, userPerms);
-
-                // Invalider le cache pour cet utilisateur
-                this.invalidateUserCache(userId);
-
-                // Journaliser l'action
-                await auditService.logPermissionChange(
-                    currentUser.id,
-                    userId,
-                    permission,
-                    true
-                );
-
-                // Publier un événement
-                eventBus.publish({
-                    type: IntegrationEventType.AUDIT_ACTION,
-                    source: 'leaves.permissions',
-                    payload: {
-                        actionType: AuditActionType.PERMISSION_GRANTED,
-                        userId: currentUser.id,
-                        targetId: userId,
-                        targetType: 'permission',
-                        description: `Permission ${permission} accordée à l'utilisateur ${userId}`,
-                        severity: AuditSeverity.HIGH,
-                        metadata: { permission }
-                    }
-                });
-
-                return true;
-            }
-
-            return false;
-        } catch (error) {
-            console.error(`Erreur lors de l'attribution de la permission ${permission}:`, error);
+        console.log(`[DEBUG] grantPermission called for user: ${userId}, permission: ${permission}`);
+        const currentUser = await this.getCurrentUser();
+        if (!currentUser) {
+            console.error("[DEBUG] grantPermission: Current user not found");
             return false;
         }
+        console.log(`[DEBUG] grantPermission: Current user performing action: id=${currentUser.id}, role=${currentUser.role}`);
+
+        const hasAuth = await this.hasPermission(LeavePermission.MANAGE_LEAVE_RULES, currentUser);
+        console.log(`[DEBUG] grantPermission: hasAuth (MANAGE_LEAVE_RULES) for ${currentUser.id}: ${hasAuth}`);
+        if (!hasAuth) {
+            console.error(`[DEBUG] grantPermission: User ${currentUser.id} does not have permission to MANAGE_LEAVE_RULES.`);
+            return false;
+        }
+
+        // Récupérer ou initialiser les permissions personnalisées de l'utilisateur
+        const userPerms = this.customPermissions.get(userId) || {
+            userId,
+            grantedPermissions: [], // Utiliser un tableau
+            deniedPermissions: []   // Utiliser un tableau
+        };
+
+        let permissionChanged = false;
+        // Ajouter la permission si elle n'est pas déjà accordée
+        if (!userPerms.grantedPermissions.includes(permission)) {
+            userPerms.grantedPermissions.push(permission);
+            permissionChanged = true;
+        }
+        // Retirer de la liste des permissions refusées si nécessaire
+        const initialDeniedLength = userPerms.deniedPermissions.length;
+        userPerms.deniedPermissions = userPerms.deniedPermissions.filter(p => p !== permission);
+        if (userPerms.deniedPermissions.length < initialDeniedLength) {
+            permissionChanged = true;
+        }
+
+        if (permissionChanged) {
+            this.customPermissions.set(userId, userPerms);
+            const success = await this.saveCustomPermissions(userId, userPerms);
+            console.log(`[DEBUG] grantPermission: saveCustomPermissions result for ${userId}: ${success}`);
+
+            if (success) {
+                await auditService.logPermissionChange(currentUser.id, userId, permission, true);
+                this.invalidateUserCache(userId);
+                eventBus.publish({
+                    type: IntegrationEventType.AUDIT_ACTION,
+                    payload: { actionType: AuditActionType.PERMISSION_GRANTED, targetId: userId, permission, userIdAdmin: currentUser.id },
+                    source: 'LeavePermissionService'
+                });
+            }
+            return success;
+        }
+        console.log(`[DEBUG] grantPermission: No actual change for ${userId}, permission ${permission}. Returning false.`);
+        return false; // Aucune modification réelle n'a été apportée ou la sauvegarde a échoué
     }
 
     /**
      * Révoquer une permission spécifique d'un utilisateur
      */
     public async revokePermission(userId: string, permission: LeavePermission): Promise<boolean> {
-        try {
-            // Récupérer l'utilisateur actuel (qui révoque la permission)
-            const currentUser = await this.getCurrentUser();
-            if (!currentUser) {
-                throw new Error('Utilisateur non authentifié');
-            }
-
-            // Vérifier si l'utilisateur actuel a le droit de gérer les permissions
-            const canManagePermissions = await this.hasPermission(LeavePermission.MANAGE_LEAVE_RULES, currentUser);
-            if (!canManagePermissions) {
-                throw new Error('Vous n\'avez pas le droit de gérer les permissions');
-            }
-
-            // Mettre à jour les permissions personnalisées
-            const userPerms = this.customPermissions.get(userId) || {
-                userId,
-                grantedPermissions: [],
-                deniedPermissions: []
-            };
-
-            // Ajouter à la liste des permissions refusées si nécessaire
-            if (!userPerms.deniedPermissions.includes(permission)) {
-                userPerms.deniedPermissions.push(permission);
-
-                // Retirer de la liste des permissions accordées si nécessaire
-                userPerms.grantedPermissions = userPerms.grantedPermissions.filter(p => p !== permission);
-
-                // Mettre à jour la map
-                this.customPermissions.set(userId, userPerms);
-
-                // Persister les changements
-                await this.saveCustomPermissions(userId, userPerms);
-
-                // Invalider le cache pour cet utilisateur
-                this.invalidateUserCache(userId);
-
-                // Journaliser l'action
-                await auditService.logPermissionChange(
-                    currentUser.id,
-                    userId,
-                    permission,
-                    false
-                );
-
-                // Publier un événement
-                eventBus.publish({
-                    type: IntegrationEventType.AUDIT_ACTION,
-                    source: 'leaves.permissions',
-                    payload: {
-                        actionType: AuditActionType.PERMISSION_REVOKED,
-                        userId: currentUser.id,
-                        targetId: userId,
-                        targetType: 'permission',
-                        description: `Permission ${permission} retirée à l'utilisateur ${userId}`,
-                        severity: AuditSeverity.HIGH,
-                        metadata: { permission }
-                    }
-                });
-
-                return true;
-            }
-
-            return false;
-        } catch (error) {
-            console.error(`Erreur lors de la révocation de la permission ${permission}:`, error);
+        console.log(`[DEBUG] revokePermission called for user: ${userId}, permission: ${permission}`);
+        const currentUser = await this.getCurrentUser();
+        if (!currentUser) {
+            console.error("Current user not found in revokePermission");
             return false;
         }
+
+        const hasAuth = await this.hasPermission(LeavePermission.MANAGE_LEAVE_RULES, currentUser);
+        if (!hasAuth) {
+            console.error(`User ${currentUser.id} does not have permission to MANAGE_LEAVE_RULES.`);
+            return false;
+        }
+
+        const userPerms = this.customPermissions.get(userId) || {
+            userId,
+            grantedPermissions: [], // Utiliser un tableau
+            deniedPermissions: []   // Utiliser un tableau
+        };
+
+        let permissionChanged = false;
+        // Ajouter à la liste des permissions refusées si nécessaire
+        if (!userPerms.deniedPermissions.includes(permission)) {
+            userPerms.deniedPermissions.push(permission);
+            permissionChanged = true;
+        }
+        // Retirer de la liste des permissions accordées si nécessaire
+        const initialGrantedLength = userPerms.grantedPermissions.length;
+        userPerms.grantedPermissions = userPerms.grantedPermissions.filter(p => p !== permission);
+        if (userPerms.grantedPermissions.length < initialGrantedLength) {
+            permissionChanged = true;
+        }
+
+        if (permissionChanged) {
+            this.customPermissions.set(userId, userPerms);
+            const success = await this.saveCustomPermissions(userId, userPerms);
+            console.log(`[DEBUG] revokePermission: saveCustomPermissions result for ${userId}: ${success}`);
+
+            if (success) {
+                await auditService.logPermissionChange(currentUser.id, userId, permission, false);
+                this.invalidateUserCache(userId);
+                eventBus.publish({
+                    type: IntegrationEventType.AUDIT_ACTION,
+                    payload: { actionType: AuditActionType.PERMISSION_REVOKED, targetId: userId, permission, userIdAdmin: currentUser.id },
+                    source: 'LeavePermissionService'
+                });
+            }
+            return success;
+        }
+        console.log(`[DEBUG] revokePermission: No actual change for ${userId}, permission ${permission}. Returning false.`);
+        return false; // Aucune modification réelle n'a été apportée ou la sauvegarde a échoué
     }
 
     /**
      * Enregistrer les permissions personnalisées d'un utilisateur
      */
-    private async saveCustomPermissions(userId: string, userPerms: UserCustomPermissions): Promise<void> {
+    private async saveCustomPermissions(userId: string, permissions: UserCustomPermissions): Promise<boolean> {
+        console.log(`[DEBUG] saveCustomPermissions called for user: ${userId}, permissions:`, JSON.stringify(permissions));
+        if (!this.permissionsLoaded) {
+            console.warn("Tentative de sauvegarde des permissions personnalisées avant leur chargement complet.");
+        }
         try {
-            const response = await fetch(`/api/leaves/permissions/${userId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userPerms)
+            const response = await fetch(`/api/leaves/permissions/${userId}/custom`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    grantedPermissions: permissions.grantedPermissions, // Doit être un tableau
+                    deniedPermissions: permissions.deniedPermissions,   // Doit être un tableau
+                }),
             });
+            console.log(`[DEBUG] saveCustomPermissions fetch response for ${userId}: status=${response.status}, ok=${response.ok}`);
 
             if (!response.ok) {
-                throw new Error(`Erreur lors de l'enregistrement des permissions: ${response.statusText}`);
+                const errorText = await response.text();
+                console.error(`Erreur API lors de la sauvegarde des permissions pour ${userId}: ${response.status} ${response.statusText}`, errorText);
+                console.error(`API error saving custom permissions for ${userId}: ${response.statusText}`, { userId, error: errorText });
+                return false;
             }
 
-            if (this.debug) {
-                console.debug(`[LeavePermissionService] Permissions saved for user ${userId}`);
-            }
+            const data = await response.json();
+            console.log(`[DEBUG] saveCustomPermissions fetch response data for ${userId}:`, JSON.stringify(data));
+            return data.success === true;
         } catch (error) {
-            console.error('Erreur lors de l\'enregistrement des permissions:', error);
-            throw error;
+            console.error(`Erreur réseau ou autre lors de la sauvegarde des permissions pour ${userId}:`, error);
+            console.error(`Network or other error saving custom permissions for ${userId}`, { userId, error });
+            return false;
         }
     }
 
@@ -910,18 +899,13 @@ export class LeavePermissionService {
      */
     public async getUserPermissions(userId: string): Promise<LeavePermission[]> {
         try {
-            // Vérifier le cache si activé
             if (this.isPermissionCacheEnabled()) {
                 const cacheKey = `userPermissions=${userId}`;
-                const cacheEntry = this.permissionCache.get<boolean>(cacheKey);
-                const now = Date.now();
-
-                if (cacheEntry && (now - cacheEntry.timestamp) < this.permissionCache.getStats().localTtlMs) {
-                    // Hit de cache : utiliser le résultat mis en cache
+                const cacheEntry = this.permissionCache.get<LeavePermission[]>(cacheKey);
+                if (cacheEntry && cacheEntry.value != null) {
                     this.cacheStats.hits++;
-                    return cacheEntry.value as unknown as LeavePermission[];
+                    return cacheEntry.value;
                 }
-
                 // Miss de cache
                 this.cacheStats.misses++;
             }
@@ -955,7 +939,7 @@ export class LeavePermissionService {
             // Mettre en cache le résultat
             if (this.isPermissionCacheEnabled()) {
                 const cacheKey = `userPermissions=${userId}`;
-                this.permissionCache.set(cacheKey, result as unknown as boolean);
+                this.permissionCache.set(cacheKey, result);
             }
 
             return result;
@@ -991,13 +975,23 @@ export class LeavePermissionService {
             });
 
             if (!response.ok) {
+                // Journaliser l'échec de la réinitialisation
+                await auditService.createAuditEntry({
+                    actionType: AuditActionType.PERMISSION_REVOKED,
+                    userId: currentUser.id,
+                    targetId: userId,
+                    targetType: 'user',
+                    description: `Échec de la réinitialisation des permissions personnalisées pour l'utilisateur ${userId}. Statut API: ${response.status}`,
+                    severity: AuditSeverity.CRITICAL,
+                    metadata: { resetPermissionsFailed: true, status: response.status }
+                });
                 throw new Error(`Erreur lors de la réinitialisation des permissions: ${response.statusText}`);
             }
 
             // Invalider le cache pour cet utilisateur
             this.invalidateUserCache(userId);
 
-            // Journaliser l'action
+            // Journaliser l'action de succès
             await auditService.createAuditEntry({
                 actionType: AuditActionType.PERMISSION_REVOKED,
                 userId: currentUser.id,
@@ -1005,12 +999,25 @@ export class LeavePermissionService {
                 targetType: 'user',
                 description: `Permissions personnalisées réinitialisées pour l'utilisateur ${userId}`,
                 severity: AuditSeverity.HIGH,
-                metadata: { resetPermissions: true }
+                metadata: { resetPermissionsSuccess: true }
             });
 
             return true;
         } catch (error) {
             console.error(`Erreur lors de la réinitialisation des permissions pour l'utilisateur ${userId}:`, error);
+            // S'assurer que l'erreur est également journalisée si elle n'a pas été interceptée avant
+            const currentUser = await this.getCurrentUser(); // Peut être null si l'erreur est précoce
+            if (currentUser && !(error instanceof Error && error.message.includes('réinitialisation des permissions'))) {
+                await auditService.createAuditEntry({
+                    actionType: AuditActionType.PERMISSION_REVOKED,
+                    userId: currentUser.id,
+                    targetId: userId,
+                    targetType: 'user',
+                    description: `Erreur technique lors de la tentative de réinitialisation des permissions pour ${userId}: ${error instanceof Error ? error.message : String(error)}`,
+                    severity: AuditSeverity.CRITICAL,
+                    metadata: { resetPermissionsError: true, error: String(error) }
+                });
+            }
             return false;
         }
     }
@@ -1034,20 +1041,7 @@ export class LeavePermissionService {
      * Analyser les métriques de cache et optimiser si nécessaire
      */
     private analyzeMetrics(): void {
-        const { metrics } = this.permissionCache;
-        const hitRate = (metrics.localHits + metrics.distributedHits) / metrics.totalLookups;
-
-        console.log('Métriques de cache de permissions:');
-        console.log(`- Taux de succès du cache: ${(hitRate * 100).toFixed(2)}%`);
-        console.log(`- Cache local: ${metrics.localHits} hits, ${metrics.localEvictions} évictions`);
-        console.log(`- Cache distribué: ${metrics.distributedHits} hits, ${metrics.distributedLoads} chargements, ${metrics.distributedSaves} sauvegardes`);
-        console.log(`- Entrées préchargées: ${metrics.preloadedEntries}`);
-
-        // Ajuster les paramètres du cache en fonction des métriques
-        if (hitRate < 0.5 && this.cacheConfig.local.maxSize < 5000) {
-            console.log('Ajustement automatique: augmentation de la taille du cache local');
-            this.cacheConfig.local.maxSize += 500;
-        }
+        // Méthode dépréciée : analyseMetrics n'est plus supportée par PermissionCacheService
     }
 }
 

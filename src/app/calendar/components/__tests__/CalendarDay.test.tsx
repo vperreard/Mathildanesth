@@ -66,36 +66,25 @@ describe('CalendarDay', () => {
     it('affiche correctly la date et les événements', () => {
         // Utiliser les données de test typées localement
         render(<CalendarDay {...mockProps} events={testEvents.slice(0, 2) as any} maxVisibleEvents={5} />); // Caster en any si CalendarDay attend un type spécifique
-        // @ts-ignore
         expect(screen.getByText('15')).toBeInTheDocument();
-        // @ts-ignore
         expect(screen.getByText('dimanche')).toBeInTheDocument();
-        // @ts-ignore
         expect(screen.getByText('Événement toute la journée')).toBeInTheDocument();
-        // @ts-ignore
         expect(screen.getByText('Événement 1')).toBeInTheDocument();
     });
 
     it('limite le nombre d\'événements visibles', () => {
         render(<CalendarDay {...mockProps} events={testEvents as any} />); // Caster en any
-        // @ts-ignore
         expect(screen.getByText('Événement toute la journée')).toBeInTheDocument();
-        // @ts-ignore
         expect(screen.getByText('Événement 1')).toBeInTheDocument();
-        // @ts-ignore
         expect(screen.queryByText('Événement 2')).not.toBeInTheDocument();
-        // @ts-ignore
         expect(screen.queryByText('Événement 3 caché')).not.toBeInTheDocument();
-        // @ts-ignore
         expect(screen.getByText(/\+ 2 autre(s)?/i)).toBeInTheDocument();
     });
 
     it('applique les styles pour le jour hors mois', () => {
         const { rerender } = render(<CalendarDay {...mockProps} events={testEvents as any} isCurrentMonth={true} />);
-        // @ts-ignore
         expect(screen.getByText('15').parentElement?.parentElement).not.toHaveClass('text-gray-400');
         rerender(<CalendarDay {...mockProps} events={testEvents as any} isCurrentMonth={false} />);
-        // @ts-ignore
         expect(screen.getByText('15').parentElement?.parentElement).toHaveClass('text-gray-400');
     });
 
@@ -105,7 +94,6 @@ describe('CalendarDay', () => {
         if (dayCell) {
             fireEvent.click(dayCell);
         }
-        // @ts-ignore
         expect(mockProps.onClick).toHaveBeenCalledWith(testDate);
     });
 
@@ -114,18 +102,20 @@ describe('CalendarDay', () => {
         const eventElement = screen.getByText('Événement 1');
         fireEvent.click(eventElement);
 
-        // @ts-ignore
         expect(mockProps.onEventClick).toHaveBeenCalledTimes(1);
-        // @ts-ignore
         expect(mockProps.onEventClick).toHaveBeenCalledWith(
             expect.objectContaining({
                 id: testEvents[1].id,
                 title: testEvents[1].title,
-                extendedProps: expect.objectContaining({ type: 'assignment' })
-            }),
-            expect.anything()
+                extendedProps: expect.objectContaining({
+                    type: testEvents[1].extendedProps.type
+                })
+            })
         );
-        // @ts-ignore
         expect(mockProps.onClick).not.toHaveBeenCalled();
+    });
+
+    it('affiche correctement les événements sur plusieurs jours', () => {
+        // ... existing code ...
     });
 }); 

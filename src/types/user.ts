@@ -99,6 +99,86 @@ export interface UserPreferences {
     displayMode: 'compact' | 'comfortable';
     autoSave: boolean;
     language: string;
+    appearance?: AppearancePreferences;
+    customThemeEnabled?: boolean; // Indique si le thème personnalisé est activé
+}
+
+/**
+ * Thème visuel prédéfini
+ */
+export enum VisualTheme {
+    DEFAULT = 'default',          // Thème par défaut (bleu-violet-rose)
+    OCEAN = 'ocean',              // Bleu-vert
+    SUNSET = 'sunset',            // Orange-rouge
+    FOREST = 'forest',            // Vert
+    LAVENDER = 'lavender',        // Violet
+    MONOCHROME = 'monochrome',    // Noir et blanc
+    CUSTOM = 'custom'             // Personnalisé
+}
+
+/**
+ * Préférences d'apparence avancées
+ */
+export interface AppearancePreferences {
+    // Thème visuel prédéfini
+    visualTheme?: VisualTheme;
+
+    // Couleurs personnalisées pour le thème clair
+    lightTheme?: {
+        primary: string;     // Couleur principale
+        secondary: string;   // Couleur secondaire
+        tertiary: string;    // Couleur tertiaire
+        background: string;  // Couleur de fond
+        text: string;        // Couleur du texte
+        card: string;        // Couleur des cartes
+        border: string;      // Couleur des bordures
+    };
+
+    // Couleurs personnalisées pour le thème sombre
+    darkTheme?: {
+        primary: string;     // Couleur principale
+        secondary: string;   // Couleur secondaire
+        tertiary: string;    // Couleur tertiaire
+        background: string;  // Couleur de fond
+        text: string;        // Couleur du texte
+        card: string;        // Couleur des cartes
+        border: string;      // Couleur des bordures
+    };
+
+    // Préférences de typographie
+    typography?: {
+        fontSize: 'small' | 'medium' | 'large' | 'x-large';  // Taille de base de la police
+        fontFamily: 'system' | 'serif' | 'sans-serif' | 'monospace';  // Famille de police
+        lineHeight: 'compact' | 'normal' | 'relaxed';  // Hauteur de ligne
+        fontWeight: 'normal' | 'medium' | 'bold';  // Graisse de la police
+    };
+
+    // Préférences d'animation
+    animations?: {
+        enabled: boolean;  // Activer/désactiver les animations
+        speed: 'slow' | 'normal' | 'fast';  // Vitesse des animations
+    };
+
+    // Préférences d'interface
+    interface?: {
+        borderRadius: 'none' | 'small' | 'medium' | 'large' | 'full';  // Rayon des bordures
+        density: 'compact' | 'normal' | 'comfortable';  // Densité des éléments
+        shadows: 'none' | 'subtle' | 'normal' | 'prominent';  // Intensité des ombres
+        transparencyEffects: boolean;  // Effets de transparence
+    };
+
+    // Préférences d'accessibilité
+    accessibility?: {
+        highContrast: boolean;  // Mode contraste élevé
+        reduceMotion: boolean;  // Réduire les mouvements
+        largeClickTargets: boolean;  // Cibles de clic plus grandes
+    };
+
+    // Préférences d'en-tête
+    header?: {
+        style: 'solid' | 'gradient' | 'transparent';  // Style de l'en-tête
+        sticky: boolean;  // En-tête fixe ou flottant
+    };
 }
 
 /**

@@ -1,6 +1,6 @@
 // src/types/assignment.ts
 
-import { RuleSeverity } from '@/modules/rules/types/rule';
+import { RuleSeverity } from './rules';
 import { ShiftType } from './common';
 
 // Type d'affectation
