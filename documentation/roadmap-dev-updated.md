@@ -37,7 +37,7 @@
 - **(P3)** Mettre en place/Utiliser **Storybook** pour documenter et tester les composants UI refactorisés.
 - **(P3)** Améliorer/Implémenter un système de notification basique pour les actions clés (ex: approbation congé).
 
-**Livrables Clés Phase 1 :** Code base stable, composants clés testés, gestion des congés fonctionnelle, documentation technique à jour (incluant `docs-consolidated/01_Architecture_Generale` et `docs-consolidated/03_Guides_Developpement`), base solide pour les fonctionnalités.
+**Livrables Clés Phase 1 :** Code base stable, composants clés testés, gestion des congés fonctionnelle, documentation technique à jour (incluant `docs-consolidated/01_Architecture_Generale`, `docs-consolidated/03_Guides_Developpement` et `docs-consolidated/02_Fonctionnalites`), base solide pour les fonctionnalités.
 
 ---
 

@@ -126,6 +126,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - ✓ Unification des approches de mathildanesth et MATHILDA
   - ✓ Création des documents d'architecture générale (Introduction, Structure Projet, Architecture Technique, Flux de Données, Gestion Erreurs/Logging, Sécurité/Permissions, Conventions Codage, CI/CD, i18n, Accessibilité, Performance)
   - ✓ Création des guides de développement (Configuration Environnement, Structure Codebase Détaillée, Débogage/Tests, Guide Contribution, Principes API Backend, Composants UI Frontend)
+  - ✓ Création et peuplement initial des documents fonctionnels dans `docs-consolidated/02_Fonctionnalites/` (Visualisation Plannings, Utilisateurs/Profils, Gestion Congés/Absences, Planning Génération, Bloc Opératoire, Interface Collaboration, Analytics, Gestion Affectations, Échanges Affectations, Compteurs/Suivi Temps, Gestion Temps Partiels, Requêtes Personnelles, Notifications/Alertes, Gestion Compétences, Communication Interne, Gestion Remplacements, Historisation/Audit, Exports/Impressions)
 
 - [ ] **Complétion de la documentation manquante**
 

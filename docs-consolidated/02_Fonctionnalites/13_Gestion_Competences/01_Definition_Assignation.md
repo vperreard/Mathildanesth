@@ -1,69 +1,65 @@
-# Gestion des Compétences du Personnel
+# Définition et Assignation des Compétences
 
-## Introduction
+## 1. Introduction
 
-La prise en compte des compétences spécifiques du personnel (MAR, IADE) est essentielle pour assurer la qualité et la sécurité des soins, notamment lors de l'affectation à des postes ou des types d'interventions particuliers. Mathildanesth doit permettre de définir un référentiel de compétences, d'associer ces compétences au personnel, et d'utiliser cette information lors de la planification.
-Cette fonctionnalité est identifiée comme "Indispensable V1 (Préférences/Interdits)" dans `MATHILDA`.
+La gestion des compétences est cruciale dans un environnement médical pour s'assurer que le personnel affecté aux différentes tâches et postes possède les qualifications et l'expérience requises. Mathildanesth intègre des mécanismes pour définir et prendre en compte les compétences, notamment via le concept de spécialités.
 
-## Objectifs
+## 2. Objectifs de la Gestion des Compétences
 
-- Définir une liste de compétences pertinentes pour le service d'anesthésie.
-- Associer les compétences acquises à chaque membre du personnel.
-- Utiliser les compétences comme critère lors de l'affectation (règles d'interdiction ou de préférence).
-- Permettre aux administrateurs de gérer ce référentiel et ces associations.
+- **Sécurité des Soins** : Garantir que seules les personnes compétentes réalisent certaines tâches ou occupent certains postes.
+- **Optimisation de la Planification** : Affecter le personnel en fonction de leurs compétences spécifiques, en particulier pour les activités spécialisées (ex: anesthésie pédiatrique, neurochirurgie).
+- **Développement Professionnel** : Potentiellement, suivre l'acquisition de nouvelles compétences par le personnel (hors scope MVP mais une extension possible).
+- **Flexibilité** : Permettre une configuration des compétences requises pour différents types d'affectations ou de salles.
 
-## Composantes de la Fonctionnalité
+## 3. Modèle de Données Principal : `Specialty`
 
-### 1. Définition du Référentiel de Compétences
+Actuellement, la notion de compétence est principalement gérée à travers le modèle `Specialty` (`prisma/schema.prisma`), particulièrement pertinent pour les rôles médicaux et chirurgicaux.
 
-- **Interface Administrateur :**
-  - Permettre aux administrateurs de créer, modifier, et supprimer des compétences dans un référentiel centralisé.
-  - Exemples de compétences (issus de `MATHILDA`) : Pédiatrie, ALR (Anesthésie Loco-Régionale), Thoracique, Neurochirurgie, etc.
-- **Propriétés d'une Compétence :**
-  - Nom de la compétence (ex: "Anesthésie Pédiatrique Avancée").
-  - Code unique.
-  - Description optionnelle.
-  - Domaine/Catégorie (ex: Type d'anesthésie, Type de patient, Technique spécifique).
-  - Niveau de compétence (Optionnel, si une granularité plus fine est souhaitée : ex: Novice, Confirmé, Expert). Pour une V1, une simple possession de la compétence peut suffire.
+- **Champs du Modèle `Specialty`** :
+  - `id` (Int) : Identifiant unique.
+  - `name` (String) : Nom de la spécialité (ex: "Anesthésie Pédiatrique", "Orthopédie", "Cardiologie Interventionnelle").
+  - `isPediatric` (Boolean) : Indique si la spécialité concerne la pédiatrie.
+- **Relations** :
+  - `Assignment[]` : Les affectations peuvent être liées à une spécialité.
+  - `Surgeon[]` : Les chirurgiens (et donc les utilisateurs `User` ayant un profil `Surgeon`) peuvent être associés à une ou plusieurs spécialités.
 
-### 2. Association des Compétences au Personnel
+Le module de Trames (`EditActivityModal.tsx`) se connecte à l'API `/api/specialties` pour utiliser les données réelles des spécialités lors de la configuration des activités de bloc opératoire.
 
-- **Interface d'Administration des Profils Utilisateurs (`../../01_Utilisateurs_Profils/01_Modele_Utilisateur.md`) :**
-  - Dans le profil de chaque utilisateur (MAR, IADE), l'administrateur doit pouvoir associer les compétences que la personne possède.
-  - Possibilité d'indiquer une date d'acquisition ou de validité (optionnel, pour compétences nécessitant revalidation périodique).
-- **Modèle de Données :**
-  - Table `Skill` pour le référentiel.
-  - Table de liaison `UserSkill` (ou similaire) pour associer `User` et `Skill`, potentiellement avec des attributs supplémentaires (niveau, date d'obtention).
+## 4. Assignation des Compétences (Spécialités) aux Utilisateurs
 
-### 3. Utilisation des Compétences dans la Planification
+- **Profil Chirurgien (`Surgeon`)** : Les utilisateurs ayant un profil `Surgeon` peuvent se voir assigner des spécialités. Cette assignation se fait probablement via une interface d'administration des utilisateurs/chirurgiens.
+- **Autres Rôles Professionnels** : Pour les rôles comme MAR ou IADE, la notion de "spécialité" peut aussi s'appliquer pour des sur-spécialisations (ex: IADE en anesthésie pédiatrique). Le système actuel via `Specialty` pourrait être étendu ou un mécanisme de taggage de compétences plus générique pourrait être envisagé pour une granularité plus fine si nécessaire.
 
-L'information sur les compétences est cruciale pour le moteur de règles (`../03_Planning_Generation/01_Moteur_Regles.md`) et l'algorithme de génération (`../03_Planning_Generation/02_Algorithme_Generation.md`).
+## 5. Utilisation des Compétences dans la Planification
 
-- **Configuration des Règles Associées aux Compétences (`MATHILDA`) :**
-  - **Interdit :** Le personnel sans la compétence X ne PEUT PAS être affecté à une salle, un secteur, ou un type d'intervention nécessitant la compétence X. (Ex: Pas d'affectation en anesthésie pédiatrique si la compétence "Pédiatrie" n'est pas validée pour la personne).
-  - **Préférence :** L'algorithme TENTERA en priorité d'affecter du personnel avec la compétence X à une salle/vacation nécessitant X. (Ex: Préférer un IADE formé ALR pour une salle où des ALR sont prévues).
-  - **Requis :** Un certain nombre de personnes avec la compétence X doivent être présentes dans tel secteur/salle.
-- **Association entre Compétence Requise et Contexte :**
-  - Les besoins en compétences peuvent être définis au niveau :
-    - D'un **type d'affectation** (ex: une garde en réanimation pédiatrique requiert la compétence X).
-    - D'une **salle d'opération** (ex: la salle de neurochirurgie requiert du personnel avec compétence Y).
-    - D'un **secteur opératoire**.
-    - D'une **spécialité chirurgicale** (issue de la trame chirurgiens - `../07_Gestion_Affectations/03_Trame_Chirurgiens.md`).
-- **Impact sur l'Affectation :**
-  - L'algorithme de génération filtre les candidats possibles pour une affectation en fonction des compétences requises.
-  - Les règles de compétence sont vérifiées lors des modifications manuelles du planning pour éviter des affectations inappropriées.
-  - Les conflits de compétences (`../03_Planning_Generation/04_Gestion_Conflits.md`) sont signalés si une affectation ne respecte pas ces règles.
+- **Adéquation Poste/Profil** : L'[Algorithme de Génération de Planning](../../03_Planning_Generation/02_Algorithme_Generation.md) et le [Moteur de Règles](../../03_Planning_Generation/01_Moteur_Regles.md) doivent pouvoir prendre en compte les compétences/spécialités requises pour un poste ou une salle donnée et les comparer aux compétences de l'utilisateur.
+  - Exemple : Si une salle de bloc est réservée pour de la chirurgie pédiatrique, seuls les MAR/IADE ayant la compétence/spécialité "Anesthésie Pédiatrique" devraient y être affectés en priorité.
+- **Règles de Compétences** : Des règles spécifiques peuvent être définies :
+  - "Au moins un MAR avec spécialité X doit être présent si une intervention de type Y a lieu."
+  - "La salle Z nécessite du personnel ayant la compétence W."
+- **Trames de Planning** : Lors de la création de [Trames de Bloc Opératoire](../../../modules/templates/components/BlocPlanningTemplateEditor.md), la spécialité chirurgicale prévue pour une salle informe directement des besoins en compétences anesthésiques.
 
-## Interface Utilisateur
+## 6. Interface d'Administration des Compétences/Spécialités
 
-- **Pour les Administrateurs :**
-  - CRUD pour le référentiel de compétences.
-  - Assignation des compétences aux utilisateurs.
-  - Configuration des compétences requises par salle/secteur/type d'intervention.
-- **Pour Tous les Utilisateurs (Optionnel) :**
-  - Visualisation de leurs propres compétences enregistrées dans leur profil.
-  - Potentiellement, voir les compétences requises pour certaines affectations sur le planning.
+- **Gestion des Spécialités** :
+  - Une interface d'administration (potentiellement sous `/admin/specialties/` ou intégrée dans la configuration générale) permet de créer, lire, mettre à jour et supprimer (CRUD) les spécialités.
+- **Assignation aux Utilisateurs** :
+  - L'interface de gestion des utilisateurs/profils permet d'associer les spécialités aux personnes concernées.
 
-## Conclusion
+## 7. Évolutions Possibles
 
-La gestion des compétences est un levier important pour la sécurité et la qualité des soins. En l'intégrant au processus de planification, Mathildanesth s'assure que le bon personnel, avec les bonnes compétences, est affecté au bon endroit et au bon moment. La distinction entre règles d'interdiction et règles de préférence offre la flexibilité nécessaire pour gérer des situations variées.
+- **Modèle `Skill` Générique** : Pour des compétences non directement liées à une "spécialité" médicale (ex: "Formation aux nouveaux équipements", "Référent douleur"), un modèle `Skill` plus général pourrait être introduit, avec une table de liaison `UserSkill`.
+- **Niveaux de Compétence** : Introduction de niveaux (ex: Débutant, Confirmé, Expert) pour chaque compétence.
+- **Date d'Acquisition/Expiration** : Suivi de la validité des compétences.
+- **Auto-Déclaration et Validation** : Processus où les utilisateurs peuvent déclarer des compétences, soumises à validation.
+
+## 8. Impact sur les Modules
+
+- **Utilisateurs et Profils** : Stockage des compétences assignées.
+- **Planning (Génération et Manuel)** : Prise en compte des compétences pour les affectations.
+- **Moteur de Règles** : Définition et application de règles basées sur les compétences.
+- **Bloc Opératoire** : Association forte entre spécialités chirurgicales, salles, et compétences du personnel d'anesthésie.
+
+---
+
+Une gestion claire des compétences, en commençant par les spécialités, est un atout pour la qualité et la sécurité de la planification des soins dans Mathildanesth. L'infrastructure actuelle avec `Specialty` fournit une bonne base.

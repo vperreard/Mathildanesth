@@ -1,76 +1,92 @@
-# Journal d'Activité, Historique et Audit
+# Journal d'Activité et Historique des Modifications (Audit Log)
 
-## Introduction
+## 1. Introduction
 
-La traçabilité des actions et des modifications, ainsi que la conservation d'un historique des données clés, sont fondamentales pour la gestion, l'analyse et la sécurité d'une application comme Mathildanesth. Ce document décrit les besoins en matière de journal d'activité, d'historisation des plannings et d'audit.
-`MATHILDA` fait référence à ces aspects dans "5. Journal d'Activité et Historique" et "06_Historique_Audit.md" de ses spécifications fonctionnelles secondaires.
-La roadmap de `mathildanesth` mentionne également un "Service d'audit pour journalisation des actions sensibles".
+La traçabilité des actions et des modifications de données est essentielle dans un système de planification aussi critique que Mathildanesth. Elle permet de comprendre l'évolution des plannings, d'identifier les auteurs de changements, de déboguer des problèmes et de répondre à des besoins d'audit.
 
-## Objectifs
+Mathildanesth intègre un service d'audit pour la journalisation des actions sensibles, s'appuyant sur le modèle `AuditLog` (`prisma/schema.prisma`). Cette fonctionnalité est considérée comme complétée (`docs/technique/NEXT_STEPS.md`). Le projet `MATHILDA` listait également un "Journal d'activité/Historique" comme indispensable V1.
 
-- **Traçabilité :** Savoir qui a fait quoi et quand, en particulier pour les modifications de planning et les actions administratives.
-- **Analyse Rétrospective :** Permettre de consulter les états antérieurs des plannings.
-- **Reddition de Comptes :** Fournir des éléments en cas de besoin de vérification ou de justification.
-- **Débogage et Support :** Aider à comprendre comment une situation donnée s'est produite.
-- **Sécurité :** Dissuader les actions inappropriées et identifier les accès ou modifications non autorisés.
+## 2. Objectifs de l'Audit Log
 
-## Composantes de la Fonctionnalité
+- **Traçabilité** : Savoir qui a fait quoi, quand, et sur quelle donnée.
+- **Sécurité** : Dissuader les modifications non autorisées et aider à investiguer les incidents de sécurité.
+- **Débogage** : Comprendre la séquence d'événements ayant mené à une situation problématique.
+- **Reddition de Comptes (Accountability)** : Responsabiliser les utilisateurs pour leurs actions dans le système.
+- **Support à la Décision** : Analyser l'historique des modifications pour comprendre les dynamiques de planification.
+- **Conformité** : Répondre à d'éventuelles exigences réglementaires en matière de suivi des modifications de données sensibles.
 
-### 1. Journal des Modifications du Planning
+## 3. Modèle de Données : `AuditLog`
 
-- **Granularité :** Suivi chronologique de toutes les modifications apportées aux plannings.
-  - Création, modification, suppression d'affectations.
-  - Changements de statut d'une affectation.
-  - Modifications manuelles par les administrateurs.
-- **Informations à Enregistrer pour Chaque Modification :**
-  - Date et heure de la modification.
-  - Utilisateur auteur de la modification (`userId`).
-  - Type de modification (ex: `CREATE_ASSIGNMENT`, `UPDATE_ASSIGNMENT_USER`, `DELETE_ASSIGNMENT`).
-  - Détails de la modification : affectation concernée, valeurs avant/après.
-  - Commentaire ou justification associé(e) au changement (si applicable, ex: lors d'un forçage de règle).
-- **Interface de Consultation :**
-  - Possibilité de visualiser l'historique des changements pour un planning, une affectation, ou un utilisateur spécifique.
-  - Filtres par date, type d'action, utilisateur.
+Le modèle `AuditLog` dans `prisma/schema.prisma` est conçu pour stocker ces informations :
 
-### 2. Historique des Versions du Planning
+- **`id`** (Int) : Identifiant unique de l'entrée de log.
+- **`timestamp`** (DateTime) : Date et heure de l'action.
+- **`userId`** (Int) : Identifiant de l'utilisateur ayant effectué l'action. Lié au modèle `User`.
+- **`action`** (String) : Description de l'action effectuée (ex: "CREATE", "UPDATE", "DELETE", "LOGIN_SUCCESS", "APPROVE_LEAVE", "GENERATE_PLANNING").
+- **`entity`** (String) : Nom de l'entité/modèle de données concerné (ex: "User", "Assignment", "Leave", "Rule").
+- **`entityId`** (String) : Identifiant de l'instance spécifique de l'entité concernée.
+- **`details`** (Json, optionnel) : Informations supplémentaires sur l'action, comme les valeurs avant/après modification, les paramètres utilisés, ou un message descriptif plus long.
+  - Exemple pour un `UPDATE` : `{ "oldValues": { "status": "PENDING" }, "newValues": { "status": "APPROVED" } }`
+- **`ipAddress`** (String, optionnel) : Adresse IP de l'utilisateur lors de l'action (pourrait être ajouté si pertinent pour la sécurité).
 
-- **Archivage des Plannings :**
-  - Sauvegarde régulière des versions majeures des plannings (ex: planning publié pour la semaine S, planning après modifications importantes).
-  - Permet de revenir à une version antérieure en cas de problème majeur (rollback prudent).
-- **Comparaison entre Versions (Optionnel - Avancé) :**
-  - Outil permettant de visualiser les différences entre deux versions d'un planning (prévu vs. réalisé, ou deux versions successives).
-- **Accès aux Plannings Passés :**
-  - Possibilité de consulter les plannings des périodes précédentes tels qu'ils étaient au moment de leur validité.
+## 4. Actions Journalisées (Exemples)
 
-### 3. Journal d'Audit des Actions (Audit Trail)
+Idéalement, un large éventail d'actions sensibles devrait être journalisé :
 
-Ce journal est plus large que le simple historique des modifications du planning et couvre les actions sensibles dans l'ensemble de l'application.
+- **Gestion des Utilisateurs** :
+  - Création, modification (rôle, statut), suppression d'utilisateurs.
+  - Changement de mot de passe (par l'admin ou l'utilisateur).
+- **Connexions** :
+  - Le modèle `LoginLog` est spécifique pour cela (`userId`, `timestamp`).
+- **Gestion des Congés (`Leave`)** :
+  - Soumission, approbation, rejet, annulation d'une demande de congé.
+  - Modification des quotas de congés.
+- **Gestion des Affectations (`Assignment`)** :
+  - Création, modification, suppression d'affectations (manuelle ou par l'algorithme).
+  - Échanges d'affectations (`SwapRequest`) : création de la demande, acceptation, rejet, approbation finale.
+- **Génération de Planning** :
+  - Lancement de la génération automatique.
+  - Publication d'un planning.
+- **Gestion des Règles (`Rule`, `PlanningRule`)** :
+  - Création, modification, activation/désactivation d'une règle.
+- **Gestion des Trames (`TrameAffectation`)** :
+  - Création, modification, duplication, exportation d'une trame.
+- **Configuration du Système** :
+  - Modification de paramètres importants (ex: types de congés, configuration du bloc opératoire).
+- **Actions d'Administration Générales**.
 
-- **Actions à Tracer (Exemples) :**
-  - Connexions et tentatives de connexion (succès/échec).
-  - Modifications des droits utilisateurs et des rôles (`Role`, `UserRole`).
-  - Changements de configuration critiques de l'application (ex: modification des règles de planification globales, paramètres des types de congés).
-  - Validations et refus de demandes (congés, échanges, requêtes spécifiques).
-  - Opérations d'import/export de données sensibles.
-  - Actions d'administration sur les données (ex: suppression d'un utilisateur, modification majeure d'un profil).
-- **Informations à Enregistrer :** Similaires au journal des modifications (qui, quoi, quand, résultat).
-- **Sécurité et Intégrité du Journal d'Audit :**
-  - Le journal d'audit doit être protégé contre les modifications non autorisées.
-  - Archivage sécurisé et potentiellement exportable pour des raisons légales ou de conformité.
-- **Consultation :** Interface sécurisée réservée aux administrateurs système pour consulter et analyser le journal d'audit.
-  - Le service `AuditService` mentionné dans la roadmap de `mathildanesth` est probablement destiné à cette fonction.
+## 5. Interface de Consultation de l'Audit Log
 
-## Points Clés d'Implémentation
+- **Accès Restreint** : Généralement réservé aux administrateurs système ou à des rôles spécifiques avec des besoins d'audit.
+- **Fonctionnalités de l'Interface** :
+  - Affichage chronologique des entrées de log.
+  - **Filtrage** :
+    - Par utilisateur (`userId`).
+    - Par type d'action (`action`).
+    - Par entité concernée (`entity`).
+    - Par identifiant d'entité (`entityId`) pour voir tout l'historique d'un objet spécifique.
+    - Par période (date de début, date de fin).
+  - **Recherche** par mots-clés dans le champ `details`.
+  - **Pagination** pour gérer de grands volumes de logs.
+  - **Visualisation des Détails** : Affichage formaté du contenu du champ `details` (JSON).
+- **Export (Optionnel)** : Possibilité d'exporter les résultats filtrés (ex: CSV) pour une analyse externe.
 
-- **Modèles de Données :**
-  - `PlanningModificationLog` ou `AssignmentHistory`.
-  - `PlanningVersion` (pour l'archivage des plannings).
-  - `AuditLog` ou `ActivityLog` (pour le journal d'audit général).
-  - Le modèle `AuditLog` existe déjà dans `prisma/schema.prisma` avec `userId`, `action`, `details`, `timestamp`, `targetEntity`, `targetId`.
-- **Performance :** L'enregistrement intensif de logs ne doit pas impacter significativement les performances de l'application. Des écritures asynchrones ou des files d'attente peuvent être envisagées.
-- **Stockage et Rétention :** Définir des politiques de stockage et de durée de conservation pour ces logs, en fonction des besoins et des contraintes (légales, volumétrie).
-- **Exploitabilité :** Les logs doivent être facilement interrogeables et compréhensibles.
+## 6. Service d'Audit (`AuditService`)
 
-## Conclusion
+Un service centralisé (`AuditService.ts` mentionné comme complété dans `docs/technique/NEXT_STEPS.md`) est responsable de :
 
-Un système complet d'historisation et d'audit est indispensable pour une application gérant des données aussi sensibles et critiques que la planification du personnel médical. Il renforce la confiance, facilite la résolution de problèmes et assure la conformité. L'existence d'un `AuditService` et d'un modèle `AuditLog` dans `mathildanesth` est une bonne base.
+- Fournir une méthode simple pour les autres services/modules afin d'enregistrer des événements d'audit.
+  - Exemple : `auditService.logAction(userId, action, entity, entityId, details)`.
+- Gérer l'écriture des logs dans la base de données (`AuditLog`).
+
+## 7. Bonnes Pratiques et Considérations
+
+- **Granularité** : Choisir le bon niveau de détail pour les logs. Trop de logs peuvent être difficiles à gérer, pas assez peuvent manquer d'informations cruciales.
+- **Performance** : L'écriture des logs ne doit pas impacter significativement les performances des opérations principales.
+- **Sécurité des Logs** : Protéger l'accès aux logs eux-mêmes.
+- **Rétention des Logs** : Définir une politique de rétention (combien de temps les logs sont conservés) en fonction des besoins et des contraintes de stockage.
+- **Lisibilité** : Utiliser des noms d'actions (`action`) et d'entités (`entity`) clairs et cohérents.
+
+---
+
+Le système d'historisation et d'audit est un composant fondamental pour la gouvernance, la sécurité et la maintenance de Mathildanesth. Son implémentation via le modèle `AuditLog` et un service dédié constitue une base solide.

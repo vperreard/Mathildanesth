@@ -1,74 +1,100 @@
-# Gestion des Remplacements et Imprévus
+# Processus de Gestion des Remplacements
 
-## Introduction
+## 1. Introduction
 
-Les absences imprévues (maladie, urgence personnelle) sont inévitables et nécessitent une réorganisation rapide du planning pour assurer la continuité des soins. Mathildanesth doit aider les administrateurs à gérer ces situations en facilitant la recherche et l'affectation de remplaçants.
-La fonctionnalité de "Gestion des Remplaçants (Souhaitable V1 - Gestion Disponibilités)" est mentionnée dans `MATHILDA`.
+La gestion des remplacements est une fonctionnalité critique pour assurer la continuité des soins face aux absences imprévues (maladie soudaine, urgence personnelle) ou aux besoins de dernière minute. Mathildanesth vise à fournir un processus structuré pour identifier les besoins de remplacement, trouver des remplaçants potentiels, et formaliser le remplacement.
 
-## Objectifs
+La roadmap (`documentation/roadmap-dev-updated.md`) indique en Phase 2 (P1) le "Développement d'un système de **remplacements** / gestion des imprévus". `docs/technique/NEXT_STEPS.md` mentionne également un "Système de remplacements et gestion des imprévus" comme objectif à moyen terme, avec une interface dédiée, un workflow de notification, et un système de proposition automatique.
 
-- Identifier rapidement les besoins de remplacement suite à une absence imprévue.
-- Faciliter la recherche de personnel disponible et compétent pour assurer le remplacement.
-- Permettre aux remplaçants (internes ou externes) de signaler leurs disponibilités.
-- Mettre à jour le planning avec l'affectation du remplaçant.
+## 2. Objectifs
 
-## Workflow de Gestion d'un Remplacement
+- **Réactivité** : Permettre de trouver rapidement une solution en cas d'absence imprévue.
+- **Maintien de la Couverture** : S'assurer que les postes critiques sont toujours couverts.
+- **Équité** : Proposer les remplacements de manière équitable (si possible, éviter de solliciter toujours les mêmes personnes).
+- **Respect des Règles** : Vérifier que le remplaçant est éligible (compétences, temps de travail, repos) pour le poste.
+- **Traçabilité** : Conserver un historique des remplacements effectués.
 
-### 1. Signalement de l'Absence Imprévue
+## 3. Scénarios Déclenchant un Besoin de Remplacement
 
-- Voir `../02_Gestion_Conges/01_Processus_Gestion_Conges_Absences.md` (section "Gestion des Absences Imprévues").
-- L'absence est saisie, l'affectation initiale de la personne absente est marquée comme "vacante" ou "à remplacer".
-- Notification aux administrateurs du besoin de remplacement.
+- **Absence Imprévue** : Un utilisateur se déclare absent à la dernière minute (ex: congé maladie).
+- **Retrait d'une Affectation** : Un planificateur doit retirer une affectation à un utilisateur pour une raison quelconque, créant un vide.
+- **Augmentation Soudaine des Besoins** : Rarement, un besoin non anticipé de personnel supplémentaire.
 
-### 2. Identification des Besoins de Remplacement
+## 4. Processus Envisagé pour la Gestion d'un Remplacement
 
-- L'administrateur visualise sur le planning les créneaux/affectations nécessitant un remplacement.
-- Le système met en évidence les postes critiques non couverts.
+### 4.1. Identification du Besoin
 
-### 3. Recherche d'un Remplaçant
+1.  **Signalement** : Une absence est enregistrée, ou une affectation devient vacante dans le planning.
+2.  **Alerte au Planificateur** : Le système notifie le(s) planificateur(s) du poste non couvert nécessitant un remplacement.
 
-Plusieurs stratégies peuvent être combinées :
+### 4.2. Recherche d'un Remplaçant
 
-**A. Personnel Interne (Volontariat ou Sollicitation)**
+Le planificateur (ou le système) initie la recherche.
 
-- **Appel à Volontaires :**
-  - Possibilité de diffuser une notification à un groupe de personnel éligible (ex: "Besoin d'un MAR pour la garde de demain soir, merci de vous manifester si disponible").
-- **Sollicitation Directe par l'Administrateur :**
-  - L'administrateur consulte le planning pour identifier du personnel potentiellement disponible (ex: personnel en repos, personnel avec une charge de travail plus légère ce jour-là).
-  - Le système pourrait aider en listant les personnes :
-    - Ayant les compétences requises.
-    - Ne tombant pas en infraction avec les règles de repos si elles prennent le poste.
-    - N'ayant pas de contre-indication (temps partiel, etc.).
+1.  **Consultation des Disponibilités** :
+    - Vérifier les utilisateurs qui ne sont pas déjà affectés, pas en congé, et qui ont le profil/compétences requis.
+2.  **Système de Proposition Automatique (Objectif Moyen Terme)** :
+    - L'algorithme pourrait suggérer une liste de remplaçants potentiels, classés selon des critères :
+      - Compétences adéquates.
+      - Respect des règles de temps de travail et de repos si le remplacement est accepté.
+      - Équité (ex: ceux ayant fait le moins d'heures supplémentaires ou de remplacements récemment).
+      - Volontariat (si un système de volontariat pour remplacements existe).
+3.  **Sollicitation Manuelle ou Via Système** :
+    - Le planificateur contacte les remplaçants potentiels.
+    - Idéalement, le système permet d'envoyer une "demande de remplacement" via des [Notifications](./../12_Notifications_Alertes/01_Systeme_Notifications.md) aux utilisateurs sélectionnés.
 
-**B. Gestion des Disponibilités des Remplaçants (Fonctionnalité `MATHILDA`)**
+### 4.3. Acceptation et Validation du Remplacement
 
-- **Interface pour Remplaçants :**
-  - Des utilisateurs avec un rôle spécifique `Remplaçant` (qu'ils soient internes à l'équipe habituelle ou des vacataires externes) peuvent accéder à un calendrier simple.
-  - Sur ce calendrier, ils indiquent leurs jours/demi-journées de disponibilité pour effectuer des remplacements.
-- **Consultation par l'Administrateur :**
-  - Lorsqu'un besoin de remplacement survient, l'administrateur peut consulter cette liste/calendrier de disponibilités des remplaçants.
-  - Filtrer par compétences si nécessaire.
+1.  **Acceptation par le Remplaçant** : Un utilisateur accepte de prendre le poste.
+2.  **Validation par le Système** : Avant de finaliser, le système re-vérifie que l'affectation du remplaçant respecte toutes les règles (conflits, temps de travail, compétences, etc.).
+3.  **Validation par le Planificateur (si nécessaire)** : Le planificateur confirme le remplacement.
 
-### 4. Affectation du Remplaçant
+### 4.4. Mise à Jour du Planning
 
-- Une fois un remplaçant trouvé et son accord obtenu :
-  - L'administrateur modifie le planning pour affecter le remplaçant au poste vacant.
-  - Le système vérifie que l'affectation du remplaçant respecte les règles (compétences, repos, etc.).
-  - L'affectation initiale de la personne absente est formellement annulée ou marquée comme "remplacée par X".
-- Notification au remplaçant et aux équipes concernées du changement de planning.
+- L'affectation initiale (de la personne absente) est marquée comme annulée ou modifiée.
+- Une nouvelle affectation est créée pour le remplaçant.
+- Les compteurs de temps de travail et autres indicateurs sont mis à jour pour les deux personnes.
 
-### 5. Suivi et Traçabilité
+### 4.5. Notification
 
-- Toutes les opérations de remplacement (qui a été remplacé, par qui, quand) doivent être historisées.
-- Impact sur les compteurs horaires et de gardes du remplaçant.
+- Le remplaçant est notifié de sa nouvelle affectation.
+- La personne initialement prévue (si applicable et si ce n'est pas elle qui a initié l'absence) peut être notifiée que son affectation a été couverte.
+- Les équipes concernées peuvent être informées du changement.
 
-## Points Clés d'Implémentation
+## 5. Interface Utilisateur (Concepts)
 
-- **Rôle `Remplaçant` :** Si des vacataires externes sont gérés, un rôle utilisateur avec des droits limités (accès au calendrier de disponibilités, notifications de besoins) est nécessaire.
-- **Critères de Suggestion de Remplaçants :** L'intelligence du système pour suggérer des remplaçants pertinents (compétences, respect des règles, coût si applicable) est un plus.
-- **Communication Rapide :** Les notifications doivent être quasi instantanées pour ce type de situation.
-- **Gestion des Astreintes :** En cas d'absence, la personne d'astreinte peut être la première sollicitée selon les protocoles du service.
+- **Tableau de Bord des Remplacements (pour planificateurs)** :
+  - Liste des postes nécessitant un remplacement.
+  - Suggestions de remplaçants.
+  - Outils pour contacter et assigner les remplaçants.
+- **Interface pour les Utilisateurs** :
+  - Possibilité de se porter volontaire pour des remplacements (si cette fonctionnalité est implémentée).
+  - Notifications pour les demandes de remplacement les concernant.
+  - Visualisation claire des changements dans leur planning personnel.
 
-## Conclusion
+## 6. Interaction avec d'Autres Modules
 
-La gestion des remplacements est un aspect souvent stressant de la gestion de planning. En fournissant des outils pour identifier les besoins, visualiser les disponibilités et contacter rapidement des remplaçants potentiels, Mathildanesth peut grandement simplifier ce processus et aider à maintenir la continuité et la sécurité des soins.
+- **Gestion des Congés et Absences** : Une absence validée peut déclencher automatiquement un besoin de remplacement.
+- **Planning** : Le module de planning affiche les postes vacants et les affectations mises à jour.
+- **Moteur de Règles** : Valide l'adéquation du remplaçant.
+- **Notifications** : Communique les demandes et confirmations.
+- **Compteurs Horaires** : Met à jour les temps de travail.
+
+## 7. Modélisation des Données (Considérations)
+
+- Actuellement, il n'y a pas de modèle `ReplacementRequest` dédié dans `prisma/schema.prisma`.
+- Le processus pourrait s'appuyer sur :
+  - La modification du `userId` sur un `Assignment` existant.
+  - La création d'un nouvel `Assignment` pour le remplaçant et l'annulation/modification de l'original.
+  - Le modèle `SwapRequest` gère les échanges initiés par les utilisateurs eux-mêmes, ce qui est une forme de remplacement.
+- Pour un suivi plus fin, un modèle spécifique pourrait tracer l'origine de la demande de remplacement, les personnes sollicitées, et le remplaçant final.
+
+## 8. Points Clés
+
+- **Rapidité et Efficacité** : Le processus doit être rapide pour minimiser les périodes non couvertes.
+- **Fiabilité des Informations** : Les disponibilités et compétences des remplaçants potentiels doivent être à jour.
+- **Communication Claire** : Tous les acteurs doivent être informés des changements.
+
+---
+
+Un système de gestion des remplacements robuste est essentiel pour la résilience opérationnelle du service. L'approche par étapes, commençant par des outils pour le planificateur et évoluant vers des suggestions automatiques, semble pragmatique.
