@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+# La ligne ci-dessous a été supprimée suite à la dépréciation Husky v9+
+# . "$(dirname -- "$0")/_/husky.sh"
 
 npm run lint-staged 

@@ -4,9 +4,9 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 
 ## Améliorations récentes (Juin 2025)
 
-### Implémentation du thème sombre (dark mode) avec préservation des dégradés élégants 
+### Implémentation du thème sombre (dark mode) avec préservation des dégradés élégants
 
-- **Récemment achevé ✅** 
+- **Récemment achevé ✅**
   - Configuration de Tailwind avec `darkMode: 'class'` dans `tailwind.config.js`.
   - Création d'un contexte `ThemeContext` avec un `ThemeProvider` pour gérer l'état du thème.
   - Intégration du `ThemeProvider` dans `src/app/layout.tsx`.
@@ -38,8 +38,8 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - Système de notifications
   - Détection et gestion des conflits
   - Recommandations automatiques pour résolution des conflits
-  
 - ✅ **Intégration entre modules**
+
   - Bus d'événements pour communication inter-modules
   - Service d'audit pour journalisation des actions sensibles
   - Système de permissions granulaires
@@ -48,8 +48,8 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - Éditeur visuel pour les trames de planification
   - Configuration des postes et affectations
   - Duplication et exportation des trames
-  
 - ✅ **Module Calendar**
+
   - Composants optimisés et responsive
   - Performances améliorées
   - Support multi-dispositifs
@@ -57,6 +57,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - **API Routes (Partiel):** Création des routes `GET /api/assignments` et `GET /api/public-holidays`.
 
 - ✅ **Tests end-to-end**
+
   - Tests fonctionnels pour les parcours critiques
   - Tests d'accessibilité avec cypress-axe et pa11y
   - Tests de performance avec lighthouse
@@ -68,11 +69,13 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### Modules en cours
 
 - 🔄 **Module de planification du bloc opératoire (MVP)**
+
   - Définition des salles et secteurs
   - Règles de supervision simples
   - Interface de planning bloc V1
 
 - 🔄 **Module de règles dynamiques (MVP)**
+
   - Interface administrateur simple (CRUD)
   - Moteur pour règles de base
 
@@ -83,6 +86,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### 1. Finalisation du module bloc opératoire (Haute priorité)
 
 - [x] **Composants de définition des salles et secteurs** (Partiellement complété)
+
   - ✅ Interface de création et modification des salles d'opération (`src/app/admin/bloc-operatoire/components/OperatingRoomForm.tsx`)
   - ✅ Interface de création et modification des secteurs opératoires (`src/app/admin/bloc-operatoire/components/OperatingSectorForm.tsx`)
   - ✅ Liste des salles avec actions CRUD (`src/app/admin/bloc-operatoire/components/OperatingRoomList.tsx`)
@@ -95,11 +99,13 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - 🚧 Remplacement des boutons HTML par les composants UI.
 
 - [ ] **Règles de supervision**
+
   - Interface de définition des règles de supervision par secteur
   - Système de validation des contraintes de supervision
   - Alertes en cas de non-respect des règles
 
 - [x] **Interface planning bloc V1** (Partiellement complété)
+
   - ✅ Vue calendrier des affectations par salle (`src/app/planning/hebdomadaire/page.tsx`)
   - ✅ **Fonctionnalités de drag-and-drop pour les affectations** (Implémentation initiale complète)
     - ✅ Utilisation de `react-beautiful-dnd` pour le déplacement.
@@ -126,11 +132,13 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### 2. Développement du module de règles dynamiques (Haute priorité)
 
 - [x] **Interface d'administration des règles**
+
   - ✅ CRUD pour différents types de règles (Fonctionnalité existante ou à développer séparément)
   - ✅ Validation et vérification de cohérence (Implémenté dans `RuleEngineService` et `RuleForm`)
   - ✅ Interface intuitive pour définir les priorités (`RuleForm` mis à jour)
 
 - [x] **Moteur de règles**
+
   - ✅ Système de validation des règles (Implémenté dans `RuleEngineService` et `RuleForm`)
   - ✅ Détection de conflits entre règles (Implémenté dans `RuleEngineService`, intégration UI à faire)
   - ✅ Mécanisme d'application avec journalisation (Moteur existant + logs ajoutés)
@@ -145,11 +153,13 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - ✅ Modification de `src/config/api.ts` pour que `baseUrl` utilise `/api` par défaut, rendant l'appel relatif.
   - ✅ Correction de la méthode HTTP pour `saveUserPreferences` de `POST` à `PUT` dans `src/services/api.ts`.
 - [x] **Authentification via cookie auth_token dans routes API**
+
   - ✅ Correction des fonctions d'authentification dans auth-utils.ts pour utiliser async/await avec cookies()
   - ✅ Mise à jour des routes concernées pour s'adapter à la nouvelle API asynchrone
   - ✅ Correction de l'accès au champ userId dans authResult.user
 
 - [x] **Résolution du bug dans /api/user/preferences**
+
   - ✅ Création d'un fichier dédié `defaultConfig.ts` pour les configurations par défaut
   - ✅ Séparation de la configuration statique du composant client pour permettre son importation côté serveur
   - ✅ Mise à jour des importations dans la route API et les composants clients concernés
@@ -165,6 +175,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### 4. Gestion des indisponibilités et validations (Priorité moyenne)
 
 - [ ] **Système d'indisponibilités utilisateurs**
+
   - Interface de saisie des indisponibilités
   - Validation et approbation des indisponibilités
   - Intégration avec le calendrier et le planning
@@ -180,7 +191,6 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - Système de filtrage avancé
   - Feedback visuel amélioré
   - Transitions plus fluides
-  
 - [ ] **Optimisations de performance**
   - Optimisation des requêtes base de données
   - Système de cache avancé
@@ -270,9 +280,9 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 
 ### Editeur de Trames de Bloc (`src/components/trames/BlocPlanningTemplateEditor.tsx`)
 
-- **Corrigé**: 
-    - Erreur d'hydratation React qui survenait dans l'affichage du tableau de l'éditeur.
-    - Erreur du linter concernant `toast.info` dans la méthode `handleClearTrameAssignments`
+- **Corrigé**:
+  - Erreur d'hydratation React qui survenait dans l'affichage du tableau de l'éditeur.
+  - Erreur du linter concernant `toast.info` dans la méthode `handleClearTrameAssignments`
 
 ## Stabilisation des tests (Juin 2025)
 
@@ -297,16 +307,19 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### Stratégie de correction
 
 1. **Priorisation des modules critiques** :
+
    - Module de gestion des congés (LeaveCalculator, LeavePermissionService)
    - Module de planification (BlocPlanningService, PlanningGeneratorService)
    - Module de notifications et d'intégration
 
 2. **Approche par couches** :
+
    - Commencer par corriger les tests unitaires simples
    - Puis les tests d'intégration
    - Enfin, les tests end-to-end complexes
 
 3. **Isolation et reproductibilité** :
+
    - Améliorer l'isolation des tests pour éviter les interférences
    - Ajouter des mécanismes de réinitialisation fiables entre les tests
    - Simplifier les tests complexes pour les rendre plus robustes
@@ -322,55 +335,66 @@ Cette approche systématique permettra de stabiliser progressivement la suite de
 
 Suite aux discussions et retours utilisateurs, voici des pistes d'amélioration et des principes de conception à considérer pour les évolutions du module de gestion des trames :
 
--   **Distinction Visuelle des Affectations :**
-    -   Mettre en place un code couleur ou un indicateur visuel discret dans les plannings pour distinguer l'origine des affectations (ex: issue d'une trame, générée automatiquement, saisie manuellement).
--   **Gestion des Conflits (Trame vs. Réel) :**
-    -   Lors de l'application d'une trame ou de la génération d'un planning basé sur une trame, tout conflit avec des affectations existantes ou d'autres règles doit être clairement signalé à l'administrateur.
-    -   L'interface devrait proposer les options en conflit et permettre à l'admin de choisir/valider la résolution. Le système pourrait suggérer la solution la plus judicieuse.
--   **Prévisualisation de l'Impact d'une Trame :**
-    -   Avant d'appliquer une trame, offrir une fonctionnalité de prévisualisation montrant les affectations qui seraient créées, modifiées, ou écrasées.
--   **Historique et Versionning des Trames :**
-    -   Étendre la fonctionnalité de versionning (champ `version` existant dans `TrameAffectation`) pour inclure un historique des modifications (qui, quand, quoi).
-    -   Permettre de revenir à une version précédente d'une trame.
--   **Droits d'Accès :**
-    -   Confirmer et implémenter la restriction de la gestion des trames aux rôles "ADMIN MARS". Évaluer si des droits plus fins sont nécessaires à l'avenir.
--   **Configuration des Lignes d'Activité dans l'Éditeur de Trames :**
-    -   Permettre aux administrateurs de configurer les "lignes d'activité" affichées dans l'éditeur de trames (`BlocPlanningTemplateEditor.tsx`).
-    -   Possibilité d'ajouter, supprimer, et renommer ces lignes (ex: "Consultation Dr. Dupont" au lieu de "CONSULTATION 1").
-    -   Envisager une gestion plus dynamique que les `fixedActivityRows` et `dynamicSalleRow` actuelles.
--   **Affectation "OFF" dans les Trames :**
-    -   Introduire la possibilité de marquer un personnel comme "OFF" sur des créneaux spécifiques via une trame. Utile pour gérer les jours de repos fixes, temps partiels, etc.
--   **Granularité et Flexibilité des Trames :**
-    -   Concevoir le système pour permettre la création de trames pour différents types de personnel (Chirurgiens, MARS, IADES) et avec différentes périodicités (semaine, quinzaine, mois).
-    -   Permettre de définir si une trame s'applique à toutes les semaines, seulement les paires, ou seulement les impaires (déjà partiellement possible avec `typeSemaine`).
--   **Application d'une Trame sur Période avec Affectations Existantes :**
-    -   Lorsqu'une trame est appliquée sur une période contenant déjà des affectations, alerter l'utilisateur et lui demander de confirmer la stratégie (écraser, fusionner si possible, annuler).
--   **Clarification `activityRowKey` :**
-    -   Investiguer l'usage et la signification exacte de `activityRowKey` dans `BlocPlanningTemplateEditor.tsx`.
-    -   S'assurer que ces clés sont gérées de manière robuste pour éviter les `undefined` et garantir la correspondance entre la grille et les données sauvegardées/chargées.
--   **Choix explicite des types d'affectations concernées par une trame :**
-    -   Permettre à l'utilisateur de sélectionner quels types d'activités (salles spécifiques, types de consultations, types de gardes/astreintes) sont incluses ou exclues d'une trame donnée.
-    -   Cela permettrait des trames plus ciblées (ex: une trame uniquement pour les gardes).
+- **Distinction Visuelle des Affectations :**
+  - Mettre en place un code couleur ou un indicateur visuel discret dans les plannings pour distinguer l'origine des affectations (ex: issue d'une trame, générée automatiquement, saisie manuellement).
+- **Gestion des Conflits (Trame vs. Réel) :**
+  - Lors de l'application d'une trame ou de la génération d'un planning basé sur une trame, tout conflit avec des affectations existantes ou d'autres règles doit être clairement signalé à l'administrateur.
+  - L'interface devrait proposer les options en conflit et permettre à l'admin de choisir/valider la résolution. Le système pourrait suggérer la solution la plus judicieuse.
+- **Prévisualisation de l'Impact d'une Trame :**
+  - Avant d'appliquer une trame, offrir une fonctionnalité de prévisualisation montrant les affectations qui seraient créées, modifiées, ou écrasées.
+- **Historique et Versionning des Trames :**
+  - Étendre la fonctionnalité de versionning (champ `version` existant dans `TrameAffectation`) pour inclure un historique des modifications (qui, quand, quoi).
+  - Permettre de revenir à une version précédente d'une trame.
+- **Droits d'Accès :**
+  - Confirmer et implémenter la restriction de la gestion des trames aux rôles "ADMIN MARS". Évaluer si des droits plus fins sont nécessaires à l'avenir.
+- **Configuration des Lignes d'Activité dans l'Éditeur de Trames :**
+  - Permettre aux administrateurs de configurer les "lignes d'activité" affichées dans l'éditeur de trames (`BlocPlanningTemplateEditor.tsx`).
+  - Possibilité d'ajouter, supprimer, et renommer ces lignes (ex: "Consultation Dr. Dupont" au lieu de "CONSULTATION 1").
+  - Envisager une gestion plus dynamique que les `fixedActivityRows` et `dynamicSalleRow` actuelles.
+- **Affectation "OFF" dans les Trames :**
+  - Introduire la possibilité de marquer un personnel comme "OFF" sur des créneaux spécifiques via une trame. Utile pour gérer les jours de repos fixes, temps partiels, etc.
+- **Granularité et Flexibilité des Trames :**
+  - Concevoir le système pour permettre la création de trames pour différents types de personnel (Chirurgiens, MARS, IADES) et avec différentes périodicités (semaine, quinzaine, mois).
+  - Permettre de définir si une trame s'applique à toutes les semaines, seulement les paires, ou seulement les impaires (déjà partiellement possible avec `typeSemaine`).
+- **Application d'une Trame sur Période avec Affectations Existantes :**
+  - Lorsqu'une trame est appliquée sur une période contenant déjà des affectations, alerter l'utilisateur et lui demander de confirmer la stratégie (écraser, fusionner si possible, annuler).
+- **Clarification `activityRowKey` :**
+  - Investiguer l'usage et la signification exacte de `activityRowKey` dans `BlocPlanningTemplateEditor.tsx`.
+  - S'assurer que ces clés sont gérées de manière robuste pour éviter les `undefined` et garantir la correspondance entre la grille et les données sauvegardées/chargées.
+- **Choix explicite des types d'affectations concernées par une trame :**
+  - Permettre à l'utilisateur de sélectionner quels types d'activités (salles spécifiques, types de consultations, types de gardes/astreintes) sont incluses ou exclues d'une trame donnée.
+  - Cela permettrait des trames plus ciblées (ex: une trame uniquement pour les gardes).
 
 Ces points seront pris en compte lors des développements futurs du module de trames pour améliorer son utilité et l'expérience utilisateur.
 
 ### Mise à jour des routes API du module Trames (Juin 2025)
 
--   **Implémentation du endpoint `PUT /api/trames/[id]` :**
-    -   ✅ Finalisation de l'endpoint pour mettre à jour complètement une trame avec toutes ses relations imbriquées (périodes, assignations, postes).
-    -   ✅ Utilisation d'une transaction Prisma pour garantir l'intégrité des données et éviter les mises à jour partielles.
-    -   ✅ Gestion des relations existantes avec mise à jour, création, ou suppression selon les besoins.
-    -   ✅ Vérifications d'authentification avec fallback pour le mode développement.
-    -   ✅ Gestion complète des erreurs avec codes HTTP appropriés et messages détaillés.
-    -   ✅ Support pour les identifiants personnalisés (UUID) tout en permettant au client de fournir ses propres IDs.
+- **Implémentation du endpoint `PUT /api/trames/[id]` :**
 
--   **Améliorations de sécurité et de performance :**
-    -   ✅ Validation des permissions basée sur le rôle de l'utilisateur connecté.
-    -   Optimisations des requêtes pour réduire le nombre d'appels à la base de données (à surveiller).
-    -   Vérifications additionnelles pour garantir l'intégrité des données dans des scénarios complexes.
+  - ✅ Finalisation de l'endpoint pour mettre à jour complètement une trame avec toutes ses relations imbriquées (périodes, assignations, postes).
+  - ✅ Utilisation d'une transaction Prisma pour garantir l'intégrité des données et éviter les mises à jour partielles.
+  - ✅ Gestion des relations existantes avec mise à jour, création, ou suppression selon les besoins.
+  - ✅ Vérifications d'authentification avec fallback pour le mode développement.
+  - ✅ Gestion complète des erreurs avec codes HTTP appropriés et messages détaillés.
+  - ✅ Support pour les identifiants personnalisés (UUID) tout en permettant au client de fournir ses propres IDs.
 
--   **Futures améliorations envisagées :**
-    -   Support pour des opérations de mise à jour partielles (PATCH).
-    -   Historisation explicite des changements pour faciliter le suivi des versions (qui a modifié quoi et quand).
-    -   Ajout d'un système de verrouillage temporaire pendant l'édition pour éviter les conflits d'édition simultanée.
-    -   Notifications aux utilisateurs concernés par les modifications de trames.
+- **Améliorations de sécurité et de performance :**
+
+  - ✅ Validation des permissions basée sur le rôle de l'utilisateur connecté.
+  - Optimisations des requêtes pour réduire le nombre d'appels à la base de données (à surveiller).
+  - Vérifications additionnelles pour garantir l'intégrité des données dans des scénarios complexes.
+
+- **Futures améliorations envisagées :**
+  - Support pour des opérations de mise à jour partielles (PATCH).
+  - Historisation explicite des changements pour faciliter le suivi des versions (qui a modifié quoi et quand).
+  - Ajout d'un système de verrouillage temporaire pendant l'édition pour éviter les conflits d'édition simultanée.
+  - Notifications aux utilisateurs concernés par les modifications de trames.
+
+## Prochaines étapes techniques
+
+- **Tests Unitaires & Intégration leaveService**: Continuer la stabilisation des tests pour `leaveService.ts`. Les problèmes de mocking Prisma semblent résolus. Vérifier si les tests `fetchLeaves` passent maintenant et s'attaquer aux autres tests du service (ex: `submitLeaveRequest`).
+- **Migration Tippy.js vers Floating UI**: L'avertissement React 19 pour `tippy-react` persiste. Planifier la migration vers Floating UI comme suggéré.
+- **Revue des autres tests**: Après `leaveService.ts`, étendre la correction des mocks Prisma et des erreurs de type aux autres suites de tests qui pourraient être affectées.
+- **Configuration Redis**: Bien que le conteneur Redis soit démarré, s'assurer que son utilisation est explicite et correctement configurée dans l'application si elle est nécessaire (au-delà du cache de session NextAuth qui pourrait l'utiliser implicitement).
+
+_Dernière mise à jour après correction des mocks Prisma dans `leaveService.test.ts`_

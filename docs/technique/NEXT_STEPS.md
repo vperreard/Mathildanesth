@@ -12,8 +12,8 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - Système de notifications
   - Détection et gestion des conflits
   - Recommandations automatiques pour résolution des conflits
-  
 - ✅ **Intégration entre modules**
+
   - Bus d'événements pour communication inter-modules
   - Service d'audit pour journalisation des actions sensibles
   - Système de permissions granulaires
@@ -22,13 +22,14 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - Éditeur visuel pour les trames de planification
   - Configuration des postes et affectations
   - Duplication et exportation des trames
-  
 - ✅ **Module Calendar**
+
   - Composants optimisés et responsive
   - Performances améliorées
   - Support multi-dispositifs
 
 - ✅ **Tests end-to-end**
+
   - Tests fonctionnels pour les parcours critiques
   - Tests d'accessibilité avec cypress-axe et pa11y
   - Tests de performance avec lighthouse
@@ -39,7 +40,6 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - Support des shifts multiples dans la même journée
   - Compatibilité avec les interfaces User complètes
   - Tests d'intégration robustes
-  
 - ✅ **Documentation consolidée**
   - Fusion des documentations mathildanesth et MATHILDA
   - Structure organisée et hiérarchique
@@ -49,6 +49,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### Modules en cours
 
 - 🔄 **Module de planification du bloc opératoire (MVP)**
+
   - Définition des salles et secteurs
   - Règles de supervision simples
   - Interface de planning bloc V1
@@ -62,6 +63,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### 1. Finalisation du module bloc opératoire (Haute priorité)
 
 - [x] **Composants de définition des salles et secteurs**
+
   - ✓ Interface de création et modification des salles d'opération
   - ✓ Configuration des secteurs opératoires
   - ✓ Association salles-secteurs-spécialités
@@ -70,6 +72,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - ✓ Pages d'administration dédiées (/admin/bloc-operatoire/salles et /admin/bloc-operatoire/secteurs)
 
 - [x] **Règles de supervision**
+
   - ✓ Interface de définition des règles de supervision par secteur
   - ✓ Configuration des conditions de supervision (max salles, supervision interne, etc.)
   - ✓ Gestion des priorités et des exceptions
@@ -77,6 +80,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - ✓ Implémentation des services et hooks React Query
 
 - [ ] **Interface planning bloc V1**
+
   - Vue calendrier des affectations par salle
   - Fonctionnalités de drag-and-drop pour les affectations
   - Filtres par salle/secteur/chirurgien
@@ -88,11 +92,13 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### 2. Développement du module de règles dynamiques (Haute priorité)
 
 - [x] **Structure de base du module**
+
   - Types et interfaces pour les règles
   - Service du moteur de règles (basique)
   - Service API (`src/modules/dynamicRules/services/api.ts`)
 
 - [x] **Interface d'administration des règles (MVP)**
+
   - CRUD pour les champs principaux des règles (Nom, Description, Type, Priorité, Statut)
   - Composant liste (`src/modules/dynamicRules/components/RuleList.tsx`)
   - Composant formulaire (`src/modules/dynamicRules/components/RuleForm.tsx`)
@@ -101,6 +107,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - Tests unitaires pour le formulaire (`src/modules/dynamicRules/components/__tests__/RuleForm.test.tsx`)
 
 - [ ] **Moteur de règles avancé**
+
   - Système de validation des règles
   - Détection de conflits entre règles
   - Mécanisme d'application avec journalisation
@@ -113,16 +120,21 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### 3. Documentation et gestion des connaissances (Nouvelle priorité haute)
 
 - [x] **Consolidation de la documentation technique**
+
   - ✓ Création du dossier `docs-consolidated` avec structure hiérarchique
   - ✓ Documentation centralisée des modules clés
   - ✓ Unification des approches de mathildanesth et MATHILDA
+  - ✓ Création des documents d'architecture générale (Introduction, Structure Projet, Architecture Technique, Flux de Données, Gestion Erreurs/Logging, Sécurité/Permissions, Conventions Codage, CI/CD, i18n, Accessibilité, Performance)
+  - ✓ Création des guides de développement (Configuration Environnement, Structure Codebase Détaillée, Débogage/Tests, Guide Contribution, Principes API Backend, Composants UI Frontend)
 
 - [ ] **Complétion de la documentation manquante**
+
   - Documentation détaillée de l'algorithme de génération de planning
   - Documentation des interfaces utilisateur avec captures d'écran
   - Diagrammes d'architecture et de flux de données
 
 - [ ] **Guides pour nouveaux développeurs**
+
   - Guide d'onboarding et de prise en main
   - Documentation des standards de code et conventions
   - Tutoriels pour les composants et modules principaux
@@ -135,6 +147,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### 4. Gestion des indisponibilités et validations (Priorité moyenne)
 
 - [ ] **Système d'indisponibilités utilisateurs**
+
   - Interface de saisie des indisponibilités
   - Validation et approbation des indisponibilités
   - Intégration avec le calendrier et le planning
@@ -150,8 +163,8 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - ✓ Système de filtrage avancé réutilisable (`AdvancedFilter.tsx`)
   - ✓ Transitions fluides pour améliorer le feedback visuel (`transitions/index.ts`)
   - ✓ Optimisation des rendus React
-  
 - [x] **Optimisations de performance**
+
   - ✓ Service de cache cohérent pour données fréquemment utilisées (`CacheService.ts`)
   - ✓ Hook optimisé pour requêtes API avec mise en cache (`useOptimizedQuery.ts`)
   - ✓ Réduction des rendus inutiles grâce aux mémoïsations
@@ -161,6 +174,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - [ ] Mise en place d'un service de prefetching pour les données critiques
 
 - [ ] **Retours utilisateurs**
+
   - Améliorer le feedback visuel lors des interactions
   - Réduire les temps de réponse perçus
   - Implémenter un système robuste de gestion d'erreurs UI
@@ -175,6 +189,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### 1. Système de remplacements et gestion des imprévus
 
 - [ ] **Interface dédiée pour les imprévus**
+
   - Workflow de notification et remplacement
   - Système de proposition automatique de remplaçants
   - Règles de priorité pour les remplacements
@@ -187,6 +202,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### 2. Tableau de bord analytique
 
 - [ ] **Indicateurs clés de performance**
+
   - Répartition des heures de travail
   - Taux de remplacement
   - Respect des contraintes de planning
@@ -199,6 +215,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### 3. Adaptation responsive complète
 
 - [ ] **Optimisation mobile de toutes les interfaces**
+
   - Layout adaptatif à toutes les tailles d'écran
   - Contrôles tactiles optimisés
   - Performance mobile améliorée
@@ -211,6 +228,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ### 4. Module de gestion des quotas avancé
 
 - [ ] **Système de transfert de quotas**
+
   - Interface pour transfert entre types de congés
   - Règles et contraintes configurables
   - Historique et audit des transferts
@@ -223,6 +241,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ## Bugs critiques à corriger
 
 - [ ] **Calcul des jours ouvrables et jours fériés** (#253)
+
   - Revoir l'algorithme de calcul des jours ouvrables
   - Intégrer correctement les jours fériés
   - Tests unitaires exhaustifs pour les cas limites
@@ -235,16 +254,19 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ## Améliorations techniques prioritaires
 
 - [ ] **Système de cache pour données fréquemment utilisées**
+
   - Mise en place d'une stratégie de cache cohérente
   - Cache invalidation intelligente
   - Métriques de performance du cache
 
 - [ ] **Documentation API complète**
+
   - Documenter toutes les API internes et externes
   - Exemples d'utilisation pour chaque endpoint
   - Tests automatisés de la documentation
 
 - [ ] **Refactoring du module Dashboard avec React Query**
+
   - Conversion des requêtes data vers React Query
   - Optimisation des visualisations
   - Amélioration de la réactivité de l'interface
@@ -257,11 +279,13 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ## Tests et qualité
 
 - [ ] **Extension de la couverture de tests unitaires**
+
   - Atteindre 80% de couverture pour tous les modules
   - Tests spécifiques pour les règles métier complexes
   - Tests de performance pour les fonctionnalités critiques
 
 - [ ] **Mise en place de Lighthouse CI**
+
   - Intégration dans le workflow GitHub Actions
   - Seuils de performance, accessibilité et bonnes pratiques
   - Rapports automatisés de régression
@@ -274,11 +298,13 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ## Documentation
 
 - [ ] **Guide utilisateur détaillé pour bloc opératoire**
+
   - Workflows spécifiques documentés
   - Cas d'utilisation et exemples
   - FAQ basée sur les retours initiaux
 
 - [ ] **Documentation technique des nouveaux modules**
+
   - Architecture du module de règles dynamiques
   - Flow de données du module bloc opératoire
   - Diagrammes d'interaction entre modules
@@ -291,11 +317,13 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 ## Plan d'action à long terme (2026)
 
 - **Application mobile native (React Native)**
+
   - Fonctionnalités prioritaires pour mobile
   - Support hors-ligne
   - Notifications push
 
 - **Algorithme avancé de génération des plannings**
+
   - Optimisation multi-objectifs
   - Apprentissage des préférences implicites
   - Améliorations basées sur le feedback utilisateur
@@ -309,12 +337,62 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 
 Ce document sera révisé mensuellement pour refléter l'avancement du projet et l'évolution des priorités. La prochaine mise à jour majeure est prévue pour fin juin 2025.
 
-*Dernière mise à jour : Juin 2025*
+_Dernière mise à jour : Juin 2025_
 
-*   **(P1)** ✅ Mise en place/Refactorisation d'un système de validation des dates robuste et centralisé.
--   ✓ Correction du hook `useDateValidation` pour alignement avec `useErrorHandler` et correction de la signature et des props d'erreur. 
+- **(P1)** ✅ Mise en place/Refactorisation d'un système de validation des dates robuste et centralisé.
+
+* ✓ Correction du hook `useDateValidation` pour alignement avec `useErrorHandler` et correction de la signature et des props d'erreur.
 
 ## Améliorations récentes (Juin 2025)
+
+### Résolution des problèmes de seed et de services manquants (Juin 2025)
+
+- **Récemment achevé ✅**
+  - **Diagnostic initial :**
+    - Erreur "aucun type de congé disponible" dans l'application.
+    - Logs indiquant des erreurs de connexion à Redis (`ECONNREFUSED 127.0.0.1:6379`).
+    - Erreur Prisma `relation "Leave" does not exist` (finalement interprétée comme table vide).
+    - Échec du script `npm run seed` (utilisant `tsx`) avec `TypeError: import_meta.resolve is not a function`.
+    - Échec ultérieur du script `npm run seed` avec `MongoServerSelectionError: connect ECONNREFUSED ::1:27017` (MongoDB).
+  - **Corrections apportées :**
+    - **Services Docker :**
+      - Démarrage du service Redis via `docker-compose up -d redis`.
+      - Démarrage du service MongoDB via `docker-compose up -d mongodb`.
+      - Confirmation de la configuration du port PostgreSQL (`5433` dans `docker-compose.yml` et `DATABASE_URL`).
+    - **Scripts de Seed (MongoDB - `npm run seed`) :**
+      - Identification de l'utilisation de `import.meta.resolve` comme source d'erreur avec `tsx`.
+      - Commentaire des blocs `if (import.meta.url === import.meta.resolve(...))` dans les scripts suivants pour permettre leur exécution par `seedAll.ts`:
+        - `src/scripts/seedRules.ts`
+        - `src/modules/seeds/seedSpecialties.ts`
+        - `src/modules/seeds/seedSurgeons.ts`
+        - `src/modules/seeds/seedOperatingRooms.ts`
+      - Exécution réussie de `npm run seed` après ces corrections et le démarrage des services Docker.
+    - **Script de Seed (Prisma/PostgreSQL - `npm run db:seed`) :**
+      - Constat que `prisma/seed.cjs` n'initialisait pas les `LeaveTypeSetting`.
+      - Ajout d'une liste `defaultLeaveTypes` et de la logique d'insertion (upsert) pour 7 types de congés par défaut dans `prisma/seed.cjs`.
+      - Exécution réussie de `npm run db:seed` après modification, créant les types de congés.
+  - **Impact attendu :**
+    - Les services Redis et MongoDB sont maintenant opérationnels.
+    - Le script de seed pour les données MongoDB (`npm run seed`) s'exécute correctement.
+    - Le script de seed pour les données Prisma (`npm run db:seed`) initialise maintenant les types de congés.
+    - Le problème "aucun type de congé disponible" dans l'application devrait être résolu.
+
+### Correction des problèmes d'authentification NextAuth.js (Juin 2025)
+
+- **Récemment achevé ✅**
+  - Identification de l'absence du handler API NextAuth.js comme cause des erreurs 404 sur `/api/auth/session` et `CLIENT_FETCH_ERROR`.
+  - Création du fichier `src/app/api/auth/[...nextauth]/route.ts` avec une configuration NextAuth.js utilisant `CredentialsProvider`.
+  - Configuration pour pointer vers l'API de login existante (`/api/auth/login`) dans la fonction `authorize`.
+  - Ajout de callbacks `jwt` et `session` pour la gestion des informations utilisateur.
+  - Rappel de l'importance des variables d'environnement `NEXTAUTH_URL` et `NEXTAUTH_SECRET`.
+  - Cette correction devrait résoudre les problèmes en cascade affectant `useUserWorkSchedule` et la disponibilité des types de congés.
+
+### Nettoyage des logs et analyse de l'avertissement React 19 (Juin 2025)
+
+- **Récemment achevé ✅**
+  - Commentaire du log verbeux des headers de requête dans `AuthContext.tsx` pour réduire le bruit en console.
+  - Analyse de l'avertissement React 19 "Accessing element.ref was removed in React 19" lié à `tippy-react` dans `LeaveForm.tsx`.
+    - Note : `tippy-react` est archivé. Migration vers `Floating UI` recommandée à terme. Pour l'instant, l'avertissement est non bloquant et sera traité comme dette technique.
 
 ### Correction du bug de SessionProvider dans le module des congés (Juin 2025)
 
@@ -327,7 +405,7 @@ Ce document sera révisé mensuellement pour refléter l'avancement du projet et
 
 ### Implémentation du thème sombre (dark mode) avec préservation des dégradés élégants (Mai 2025)
 
-- **Récemment achevé ✅** 
+- **Récemment achevé ✅**
   - Configuration de Tailwind avec `darkMode: 'class'` dans `tailwind.config.js`.
   - Création d'un contexte `ThemeContext` avec un `ThemeProvider` pour gérer l'état du thème.
   - Intégration du `ThemeProvider` dans `src/app/layout.tsx`.
@@ -374,6 +452,7 @@ Ce document sera révisé mensuellement pour refléter l'avancement du projet et
 
 ## Bugs et problèmes connus
 
+- Avertissement React 19 lié à `tippy-react` (dette technique).
 - Problème d'affichage des graphiques dans le dashboard sur certains navigateurs mobiles
 - Performances ralenties sur les grands ensembles de données dans le module de planning
 - Quelques problèmes UI/UX mineurs identifiés dans le module de paramètres administrateur
@@ -386,4 +465,4 @@ Pour contribuer au développement de Mathildanesth, veuillez suivre ces étapes:
 2. Vérifiez les issues ouvertes dans le système de gestion de projet
 3. Créez une branche par fonctionnalité ou correction
 4. Assurez-vous que vos changements respectent les standards de code
-5. Soumettez une PR avec une description détaillée de vos modifications 
+5. Soumettez une PR avec une description détaillée de vos modifications

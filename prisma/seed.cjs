@@ -36,6 +36,66 @@ const specialtiesToSeed = [
     { name: "Chirurgie dentaire pédiatrique", isPediatric: true },
 ];
 
+// Types de congés par défaut
+const defaultLeaveTypes = [
+    {
+        code: "CP",
+        label: "Congé Payé Annuel",
+        description: "Congés payés annuels acquis par l'employé.",
+        rules: { deductionUnit: "DAY", requiresAttachment: false, countMethod: "WORKING_DAYS" },
+        isUserSelectable: true,
+        isActive: true,
+    },
+    {
+        code: "RTT",
+        label: "Récupération Temps de Travail",
+        description: "Jours de RTT.",
+        rules: { deductionUnit: "DAY", requiresAttachment: false, countMethod: "WORKING_DAYS" },
+        isUserSelectable: true,
+        isActive: true,
+    },
+    {
+        code: "MAL",
+        label: "Arrêt Maladie",
+        description: "Absence pour cause de maladie.",
+        rules: { deductionUnit: "DAY", requiresAttachment: true, countMethod: "CALENDAR_DAYS" },
+        isUserSelectable: true,
+        isActive: true,
+    },
+    {
+        code: "CSS",
+        label: "Congé Sans Solde",
+        description: "Congé non rémunéré.",
+        rules: { deductionUnit: "DAY", requiresAttachment: false, countMethod: "CALENDAR_DAYS" },
+        isUserSelectable: true,
+        isActive: true,
+    },
+    {
+        code: "CF",
+        label: "Congé Formation",
+        description: "Congé pour suivre une formation.",
+        rules: { deductionUnit: "DAY", requiresAttachment: true, countMethod: "WORKING_DAYS" },
+        isUserSelectable: true,
+        isActive: true,
+    },
+    {
+        code: "CE",
+        label: "Congé Événement Familial",
+        description: "Congé pour mariage, naissance, décès, etc.",
+        rules: { deductionUnit: "DAY", requiresAttachment: true, countMethod: "CALENDAR_DAYS" },
+        isUserSelectable: true,
+        isActive: true,
+    },
+    {
+        code: "CM",
+        label: "Congé Maternité/Paternité",
+        description: "Congé lié à la naissance ou l'adoption d'un enfant.",
+        rules: { deductionUnit: "DAY", requiresAttachment: true, countMethod: "CALENDAR_DAYS" },
+        isUserSelectable: true,
+        isActive: true,
+    }
+];
+
 function parseCsv(filePath) {
     if (!fs.existsSync(filePath)) {
         console.warn(`WARN: Fichier CSV non trouvé: ${filePath}. Skipping.`);
@@ -262,6 +322,38 @@ async function main() {
         }
     }
     console.log(`Operating rooms seeding finished.`);
+
+    // 6. Seed Types de Congés (LeaveTypeSetting)
+    console.log(`Seeding leave types...`);
+    let leaveTypesCreated = 0;
+    let leaveTypesUpdated = 0;
+    for (const ltData of defaultLeaveTypes) {
+        try {
+            const existingLeaveType = await prisma.leaveTypeSetting.findUnique({ where: { code: ltData.code } });
+            await prisma.leaveTypeSetting.upsert({
+                where: { code: ltData.code },
+                update: {
+                    label: ltData.label,
+                    description: ltData.description,
+                    rules: ltData.rules || {}, // Assurer que rules n'est pas undefined
+                    isUserSelectable: ltData.isUserSelectable,
+                    isActive: ltData.isActive,
+                },
+                create: {
+                    code: ltData.code,
+                    label: ltData.label,
+                    description: ltData.description,
+                    rules: ltData.rules || {}, // Assurer que rules n'est pas undefined
+                    isUserSelectable: ltData.isUserSelectable,
+                    isActive: ltData.isActive,
+                },
+            });
+            if (existingLeaveType) { leaveTypesUpdated++; } else { leaveTypesCreated++; }
+        } catch (error) {
+            console.error(`Error upserting leave type ${ltData.code}:`, error);
+        }
+    }
+    console.log(`Leave types seeding finished. ${leaveTypesCreated} created, ${leaveTypesUpdated} updated.`);
 
     console.log(`Seeding finished.`);
 }

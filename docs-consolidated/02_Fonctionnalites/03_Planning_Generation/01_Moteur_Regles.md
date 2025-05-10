@@ -1,312 +1,126 @@
-# Moteur de Règles
+# Moteur de Règles pour la Génération de Planning
 
-## Vue d'ensemble
+## 1. Introduction
 
-Le moteur de règles constitue une pierre angulaire de Mathildanesth, permettant la définition, la validation et l'application de règles métier complexes pour la génération et la validation des plannings. Ce système flexible permet aux administrateurs de configurer des règles sans nécessiter de modifications du code.
+Le moteur de règles est un composant essentiel de Mathildanesth, permettant d'automatiser la génération de plannings équitables et conformes aux contraintes légales, organisationnelles et individuelles. Ce document décrit l'architecture, le fonctionnement et les types de règles gérées par ce moteur.
 
-## Architecture du moteur
+Le développement d'un module de "règles dynamiques" est une priorité haute, avec un MVP déjà en cours ou complété pour certains aspects (interface d'administration CRUD, moteur pour règles de base) comme indiqué dans `docs/technique/NEXT_STEPS.md` et `documentation/roadmap-dev-updated.md`.
 
-Le moteur de règles est structuré autour de trois concepts clés :
-1. **Règles** : Définitions des contraintes et logiques métier
-2. **Conditions** : Critères d'évaluation déterminant quand une règle s'applique
-3. **Actions** : Effets résultant de l'application d'une règle
+## 2. Objectifs du Moteur de Règles
 
-### Composants principaux
+- **Automatisation** : Réduire la charge de travail manuelle de création des plannings.
+- **Équité** : Assurer une répartition équilibrée des gardes, astreintes, et types de postes entre les utilisateurs.
+- **Conformité** : Garantir le respect des réglementations (temps de travail, repos obligatoire) et des accords locaux.
+- **Flexibilité** : Permettre la configuration et l'ajustement des règles sans modification du code source.
+- **Transparence** : Fournir un retour sur les règles appliquées et les éventuelles violations lors de la génération ou de la modification manuelle des plannings.
 
-```typescript
-// Modèle de règle
-interface Rule {
-  id: string;
-  name: string;
-  description: string;
-  type: RuleType;
-  conditions: Condition[];
-  actions: Action[];
-  priority: number;
-  severity: RuleSeverity;
-  isActive: boolean;
-  metadata: {
-    createdAt: Date;
-    updatedAt: Date;
-    createdBy: string;
-  };
-}
+## 3. Architecture et Composants
 
-// Type de règle
-enum RuleType {
-  GARDE = 'GARDE',
-  CONSULTATION = 'CONSULTATION',
-  BLOC = 'BLOC',
-  SUPERVISION = 'SUPERVISION',
-  CONGE = 'CONGE',
-  GENERAL = 'GENERAL'
-}
+Le moteur de règles s'articule autour de plusieurs éléments clés :
 
-// Sévérité des règles
-enum RuleSeverity {
-  INFO = 'INFO',           // Information, pas de blocage
-  WARNING = 'WARNING',     // Avertissement, validation possible avec confirmation
-  ERROR = 'ERROR',         // Erreur, validation impossible
-  CRITICAL = 'CRITICAL'    // Critique, nécessite intervention admin
-}
+### 3.1. Définition des Règles
 
-// Conditions
-interface Condition {
-  id: string;
-  type: ConditionType;
-  parameters: Record<string, any>;
-  operator: LogicalOperator;
-  children?: Condition[];  // Pour les conditions composées
-}
+Les règles sont stockées en base de données (modèle `Rule` dans `prisma/schema.prisma`) et peuvent être gérées via une interface d'administration (`src/app/admin/schedule-rules/page.tsx`, `src/modules/dynamicRules/components/RuleForm.tsx`).
 
-// Actions
-interface Action {
-  id: string;
-  type: ActionType;
-  parameters: Record<string, any>;
-}
-```
+Chaque règle possède typiquement les attributs suivants :
 
-## Fonctionnalités implémentées
+- **`id`** : Identifiant unique.
+- **`name`** : Nom descriptif de la règle.
+- **`description`** : Explication détaillée de la règle.
+- **`type`** (Enum `RuleType`) : Catégorie de la règle (ex: `WORK_HOURS`, `REST_PERIOD`, `SKILL_REQUIREMENT`, `FAIRNESS`).
+- **`priority`** (Enum `RulePriority` ou numérique) : Ordre d'importance de la règle (ex: `BLOCKING`, `WARNING`, `INFO`). Une règle bloquante ne peut être violée, tandis qu'une règle de type avertissement peut l'être mais générera une alerte.
+- **`isActive`** (Boolean) : Permet d'activer ou de désactiver une règle.
+- **`validFrom`, `validTo`** (DateTime) : Période de validité de la règle.
+- **`configuration`** (Json) : Paramètres spécifiques à la règle (ex: nombre d'heures maximum par semaine, compétence requise pour un poste, nombre de week-ends de garde maximum par mois).
+- **`scope`** (optionnel) : À quels utilisateurs, rôles professionnels, services ou sites la règle s'applique-t-elle ?
 
-### Évaluation des règles
+### 3.2. Moteur d'Évaluation (Rule Engine Service)
 
-Le cœur du moteur est la fonction d'évaluation qui détermine si une règle s'applique à une situation donnée :
+Un service dédié (`RuleEngineService` mentionné dans `documentation/roadmap-dev-updated.md`) est responsable de :
 
-```typescript
-// Fonction d'évaluation principale
-function evaluateRule(rule: Rule, context: RuleEvaluationContext): RuleEvaluationResult {
-  // Vérifier si la règle est active
-  if (!rule.isActive) {
-    return { 
-      applicable: false, 
-      result: false, 
-      reason: 'Rule is not active' 
-    };
-  }
+- Charger les règles actives applicables à un contexte de planification donné.
+- Évaluer un planning (ou une partie de planning) par rapport à ces règles.
+- Identifier les violations de règles.
+- Calculer un score de qualité ou de pénalité pour un planning.
 
-  // Évaluer chaque condition avec opérateur logique approprié
-  const conditionsResult = evaluateConditions(rule.conditions, context);
-  
-  if (!conditionsResult.result) {
-    return { 
-      applicable: false, 
-      result: false, 
-      reason: `Conditions not met: ${conditionsResult.reason}` 
-    };
-  }
+`docs/technique/NEXT_STEPS.md` mentionne un "Moteur pour règles de base" pour le MVP du module de règles dynamiques, et un "Moteur de règles avancé" comme prochaine étape, incluant la validation des règles, la détection de conflits entre règles et un mécanisme d'application avec journalisation.
 
-  // Si toutes les conditions sont remplies, la règle est applicable
-  return { 
-    applicable: true, 
-    result: true, 
-    actions: rule.actions 
-  };
-}
-```
+### 3.3. Interface d'Administration des Règles
 
-### Système CRUD pour les règles
+Une interface (`src/app/admin/schedule-rules/`, `src/modules/dynamicRules/components/RuleList.tsx`, `src/modules/dynamicRules/components/RuleForm.tsx`) permet aux administrateurs de :
 
-L'application dispose d'une interface administrateur complète pour gérer les règles :
+- Créer, lire, mettre à jour et supprimer (CRUD) des règles.
+- Définir les paramètres et la portée de chaque règle.
+- Activer/désactiver des règles.
+- Potentiellement, tester l'impact d'une règle sur un planning existant.
+  `docs/technique/NEXT_STEPS.md` indique qu'un éditeur visuel simple pour Conditions/Actions dans `RuleForm` est une prochaine étape pour le moteur de règles avancé.
 
-- Création de nouvelles règles avec conditions et actions
-- Visualisation et filtrage des règles existantes
-- Modification et ajustement des paramètres
-- Activation/désactivation des règles
-- Tests de validation des règles
+### 3.4. Intégration avec le Générateur de Planning
 
-### Types de conditions disponibles
+Le moteur de règles est étroitement intégré à l'algorithme de génération de planning (`RuleBasedPlanningGeneratorService` mentionné dans `documentation/roadmap-dev-updated.md`).
 
-Le système prend en charge différents types de conditions pour couvrir une large gamme de scénarios :
+- L'algorithme utilise le moteur de règles pour guider ses choix et s'assurer que le planning généré est conforme.
+- Il peut tenter de minimiser les violations des règles non bloquantes.
 
-| Type de condition | Description | Exemple de paramètres |
-|-------------------|-------------|------------------------|
-| `USER_PROPERTY` | Vérifie une propriété de l'utilisateur | `{ property: "role", value: "MAR" }` |
-| `DATE_PROPERTY` | Vérifie une propriété de date | `{ property: "dayOfWeek", value: 5, operator: "=" }` |
-| `ASSIGNMENT_COUNT` | Vérifie le nombre d'affectations | `{ period: "MONTH", type: "GARDE", count: 3, operator: "<=" }` |
-| `SPECIALITY_MATCH` | Vérifie la correspondance de spécialité | `{ userSpeciality: true, roomSpeciality: "ORTHOPEDIE" }` |
-| `TIME_BETWEEN` | Vérifie l'intervalle entre affectations | `{ minHours: 24, type: "GARDE" }` |
-| `MAX_CONSECUTIVE` | Vérifie le nombre max consécutif | `{ type: "GARDE", maxCount: 2 }` |
-| `CUSTOM_FUNCTION` | Évalue une fonction personnalisée | `{ functionName: "checkUserAvailability" }` |
+### 3.5. Feedback Utilisateur
 
-### Types d'actions disponibles
+- Lors de la génération ou de la modification manuelle d'un planning, les violations de règles sont signalées à l'utilisateur.
+- Le composant `RuleViolationIndicator.tsx` (`docs/technical/codebase-overview.md`) est probablement utilisé pour cet affichage.
+- Des explications claires sur les règles violées et les raisons sont fournies.
 
-Les actions permettent au système de réagir lorsqu'une règle est applicable :
+## 4. Types de Règles Gérées
 
-| Type d'action | Description | Exemple de paramètres |
-|---------------|-------------|------------------------|
-| `PREVENT_ASSIGNMENT` | Bloque une affectation | `{ message: "Règle de repos obligatoire non respectée" }` |
-| `WARN_USER` | Affiche un avertissement | `{ message: "Attention, 3ème garde du mois", severity: "WARNING" }` |
-| `SUGGEST_ALTERNATIVE` | Suggère une alternative | `{ strategy: "NEXT_AVAILABLE_USER", message: "Suggérer un remplaçant" }` |
-| `ADJUST_SCORE` | Ajuste le score d'affectation | `{ adjustment: -20, reason: "Préférence utilisateur non respectée" }` |
-| `LOG_EVENT` | Journalise un événement | `{ level: "INFO", message: "Règle d'équité appliquée" }` |
-| `REQUIRE_APPROVAL` | Nécessite une approbation | `{ approverRole: "ADMIN", message: "Validation manuelle requise" }` |
+Le moteur de règles est conçu pour gérer une variété de contraintes :
 
-## Intégration avec l'algorithme de génération
+### 4.1. Règles Légales et Réglementaires
 
-Le moteur de règles est intégré au cœur de l'algorithme de génération de planning :
+- Temps de travail maximum (journalier, hebdomadaire, mensuel).
+- Périodes de repos minimum obligatoires (entre deux gardes, repos hebdomadaire).
+- Nombre maximum de gardes/astreintes consécutives.
 
-1. **Phase de pré-traitement** : Analyse préalable des contraintes via les règles
-2. **Phase de génération** : Application des règles pour filtrer les affectations invalides
-3. **Phase de validation** : Vérification finale du planning contre toutes les règles actives
-4. **Phase d'optimisation** : Utilisation des scores ajustés par les règles pour prioriser
+### 4.2. Règles Organisationnelles
 
-```typescript
-// Intégration dans le générateur de planning
-class PlanningGenerator {
-  private ruleEngine: RuleEngine;
-  
-  // Évaluation pendant la génération
-  private validateAssignment(assignment: Assignment, context: GenerationContext): ValidationResult {
-    const applicableRules = this.ruleEngine.getApplicableRules(
-      assignment.type, 
-      context.currentDate,
-      assignment.user
-    );
-    
-    for (const rule of applicableRules) {
-      const evaluation = this.ruleEngine.evaluateRule(rule, {
-        assignment,
-        user: assignment.user,
-        date: context.currentDate,
-        existingAssignments: context.assignments,
-        parameters: this.parameters
-      });
-      
-      if (evaluation.applicable && !evaluation.result) {
-        return {
-          isValid: false,
-          rule: rule,
-          reason: evaluation.reason
-        };
-      }
-    }
-    
-    return { isValid: true };
-  }
-}
-```
+- Couverture minimale en personnel par service/poste/compétence à tout moment.
+- Ratio de supervision (ex: un MAR pour X salles au bloc opératoire).
+- Rotation équitable des postes (ex: alternance jour/nuit).
+- Contraintes spécifiques aux week-ends et jours fériés.
 
-## État actuel et prochaines étapes
+### 4.3. Règles d'Équité
 
-### Implémentation actuelle
+- Répartition équilibrée du nombre total de gardes, d'astreintes, de week-ends travaillés sur une période donnée.
+- Prise en compte des demandes et indisponibilités des utilisateurs.
+- Éviter les enchaînements de postes pénibles.
 
-- **Statut** : Partiellement implémenté (MVP fonctionnel)
-- **Localisation** :
-  - `src/modules/rules/engine/RuleEngineService.ts` : Service du moteur de règles
-  - `src/modules/dynamicRules/components/RuleForm.tsx` : Interface d'édition
-  - `src/app/admin/schedule-rules/page.tsx` : Page d'administration des règles
+### 4.4. Règles de Compétences
 
-### Fonctionnalités à développer
+- Assigner uniquement du personnel possédant les compétences requises pour un poste ou une activité spécifique.
 
-1. **Éditeur visuel de conditions et actions**
-   - Interface intuitive type "flowchart" pour configurer les conditions complexes
-   - Prévisualisation des effets des règles
-   - Validation en temps réel des configurations
+### 4.5. Préférences Utilisateurs (Règles Souples)
 
-2. **Détection avancée des conflits entre règles**
-   - Analyse des contradictions potentielles
-   - Suggestion de résolutions
-   - Hiérarchisation intelligente basée sur les priorités
+- Prendre en compte les préférences des utilisateurs (jours de repos souhaités, types de gardes préférés) comme des règles de faible priorité, si possible.
 
-3. **Extension des types de conditions et actions**
-   - Conditions basées sur des métriques avancées (fatigue, équité)
-   - Actions avec impact sur d'autres modules (notifications, rapports)
-   - Conditions temporelles plus sophistiquées
+## 5. Processus d'Évaluation des Règles
 
-4. **Intégration avec l'historique des affectations**
-   - Prise en compte des tendances historiques
-   - Apprentissage des modèles préférentiels
-   - Optimisation sur de longues périodes
+1.  **Collecte des Données** : Récupération des informations sur les utilisateurs (contrats, compétences, indisponibilités, congés), les postes à pourvoir, et les règles actives.
+2.  **Itération** : Pour chaque affectation potentielle ou existante dans le planning :
+    a. Le moteur de règles évalue si l'affectation viole une ou plusieurs règles.
+    b. Les violations sont enregistrées avec leur niveau de sévérité.
+3.  **Score Global** : Un score peut être calculé pour évaluer la qualité globale du planning par rapport aux règles.
 
-## Exemples de règles métier
+## 6. Gestion des Conflits de Règles
 
-### Règle de repos après garde
+Une prochaine étape pour le moteur de règles avancé est la "Détection de conflits entre règles" (`docs/technique/NEXT_STEPS.md`). Cela impliquerait :
 
-```json
-{
-  "name": "Repos minimum après garde de nuit",
-  "description": "Un MAR doit avoir au moins 24h de repos après une garde de nuit",
-  "type": "GARDE",
-  "severity": "ERROR",
-  "priority": 100,
-  "isActive": true,
-  "conditions": [
-    {
-      "type": "USER_PROPERTY",
-      "parameters": { "property": "type", "value": "MAR" }
-    },
-    {
-      "type": "PREVIOUS_ASSIGNMENT",
-      "parameters": { "type": "GARDE_NUIT", "withinHours": 24 }
-    }
-  ],
-  "actions": [
-    {
-      "type": "PREVENT_ASSIGNMENT",
-      "parameters": { 
-        "message": "Repos obligatoire de 24h après garde de nuit non respecté" 
-      }
-    },
-    {
-      "type": "LOG_EVENT",
-      "parameters": { 
-        "level": "WARNING", 
-        "message": "Tentative d'affectation pendant période de repos obligatoire" 
-      }
-    }
-  ]
-}
-```
+- Identifier si certaines règles sont contradictoires entre elles.
+- Fournir des outils pour aider les administrateurs à résoudre ces conflits (ex: en ajustant les priorités ou les paramètres des règles).
 
-### Règle d'équité des gardes de weekend
+## 7. Journalisation et Audit
 
-```json
-{
-  "name": "Équité des gardes de weekend",
-  "description": "Les gardes de weekend doivent être réparties équitablement",
-  "type": "GARDE",
-  "severity": "WARNING",
-  "priority": 50,
-  "isActive": true,
-  "conditions": [
-    {
-      "type": "DATE_PROPERTY",
-      "parameters": { "property": "isWeekend", "value": true }
-    },
-    {
-      "type": "ASSIGNMENT_COUNT_COMPARISON",
-      "parameters": { 
-        "period": "TRIMESTER", 
-        "type": "GARDE_WEEKEND",
-        "comparisonType": "AVERAGE_TEAM",
-        "operator": ">", 
-        "threshold": 1.5
-      }
-    }
-  ],
-  "actions": [
-    {
-      "type": "WARN_USER",
-      "parameters": { 
-        "message": "Déséquilibre dans la répartition des gardes de weekend",
-        "severity": "WARNING"
-      }
-    },
-    {
-      "type": "ADJUST_SCORE",
-      "parameters": { 
-        "adjustment": -15, 
-        "reason": "Répartition inéquitable des gardes de weekend" 
-      }
-    },
-    {
-      "type": "SUGGEST_ALTERNATIVE",
-      "parameters": { 
-        "strategy": "LEAST_WEEKEND_SHIFTS",
-        "message": "Envisager plutôt un MAR ayant effectué moins de gardes de weekend"  
-      }
-    }
-  ]
-}
-``` 
+Le "Mécanisme d'application avec journalisation" est prévu (`docs/technique/NEXT_STEPS.md`).
+
+- Toutes les applications de règles et les violations détectées lors de la génération de planning devraient être journalisées.
+- Cela permet de comprendre pourquoi un planning a été généré d'une certaine manière et de tracer les décisions prises par l'algorithme.
+
+---
+
+Un moteur de règles puissant et configurable est fondamental pour l'efficacité et l'acceptation de Mathildanesth. Son développement itératif, en commençant par des règles de base et en évoluant vers un système plus avancé, est une approche pragmatique.
