@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useErrorHandler } from '../hooks/useErrorHandler';
 import ErrorDisplay from './ErrorDisplay';
 
-interface ErrorRetryProps {
-    children: React.ReactNode;
-    action: () => Promise<any>;
+interface ErrorRetryProps<T = any> {
+    children: React.ReactNode | ((result: T) => React.ReactNode);
+    action: () => Promise<T>;
     fallback?: React.ReactNode;
     maxRetries?: number;
     retryDelay?: number;
-    onSuccess?: (result: any) => void;
+    onSuccess?: (result: T) => void;
     onFinalFailure?: (error: Error) => void;
 }
 
@@ -28,7 +28,7 @@ interface ErrorRetryProps {
  * </ErrorRetry>
  * ```
  */
-const ErrorRetry: React.FC<ErrorRetryProps> = ({
+const ErrorRetry = <T extends any = any>({
     children,
     action,
     fallback,
@@ -36,9 +36,9 @@ const ErrorRetry: React.FC<ErrorRetryProps> = ({
     retryDelay = 2000,
     onSuccess,
     onFinalFailure,
-}) => {
+}: ErrorRetryProps<T>) => {
     const [loading, setLoading] = useState<boolean>(true);
-    const [result, setResult] = useState<any>(null);
+    const [result, setResult] = useState<T | null>(null);
     const [error, setError] = useState<Error | null>(null);
     const [retryCount, setRetryCount] = useState<number>(0);
     const [retrying, setRetrying] = useState<boolean>(false);
@@ -137,6 +137,10 @@ const ErrorRetry: React.FC<ErrorRetryProps> = ({
         );
     }
 
+    // Si children est une fonction, l'appeler avec le résultat
+    if (typeof children === 'function') {
+        return <>{children(result as T)}</>;
+    }
     return <>{children}</>;
 };
 

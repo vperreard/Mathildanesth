@@ -1,0 +1,15 @@
+{
+    "name": "documentation-essentielles-lite",
+    "description": "Charge la documentation globale du projet uniquement pour les questions stratégiques (plan, roadmap, vision, global).",
+    "pattern": "(?i)(plan|roadmap|aperçu|vision|stratégie|global)",
+    "actions": [
+      {
+        "type": "readFiles",
+        "files": [
+          "docs/technical/NEXT_STEPS.md",
+          "documentation/roadmap-dev-updated.md",
+          "docs/technical/codebase-overview.md"
+        ]
+      }
+    ]
+  }

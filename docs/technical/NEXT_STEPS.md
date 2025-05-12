@@ -223,6 +223,11 @@ Ce document présente les prochaines étapes prioritaires de développement pour
     - ✅ Ajout de logs détaillés et de `try...catch` plus fins autour des requêtes Prisma (`$queryRaw` et `findMany`) et de la mise en cache.
     - ✅ Refactorisation complète de la méthode d'accès aux données : remplacement de la requête SQL template string problématique par une approche utilisant `$queryRawUnsafe` avec paramètres séparés, évitant ainsi les problèmes de parsing des template strings.
     - ✅ Amélioration des logs d'erreur pour faciliter le diagnostic en incluant les détails d'erreur (message et stack) dans le format standardisé.
+- [ ] **Exécution des tests et analyse des résultats (BLOQUÉ - Problème d'environnement `npm`/`npx` non trouvé)**
+  - [ ] Identifier la commande de test (npm test, npm run test:all)
+  - [ ] Lancer les tests
+  - [ ] Analyser les échecs
+  - [ ] Élaborer un plan de résolution spécifique
 
 ## Améliorations prioritaires
 
@@ -398,3 +403,7 @@ Ces points seront pris en compte lors des développements futurs du module de tr
 - **Configuration Redis**: Bien que le conteneur Redis soit démarré, s'assurer que son utilisation est explicite et correctement configurée dans l'application si elle est nécessaire (au-delà du cache de session NextAuth qui pourrait l'utiliser implicitement).
 
 _Dernière mise à jour après correction des mocks Prisma dans `leaveService.test.ts`_
+
+- [X] Résoudre le problème d'exécution de `npx prisma db seed` (TypeError [ERR_UNKNOWN_FILE_EXTENSION])
+  - Statut: Terminé. Le script `npm run db:seed` (utilisant `prisma/seed.cjs`) fonctionne correctement.
+- [ ] Vérifier le fonctionnement de l'application après le seeding (connexion, avertissements NextAuth).

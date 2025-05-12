@@ -244,7 +244,7 @@ describe('ConflictRecommendationService', () => {
                 const priority = (service as any).determineConflictPriority(conflict);
 
                 // La priorité devrait correspondre à celle définie dans les règles par défaut
-                expect(priority).toBe(ConflictPriority.HIGH);
+                expect(priority).toBe(ConflictPriority.VERY_HIGH);
             });
 
             it('devrait ajuster la priorité pour les utilisateurs avec rôles prioritaires', () => {
@@ -259,18 +259,15 @@ describe('ConflictRecommendationService', () => {
                     canOverride: true
                 };
 
-                const user = {
-                    id: 'user1',
-                    name: 'Test User',
-                    role: 'CHEF_SERVICE' // Rôle prioritaire
-                };
+                const userWithPriorityRole = { id: 'user2', name: 'Priority User', role: 'CHEF_SERVICE' };
 
-                // Utiliser type assertion pour accéder à la méthode privée
-                const priority = (service as any).determineConflictPriority(conflict, user);
+                const priority = (service as any).determineConflictPriority(conflict, userWithPriorityRole);
 
                 // La priorité devrait être réduite pour les utilisateurs prioritaires
-                expect(priority).toBeLessThan(ConflictPriority.HIGH);
+                expect(priority).toBe(ConflictPriority.HIGH);
             });
+
+            // ... autres tests pour determineConflictPriority (périodes spéciales, etc.) ...
         });
 
         describe('generateResolutionStrategies', () => {

@@ -33,6 +33,7 @@ model User {
   joursTravaillesSemainePaire   Json                  @default("[]")
   displayPreferences            Json?
   lastLogin                     DateTime?
+  departmentId                  String?
   Absence                       Absence[]
   assignments                   Assignment[]
   dashboards                    Dashboard[]
@@ -43,22 +44,21 @@ model User {
   onCalls                       OnCall[]
   createdRules                  Rule[]                @relation("CreatedRules")
   updatedRules                  Rule[]                @relation("UpdatedRules")
+  tramesCreated                 TrameAffectation[]    @relation("CreatedTrames")
+  auditLogs                     AuditLog[]
+  leaveBalances                 LeaveBalance[]        @relation("UserLeaveBalances")
   approvedLeaves                Leave[]               @relation("ApprovedLeaves")
   leaves                        Leave[]
   plannedAbsences               PlannedAbsence[]
   validatedAbsences             PlannedAbsence[]      @relation("ValidatedAbsences")
+  approvedCarryOvers            QuotaCarryOver[]      @relation("ApprovedCarryOvers")
+  quotaCarryOvers               QuotaCarryOver[]      @relation("UserQuotaCarryOvers")
+  approvedTransfers             QuotaTransfer[]       @relation("ApprovedTransfers")
+  quotaTransfers                QuotaTransfer[]       @relation("UserQuotaTransfers")
   regularAssignments            RegularAssignment[]
   surgeonProfile                Surgeon?
   calendarSettings              UserCalendarSettings?
-  quotaTransfers                QuotaTransfer[]       @relation("UserQuotaTransfers")
-  approvedTransfers             QuotaTransfer[]       @relation("ApprovedTransfers")
-  quotaCarryOvers               QuotaCarryOver[]      @relation("UserQuotaCarryOvers")
-  approvedCarryOvers            QuotaCarryOver[]      @relation("ApprovedCarryOvers")
-  auditLogs                     AuditLog[]
-  leaveBalances                 LeaveBalance[]        @relation("UserLeaveBalances")
-  tramesCreated                 TrameAffectation[]    @relation("CreatedTrames")
-  departmentId                  String?
-  department                    Department?             @relation(fields: [departmentId], references: [id])
+  department                    Department?           @relation(fields: [departmentId], references: [id])
   sites                         Site[]                @relation("SiteUsers")
 
   @@map("users")
@@ -132,8 +132,8 @@ model OperatingRoom {
   supervisionRules Json
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
-  sector           OperatingSector @relation(fields: [sectorId], references: [id])
   displayOrder     Int             @default(0)
+  sector           OperatingSector @relation(fields: [sectorId], references: [id])
 
   @@index([sectorId])
 }
@@ -208,23 +208,20 @@ model Leave {
   approvedById       Int?
   countedDays        Float
   calculationDetails Json?
-  
-  // Champs pour la récurrence
-  isRecurring        Boolean?    @default(false)
-  recurrencePattern  Json?       // Stocke les détails: frequency, interval, weekdays, endType, endDate, endCount, etc.
-  parentId           String?     // Lien vers la demande récurrente parente (pour les occurrences)
-  parent             Leave?      @relation("RecurringLeaveOccurrences", fields: [parentId], references: [id])
-  occurrences        Leave[]     @relation("RecurringLeaveOccurrences") // Liste des occurrences générées (pour la demande parente)
-
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
+  isRecurring        Boolean?    @default(false)
+  parentId           String?
+  recurrencePattern  Json?
   approvedBy         User?       @relation("ApprovedLeaves", fields: [approvedById], references: [id])
+  parent             Leave?      @relation("RecurringLeaveOccurrences", fields: [parentId], references: [id])
+  occurrences        Leave[]     @relation("RecurringLeaveOccurrences")
   user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([startDate, endDate])
   @@index([typeCode])
-  @@index([parentId]) // Indexer le parentId pour des recherches rapides
+  @@index([parentId])
   @@map("leaves")
 }
 
@@ -290,9 +287,9 @@ model OperatingSector {
   rules          Json            @default("{\"maxRoomsPerSupervisor\": 2}")
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  operatingRooms OperatingRoom[]
   displayOrder   Int             @default(0)
   siteId         String?
+  operatingRooms OperatingRoom[]
   site           Site?           @relation(fields: [siteId], references: [id])
 
   @@index([siteId])
@@ -358,22 +355,22 @@ model TeamConfiguration {
 }
 
 model RegularAssignment {
-  id                Int       @id @default(autoincrement())
-  userId            Int?
-  surgeonId         Int?
-  trameId           String?
-  locationId        Int?
-  dayOfWeek         Int       @default(1)
-  period            String
-  type              String
-  weekType          WeekType  @default(ALL)
-  configuration     Json?
-  active            Boolean   @default(true)
-  assignments       Assignment[] @relation("GeneratedFromRegular")
-  surgeon           Surgeon?  @relation(fields: [surgeonId], references: [id])
-  trame             TrameAffectation? @relation("TrameAssignments", fields: [trameId], references: [id])
-  user              User?     @relation(fields: [userId], references: [id])
-  location          Location? @relation(fields: [locationId], references: [id])
+  id            Int               @id @default(autoincrement())
+  trameId       String?
+  userId        Int?
+  surgeonId     Int?
+  locationId    Int?
+  weekType      WeekType          @default(ALL)
+  active        Boolean           @default(true)
+  configuration Json?
+  type          String
+  dayOfWeek     Int               @default(1)
+  period        String
+  assignments   Assignment[]      @relation("GeneratedFromRegular")
+  location      Location?         @relation(fields: [locationId], references: [id])
+  surgeon       Surgeon?          @relation(fields: [surgeonId], references: [id])
+  trame         TrameAffectation? @relation("TrameAssignments", fields: [trameId], references: [id])
+  user          User?             @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([surgeonId])
@@ -383,59 +380,53 @@ model RegularAssignment {
 }
 
 model TrameAffectation {
-  id          String        @id @default(cuid())
+  id          String              @id @default(cuid())
   name        String
   description String?
-  isActive    Boolean       @default(true)
+  isActive    Boolean             @default(true)
   startDate   DateTime
   endDate     DateTime?
   createdBy   Int?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  assignments RegularAssignment[] @relation("TrameAssignments")
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  user        User?               @relation("CreatedTrames", fields: [createdBy], references: [id])
   periods     TramePeriod[]
-  user        User?         @relation("CreatedTrames", fields: [createdBy], references: [id])
+  assignments RegularAssignment[] @relation("TrameAssignments")
 }
 
 model TramePeriod {
-  id        String   @id @default(uuid())
-  name      String
-  startTime String
-  endTime   String
-  color     String
-  isActive  Boolean  @default(true)
-  isLocked  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
+  id          String            @id @default(uuid())
+  name        String
+  startTime   String
+  endTime     String
+  color       String
+  isActive    Boolean           @default(true)
+  isLocked    Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
   trameId     String
-  trame       TrameAffectation    @relation(fields: [trameId], references: [id], onDelete: Cascade)
   assignments TrameAssignment[]
+  trame       TrameAffectation  @relation(fields: [trameId], references: [id], onDelete: Cascade)
 }
 
 model TrameAssignment {
-  id       String  @id @default(uuid())
-  type     String // 'GARDE', 'ASTREINTE', 'CS1', 'CS2', 'CS3', 'SALLE'
+  id       String      @id @default(uuid())
+  type     String
   name     String
   duration Int
-  isActive Boolean @default(true)
-
-  // Relations
+  isActive Boolean     @default(true)
   periodId String
-  period   TramePeriod  @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  period   TramePeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
   posts    TramePost[]
 }
 
 model TramePost {
-  id       String  @id @default(uuid())
-  type     String // 'CHIRURGIEN', 'MAR', 'IADE', 'INFIRMIER', 'AUTRE'
-  name     String
-  required Boolean @default(false)
-  maxCount Int     @default(1)
-  minCount Int     @default(0)
-
-  // Relations
+  id           String          @id @default(uuid())
+  type         String
+  name         String
+  required     Boolean         @default(false)
+  maxCount     Int             @default(1)
+  minCount     Int             @default(0)
   assignmentId String
   assignment   TrameAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 }
@@ -517,59 +508,58 @@ model Absence {
 }
 
 model LeaveBalance {
-  id             String    @id @default(cuid())
-  userId         Int
-  leaveType      LeaveType
-  year           Int
-  initial        Float     @default(0)
-  used           Float     @default(0)
-  pending        Float     @default(0)
-  remaining      Float     @default(0)
-  lastUpdated    DateTime  @default(now())
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  user           User      @relation("UserLeaveBalances", fields: [userId], references: [id])
+  id          String    @id @default(cuid())
+  userId      Int
+  leaveType   LeaveType
+  year        Int
+  initial     Float     @default(0)
+  used        Float     @default(0)
+  pending     Float     @default(0)
+  remaining   Float     @default(0)
+  lastUpdated DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation("UserLeaveBalances", fields: [userId], references: [id])
 
   @@unique([userId, leaveType, year])
   @@map("leave_balances")
 }
 
 model QuotaTransferRule {
-  id                   String    @id @default(cuid())
-  fromType             LeaveType
-  toType               LeaveType
-  conversionRate       Float     @default(1.0)
-  maxTransferDays      Float?
+  id                    String    @id @default(cuid())
+  fromType              LeaveType
+  toType                LeaveType
+  conversionRate        Float     @default(1.0)
+  maxTransferDays       Float?
   maxTransferPercentage Float?
-  requiresApproval     Boolean   @default(false)
-  authorizedRoles      String[]  @default([])
-  isActive             Boolean   @default(true)
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  requiresApproval      Boolean   @default(false)
+  authorizedRoles       String[]  @default([])
+  isActive              Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@unique([fromType, toType])
   @@map("quota_transfer_rules")
 }
 
 model QuotaTransfer {
-  id                String      @id @default(cuid())
-  userId            Int
-  fromType          LeaveType
-  toType            LeaveType
-  amount            Float
-  convertedAmount   Float
-  reason            String
-  transferDate      DateTime    @default(now())
-  status            String      @default("APPROVED") // PENDING, APPROVED, REJECTED
-  requiresApproval  Boolean     @default(false)
-  approvedById      Int?
-  approvalDate      DateTime?
-  comments          String?
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  
-  user              User        @relation("UserQuotaTransfers", fields: [userId], references: [id])
-  approvedBy        User?       @relation("ApprovedTransfers", fields: [approvedById], references: [id])
+  id               String    @id @default(cuid())
+  userId           Int
+  fromType         LeaveType
+  toType           LeaveType
+  amount           Float
+  convertedAmount  Float
+  reason           String
+  transferDate     DateTime  @default(now())
+  status           String    @default("APPROVED")
+  requiresApproval Boolean   @default(false)
+  approvedById     Int?
+  approvalDate     DateTime?
+  comments         String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  approvedBy       User?     @relation("ApprovedTransfers", fields: [approvedById], references: [id])
+  user             User      @relation("UserQuotaTransfers", fields: [userId], references: [id])
 
   @@index([userId, fromType, toType])
   @@index([status])
@@ -577,41 +567,39 @@ model QuotaTransfer {
 }
 
 model QuotaCarryOverRule {
-  id                   String    @id @default(cuid())
-  leaveType            LeaveType
-  ruleType             String    @default("PERCENTAGE") // PERCENTAGE, FIXED, UNLIMITED, EXPIRABLE
-  value                Float     @default(100.0)        // Pourcentage ou jours fixes selon ruleType
-  maxCarryOverDays     Float?                           // Limite maximale en jours
-  expirationDays       Int?                             // Jours avant expiration (pour ruleType=EXPIRABLE)
-  requiresApproval     Boolean   @default(false)
-  authorizedRoles      String[]  @default([])
-  isActive             Boolean   @default(true)
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  leaveType        LeaveType @unique
+  ruleType         String    @default("PERCENTAGE")
+  value            Float     @default(100.0)
+  maxCarryOverDays Float?
+  expirationDays   Int?
+  requiresApproval Boolean   @default(false)
+  authorizedRoles  String[]  @default([])
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  @@unique([leaveType])
   @@map("quota_carry_over_rules")
 }
 
 model QuotaCarryOver {
-  id                String      @id @default(cuid())
-  userId            Int
-  leaveType         LeaveType
-  fromYear          Int
-  toYear            Int
-  amount            Float
-  expiryDate        DateTime?
-  status            String      @default("APPROVED") // PENDING, APPROVED, REJECTED
-  requiresApproval  Boolean     @default(false)
-  approvedById      Int?
-  approvalDate      DateTime?
-  reason            String?
-  comments          String?
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  
-  user              User        @relation("UserQuotaCarryOvers", fields: [userId], references: [id])
-  approvedBy        User?       @relation("ApprovedCarryOvers", fields: [approvedById], references: [id])
+  id               String    @id @default(cuid())
+  userId           Int
+  leaveType        LeaveType
+  fromYear         Int
+  toYear           Int
+  amount           Float
+  expiryDate       DateTime?
+  status           String    @default("APPROVED")
+  requiresApproval Boolean   @default(false)
+  approvedById     Int?
+  approvalDate     DateTime?
+  reason           String?
+  comments         String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  approvedBy       User?     @relation("ApprovedCarryOvers", fields: [approvedById], references: [id])
+  user             User      @relation("UserQuotaCarryOvers", fields: [userId], references: [id])
 
   @@index([userId, leaveType])
   @@index([fromYear, toYear])
@@ -641,7 +629,7 @@ model PublicHoliday {
   name        String
   description String?
   isNational  Boolean  @default(true)
-  region      String?  // Pour les jours fériés régionaux
+  region      String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -651,30 +639,30 @@ model PublicHoliday {
 }
 
 model Department {
-  id           String     @id @default(cuid())
+  id           String   @id @default(cuid())
   name         String
   description  String?
-  location     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   contactEmail String?
   contactPhone String?
-  isActive     Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  isActive     Boolean  @default(true)
+  location     String?
   users        User[]
 
   @@map("departments")
 }
 
 model Site {
-  id                 String            @id @default(cuid())
-  name               String
-  description        String?
-  isActive           Boolean           @default(true)
-  displayOrder       Int               @default(0)
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  operatingSectors   OperatingSector[]
-  users              User[]            @relation("SiteUsers")
+  id               String            @id @default(cuid())
+  name             String
+  description      String?
+  isActive         Boolean           @default(true)
+  displayOrder     Int               @default(0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  operatingSectors OperatingSector[]
+  users            User[]            @relation("SiteUsers")
 
   @@map("sites")
 }

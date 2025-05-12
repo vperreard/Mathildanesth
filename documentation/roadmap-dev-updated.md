@@ -184,6 +184,7 @@
     - ✅ Problème principal corrigé (utilisation de `countedDays` et `typeCode`).
     - 🚧 Investigation restante pour les ajustements de quota et validation des `typeCode` dans `defaultAllowances`.
     - 🚧 Terminer le refactoring de `LeaveForm.tsx` pour utiliser correctement `useLeaveCalculation`.
+  - 🚧 **Exécution des tests et analyse des résultats (BLOQUÉ - Problème d'environnement `npm`/`npx` non trouvé)**
 
 **Livrables Clés Phase 4 :** Module bloc opératoire (MVP+), Application sécurisée et performante, Documentation finale, Utilisateurs clés formés, Application prête pour production.
 
@@ -724,3 +725,5 @@ _Ce document est évolutif et sera mis à jour régulièrement pour refléter l'
   - **Documentation Technique**: Maintenir à jour `codebase-overview.md` et `NEXT_STEPS.md`.
 
 _Dernière mise à jour après correction des mocks Prisma dans `leaveService.test.ts`_
+
+**Statut :** Données de base chargées avec succès via `npm run db:seed`.

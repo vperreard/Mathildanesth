@@ -1,9 +1,9 @@
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { eventBus, IntegrationEventType } from '../EventBusService';
+// import { eventBus, IntegrationEventType } from '../EventBusService'; // Ne pas importer directement si on le mocke entièrement
 import { auditService } from '../../../leaves/services/AuditService';
 import { LeavePermissionService } from '../../../leaves/permissions/LeavePermissionService';
 
-// Mock des dépendances
+// Mock des dépendances comme auditService
 jest.mock('../../../leaves/services/AuditService', () => ({
     auditService: {
         logSystemAccess: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
@@ -13,67 +13,73 @@ jest.mock('../../../leaves/services/AuditService', () => ({
     }
 }));
 
-// Mock EventBusService pour ce test, avec une simulation de la logique pub/sub
-let mockListeners: { [key: string]: Array<(...args: any[]) => void> } = {};
+// Définitions pour le mock de eventBus
+let mockListenersIntegrationTest: { [key: string]: Array<(...args: any[]) => void> } = {};
 
-const mockEventBusInstance = {
-    publish: jest.fn((event: { type: string; payload?: any, source?: string }) => {
-        if (mockListeners[event.type]) {
-            mockListeners[event.type].forEach(callback => {
-                try {
-                    callback(event);
-                } catch (e) {
-                    console.error('Error in mock listener', e);
-                }
-            });
-        }
-    }),
-    subscribe: jest.fn((eventType: string, callback: (...args: any[]) => void) => {
-        if (!mockListeners[eventType]) {
-            mockListeners[eventType] = [];
-        }
-        mockListeners[eventType].push(callback);
-        return {
-            unsubscribe: jest.fn(() => {
-                const index = mockListeners[eventType] ? mockListeners[eventType].indexOf(callback) : -1;
-                if (index > -1) {
-                    mockListeners[eventType].splice(index, 1);
-                }
-            }),
-        };
-    }),
-    dispose: jest.fn(() => {
-        mockListeners = {}; // Nettoie les listeners
-    }),
-    getStats: jest.fn().mockReturnValue({ subscribers: 0, publishedEvents: 0, listeners: {} })
-};
+const mockPublishIntegrationTest = jest.fn((event: { type: string; payload?: any, source?: string }) => {
+    if (mockListenersIntegrationTest[event.type]) {
+        mockListenersIntegrationTest[event.type].forEach(callback => {
+            try {
+                callback(event);
+            } catch (e) {
+                console.error('Error in mock listener', e);
+            }
+        });
+    }
+});
+
+const mockSubscribeIntegrationTest = jest.fn((eventType: string, callback: (...args: any[]) => void) => {
+    if (!mockListenersIntegrationTest[eventType]) {
+        mockListenersIntegrationTest[eventType] = [];
+    }
+    mockListenersIntegrationTest[eventType].push(callback);
+    return {
+        unsubscribe: jest.fn(() => {
+            const index = mockListenersIntegrationTest[eventType] ? mockListenersIntegrationTest[eventType].indexOf(callback) : -1;
+            if (index > -1) {
+                mockListenersIntegrationTest[eventType].splice(index, 1);
+            }
+        }),
+    };
+});
+
+const mockDisposeIntegrationTest = jest.fn(() => {
+    mockListenersIntegrationTest = {}; // Nettoie les listeners
+});
+
+const mockGetStatsIntegrationTest = jest.fn().mockReturnValue({ subscribers: 0, publishedEvents: 0, listeners: {} });
 
 jest.mock('../EventBusService', () => ({
-    eventBus: mockEventBusInstance,
-    IntegrationEventType: {
-        LEAVE_CREATED: 'LEAVE_CREATED',
-        LEAVE_UPDATED: 'LEAVE_UPDATED',
-        LEAVE_APPROVED: 'LEAVE_APPROVED',
-        LEAVE_REJECTED: 'LEAVE_REJECTED',
-        LEAVE_CANCELLED: 'LEAVE_CANCELLED',
-        LEAVE_DELETED: 'LEAVE_DELETED',
-        QUOTA_UPDATED: 'QUOTA_UPDATED'
-        // Ajouter d'autres types si utilisés
-    }
+    eventBus: {
+        publish: mockPublishIntegrationTest,
+        subscribe: mockSubscribeIntegrationTest,
+        dispose: mockDisposeIntegrationTest,
+        getStats: mockGetStatsIntegrationTest,
+    },
+    // Utiliser requireActual pour obtenir les vraies valeurs de IntegrationEventType
+    IntegrationEventType: jest.requireActual('../EventBusService').IntegrationEventType
 }));
 
-// Créer des mocks Jest simples au lieu de classes
+// Importer eventBus et IntegrationEventType APRÈS le mock
+import { eventBus, IntegrationEventType } from '../EventBusService';
+
+
+// Créer des mocks Jest simples au lieu de classes pour les handlers
 const mockUpdatePlanning = jest.fn<() => Promise<boolean>>().mockResolvedValue(true);
 const mockRemoveFromPlanning = jest.fn<() => Promise<boolean>>().mockResolvedValue(true);
-const mockCheckConflicts = jest.fn<() => Promise<any[]>>().mockResolvedValue([]);
+// const mockCheckConflicts = jest.fn<() => Promise<any[]>>().mockResolvedValue([]); // Décommenter si utilisé
 const mockSendNotification = jest.fn<() => Promise<boolean>>().mockResolvedValue(true);
 
 describe('Intégration entre le module de congés et les autres modules', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
-        mockEventBusInstance.dispose();
+        jest.clearAllMocks(); // Efface tous les mocks, y compris ceux de eventBus
+        // Réinitialiser l'état des mocks de eventBus manuellement car clearAllMocks ne réinitialise pas l'état interne de mockListenersIntegrationTest
+        mockDisposeIntegrationTest(); 
+        mockPublishIntegrationTest.mockClear();
+        mockSubscribeIntegrationTest.mockClear();
+        mockGetStatsIntegrationTest.mockClear();
 
-        // Utiliser les mocks Jest simples directement
+        // Ré-abonner les handlers après le nettoyage car le mock de eventBus est frais
         eventBus.subscribe(IntegrationEventType.LEAVE_CREATED, mockUpdatePlanning);
         eventBus.subscribe(IntegrationEventType.LEAVE_UPDATED, mockUpdatePlanning);
         eventBus.subscribe(IntegrationEventType.LEAVE_APPROVED, mockUpdatePlanning);
@@ -87,8 +93,8 @@ describe('Intégration entre le module de congés et les autres modules', () => 
     });
 
     afterEach(() => {
-        // Nettoyage
-        mockEventBusInstance.dispose();
+        // Nettoyage explicite de l'état du mock eventBus
+        mockDisposeIntegrationTest();
     });
 
     describe('Événements de congé vers le planning', () => {

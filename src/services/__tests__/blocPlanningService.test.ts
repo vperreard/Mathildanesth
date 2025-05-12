@@ -4,8 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 
 // Mock du service de logging des erreurs
-jest.mock('@/lib/logger', () => ({
-    logError: jest.fn()
+jest.mock('../../lib/logger', () => ({
+    logError: jest.fn() // Forme simple standard
 }));
 
 // Étendre le type pour les méthodes de test internes

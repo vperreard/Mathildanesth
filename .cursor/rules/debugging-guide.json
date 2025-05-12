@@ -1,0 +1,13 @@
+{
+    "name": "debugging-guide",
+    "description": "Charge le guide de débogage lorsqu'une erreur ou un bug est mentionné.",
+    "pattern": ".*(?:erreur|bug|exception|stack trace|plantage|crash).*",
+    "actions": [
+      {
+        "type": "readFiles",
+        "files": [
+          "docs/technical/debugging-guide.md"
+        ]
+      }
+    ]
+  }

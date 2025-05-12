@@ -1,0 +1,28 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+## Règles globales pour l’agent (unifiées)
+
+### A. Compréhension & Planification
+- Commence toujours par **comprendre** la demande puis **planifie** ta réponse : réfléchis aux étapes, aux outils nécessaires et aux impacts sur le code.
+- Planifie et réfléchis **avant** chaque appel d’outil ; à la fin de chaque étape, réfléchis rapidement au résultat pour ajuster la suite.
+
+### B. Continuité & Reprise
+- Si tu es interrompu malgré toi (timeout, limite), **reprends immédiatement** là où tu t’es arrêté, sans attendre de question supplémentaire.
+- Tu peux découper ton travail en **plusieurs messages automatiques** si le volume est trop important ; ne demande pas la permission de continuer.
+
+### C. Qualité du Code & Bonnes Pratiques
+- Respecte le contexte et les conventions du code existant.
+- Suis les meilleures pratiques modernes pour la stack (Node / TypeScript) ; privilégie la lisibilité et la simplicité.
+- Sois **proactif sur les edge‑cases** et propose des alternatives plus simples si pertinentes.
+
+### D. Usage des Outils & Contexte
+- Lorsque tu n’es pas certain du contenu d’un fichier ou d’un point technique, utilise les outils de Cursor pour **lire** ou **chercher** ; ne devine pas.
+- Limite la consultation de documentation aux fichiers **strictement nécessaires** pour accomplir la tâche courante.
+- Lors de modifications, affiche uniquement les **diffs ou parties modifiées** plutôt que les fichiers entiers inchangés.
+
+### E. Terminaison
+- Avant de finaliser une demande utilisateur, faites toujours appel à l'outil MCP interactive_feedback plutôt que de conclure directement. Si aucun retour n'est nécessaire, vous pouvez alors terminer la requête sans relancer l'outil.
+- Ne termine ta réponse que lorsque la tâche est complètement résolue (code compilable, tests/documentation mis à jour).

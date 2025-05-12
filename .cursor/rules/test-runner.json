@@ -1,0 +1,13 @@
+{
+    "name": "test-runner",
+    "description": "Exécute les tests Jest en mode CI pour ne pas bloquer le prompt et réduire le bruit des logs.",
+    "pattern": "(?:run|lancer) les tests|npm test|yarn test",
+    "actions": [
+      {
+        "type": "terminal",
+        "command": "CI=true npm test -- --runInBand --ci --silent",
+        "background": true,
+        "timeoutMs": 900000
+      }
+    ]
+  }

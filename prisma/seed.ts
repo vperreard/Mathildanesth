@@ -1,41 +1,34 @@
 // prisma/seed.ts
-console.log("[SEED DEBUG] Début du script seed.ts");
-import { PrismaClient, Role, ProfessionalRole, UserStatus, Prisma, WorkPatternType, WeekType } from '@prisma/client';
+// console.log("[SEED DEBUG] Début du script seed.ts");
+import { PrismaClient, Role, ProfessionalRole, WorkPatternType, WeekType, LeaveType } from '@prisma/client';
 import bcrypt from 'bcrypt';
-console.log("[SEED DEBUG] Import bcrypt OK");
+// console.log("[SEED DEBUG] Import bcrypt OK");
 import fs from 'fs';
-console.log("[SEED DEBUG] Import fs OK");
+// console.log("[SEED DEBUG] Import fs OK");
 import path from 'path';
-console.log("[SEED DEBUG] Import path OK");
-import { fileURLToPath } from 'url';
-console.log("[SEED DEBUG] Import fileURLToPath OK");
-import { dirname } from 'path';
-console.log("[SEED DEBUG] Import dirname OK");
+// console.log("[SEED DEBUG] Import path OK");
+// console.log("[SEED DEBUG] Import fileURLToPath OK");
+// console.log("[SEED DEBUG] Import dirname OK");
 import { parse } from 'csv-parse/sync';
-console.log("[SEED DEBUG] Import csv-parse/sync OK");
+// console.log("[SEED DEBUG] Import csv-parse/sync OK");
 
-// Équivalent ESM à __dirname
-console.log("[SEED DEBUG] Calcul de __filename...");
-const __filename = fileURLToPath(import.meta.url);
-console.log("[SEED DEBUG] __filename OK:", __filename);
-console.log("[SEED DEBUG] Calcul de __dirname...");
-const __dirname = dirname(__filename);
-console.log("[SEED DEBUG] __dirname OK:", __dirname);
-
-console.log("[SEED DEBUG] Instanciation PrismaClient...");
+// console.log("[SEED DEBUG] Instanciation PrismaClient...");
 const prisma = new PrismaClient();
-console.log("[SEED DEBUG] PrismaClient OK");
+// console.log("[SEED DEBUG] PrismaClient OK");
 const saltRounds = 10;
-console.log("[SEED DEBUG] saltRounds OK");
+// console.log("[SEED DEBUG] saltRounds OK");
 
-console.log("[SEED DEBUG] Calcul usersCsvPath...");
-const usersCsvPath = path.join(__dirname, 'seed_data', 'users.csv');
-console.log("[SEED DEBUG] usersCsvPath OK:", usersCsvPath);
-console.log("[SEED DEBUG] Calcul surgeonsCsvPath...");
-const surgeonsCsvPath = path.join(__dirname, 'seed_data', 'surgeons.csv');
-console.log("[SEED DEBUG] surgeonsCsvPath OK:", surgeonsCsvPath);
+// console.log("[SEED DEBUG] Calcul usersCsvPath...");
+const usersCsvPath = path.resolve(__dirname, 'seed_data', 'users.csv');
+// console.log("[SEED DEBUG] usersCsvPath OK:", usersCsvPath);
+// console.log("[SEED DEBUG] Calcul surgeonsCsvPath...");
+const surgeonsCsvPath = path.resolve(__dirname, 'seed_data', 'surgeons.csv');
+// console.log("[SEED DEBUG] surgeonsCsvPath OK:", surgeonsCsvPath);
+// console.log("[SEED DEBUG] Calcul operatingRoomsCsvPath...");
+const operatingRoomsCsvPath = path.resolve(__dirname, 'seed_data', 'operating_rooms.csv');
+// console.log("[SEED DEBUG] operatingRoomsCsvPath OK:", operatingRoomsCsvPath);
 const specialtySeparator = ';';
-console.log("[SEED DEBUG] specialtySeparator OK");
+// console.log("[SEED DEBUG] specialtySeparator OK");
 
 
 const specialtiesToSeed = [
@@ -71,11 +64,13 @@ interface UserCsvData {
     alias?: string;
     phoneNumber?: string;
     password?: string;
-    // role: Role; // Reste commenté
-    // professionalRole: ProfessionalRole; // Reste commenté
+    role?: string;
+    professionalRole?: string;
     tempsPartiel: string;
     pourcentageTempsPartiel?: string;
     joursTravailles?: string;
+    joursTravaillesSemaineImpaire?: string;
+    joursTravaillesSemainePaire?: string;
     dateEntree?: string;
     dateSortie?: string;
     actif: string;
@@ -92,19 +87,24 @@ interface SurgeonCsvData {
     googleSheetName?: string;
 }
 
-function parseCsv<T>(filePath: string): T[] {
-    if (!fs.existsSync(filePath)) {
-        console.warn(`WARN: Fichier CSV non trouvé: ${filePath}. Skipping.`);
-        return [];
+// Fonction de chargement sécurisé des CSV
+function safeLoadCsv<T>(filePath: string, defaultValue: T[] = []): T[] {
+    try {
+        if (!fs.existsSync(filePath)) {
+            console.warn(`[SEED WARN] Fichier CSV non trouvé : ${filePath}`);
+            return defaultValue;
+        }
+        const csvContent = fs.readFileSync(filePath, 'utf-8');
+        return parse(csvContent, {
+            columns: true,
+            skip_empty_lines: true,
+            trim: true,
+            bom: true
+        }) as T[];
+    } catch (error) {
+        console.error(`[SEED ERROR] Erreur lors du chargement de ${filePath}:`, error);
+        return defaultValue;
     }
-    const csvContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
-    const records = parse(csvContent, {
-        columns: true,
-        skip_empty_lines: true,
-        trim: true,
-        bom: true
-    });
-    return records as T[];
 }
 
 // Types de congés par défaut
@@ -113,193 +113,258 @@ const leaveTypes = [
         code: 'CP',
         label: 'Congé annuel',
         description: 'Congé annuel payé',
-        isActive: 'true',
-        isUserSelectable: 'true',
-        rules: JSON.stringify({
+        isActive: true,
+        isUserSelectable: true,
+        rules: {
             countingMethod: 'WEEKDAYS_IF_WORKING',
             maxDuration: 30,
             minRequestLeadTime: 30,
             approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
-        })
+        }
     },
     {
         code: 'RTT',
         label: 'RTT',
         description: 'Réduction du temps de travail',
-        isActive: 'true',
-        isUserSelectable: 'true',
-        rules: JSON.stringify({
+        isActive: true,
+        isUserSelectable: true,
+        rules: {
             countingMethod: 'WEEKDAYS_IF_WORKING',
             maxDuration: 1,
             minRequestLeadTime: 7,
             approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
-        })
+        }
     },
     {
         code: 'FORM',
         label: 'Formation',
         description: 'Congé pour formation',
-        isActive: 'true',
-        isUserSelectable: 'true',
-        rules: JSON.stringify({
+        isActive: true,
+        isUserSelectable: true,
+        rules: {
             countingMethod: 'CONTINUOUS_ALL_DAYS',
             maxDuration: 90,
             minRequestLeadTime: 30,
             approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
-        })
+        }
     },
     {
         code: 'MAL',
         label: 'Maladie',
         description: 'Congé maladie',
-        isActive: 'true',
-        isUserSelectable: 'true',
-        rules: JSON.stringify({
+        isActive: true,
+        isUserSelectable: true,
+        rules: {
             countingMethod: 'CONTINUOUS_ALL_DAYS',
             maxDuration: 90,
             minRequestLeadTime: 0,
             approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
-        })
+        }
     },
     {
         code: 'MAT',
         label: 'Maternité',
         description: 'Congé maternité',
-        isActive: 'true',
-        isUserSelectable: 'true',
-        rules: JSON.stringify({
+        isActive: true,
+        isUserSelectable: true,
+        rules: {
             countingMethod: 'CONTINUOUS_ALL_DAYS',
             maxDuration: 180,
             minRequestLeadTime: 30,
             approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
-        })
+        }
     },
     {
         code: 'CSS',
         label: 'Congé spécial',
         description: 'Congé pour événement spécial',
-        isActive: 'true',
-        isUserSelectable: 'true',
-        rules: JSON.stringify({
+        isActive: true,
+        isUserSelectable: true,
+        rules: {
             countingMethod: 'WEEKDAYS_IF_WORKING',
             maxDuration: 5,
             minRequestLeadTime: 15,
             approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
-        })
+        }
     },
     {
         code: 'RECUP',
         label: 'Récupération',
         description: 'Récupération de temps de travail',
-        isActive: 'true',
-        isUserSelectable: 'true',
-        rules: JSON.stringify({
+        isActive: true,
+        isUserSelectable: true,
+        rules: {
             countingMethod: 'WEEKDAYS_IF_WORKING',
             maxDuration: 1,
             minRequestLeadTime: 7,
             approverRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL']
-        })
+        }
     }
 ];
 
-// Règles de transfert de quotas par défaut
+// Modification des règles de transfert et de report de quotas
 const quotaTransferRules = [
     {
-        fromType: 'ANNUAL',
-        toType: 'RECOVERY',
-        conversionRate: 1.0,
-        maxTransferDays: 5,
-        maxTransferPercentage: 20,
-        requiresApproval: false,
-        authorizedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
-        isActive: true
-    },
-    {
-        fromType: 'RECOVERY',
-        toType: 'ANNUAL',
-        conversionRate: 1.0,
-        maxTransferDays: 3,
-        maxTransferPercentage: 100,
-        requiresApproval: false,
-        authorizedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
-        isActive: true
-    },
-    {
-        fromType: 'TRAINING',
-        toType: 'ANNUAL',
-        conversionRate: 0.5, // 2 jours de formation = 1 jour de congé annuel
+        fromType: 'ANNUAL' as LeaveType,
+        toType: 'RECOVERY' as LeaveType,
+        conversionRate: 1,
         maxTransferDays: 5,
         maxTransferPercentage: 50,
         requiresApproval: true,
-        authorizedRoles: ['ADMIN_TOTAL'],
-        isActive: true
-    },
-    {
-        fromType: 'ANNUAL',
-        toType: 'TRAINING',
-        conversionRate: 2.0, // 1 jour de congé annuel = 2 jours de formation
-        maxTransferDays: 3,
-        maxTransferPercentage: 10,
-        requiresApproval: true,
-        authorizedRoles: ['ADMIN_TOTAL'],
-        isActive: true
-    },
-    {
-        fromType: 'SPECIAL',
-        toType: 'ANNUAL',
-        conversionRate: 1.0,
-        maxTransferDays: 2,
-        maxTransferPercentage: 100,
-        requiresApproval: true,
-        authorizedRoles: ['ADMIN_TOTAL'],
+        authorizedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
         isActive: true
     }
 ];
 
-// Règles de report de quotas par défaut
 const quotaCarryOverRules = [
     {
-        leaveType: 'ANNUAL',
+        leaveType: 'ANNUAL' as LeaveType,
         ruleType: 'PERCENTAGE',
-        value: 10, // 10% du solde restant
-        maxCarryOverDays: 5,
-        expirationDays: 120, // 4 mois
-        requiresApproval: false,
-        authorizedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
-        isActive: true
-    },
-    {
-        leaveType: 'RECOVERY',
-        ruleType: 'FIXED',
-        value: 3, // Maximum 3 jours
-        requiresApproval: false,
-        authorizedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
-        isActive: true
-    },
-    {
-        leaveType: 'TRAINING',
-        ruleType: 'PERCENTAGE',
-        value: 100, // 100% du solde restant
+        value: 50,
         maxCarryOverDays: 10,
-        requiresApproval: false,
-        authorizedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
-        isActive: true
-    },
-    {
-        leaveType: 'SPECIAL',
-        ruleType: 'EXPIRABLE',
-        value: 100, // 100% du solde restant
-        expirationDays: 90, // 3 mois
+        expirationDays: 365,
         requiresApproval: true,
-        authorizedRoles: ['ADMIN_TOTAL'],
+        authorizedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
         isActive: true
     }
 ];
 
+// Données par défaut si les CSV sont absents
+const defaultUsers: UserCsvData[] = [
+    {
+        nom: 'Administrateur',
+        prenom: 'Principal',
+        login: 'admin',
+        email: 'admin@mathildanesth.local',
+        tempsPartiel: 'false',
+        actif: 'true',
+        mustChangePassword: 'true'
+    }
+];
+
+const defaultSurgeons: SurgeonCsvData[] = [
+    {
+        nom: 'Chirurgien',
+        prenom: 'Défaut',
+        email: 'chirurgien@mathildanesth.local'
+    }
+];
+
+const defaultOperatingRooms = [
+    {
+        name: 'Salle Opératoire 1',
+        number: '1',
+        sectorId: '1',
+        colorCode: '#FF0000',
+        isActive: 'true',
+        supervisionRules: JSON.stringify({ maxSurgeons: 2 })
+    }
+];
+
+async function processUsers(users: UserCsvData[]) {
+    for (const user of users) {
+        // Validation et conversion des données
+        const login = user.login || `${user.prenom.toLowerCase()}.${user.nom.toLowerCase()}`;
+        const email = user.email || `${login}@mathildanesth.local`;
+
+        // Convertir les rôles
+        const userRoleString = (user.role?.toUpperCase() || 'USER') as Role;
+        const userProfRoleString = (user.professionalRole?.toUpperCase() || 'MAR') as ProfessionalRole;
+
+        // Convertir les booléens
+        const tempsPartiel = user.tempsPartiel?.toLowerCase() === 'true';
+        const pourcentage = user.pourcentageTempsPartiel ? parseFloat(user.pourcentageTempsPartiel) : null;
+        const actif = user.actif?.toLowerCase() !== 'false';
+        const mustChangePassword = user.mustChangePassword?.toLowerCase() !== 'false';
+
+        // Convertir les dates
+        const dateEntree = user.dateEntree ? new Date(user.dateEntree) : null;
+        const dateSortie = user.dateSortie ? new Date(user.dateSortie) : null;
+
+        // Déterminer le pattern de travail
+        let workPattern: WorkPatternType = WorkPatternType.FULL_TIME;
+        let workOnWeekType: WeekType | null = null;
+        let workOnMonthType: WeekType | null = null;
+
+        if (tempsPartiel) {
+            const joursDesc = user.joursTravailles?.toLowerCase() || '';
+            if (joursDesc.includes('semaines')) {
+                workPattern = WorkPatternType.ALTERNATING_WEEKS;
+            } else if (joursDesc.includes('mois')) {
+                workPattern = WorkPatternType.ALTERNATING_MONTHS;
+            } else {
+                workPattern = WorkPatternType.SPECIFIC_DAYS;
+            }
+
+            if (workPattern === WorkPatternType.SPECIFIC_DAYS) {
+                if (joursDesc.includes('semaines paires')) {
+                    workOnWeekType = WeekType.EVEN;
+                } else if (joursDesc.includes('semaines impaires')) {
+                    workOnWeekType = WeekType.ODD;
+                }
+            }
+        }
+
+        try {
+            const existingUser = await prisma.user.findUnique({ where: { login } });
+
+            const userData = {
+                nom: user.nom,
+                prenom: user.prenom,
+                login,
+                email,
+                alias: user.alias || null,
+                phoneNumber: user.phoneNumber || null,
+                role: userRoleString,
+                professionalRole: userProfRoleString,
+                tempsPartiel,
+                pourcentageTempsPartiel: pourcentage,
+                dateEntree,
+                dateSortie,
+                actif,
+                mustChangePassword,
+                workPattern,
+                workOnMonthType,
+                joursTravaillesSemaineImpaire: user.joursTravaillesSemaineImpaire || "[]",
+                joursTravaillesSemainePaire: user.joursTravaillesSemainePaire || "[]",
+                password: user.password ? bcrypt.hashSync(user.password, saltRounds) : bcrypt.hashSync('password', saltRounds)
+            };
+
+            if (existingUser) {
+                await prisma.user.update({
+                    where: { login },
+                    data: userData
+                });
+                console.log(`[SEED DEBUG] Utilisateur mis à jour: ${login}`);
+            } else {
+                await prisma.user.create({ data: userData });
+                console.log(`[SEED DEBUG] Nouvel utilisateur créé: ${login}`);
+            }
+        } catch (error) {
+            console.error(`[SEED DEBUG] Erreur lors du traitement de l'utilisateur ${login}:`, error);
+        }
+    }
+}
+
 async function main() {
-    console.log("[SEED DEBUG] Début de la fonction main()");
+    console.log("[SEED DEBUG] Début du processus de seed");
 
     try {
+        // Charger les données avec fallback
+        const users = safeLoadCsv<UserCsvData>(usersCsvPath, defaultUsers);
+        const surgeons = safeLoadCsv<SurgeonCsvData>(surgeonsCsvPath, defaultSurgeons);
+        const operatingRooms = safeLoadCsv<{
+            name: string;
+            number: string;
+            sectorId: string;
+            colorCode: string;
+            isActive: string;
+            supervisionRules: string;
+        }>(operatingRoomsCsvPath, defaultOperatingRooms);
+
+        // Traitement des utilisateurs
+        await processUsers(users);
+
         // Créer les secteurs opératoires
         const operatingSectors = [
             {
@@ -342,15 +407,6 @@ async function main() {
         }
 
         // Créer les salles d'opération
-        const operatingRooms = parseCsv<{
-            name: string;
-            number: string;
-            sectorId: string;
-            colorCode: string;
-            isActive: string;
-            supervisionRules: string;
-        }>(path.join(__dirname, 'seed_data', 'operating_rooms.csv'));
-
         for (const room of operatingRooms) {
             try {
                 const existingRoom = await prisma.operatingRoom.findUnique({
@@ -394,9 +450,9 @@ async function main() {
                     code: leaveType.code,
                     label: leaveType.label,
                     description: leaveType.description,
-                    isActive: leaveType.isActive.toLowerCase() === 'true',
-                    isUserSelectable: leaveType.isUserSelectable.toLowerCase() === 'true',
-                    rules: JSON.parse(leaveType.rules)
+                    isActive: leaveType.isActive,
+                    isUserSelectable: leaveType.isUserSelectable,
+                    rules: leaveType.rules
                 };
 
                 if (existingLeaveType) {
@@ -501,140 +557,56 @@ async function main() {
             });
         }
 
-        // Création des règles de transfert de quotas par défaut
+        // Création des règles de transfert de quotas
         for (const rule of quotaTransferRules) {
             await prisma.quotaTransferRule.create({
-                data: rule
+                data: {
+                    fromType: rule.fromType,
+                    toType: rule.toType,
+                    conversionRate: rule.conversionRate,
+                    maxTransferDays: rule.maxTransferDays,
+                    maxTransferPercentage: rule.maxTransferPercentage,
+                    requiresApproval: rule.requiresApproval,
+                    authorizedRoles: rule.authorizedRoles,
+                    isActive: rule.isActive
+                }
             });
         }
 
-        // Création des règles de report de quotas par défaut
+        // Création des règles de report de quotas
         for (const rule of quotaCarryOverRules) {
             await prisma.quotaCarryOverRule.create({
-                data: rule
+                data: {
+                    leaveType: rule.leaveType,
+                    ruleType: rule.ruleType,
+                    value: rule.value,
+                    maxCarryOverDays: rule.maxCarryOverDays,
+                    expirationDays: rule.expirationDays,
+                    requiresApproval: rule.requiresApproval,
+                    authorizedRoles: rule.authorizedRoles,
+                    isActive: rule.isActive
+                }
             });
         }
 
-        // Lire le fichier CSV
-        const csvContent = fs.readFileSync(usersCsvPath, 'utf-8');
-        const lines = csvContent.split('\n').filter(line => line.trim());
-
-        // Ignorer l'en-tête
-        const headers = lines[0].split(',');
-        const dataLines = lines.slice(1);
-
-        // Traiter chaque ligne
-        for (const line of dataLines) {
-            const values = line.split(',');
-            const userData: any = {};
-
-            // Mapper les valeurs aux en-têtes
-            headers.forEach((header, index) => {
-                userData[header.trim()] = values[index]?.trim() || '';
-            });
-
-            // Convertir les rôles
-            const userRoleString = userData.role?.toUpperCase() || 'USER';
-            const userProfRoleString = userData.professionalRole?.toUpperCase() || 'MAR';
-
-            // Convertir les booléens
-            const tempsPartiel = userData.tempsPartiel?.toLowerCase() === 'true';
-            const pourcentage = userData.pourcentageTempsPartiel ? parseFloat(userData.pourcentageTempsPartiel) : null;
-            const actif = userData.actif?.toLowerCase() !== 'false';
-            const mustChangePassword = userData.mustChangePassword?.toLowerCase() !== 'false';
-
-            // Convertir les dates
-            const dateEntree = userData.dateEntree ? new Date(userData.dateEntree) : null;
-            const dateSortie = userData.dateSortie ? new Date(userData.dateSortie) : null;
-
-            // Déterminer le pattern de travail
-            let workPattern: WorkPatternType = WorkPatternType.FULL_TIME;
-            let workOnWeekType: WeekType | null = null;
-            let workOnMonthType: WeekType | null = null;
-
-            if (tempsPartiel) {
-                const joursDesc = userData.joursTravailles?.toLowerCase() || '';
-                if (joursDesc.includes('semaines')) {
-                    workPattern = WorkPatternType.ALTERNATING_WEEKS;
-                } else if (joursDesc.includes('mois')) {
-                    workPattern = WorkPatternType.ALTERNATING_MONTHS;
-                } else {
-                    workPattern = WorkPatternType.SPECIFIC_DAYS;
-                }
-
-                if (workPattern === WorkPatternType.SPECIFIC_DAYS) {
-                    if (joursDesc.includes('semaines paires')) {
-                        workOnWeekType = WeekType.EVEN;
-                    } else if (joursDesc.includes('semaines impaires')) {
-                        workOnWeekType = WeekType.ODD;
-                    }
-                }
-            }
-
-            try {
-                const existingUser = await prisma.user.findUnique({ where: { login: userData.login } });
-
-                const commonUserData = {
-                    nom: userData.nom || '',
-                    prenom: userData.prenom || '',
-                    login: userData.login,
-                    email: userData.email || `${userData.login}@example.local`,
-                    alias: userData.alias || null,
-                    phoneNumber: userData.phoneNumber || null,
-                    role: userRoleString as any,
-                    professionalRole: userProfRoleString as any,
-                    tempsPartiel: tempsPartiel,
-                    pourcentageTempsPartiel: pourcentage,
-                    dateEntree: dateEntree,
-                    dateSortie: dateSortie,
-                    actif: actif,
-                    mustChangePassword: mustChangePassword,
-                    workPattern: workPattern,
-                    workOnMonthType: workOnMonthType,
-                    joursTravaillesSemaineImpaire: userData.joursTravaillesSemaineImpaire || "[]",
-                    joursTravaillesSemainePaire: userData.joursTravaillesSemainePaire || "[]"
-                };
-
-                if (existingUser) {
-                    // Mettre à jour l'utilisateur existant
-                    await prisma.user.update({
-                        where: { login: userData.login },
-                        data: {
-                            ...commonUserData,
-                            password: userData.password ? await bcrypt.hash(userData.password, saltRounds) : undefined
-                        }
-                    });
-                    console.log(`[SEED DEBUG] Utilisateur mis à jour: ${userData.login}`);
-                } else {
-                    // Créer un nouvel utilisateur
-                    await prisma.user.create({
-                        data: {
-                            ...commonUserData,
-                            password: await bcrypt.hash(userData.password || 'password', saltRounds)
-                        }
-                    });
-                    console.log(`[SEED DEBUG] Nouvel utilisateur créé: ${userData.login}`);
-                }
-            } catch (error) {
-                console.error(`[SEED DEBUG] Erreur lors du traitement de l'utilisateur ${userData.login}:`, error);
-            }
-        }
-
-        console.log("[SEED DEBUG] Fin de la fonction main()");
+        console.log("[SEED DEBUG] Fin du processus de seed");
     } catch (error) {
-        console.error("[SEED DEBUG] Erreur dans main():", error);
+        console.error("[SEED FATAL ERROR]", error);
         throw error;
+    } finally {
+        await prisma.$disconnect();
     }
 }
 
-console.log("[SEED DEBUG] Appel de main()...");
+// Ajout de logs supplémentaires
+console.log("[SEED DEBUG] Script de seed chargé. Prêt à être exécuté.");
 main()
     .catch(async (e) => {
-        console.error("[SEED DEBUG] ERREUR lors de l'appel de main():", e);
+        console.error("[SEED FATAL ERROR]:", e);
         await prisma.$disconnect();
         process.exit(1);
     })
     .finally(async () => {
         await prisma.$disconnect();
-        console.log("[SEED DEBUG] Prisma Client déconnecté. Fin du script.");
+        console.log("[SEED DEBUG] Processus de seed terminé.");
     }); 

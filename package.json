@@ -17,10 +17,10 @@
     "test:rules:watch": "jest --config jest.config.rules.js --watch",
     "test:rules:coverage": "jest --config jest.config.rules.js --coverage",
     "test:integration": "jest --testPathPattern=src/integration/.*.test.js",
-    "test:unit": "jest --testPathPattern=src/\\\\\\(__tests__\\\\\\|components\\\\\\|hooks\\\\\\)/.*.test.(js|ts|tsx)",
-    "test:all": "npm run test",
+    "test:unit": "jest --testPathPattern=src/\\\\\\(__tests__\\\\\\|\\\\\\.\\.\\.)\\\\\\(test\\\\\\|spec)\\\\\\.tsx?$",
+    "test:all": "jest --coverage",
     "optimize-images": "node src/utils/optimizeImages.js",
-    "seed": "tsx src/modules/seeds/seedAll.ts",
+    "seed": "ts-node --esm prisma/seed.ts",
     "seed:rules": "tsx src/scripts/seedRules.ts",
     "seed:surgeons": "tsx src/modules/seeds/seedSurgeons.ts",
     "seed:specialties": "tsx src/modules/seeds/seedSpecialties.ts",
@@ -56,9 +56,13 @@
     "test:e2e:all": "cross-env DATABASE_URL='postgresql://mathildanesth_user:mathildanesth_password@localhost:5433/mathildanesth_test' start-server-and-test \"sleep 5 && npm run dev\" http://localhost:3000 \"cypress run --e2e\"",
     "test:e2e:a11y": "start-server-and-test dev http://localhost:3000 cypress:a11y",
     "test:e2e:responsive": "start-server-and-test dev http://localhost:3000 cypress:responsive",
-    "test:e2e:perf": "start-server-and-test dev http://localhost:3000 cypress:perf"
+    "test:e2e:perf": "start-server-and-test dev http://localhost:3000 cypress:perf",
+    "storybook": "storybook dev -p 6006",
+    "prisma:seed": "prisma db seed"
   },
-  "prisma": {},
+  "prisma": {
+    "seed": "ts-node --esm prisma/seed.ts"
+  },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
     "@emotion/react": "^11.14.0",
@@ -188,7 +192,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^29.5.14",
     "@types/js-cookie": "^3.0.6",
-    "@types/node": "^20.17.32",
+    "@types/node": "^20.17.46",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/socket.io-client": "^1.4.36",
@@ -213,6 +217,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "jest-html-reporters": "^3.1.7",
     "jest-mock-extended": "^4.0.0-beta1",
     "lint-staged": "^15.2.10",
     "mochawesome": "^7.1.3",

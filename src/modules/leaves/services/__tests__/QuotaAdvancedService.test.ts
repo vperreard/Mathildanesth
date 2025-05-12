@@ -3,9 +3,9 @@ import { server, http } from '@/tests/mocks/server';
 import { HttpResponse } from 'msw';
 import { QuotaAdvancedService, quotaAdvancedService } from '../QuotaAdvancedService';
 
-// MODIFIÉ: Imports spécifiques pour le mock manuel
-import * as quotaService from '../quotaService';
-import * as leaveService from '../leaveService';
+// MODIFIÉ: Plus besoin d'importer les types pour les mocks de fonctions ici
+// import * as quotaServiceTypes from '../quotaService';
+// import * as leaveServiceTypes from '../leaveService';
 
 import AuditService from '@/services/AuditService';
 import EventBusService from '@/services/eventBusService';
@@ -20,39 +20,41 @@ import { addMonths } from '@/utils/dateUtils';
 import { QuotaTransactionStatus } from '@/modules/leaves/types/quota';
 import { QuotaCarryOverCalculationResult } from '@/modules/leaves/types/quota';
 
-// Mock des services externes
-// Supprimé: jest.mock('../leaveService');
-// Supprimé: jest.mock('../quotaService');
-
 // --- Mocks manuels --- 
 // Pour leaveService
-const mockFetchLeaveBalance = jest.fn<typeof leaveService.fetchLeaveBalance>();
 jest.mock('../leaveService', () => ({
     __esModule: true,
-    fetchLeaveBalance: mockFetchLeaveBalance,
-    // Ajoutez d'autres exports de leaveService ici si nécessaire, mockés avec jest.fn()
+    fetchLeaveBalance: jest.fn(),
 }));
 
 // Pour quotaService
-const mockFetchActiveTransferRulesForUser = jest.fn<typeof quotaService.fetchActiveTransferRulesForUser>();
-const mockFetchActiveCarryOverRulesForUser = jest.fn<typeof quotaService.fetchActiveCarryOverRulesForUser>();
-const mockFetchTransferHistory = jest.fn<typeof quotaService.fetchTransferHistory>();
-const mockFetchCarryOverHistory = jest.fn<typeof quotaService.fetchCarryOverHistory>();
 jest.mock('../quotaService', () => ({
     __esModule: true,
-    fetchActiveTransferRulesForUser: mockFetchActiveTransferRulesForUser,
-    fetchActiveCarryOverRulesForUser: mockFetchActiveCarryOverRulesForUser,
-    fetchTransferHistory: mockFetchTransferHistory,
-    fetchCarryOverHistory: mockFetchCarryOverHistory,
+    fetchActiveTransferRulesForUser: jest.fn(),
+    fetchActiveCarryOverRulesForUser: jest.fn(),
+    fetchTransferHistory: jest.fn(),
+    fetchCarryOverHistory: jest.fn(),
 }));
 
-// Mocker AuditService explicitement pour contrôler getInstance et logAction
-const mockLogActionGlobal = jest.fn<() => Promise<void>>();
+import { fetchLeaveBalance } from '../leaveService';
+import {
+    fetchActiveTransferRulesForUser,
+    fetchActiveCarryOverRulesForUser,
+    fetchTransferHistory,
+    fetchCarryOverHistory
+} from '../quotaService';
+
+const mockFetchLeaveBalanceRef = fetchLeaveBalance as jest.MockedFunction<typeof fetchLeaveBalance>;
+const mockFetchActiveTransferRulesForUserRef = fetchActiveTransferRulesForUser as jest.MockedFunction<typeof fetchActiveTransferRulesForUser>;
+const mockFetchActiveCarryOverRulesForUserRef = fetchActiveCarryOverRulesForUser as jest.MockedFunction<typeof fetchActiveCarryOverRulesForUser>;
+const mockFetchTransferHistoryRef = fetchTransferHistory as jest.MockedFunction<typeof fetchTransferHistory>;
+const mockFetchCarryOverHistoryRef = fetchCarryOverHistory as jest.MockedFunction<typeof fetchCarryOverHistory>;
+
 jest.mock('@/services/AuditService', () => ({
     __esModule: true,
     default: {
         getInstance: jest.fn().mockReturnValue({
-            logAction: mockLogActionGlobal
+            logAction: jest.fn<() => Promise<void>>()
         })
     }
 }));
@@ -66,7 +68,7 @@ jest.mock('@/services/eventBusService', () => ({
         })
     }
 }));
-// Simplification des mocks dateUtils (types inférés)
+
 jest.mock('@/utils/dateUtils', () => ({
     formatDate: jest.fn((date: string | number | Date): string => new Date(date).toLocaleDateString()),
     addMonths: jest.fn((date: string | number | Date, months: number): Date => {
@@ -78,19 +80,13 @@ jest.mock('@/utils/dateUtils', () => ({
     isDateInFuture: jest.fn().mockImplementation(() => true)
 }));
 
-// Configuration globale pour les mocks fetch - SUPPRIMER
-// global.fetch = jest.fn() as jest.MockedFunction<typeof fetch>;
-
-// Données mock pour les tests
 const mockUserId = 'user-123';
 const mockYear = 2024;
 
-// Revenir à la structure originale de mockLeaveBalance qui correspond à la 1ère définition dans le fichier de types
-// et utiliser l'assertion de type pour passer le linter.
 const mockLeaveBalance = {
     userId: mockUserId,
     year: mockYear,
-    balances: { // Utiliser la propriété 'balances'
+    balances: {
         [LeaveType.ANNUAL]: {
             initial: 25,
             used: 5,
@@ -105,10 +101,9 @@ const mockLeaveBalance = {
             remaining: 7,
             acquired: 10,
         },
-        // Ajouter d'autres types si nécessaire
     },
     lastUpdated: new Date().toISOString(),
-} as unknown as LeaveBalance; // Garder l'assertion de type
+} as unknown as LeaveBalance;
 
 const mockTransferRules: QuotaTransferRule[] = [
     {
@@ -162,13 +157,12 @@ const mockCarryOverRules: QuotaCarryOverRule[] = [
     }
 ];
 
-// Correction des types dans mockTransferHistory
-const mockTransferHistory = [
+const mockTransferHistoryData = [
     {
         id: 'transfer-1',
         userId: 'user-123',
-        sourceType: LeaveType.RECOVERY, // Utilisation de LeaveType.RECOVERY
-        targetType: LeaveType.ANNUAL,   // Utilisation de LeaveType.ANNUAL
+        sourceType: LeaveType.RECOVERY,
+        targetType: LeaveType.ANNUAL,
         sourceAmount: 2,
         targetAmount: 1.6,
         ratio: 0.8,
@@ -179,12 +173,11 @@ const mockTransferHistory = [
     }
 ];
 
-// Correction des types dans mockCarryOverHistory
-const mockCarryOverHistory = [
+const mockCarryOverHistoryData = [
     {
         id: 'carryover-1',
         userId: 'user-123',
-        leaveType: LeaveType.ANNUAL, // Utilisation de LeaveType.ANNUAL
+        leaveType: LeaveType.ANNUAL,
         fromYear: mockYear - 1,
         toYear: mockYear,
         originalAmount: 4,
@@ -197,62 +190,59 @@ const mockCarryOverHistory = [
     }
 ];
 
-// Handlers MSW spécifiques à ce test - MIS À JOUR pour MSW v2 avec http et HttpResponse
 const quotaHandlers = [
     http.post('/api/leaves/quotas/transfer', async ({ request }) => {
-        // const body = await request.json(); // Décommentez si vous avez besoin du corps de la requête
         return HttpResponse.json({
             success: true,
             transferId: 'mock-transfer-id-from-msw',
-            // ... autres champs attendus par QuotaTransferResult (si applicable pour ce mock)
         }, { status: 200 });
     }),
     http.post('/api/leaves/quotas/carry-over', async ({ request }) => {
-        // const body = await request.json();
         return HttpResponse.json({
             success: true,
             id: 'mock-carryover-id-from-msw',
         }, { status: 200 });
     }),
     http.post('/api/leaves/audit/entries', async ({ request }) => {
-        // const body = await request.json();
         return HttpResponse.json({ id: 'mock-audit-entry-id', success: true }, { status: 201 });
     }),
     http.get('/api/leaves/quotas/transfer/history', () => {
-        return HttpResponse.json(mockTransferHistory, { status: 200 });
+        return HttpResponse.json(mockTransferHistoryData, { status: 200 });
     }),
     http.get('/api/leaves/quotas/carry-over/history', () => {
-        return HttpResponse.json(mockCarryOverHistory, { status: 200 });
+        return HttpResponse.json(mockCarryOverHistoryData, { status: 200 });
     }),
 ];
 
-// Configurer les mocks avant chaque test
+let mockLogActionAuditService: jest.MockedFunction<any>;
+
 beforeEach(() => {
     jest.clearAllMocks();
-    mockLogActionGlobal.mockClear(); // Utiliser la variable globale du mock
-    mockLogActionGlobal.mockResolvedValue(undefined); // Configurer la résolution pour Promise<void>
+    
+    const auditServiceInstance = AuditService.getInstance();
+    mockLogActionAuditService = auditServiceInstance.logAction as jest.MockedFunction<any>;
+    mockLogActionAuditService.mockClear();
+    mockLogActionAuditService.mockResolvedValue(undefined);
+
     server.use(...quotaHandlers);
 
-    // MODIFIÉ: Utiliser les mocks manuels
-    mockFetchLeaveBalance.mockResolvedValue(mockLeaveBalance);
-    mockFetchActiveTransferRulesForUser.mockResolvedValue(mockTransferRules);
-    mockFetchActiveCarryOverRulesForUser.mockResolvedValue(mockCarryOverRules);
-    mockFetchTransferHistory.mockResolvedValue(mockTransferHistory);
-    mockFetchCarryOverHistory.mockResolvedValue(mockCarryOverHistory);
+    mockFetchLeaveBalanceRef.mockResolvedValue(mockLeaveBalance);
+    mockFetchActiveTransferRulesForUserRef.mockResolvedValue(mockTransferRules);
+    mockFetchActiveCarryOverRulesForUserRef.mockResolvedValue(mockCarryOverRules);
+    mockFetchTransferHistoryRef.mockResolvedValue(mockTransferHistoryData);
+    mockFetchCarryOverHistoryRef.mockResolvedValue(mockCarryOverHistoryData);
 });
 
 describe('QuotaAdvancedService', () => {
     describe('getActiveTransferRules', () => {
         it('devrait récupérer les règles de transfert actives', async () => {
             const rules = await quotaAdvancedService.getActiveTransferRules(mockUserId);
-            // MODIFIÉ: Vérifier l'appel sur le mock manuel
-            expect(mockFetchActiveTransferRulesForUser).toHaveBeenCalledWith(mockUserId);
+            expect(mockFetchActiveTransferRulesForUserRef).toHaveBeenCalledWith(mockUserId);
             expect(rules).toEqual(mockTransferRules);
         });
 
         it('devrait gérer les erreurs lors de la récupération des règles', async () => {
-            // MODIFIÉ: Configurer le mock manuel
-            mockFetchActiveTransferRulesForUser.mockRejectedValue(new Error('Test error'));
+            mockFetchActiveTransferRulesForUserRef.mockRejectedValue(new Error('Test error'));
             await expect(quotaAdvancedService.getActiveTransferRules(mockUserId)).rejects.toThrow('Test error');
         });
     });
@@ -260,14 +250,12 @@ describe('QuotaAdvancedService', () => {
     describe('getActiveCarryOverRules', () => {
         it('devrait récupérer les règles de report actives', async () => {
             const rules = await quotaAdvancedService.getActiveCarryOverRules(mockUserId);
-            // MODIFIÉ: Vérifier l'appel sur le mock manuel
-            expect(mockFetchActiveCarryOverRulesForUser).toHaveBeenCalledWith(mockUserId);
+            expect(mockFetchActiveCarryOverRulesForUserRef).toHaveBeenCalledWith(mockUserId);
             expect(rules).toEqual(mockCarryOverRules);
         });
 
         it('devrait gérer les erreurs lors de la récupération des règles', async () => {
-            // MODIFIÉ: Configurer le mock manuel
-            mockFetchActiveCarryOverRulesForUser.mockRejectedValue(new Error('Test error'));
+            mockFetchActiveCarryOverRulesForUserRef.mockRejectedValue(new Error('Test error'));
             await expect(quotaAdvancedService.getActiveCarryOverRules(mockUserId)).rejects.toThrow('Test error');
         });
     });
@@ -312,11 +300,10 @@ describe('QuotaAdvancedService', () => {
             } as any, mockUserId);
 
             expect(result.success).toBe(true);
-            expect(mockLogActionGlobal).toHaveBeenCalled();
+            expect(mockLogActionAuditService).toHaveBeenCalled();
         });
 
         it('devrait rejeter un transfert si la simulation échoue', async () => {
-            // Mocker directement simulateTransfer pour retourner isValid: false
             const simulateTransferSpy = jest.spyOn(quotaAdvancedService as any, 'simulateTransfer')
                 .mockResolvedValueOnce({
                     isValid: false,
@@ -330,13 +317,13 @@ describe('QuotaAdvancedService', () => {
                 userId: mockUserId,
                 sourceType: LeaveType.RECOVERY,
                 targetType: LeaveType.ANNUAL,
-                sourceAmount: 10 // Montant qui déclencherait l'échec normalement
+                sourceAmount: 10
             } as any, mockUserId)).rejects.toThrow('Quota insuffisant simulé');
 
             expect(simulateTransferSpy).toHaveBeenCalled();
-            expect(mockLogActionGlobal).not.toHaveBeenCalled();
+            expect(mockLogActionAuditService).not.toHaveBeenCalled();
 
-            simulateTransferSpy.mockRestore(); // Nettoyer le spy
+            simulateTransferSpy.mockRestore();
         });
     });
 
@@ -355,7 +342,7 @@ describe('QuotaAdvancedService', () => {
         });
 
         it('devrait calculer correctement un report avec pourcentage', async () => {
-            mockFetchActiveCarryOverRulesForUser.mockResolvedValueOnce([
+            mockFetchActiveCarryOverRulesForUserRef.mockResolvedValueOnce([
                 {
                     id: 'carry-rule-rtt', leaveType: LeaveType.RECOVERY, ruleType: QuotaCarryOverRuleType.PERCENTAGE,
                     value: 30,
@@ -390,11 +377,11 @@ describe('QuotaAdvancedService', () => {
             }, mockUserId);
 
             expect(result).toBe(true);
-            expect(mockLogActionGlobal).toHaveBeenCalled();
+            expect(mockLogActionAuditService).toHaveBeenCalled();
         });
 
         it('devrait rejeter un report si la simulation échoue', async () => {
-            mockFetchLeaveBalance.mockResolvedValueOnce({ ...mockLeaveBalance, balances: { ...mockLeaveBalance.balances, [LeaveType.ANNUAL]: { ...mockLeaveBalance.balances[LeaveType.ANNUAL], remaining: 0 } } } as LeaveBalance);
+            mockFetchLeaveBalanceRef.mockResolvedValueOnce({ ...mockLeaveBalance, balances: { ...mockLeaveBalance.balances, [LeaveType.ANNUAL]: { ...mockLeaveBalance.balances[LeaveType.ANNUAL], remaining: 0 } } } as LeaveBalance);
 
             await expect(quotaAdvancedService.executeCarryOver({
                 userId: mockUserId,
@@ -403,7 +390,7 @@ describe('QuotaAdvancedService', () => {
                 toYear: mockYear + 1
             }, mockUserId)).rejects.toThrow('Aucun jour à reporter');
 
-            expect(mockLogActionGlobal).not.toHaveBeenCalled();
+            expect(mockLogActionAuditService).not.toHaveBeenCalled();
         });
     });
 
@@ -411,38 +398,27 @@ describe('QuotaAdvancedService', () => {
         it('devrait récupérer et combiner les informations de quotas, transferts et reports', async () => {
             const enhancedQuotas = await quotaAdvancedService.getEnhancedQuotaState(mockUserId, mockYear);
 
-            // MODIFIÉ: Vérifier l'appel sur le mock manuel
-            expect(mockFetchLeaveBalance).toHaveBeenCalledWith(mockUserId);
-            // expect(mockFetchTransferHistory).toHaveBeenCalledWith(mockUserId);
-            // expect(mockFetchCarryOverHistory).toHaveBeenCalledWith(mockUserId);
+            expect(mockFetchLeaveBalanceRef).toHaveBeenCalledWith(mockUserId);
 
             expect(enhancedQuotas).toBeDefined();
             expect(Array.isArray(enhancedQuotas)).toBe(true);
 
-            // Vérifier la structure pour un type spécifique (ex: ANNUAL)
             const cpQuota = enhancedQuotas.find(q => q.type === LeaveType.ANNUAL);
             expect(cpQuota).toBeDefined();
             if (cpQuota) {
                 expect(cpQuota.total).toBe(mockLeaveBalance.balances[LeaveType.ANNUAL].initial);
                 expect(cpQuota.used).toBe(mockLeaveBalance.balances[LeaveType.ANNUAL].used);
                 expect(cpQuota.remaining).toBe(mockLeaveBalance.balances[LeaveType.ANNUAL].remaining);
-                // Vérifier que l'historique (mocké par MSW) est bien intégré (indirectement)
                 expect(cpQuota.transferItems).toBeDefined();
                 expect(cpQuota.carriedOverItems).toBeDefined();
-                // On pourrait ajouter des vérifications plus précises sur le contenu de transferItems/carriedOverItems
-                // en se basant sur mockTransferHistory et mockCarryOverHistory
             }
 
-            // Optionnel: vérifier un autre type
             const rttQuota = enhancedQuotas.find(q => q.type === LeaveType.RECOVERY);
             expect(rttQuota).toBeDefined();
-            // ... autres vérifications si nécessaire
         });
 
         it('devrait gérer une erreur lors de la récupération des données', async () => {
-            // Faire échouer l'appel initial à fetchLeaveBalance
-            // MODIFIÉ: Configurer le mock manuel
-            mockFetchLeaveBalance.mockRejectedValueOnce(new Error('Network Error'));
+            mockFetchLeaveBalanceRef.mockRejectedValueOnce(new Error('Network Error'));
 
             await expect(quotaAdvancedService.getEnhancedQuotaState(mockUserId, mockYear))
                 .rejects.toThrow('Network Error');
