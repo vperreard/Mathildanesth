@@ -14,6 +14,8 @@ import Modal from '@/components/Modal';
 import SurgeonForm, { SurgeonSubmitData } from '@/components/SurgeonForm';
 import ConfirmationModal from '@/components/ConfirmationModal'; // Si utilisé pour la suppression
 import { toast } from 'react-toastify';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 // Type pour un chirurgien incluant les spécialités et l'utilisateur lié
 // Assurer la cohérence avec le type attendu par SurgeonForm
@@ -34,12 +36,15 @@ const SurgeonsListPanel: React.FC = () => {
     const [isLoadingSubmit, setIsLoadingSubmit] = useState<boolean>(false);
     // Gardons la confirmation de suppression si elle est utilisée
     const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; surgeonId: number | null }>({ isOpen: false, surgeonId: null });
+    const [showInactive, setShowInactive] = useState<boolean>(false);
 
     const fetchSurgeons = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get<SurgeonWithSpecialties[]>('/api/chirurgiens');
+            const response = await axios.get<SurgeonWithSpecialties[]>('/api/chirurgiens', {
+                params: { includeInactive: showInactive }
+            });
             setSurgeons(response.data);
         } catch (err) {
             console.error("Erreur lors de la récupération des chirurgiens:", err);
@@ -48,7 +53,7 @@ const SurgeonsListPanel: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [showInactive]);
 
     const fetchSpecialties = useCallback(async () => {
         try {
@@ -61,17 +66,12 @@ const SurgeonsListPanel: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        setLoading(true);
-        setError(null);
-        Promise.all([fetchSurgeons(), fetchSpecialties()])
-            .catch((err) => {
-                console.error("Erreur lors du chargement initial:", err);
-                setError("Une erreur est survenue lors du chargement initial des données.");
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-    }, [fetchSurgeons, fetchSpecialties]);
+        fetchSurgeons();
+    }, [fetchSurgeons]);
+
+    useEffect(() => {
+        fetchSpecialties();
+    }, [fetchSpecialties]);
 
     const handleOpenForm = (surgeon: SurgeonWithSpecialties | null = null) => {
         setEditingSurgeon(surgeon);
@@ -216,28 +216,44 @@ const SurgeonsListPanel: React.FC = () => {
                             <h3 className="text-lg font-medium text-gray-700">Chirurgiens enregistrés ({filteredSurgeons.length})</h3>
 
                             {/* --- Section Filtre --- */}
-                            <div className="relative flex items-center space-x-2">
-                                <Filter className="h-5 w-5 text-gray-500 flex-shrink-0" />
-                                <label htmlFor="specialtyFilterPanel" className="text-sm font-medium text-gray-700 whitespace-nowrap flex-shrink-0">Filtrer par:</label>
-                                <select
-                                    id="specialtyFilterPanel" // ID unique pour le select dans le panneau
-                                    name="specialtyFilterPanel"
-                                    className="block w-auto pl-3 pr-8 py-1.5 text-sm border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-gray-400 transition-colors duration-150 appearance-none"
-                                    value={selectedSpecialtyId}
-                                    onChange={(e) => setSelectedSpecialtyId(e.target.value)}
-                                >
-                                    <option value="all">Toutes les spécialités</option>
-                                    {specialties.map((spec) => (
-                                        <option key={spec.id} value={spec.id.toString()}>
-                                            {spec.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                    <ChevronDown className="h-4 w-4 text-gray-500" />
+                            <div className="flex items-center space-x-4">
+                                <div className="relative flex items-center space-x-2">
+                                    <Filter className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                                    <label htmlFor="specialtyFilterPanel" className="text-sm font-medium text-gray-700 whitespace-nowrap flex-shrink-0">Filtrer par:</label>
+                                    <select
+                                        id="specialtyFilterPanel" // ID unique pour le select dans le panneau
+                                        name="specialtyFilterPanel"
+                                        className="block w-auto pl-3 pr-8 py-1.5 text-sm border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 hover:border-gray-400 transition-colors duration-150 appearance-none"
+                                        value={selectedSpecialtyId}
+                                        onChange={(e) => setSelectedSpecialtyId(e.target.value)}
+                                    >
+                                        <option value="all">Toutes les spécialités</option>
+                                        {specialties.map((spec) => (
+                                            <option key={spec.id} value={spec.id.toString()}>
+                                                {spec.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                        <ChevronDown className="h-4 w-4 text-gray-500" />
+                                    </div>
                                 </div>
+                                {/* --- Fin Section Filtre --- */}
+
+                                {/* --- Nouvelle Case à cocher --- */}
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="showInactiveSurgeons"
+                                        checked={showInactive}
+                                        onCheckedChange={(checked) => setShowInactive(Boolean(checked))}
+                                        className="border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <Label htmlFor="showInactiveSurgeons" className="text-sm font-medium text-gray-700 cursor-pointer">
+                                        Afficher les inactifs
+                                    </Label>
+                                </div>
+                                {/* --- Fin Nouvelle Case à cocher --- */}
                             </div>
-                            {/* --- Fin Section Filtre --- */}
                         </div>
 
                         {filteredSurgeons.length === 0 ? (

@@ -12,7 +12,10 @@ export async function fetchDayPlanning(date: string, options?: { signal?: AbortS
         });
 
         if (!response.ok) {
-            throw new Error(`Erreur HTTP ${response.status || 'inconnu'}: ${response.statusText || 'Erreur inconnue'}`);
+            // Lire le texte de l'erreur s'il est disponible
+            const errorText = await response.text().catch(() => null);
+            const errorMessage = `Erreur HTTP ${response.status}: ${errorText || response.statusText || 'Erreur inconnue'}`;
+            throw new Error(errorMessage);
         }
 
         return await response.json();
@@ -104,7 +107,10 @@ export async function saveDayPlanning(planning: BlocDayPlanning, validate: boole
         });
 
         if (!response.ok) {
-            throw new Error(`Erreur HTTP ${response.status || 'inconnu'}: ${response.statusText || 'Erreur inconnue'}`);
+            // Lire le texte de l'erreur s'il est disponible
+            const errorText = await response.text().catch(() => null);
+            const errorMessage = `Erreur HTTP ${response.status}: ${errorText || response.statusText || 'Erreur inconnue'}`;
+            throw new Error(errorMessage);
         }
 
         return await response.json();

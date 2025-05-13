@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { OperatingRoom, OperatingSector } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 import { AddRoomModal } from './AddRoomModal';
 import Button from '@/components/ui/button';
@@ -10,6 +10,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal, Trash2, Edit } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
+import { BlocFilterBar, BlocFilters } from './BlocFilterBar';
+import { ROOM_TYPE_LABELS } from '../constants/roomTypes';
 
 interface RoomsListProps {
     rooms: OperatingRoom[];
@@ -25,7 +27,33 @@ export function RoomsList({ rooms, sectors, isLoading, error, onEdit, onDelete, 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [roomToEdit, setRoomToEdit] = useState<OperatingRoom | undefined>(undefined);
     const [roomToDelete, setRoomToDelete] = useState<OperatingRoom | undefined>(undefined);
+    const [filters, setFilters] = useState<BlocFilters>({});
     const { toast } = useToast();
+
+    // Filtrer les salles en fonction des filtres sélectionnés
+    const filteredRooms = useMemo(() => {
+        return rooms.filter(room => {
+            // Filtre par type de salle
+            if (filters.roomType && room.type !== filters.roomType) {
+                return false;
+            }
+
+            // Filtre par catégorie de secteur (en utilisant le secteur associé à la salle)
+            if (filters.sectorCategory) {
+                const sector = sectors.find(s => s.id === room.sectorId);
+                if (!sector || sector.category !== filters.sectorCategory) {
+                    return false;
+                }
+            }
+
+            // Filtre par statut actif/inactif
+            if (filters.isActive !== null && filters.isActive !== undefined) {
+                return room.isActive === filters.isActive;
+            }
+
+            return true;
+        });
+    }, [rooms, sectors, filters]);
 
     const handleOpenModal = (room?: OperatingRoom) => {
         setRoomToEdit(room);
@@ -97,9 +125,14 @@ export function RoomsList({ rooms, sectors, isLoading, error, onEdit, onDelete, 
                 <Button onClick={() => handleOpenModal()}>Ajouter une salle</Button>
             </div>
 
-            {rooms.length === 0 ? (
+            {/* Barre de filtres */}
+            <BlocFilterBar onFilterChange={setFilters} />
+
+            {filteredRooms.length === 0 ? (
                 <div className="p-4 text-center text-gray-500">
-                    Aucune salle d'opération disponible
+                    {rooms.length > 0
+                        ? "Aucune salle ne correspond aux critères de filtrage."
+                        : "Aucune salle d'opération disponible"}
                 </div>
             ) : (
                 <Table>
@@ -108,13 +141,19 @@ export function RoomsList({ rooms, sectors, isLoading, error, onEdit, onDelete, 
                             <TableHead>Numéro</TableHead>
                             <TableHead>Nom</TableHead>
                             <TableHead>Secteur</TableHead>
+                            <TableHead>Type</TableHead>
                             <TableHead>Statut</TableHead>
                             <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {rooms.map((room) => {
+                        {filteredRooms.map((room) => {
                             const sector = sectors.find(s => s.id === room.sectorId);
+                            // Obtenir le libellé convivial du type de salle
+                            const roomTypeLabel = Object.entries(ROOM_TYPE_LABELS).find(
+                                ([_, value]) => value === room.type
+                            )?.[0] || room.type;
+
                             return (
                                 <TableRow
                                     key={room.id}
@@ -123,6 +162,7 @@ export function RoomsList({ rooms, sectors, isLoading, error, onEdit, onDelete, 
                                     <TableCell>{room.number}</TableCell>
                                     <TableCell>{room.name}</TableCell>
                                     <TableCell>{sector?.name || 'N/A'}</TableCell>
+                                    <TableCell>{roomTypeLabel}</TableCell>
                                     <TableCell>
                                         <Badge variant={room.isActive ? 'success' : 'secondary'}>
                                             {room.isActive ? 'Actif' : 'Inactif'}

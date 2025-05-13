@@ -41,7 +41,7 @@ export async function GET(
 ) {
     console.log(`\n--- GET /api/sectors/${params.id} START (Prisma - JSON Rules) ---`);
     try {
-        const requestHeaders = headers();
+        const requestHeaders = await headers();
         const auth = checkAuth(requestHeaders);
 
         if (!auth) {
@@ -104,7 +104,7 @@ export async function PUT(
 ) {
     console.log(`\n--- PUT /api/sectors/${params.id} START (Prisma - JSON Rules) ---`);
     try {
-        const requestHeaders = headers();
+        const requestHeaders = await headers();
         const auth = checkAuth(requestHeaders);
 
         if (!auth) {
@@ -200,7 +200,7 @@ export async function DELETE(
 ) {
     console.log(`\n--- DELETE /api/sectors/${params.id} START (Prisma - JSON Rules) ---`);
     try {
-        const requestHeaders = headers();
+        const requestHeaders = await headers();
         const auth = checkAuth(requestHeaders);
 
         if (!auth) {
@@ -231,11 +231,13 @@ export async function DELETE(
 
     } catch (error) {
         console.error(`Error during DELETE /api/sectors/${params.id} (Prisma - JSON Rules):`, error);
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-            console.error(`Prisma Error P2025: Record to delete not found (ID: ${params.id})`);
-            return NextResponse.json({ error: 'Secteur non trouvé pour la suppression.' }, { status: 404 });
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            if (error.code === 'P2025') {
+                console.error(`Prisma Error P2025: Record to delete not found (ID: ${params.id})`);
+                return NextResponse.json({ error: 'Secteur non trouvé pour la suppression.' }, { status: 404 });
+            }
         }
         console.log(`--- DELETE /api/sectors/${params.id} END (Prisma - with error) ---\n`);
         return NextResponse.json({ error: 'Erreur lors de la suppression du secteur' }, { status: 500 });
     }
-} 
+}

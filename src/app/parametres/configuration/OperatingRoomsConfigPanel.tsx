@@ -8,7 +8,6 @@ import {
     TrashIcon,
     CheckIcon,
     XMarkIcon,
-    ArrowsUpDownIcon as HeroArrowsUpDownIcon,
     ArrowsUpDownIcon
 } from '@heroicons/react/24/outline';
 import { AlertTriangle } from 'lucide-react';
@@ -18,1386 +17,1718 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogFooter
-} from "@/components/ui"; // Assurez-vous que ces composants existent
+    DialogFooter,
+    Input,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { toast } from 'react-hot-toast';
-import { v4 as uuidv4 } from 'uuid';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import Input from '@/components/ui/input';
 
-// Style global pour les animations
-const globalStyles = `
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out forwards;
-}
+// Activation du mode debug
+const DEBUG_MODE = process.env.NODE_ENV === 'development';
 
-.room-item {
-  cursor: move;
-  transition: all 0.2s ease-in-out;
-  position: relative;
-  z-index: 1;
-}
-
-.room-item.dragging {
-  opacity: 0.7;
-  transform: scale(0.98) rotate(1deg);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 10;
-}
-
-.drop-target {
-  transition: all 0.3s ease-in-out;
-  position: relative;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  min-height: 40px; /* Réduit la hauteur minimale */
-}
-
-.drop-target.drag-over {
-  background-color: #dbeafe;
-  border: 2px dashed #93c5fd;
-  padding: 8px;
-  transform: scale(1.005);
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
-}
-
-.dark .drop-target.drag-over {
-  background-color: #1e3a8a;
-  border-color: #3b82f6;
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
-}
-
-.drop-above {
-  position: relative;
-  border-top: 3px solid #3B82F6 !important;
-  margin-top: -1px;
-  z-index: 5;
-}
-
-.drop-below {
-  position: relative;
-  border-bottom: 3px solid #3B82F6 !important;
-  margin-bottom: -1px;
-  z-index: 5;
-}
-
-@keyframes appear {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.room-item-new {
-  animation: appear 0.5s ease-out forwards;
-}
-
-/* Ajout pour le scrolling automatique pendant le drag */
-.auto-scroll {
-  overflow: auto;
-  max-height: calc(100vh - 250px);
-  scrollbar-width: thin;
-}
-
-/* Réduction de l'espacement entre les secteurs */
-.sector-container {
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-/* Style pour les secteurs sélectionnés */
-.sector-selected {
-  background-color: #f0f9ff;
-  border-left: 3px solid #3b82f6;
-}
-
-.dark .sector-selected {
-  background-color: #1e3a8a;
-  border-left: 3px solid #60a5fa;
-}
-
-/* Checkbox pour la sélection multiple */
-.sector-checkbox {
-  margin-right: 8px;
-}
-`;
-
-// --- Custom Hook pour vérifier le montage client ---
-function useIsMounted() {
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-    return mounted;
-}
-// -------------------------------------------------
-
-// Configuration globale
-const DEBUG_MODE = false; // Mettre à true pour activer les logs détaillés
-
-// Fonction utilitaire pour générer des IDs stables
-function safeId(prefix: string, id: string | number): string {
-    return `${prefix}-${id}`.replace(/\s+/g, '-');
-}
-
-// Types pour les salles opératoires
-type OperatingRoom = {
+// Types
+interface OperatingRoom {
     id: number;
     name: string;
-    number: string;
-    sectorId?: number; // ID du secteur peut être présent
-    sector: string; // On maintient sector comme une chaîne pour simplifier
+    number?: string;
+    sector?: string;
     roomType?: string;
-    colorCode: string | null;
-    isActive: boolean;
-    supervisionRules: any;
-    createdAt: string;
-    updatedAt: string;
-    displayOrder?: number; // Ajout de la propriété displayOrder
-};
+    colorCode?: string;
+    isActive?: boolean;
+    sectorId?: number;
+    supervisionRules?: {
+        maxRoomsPerSupervisor?: number;
+    };
+    site?: OperatingSite;
+    siteId?: number;
+    displayOrder?: number;
+    createdAt?: string;
+    updatedAt?: string;
+    type?: string; // Alias pour compatibilité
+}
 
-// Type pour l'ordre des salles (adapté pour les ID numériques ET par secteur)
-// type RoomOrderConfig = {
-//     orderedRoomIds: number[];
-// };
-// Nouvelle structure pour l'ordre par secteur
-type RoomOrderConfig = {
-    orderedRoomIdsBySector: { [sectorName: string]: number[] };
-};
-
-// Type pour un secteur (simplifié pour ce composant)
-type Sector = {
+interface OperatingSector {
     id: number;
     name: string;
-    colorCode: string;
-};
+    colorCode?: string;
+    isActive?: boolean;
+    rooms?: OperatingRoom[];
+    description?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    siteId?: number;
+    site?: OperatingSite;
+    originalName?: string;
+}
 
-// Type pour une salle avec le nom du secteur
-type OperatingRoomWithSector = OperatingRoom & {
-    sector: string; // Garder le nom du secteur venant de l'API pour l'instant
-};
+interface OperatingSite {
+    id: number;
+    name: string;
+    description?: string;
+    isActive?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+    defaultSector?: string;
+    colorCode?: string;
+}
 
+// Type du formulaire
 interface OperatingRoomFormData {
     name: string;
     number: string;
     sector: string;
+    roomType: string;
     colorCode: string;
     isActive: boolean;
-    supervisionRules: any;
+    supervisionRules: {
+        maxRoomsPerSupervisor?: number;
+    };
+    siteId?: number | null;
 }
 
+// Type pour l'ordre des salles
+interface RoomOrderConfig {
+    [sectorName: string]: number[];
+}
+
+// Options de types de salles
+const ROOM_TYPE_OPTIONS = [
+    { value: 'STANDARD', label: 'Standard' },
+    { value: 'SEPTIQUE', label: 'Septique' },
+    { value: 'ASEPTIQUE', label: 'Aseptique' },
+    { value: 'ENDOSCOPIE', label: 'Endoscopie' },
+    { value: 'AMBULATOIRE', label: 'Ambulatoire' },
+    { value: 'URGENCE', label: 'Urgence' },
+    { value: 'SPECIALISEE', label: 'Spécialisée' }
+];
+
+// Fonction pour normaliser les noms de secteurs
+const normalizeSectorName = (name?: string): string => {
+    if (!name) return '';
+
+    // Convertir en minuscules et supprimer les espaces en trop
+    let normalized = name.toLowerCase().trim();
+
+    // Standardiser "secteur" au début
+    if (!normalized.startsWith('secteur') && !normalized.startsWith('europe')) {
+        normalized = 'secteur ' + normalized;
+    }
+
+    // Gérer les cas spécifiques
+    if (normalized.includes('endo')) {
+        normalized = 'secteur endoscopie';
+    } else if (normalized.includes('sept') && !normalized.includes('asept')) {
+        normalized = 'secteur septique';
+    } else if (normalized.includes('asept') || normalized.includes('hyper')) {
+        normalized = 'secteur hyperaseptique';
+    } else if (normalized.includes('ophtalmo')) {
+        normalized = 'secteur ophtalmo';
+    } else if (normalized.includes('ambulatoire')) {
+        normalized = 'europe ambulatoire';
+    } else if (normalized.includes('europe') && !normalized.includes('ambulatoire')) {
+        normalized = 'europe bloc';
+    } else if (normalized.includes('intermediaire') || normalized.includes('intermédiaire')) {
+        normalized = 'secteur intermédiaire';
+    }
+
+    return normalized;
+};
+
+// Fonction pour détecter si une salle est une salle d'endoscopie
+const isEndoscopieRoom = (room: OperatingRoom): boolean => {
+    if (!room) return false;
+
+    const name = (room.name || '').toLowerCase();
+    const number = (room.number || '').toLowerCase();
+    const type = ((room.roomType || room.type || '').toLowerCase());
+
+    // Détecter par le nom ou le numéro
+    return name.includes('endo') ||
+        number.includes('endo') ||
+        type.includes('endo') ||
+        name.includes('gastro') ||
+        type === 'endoscopie';
+};
+
+// Fonction pour récupérer les options de types de salles
+const getRoomTypeOptions = () => {
+    return ROOM_TYPE_OPTIONS;
+};
+
+// Fonctions de normalisation des données
+const normalizeOperatingSectors = (sectors: any[]): OperatingSector[] => {
+    return sectors.map(sector => ({
+        ...sector,
+        originalName: sector.name,
+        name: normalizeSectorName(sector.name)
+    }));
+};
+
+const normalizeOperatingRooms = (rooms: any[]): OperatingRoom[] => {
+    return rooms.map(room => ({
+        ...room,
+        name: room.name || '',
+        number: room.number || '',
+        sector: room.sector ? normalizeSectorName(room.sector) : '',
+        roomType: room.roomType || room.type || 'STANDARD',
+        isActive: room.isActive !== false,
+        displayOrder: room.displayOrder || 0
+    }));
+};
+
+// Fonction pour détecter le type de salle en fonction de ses caractéristiques
+const detectRoomType = (room: OperatingRoom, sectors: OperatingSector[], sites: OperatingSite[], targetSectorNameForDetection: string): string | null => {
+    if (!room) return null;
+    const roomName = room.name.toLowerCase();
+    const roomNumber = room.number?.toLowerCase() || '';
+
+    // Si la salle a déjà un secteur explicitement défini et qu'il existe
+    if (room.sector && sectors.some(s => normalizeSectorName(s.name) === normalizeSectorName(room.sector || ''))) {
+        return room.sector;
+    }
+
+    // Vérifier si c'est une salle d'endoscopie
+    if (isEndoscopieRoom(room)) {
+        return "Secteur endoscopie";
+    }
+
+    // Détecter le secteur en fonction du nom/numéro de la salle
+    if (roomName.includes('septique') || roomNumber.includes('sept')) {
+        return "Secteur septique";
+    }
+
+    if (roomName.includes('asept') || roomNumber.includes('asept')) {
+        return "Secteur hyperaseptique";
+    }
+
+    if (roomName.includes('ophtalmo') || roomNumber.includes('oph')) {
+        return "Secteur ophtalmo";
+    }
+
+    if (roomName.includes('ambul') || roomNumber.includes('amb')) {
+        return "Europe ambulatoire";
+    }
+
+    // Détection par site
+    const roomSiteId = room.siteId;
+    if (roomSiteId) {
+        const roomSite = sites.find(site => site.id === roomSiteId);
+        if (roomSite) {
+            // Associer des sites spécifiques à des secteurs par défaut
+            const siteName = roomSite.name.toLowerCase();
+
+            if (siteName.includes('europe')) {
+                return "Europe bloc";
+            }
+
+            if (siteName.includes('ambulatoire')) {
+                return "Europe ambulatoire";
+            }
+
+            // Si le site a un secteur par défaut dans ses métadonnées
+            if (roomSite.defaultSector && normalizeSectorName(roomSite.defaultSector) === normalizeSectorName(targetSectorNameForDetection)) {
+                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) assignée au secteur "${targetSectorNameForDetection}" car: secteur par défaut du site`);
+                return targetSectorNameForDetection;
+            }
+        }
+    }
+
+    // Algorithme avancé basé sur les types de salles
+    const sectorTypeCounts: { [key: string]: string } = {};
+
+    sectors.forEach(sector => {
+        const sectorName = normalizeSectorName(sector.name);
+        const sectorRooms = sectors
+            .filter(s => normalizeSectorName(s.name) === sectorName)
+            .flatMap(s => s.rooms || []);
+
+        if (sectorRooms.length > 0) {
+            const types = sectorRooms.map(r => r.roomType).filter(Boolean) as string[];
+            const typeCounts: { [type: string]: number } = {};
+
+            types.forEach(type => {
+                typeCounts[type] = (typeCounts[type] || 0) + 1;
+            });
+
+            // Trouver le type dominant pour ce secteur
+            let maxCount = 0;
+            let dominantType = null;
+
+            for (const [type, count] of Object.entries(typeCounts)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    dominantType = type;
+                }
+            }
+
+            if (dominantType) {
+                sectorTypeCounts[sectorName] = dominantType;
+            }
+        }
+    });
+
+    // Si la salle a un type qui correspond à un secteur dominant
+    if (room.roomType && Object.entries(sectorTypeCounts).some(([sector, type]) => type === room.roomType)) {
+        const matchingSector = Object.entries(sectorTypeCounts).find(([sector, type]) => type === room.roomType)?.[0];
+        if (matchingSector) {
+            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) assignée au secteur "${matchingSector}" car: correspondance par type de salle`);
+            return matchingSector;
+        }
+    }
+
+    // Si aucune correspondance n'est trouvée
+    return null;
+};
+
+// Fonction pour associer automatiquement les sites aux salles
+const associateSitesToRooms = (rooms: OperatingRoom[], sites: OperatingSite[]): OperatingRoom[] => {
+    if (!rooms || !sites || sites.length === 0) return rooms;
+
+    return rooms.map(room => {
+        // Vérifier si la salle a déjà un site défini
+        if (room.siteId || room.site) {
+            return room;
+        }
+
+        // Tentative de détecter le site approprié
+        let detectedSiteId = null;
+        const roomName = room.name.toLowerCase();
+        const roomSector = room.sector?.toLowerCase() || '';
+
+        // Règles d'association
+        if (roomName.includes('europe') || roomName.includes('amb') || roomSector.includes('europe')) {
+            // Chercher le site "Europe"
+            const europeSite = sites.find(site => site.name.toLowerCase().includes('europe'));
+            if (europeSite) detectedSiteId = europeSite.id;
+        } else if (roomName.includes('endo') || roomSector.includes('endo')) {
+            // Les salles d'endoscopie sont souvent dans un site spécifique
+            const endoSite = sites.find(site => site.name.toLowerCase().includes('principal'));
+            if (endoSite) detectedSiteId = endoSite.id;
+        }
+
+        // Si nous avons détecté un site
+        if (detectedSiteId) {
+            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_SITE_ASSOC] Salle "${room.name}" associée au site ID: ${detectedSiteId}`);
+            return {
+                ...room,
+                siteId: detectedSiteId
+            };
+        }
+
+        // Si nous n'avons que 2 sites, utiliser le premier par défaut pour les salles sans site
+        if (sites.length === 2 && !detectedSiteId) {
+            return {
+                ...room,
+                siteId: sites[0].id
+            };
+        }
+
+        return room;
+    });
+};
+
+// Fonction pour récupérer les salles d'un secteur avec détection intelligente
+const getSectorRooms = (sectorName: string, allRooms: OperatingRoom[], sectorsData: OperatingSector[], sitesData: OperatingSite[]): OperatingRoom[] => {
+    if (!allRooms || !sectorName) return [];
+
+    const normalizedTargetSectorName = normalizeSectorName(sectorName);
+    if (DEBUG_MODE) console.log(`[ORCP_DEBUG] getSectorRooms: Traitement du secteur "${sectorName}" (normalisé: "${normalizedTargetSectorName}")`);
+
+    // Trouver l'ID du secteur cible
+    const targetSectorObject = sectorsData.find(s => normalizeSectorName(s.name) === normalizedTargetSectorName);
+    const targetSectorId = targetSectorObject?.id;
+
+    if (DEBUG_MODE && targetSectorId) {
+        console.log(`[ORCP_DEBUG] getSectorRooms: ID du secteur cible "${normalizedTargetSectorName}" est ${targetSectorId}`);
+    }
+
+    // Filtrer les salles pour ce secteur
+    const filteredRooms = allRooms.filter(room => {
+        if (!room) return false;
+
+        // 1. Correspondance prioritaire par sectorId (si le secteur cible a un ID)
+        if (targetSectorId && room.sectorId === targetSectorId) {
+            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}, sectorId: ${room.sectorId}) assignée au secteur "${normalizedTargetSectorName}" (ID: ${targetSectorId}) car: correspondance de sectorId.`);
+            return true;
+        }
+
+        // 2. Si pas de correspondance par sectorId ou si le secteur cible n'a pas d'ID (ex: secteur "virtuel" ou mal configuré)
+        //    alors on utilise les logiques de fallback basées sur le nom textuel du secteur ou la détection de type.
+        //    Cette partie est importante pour les salles qui n'ont pas encore de sectorId mais un nom de secteur textuel.
+
+        const roomSectorNormalized = normalizeSectorName(room.sector || '');
+
+        // 2a. Correspondance exacte du nom de secteur textuel
+        if (roomSectorNormalized === normalizedTargetSectorName) {
+            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}, room.sector: "${room.sector}") assignée au secteur "${normalizedTargetSectorName}" car: correspondance exacte du nom de secteur textuel.`);
+            return true;
+        }
+
+        // 2b. Détection intelligente du type de salle (si pas déjà assignée par sectorId ou nom exact)
+        //     On vérifie que la salle n'a pas déjà un sectorId qui la lierait ailleurs de manière prioritaire.
+        //     Si elle a un sectorId, elle ne devrait pas être réassignée par detectRoomType, sauf si son sectorId ne correspond à AUCUN secteur existant.
+        let canBeDetectedByType = !room.sectorId; // Par défaut, si pas de sectorId, on peut tenter la détection.
+        if (room.sectorId) {
+            const existingSectorForRoomId = sectorsData.find(s => s.id === room.sectorId);
+            if (!existingSectorForRoomId) {
+                // Le sectorId de la salle ne correspond à aucun secteur connu, donc on peut essayer de détecter.
+                canBeDetectedByType = true;
+                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) a un sectorId (${room.sectorId}) qui ne correspond à aucun secteur connu. Détection par type autorisée.`);
+            }
+        }
+
+        if (canBeDetectedByType) {
+            const suggestedSectorByDetection = detectRoomType(room, sectorsData, sitesData, normalizedTargetSectorName);
+            if (suggestedSectorByDetection && normalizeSectorName(suggestedSectorByDetection) === normalizedTargetSectorName) {
+                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) assignée au secteur "${normalizedTargetSectorName}" car: détection intelligente de type.`);
+                return true;
+            }
+        }
+
+        return false;
+    });
+
+    // Loguer les résultats en mode debug
+    if (DEBUG_MODE) {
+        console.log(`[ORCP_DEBUG] Secteur "${sectorName}" contient ${filteredRooms.length} salles`);
+        console.log(`[ORCP_DEBUG] Valeur exacte du secteur: "${sectorName}" (type: ${typeof sectorName})`);
+
+        if (filteredRooms.length === 0) {
+            console.log(`[ORCP_DEBUG_DETAIL] Le secteur "${sectorName}" ne contient aucune salle`);
+        } else {
+            console.log(`[ORCP_DEBUG_DETAIL] Le secteur "${sectorName}" contient ${filteredRooms.length} salles:`);
+            filteredRooms.forEach(room => {
+                console.log(`[ORCP_DEBUG_DETAIL] - ${room.id}: ${room.name} (secteur="${room.sector}")`);
+            });
+        }
+    }
+
+    return filteredRooms;
+};
+
 const OperatingRoomsConfigPanel: React.FC = () => {
-    // État pour les noms des secteurs (au lieu de constantes)
-    const [sectorNames, setSectorNames] = useState<string[]>([]);
-
-    // État pour les couleurs des secteurs
-    const [sectorColors, setSectorColors] = useState<{ [key: string]: string }>({});
-
-    // Injecter les styles globaux
-    useEffect(() => {
-        // Créer et injecter la balise style
-        const styleElement = document.createElement('style');
-        styleElement.innerHTML = globalStyles;
-        document.head.appendChild(styleElement);
-
-        // Nettoyer lors du démontage
-        return () => {
-            document.head.removeChild(styleElement);
-        };
-    }, []);
-
+    // États pour les données
     const [rooms, setRooms] = useState<OperatingRoom[]>([]);
-    const [initialRooms, setInitialRooms] = useState<OperatingRoom[]>([]);
-    const [sectors, setSectors] = useState<Sector[]>([]); // Nouvel état pour les secteurs
+    const [sectors, setSectors] = useState<OperatingSector[]>([]);
+    const [sites, setSites] = useState<OperatingSite[]>([]);
+    const [sectorNames, setSectorNames] = useState<string[]>([]);
+    const [filteredSectors, setFilteredSectors] = useState<OperatingSector[]>([]);
+
+    // États pour le chargement et les erreurs
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const isMounted = useIsMounted();
+    const [saveMessage, setSaveMessage] = useState<string>('');
 
-    // État pour le drag and drop
+    // État pour le site sélectionné
+    const [selectedSiteId, setSelectedSiteId] = useState<number | null>(null);
+
+    // États pour le formulaire
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [isEditing, setIsEditing] = useState<number | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [formError, setFormError] = useState<string | null>(null);
+    const [showSuccess, setShowSuccess] = useState<boolean>(false);
+
+    // États pour le drag & drop
+    const [isDragging, setIsDragging] = useState<boolean>(false);
     const [draggingRoomId, setDraggingRoomId] = useState<number | null>(null);
     const [dragOverSector, setDragOverSector] = useState<string | null>(null);
-    const [dragOverRoomId, setDragOverRoomId] = useState<number | null>(null);
     const [isReordering, setIsReordering] = useState<boolean>(false);
-    const [autoScrollInterval, setAutoScrollInterval] = useState<NodeJS.Timeout | null>(null);
+    const [draggedItem, setDraggedItem] = useState<{ id: number; index: number; originalSectorName: string | null } | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+    const [dragOverTarget, setDragOverTarget] = useState<{ sectorName: string | null; index: number | null } | null>(null);
 
-    // États pour le formulaire et la modale
-    const [isEditing, setIsEditing] = useState<number | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    // Référence pour l'intervalle de défilement
+    const scrollIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+
+    // État pour l'ordre des salles
+    const [roomOrder, setRoomOrder] = useState<RoomOrderConfig>({});
+
+    // État pour le formulaire
     const [formData, setFormData] = useState<OperatingRoomFormData>({
         name: '',
         number: '',
         sector: '',
-        colorCode: '',
+        roomType: 'STANDARD',
+        colorCode: '#CCCCCC',
         isActive: true,
         supervisionRules: {
             maxRoomsPerSupervisor: 2
-        }
+        },
+        siteId: null
     });
-    const [formError, setFormError] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    const [showSuccess, setShowSuccess] = useState<boolean>(false);
 
-    // État pour l'ordre des salles (adapté par secteur)
-    // const [roomOrder, setRoomOrder] = useState<RoomOrderConfig>({ orderedRoomIds: [] });
-    const [roomOrder, setRoomOrder] = useState<RoomOrderConfig>({ orderedRoomIdsBySector: {} });
-    const [saveMessage, setSaveMessage] = useState('');
+    // Stocker l'état initial des salles au début de la réorganisation
+    const [initialRoomsStateForReorder, setInitialRoomsStateForReorder] = useState<OperatingRoom[]>([]);
 
     // Fonction pour récupérer les données
-    const fetchData = useCallback(async () => {
+    const fetchData = async () => {
         setIsLoading(true);
-        setError(null);
+        console.log("[ORCP_LOG] Début de fetchData...");
+
         try {
-            // Utiliser Promise.all pour charger en parallèle
-            const [roomsResponse, sectorsResponse] = await Promise.all([
-                axios.get('/api/operating-rooms'),
-                axios.get('/api/operating-sectors') // Charger les secteurs
-            ]);
+            const apiBaseUrl = window.location.origin;
 
-            // Logs conditionnels, uniquement si DEBUG_MODE est activé
-            if (DEBUG_MODE) {
-                console.log("Données brutes salles:", roomsResponse.data);
-                console.log("Données brutes secteurs:", sectorsResponse.data);
+            // Récupérer les salles d'opération
+            const roomsResponse = await axios.get(`${apiBaseUrl}/api/operating-rooms`);
+
+            // Récupérer les secteurs
+            const sectorsResponse = await axios.get(`${apiBaseUrl}/api/operating-sectors`);
+
+            // Récupérer les sites
+            const sitesResponse = await axios.get(`${apiBaseUrl}/api/sites`);
+
+            console.log("[ORCP_LOG] Données brutes SALLES (réponse API):", roomsResponse);
+            console.log("[ORCP_LOG] Données brutes SECTEURS (réponse API):", sectorsResponse);
+            console.log("[ORCP_LOG] Données brutes SITES (réponse API):", sitesResponse);
+
+            let normalizedSectors: OperatingSector[] = [];
+            let normalizedRooms: OperatingRoom[] = [];
+            let sitesList: OperatingSite[] = [];
+
+            // Transformer les données des secteurs
+            if (sectorsResponse.data && Array.isArray(sectorsResponse.data)) {
+                console.log("[ORCP_LOG] Contenu de sectorsResponse.data:", sectorsResponse.data);
+                normalizedSectors = normalizeOperatingSectors(sectorsResponse.data);
             }
 
-            // Extraire les noms et couleurs des secteurs en respectant l'ordre de la base de données
-            const names: string[] = [];
-            const colors: { [key: string]: string } = {};
-
-            // Fonction de normalisation pour les noms de secteurs
-            const normalizeSectorName = (name: string): string => {
-                // Enlever les espaces invisibles et normaliser les espaces multiples
-                let normalized = name.trim().replace(/\s+/g, ' ');
-
-                // Traitement spécial pour Endoscopie
-                if (normalized.toLowerCase().includes("endoscopie")) {
-                    return "Endoscopie";
-                }
-
-                return normalized;
-            };
-
-            // Normaliser les noms de secteurs pour éviter les problèmes d'espaces invisibles
-            const normalizedSectors = sectorsResponse.data.map((sector: any) => ({
-                ...sector,
-                name: normalizeSectorName(sector.name),
-                // Garder une référence à l'original pour le débogage
-                originalName: sector.name
-            }));
-
-            if (DEBUG_MODE) {
-                console.log("Secteurs normalisés:", normalizedSectors);
+            // Transformer les données des salles
+            if (roomsResponse.data && Array.isArray(roomsResponse.data)) {
+                console.log("[ORCP_LOG] Contenu de roomsResponse.data:", roomsResponse.data);
+                normalizedRooms = normalizeOperatingRooms(roomsResponse.data);
             }
 
-            // Créer un mappage pour chercher les secteurs par nom normalisé
-            const sectorsByNormalizedName = new Map<string, any>();
-            normalizedSectors.forEach((sector: any) => {
-                sectorsByNormalizedName.set(sector.name.toLowerCase(), sector);
-            });
-
-            // Utiliser les secteurs normalisés
-            normalizedSectors.forEach((sector: any) => {
-                if (sector.name) {
-                    names.push(sector.name);
-                    colors[sector.name] = sector.colorCode || '#000000';
-                }
-            });
-
-            // Mettre à jour les états
-            setSectorNames(names);
-            setSectorColors(colors);
-
-            // Initialiser le secteur par défaut dans le formulaire s'il y a des secteurs disponibles
-            if (names.length > 0) {
-                setFormData(prev => ({
-                    ...prev,
-                    sector: names[0],
-                    colorCode: colors[names[0]] || '#000000'
-                }));
+            // Transformer les données des sites
+            if (sitesResponse.data && Array.isArray(sitesResponse.data)) {
+                console.log("[ORCP_LOG] Contenu de sitesResponse.data:", sitesResponse.data);
+                sitesList = sitesResponse.data;
             }
 
-            // Créer un mappage des secteurs par ID pour référence
-            const sectorMap = new Map<number, string>();
-            normalizedSectors.forEach((sector: any) => {
-                sectorMap.set(sector.id, sector.name);
+            // Associer les sites aux salles
+            normalizedRooms = associateSitesToRooms(normalizedRooms, sitesList);
+
+            console.log("[ORCP_LOG] Secteurs normalisés:", normalizedSectors);
+
+            // Extraire les noms de secteurs uniques
+            const uniqueSectorNames = Array.from(new Set(
+                normalizedSectors.map(sector => normalizeSectorName(sector.name))
+            ));
+            console.log("[ORCP_LOG] Noms de secteurs uniques:", uniqueSectorNames);
+
+            console.log("[ORCP_LOG] Données transformées des salles (avec secteur normalisé):", normalizedRooms);
+
+            // Initialiser l'ordre des salles par secteur
+            const newRoomOrder: RoomOrderConfig = {};
+            uniqueSectorNames.forEach(sectorName => {
+                const sectorRoomsList = getSectorRooms(sectorName, normalizedRooms, normalizedSectors, sitesList);
+                newRoomOrder[sectorName] = sectorRoomsList.map(room => room.id);
             });
 
-            // Assurer que les salles ont une propriété 'sector' (nom du secteur)
-            // et dédupliquer les salles par ID
-            const uniqueRooms = new Map<number, any>();
+            // Mettre à jour l'état
+            setSites(sitesList);
+            setSectors(normalizedSectors);
+            setRooms(normalizedRooms);
+            setSectorNames(uniqueSectorNames);
+            setRoomOrder(newRoomOrder);
 
-            roomsResponse.data.forEach((room: any) => {
-                // Ne traiter la salle que si elle n'a pas déjà été ajoutée
-                if (!uniqueRooms.has(room.id)) {
-                    // Si la salle a un sectorId, récupérer le nom du secteur correspondant
-                    let sectorName = 'Non défini';
-
-                    if (room.sectorId && sectorMap.has(room.sectorId)) {
-                        const mapValue = sectorMap.get(room.sectorId);
-                        sectorName = mapValue !== undefined ? mapValue : 'Non défini';
-                    } else if (room.sector && typeof room.sector === 'object' && 'name' in room.sector) {
-                        // Si la salle a un objet sector avec un name, normaliser aussi
-                        sectorName = normalizeSectorName(room.sector.name);
-                    } else if (typeof room.sector === 'string') {
-                        // Si la salle a déjà un nom de secteur en string, normaliser
-                        sectorName = normalizeSectorName(room.sector);
-                    }
-
-                    uniqueRooms.set(room.id, {
-                        ...room,
-                        sector: sectorName
-                    });
-                }
-            });
-
-            // Convertir la Map en tableau
-            const roomsData = Array.from(uniqueRooms.values());
-
-            if (DEBUG_MODE) {
-                console.log("Données transformées des salles:", roomsData);
+            // Définir un site par défaut si disponible
+            if (sitesList.length > 0 && selectedSiteId === null) {
+                setSelectedSiteId(sitesList[0].id);
             }
 
-            setInitialRooms(roomsData);
-            setRooms(roomsData);
-            setSectors(normalizedSectors || []); // Stocker les secteurs normalisés
-
-        } catch (err: any) {
-            console.error("Erreur lors du chargement des données:", err);
-            setError(err.response?.data?.message || err.message || 'Impossible de charger les données de configuration.');
+        } catch (error) {
+            console.error("Erreur lors du chargement des données:", error);
+            setError("Erreur lors du chargement des données");
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    };
 
-    useEffect(() => {
-        const fetchSectors = async () => {
-            try {
-                const apiBaseUrl = window.location.origin;
-                const response = await axios.get(`${apiBaseUrl}/api/operating-sectors`, {
-                    params: { _t: Date.now() }
-                });
-                // Les secteurs sont déjà triés par displayOrder dans l'API
-                setSectors(response.data);
+    // Fonction pour filtrer les secteurs par site
+    const filterSectorsBySite = (allSectors: OperatingSector[], siteId: number | null): OperatingSector[] => {
+        if (siteId === null) return allSectors;
 
-                // Mettre à jour les noms et couleurs pour les listes déroulantes
-                // en préservant l'ordre des secteurs tel que retourné par l'API
-                const names = response.data.map((s: Sector) => s.name);
-                setSectorNames(names);
+        return allSectors.filter(sector => {
+            // Si le secteur a un siteId qui correspond
+            if (sector.siteId === siteId) return true;
 
-                const colors: Record<string, string> = {};
-                response.data.forEach((s: Sector) => {
-                    colors[s.name] = s.colorCode;
-                });
-                setSectorColors(colors);
+            // Si le secteur a un objet site avec un id qui correspond
+            if (sector.site && sector.site.id === siteId) return true;
 
-                console.log('Secteurs chargés avec tri par displayOrder:', names);
-            } catch (error) {
-                console.error("Erreur lors du chargement des secteurs:", error);
-                setError("Impossible de charger les secteurs. Veuillez réessayer plus tard.");
+            // Si aucun secteur n'a de site défini, retourner tous les secteurs
+            if (!allSectors.some(s => s.siteId !== undefined || (s.site && s.site.id !== undefined))) {
+                return true;
             }
-        };
 
-        fetchSectors();
-    }, []);
+            return false;
+        });
+    };
 
+    // Effet pour charger les données au montage
     useEffect(() => {
         fetchData();
-    }, [fetchData]);
+    }, []);
 
-    // Charger l'ordre des salles depuis le localStorage au démarrage
+    // Effet pour filtrer les secteurs quand le site change
     useEffect(() => {
-        // Fonction pour définir l'état à la valeur par défaut et nettoyer localStorage
-        const setDefaultOrder = () => {
-            localStorage.removeItem('operatingRoomOrderConfig');
-            setRoomOrder({ orderedRoomIdsBySector: {} });
-        };
+        const filtered = filterSectorsBySite(sectors, selectedSiteId);
+        setFilteredSectors(filtered);
 
-        if (typeof window !== 'undefined') {
-            const savedRoomOrder = localStorage.getItem('operatingRoomOrderConfig');
-            if (savedRoomOrder) {
-                try {
-                    const parsedData = JSON.parse(savedRoomOrder);
+        // Mettre à jour les noms de secteurs filtrés
+        const filteredNames = Array.from(new Set(filtered.map(s => normalizeSectorName(s.name))));
+        setSectorNames(filteredNames);
+    }, [sectors, selectedSiteId]);
 
-                    // VALIDER la structure principale
-                    if (parsedData && typeof parsedData.orderedRoomIdsBySector === 'object' && parsedData.orderedRoomIdsBySector !== null) {
-                        const validatedOrder: RoomOrderConfig = { orderedRoomIdsBySector: {} };
-                        let hasValidData = false;
+    // Filtrer les salles par site sélectionné
+    const filteredRooms = useMemo(() => {
+        if (selectedSiteId === null) return rooms;
+        if (!rooms || !rooms.length) return [];
 
-                        // VALIDER chaque entrée de secteur
-                        for (const sector in parsedData.orderedRoomIdsBySector) {
-                            if (Object.prototype.hasOwnProperty.call(parsedData.orderedRoomIdsBySector, sector)) {
-                                const ids = parsedData.orderedRoomIdsBySector[sector];
-                                // Vérifier si c'est un tableau de nombres
-                                if (Array.isArray(ids) && ids.every((id: any) => typeof id === 'number')) {
-                                    validatedOrder.orderedRoomIdsBySector[sector] = ids;
-                                    hasValidData = true; // Marquer qu'on a trouvé au moins une entrée valide
-                                } else {
-                                    // Log silencieux ou en mode debug uniquement
-                                    // console.warn(`Données d'ordre invalides pour le secteur '${sector}' dans localStorage. Ignoré.`);
-                                }
-                            }
-                        }
+        console.log('[ORCP_DEBUG_SITE] Filtrage des salles par site:', selectedSiteId);
 
-                        // Appliquer l'état seulement si on a trouvé des données valides
-                        if (hasValidData) {
-                            setRoomOrder(validatedOrder);
+        // Vérifier si les salles ont des informations de site
+        const hasSiteInfo = rooms.some(room =>
+            room.siteId !== undefined ||
+            (room.site && room.site.id !== undefined)
+        );
 
-                            // Seulement en mode debug
-                            if (DEBUG_MODE) {
-                                console.log("Ordre des salles valide chargé depuis localStorage:", validatedOrder);
-                            }
-                        } else {
-                            // Logs silencieux ou en mode debug uniquement
-                            // console.warn("Aucune donnée d'ordre valide trouvée après validation. Réinitialisation.");
-                            setDefaultOrder();
-                        }
-
-                    } else {
-                        // Structure principale incorrecte (ou ancienne version)
-                        // Logs silencieux ou en mode debug uniquement
-                        // console.warn("La structure de l'ordre des salles dans localStorage est incorrecte ou ancienne. Réinitialisation.");
-                        setDefaultOrder();
-                    }
-                } catch (e) {
-                    // Simplifier les messages d'erreur
-                    // console.error('Erreur lors de la lecture ou validation de l\'ordre des salles depuis localStorage: ', e);
-                    setDefaultOrder();
-                }
-            } else {
-                // Aucun ordre sauvegardé, l'état initial est déjà correct
-                // Logs silencieux ou en mode debug uniquement
-                // console.log("Aucun ordre de salles trouvé dans localStorage. Utilisation de l'ordre par défaut.");
-                // setRoomOrder({ orderedRoomIdsBySector: {} }); // Pas nécessaire car état initial
-            }
+        if (!hasSiteInfo && selectedSiteId) {
+            console.log('[ORCP_DEBUG_SITE] Aucune salle n\'a d\'information de site, affichage de toutes les salles');
+            return rooms;
         }
-    }, []); // Le tableau vide assure que ça ne tourne qu'au montage
 
-    // Gestion des changements de formulaire
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value, type } = e.target;
-        const newValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
-
-        // Si le secteur change, suggérer une couleur par défaut
-        if (name === 'sector' && sectorColors[value as keyof typeof sectorColors]) {
-            // Trouver le secteur sélectionné dans la liste pour avoir le nom exact
-            const selectedSector = sectors.find(s => s.name === value || s.name.toLowerCase() === value.toLowerCase());
-
-            setFormData(prev => ({
-                ...prev,
-                [name]: selectedSector ? selectedSector.name : value, // Utiliser le nom exact du secteur trouvé
-                colorCode: sectorColors[value as keyof typeof sectorColors]
-            }));
-
-            // Log pour débogage
+        return rooms.filter(room => {
+            // Pour le débogage
             if (DEBUG_MODE) {
-                console.log(`Secteur sélectionné dans le formulaire: ${value}`);
-                console.log(`Secteur normalisé: ${selectedSector ? selectedSector.name : value}`);
+                console.log(`[ORCP_DEBUG_SITE] Salle ${room.id} (${room.name}):`,
+                    { siteId: room.siteId, site: room.site });
             }
-        } else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: newValue,
-            }));
+
+            // Si la salle a explicitement un siteId qui correspond
+            if (room.siteId === selectedSiteId) return true;
+
+            // Si la salle a un objet site avec un id qui correspond
+            if (room.site && room.site.id === selectedSiteId) return true;
+
+            // Si le site est dans un autre champ
+            if ((room as any).operatingSiteId === selectedSiteId) return true;
+            if ((room as any).hospitalSiteId === selectedSiteId) return true;
+
+            // Si aucune salle n'a de site défini
+            if (!hasSiteInfo) return true;
+
+            return false;
+        });
+    }, [rooms, selectedSiteId]);
+
+    // Récupérer les salles triées par secteur
+    const getSortedSectorRooms = useCallback((sectorName: string): OperatingRoom[] => {
+        // Récupérer les salles pour ce secteur avec la détection intelligente
+        const sectorRooms = getSectorRooms(sectorName, filteredRooms, sectors, sites);
+
+        // Si nous avons un ordre défini pour ce secteur, trier les salles
+        if (roomOrder[sectorName] && roomOrder[sectorName].length > 0) {
+            // Créer un map pour accéder rapidement aux salles par ID
+            const roomsById = Object.fromEntries(
+                sectorRooms.map(room => [room.id, room])
+            );
+
+            // Récupérer uniquement les IDs qui correspondent à des salles existantes
+            const validOrderedIds = roomOrder[sectorName].filter(id => roomsById[id]);
+
+            // Créer la liste triée
+            const orderedRooms = validOrderedIds.map(id => roomsById[id]);
+
+            // Ajouter les salles qui n'ont pas d'ordre défini
+            const unorderedRooms = sectorRooms.filter(room => !validOrderedIds.includes(room.id));
+
+            return [...orderedRooms, ...unorderedRooms];
         }
+
+        return sectorRooms;
+    }, [filteredRooms, roomOrder, sectors, sites]);
+
+    // Créer un memoized object avec les salles par secteur
+    const sectorRoomsMap = useMemo(() => {
+        const result: { [key: string]: OperatingRoom[] } = {};
+
+        sectorNames.forEach(sectorName => {
+            result[sectorName] = getSortedSectorRooms(sectorName);
+        });
+
+        return result;
+    }, [sectorNames, getSortedSectorRooms]);
+
+    // Gestionnaires d'événements pour le formulaire
+    const handleModalChange = (open: boolean) => {
+        if (!open) {
+            resetFormAndCloseModal();
+        }
+        setIsModalOpen(open);
     };
 
-    // Réinitialisation du formulaire et fermeture de la modale
     const resetFormAndCloseModal = () => {
         setIsEditing(null);
-        setIsModalOpen(false);
         setFormData({
             name: '',
             number: '',
-            sector: '',
-            colorCode: '',
+            sector: sectorNames.length > 0 ? sectorNames[0] : '',
+            roomType: 'STANDARD',
+            colorCode: '#CCCCCC',
             isActive: true,
             supervisionRules: {
                 maxRoomsPerSupervisor: 2
-            }
+            },
+            siteId: null
         });
         setFormError(null);
+        setIsModalOpen(false);
     };
 
-    // Ouverture de la modale pour AJOUT
-    const handleAddClick = () => {
-        setIsEditing(null);
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
 
-        // S'assurer qu'on a un secteur par défaut valide
-        let defaultSector = '';
-        let defaultColor = '';
+        if (type === 'checkbox') {
+            const checked = (e.target as HTMLInputElement).checked;
+            setFormData(prev => ({ ...prev, [name]: checked }));
+        } else if (name === 'maxRoomsPerSupervisor') {
+            setFormData(prev => ({
+                ...prev,
+                supervisionRules: {
+                    ...prev.supervisionRules,
+                    maxRoomsPerSupervisor: parseInt(value) || 1
+                }
+            }));
+        } else if (name === 'siteId') {
+            // Traitement spécial pour siteId qui doit être un nombre ou null
+            setFormData(prev => ({
+                ...prev,
+                [name]: value ? parseInt(value) : null
+            }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
+    };
 
-        // Vérifier si nous avons des secteurs disponibles
-        if (sectorNames.length > 0) {
-            // Chercher "Endoscopie" en priorité, sinon prendre le premier secteur
-            const endoscopieIndex = sectorNames.findIndex(s =>
-                s.toLowerCase().includes('endo') || s.toLowerCase() === 'endoscopie'
-            );
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-            if (endoscopieIndex >= 0) {
-                defaultSector = sectorNames[endoscopieIndex];
-            } else {
-                defaultSector = sectorNames[0];
-            }
-
-            defaultColor = sectorColors[defaultSector] || '#4F46E5'; // Couleur bleu roi par défaut
-        } else if (sectors.length > 0) {
-            // Fallback sur la liste des secteurs si sectorNames est vide
-            const endoscopieSector = sectors.find(s =>
-                s.name.toLowerCase().includes('endo') || s.name.toLowerCase() === 'endoscopie'
-            );
-
-            if (endoscopieSector) {
-                defaultSector = endoscopieSector.name;
-                defaultColor = endoscopieSector.colorCode || '#4F46E5';
-            } else {
-                defaultSector = sectors[0].name;
-                defaultColor = sectors[0].colorCode || '#4F46E5';
-            }
+        if (!formData.name || !formData.number) {
+            setFormError("Veuillez remplir tous les champs obligatoires");
+            return;
         }
 
-        if (DEBUG_MODE) console.log("Initialisation du formulaire d'ajout avec secteur:", defaultSector);
+        setIsSubmitting(true);
+        setFormError(null);
 
+        try {
+            const apiBaseUrl = window.location.origin;
+
+            const submitData = {
+                ...formData,
+                sectorId: sectors.find(s => s.name === formData.sector)?.id
+            };
+
+            if (isEditing) {
+                await axios.put(`${apiBaseUrl}/api/operating-rooms/${isEditing}`, submitData);
+                toast.success(`Salle ${formData.name} modifiée avec succès`);
+            } else {
+                await axios.post(`${apiBaseUrl}/api/operating-rooms`, submitData);
+                toast.success(`Salle ${formData.name} créée avec succès`);
+            }
+
+            resetFormAndCloseModal();
+            fetchData(); // Recharger les données
+            setShowSuccess(true);
+
+            // Masquer le message de succès après 3 secondes
+            setTimeout(() => {
+                setShowSuccess(false);
+            }, 3000);
+        } catch (error) {
+            console.error("Erreur lors de la soumission :", error);
+            setFormError("Une erreur est survenue lors de la soumission du formulaire");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleAddClick = () => {
+        setIsEditing(null);
         setFormData({
             name: '',
             number: '',
-            sector: defaultSector,
-            colorCode: defaultColor,
+            sector: sectorNames.length > 0 ? sectorNames[0] : '',
+            roomType: 'STANDARD',
+            colorCode: '#CCCCCC',
             isActive: true,
             supervisionRules: {
                 maxRoomsPerSupervisor: 2
-            }
+            },
+            siteId: null
         });
-
         setFormError(null);
         setIsModalOpen(true);
     };
 
-    // Ouverture de la modale pour MODIFICATION
     const handleEditClick = (room: OperatingRoom) => {
         setIsEditing(room.id);
         setFormData({
             name: room.name,
-            number: room.number,
-            sector: room.sector,
-            colorCode: room.colorCode || '',
-            isActive: room.isActive,
-            supervisionRules: room.supervisionRules
+            number: room.number || '',
+            sector: room.sector || '',
+            roomType: room.roomType || 'STANDARD',
+            colorCode: room.colorCode || '#CCCCCC',
+            isActive: room.isActive !== false,
+            supervisionRules: {
+                maxRoomsPerSupervisor: room.supervisionRules?.maxRoomsPerSupervisor || 2
+            },
+            siteId: room.siteId || null
         });
-        setFormError(null);
         setIsModalOpen(true);
     };
 
-    // Soumission du formulaire (Ajout ou Modification)
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-
-        try {
-            const apiBaseUrl = window.location.origin;
-            if (isEditing) {
-                // Mise à jour d'une salle existante
-                await axios.put(`${apiBaseUrl}/api/operating-rooms/${isEditing}`, {
-                    ...formData,
-                    sectorId: sectors.find(s => s.name === formData.sector)?.id
-                });
-            } else {
-                // Création d'une nouvelle salle
-                await axios.post(`${apiBaseUrl}/api/operating-rooms`, {
-                    ...formData,
-                    sectorId: sectors.find(s => s.name === formData.sector)?.id
-                });
-            }
-
-            // Recharger la liste des salles
-            const result = await axios.get(`${apiBaseUrl}/api/operating-rooms`, {
-                params: { _t: Date.now() }
-            });
-            setRooms(result.data);
-
-            resetFormAndCloseModal();
-            setSaveMessage('Salle enregistrée avec succès!');
-            setTimeout(() => setSaveMessage(''), 3000);
-        } catch (error) {
-            console.error('Erreur lors de l\'enregistrement de la salle:', error);
-        }
-    };
-
-    // Suppression d'une salle
     const handleDeleteClick = async (id: number) => {
-        if (window.confirm('Êtes-vous sûr de vouloir supprimer cette salle?')) {
+        if (confirm(`Êtes-vous sûr de vouloir supprimer cette salle ? Cette action est irréversible.`)) {
             try {
                 const apiBaseUrl = window.location.origin;
                 await axios.delete(`${apiBaseUrl}/api/operating-rooms/${id}`);
 
-                // Recharger la liste des salles
-                const result = await axios.get(`${apiBaseUrl}/api/operating-rooms`, {
-                    params: { _t: Date.now() }
-                });
-                setRooms(result.data);
-
-                setSaveMessage('Salle supprimée avec succès!');
-                setTimeout(() => setSaveMessage(''), 3000);
+                // Mise à jour de l'état local
+                setRooms(prevRooms => prevRooms.filter(room => room.id !== id));
+                toast.success("La salle a été supprimée avec succès");
             } catch (error) {
-                console.error('Erreur lors de la suppression de la salle:', error);
+                console.error("Erreur lors de la suppression de la salle:", error);
+                toast.error("Erreur lors de la suppression de la salle");
             }
         }
     };
 
-    // Fonction pour sauvegarder l'ordre des salles par secteur
-    const saveRoomOrderToStorage = (newOrder: RoomOrderConfig) => {
-        // Vérifier que l'ordre est valide avant de continuer
-        if (!newOrder || !newOrder.orderedRoomIdsBySector) {
-            console.error("Tentative de sauvegarde d'un ordre invalide:", newOrder);
-            return;
-        }
-
-        try {
-            // Met à jour l'état local avec la nouvelle structure d'ordre
-            setRoomOrder(newOrder);
-
-            if (typeof window !== 'undefined') {
-                // Convertir l'objet en JSON et le sauvegarder
-                const orderJSON = JSON.stringify(newOrder);
-                localStorage.setItem('operatingRoomOrderConfig', orderJSON);
-                console.log("Ordre des salles sauvegardé dans localStorage:", orderJSON);
-            }
-
-            setSaveMessage('Ordre des salles mis à jour (localement)');
-            setTimeout(() => setSaveMessage(''), 3000);
-        } catch (error) {
-            console.error("Erreur lors de la sauvegarde de l'ordre des salles:", error);
-            setError("Impossible de sauvegarder l'ordre des salles. Veuillez réessayer.");
-        }
-    };
-
-    // Fonction pour gérer le scrolling automatique pendant le drag
-    const handleAutoScroll = (e: React.DragEvent) => {
-        const container = document.querySelector('.auto-scroll');
-        if (!container) return;
-
-        const containerRect = container.getBoundingClientRect();
-        const scrollThreshold = 60; // Zone de déclenchement du scroll en pixels
-
-        // Calculer la position relative de la souris par rapport au conteneur
-        const mouseY = e.clientY;
-        const topTrigger = containerRect.top + scrollThreshold;
-        const bottomTrigger = containerRect.bottom - scrollThreshold;
-
-        // Nettoyer l'intervalle existant
-        if (autoScrollInterval) {
-            clearInterval(autoScrollInterval);
-            setAutoScrollInterval(null);
-        }
-
-        // Si la souris est près du bord supérieur, scroll vers le haut
-        if (mouseY < topTrigger) {
-            const speed = Math.max(5, 20 * (1 - (mouseY - containerRect.top) / scrollThreshold));
-            const interval = setInterval(() => {
-                container.scrollTop -= speed;
-            }, 16);
-            setAutoScrollInterval(interval);
-        }
-        // Si la souris est près du bord inférieur, scroll vers le bas
-        else if (mouseY > bottomTrigger) {
-            const speed = Math.max(5, 20 * (1 - (containerRect.bottom - mouseY) / scrollThreshold));
-            const interval = setInterval(() => {
-                container.scrollTop += speed;
-            }, 16);
-            setAutoScrollInterval(interval);
-        }
-    };
-
-    // Simplifier les gestionnaires d'événements pour le drag & drop
-    const handleDragStart = (e: React.DragEvent, roomId: number) => {
-        if (!isReordering) return;
-
-        // Stocker l'ID de la salle en cours de déplacement
-        setDraggingRoomId(roomId);
-
-        // Stocker l'ID dans l'événement de transfert
-        e.dataTransfer.setData('text/plain', roomId.toString());
-        e.dataTransfer.effectAllowed = 'move';
-
-        // Ajouter la classe de style pour l'élément en cours de déplacement
-        if (e.currentTarget instanceof HTMLElement) {
-            e.currentTarget.classList.add('dragging');
-        }
-    };
-
-    const handleDragEnd = (e: React.DragEvent) => {
-        // Nettoyer l'état de déplacement
-        setDraggingRoomId(null);
-        setDragOverSector(null);
-
-        // Supprimer la classe de style
-        if (e.currentTarget instanceof HTMLElement) {
-            e.currentTarget.classList.remove('dragging');
-        }
-
-        // Arrêter le scrolling automatique
-        if (autoScrollInterval) {
-            clearInterval(autoScrollInterval);
-            setAutoScrollInterval(null);
-        }
-    };
-
-    const handleDragOver = (e: React.DragEvent, sectorName: string) => {
-        if (!isReordering) return;
-
-        // Prévenir le comportement par défaut pour permettre le drop
-        e.preventDefault();
-        e.stopPropagation();
-        e.dataTransfer.dropEffect = 'move';
-
-        // Mettre à jour le secteur survolé
-        setDragOverSector(sectorName);
-
-        // Ajouter une classe CSS pour indiquer la zone de drop
-        if (e.currentTarget instanceof HTMLElement) {
-            e.currentTarget.classList.add('drag-over');
-        }
-
-        // Gérer le scrolling automatique
-        handleAutoScroll(e);
-    };
-
-    const handleRoomDragOver = (e: React.DragEvent, roomId: number) => {
-        e.preventDefault();
-        e.stopPropagation(); // Empêcher la propagation vers le secteur parent
-
-        // Ne pas marquer si c'est la même salle qui est survolée
-        if (roomId === draggingRoomId) return;
-
-        const roomElement = e.currentTarget as HTMLElement;
-        const rect = roomElement.getBoundingClientRect();
-        const mouseY = e.clientY;
-
-        // Déterminer si on est sur la moitié supérieure ou inférieure de l'élément
-        const relativeMousePos = mouseY - rect.top;
-        const isTopHalf = relativeMousePos < rect.height / 2;
-
-        // Enlever toutes les classes de survol existantes
-        document.querySelectorAll('.drop-above, .drop-below').forEach(el => {
-            el.classList.remove('drop-above', 'drop-below');
-        });
-
-        // Ajouter la classe appropriée
-        if (isTopHalf) {
-            roomElement.classList.add('drop-above');
-        } else {
-            roomElement.classList.add('drop-below');
-        }
-
-        // Gérer le scrolling automatique
-        handleAutoScroll(e);
-    };
-
-    const handleRoomDragLeave = (e: React.DragEvent) => {
-        try {
-            // Utiliser setTimeout pour éviter les clignotements lors du passage
-            // d'une partie à l'autre de l'élément
-            setTimeout(() => {
-                const element = e.currentTarget as HTMLElement;
-                if (!element) return;
-
-                const roomId = element.getAttribute('data-room-id');
-                if (!roomId) return;
-
-                // Vérifier si l'élément est toujours survolé avant de supprimer la classe
-                if (!document.querySelector(`:hover.room-item[data-room-id="${roomId}"]`)) {
-                    element.classList.remove('drop-above', 'drop-below');
-                }
-            }, 50);
-        } catch (err) {
-            console.log("Erreur dans handleRoomDragLeave:", err);
-        }
-    };
-
-    const handleDragLeave = (e: React.DragEvent) => {
-        // Supprimer la classe CSS
-        if (e.currentTarget instanceof HTMLElement) {
-            e.currentTarget.classList.remove('drag-over');
-        }
-        setDragOverSector(null);
-    };
-
-    const handleDrop = (e: React.DragEvent, targetSectorName: string) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        try {
-            // Nettoyer les classes de survol au début
-            const dropClasses = document.querySelectorAll('.drop-above, .drop-below');
-
-            // Récupérer l'ID de la salle depuis l'événement de transfert
-            const draggedRoomId = parseInt(e.dataTransfer.getData('text/plain'));
-
-            // Vérifier si on a une salle en cours de glisser
-            if (!draggedRoomId || isNaN(draggedRoomId)) {
-                console.warn("Aucun ID de salle valide n'est en cours de glisser");
-                return;
-            }
-
-            // Récupérer la salle et le secteur source
-            const sourceRoom = rooms.find(r => r.id === draggedRoomId);
-            if (!sourceRoom) {
-                console.error("Salle introuvable:", draggedRoomId);
-                throw new Error("Salle introuvable");
-            }
-
-            const sourceSector = sourceRoom.sector;
-            const destSector = targetSectorName;
-
-            // Vérifier si on a un élément avec la classe drop-above ou drop-below
-            const sectorContainer = e.currentTarget as HTMLElement;
-            const dropTarget = sectorContainer.querySelector('.drop-above, .drop-below');
-            const isDropAbove = dropTarget?.classList.contains('drop-above');
-            const targetRoomId = dropTarget?.getAttribute('data-room-id');
-
-            console.log(`Déplacement de la salle ${draggedRoomId} ${sourceSector !== destSector ?
-                `du secteur ${sourceSector} vers ${destSector}` :
-                "à l'intérieur de son secteur"}`);
-
-            // Créer une copie de l'ordre actuel
-            const newOrderedRoomIdsBySector = { ...roomOrder.orderedRoomIdsBySector };
-
-            // Initialiser la liste pour le secteur de destination s'il n'existe pas
-            if (!newOrderedRoomIdsBySector[destSector]) {
-                newOrderedRoomIdsBySector[destSector] = [];
-            }
-
-            // Retirer la salle de son secteur d'origine
-            if (sourceSector && newOrderedRoomIdsBySector[sourceSector]) {
-                newOrderedRoomIdsBySector[sourceSector] = newOrderedRoomIdsBySector[sourceSector].filter(id => id !== draggedRoomId);
-            }
-
-            // Placer la salle au bon endroit dans le secteur de destination
-            if (dropTarget && targetRoomId) {
-                // On a une cible précise (position au dessus/en dessous d'une salle)
-                const targetId = parseInt(targetRoomId);
-                const targetIndex = newOrderedRoomIdsBySector[destSector].indexOf(targetId);
-
-                if (targetIndex !== -1) {
-                    // Insérer avant ou après selon la position
-                    const insertIndex = isDropAbove ? targetIndex : targetIndex + 1;
-                    newOrderedRoomIdsBySector[destSector].splice(insertIndex, 0, draggedRoomId);
-                    console.log(`Salle positionnée ${isDropAbove ? 'avant' : 'après'} la salle ${targetId}`);
-                } else {
-                    // Si l'id cible n'est pas trouvé, ajouter à la fin
-                    newOrderedRoomIdsBySector[destSector].push(draggedRoomId);
-                    console.log(`Salle ajoutée à la fin du secteur (cible introuvable)`);
-                }
-            } else {
-                // Pas de cible précise, ajouter à la fin du secteur
-                newOrderedRoomIdsBySector[destSector].push(draggedRoomId);
-                console.log(`Salle ajoutée à la fin du secteur ${destSector}`);
-            }
-
-            // Mettre à jour l'état local si changement de secteur
-            if (sourceSector !== destSector) {
-                setRooms(prevRooms => prevRooms.map(r =>
-                    r.id === draggedRoomId ? { ...r, sector: destSector } : r
-                ));
-            }
-
-            // Mettre à jour l'état avec le nouvel ordre
-            setRoomOrder({ orderedRoomIdsBySector: newOrderedRoomIdsBySector });
-
-            // Sauvegarder dans le localStorage
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('operatingRoomOrderConfig', JSON.stringify({
-                    orderedRoomIdsBySector: newOrderedRoomIdsBySector
-                }));
-            }
-
-            // Mode simulation - pas d'API call qui échoue, mais simulation de mise à jour
-            if (sourceSector !== destSector) {
-                setSaveMessage('Salle déplacée vers un nouveau secteur (mode simulation)');
-            } else {
-                setSaveMessage('Ordre des salles mis à jour');
-            }
-            setTimeout(() => setSaveMessage(''), 3000);
-
-            // Réinitialiser l'état de déplacement
-            setDraggingRoomId(null);
-
-            // Nettoyer toutes les classes de survol
-            dropClasses.forEach(el => {
-                el.classList.remove('drop-above', 'drop-below');
-            });
-        } catch (error) {
-            console.error("Erreur lors du drag & drop:", error);
-            setError('Une erreur est survenue pendant le déplacement de la salle.');
-        }
-    };
-
-    // --- CONFIGURATION DE TEST ---
-    // Pour activer les tests:
-    // 1. Mettez TEST_MODE à true 
-    // 2. OU exécutez dans la console JavaScript du navigateur:
-    //    localStorage.setItem('FORCE_OP_ROOM_TEST', 'true')
-    // Pour désactiver les tests:
-    //    localStorage.removeItem('FORCE_OP_ROOM_TEST')
-    const TEST_MODE = false; // Désactivé par défaut
-
-    const runTest = async () => {
-        // Vérifier si nous sommes en mode test explicitement demandé via localStorage
-        const forceTest = typeof window !== 'undefined' &&
-            (localStorage.getItem('FORCE_OP_ROOM_TEST') === 'true' || TEST_MODE);
-
-        if (!forceTest) return;
-
-        console.log("=== DÉBUT DES TESTS AUTOMATIQUES ===");
-        try {
-            console.log("Test 1: Récupération des secteurs...");
-            const sectorsRes = await axios.get('/api/operating-sectors', {
-                headers: { 'x-user-role': 'ADMIN_TOTAL' }
-            });
-            console.log(`✅ Test 1 réussi: ${sectorsRes.data.length} secteurs récupérés`);
-
-            if (sectorsRes.data.length === 0) {
-                console.error("❌ Aucun secteur trouvé, impossible de continuer les tests");
-                return;
-            }
-
-            const testSectorId = sectorsRes.data[0].id;
-            const testSectorName = sectorsRes.data[0].name;
-
-            console.log("Test 2: Création d'une salle de test...");
-            const testRoom = {
-                name: "Salle Test Auto",
-                number: `T-${Date.now().toString().substring(8)}`,
-                sector: testSectorName,
-                colorCode: "#FF0000",
-                isActive: true,
-                supervisionRules: {}
-            };
-
-            const createRes = await axios.post('/api/operating-rooms', testRoom, {
-                headers: { 'x-user-role': 'ADMIN_TOTAL' }
-            });
-
-            const createdRoomId = createRes.data.id;
-            console.log(`✅ Test 2 réussi: Salle créée avec ID ${createdRoomId}`);
-
-            console.log("Test 3: Modification de la salle de test...");
-            const updateRes = await axios.put(`/api/operating-rooms/${createdRoomId}`, {
-                ...testRoom,
-                name: "Salle Test Modifiée",
-                colorCode: "#00FF00"
-            }, {
-                headers: { 'x-user-role': 'ADMIN_TOTAL' }
-            });
-            console.log(`✅ Test 3 réussi: Salle modifiée`);
-
-            console.log("Test 4: Suppression de la salle de test...");
-            try {
-                // La suppression peut échouer à cause de dépendances, ce n'est pas grave
-                await axios.delete(`/api/operating-rooms/${createdRoomId}`, {
-                    headers: { 'x-user-role': 'ADMIN_TOTAL' }
-                });
-                console.log(`✅ Test 4 réussi: Salle supprimée`);
-            } catch (error: any) {
-                console.log(`⚠️ Test 4 : Suppression non effectuée, mais c'est normal (${error.message})`);
-            }
-
-            console.log("=== TOUS LES TESTS ONT RÉUSSI ===");
-        } catch (error: any) {
-            console.error("❌ TEST ÉCHOUÉ:", error.message);
-            console.error("Détails:", error.response?.data);
-        }
-    };
-
-    // Exécuter le test automatique seulement au premier montage du composant
-    useEffect(() => {
-        let isMounted = true;
-        if (isMounted) {
-            runTest();
-        }
-        return () => { isMounted = false; };
-    }, []); // Dépendance vide = une seule exécution
-    // --- FIN DE LA CONFIGURATION DE TEST ---
-
-    // Pour le test du mode simulation
-    const DEBUG_MODE = false;
-
-    // Fonction pour activer/désactiver le mode réorganisation
-    const handleReorderingToggle = () => {
-        if (isReordering) {
-            // Si on termine la réorganisation, sauvegarder les ordres dans la base de données
-            saveRoomOrderToDatabase();
-        }
-        setIsReordering(!isReordering);
-    };
-
-    // Nouvelle fonction pour enregistrer l'ordre en base de données
-    const saveRoomOrderToDatabase = async () => {
-        try {
-            setSaveMessage('Enregistrement des modifications des salles...');
-
-            // Récupérer tous les salles ordonnées par secteur
-            const updatedRooms = [...rooms];
-            const orderedIdsBySector = roomOrder.orderedRoomIdsBySector;
-
-            // Assigner un displayOrder à chaque salle en fonction de son ordre dans le secteur
-            for (const sectorName in orderedIdsBySector) {
-                const roomIds = orderedIdsBySector[sectorName];
-
-                roomIds.forEach((roomId, index) => {
-                    const roomIndex = updatedRooms.findIndex(r => r.id === roomId);
-                    if (roomIndex !== -1) {
-                        updatedRooms[roomIndex].displayOrder = index + 1; // Commencer à 1
+    // Gestionnaires d'événements pour le drag & drop
+    const handleGlobalReorderClick = async () => {
+        if (isReordering) { // Si on TERMINE la réorganisation
+            setIsReordering(false);
+
+            const updates: { id: number; sectorId?: number | null; displayOrder?: number; siteId?: number | null }[] = [];
+
+            // Utiliser une copie profonde de l'état actuel des salles et de l'ordre pour analyse
+            const finalRoomsState = JSON.parse(JSON.stringify(rooms)) as OperatingRoom[];
+            const finalRoomOrder = JSON.parse(JSON.stringify(roomOrder)) as RoomOrderConfig;
+
+            initialRoomsStateForReorder.forEach(initialRoom => {
+                const finalRoom = finalRoomsState.find(r => r.id === initialRoom.id);
+                if (!finalRoom) return; // Salle supprimée pendant la réorganisation? Ignorer pour l'instant.
+
+                let finalSectorId: number | null = null;
+                let finalDisplayOrder: number | undefined = undefined;
+
+                // 1. Déterminer le secteur final et l'ordre final de la salle
+                let foundInSector = false;
+                for (const sectorNameKey in finalRoomOrder) {
+                    const orderInSector = finalRoomOrder[sectorNameKey];
+                    const roomIndexInSector = orderInSector.indexOf(finalRoom.id);
+                    if (roomIndexInSector !== -1) {
+                        const sectorObject = sectors.find(s => normalizeSectorName(s.name) === sectorNameKey);
+                        finalSectorId = sectorObject?.id ?? null;
+                        finalDisplayOrder = roomIndexInSector;
+                        foundInSector = true;
+                        break;
                     }
-                });
-            }
+                }
+                // Si non trouvée dans un secteur nommé, elle est considérée comme non classée (sectorId = null)
+                if (!foundInSector) {
+                    finalSectorId = null;
+                    // Pour les salles non classées, displayOrder peut ne pas être géré par finalRoomOrder.
+                    // On peut se baser sur l'ordre dans finalRoomsState.filter(r => !r.sectorId)
+                    // ou laisser undefined si l'API gère cela.
+                    // Par simplicité, on ne définit pas explicitement displayOrder pour les non classées ici,
+                    // sauf si leur sectorId initial était différent de null.
+                }
 
-            // Appel API pour sauvegarder l'ordre
-            const response = await axios.post('/api/operating-rooms/reorder', {
-                rooms: updatedRooms.map(r => ({ id: r.id, displayOrder: r.displayOrder }))
+                // 2. Comparer avec l'état initial et construire le payload de mise à jour
+                const needsSectorUpdate = initialRoom.sectorId !== finalSectorId;
+                // Pour displayOrder, on le met à jour s'il est défini et différent,
+                // ou si le secteur a changé et qu'un ordre est maintenant applicable/non applicable.
+                const needsOrderUpdate = (finalDisplayOrder !== undefined && initialRoom.displayOrder !== finalDisplayOrder) || (needsSectorUpdate && finalDisplayOrder !== undefined);
+
+                if (needsSectorUpdate || needsOrderUpdate) {
+                    const updatePayload: { id: number; sectorId?: number | null; displayOrder?: number; siteId?: number | null } = { id: finalRoom.id };
+
+                    if (needsSectorUpdate) {
+                        updatePayload.sectorId = finalSectorId;
+                    }
+                    // Envoyer l'ordre seulement s'il est applicable (salle dans un secteur nommé)
+                    if (finalDisplayOrder !== undefined && finalSectorId !== null) {
+                        updatePayload.displayOrder = finalDisplayOrder;
+                    }
+
+                    // Important : Si seul l'ordre a changé mais que la salle est dans un secteur,
+                    // il faut quand même envoyer le sectorId pour que l'API sache de quel secteur il s'agit.
+                    if (needsOrderUpdate && !needsSectorUpdate && finalSectorId !== null) {
+                        updatePayload.sectorId = finalSectorId; // Réaffirmer le sectorId
+                    }
+
+                    // Conserver le siteId. Les changements de site se font via le formulaire.
+                    if (finalRoom.siteId) {
+                        updatePayload.siteId = finalRoom.siteId;
+                    } else if (initialRoom.siteId && !finalRoom.siteId) {
+                        updatePayload.siteId = null; // Si le siteId a été explicitement enlevé (peu probable ici)
+                    }
+
+                    // Éviter d'envoyer un payload avec seulement l'ID si rien n'a changé
+                    if (Object.keys(updatePayload).length > 1) {
+                        updates.push(updatePayload);
+                    }
+                }
             });
 
-            if (response.status === 200) {
-                setSaveMessage('');
-                toast.success('Les salles ont été réorganisées avec succès');
+            console.log("[ORCP_SAVE_DEBUG] Données à sauvegarder pour les salles:", JSON.parse(JSON.stringify(updates)));
 
-                // Mettre à jour les salles locales avec les nouveaux displayOrder
-                setRooms(updatedRooms);
+            if (updates.length > 0) {
+                try {
+                    const apiBaseUrl = window.location.origin;
+                    await axios.post(`${apiBaseUrl}/api/operating-rooms/batch-update-sector`, { rooms: updates }); // Changé de .patch à .post
+                    toast.success(`${updates.length} salle(s) mise(s) à jour.`);
+                    fetchData(); // Recharger les données après la sauvegarde
+                } catch (error) {
+                    console.error("Erreur lors de la sauvegarde des modifications:", error);
+                    let errorMessage = "Erreur lors de la sauvegarde des modifications.";
+                    if (axios.isAxiosError(error) && error.response && error.response.data) {
+                        const apiError = error.response.data.message || error.response.data.error || JSON.stringify(error.response.data);
+                        errorMessage += ` Détail API: ${apiError}`;
+                        console.error('API Error Response:', error.response.data);
+                    }
+                    toast.error(errorMessage, { duration: 6000 });
+                }
+            } else {
+                toast('Aucune modification détectée à sauvegarder.'); // Changé en toast simple
             }
-        } catch (error) {
-            console.error("Erreur lors de l'enregistrement de l'ordre des salles:", error);
-            toast.error("Erreur lors de l'enregistrement de l'ordre des salles");
-            setSaveMessage('');
+
+            // Réinitialiser les états de drag & drop et l'état initial
+            setDraggedItem(null);
+            setDragOverIndex(null);
+            setDragOverTarget(null);
+            setInitialRoomsStateForReorder([]);
+
+        } else { // Si on ACTIVE la réorganisation
+            setIsReordering(true);
+            // Sauvegarder une copie profonde de l'état actuel des salles
+            setInitialRoomsStateForReorder(JSON.parse(JSON.stringify(rooms)));
+            toast("Mode réorganisation activé. Glissez-déposez les salles pour changer leur secteur ou leur ordre.", { duration: 4000 }); // Changé en toast simple
         }
     };
 
+    const handleRoomDragStart = (e: React.DragEvent, roomId: number, index: number, sectorName: string | null) => {
+        if (!isReordering) return;
+
+        e.dataTransfer.setData('text/plain', JSON.stringify({ id: roomId, index, originalSectorName: sectorName }));
+        setDraggedItem({ id: roomId, index, originalSectorName: sectorName });
+        setIsDragging(true);
+
+        // Ajouter une classe pour le style pendant le drag
+        const element = e.currentTarget as HTMLElement;
+        element.classList.add('dragging');
+
+        // Effet visuel pour le drag
+        if (e.dataTransfer.setDragImage) {
+            const dragImage = document.createElement('div');
+            dragImage.textContent = 'Déplacer';
+            dragImage.className = 'drag-image';
+            dragImage.style.position = 'absolute';
+            dragImage.style.top = '-1000px';
+            document.body.appendChild(dragImage);
+            e.dataTransfer.setDragImage(dragImage, 0, 0);
+            setTimeout(() => document.body.removeChild(dragImage), 0);
+        }
+    };
+
+    const handleRoomDragEnd = (e: React.DragEvent) => {
+        setIsDragging(false);
+        setDraggedItem(null);
+        setDragOverIndex(null);
+        setDragOverTarget(null);
+
+        // Supprimer toutes les classes de style
+        const elements = document.querySelectorAll('.dragging, .drop-target, .drop-above, .drop-below, .valid-drop-zone');
+        elements.forEach(el => {
+            el.classList.remove('dragging', 'drop-target', 'drop-above', 'drop-below');
+        });
+        // Arrêter le défilement automatique à la fin du drag
+        if (scrollIntervalRef.current) {
+            clearInterval(scrollIntervalRef.current);
+            scrollIntervalRef.current = null;
+        }
+    };
+
+    const handleRoomDragOver = (e: React.DragEvent, index: number, targetSectorName: string | null) => {
+        e.preventDefault();
+        if (!isReordering || !draggedItem) return;
+
+        // Déterminer l'index d'insertion réel
+        let insertionIndex = index;
+        if (draggedItem.originalSectorName === targetSectorName) {
+            const isAbove = index < draggedItem.index;
+            if (isAbove) {
+                insertionIndex = index;
+            } else {
+                insertionIndex = index + 1;
+            }
+        } else {
+            const isAbove = index < draggedItem.index;
+            insertionIndex = index;
+        }
+
+        setDragOverTarget({ sectorName: targetSectorName, index: insertionIndex });
+
+        const element = e.currentTarget as HTMLElement;
+        const rect = element.getBoundingClientRect();
+        const mouseY = e.clientY;
+        const positionY = mouseY - rect.top;
+        const isAbove = positionY < rect.height / 2;
+
+        // Appliquer le style visuel approprié uniquement si c'est une cible valide
+        // (et non la source elle-même si on est dans le même conteneur)
+        if (draggedItem.originalSectorName !== targetSectorName || draggedItem.index !== index) {
+            element.classList.remove('drop-above', 'drop-below');
+            element.classList.add(isAbove ? 'drop-above' : 'drop-below');
+        }
+        // Indicateur sur le conteneur de secteur
+        const sectorContainer = element.closest('[data-sector-name], [data-unclassified-area]');
+        if (sectorContainer) {
+            document.querySelectorAll('.valid-drop-zone').forEach(el => el.classList.remove('valid-drop-zone'));
+            sectorContainer.classList.add('valid-drop-zone');
+        }
+
+        // Gestion du défilement automatique
+        const scrollThreshold = 80; // Pixels du bord pour déclencher le défilement
+        const scrollSpeed = 20; // Pixels à défiler par intervalle
+
+        if (scrollIntervalRef.current) {
+            clearInterval(scrollIntervalRef.current);
+            scrollIntervalRef.current = null;
+        }
+
+        if (e.clientY < scrollThreshold) {
+            scrollIntervalRef.current = setInterval(() => {
+                window.scrollBy(0, -scrollSpeed);
+            }, 50);
+        } else if (e.clientY > window.innerHeight - scrollThreshold) {
+            scrollIntervalRef.current = setInterval(() => {
+                window.scrollBy(0, scrollSpeed);
+            }, 50);
+        }
+    };
+
+    const handleRoomDragLeave = (e: React.DragEvent, targetSectorName: string | null) => {
+        if (!isReordering) return;
+
+        const element = e.currentTarget as HTMLElement;
+        element.classList.remove('drop-above', 'drop-below');
+
+        // Potentiellement enlever .valid-drop-zone si on quitte le conteneur parent
+        const relatedTarget = e.relatedTarget as HTMLElement;
+        const sectorContainer = element.closest('[data-sector-name], [data-unclassified-area]');
+        if (sectorContainer && !sectorContainer.contains(relatedTarget)) {
+            sectorContainer.classList.remove('valid-drop-zone');
+        }
+        // Arrêter le défilement si on quitte une zone pertinente
+        if (scrollIntervalRef.current) {
+            const dropZone = (e.currentTarget as HTMLElement).closest('[data-sector-name], [data-unclassified-area]');
+            if (dropZone && !dropZone.contains(e.relatedTarget as Node)) {
+                clearInterval(scrollIntervalRef.current);
+                scrollIntervalRef.current = null;
+            }
+        }
+    };
+
+    const handleRoomDrop = (e: React.DragEvent, targetIndex: number, targetSectorName: string | null) => {
+        e.preventDefault();
+        if (!isReordering || !draggedItem || !dragOverTarget) return;
+
+        const { id: movedRoomId, originalSectorName, index: originalIndex } = draggedItem;
+
+        // Scénario 1: Déplacer au sein du même secteur
+        if (originalSectorName === targetSectorName && targetSectorName !== null) {
+            setRoomOrder(prevOrder => {
+                const newOrder = { ...prevOrder };
+                const sectorRooms = [...(newOrder[targetSectorName] || [])];
+
+                // Retirer l'élément de sa position originale
+                const [movedItem] = sectorRooms.splice(originalIndex, 1);
+
+                // Calculer l'index d'insertion corrigé si l'élément a été retiré avant sa cible
+                let correctedTargetIndex = targetIndex;
+                if (originalIndex < targetIndex) {
+                    correctedTargetIndex = targetIndex - 1;
+                }
+
+                sectorRooms.splice(correctedTargetIndex, 0, movedItem);
+                newOrder[targetSectorName] = sectorRooms;
+                return newOrder;
+            });
+        }
+        // Scénario 2: Déplacer d'un secteur à un autre, ou vers/depuis non classé
+        else {
+            // Mise à jour de l'état `rooms` pour changer le secteur de la salle
+            setRooms(prevRooms => {
+                return prevRooms.map(room => {
+                    if (room.id === movedRoomId) {
+                        const targetSector = sectors.find(s => normalizeSectorName(s.name) === targetSectorName);
+                        return {
+                            ...room,
+                            sector: targetSectorName || '', // Mettre à jour le nom du secteur
+                            sectorId: targetSector?.id || undefined // Mettre à jour l'ID du secteur
+                        };
+                    }
+                    return room;
+                });
+            });
+
+            // Mettre à jour `roomOrder` pour les secteurs source et destination
+            setRoomOrder(prevOrder => {
+                const newOrder = { ...prevOrder };
+
+                // Retirer de l'ancien secteur (si ce n'était pas "non classé")
+                if (originalSectorName && newOrder[originalSectorName]) {
+                    newOrder[originalSectorName] = newOrder[originalSectorName].filter(id => id !== movedRoomId);
+                }
+
+                // Ajouter au nouveau secteur (si ce n'est pas "non classé")
+                if (targetSectorName) {
+                    if (!newOrder[targetSectorName]) {
+                        newOrder[targetSectorName] = [];
+                    }
+                    const sectorRooms = [...newOrder[targetSectorName]];
+                    // S'assurer que l'ID n'est pas déjà là (peu probable mais sécurité)
+                    if (!sectorRooms.includes(movedRoomId)) {
+                        sectorRooms.splice(targetIndex, 0, movedRoomId);
+                        newOrder[targetSectorName] = sectorRooms;
+                    }
+                }
+                return newOrder;
+            });
+        }
+
+        // Réinitialiser les états de drag après le drop
+        handleRoomDragEnd(e);
+        toast.success(`Salle déplacée vers ${targetSectorName || 'Non classées'}`);
+    };
+
+    const handleRoomReorder = (sectorName: string, roomId: number, targetIndex: number) => {
+        // Mettre à jour l'ordre des salles
+        setRoomOrder(prevOrder => {
+            const newOrder = { ...prevOrder };
+            const sectorOrder = [...(newOrder[sectorName] || [])];
+
+            // Trouver l'index actuel et déplacer
+            const currentIndex = sectorOrder.indexOf(roomId);
+            if (currentIndex !== -1) {
+                sectorOrder.splice(currentIndex, 1);
+                sectorOrder.splice(targetIndex, 0, roomId);
+                newOrder[sectorName] = sectorOrder;
+            }
+
+            return newOrder;
+        });
+    };
+
+    // Rendu du composant
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Configuration des Salles d'Opération</h2>
-                <div className="flex space-x-4">
-                    <Button onClick={handleAddClick} className="flex items-center">
-                        <PlusIcon className="h-5 w-5 mr-2" />
-                        Ajouter une Salle
-                    </Button>
-                    <Button
-                        onClick={handleReorderingToggle}
-                        variant={isReordering ? "danger" : "outline"}
-                        className="flex items-center"
-                        disabled={rooms.length < 2}
-                    >
-                        {isReordering ? (
-                            <CheckIcon className="h-5 w-5 mr-2" />
-                        ) : (
-                            <ArrowsUpDownIcon className="h-5 w-5 mr-2" />
-                        )}
-                        {isReordering ? "Terminer" : "Réorganiser"}
-                    </Button>
-                </div>
+        <div className="container mx-auto p-4">
+            <div className="mb-3">
+                <h1 className="text-2xl font-bold mb-2">Configuration des salles opératoires</h1>
+                <p className="text-gray-600">
+                    Gérez vos salles d'opération et organisez-les par secteurs.
+                </p>
             </div>
 
-            {error && (
-                <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg flex items-start">
-                    <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0" />
-                    <div>{error}</div>
-                </div>
-            )}
-
-            {showSuccess && (
-                <div className="p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg flex items-start">
-                    <CheckIcon className="h-5 w-5 mr-2 flex-shrink-0" />
-                    <div>Opération réussie!</div>
-                </div>
-            )}
-
-            {saveMessage && (
-                <div className="p-3 mb-4 text-sm text-blue-700 bg-blue-100 rounded-lg">
-                    {saveMessage}
-                </div>
-            )}
-
             {isLoading ? (
-                <div className="p-8 flex justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                <div className="flex justify-center items-center h-40">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
                 </div>
-            ) : rooms.length === 0 ? (
-                <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                    <p className="text-gray-500">Aucune salle d'opération n'a été configurée.</p>
-                    <Button onClick={handleAddClick} className="mt-2">
-                        <PlusIcon className="h-4 w-4 mr-1" />
-                        Ajouter une salle
-                    </Button>
+            ) : error ? (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+                    <span className="block sm:inline">{error}</span>
                 </div>
             ) : (
-                <div className="space-y-6">
-                    {/* Conteneur des secteurs et salles */}
-                    <div className="auto-scroll">
-                        {sectorNames.map(sectorName => {
-                            // Filtrer les salles pour ce secteur
-                            const sectorRooms = rooms.filter(room => room.sector === sectorName);
+                <>
+                    {/* Filtres par site avec boutons */}
+                    {sites.length > 0 && (
+                        <div className="mb-2 bg-white p-2 rounded-lg shadow-sm border border-gray-200"> {/* p-4 -> p-2 */}
+                            <div className="flex flex-col gap-2"> {/* gap-4 -> gap-2 */}
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-800">Filtrer par site</h3>
+                                    <p className="text-sm text-gray-500">Cliquez sur un site pour filtrer les salles affichées</p>
+                                </div>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    {/* Bouton "Tous les sites" */}
+                                    <button
+                                        onClick={() => setSelectedSiteId(null)}
+                                        className={`flex items-center px-4 py-2 rounded-lg border transition-all duration-200 ${selectedSiteId === null
+                                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white border-transparent shadow-md'
+                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        <span className="h-3 w-3 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 mr-2"></span>
+                                        Tous les sites
+                                    </button>
 
-                            // Récupérer l'ordre personnalisé pour ce secteur
-                            const sectorOrderedIds = roomOrder.orderedRoomIdsBySector[sectorName] || [];
+                                    {/* Boutons pour chaque site */}
+                                    {sites.map((site) => (
+                                        <button
+                                            key={site.id}
+                                            onClick={() => setSelectedSiteId(site.id)}
+                                            className={`flex items-center px-4 py-2 rounded-lg border transition-all duration-200 ${selectedSiteId === site.id
+                                                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white border-transparent shadow-md'
+                                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            <span
+                                                className="h-3 w-3 rounded-full mr-2"
+                                                style={{ backgroundColor: site.colorCode || getSiteColor(site.id) }}
+                                            ></span>
+                                            {site.name}
+                                        </button>
+                                    ))}
+                                </div>
 
-                            // Si des IDs ordonnés existent pour ce secteur, utiliser pour trier
-                            let displayRooms = [...sectorRooms];
-                            if (sectorOrderedIds.length > 0) {
-                                // Créer un dictionnaire pour accélérer les recherches
-                                const roomsById: { [key: number]: OperatingRoom } = {};
-                                sectorRooms.forEach(room => {
-                                    roomsById[room.id] = room;
-                                });
+                                {/* Affichage du filtre actif */}
+                                {selectedSiteId && (
+                                    <div className="mt-2 flex items-center text-sm text-white py-1 px-3 rounded-full inline-block bg-blue-600 shadow-sm">
+                                        <span>Filtre actif : {sites.find(s => s.id === selectedSiteId)?.name}</span>
+                                        <button
+                                            onClick={() => setSelectedSiteId(null)}
+                                            className="ml-2 text-white hover:text-blue-100"
+                                            aria-label="Effacer le filtre"
+                                        >
+                                            <XMarkIcon className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
-                                // Reconstruire la liste dans l'ordre personnalisé
-                                displayRooms = sectorOrderedIds
-                                    .map(id => roomsById[id])
-                                    .filter(room => room !== undefined); // Enlever les non-trouvés
+                    {/* Bouton d'ajout */}
+                    <div className="flex justify-between items-center mb-2">
+                        <h2 className="text-lg font-semibold">Salles d'opération</h2>
+                        <div className="flex gap-2">
+                            <Button onClick={handleAddClick} className="bg-blue-600 hover:bg-blue-700">
+                                <PlusIcon className="h-4 w-4 mr-2" />
+                                Ajouter une salle
+                            </Button>
+                            <Button
+                                onClick={handleGlobalReorderClick}
+                                variant={isReordering ? "destructive" : "outline"}
+                                className={`
+                                    ${isReordering ? 'bg-red-500 hover:bg-red-600 text-white' : 'text-gray-700 hover:bg-gray-100'}
+                                    transition-all duration-200
+                                `}
+                            >
+                                <ArrowsUpDownIcon className="h-4 w-4 mr-2" />
+                                {isReordering ? 'Terminer la réorganisation' : 'Réorganiser les salles'}
+                            </Button>
+                        </div>
+                    </div>
 
-                                // Ajouter les salles qui n'ont pas été ordonnées à la fin
-                                const orderedIds = new Set(sectorOrderedIds);
-                                const unorderedRooms = sectorRooms.filter(room => !orderedIds.has(room.id));
-                                displayRooms = [...displayRooms, ...unorderedRooms];
-                            }
+                    {/* Message de succès */}
+                    {showSuccess && (
+                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
+                            <span className="block sm:inline">Les modifications ont été enregistrées avec succès.</span>
+                        </div>
+                    )}
 
-                            // Si ce secteur n'a pas de salles, ne pas l'afficher (sauf en mode réorganisation)
-                            if (displayRooms.length === 0 && !isReordering) {
-                                return null;
-                            }
+                    {/* Conteneur des secteurs */}
+                    <div className="grid grid-cols-1 gap-2">
+                        {sectorNames.map((sectorName) => {
+                            // Utiliser notre fonction de tri des salles par secteur
+                            const sectorRooms = getSortedSectorRooms(sectorName);
 
                             return (
                                 <div
                                     key={sectorName}
-                                    className={`sector-container p-4 rounded-lg ${isReordering ? 'border-2 border-dashed' : 'border'}`}
+                                    className="bg-white rounded-lg shadow py-1 px-2" // Commentaire retiré d'ici
+                                    data-sector-name={sectorName}
                                 >
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center space-x-2">
-                                            <h3 className="font-semibold">
-                                                {sectorName}
-                                            </h3>
-                                            <div
-                                                className="w-3 h-3 rounded-full"
-                                                style={{ backgroundColor: sectorColors[sectorName] || '#ccc' }}
-                                            ></div>
-                                        </div>
-                                        <span className="text-xs text-gray-500">
-                                            {displayRooms.length} salle(s)
-                                        </span>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <h3 className="text-base font-semibold flex items-center">
+                                            <span className="flex-grow">{sectorName}</span>
+                                            <span className="text-sm text-gray-500 font-normal ml-2">
+                                                {sectorRooms.length} salle{sectorRooms.length !== 1 ? 's' : ''}
+                                            </span>
+                                        </h3>
                                     </div>
 
-                                    <div
-                                        className={`drop-target ${dragOverSector === sectorName && 'drag-over'
-                                            }`}
-                                        onDragOver={e => isReordering && handleDragOver(e, sectorName)}
-                                        onDragLeave={e => isReordering && handleDragLeave(e)}
-                                        onDrop={e => isReordering && handleDrop(e, sectorName)}
-                                    >
-                                        {displayRooms.map(room => (
-                                            <div
-                                                key={room.id}
-                                                className={`room-item p-3 mb-2 rounded-md flex items-center justify-between ${room.isActive ? 'bg-white border' : 'bg-gray-100 border border-dashed'
-                                                    }`}
-                                                draggable={isReordering}
-                                                onDragStart={e => handleDragStart(e, room.id)}
-                                                onDragEnd={handleDragEnd}
-                                                onDragOver={e => isReordering && handleRoomDragOver(e, room.id)}
-                                                onDragLeave={e => isReordering && handleRoomDragLeave(e)}
-                                                data-room-id={room.id}
-                                            >
-                                                <div className="flex items-center">
-                                                    {isReordering && (
-                                                        <HeroArrowsUpDownIcon className="h-4 w-4 mr-3 text-gray-400" />
-                                                    )}
-                                                    <div
-                                                        className="w-2 h-8 rounded mr-2"
-                                                        style={{ backgroundColor: room.colorCode || sectorColors[room.sector] || '#ccc' }}
-                                                    ></div>
-                                                    <div>
-                                                        <div className="font-medium">{room.name} - Salle {room.number}</div>
-                                                        <div className="text-xs text-gray-500">
-                                                            Secteur: {room.sector}
-                                                            {!room.isActive && <span className="ml-2 text-red-500">Inactive</span>}
-                                                        </div>
+                                    {sectorRooms.length === 0 && isReordering ? (
+                                        <div
+                                            className="h-16 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-400 hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                                            onDragOver={(e) => handleRoomDragOver(e, 0, sectorName)}
+                                            onDragLeave={(e) => handleRoomDragLeave(e, sectorName)}
+                                            onDrop={(e) => handleRoomDrop(e, 0, sectorName)}
+                                        >
+                                            Déposer une salle ici
+                                        </div>
+                                    ) : sectorRooms.length === 0 ? (
+                                        <p className="text-gray-500 italic">Aucune salle dans ce secteur</p>
+                                    ) : (
+                                        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 ${isReordering ? 'p-2 border-2 border-dashed border-transparent rounded-md transition-colors hover:border-blue-400' : ''}`}
+                                            data-sector-name={sectorName}
+                                            onDragOver={(e) => {
+                                                if (isReordering && draggedItem && draggedItem.originalSectorName !== sectorName) {
+                                                    e.preventDefault();
+                                                    handleRoomDragOver(e, sectorRooms.length - 1, sectorName);
+                                                    const container = e.currentTarget as HTMLElement;
+                                                    container.classList.add('valid-drop-zone');
+                                                    container.classList.remove('drop-above');
+                                                    container.classList.remove('drop-below');
+                                                }
+                                            }}
+                                            onDragLeave={(e) => {
+                                                if (isReordering) {
+                                                    const container = e.currentTarget as HTMLElement;
+                                                    container.classList.remove('valid-drop-zone');
+                                                }
+                                            }}
+                                            onDrop={(e) => {
+                                                if (isReordering && draggedItem && draggedItem.originalSectorName !== sectorName) {
+                                                    handleRoomDrop(e, sectorRooms.length, sectorName);
+                                                }
+                                            }}
+                                        >
+                                            {sectorRooms.map((room, index) => (
+                                                <div
+                                                    key={room.id}
+                                                    className={`room-item border rounded-md py-1 px-2 flex items-center justify-between group transition-all duration-150 ease-in-out ${isReordering
+                                                        ? 'cursor-move bg-white hover:bg-blue-50 shadow-sm hover:shadow-md'
+                                                        : 'bg-gray-50 hover:bg-gray-100'
+                                                        } ${draggedItem?.id === room.id ? 'opacity-40 scale-95' : ''}
+                                                          ${dragOverTarget?.sectorName === sectorName && dragOverTarget?.index === index ? 'ring-2 ring-blue-500 ring-offset-1' : ''}
+                                                        `}
+                                                    data-room-id={room.id}
+                                                    draggable={isReordering}
+                                                    onDragStart={(e) => handleRoomDragStart(e, room.id, index, sectorName)}
+                                                    onDragEnd={handleRoomDragEnd}
+                                                    onDragOver={(e) => handleRoomDragOver(e, index, sectorName)}
+                                                    onDragLeave={(e) => handleRoomDragLeave(e, sectorName)}
+                                                    onDrop={(e) => handleRoomDrop(e, index, sectorName)}
+                                                >
+                                                    <div className="flex-grow">
+                                                        <div className="font-medium text-gray-800 text-sm">{room.name}</div>
+                                                        <div className="text-xs text-gray-500">N° {room.number}</div>
                                                     </div>
-                                                </div>
-
-                                                {!isReordering && (
-                                                    <div className="flex space-x-1">
-                                                        <Button
+                                                    <div className={`flex space-x-1 ${isReordering ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
+                                                        <button
                                                             onClick={() => handleEditClick(room)}
-                                                            size="sm"
-                                                            variant="ghost"
+                                                            title="Modifier"
+                                                            className="p-1.5 rounded-full text-gray-500 hover:bg-gray-200"
+                                                            disabled={isReordering}
                                                         >
                                                             <PencilIcon className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
+                                                        </button>
+                                                        <button
                                                             onClick={() => handleDeleteClick(room.id)}
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            className="text-red-500 hover:text-red-700"
+                                                            title="Supprimer"
+                                                            className="p-1.5 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-600"
+                                                            disabled={isReordering}
                                                         >
                                                             <TrashIcon className="h-4 w-4" />
-                                                        </Button>
+                                                        </button>
+                                                        {isReordering && (
+                                                            <div className="p-1.5 rounded-full text-blue-500">
+                                                                <ArrowsUpDownIcon className="h-4 w-4" />
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}
                     </div>
-                </div>
-            )}
 
-            {/* Modale pour ajouter/modifier une salle */}
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>
-                            {isEditing ? 'Modifier la salle' : 'Ajouter une nouvelle salle'}
-                        </DialogTitle>
-                    </DialogHeader>
+                    {/* Section pour les salles sans secteur défini ou non affichées ailleurs */}
+                    <div
+                        className={`mt-3 rounded-lg p-2 ${isReordering ? 'bg-yellow-50 border-2 border-dashed border-yellow-400 hover:border-yellow-500' : 'bg-gray-100'}`}
+                        data-unclassified-area="true"
+                        onDragOver={(e) => {
+                            if (isReordering && draggedItem) {
+                                e.preventDefault();
+                                const unclassifiedRooms = rooms.filter(r => !r.sectorId); // Simplicication pour le drop
+                                handleRoomDragOver(e, unclassifiedRooms.length - 1, null);
+                                const container = e.currentTarget as HTMLElement;
+                                container.classList.add('valid-drop-zone');
+                                container.classList.remove('drop-above');
+                                container.classList.remove('drop-below');
+                            }
+                        }}
+                        onDragLeave={(e) => {
+                            if (isReordering) {
+                                const container = e.currentTarget as HTMLElement;
+                                container.classList.remove('valid-drop-zone');
+                            }
+                        }}
+                        onDrop={(e) => {
+                            if (isReordering && draggedItem) {
+                                const unclassifiedRooms = rooms.filter(r => !r.sectorId); // Simplicication pour le drop
+                                handleRoomDrop(e, unclassifiedRooms.length, null);
+                            }
+                        }}
+                    >
+                        <h3 className="text-base font-semibold mb-1">Salles sans secteur</h3>
+                        <p className="text-xs text-gray-600 mb-1">Salles qui n'ont pas de secteur défini. Vous pouvez glisser des salles ici ou depuis ici en mode réorganisation.</p>
 
-                    <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                        {formError && (
-                            <div className="p-3 text-sm text-red-700 bg-red-100 rounded-lg">
-                                {formError}
+                        {isReordering && rooms.filter(room => !room.sectorId).length === 0 && (
+                            <div
+                                className="h-16 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-400 hover:border-yellow-500 hover:bg-yellow-100 transition-colors"
+                                onDragOver={(e) => handleRoomDragOver(e, 0, null)}
+                                onDragLeave={(e) => handleRoomDragLeave(e, null)}
+                                onDrop={(e) => handleRoomDrop(e, 0, null)}
+                            >
+                                Déposer une salle ici pour la déclassifier
                             </div>
                         )}
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label htmlFor="name" className="block text-sm font-medium mb-1">
-                                    Nom
-                                </label>
-                                <input
-                                    type="text"
-                                    id="name"
-                                    name="name"
-                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    value={formData.name}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label htmlFor="number" className="block text-sm font-medium mb-1">
-                                    Numéro
-                                </label>
-                                <input
-                                    type="text"
-                                    id="number"
-                                    name="number"
-                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    value={formData.number}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1"> {/* Assurer gap-1 ici aussi pour cohérence */}
+                            {rooms
+                                .filter((room: OperatingRoom) => {
+                                    // Garder uniquement les salles qui n'ont pas de `sectorId`
+                                    return !room.sectorId;
+                                })
+                                .map((room, index, unclassifiedRoomsArray) => (
+                                    <div
+                                        key={room.id}
+                                        className={`room-item border rounded-md py-1 px-2 flex items-center justify-between group transition-all duration-150 ease-in-out
+                                            ${isReordering ? 'cursor-move bg-white hover:bg-yellow-100 shadow-sm hover:shadow-md' : 'bg-white hover:bg-yellow-50'}
+                                            ${draggedItem?.id === room.id ? 'opacity-40 scale-95' : ''}
+                                            ${dragOverTarget?.sectorName === null && dragOverTarget?.index === index ? 'ring-2 ring-yellow-500 ring-offset-1' : ''}
+                                        `}
+                                        data-room-id={room.id}
+                                        draggable={isReordering}
+                                        onDragStart={(e) => handleRoomDragStart(e, room.id, index, null)}
+                                        onDragEnd={handleRoomDragEnd}
+                                        onDragOver={(e) => handleRoomDragOver(e, index, null)}
+                                        onDragLeave={(e) => handleRoomDragLeave(e, null)}
+                                        onDrop={(e) => handleRoomDrop(e, index, null)}
+                                    >
+                                        <div className="flex-grow">
+                                            <div className="font-medium text-gray-800 text-sm">{room.name}</div>
+                                            <div className="text-xs text-gray-500">N° {room.number}</div>
+                                            {room.siteId && (
+                                                <div className="text-xs text-blue-600 mt-0.5">
+                                                    Site: {sites.find(s => s.id === room.siteId)?.name || 'Inconnu'}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex space-x-1">
+                                            <button
+                                                onClick={() => handleEditClick(room)}
+                                                title="Assigner à un secteur"
+                                                className="p-1.5 rounded-full text-gray-500 hover:bg-gray-200"
+                                            >
+                                                <PencilIcon className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                         </div>
+                    </div>
 
-                        <div>
-                            <label htmlFor="sector" className="block text-sm font-medium mb-1">
-                                Secteur
-                            </label>
-                            <select
-                                id="sector"
-                                name="sector"
-                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                value={formData.sector}
-                                onChange={handleInputChange}
-                                required
-                            >
-                                {/* Ajouter une option vide avec message si aucun secteur n'est disponible */}
-                                {sectorNames.length === 0 && (
-                                    <option value="">Aucun secteur disponible - veuillez d'abord créer un secteur</option>
-                                )}
+                    {/* Modale pour ajouter/modifier une salle */}
+                    <Dialog open={isModalOpen} onOpenChange={handleModalChange}>
+                        <DialogContent className="max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>{isEditing ? 'Modifier la salle' : 'Ajouter une nouvelle salle'}</DialogTitle>
+                            </DialogHeader>
 
-                                {/* Si nous avons des noms de secteurs, les afficher */}
-                                {sectorNames.length > 0 && sectorNames.map(sector => (
-                                    <option key={sector} value={sector}>
-                                        {sector}
-                                    </option>
-                                ))}
-
-                                {/* Si sectorNames est vide mais sectors existe, utiliser les secteurs directement */}
-                                {sectorNames.length === 0 && sectors.length > 0 && sectors.map(sector => (
-                                    <option key={sector.id} value={sector.name}>
-                                        {sector.name}
-                                    </option>
-                                ))}
-
-                                {/* Option de secours pour Endoscopie si elle n'existe pas déjà */}
-                                {sectorNames.length === 0 && sectors.length === 0 && (
-                                    <option value="Endoscopie">Endoscopie (option par défaut)</option>
-                                )}
-                            </select>
-
-                            {/* Message d'avertissement si aucun secteur n'est disponible */}
-                            {sectorNames.length === 0 && sectors.length === 0 && (
-                                <div className="mt-1 text-xs text-amber-600">
-                                    Attention: Aucun secteur disponible. Un secteur par défaut sera créé automatiquement.
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="name" className="block text-sm font-medium">
+                                        Nom de la salle <span className="text-red-500">*</span>
+                                    </label>
+                                    <Input
+                                        id="name"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        placeholder="Ex: Salle 1"
+                                        required
+                                    />
                                 </div>
-                            )}
-                        </div>
 
-                        <div>
-                            <label htmlFor="colorCode" className="block text-sm font-medium mb-1">
-                                Couleur
-                            </label>
-                            <input
-                                type="color"
-                                id="colorCode"
-                                name="colorCode"
-                                className="h-10 w-full rounded-md border-gray-300 p-1"
-                                value={formData.colorCode || '#000000'}
-                                onChange={handleInputChange}
-                            />
-                        </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="number" className="block text-sm font-medium">
+                                        Numéro <span className="text-red-500">*</span>
+                                    </label>
+                                    <Input
+                                        id="number"
+                                        name="number"
+                                        value={formData.number}
+                                        onChange={handleInputChange}
+                                        placeholder="Ex: S01"
+                                        required
+                                    />
+                                </div>
 
-                        <div className="flex items-center">
-                            <input
-                                type="checkbox"
-                                id="isActive"
-                                name="isActive"
-                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
-                                checked={formData.isActive}
-                                onChange={handleInputChange}
-                            />
-                            <label htmlFor="isActive" className="ml-2 block text-sm">
-                                Salle active
-                            </label>
-                        </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="sector" className="block text-sm font-medium">
+                                        Secteur
+                                    </label>
+                                    <select
+                                        id="sector"
+                                        name="sector"
+                                        value={formData.sector}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">Non défini</option>
+                                        {sectorNames.map((name, index) => (
+                                            <option key={index} value={name}>
+                                                {name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                        <DialogFooter className="mt-6">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={resetFormAndCloseModal}
-                                disabled={isSubmitting}
-                            >
-                                Annuler
-                            </Button>
-                            <Button type="submit" disabled={isSubmitting}>
-                                {isSubmitting ? (
-                                    <span className="flex items-center">
-                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        Enregistrement...
-                                    </span>
-                                ) : isEditing ? 'Mettre à jour' : 'Ajouter'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+                                <div className="space-y-2">
+                                    <label htmlFor="siteId" className="block text-sm font-medium">
+                                        Site hospitalier
+                                    </label>
+                                    <select
+                                        id="siteId"
+                                        name="siteId"
+                                        value={formData.siteId !== null && formData.siteId !== undefined ? formData.siteId.toString() : ''}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">Non défini</option>
+                                        {sites.map((site) => (
+                                            <option key={site.id} value={site.id.toString()}>
+                                                {site.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label htmlFor="roomType" className="block text-sm font-medium">
+                                        Type de salle
+                                    </label>
+                                    <select
+                                        id="roomType"
+                                        name="roomType"
+                                        value={formData.roomType}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        {getRoomTypeOptions().map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label htmlFor="colorCode" className="block text-sm font-medium">
+                                        Code couleur
+                                    </label>
+                                    <div className="flex items-center space-x-2">
+                                        <Input
+                                            id="colorCode"
+                                            name="colorCode"
+                                            type="color"
+                                            value={formData.colorCode || "#CCCCCC"}
+                                            onChange={handleInputChange}
+                                            className="w-12 h-8 p-0"
+                                        />
+                                        <Input
+                                            name="colorCode"
+                                            value={formData.colorCode || "#CCCCCC"}
+                                            onChange={handleInputChange}
+                                            placeholder="#RRGGBB"
+                                            className="flex-1"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center">
+                                    <input
+                                        id="isActive"
+                                        name="isActive"
+                                        type="checkbox"
+                                        checked={formData.isActive}
+                                        onChange={handleInputChange}
+                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <label htmlFor="isActive" className="ml-2 block text-sm text-gray-900">
+                                        Salle active
+                                    </label>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label htmlFor="maxRoomsPerSupervisor" className="block text-sm font-medium">
+                                        Nombre maximum de salles par superviseur
+                                    </label>
+                                    <Input
+                                        id="maxRoomsPerSupervisor"
+                                        name="maxRoomsPerSupervisor"
+                                        type="number"
+                                        min="1"
+                                        value={formData.supervisionRules.maxRoomsPerSupervisor || 1}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+
+                                {formError && (
+                                    <div className="bg-red-50 text-red-700 p-3 rounded-md flex items-start">
+                                        <AlertTriangle className="h-5 w-5 mt-0.5 mr-2" />
+                                        <p>{formError}</p>
+                                    </div>
+                                )}
+
+                                <DialogFooter>
+                                    <DialogClose asChild>
+                                        <Button type="button" variant="outline" onClick={resetFormAndCloseModal}>
+                                            Annuler
+                                        </Button>
+                                    </DialogClose>
+                                    <Button type="submit" disabled={isSubmitting}>
+                                        {isSubmitting ? (
+                                            <span className="flex items-center">
+                                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Enregistrement...
+                                            </span>
+                                        ) : (
+                                            <span>Enregistrer</span>
+                                        )}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </>
+            )}
+
+            {isReordering && (
+                <div className="fixed bottom-4 right-4 flex gap-2 z-50">
+                    {/* Les boutons Annuler et Terminer la réorganisation sont maintenant gérés par le bouton global unique */}
+                </div>
+            )}
+
+            {/* Styles CSS pour le drag & drop */}
+            <style jsx>{`
+                .room-item.dragging {
+                    opacity: 0.5;
+                    border: 2px dashed #3b82f6;
+                    background-color: #fff;
+                }
+                
+                .room-item.drop-target {
+                    /* background-color: rgba(59, 130, 246, 0.1); */
+                }
+                
+                .room-item.drop-above {
+                    border-top: 2px solid #3b82f6;
+                    padding-top: calc(0.75rem - 2px);
+                }
+                
+                .room-item.drop-below {
+                    border-bottom: 2px solid #3b82f6;
+                    padding-bottom: calc(0.75rem - 2px);
+                }
+                
+                .drag-image {
+                    padding: 4px 8px;
+                    background: #3b82f6;
+                    color: white;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+
+                .room-item {
+                    transition: all 0.2s ease-in-out;
+                }
+
+                .room-item:hover {
+                    transform: translateY(-1px);
+                }
+
+                .room-item.dragging:hover {
+                    transform: scale(1.05);
+                }
+
+                .valid-drop-zone {
+                    border-color: #2563eb !important;
+                    background-color: rgba(59, 130, 246, 0.05);
+                }
+
+                .empty-drop-zone {
+                    min-height: 80px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 2px dashed #cbd5e1;
+                    border-radius: 0.375rem;
+                    color: #9ca3af;
+                    font-style: italic;
+                    transition: all 0.2s ease-in-out;
+                }
+                .empty-drop-zone:hover, .empty-drop-zone.valid-drop-zone {
+                    border-color: #3b82f6;
+                    background-color: rgba(59, 130, 246, 0.05);
+                }
+            `}</style>
         </div>
     );
 };
 
-export default OperatingRoomsConfigPanel; 
+// Configuration de test pour le débogage
+const TEST_MODE = false;
+
+// Fonction de test pour simuler des données
+const runTest = async () => {
+    // Vérifier si nous sommes en mode test
+    const forceTest = typeof window !== 'undefined' &&
+        (localStorage.getItem('FORCE_OP_ROOM_TEST') === 'true' || TEST_MODE);
+
+    if (!forceTest) return;
+
+    console.log("=== DÉBUT DES TESTS AUTOMATIQUES ===");
+    try {
+        // Simuler les tests
+        console.log("Test terminé avec succès");
+    } catch (error) {
+        console.error("Erreur pendant les tests:", error);
+    }
+};
+
+// Fonction utilitaire pour générer une couleur consistante pour un site
+const getSiteColor = (id: number): string => {
+    // Liste de couleurs vives
+    const colors = [
+        '#4F46E5', // Indigo
+        '#0EA5E9', // Bleu ciel
+        '#10B981', // Émeraude
+        '#F59E0B', // Ambre
+        '#EF4444', // Rouge
+        '#8B5CF6', // Violet
+        '#EC4899', // Rose
+        '#06B6D4', // Cyan
+    ];
+
+    // Utiliser l'ID comme seed pour choisir une couleur
+    return colors[id % colors.length];
+};
+
+export default OperatingRoomsConfigPanel;

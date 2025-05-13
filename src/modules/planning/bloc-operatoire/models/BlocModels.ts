@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+// Importons les constantes des catégories de secteur et des types de salle
+import { SECTOR_CATEGORY_TYPES } from '../constants/sectorCategoryTypes';
+import { ROOM_TYPES } from '../constants/roomTypes';
+
 // Enum pour les périodes de la journée
 export enum BlocPeriod {
     MORNING = 'MORNING',
@@ -43,35 +47,30 @@ export const OperatingRoomSchema = z.object({
     id: z.number().optional(), // Optional pour création
     name: z.string().min(1, "Le nom de la salle est obligatoire"),
     number: z.string().min(1, "Le numéro de la salle est obligatoire"),
-    // Accepter soit sectorId comme nombre ou secteur comme chaîne
-    sectorId: z.number().optional(),
-    sector: z.string().optional(), // Nom du secteur, peut être utile pour l'affichage
-    colorCode: z.string().nullable().optional(), // Doit accepter null depuis Prisma
+    // Rendre sectorId et sector optionnels, et supprimer le .refine qui les rendait obligatoires
+    sectorId: z.number().optional().nullable(), // Peut être null en DB, donc nullable ici aussi
+    sector: z.string().optional().nullable(), // Nom du secteur, peut être null si non assigné
+    colorCode: z.string().nullable().optional(),
     isActive: z.boolean().optional().default(true),
     supervisionRules: z.record(z.any()).optional().default({}),
     createdAt: z.date().optional(),
     updatedAt: z.date().optional(),
-    displayOrder: z.number().int().default(0).optional(), // Ajout du champ d'ordre
-}).refine(data => {
+    displayOrder: z.number().int().default(0).optional(),
+    type: z.enum(Object.values(ROOM_TYPES) as [string, ...string[]]).default(ROOM_TYPES.STANDARD), // Utilisation des constantes
+})/* .refine(data => { // Suppression de cette section
     // Au moins l'un des deux (sectorId ou sector) doit être présent
     return data.sectorId !== undefined || data.sector !== undefined;
 }, {
     message: "Le secteur de la salle est obligatoire (soit par sectorId, soit par sector)",
     path: ["sector"]
-}).transform(data => {
-    // Normaliser le nom du secteur si présent
+}) */.transform(data => {
     if (typeof data.sector === 'string') {
-        // Normaliser les espaces
         let normalized = data.sector.trim().replace(/\s+/g, ' ');
-
-        // Traitement spécial pour Endoscopie
         if (normalized.toLowerCase().includes("endoscopie")) {
             normalized = "Endoscopie";
         }
-
         data.sector = normalized;
     }
-
     return data;
 });
 
@@ -90,7 +89,7 @@ export const OperatingSectorSchema = z.object({
     updatedAt: z.date().optional(),
     displayOrder: z.number().int().default(0).optional(), // Ajout du champ d'ordre
     siteId: z.string().optional(), // Ajout de la référence au site (optionnel pour l'instant)
-    // On pourrait ajouter un `site: SiteSchema.optional()` si on définissait SiteSchema
+    category: z.enum(Object.values(SECTOR_CATEGORY_TYPES) as [string, ...string[]]).default(SECTOR_CATEGORY_TYPES.STANDARD), // Utilisation des constantes
 });
 
 export type OperatingSector = z.infer<typeof OperatingSectorSchema>;

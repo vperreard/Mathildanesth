@@ -8,29 +8,201 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// --- NOUVELLES ÉNUMÉRATIONS ---
+enum Period {
+  MATIN
+  APRES_MIDI
+  JOURNEE_ENTIERE
+  // NUIT // Optionnel pour plus tard
+}
+
+enum BlocPlanningStatus {
+  DRAFT
+  VALIDATION_REQUESTED
+  VALIDATED
+  MODIFIED_AFTER_VALIDATION
+  LOCKED
+  ARCHIVED
+}
+
+enum BlocStaffRole {
+  MAR
+  IADE
+}
+
+enum ConflictSeverity {
+  WARNING
+  ERROR
+}
+
+// --- NOUVEAUX MODÈLES POUR LES TRAMES DE PLANNING BLOC (isolés) ---
+model BlocTramePlanning {
+  id           Int                         @id @default(autoincrement())
+  name         String                      @unique
+  description  String?
+  siteId       String?
+  dateDebut    DateTime
+  dateFin      DateTime?
+  isActive     Boolean                     @default(true)
+  affectations BlocAffectationHabituelle[]
+  createdAt    DateTime                    @default(now())
+  updatedAt    DateTime                    @updatedAt
+
+  @@map("bloc_trame_plannings")
+}
+
+model BlocAffectationHabituelle {
+  id                  Int               @id @default(autoincrement())
+  blocTramePlanningId Int
+  blocTramePlanning   BlocTramePlanning @relation(fields: [blocTramePlanningId], references: [id], onDelete: Cascade)
+
+  userId       Int?
+  user         User?    @relation(fields: [userId], references: [id])
+  chirurgienId Int?
+  surgeon      Surgeon? @relation(fields: [chirurgienId], references: [id])
+
+  jourSemaine DayOfWeek
+  periode     Period
+  typeSemaine WeekType
+
+  typeAffectation   String
+  roleInAffectation String?
+
+  operatingRoomId Int?
+  specialiteChir  String?
+
+  priorite    Int      @default(5)
+  detailsJson Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("bloc_affectation_habituelles")
+}
+
+// --- NOUVEAUX MODÈLES SPÉCIFIQUES AU PLANNING DU BLOC OPÉRATOIRE V2 ---
+model BlocDayPlanning {
+  id     String             @id @default(uuid())
+  date   DateTime
+  siteId String
+  site   Site               @relation(fields: [siteId], references: [id])
+  status BlocPlanningStatus @default(DRAFT)
+
+  assignments BlocRoomAssignment[]
+  conflicts   BlocPlanningConflict[]
+
+  lockedAt       DateTime?
+  lockedByUserId Int?
+  // lockedByUser   User? @relation(fields: [lockedByUserId], references: [id])
+
+  validatedAt       DateTime?
+  validatedByUserId Int?
+  // validatedByUser User? @relation(fields: [validatedByUserId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([siteId, date])
+  @@map("bloc_day_plannings")
+}
+
+model BlocRoomAssignment {
+  id                String          @id @default(uuid())
+  blocDayPlanningId String
+  blocDayPlanning   BlocDayPlanning @relation(fields: [blocDayPlanningId], references: [id], onDelete: Cascade)
+
+  operatingRoomId Int
+  operatingRoom   OperatingRoom @relation(fields: [operatingRoomId], references: [id])
+  period          Period
+
+  chirurgienId Int?
+  surgeon      Surgeon? @relation(fields: [chirurgienId], references: [id])
+
+  expectedSpecialty String?
+
+  staffAssignments BlocStaffAssignment[]
+
+  sourceBlocTrameAffectationId Int?
+  // sourceBlocTrameAffectation BlocAffectationHabituelle? @relation(fields: [sourceBlocTrameAffectationId], references: [id], onDelete: SetNull) 
+
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("bloc_room_assignments")
+}
+
+model BlocStaffAssignment {
+  id                   String             @id @default(uuid())
+  blocRoomAssignmentId String
+  blocRoomAssignment   BlocRoomAssignment @relation(fields: [blocRoomAssignmentId], references: [id], onDelete: Cascade)
+
+  userId Int
+  user   User          @relation(fields: [userId], references: [id])
+  role   BlocStaffRole
+
+  isPrimaryAnesthetist Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("bloc_staff_assignments")
+}
+
+model BlocPlanningConflict {
+  id                String          @id @default(uuid())
+  blocDayPlanningId String
+  blocDayPlanning   BlocDayPlanning @relation(fields: [blocDayPlanningId], references: [id], onDelete: Cascade)
+
+  relatedRoomAssignmentId  String?
+  relatedStaffAssignmentId String?
+  relatedUserId            Int?
+  relatedSurgeonId         Int?
+
+  type     String
+  message  String
+  severity ConflictSeverity
+
+  isResolved       Boolean   @default(false)
+  resolvedAt       DateTime?
+  resolvedByUserId Int?
+  resolvedByUser   User?     @relation("ResolvedBy", fields: [resolvedByUserId], references: [id], onDelete: SetNull)
+  resolutionNotes  String?
+
+  isForceResolved       Boolean   @default(false)
+  forceResolvedAt       DateTime?
+  forceResolvedByUserId Int?
+  forceResolvedByUser   User?     @relation("ForcedBy", fields: [forceResolvedByUserId], references: [id], onDelete: SetNull)
+  forceResolutionNotes  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("bloc_planning_conflicts")
+}
+
 model User {
-  id                            Int                   @id @default(autoincrement())
+  id                            Int                         @id @default(autoincrement())
   nom                           String
   prenom                        String
-  login                         String                @unique
-  email                         String                @unique
+  login                         String                      @unique
+  email                         String                      @unique
   password                      String
-  role                          Role                  @default(USER)
+  role                          Role                        @default(USER)
   professionalRole              ProfessionalRole
-  tempsPartiel                  Boolean               @default(false)
+  tempsPartiel                  Boolean                     @default(false)
   pourcentageTempsPartiel       Float?
   dateEntree                    DateTime?
   dateSortie                    DateTime?
-  actif                         Boolean               @default(true)
-  createdAt                     DateTime              @default(now())
-  updatedAt                     DateTime              @updatedAt
-  mustChangePassword            Boolean               @default(false)
+  actif                         Boolean                     @default(true)
+  createdAt                     DateTime                    @default(now())
+  updatedAt                     DateTime                    @updatedAt
+  mustChangePassword            Boolean                     @default(false)
   phoneNumber                   String?
   alias                         String?
   workOnMonthType               WeekType?
-  workPattern                   WorkPatternType       @default(FULL_TIME)
-  joursTravaillesSemaineImpaire Json                  @default("[]")
-  joursTravaillesSemainePaire   Json                  @default("[]")
+  workPattern                   WorkPatternType             @default(FULL_TIME)
+  joursTravaillesSemaineImpaire Json                        @default("[]")
+  joursTravaillesSemainePaire   Json                        @default("[]")
   displayPreferences            Json?
   lastLogin                     DateTime?
   departmentId                  String?
@@ -39,27 +211,37 @@ model User {
   dashboards                    Dashboard[]
   duties                        Duty[]
   loginLogs                     LoginLog[]
-  createdNotifications          Notification[]        @relation("CreatedNotifications")
-  notifications                 Notification[]        @relation("UserNotifications")
+  createdNotifications          Notification[]              @relation("CreatedNotifications")
+  notifications                 Notification[]              @relation("UserNotifications")
   onCalls                       OnCall[]
-  createdRules                  Rule[]                @relation("CreatedRules")
-  updatedRules                  Rule[]                @relation("UpdatedRules")
-  tramesCreated                 TrameAffectation[]    @relation("CreatedTrames")
+  createdRules                  Rule[]                      @relation("CreatedRules")
+  updatedRules                  Rule[]                      @relation("UpdatedRules")
+  tramesCreated                 TrameAffectation[]          @relation("CreatedTrames")
   auditLogs                     AuditLog[]
-  leaveBalances                 LeaveBalance[]        @relation("UserLeaveBalances")
-  approvedLeaves                Leave[]               @relation("ApprovedLeaves")
+  leaveBalances                 LeaveBalance[]              @relation("UserLeaveBalances")
+  approvedLeaves                Leave[]                     @relation("ApprovedLeaves")
   leaves                        Leave[]
   plannedAbsences               PlannedAbsence[]
-  validatedAbsences             PlannedAbsence[]      @relation("ValidatedAbsences")
-  approvedCarryOvers            QuotaCarryOver[]      @relation("ApprovedCarryOvers")
-  quotaCarryOvers               QuotaCarryOver[]      @relation("UserQuotaCarryOvers")
-  approvedTransfers             QuotaTransfer[]       @relation("ApprovedTransfers")
-  quotaTransfers                QuotaTransfer[]       @relation("UserQuotaTransfers")
+  validatedAbsences             PlannedAbsence[]            @relation("ValidatedAbsences")
+  approvedCarryOvers            QuotaCarryOver[]            @relation("ApprovedCarryOvers")
+  quotaCarryOvers               QuotaCarryOver[]            @relation("UserQuotaCarryOvers")
+  approvedTransfers             QuotaTransfer[]             @relation("ApprovedTransfers")
+  quotaTransfers                QuotaTransfer[]             @relation("UserQuotaTransfers")
   regularAssignments            RegularAssignment[]
   surgeonProfile                Surgeon?
   calendarSettings              UserCalendarSettings?
-  department                    Department?           @relation(fields: [departmentId], references: [id])
-  sites                         Site[]                @relation("SiteUsers")
+  department                    Department?                 @relation(fields: [departmentId], references: [id])
+  sites                         Site[]                      @relation("SiteUsers")
+  blocStaffAssignments          BlocStaffAssignment[]
+  blocPlanningConflictsResolved BlocPlanningConflict[]      @relation("ResolvedBy")
+  blocPlanningConflictsForced   BlocPlanningConflict[]      @relation("ForcedBy")
+  blocTrameAffectations         BlocAffectationHabituelle[]
+  canSuperviseOphtalmo          Boolean                     @default(false)
+  canSuperviseEndo              Boolean                     @default(false)
+
+  CreatedIncompatibilities PersonnelIncompatibility[] @relation("CreatedIncompatibilities")
+  incompatibilitiesAsUser1 PersonnelIncompatibility[] @relation("User1Incompatibilities")
+  incompatibilitiesAsUser2 PersonnelIncompatibility[] @relation("User2Incompatibilities")
 
   @@map("users")
 }
@@ -73,19 +255,29 @@ model Specialty {
 }
 
 model Surgeon {
-  id                 Int                 @id @default(autoincrement())
-  nom                String
-  prenom             String
-  email              String?             @unique
-  phoneNumber        String?
-  status             UserStatus          @default(ACTIF)
-  userId             Int?                @unique
-  googleSheetName    String?
-  plannedAbsences    PlannedAbsence[]
-  preferences        SurgeonPreference[]
-  regularAssignments RegularAssignment[]
-  user               User?               @relation(fields: [userId], references: [id])
-  specialties        Specialty[]         @relation("SpecialtyToSurgeon")
+  id              Int        @id @default(autoincrement())
+  nom             String
+  prenom          String
+  email           String?    @unique
+  phoneNumber     String?
+  status          UserStatus @default(ACTIF)
+  userId          Int?       @unique
+  user            User?      @relation(fields: [userId], references: [id])
+  googleSheetName String?
+
+  specialties Specialty[] @relation("SpecialtyToSurgeon")
+  sites       Site[]      @relation("SurgeonSites")
+
+  plannedAbsences             PlannedAbsence[]
+  preferences                 SurgeonPreference[]
+  regularAssignments          RegularAssignment[]
+  blocRoomAssignments         BlocRoomAssignment[] // Maintenu pour la rétrocompatibilité si utilisé ailleurs
+  absences                    Absence[]
+  blocTrameAffectations       BlocAffectationHabituelle[]
+  assignments                 Assignment[]                @relation("SurgeonAssignments")
+  // Relations pour PersonnelIncompatibility
+  incompatibilitiesAsSurgeon1 PersonnelIncompatibility[]  @relation("Surgeon1Incompatibilities")
+  incompatibilitiesAsSurgeon2 PersonnelIncompatibility[]  @relation("Surgeon2Incompatibilities")
 
   @@map("surgeons")
 }
@@ -123,17 +315,21 @@ model PlanningRule {
 }
 
 model OperatingRoom {
-  id               Int             @id @default(autoincrement())
-  name             String
-  number           String          @unique
-  sectorId         Int
-  colorCode        String?
-  isActive         Boolean         @default(true)
-  supervisionRules Json
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  displayOrder     Int             @default(0)
-  sector           OperatingSector @relation(fields: [sectorId], references: [id])
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  number              String               @unique
+  sectorId            Int?
+  colorCode           String?
+  isActive            Boolean              @default(true)
+  supervisionRules    Json
+  type                RoomType             @default(STANDARD)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  displayOrder        Int                  @default(0)
+  allowedSpecialties  String[]             @default([])
+  blocRoomAssignments BlocRoomAssignment[]
+  sector              OperatingSector?     @relation(fields: [sectorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  Assignment          Assignment[]
 
   @@index([sectorId])
 }
@@ -258,39 +454,53 @@ model OnCall {
 }
 
 model Assignment {
-  id                  Int                @id @default(autoincrement())
-  userId              Int
+  id                  String             @id @default(uuid())
   date                DateTime
-  type                String
-  status              String?
-  locationId          Int?
-  specialtyId         Int?
-  regularAssignmentId Int?
-  location            Location?          @relation(fields: [locationId], references: [id])
-  regularAssignment   RegularAssignment? @relation("GeneratedFromRegular", fields: [regularAssignmentId], references: [id])
+  userId              Int? // MAR ou IADE
+  user                User?              @relation(fields: [userId], references: [id])
+  chirurgien          String? // Nom du chirurgien (legacy ou si pas de modèle Surgeon lié)
+  salle               String? // Nom de la salle (legacy ou si pas de modèle OperatingRoom lié)
+  type                String // Ex: BLOC_OPERATION, CONSULTATION, GARDE_JOUR, GARDE_NUIT, ASTREINTE, REPOS_GARDE, FORMATION, CONGRES, MALADIE, MATERNITE, ABS_AUTORISEE, ABS_NON_AUTORISEE, FERIE
+  statut              String? // Ex: PREVU, REALISE, ANNULE
+  heureDebut          String? // Format HH:MM
+  heureFin            String? // Format HH:MM
+  notes               String?
+  specialtyId         Int? // Pour lier à une spécialité
   specialty           Specialty?         @relation(fields: [specialtyId], references: [id])
-  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  siteId              String? // Pour lier à un site
+  site                Site?              @relation(fields: [siteId], references: [id])
+  operatingRoomId     Int? // Pour lier à une salle d'opération spécifique
+  operatingRoom       OperatingRoom?     @relation(fields: [operatingRoomId], references: [id])
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  blocDayPlanningId   String? // Ajout pour lier à BlocDayPlanning si nécessaire
+  surgeonId           Int?
+  surgeon             Surgeon?           @relation("SurgeonAssignments", fields: [surgeonId], references: [id], onDelete: Cascade)
+  regularAssignmentId Int?
+  regularAssignment   RegularAssignment? @relation("GeneratedFromRegular", fields: [regularAssignmentId], references: [id])
+  Location            Location?          @relation(fields: [locationId], references: [id])
+  locationId          Int?
 
-  @@index([userId])
   @@index([date])
-  @@index([locationId])
-  @@index([type])
-  @@index([regularAssignmentId])
+  @@index([userId, date])
+  @@index([siteId, date])
+  @@map("assignments")
 }
 
 model OperatingSector {
-  id             Int             @id @default(autoincrement())
-  name           String          @unique
-  colorCode      String          @default("#000000")
-  isActive       Boolean         @default(true)
-  description    String?
-  rules          Json            @default("{\"maxRoomsPerSupervisor\": 2}")
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  displayOrder   Int             @default(0)
-  siteId         String?
-  operatingRooms OperatingRoom[]
-  site           Site?           @relation(fields: [siteId], references: [id])
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
+  colorCode    String?
+  isActive     Boolean        @default(true)
+  description  String?
+  rules        Json?
+  category     SectorCategory @default(STANDARD)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  siteId       String?
+  displayOrder Int?
+  rooms        OperatingRoom[]
+  site         Site?          @relation(fields: [siteId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([siteId])
 }
@@ -360,6 +570,7 @@ model RegularAssignment {
   userId        Int?
   surgeonId     Int?
   locationId    Int?
+  siteId        String?
   weekType      WeekType          @default(ALL)
   active        Boolean           @default(true)
   configuration Json?
@@ -371,10 +582,12 @@ model RegularAssignment {
   surgeon       Surgeon?          @relation(fields: [surgeonId], references: [id])
   trame         TrameAffectation? @relation("TrameAssignments", fields: [trameId], references: [id])
   user          User?             @relation(fields: [userId], references: [id])
+  site          Site?             @relation(fields: [siteId], references: [id])
 
   @@index([userId])
   @@index([surgeonId])
   @@index([trameId])
+  @@index([siteId])
   @@index([dayOfWeek, period, weekType])
   @@map("regular_assignments")
 }
@@ -491,16 +704,20 @@ model Dashboard {
 }
 
 model Absence {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  startDate DateTime
-  endDate   DateTime
-  type      String
-  status    String
-  reason    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-  users     User     @relation(fields: [userId], references: [id])
+  id           String      @id @default(cuid())
+  userId       Int?
+  user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startDate    DateTime
+  endDate      DateTime
+  type         LeaveType
+  status       LeaveStatus
+  reason       String?
+  comment      String?
+  requestDate  DateTime    @default(now())
+  approvalDate DateTime?
+  approvedById Int?
+  chirurgienId Int?
+  surgeon      Surgeon?    @relation(fields: [chirurgienId], references: [id])
 
   @@index([endDate])
   @@index([startDate])
@@ -654,15 +871,21 @@ model Department {
 }
 
 model Site {
-  id               String            @id @default(cuid())
-  name             String
-  description      String?
-  isActive         Boolean           @default(true)
-  displayOrder     Int               @default(0)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  operatingSectors OperatingSector[]
-  users            User[]            @relation("SiteUsers")
+  id                 String    @id @default(cuid())
+  name               String    @unique
+  description        String?
+  isActive           Boolean   @default(true)
+  displayOrder       Int?
+  address            String?
+  colorCode          String?             @default("#007bff")
+  operatingSectors   OperatingSector[]
+  users              User[]              @relation("SiteUsers")
+  regularAssignments RegularAssignment[]
+  surgeons           Surgeon[]           @relation("SurgeonSites")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  blocDayPlannings   BlocDayPlanning[]
+  Assignment         Assignment[]
 
   @@map("sites")
 }
@@ -775,4 +998,56 @@ enum AbsenceStatus {
   REQUESTED
   VALIDATED
   REJECTED
+}
+
+model PersonnelIncompatibility {
+  id         String   @id @default(cuid())
+  // Personne 1 (peut être un User ou un Surgeon)
+  user1Id    Int?
+  user1      User?    @relation("User1Incompatibilities", fields: [user1Id], references: [id], onDelete: Cascade)
+  surgeon1Id Int?
+  surgeon1   Surgeon? @relation("Surgeon1Incompatibilities", fields: [surgeon1Id], references: [id], onDelete: Cascade)
+
+  // Personne 2 (peut être un User ou un Surgeon)
+  user2Id    Int?
+  user2      User?    @relation("User2Incompatibilities", fields: [user2Id], references: [id], onDelete: Cascade)
+  surgeon2Id Int?
+  surgeon2   Surgeon? @relation("Surgeon2Incompatibilities", fields: [surgeon2Id], references: [id], onDelete: Cascade)
+
+  type   IncompatibilityType
+  reason String? // Motif optionnel
+
+  startDate DateTime? // Période de validité
+  endDate   DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     Int? // ID de l'utilisateur qui a créé la règle
+  createdByUser User?    @relation("CreatedIncompatibilities", fields: [createdBy], references: [id], onDelete: SetNull) // onDelete: SetNull pour ne pas supprimer l'incompatibilité si l'admin est supprimé
+  // S'assurer qu'au moins un ID est fourni pour chaque personne (pas directement faisable avec des attributs simples, logique applicative)
+  // Prévenir les incompatibilités avec soi-même (user1Id != user2Id si surgeon1Id et surgeon2Id sont null, etc.) -> logique applicative
+
+  // Index pour les requêtes courantes
+  @@index([user1Id, user2Id, type, startDate, endDate])
+  @@index([surgeon1Id, surgeon2Id, type, startDate, endDate])
+  @@index([user1Id, surgeon2Id, type, startDate, endDate])
+  @@map("personnel_incompatibilities")
+}
+
+enum IncompatibilityType {
+  BLOQUANT // Ne doivent jamais travailler ensemble sur la même vacation/salle
+  PREFERENTIEL // À éviter si possible, génère un avertissement
+}
+
+enum SectorCategory {
+  STANDARD
+  HYPERASEPTIQUE
+  OPHTALMOLOGIE
+  ENDOSCOPIE
+}
+
+enum RoomType {
+  STANDARD
+  FIV
+  CONSULTATION
 }

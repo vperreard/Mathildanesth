@@ -18,7 +18,7 @@ export interface UseConflictDetectionReturn {
     hasBlockingConflicts: boolean;
     loading: boolean;
     error: Error | null;
-    checkConflicts: (startDate: Date, endDate: Date, leaveId?: string) => Promise<ConflictCheckResult>;
+    checkConflicts: (startDate: Date | string | null, endDate: Date | string | null, leaveId?: string, skipDebounce?: boolean) => Promise<ConflictCheckResult>;
     getConflictsByType: (type: ConflictType) => LeaveConflict[];
     getBlockingConflicts: () => LeaveConflict[];
     getWarningConflicts: () => LeaveConflict[];
@@ -75,39 +75,57 @@ export const useConflictDetection = ({
     const validateDates = (startDate: Date | null, endDate: Date | null): boolean => {
         dateValidation.resetErrors();
 
+        // Vérifications de base des dates
         if (!startDate || !endDate) {
+            console.log('useConflictDetection: validateDates - dates nulles');
             return false;
         }
+
+        // Vérifier que ce sont bien des objets Date valides
         if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
+            console.log('useConflictDetection: validateDates - startDate n\'est pas une date valide');
             return false;
         }
+
         if (!(endDate instanceof Date) || isNaN(endDate.getTime())) {
+            console.log('useConflictDetection: validateDates - endDate n\'est pas une date valide');
             return false;
         }
+
+        // Vérifier que la date de début est bien avant la date de fin
         if (startDate > endDate) {
+            console.log('useConflictDetection: validateDates - startDate est après endDate');
             return false;
         }
 
-        const startValid = dateValidation.validateDate(startDate, 'startDate', {
-            required: true,
-            allowPastDates: false
-        });
-        const endValid = dateValidation.validateDate(endDate, 'endDate', {
-            required: true,
-            allowPastDates: false
-        });
-        const rangeValid = dateValidation.validateDateRange(
-            startDate,
-            endDate,
-            'startDate',
-            'endDate',
-            {
-                minDuration: 1,
-                businessDaysOnly: true
-            }
-        );
+        try {
+            // Vérifications avancées avec le validateur de dates
+            const startValid = dateValidation.validateDate(startDate, 'startDate', {
+                required: true,
+                allowPastDates: false
+            });
 
-        return startValid && endValid && rangeValid;
+            const endValid = dateValidation.validateDate(endDate, 'endDate', {
+                required: true,
+                allowPastDates: false
+            });
+
+            const rangeValid = dateValidation.validateDateRange(
+                startDate,
+                endDate,
+                'startDate',
+                'endDate',
+                {
+                    minDuration: 1,
+                    businessDaysOnly: true
+                }
+            );
+
+            return startValid && endValid && rangeValid;
+        } catch (error) {
+            console.error('useConflictDetection: validateDates - erreur lors de la validation', error);
+            return false;
+        }
     };
 
     // Fonction pour réinitialiser tous les conflits
@@ -138,8 +156,8 @@ export const useConflictDetection = ({
 
     // Vérifier les conflits avec un système de debounce pour éviter les appels trop fréquents
     const checkConflicts = useCallback(async (
-        startDate: Date,
-        endDate: Date,
+        startDate: Date | string | null,
+        endDate: Date | string | null,
         leaveId?: string,
         skipDebounce: boolean = false
     ): Promise<ConflictCheckResult> => {
@@ -153,19 +171,26 @@ export const useConflictDetection = ({
         // Fonction qui effectue la vérification réelle
         const performCheck = async (): Promise<ConflictCheckResult> => {
             try {
+                // Convertir les dates si elles sont fournies en tant que chaînes
+                const startDateObj = typeof startDate === 'string' ? new Date(startDate) : startDate;
+                const endDateObj = typeof endDate === 'string' ? new Date(endDate) : endDate;
+
                 // Valider les dates d'entrée avec le hook useDateValidation
-                const datesValid = validateDates(startDate, endDate);
+                const datesValid = validateDates(startDateObj, endDateObj);
 
                 if (!datesValid) {
+                    console.error('useConflictDetection: checkConflicts - Dates invalides pour la vérification des conflits', { startDate, endDate });
                     throw new Error('Dates invalides pour la vérification des conflits');
                 }
 
                 if (!userId) {
+                    console.error('useConflictDetection: checkConflicts - ID utilisateur requis');
                     throw new Error('ID utilisateur requis');
                 }
 
                 // Appeler le service de vérification des conflits
-                const result = await checkLeaveConflicts(startDate, endDate, userId, leaveId);
+                // À ce stade, on sait que startDateObj et endDateObj sont des objets Date valides
+                const result = await checkLeaveConflicts(startDateObj as Date, endDateObj as Date, userId, leaveId);
 
                 // Mettre à jour l'état avec les résultats
                 setConflicts(result.conflicts || []);

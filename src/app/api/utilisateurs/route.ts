@@ -17,11 +17,22 @@ enum Role {
 // const prisma = new PrismaClient(); // Supprimé
 
 // --- Fonction GET ---
-export async function GET() {
+export async function GET(request: Request) {
     // let prismaInstance: PrismaClient | null = null; // Supprimé
     try {
+        // Lire le paramètre includeInactive de l'URL
+        const { searchParams } = new URL(request.url);
+        const includeInactive = searchParams.get('includeInactive') === 'true';
+
+        // Définir la clause where en fonction du paramètre
+        let whereClause: Prisma.UserWhereInput = {};
+        if (!includeInactive) {
+            whereClause.actif = true; // Filtrer par actif: true si includeInactive est false
+        }
+
         // prismaInstance = new PrismaClient(); // Supprimé
         const users = await prisma.user.findMany({ // Utilise l'instance importée
+            where: whereClause, // Appliquer la clause where
             orderBy: [
                 { nom: 'asc' },
                 { prenom: 'asc' },
@@ -63,7 +74,13 @@ export async function POST(request: Request) {
         console.log("Vérification d'autorisation échouée:", authCheck.error);
         return new NextResponse(JSON.stringify({ message: 'Accès non autorisé', error: authCheck.error }), { status: 403 });
     }
-    console.log("Vérification d'autorisation réussie pour utilisateur:", authCheck.user.login);
+    if (authCheck.user) {
+        console.log("Vérification d'autorisation réussie pour utilisateur:", authCheck.user.login);
+    } else {
+        // Gérer le cas où user est undefined même si hasRequiredRole est true (ne devrait pas arriver mais pour TypeScript)
+        console.warn("Autorisation réussie mais objet utilisateur manquant dans authCheck.");
+        return new NextResponse(JSON.stringify({ message: "Erreur interne lors de la vérification d'autorisation" }), { status: 500 });
+    }
 
     try {
         const body = await request.json();

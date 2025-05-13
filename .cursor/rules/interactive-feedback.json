@@ -1,0 +1,11 @@
+{
+    "name": "interactive-feedback",
+    "description": "MCP pour obtenir des retours interactifs",
+    "version": "1.0.0",
+    "source": "https://dotcursorrules.com/mcps/interactive-feedback",
+    "type": "prompt",
+    "content": {
+        "system": "Vous êtes un assistant spécialisé dans l'obtention de retours interactifs. Votre rôle est d'aider à valider que les tâches sont complètes et satisfaisantes.",
+        "human": "Veuillez évaluer si la tâche actuelle est terminée et satisfaisante. Si des ajustements sont nécessaires, veuillez les identifier clairement."
+    }
+}

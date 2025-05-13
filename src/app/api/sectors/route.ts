@@ -28,7 +28,7 @@ function parseRules(rulesJson: Prisma.JsonValue): { maxRoomsPerSupervisor: numbe
 export async function GET(request: NextRequest) {
     console.log("\n--- GET /api/sectors START (Prisma - operatingSector - JSON Rules) ---");
     try {
-        const requestHeaders = headers();
+        const requestHeaders = await headers();
         const userId = requestHeaders.get('x-user-id');
         const userRole = requestHeaders.get('x-user-role');
         console.log("GET /api/sectors - Reading Middleware Headers:", { userId, userRole });
@@ -42,9 +42,11 @@ export async function GET(request: NextRequest) {
         console.log('GET /api/sectors: Retrieving sectors from DB using operatingSector model...');
 
         const sectorsFromDb = await prisma.operatingSector.findMany({
-            orderBy: {
-                name: 'asc',
-            },
+            orderBy: [
+                { siteId: 'asc' },
+                { displayOrder: 'asc' },
+                { name: 'asc' },
+            ],
             select: {
                 id: true,
                 name: true,
@@ -52,6 +54,8 @@ export async function GET(request: NextRequest) {
                 isActive: true,
                 description: true,
                 rules: true,
+                siteId: true,
+                displayOrder: true
             }
         });
 
@@ -64,7 +68,9 @@ export async function GET(request: NextRequest) {
                 color: sector.colorCode,
                 isActive: sector.isActive,
                 description: sector.description,
-                rules: parsedRules
+                rules: parsedRules,
+                siteId: sector.siteId,
+                displayOrder: sector.displayOrder
             };
         });
 
@@ -86,7 +92,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     console.log("\n--- POST /api/sectors START (Prisma - operatingSector - JSON Rules) ---");
     try {
-        const requestHeaders = headers();
+        const requestHeaders = await headers();
         const userId = requestHeaders.get('x-user-id');
         const userRole = requestHeaders.get('x-user-role');
         console.log("POST /api/sectors - Reading Middleware Headers:", { userId, userRole });

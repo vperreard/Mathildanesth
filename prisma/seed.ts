@@ -365,6 +365,7 @@ async function main() {
         // Traitement des utilisateurs
         await processUsers(users);
 
+        /* // START COMMENT BLOCK - Sectors and Rooms handled elsewhere
         // Créer les secteurs opératoires
         const operatingSectors = [
             {
@@ -438,14 +439,11 @@ async function main() {
                 console.error(`[SEED DEBUG] Erreur lors du traitement de la salle ${room.name}:`, error);
             }
         }
+        */ // END COMMENT BLOCK
 
         // Créer les types de congés
         for (const leaveType of leaveTypes) {
             try {
-                const existingLeaveType = await prisma.leaveTypeSetting.findUnique({
-                    where: { code: leaveType.code }
-                });
-
                 const leaveTypeData = {
                     code: leaveType.code,
                     label: leaveType.label,
@@ -455,18 +453,18 @@ async function main() {
                     rules: leaveType.rules
                 };
 
-                if (existingLeaveType) {
-                    await prisma.leaveTypeSetting.update({
-                        where: { code: leaveType.code },
-                        data: leaveTypeData
-                    });
-                    console.log(`[SEED DEBUG] Type de congé mis à jour: ${leaveType.label}`);
-                } else {
-                    await prisma.leaveTypeSetting.create({
-                        data: leaveTypeData
-                    });
-                    console.log(`[SEED DEBUG] Nouveau type de congé créé: ${leaveType.label}`);
-                }
+                // Use upsert to create or update the leave type setting
+                const upsertedLeaveType = await prisma.leaveTypeSetting.upsert({
+                    where: { code: leaveType.code },
+                    update: leaveTypeData, // Data to use if record exists
+                    create: leaveTypeData, // Data to use if record does not exist
+                });
+
+                // Log based on whether it was created or updated (optional, requires checking)
+                // Prisma upsert result doesn't directly tell if it created or updated,
+                // but we can assume it succeeded.
+                console.log(`[SEED DEBUG] Type de congé traité (upserted): ${leaveType.label}`);
+
             } catch (error) {
                 console.error(`[SEED DEBUG] Erreur lors du traitement du type de congé ${leaveType.label}:`, error);
             }
@@ -548,13 +546,6 @@ async function main() {
             } catch (error) {
                 console.error(`[SEED DEBUG] Erreur lors du traitement du rôle ${role.code}:`, error);
             }
-        }
-
-        // Création des types de congés par défaut
-        for (const leaveType of leaveTypes) {
-            await prisma.leaveTypeSetting.create({
-                data: leaveType
-            });
         }
 
         // Création des règles de transfert de quotas

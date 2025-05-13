@@ -1,17 +1,21 @@
 'use client';
 
-import { DatePicker } from '@/components/ui';
-import BlocPlanningCalendar from '@/modules/planning/bloc-operatoire/components/BlocPlanningCalendar';
-import { BlocPeriod, BlocPlanningStatus } from '@/modules/planning/bloc-operatoire/models/BlocModels';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import BlocDayPlanningView from '../components/BlocDayPlanningView';
 
-// Cette page sera rendue côté client
+// Enum pour les périodes (matin, après-midi, etc.)
+enum Period {
+    MATIN = 'MATIN',
+    APRES_MIDI = 'APRES_MIDI',
+    JOURNEE_ENTIERE = 'JOURNEE_ENTIERE'
+}
+
 export default function BlocPlanningPage() {
-    // Utilisation de use client après export default
-    'use client';
-
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-    const [selectedPeriod, setSelectedPeriod] = useState<BlocPeriod>(BlocPeriod.MORNING);
+    const [selectedSiteId, setSelectedSiteId] = useState<string>('1'); // ID du site par défaut
 
     const handleDateChange = (date: Date | undefined) => {
         if (date) {
@@ -19,8 +23,8 @@ export default function BlocPlanningPage() {
         }
     };
 
-    const handlePeriodChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedPeriod(event.target.value as BlocPeriod);
+    const handleSiteChange = (value: string) => {
+        setSelectedSiteId(value);
     };
 
     return (
@@ -33,53 +37,34 @@ export default function BlocPlanningPage() {
                         <DatePicker date={selectedDate} onDateChange={handleDateChange} />
                     </div>
                     <div className="flex items-center space-x-2">
-                        <span>Période:</span>
-                        <select
-                            value={selectedPeriod}
-                            onChange={handlePeriodChange}
-                            className="border rounded p-2"
-                        >
-                            <option value={BlocPeriod.MORNING}>Matin</option>
-                            <option value={BlocPeriod.AFTERNOON}>Après-midi</option>
-                            <option value={BlocPeriod.EVENING}>Soir</option>
-                            <option value={BlocPeriod.NIGHT}>Nuit</option>
-                        </select>
+                        <span>Site:</span>
+                        <Select value={selectedSiteId} onValueChange={handleSiteChange}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Sélectionner un site" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {/* Ces valeurs devraient être chargées dynamiquement */}
+                                <SelectItem value="1">Hôpital Principal</SelectItem>
+                                <SelectItem value="2">Clinique Sud</SelectItem>
+                                <SelectItem value="3">Centre Médical Est</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 gap-6">
-                <div className="bg-white rounded-lg shadow p-6">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-semibold">
-                            Planning du {selectedDate.toLocaleDateString('fr-FR')} - {
-                                selectedPeriod === BlocPeriod.MORNING ? 'Matin' :
-                                    selectedPeriod === BlocPeriod.AFTERNOON ? 'Après-midi' :
-                                        selectedPeriod === BlocPeriod.EVENING ? 'Soir' : 'Nuit'
-                            }
-                        </h2>
-                        <div className="flex gap-2">
-                            <button className="bg-blue-500 text-white px-4 py-2 rounded">
-                                Valider
-                            </button>
-                            <button className="border border-gray-300 px-4 py-2 rounded">
-                                Sauvegarder
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="mb-4 flex items-center gap-2">
-                        <span className="font-semibold">Statut:</span>
-                        <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                            {BlocPlanningStatus.DRAFT}
-                        </span>
-                    </div>
-
-                    <BlocPlanningCalendar
-                        date={selectedDate}
-                        period={selectedPeriod}
-                    />
-                </div>
+                <Card className="bg-white rounded-lg shadow">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xl">Planning du bloc opératoire</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <BlocDayPlanningView
+                            date={selectedDate}
+                            siteId={selectedSiteId}
+                        />
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );

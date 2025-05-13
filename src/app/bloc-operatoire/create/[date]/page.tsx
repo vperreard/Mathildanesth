@@ -1,174 +1,140 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui';
+import { ArrowLeft, Calendar } from 'lucide-react';
 import { format, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, AlertCircle, Calendar, Check } from 'lucide-react';
-import { blocPlanningService } from '@/services/blocPlanningService';
-import { BlocDayPlanning, OperatingRoom, BlocSector, SupervisionRule } from '@/types/bloc-planning-types';
-import Link from 'next/link';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import BlocPlanningEditor from '../../components/BlocPlanningEditor';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { v4 as uuidv4 } from 'uuid';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
+import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 
 export default function CreateBlocPlanningPage() {
     const params = useParams();
     const router = useRouter();
-    const [date, setDate] = useState<Date | null>(null);
-    const [planning, setPlanning] = useState<BlocDayPlanning | null>(null);
-    const [salles, setSalles] = useState<OperatingRoom[]>([]);
-    const [secteurs, setSecteurs] = useState<BlocSector[]>([]);
-    const [rules, setRules] = useState<SupervisionRule[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const searchParams = useSearchParams();
 
-    // Récupérer la date de l'URL
+    const [date, setDate] = useState<Date | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [selectedSiteId, setSelectedSiteId] = useState<string>('');
+    const [sites, setSites] = useState<Array<{ id: string, name: string }>>([]);
+    const [creating, setCreating] = useState(false);
+
     useEffect(() => {
-        if (params.date) {
+        // Récupérer la date depuis les paramètres d'URL
+        if (params?.date) {
             try {
                 const parsedDate = parse(params.date as string, 'yyyy-MM-dd', new Date());
-                setDate(parsedDate);
+                if (!isNaN(parsedDate.getTime())) {
+                    setDate(parsedDate);
+                } else {
+                    setError("Format de date invalide");
+                }
             } catch (err) {
+                console.error("Erreur lors du parsing de la date:", err);
                 setError("Format de date invalide");
-                console.error("Erreur de parsing de date:", err);
             }
         }
-    }, [params.date]);
 
-    // Charger les données et initialiser un nouveau planning
-    useEffect(() => {
-        const loadData = async () => {
-            if (!date) return;
+        // Récupérer le site depuis les paramètres de recherche
+        const siteId = searchParams?.get('siteId');
+        if (siteId) {
+            setSelectedSiteId(siteId);
+        }
 
-            setLoading(true);
-            setError(null);
+        // Charger la liste des sites
+        loadSites();
+    }, [params?.date, searchParams]);
 
-            try {
-                // Charger les données nécessaires
-                const formattedDate = format(date, 'yyyy-MM-dd');
-
-                // Vérifier si un planning existe déjà pour cette date
-                const existingPlanning = await blocPlanningService.getDayPlanning(formattedDate);
-
-                if (existingPlanning) {
-                    setError("Un planning existe déjà pour cette date. Utilisez l'option d'édition.");
-                    setTimeout(() => {
-                        router.push(`/bloc-operatoire/edit/${formattedDate}`);
-                    }, 2000);
-                    return;
-                }
-
-                // Créer un nouveau planning
-                const newPlanning: BlocDayPlanning = {
-                    id: uuidv4(),
-                    date: formattedDate,
-                    salles: [],
-                    validationStatus: 'BROUILLON'
-                };
-
-                // Charger les autres données
-                const [sallesData, secteursData, rulesData] = await Promise.all([
-                    blocPlanningService.getAllOperatingRooms(),
-                    blocPlanningService.getAllSectors(),
-                    blocPlanningService.getAllSupervisionRules()
-                ]);
-
-                setPlanning(newPlanning);
-                setSalles(sallesData);
-                setSecteurs(secteursData);
-                setRules(rulesData);
-            } catch (err) {
-                console.error("Erreur lors du chargement des données:", err);
-                setError("Erreur lors du chargement des données. Veuillez réessayer.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadData();
-    }, [date, router]);
-
-    // Gestion de la sauvegarde
-    const handleSavePlanning = async (updatedPlanning: BlocDayPlanning) => {
-        setSaving(true);
-        setError(null);
-        setSuccessMessage(null);
-
+    // Fonction pour charger la liste des sites
+    const loadSites = async () => {
         try {
-            await blocPlanningService.saveDayPlanning(updatedPlanning);
-            setSuccessMessage("Planning créé avec succès");
-            setPlanning(updatedPlanning);
+            // Dans une application réelle, récupérer les sites depuis l'API
+            // Pour l'instant, on utilise des données fictives
+            const mockSites = [
+                { id: '1', name: 'Hôpital Principal' },
+                { id: '2', name: 'Clinique Sud' },
+                { id: '3', name: 'Centre Médical Est' }
+            ];
+            setSites(mockSites);
 
-            // Rediriger après 1.5 secondes
-            setTimeout(() => {
-                router.push('/bloc-operatoire');
-            }, 1500);
+            // Si aucun site n'est sélectionné, prendre le premier par défaut
+            if (!selectedSiteId && mockSites.length > 0) {
+                setSelectedSiteId(mockSites[0].id);
+            }
         } catch (err) {
-            console.error("Erreur lors de la création du planning:", err);
-            setError("Erreur lors de la création du planning. Veuillez réessayer.");
-        } finally {
-            setSaving(false);
+            console.error("Erreur lors du chargement des sites:", err);
         }
     };
 
-    // Titre de la page et formatage de la date pour l'affichage
-    const formattedDateDisplay = date ? format(date, 'EEEE d MMMM yyyy', { locale: fr }) : '';
+    // Formater la date pour affichage
+    const formattedDateDisplay = date
+        ? format(date, 'EEEE d MMMM yyyy', { locale: fr })
+        : '';
+
+    const handleCancel = () => {
+        router.back();
+    };
+
+    const handleCreatePlanning = async () => {
+        if (!date || !selectedSiteId) return;
+
+        try {
+            setCreating(true);
+            setError(null);
+
+            // Convertir la date au format UTC pour l'API
+            const dateForApi = new Date(date);
+            dateForApi.setHours(0, 0, 0, 0);
+
+            // Création du planning avec les paramètres de base
+            const createParams = {
+                siteId: selectedSiteId,
+                startDate: dateForApi,
+                endDate: dateForApi,
+                trameIds: [], // Aucune trame pour l'instant
+                initiatorUserId: 1, // ID factice pour l'utilisateur actuel
+            };
+
+            // Appeler le service pour créer le planning
+            const createdPlannings = await blocPlanningService.createOrUpdateBlocDayPlanningsFromTrames(createParams);
+
+            if (createdPlannings && createdPlannings.length > 0) {
+                // Rediriger vers la page d'édition du planning créé
+                router.push(`/bloc-operatoire/edit/${createdPlannings[0].id}`);
+            } else {
+                setError("Erreur lors de la création du planning. Aucun planning créé.");
+            }
+        } catch (err) {
+            console.error("Erreur lors de la création du planning:", err);
+            setError("Une erreur est survenue lors de la création du planning. Veuillez réessayer.");
+        } finally {
+            setCreating(false);
+        }
+    };
 
     return (
-        <div className="container mx-auto py-6 space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <Button variant="ghost" size="sm" asChild>
-                        <Link href="/bloc-operatoire">
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Retour au planning
-                        </Link>
-                    </Button>
-                    <h1 className="text-3xl font-bold mt-2">Création de Planning</h1>
-                    <p className="text-muted-foreground">
-                        {formattedDateDisplay}
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <Button variant="default" disabled={loading || saving} onClick={() => planning && handleSavePlanning(planning)}>
-                        {saving ? (
-                            <>Enregistrement...</>
-                        ) : (
-                            <>
-                                <Save className="h-4 w-4 mr-2" />
-                                Enregistrer
-                            </>
-                        )}
-                    </Button>
-                </div>
+        <div className="container mx-auto p-6">
+            <div className="flex items-center mb-6">
+                <Button variant="outline" size="sm" onClick={handleCancel} className="mr-4">
+                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    Retour
+                </Button>
+                <h1 className="text-2xl font-bold">Création d'un nouveau planning</h1>
             </div>
 
-            {/* Messages */}
             {error && (
-                <Alert variant="destructive">
+                <Alert variant="destructive" className="mb-6">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Erreur</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
 
-            {successMessage && (
-                <Alert variant="success">
-                    <Check className="h-4 w-4" />
-                    <AlertTitle>Succès</AlertTitle>
-                    <AlertDescription>{successMessage}</AlertDescription>
-                </Alert>
-            )}
-
-            {/* Contenu principal */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center">
@@ -181,22 +147,41 @@ export default function CreateBlocPlanningPage() {
                 </CardHeader>
 
                 <CardContent>
-                    {loading ? (
-                        <div className="space-y-4">
-                            <Skeleton className="h-8 w-full max-w-md" />
-                            <Skeleton className="h-32 w-full" />
-                            <Skeleton className="h-32 w-full" />
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <label htmlFor="site-select" className="block text-sm font-medium">
+                                Site
+                            </label>
+                            <Select
+                                value={selectedSiteId}
+                                onValueChange={setSelectedSiteId}
+                                disabled={loading || creating}
+                            >
+                                <SelectTrigger id="site-select" className="w-full max-w-md">
+                                    <SelectValue placeholder="Sélectionner un site" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {sites.map(site => (
+                                        <SelectItem key={site.id} value={site.id}>
+                                            {site.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
-                    ) : (
-                        <BlocPlanningEditor
-                            date={date!}
-                            planning={planning}
-                            salles={salles}
-                            secteurs={secteurs}
-                            rules={rules}
-                            onPlanningChange={setPlanning}
-                        />
-                    )}
+
+                        <div className="pt-4 flex justify-end space-x-2">
+                            <Button variant="outline" onClick={handleCancel} disabled={creating}>
+                                Annuler
+                            </Button>
+                            <Button
+                                onClick={handleCreatePlanning}
+                                disabled={!date || !selectedSiteId || creating}
+                            >
+                                {creating ? 'Création en cours...' : 'Créer le planning'}
+                            </Button>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
         </div>

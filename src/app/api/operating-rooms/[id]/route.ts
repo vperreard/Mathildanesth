@@ -146,8 +146,17 @@ export async function PUT(request: Request, context: Context) {
             return NextResponse.json({ error: 'Les données sont invalides', details: validationError }, { status: 400 });
         }
 
+        // Validation spécifique du champ type
+        const validTypes = ['STANDARD', 'FIV', 'CONSULTATION'];
+        if (body.type && !validTypes.includes(body.type)) {
+            return NextResponse.json({
+                error: 'Type de salle invalide',
+                details: `Le type doit être l'un des suivants: ${validTypes.join(', ')}`
+            }, { status: 400 });
+        }
+
         // Extraire les données validées
-        const { name, number, sector, sectorId, colorCode, isActive, supervisionRules } = body;
+        const { name, number, sector, sectorId, colorCode, isActive, supervisionRules, type } = body;
 
         // Vérifier si le numéro est déjà utilisé par une autre salle
         if (number !== existingRoom.number) {
@@ -183,6 +192,7 @@ export async function PUT(request: Request, context: Context) {
                 colorCode: colorCode || null,
                 isActive: isActive === undefined ? true : isActive,
                 supervisionRules: supervisionRules || existingRoom.supervisionRules,
+                type: type || 'STANDARD', // Ajout du champ type avec valeur par défaut ou valeur existante
             },
             include: { sector: true }
         });

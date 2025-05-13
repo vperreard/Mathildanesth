@@ -67,14 +67,14 @@ import { eventBus, IntegrationEventType } from '../EventBusService';
 // Créer des mocks Jest simples au lieu de classes pour les handlers
 const mockUpdatePlanning = jest.fn<() => Promise<boolean>>().mockResolvedValue(true);
 const mockRemoveFromPlanning = jest.fn<() => Promise<boolean>>().mockResolvedValue(true);
-// const mockCheckConflicts = jest.fn<() => Promise<any[]>>().mockResolvedValue([]); // Décommenter si utilisé
+const mockCheckConflicts = jest.fn<() => Promise<any[]>>().mockResolvedValue([]); // Mock pour vérifier les conflits
 const mockSendNotification = jest.fn<() => Promise<boolean>>().mockResolvedValue(true);
 
 describe('Intégration entre le module de congés et les autres modules', () => {
     beforeEach(() => {
         jest.clearAllMocks(); // Efface tous les mocks, y compris ceux de eventBus
         // Réinitialiser l'état des mocks de eventBus manuellement car clearAllMocks ne réinitialise pas l'état interne de mockListenersIntegrationTest
-        mockDisposeIntegrationTest(); 
+        mockDisposeIntegrationTest();
         mockPublishIntegrationTest.mockClear();
         mockSubscribeIntegrationTest.mockClear();
         mockGetStatsIntegrationTest.mockClear();

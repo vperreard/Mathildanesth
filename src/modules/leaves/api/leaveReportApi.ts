@@ -283,7 +283,7 @@ export class LeaveReportApi {
             );
 
             // Retourner l'ID de la tâche d'exportation
-            return response.data.exportTaskId;
+            return response.data.id || response.data.exportTaskId;
         } catch (error) {
             console.error(`Erreur lors de l'exportation du rapport ${reportType}:`, error);
             throw error;

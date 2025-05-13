@@ -52,7 +52,7 @@ export default function HomePage() {
             title: "Statistiques",
             description: "Analysez les données et les tendances d'activité",
             icon: <BarChart3 className="w-6 h-6 text-white" />,
-            href: "/statistiques",
+            href: "/statistiques/utilisation-bloc",
             gradient: "from-secondary-500 to-tertiary-500",
             color: "text-secondary-600",
             delay: 0.2

@@ -12,12 +12,38 @@ const planningService = new BlocPlanningService();
 
 // Fonction utilitaire pour normaliser les noms de secteurs
 const normalizeSectorName = (name: string): string => {
+    if (!name) return 'Non défini';
+
     // Enlever les espaces invisibles et normaliser les espaces multiples
     let normalized = name.trim().replace(/\s+/g, ' ');
 
-    // Traitement spécial pour Endoscopie
-    if (normalized.toLowerCase().includes("endoscopie")) {
-        return "Endoscopie";
+    // Mappings spécifiques pour standardiser certains noms (insensible à la casse)
+    const sectorMappings: { [key: string]: string } = {
+        'europe endoscopies': 'Secteur endoscopie',
+        'europe endoscopie': 'Secteur endoscopie',
+        'secteur endoscopie': 'Secteur endoscopie',
+        'endoscopie': 'Secteur endoscopie',
+        'endo': 'Secteur endoscopie',
+        'europe ambulatoire': 'Europe ambulatoire',
+        'ambulatoire': 'Europe ambulatoire',
+        'europe bloc': 'Europe bloc',
+        'secteur septique': 'Secteur septique',
+        'septique': 'Secteur septique',
+        'secteur intermédiaire': 'Secteur intermédiaire',
+        'intermédiaire': 'Secteur intermédiaire',
+        'secteur ophtalmo': 'Secteur ophtalmo',
+        'ophtalmo': 'Secteur ophtalmo',
+        'ophtalmologie': 'Secteur ophtalmo',
+        'secteur hyperaseptique': 'Secteur hyperaseptique',
+        'hyperaseptique': 'Secteur hyperaseptique'
+    };
+
+    // Recherche insensible à la casse dans la table de correspondance
+    const lowercaseNormalized = normalized.toLowerCase();
+    for (const [key, value] of Object.entries(sectorMappings)) {
+        if (lowercaseNormalized === key.toLowerCase()) {
+            return value;
+        }
     }
 
     return normalized;
@@ -92,8 +118,26 @@ export async function GET() {
         // Utiliser le service qui trie correctement les salles par displayOrder
         const rooms = await planningService.getAllOperatingRooms(true);
 
-        // Journalisation pour le débogage
+        // Journalisation pour le débogage avancé
         console.log(`GET /api/operating-rooms: ${rooms.length} salles récupérées et triées par displayOrder et sector`);
+
+        // Ajouter un échantillon des salles pour debug (limité aux 3 premières)
+        if (rooms.length > 0) {
+            const sampleRooms = rooms.slice(0, Math.min(3, rooms.length));
+            console.log(`GET /api/operating-rooms - Échantillon de salles:`,
+                sampleRooms.map(r => ({ id: r.id, name: r.name, sector: r.sector, exactSector: `"${r.sector}"` }))
+            );
+        }
+
+        // Analyse pour s'assurer que toutes les salles ont un secteur défini
+        const roomsWithoutSector = rooms.filter(room => !room.sector);
+        if (roomsWithoutSector.length > 0) {
+            console.warn(`ATTENTION: ${roomsWithoutSector.length} salles n'ont pas de secteur défini:`, roomsWithoutSector.map(r => ({ id: r.id, name: r.name })));
+        }
+
+        // Analyser les secteurs présents
+        const sectors = [...new Set(rooms.map(r => r.sector))].sort();
+        console.log(`Secteurs présents dans les salles: ${sectors.join(', ')}`);
 
         return NextResponse.json(rooms);
     } catch (error) {
@@ -130,8 +174,17 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Les données sont invalides', details: validationError }, { status: 400 });
         }
 
+        // Validation spécifique du champ type
+        const validTypes = ['STANDARD', 'FIV', 'CONSULTATION'];
+        if (body.type && !validTypes.includes(body.type)) {
+            return NextResponse.json({
+                error: 'Type de salle invalide',
+                details: `Le type doit être l'un des suivants: ${validTypes.join(', ')}`
+            }, { status: 400 });
+        }
+
         // Extraire les données validées
-        const { name, number, sector, sectorId, colorCode, isActive, supervisionRules } = body;
+        const { name, number, sector, sectorId, colorCode, isActive, supervisionRules, type } = body;
 
         // Vérifier qu'une salle avec ce numéro n'existe pas déjà
         const existingRoom = await prisma.operatingRoom.findFirst({
@@ -159,13 +212,15 @@ export async function POST(request: Request) {
                 colorCode: colorCode || null,
                 isActive: isActive === undefined ? true : isActive,
                 supervisionRules: supervisionRules || {},
+                type: type || 'STANDARD', // Ajout du champ type avec valeur par défaut
             },
         });
 
         // Renvoyer la salle créée avec le nom du secteur
         const result = {
             ...newRoom,
-            sector: sectorEntity.name  // Inclure le nom du secteur dans la réponse
+            sector: sectorEntity.name,  // Inclure le nom du secteur dans la réponse
+            type: newRoom.type || 'STANDARD' // Inclure le type dans la réponse
         };
 
         console.log("Salle créée avec succès:", result);

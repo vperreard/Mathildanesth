@@ -449,7 +449,7 @@ describe('LeavePermissionService', () => {
             const permissions = await permissionService.getUserPermissions(userId);
 
             // Assert
-            expect(mockFetch).toHaveBeenCalledWith(`/api/leaves/permissions/${userId}`);
+            expect(mockFetch).toHaveBeenCalledWith(`/api/users/${userId}`);
             expect(permissions).toEqual(mockPermissions);
         });
 
@@ -475,6 +475,30 @@ describe('LeavePermissionService', () => {
     });
 
     describe('resetUserPermissions', () => {
+        // Mise en place des mocks nécessaires pour les tests
+        let getCurrentUserSpy: jest.SpyInstance;
+        let hasPermissionSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            // Configurer le mock getCurrentUser pour renvoyer l'utilisateur manager
+            getCurrentUserSpy = jest.spyOn(permissionService as any, 'getCurrentUser')
+                .mockResolvedValue(mockManagerUser);
+
+            // Configurer hasPermission pour autoriser la réinitialisation des permissions
+            hasPermissionSpy = jest.spyOn(permissionService, 'hasPermission')
+                .mockImplementation(async (permission: LeavePermission, user?: User) => {
+                    if (user?.id === mockManagerUser.id && permission === LeavePermission.MANAGE_LEAVE_RULES) {
+                        return true;
+                    }
+                    return false;
+                });
+        });
+
+        afterEach(() => {
+            getCurrentUserSpy.mockRestore();
+            hasPermissionSpy.mockRestore();
+        });
+
         it('devrait réinitialiser les permissions personnalisées d\'un utilisateur', async () => {
             // Arrange
             const userId = 'custom-user-123'; // Un utilisateur avec des permissions personnalisées
@@ -503,15 +527,6 @@ describe('LeavePermissionService', () => {
                 json: () => Promise.resolve({ message: 'API Error' })
             } as Response);
 
-            const getCurrentUserSpy = jest.spyOn(permissionService as any, 'getCurrentUser').mockResolvedValue(mockManagerUser);
-            const hasPermissionSpy = jest.spyOn(permissionService, 'hasPermission')
-                .mockImplementation(async (permission: LeavePermission, user?: User) => {
-                    if (user?.id === mockManagerUser.id && permission === LeavePermission.MANAGE_LEAVE_RULES) {
-                        return true;
-                    }
-                    return false;
-                });
-
             // Act
             const result = await permissionService.resetUserPermissions(userId);
 
@@ -523,8 +538,6 @@ describe('LeavePermissionService', () => {
                 expect.anything(), // AuditSeverity.ERROR
                 expect.objectContaining({ userId, granterId: mockManagerUser.id })
             );
-            getCurrentUserSpy.mockRestore();
-            hasPermissionSpy.mockRestore();
         });
     });
 }); 

@@ -64,6 +64,15 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Données invalides', details: result.error.format() }, { status: 400 });
         }
 
+        // Validation spécifique du champ category
+        const validCategories = ['STANDARD', 'HYPERASEPTIQUE', 'OPHTALMOLOGIE', 'ENDOSCOPIE'];
+        if (body.category && !validCategories.includes(body.category)) {
+            return NextResponse.json({
+                error: 'Catégorie de secteur invalide',
+                details: `La catégorie doit être l'une des suivantes: ${validCategories.join(', ')}`
+            }, { status: 400 });
+        }
+
         // Utiliser la méthode createOperatingSector du service BlocPlanningService
         const sector = await planningService.createOperatingSector(result.data);
         return NextResponse.json(sector, { status: 201 });
@@ -102,12 +111,22 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'ID du secteur invalide' }, { status: 400 });
         }
 
+        // Validation spécifique du champ category
+        const validCategories = ['STANDARD', 'HYPERASEPTIQUE', 'OPHTALMOLOGIE', 'ENDOSCOPIE'];
+        if (data.category && !validCategories.includes(data.category)) {
+            return NextResponse.json({
+                error: 'Catégorie de secteur invalide',
+                details: `La catégorie doit être l'une des suivantes: ${validCategories.join(', ')}`
+            }, { status: 400 });
+        }
+
         // Utiliser la méthode updateOperatingSector du service BlocPlanningService
         const updatedSector = await planningService.updateOperatingSector(sectorId, {
             name: data.name,
             colorCode: data.colorCode,
             isActive: data.isActive,
-            description: data.description
+            description: data.description,
+            category: data.category || 'STANDARD' // Ajout du champ category avec valeur par défaut
         });
 
         return NextResponse.json(updatedSector);

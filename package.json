@@ -31,7 +31,7 @@
     "lint:fix": "next lint --fix",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "analyze": "ANALYZE=true next build",
-    "clean": "rm -rf .next && rm -rf node_modules",
+    "clean": "rm -rf node_modules package-lock.json && npm install",
     "validate": "npm run lint && npm run type-check && npm run test",
     "prepare": "husky install",
     "test:bloc": "jest src/hooks/__tests__/useOperatingRoom* src/services/__tests__/blocPlanning*",

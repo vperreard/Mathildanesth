@@ -36,12 +36,13 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/components/ui/select';
-import { Edit, Plus, Trash2 } from 'lucide-react';
+import { Edit, Plus, Trash2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/lib/utils';
+import { SectorRoomsDisplay } from './SectorRoomsDisplay';
 
 // Schéma de validation Zod pour formulaire salle
 const roomSchema = z.object({
@@ -82,7 +83,7 @@ export function OperatingRoomList() {
 
     // Créer un Map pour un accès rapide aux secteurs par ID
     const sectorsMap = new Map<string, OperatingSector>();
-    sectors.forEach(sector => {
+    sectors.forEach((sector: OperatingSector) => {
         sectorsMap.set(sector.id, sector);
     });
 
@@ -182,33 +183,6 @@ export function OperatingRoomList() {
         }
     };
 
-    // Obtenir les détails du secteur à partir de l'ID
-    const getSectorInfo = (sectorId: string) => {
-        return sectorsMap.get(sectorId);
-    };
-
-    // Fonction pour obtenir la classe CSS de couleur du statut
-    const getStatusBadgeVariant = (status?: OperatingRoomStatus) => {
-        switch (status) {
-            case 'DISPONIBLE': return 'default';
-            case 'OCCUPE': return 'secondary';
-            case 'MAINTENANCE': return 'warning';
-            case 'HORS_SERVICE': return 'destructive';
-            default: return 'outline';
-        }
-    };
-
-    // Fonction pour obtenir le libellé du statut
-    const getStatusLabel = (status?: OperatingRoomStatus): string => {
-        switch (status) {
-            case 'DISPONIBLE': return 'Disponible';
-            case 'OCCUPE': return 'Occupé';
-            case 'MAINTENANCE': return 'En maintenance';
-            case 'HORS_SERVICE': return 'Hors service';
-            default: return 'Non défini';
-        }
-    };
-
     if (isLoading) {
         return <div className="flex justify-center p-8">Chargement des salles...</div>;
     }
@@ -220,218 +194,123 @@ export function OperatingRoomList() {
     }
 
     return (
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div>
-                    <CardTitle>Salles d'Opération</CardTitle>
-                    <CardDescription>Gérez les salles du bloc opératoire</CardDescription>
-                </div>
-                <Button
-                    onClick={handleAddRoom}
-                    size="sm"
-                    className="flex items-center gap-1"
-                >
-                    <Plus size={16} />
-                    Ajouter une salle
-                </Button>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[100px]">Numéro</TableHead>
-                            <TableHead>Nom</TableHead>
-                            <TableHead>Secteur</TableHead>
-                            <TableHead>Statut</TableHead>
-                            <TableHead>État</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {rooms.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
-                                    Aucune salle disponible
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            rooms.map((room) => {
-                                const sectorInfo = getSectorInfo(room.secteurId);
-                                return (
-                                    <TableRow key={room.id}>
-                                        <TableCell className="font-medium">{room.numero}</TableCell>
-                                        <TableCell>{room.nom}</TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <div
-                                                    className="w-3 h-3 rounded-full"
-                                                    style={{ backgroundColor: sectorInfo?.couleur || '#CBD5E1' }}
-                                                />
-                                                <span>{sectorInfo?.nom || 'Secteur inconnu'}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant={getStatusBadgeVariant(room.status) as any}>
-                                                {getStatusLabel(room.status)}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant={room.estActif ? "default" : "secondary"}>
-                                                {room.estActif ? "Actif" : "Inactif"}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right space-x-1">
-                                            <Button
-                                                onClick={() => handleEditRoom(room)}
-                                                variant="outline"
-                                                size="sm"
-                                                className="px-2"
-                                            >
-                                                <Edit size={16} />
-                                                <span className="sr-only">Modifier</span>
-                                            </Button>
-                                            <Button
-                                                onClick={() => handleDeleteRoom(room)}
-                                                variant="outline"
-                                                size="sm"
-                                                className="px-2 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                            >
-                                                <Trash2 size={16} />
-                                                <span className="sr-only">Supprimer</span>
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })
-                        )}
-                    </TableBody>
-                </Table>
-            </CardContent>
+        <>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div>
+                        <CardTitle>Salles d'Opération</CardTitle>
+                        <CardDescription>Gérez les salles du bloc opératoire</CardDescription>
+                    </div>
+                    <Button
+                        onClick={handleAddRoom}
+                        size="sm"
+                        className="flex items-center gap-1"
+                    >
+                        <Plus size={16} />
+                        Ajouter une salle
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                    <SectorRoomsDisplay
+                        sectors={sectors}
+                        rooms={rooms}
+                        onEditRoom={handleEditRoom}
+                        onDeleteRoom={handleDeleteRoom}
+                    />
+                </CardContent>
+            </Card>
 
-            {/* Dialogue de création/édition */}
+            {/* Dialog pour ajouter/modifier une salle */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>
                             {form.getValues('id') ? 'Modifier une salle' : 'Ajouter une salle'}
                         </DialogTitle>
                     </DialogHeader>
-
-                    <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-4">
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="numero" className="text-right">
-                                    Numéro
-                                </Label>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="numero">Numéro</Label>
                                 <Input
                                     id="numero"
                                     {...form.register('numero')}
-                                    className={cn("col-span-3", form.formState.errors.numero && "border-red-500")}
+                                    placeholder="Ex: 1, A, 2B..."
                                 />
                                 {form.formState.errors.numero && (
-                                    <p className="col-span-4 text-sm text-red-500 text-right -mt-3">
-                                        {form.formState.errors.numero.message}
-                                    </p>
+                                    <p className="text-sm text-red-500">{form.formState.errors.numero.message}</p>
                                 )}
                             </div>
-
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="nom" className="text-right">
-                                    Nom
-                                </Label>
+                            <div className="space-y-2">
+                                <Label htmlFor="nom">Nom</Label>
                                 <Input
                                     id="nom"
                                     {...form.register('nom')}
-                                    className={cn("col-span-3", form.formState.errors.nom && "border-red-500")}
+                                    placeholder="Nom de la salle"
                                 />
                                 {form.formState.errors.nom && (
-                                    <p className="col-span-4 text-sm text-red-500 text-right -mt-3">
-                                        {form.formState.errors.nom.message}
-                                    </p>
+                                    <p className="text-sm text-red-500">{form.formState.errors.nom.message}</p>
                                 )}
                             </div>
+                        </div>
 
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="secteurId" className="text-right">
-                                    Secteur
-                                </Label>
-                                <Select
-                                    value={form.watch('secteurId')}
-                                    onValueChange={(value) => form.setValue('secteurId', value, { shouldValidate: true })}
-                                >
-                                    <SelectTrigger className={cn("col-span-3", form.formState.errors.secteurId && "border-red-500")}>
-                                        <SelectValue placeholder="Sélectionnez un secteur" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {sectors.length === 0 ? (
-                                            <SelectItem value="no-sectors" disabled>
-                                                Aucun secteur disponible
-                                            </SelectItem>
-                                        ) : (
-                                            sectors.map(sector => (
-                                                <SelectItem key={sector.id} value={sector.id}>
-                                                    <div className="flex items-center gap-2">
-                                                        <div
-                                                            className="w-3 h-3 rounded-full"
-                                                            style={{ backgroundColor: sector.couleur }}
-                                                        />
-                                                        <span>{sector.nom}</span>
-                                                    </div>
-                                                </SelectItem>
-                                            ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                                {form.formState.errors.secteurId && (
-                                    <p className="col-span-4 text-sm text-red-500 text-right -mt-3">
-                                        {form.formState.errors.secteurId.message}
-                                    </p>
-                                )}
-                            </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="secteur">Secteur</Label>
+                            <Select
+                                value={form.getValues('secteurId')}
+                                onValueChange={(value) => form.setValue('secteurId', value)}
+                            >
+                                <SelectTrigger id="secteur">
+                                    <SelectValue placeholder="Sélectionner un secteur" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {sectors.map((sector: OperatingSector) => (
+                                        <SelectItem key={sector.id} value={sector.id}>
+                                            {sector.nom}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {form.formState.errors.secteurId && (
+                                <p className="text-sm text-red-500">{form.formState.errors.secteurId.message}</p>
+                            )}
+                        </div>
 
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="description" className="text-right">
-                                    Description
-                                </Label>
-                                <Textarea
-                                    id="description"
-                                    {...form.register('description')}
-                                    className="col-span-3"
-                                />
-                            </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="status">Statut</Label>
+                            <Select
+                                value={form.getValues('status')}
+                                onValueChange={(value) => form.setValue('status', value as OperatingRoomStatus)}
+                            >
+                                <SelectTrigger id="status">
+                                    <SelectValue placeholder="Sélectionner un statut" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="DISPONIBLE">Disponible</SelectItem>
+                                    <SelectItem value="OCCUPE">Occupé</SelectItem>
+                                    <SelectItem value="MAINTENANCE">En maintenance</SelectItem>
+                                    <SelectItem value="HORS_SERVICE">Hors service</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="status" className="text-right">
-                                    Statut
-                                </Label>
-                                <Select
-                                    value={form.watch('status')}
-                                    onValueChange={(value) => form.setValue('status', value as OperatingRoomStatus, { shouldValidate: true })}
-                                >
-                                    <SelectTrigger className="col-span-3">
-                                        <SelectValue placeholder="Sélectionnez un statut" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="DISPONIBLE">Disponible</SelectItem>
-                                        <SelectItem value="OCCUPE">Occupé</SelectItem>
-                                        <SelectItem value="MAINTENANCE">En maintenance</SelectItem>
-                                        <SelectItem value="HORS_SERVICE">Hors service</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea
+                                id="description"
+                                {...form.register('description')}
+                                placeholder="Description optionnelle"
+                                rows={3}
+                            />
+                        </div>
 
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="estActif" className="text-right">
-                                    Actif
-                                </Label>
-                                <div className="flex items-center col-span-3">
-                                    <Switch
-                                        checked={form.watch('estActif')}
-                                        onChange={() => form.setValue('estActif', !form.watch('estActif'))}
-                                        ariaLabel="Salle active"
-                                    />
-                                </div>
-                            </div>
+                        <div className="flex items-center space-x-2">
+                            <Switch
+                                id="estActif"
+                                checked={form.getValues('estActif')}
+                                onCheckedChange={(checked) => form.setValue('estActif', checked)}
+                            />
+                            <Label htmlFor="estActif">Salle active</Label>
                         </div>
 
                         <DialogFooter>
@@ -442,46 +321,39 @@ export function OperatingRoomList() {
                             >
                                 Annuler
                             </Button>
-                            <Button
-                                type="submit"
-                                isLoading={createRoomMutation.isPending || updateRoomMutation.isPending}
-                            >
-                                {form.getValues('id') ? 'Mettre à jour' : 'Créer'}
-                            </Button>
+                            <Button type="submit">Enregistrer</Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
 
-            {/* Dialogue de confirmation de suppression */}
+            {/* Dialog de confirmation de suppression */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Confirmer la suppression</DialogTitle>
                     </DialogHeader>
                     <div className="py-4">
-                        Êtes-vous sûr de vouloir supprimer la salle <strong>{roomToDelete?.nom}</strong> ?
+                        Êtes-vous sûr de vouloir supprimer la salle {roomToDelete?.nom} ?
+                        Cette action est irréversible.
                     </div>
                     <DialogFooter>
                         <Button
-                            type="button"
                             variant="outline"
                             onClick={() => setIsDeleteDialogOpen(false)}
                         >
                             Annuler
                         </Button>
                         <Button
-                            type="button"
                             variant="destructive"
                             onClick={confirmDeleteRoom}
-                            isLoading={deleteRoomMutation.isPending}
                         >
                             Supprimer
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </Card>
+        </>
     );
 }
 

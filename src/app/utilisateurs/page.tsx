@@ -5,9 +5,11 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import UserForm from '@/components/UserForm';
 // Importer les TYPES depuis le fichier centralisé
-import { User, UserFormData, Role, ProfessionalRole } from '@/types/user';
+import { User, UserFormData, Role, ProfessionalRole, UserRole } from '@/types/user';
 import { useAuth } from '@/hooks/useAuth'; // Importer useAuth
 import ProtectedRoute from '@/components/ProtectedRoute'; // Importer ProtectedRoute
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
+import { Label } from "@/components/ui/label"; // Import Label
 
 // Type Role et Interface User déplacés vers src/types/user.ts
 
@@ -16,11 +18,12 @@ function UsersPageContent() {
     const { user: currentUser, isLoading: authLoading } = useAuth(); // Obtenir l'utilisateur connecté
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [actionLoading, setActionLoading] = useState<number | null>(null);
+    const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null); // Pour les messages de succès (reset mdp)
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [isCreating, setIsCreating] = useState<boolean>(false);
+    const [showInactiveUsers, setShowInactiveUsers] = useState<boolean>(false); // Nouvel état
 
     // Référence pour le formulaire
     const formRef = useRef<HTMLFormElement>(null);
@@ -33,7 +36,9 @@ function UsersPageContent() {
         setError(null);
         setSuccessMessage(null);
         try {
-            const response = await axios.get<User[]>('/api/utilisateurs');
+            const response = await axios.get<User[]>('/api/utilisateurs', {
+                params: { includeInactive: showInactiveUsers }
+            });
             setUsers(response.data);
         } catch (err) {
             console.error("Erreur fetchUsers:", err);
@@ -45,7 +50,7 @@ function UsersPageContent() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [showInactiveUsers]);
 
     useEffect(() => {
         if (!authLoading && currentUser) {
@@ -64,18 +69,20 @@ function UsersPageContent() {
         }
     }, [editingUser, isCreating]); // Déclencher quand on sélectionne un user ou qu'on crée
 
-    const handleApiResponse = (updatedOrDeletedUser: User, isDelete = false) => {
+    const handleApiResponse = (data: User | { id: string }, isDelete = false) => {
         if (isDelete) {
-            setUsers(prevUsers => prevUsers.filter(user => user.id !== updatedOrDeletedUser.id));
+            const deletedUserId = (data as { id: string }).id;
+            setUsers(prevUsers => prevUsers.filter(user => user.id !== deletedUserId));
         } else {
+            const updatedUser = data as User;
             setUsers(prevUsers => {
-                const existingIndex = prevUsers.findIndex(u => u.id === updatedOrDeletedUser.id);
+                const existingIndex = prevUsers.findIndex(u => u.id === updatedUser.id);
                 if (existingIndex > -1) {
                     const newUsers = [...prevUsers];
-                    newUsers[existingIndex] = updatedOrDeletedUser;
+                    newUsers[existingIndex] = updatedUser;
                     return newUsers;
                 } else {
-                    return [...prevUsers, updatedOrDeletedUser];
+                    return [...prevUsers, updatedUser];
                 }
             });
         }
@@ -87,7 +94,7 @@ function UsersPageContent() {
     };
 
     const handleCreateUser = async (formData: UserFormData) => {
-        setActionLoading(-1);
+        setActionLoading('creating');
         setError(null);
         setSuccessMessage(null);
         try {
@@ -121,13 +128,13 @@ function UsersPageContent() {
         }
     };
 
-    const handleDeleteUser = async (userId: number) => {
+    const handleDeleteUser = async (userId: string) => {
         if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) return;
         setActionLoading(userId);
         setError(null);
         try {
             await axios.delete(`/api/utilisateurs/${userId}`);
-            handleApiResponse({ id: userId } as User, true);
+            handleApiResponse({ id: userId }, true);
         } catch (err: any) {
             console.error("Erreur handleDeleteUser:", err);
             setActionLoading(null);
@@ -137,7 +144,7 @@ function UsersPageContent() {
         }
     };
 
-    const handleResetPassword = async (userId: number) => {
+    const handleResetPassword = async (userId: string) => {
         if (!window.confirm('Êtes-vous sûr de vouloir réinitialiser le mot de passe de cet utilisateur ? Son nouveau mot de passe sera son login.')) return;
         setActionLoading(userId); // Indicate loading state for this specific user
         setError(null);
@@ -172,20 +179,17 @@ function UsersPageContent() {
     };
     const showForm = isCreating || editingUser !== null;
 
-    const getRoleBadgeColor = (role: Role) => {
-        switch (role) {
+    const getRoleBadgeColor = (role: UserRole | string) => {
+        // Convertir UserRole (enum) en string si nécessaire
+        const roleString = Object.values(UserRole).includes(role as UserRole) ? role as string : role;
+
+        switch (roleString) {
             case 'ADMIN_TOTAL': return 'bg-red-100 text-red-800';
             case 'ADMIN_PARTIEL': return 'bg-yellow-100 text-yellow-800';
             case 'USER': return 'bg-blue-100 text-blue-800';
-            default: return 'bg-gray-100 text-gray-800';
-        }
-    };
-
-    const getProfessionalRoleBadgeColor = (role: ProfessionalRole) => {
-        switch (role) {
-            case 'MAR': return 'bg-cyan-100 text-cyan-800';
-            case 'IADE': return 'bg-teal-100 text-teal-800';
-            case 'SECRETAIRE': return 'bg-purple-100 text-purple-800';
+            // Gérer les autres cas de UserRole si nécessaire ou retourner une couleur par défaut
+            case UserRole.ADMIN: return 'bg-red-200 text-red-900'; // Exemple pour UserRole.ADMIN
+            case UserRole.MANAGER: return 'bg-yellow-200 text-yellow-900'; // Exemple pour UserRole.MANAGER
             default: return 'bg-gray-100 text-gray-800';
         }
     };
@@ -221,7 +225,7 @@ function UsersPageContent() {
                             ref={formRef}
                             onSubmit={isCreating ? handleCreateUser : handleUpdateUser}
                             onCancel={handleCancelForm}
-                            isLoading={actionLoading === -1 || actionLoading === editingUser?.id}
+                            isLoading={actionLoading === 'creating' || actionLoading === editingUser?.id}
                             initialData={editingUser}
                         />
                     </motion.div>
@@ -233,7 +237,20 @@ function UsersPageContent() {
 
                     {!loading && !error && (
                         <>
-                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Liste des utilisateurs ({users.length})</h2>
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-xl font-semibold text-gray-900">Liste des utilisateurs ({users.length})</h2>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="showInactiveUsers"
+                                        checked={showInactiveUsers}
+                                        onCheckedChange={(checked) => setShowInactiveUsers(Boolean(checked))}
+                                        className="border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <Label htmlFor="showInactiveUsers" className="text-sm font-medium text-gray-700 cursor-pointer">
+                                        Afficher les inactifs
+                                    </Label>
+                                </div>
+                            </div>
                             {users.length === 0 ? (
                                 <p className="text-center text-gray-500 py-4">Aucun utilisateur trouvé.</p>
                             ) : (
@@ -243,43 +260,18 @@ function UsersPageContent() {
                                             <tr>
                                                 <th className="w-12 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom Complet</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Login</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                                 <th className="w-28 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle Accès</th>
-                                                <th className="w-28 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle Pro</th>
-                                                <th className="w-24 px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Temps Partiel</th>
-                                                <th className="w-16 px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actif</th>
-                                                <th className="w-32 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                                <th className="w-36 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
                                             {users.map((user) => {
-                                                // Logique de désactivation basée sur les rôles
-                                                const isSelf = currentUser?.id === user.id;
-                                                const isTargetAdminTotal = user.role === 'ADMIN_TOTAL';
-                                                const isTargetAdminPartiel = user.role === 'ADMIN_PARTIEL';
-                                                const isTargetUser = user.role === 'USER';
-
-                                                const isRequesterAdminTotal = currentUser?.role === 'ADMIN_TOTAL';
-                                                const isRequesterAdminPartiel = currentUser?.role === 'ADMIN_PARTIEL';
-
-                                                // Qui peut éditer qui ?
-                                                const canEditTarget =
-                                                    (isRequesterAdminTotal && !isSelf) || // ADMIN_TOTAL peut éditer tout le monde sauf lui-même (pour éviter des clics bizarres, l'édition se fait via formulaire)
-                                                    (isRequesterAdminPartiel && isTargetUser); // ADMIN_PARTIEL peut éditer USER
-                                                const editDisabled = showForm || actionLoading === user.id || !canEditTarget;
-
-                                                // Qui peut supprimer qui ?
-                                                const canDeleteTarget =
-                                                    (isRequesterAdminTotal && !isSelf) || // ADMIN_TOTAL peut supprimer tout le monde sauf lui-même
-                                                    (isRequesterAdminPartiel && isTargetUser); // ADMIN_PARTIEL peut supprimer USER
-                                                const deleteDisabled = actionLoading === user.id || !canDeleteTarget;
-
-                                                // Qui peut réinitialiser qui ?
-                                                const canResetTargetPwd =
-                                                    (isRequesterAdminTotal && !isSelf) || // ADMIN_TOTAL peut reset tout le monde sauf lui-même
-                                                    (isRequesterAdminPartiel && !isTargetAdminTotal && !isSelf); // ADMIN_PARTIEL peut reset tout le monde sauf ADMIN_TOTAL et lui-même
-                                                const resetPwdDisabled = actionLoading === user.id || !canResetTargetPwd;
+                                                // Déplacer la logique de désactivation ici pour clarté
+                                                const isCurrentUser = currentUser?.id === user.id;
+                                                const editDisabled = actionLoading !== null || isCurrentUser; // On ne peut pas s'éditer soi-même ou si une autre action est en cours
+                                                const deleteDisabled = actionLoading !== null || isCurrentUser || user.role === 'ADMIN_TOTAL'; // On ne peut pas supprimer un admin total ou soi-même
+                                                const resetPwdDisabled = actionLoading !== null; // Pas d'autres contraintes spécifiques pour le reset
 
                                                 return (
                                                     <motion.tr
@@ -295,28 +287,12 @@ function UsersPageContent() {
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                             {user.prenom} {user.nom}
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate" title={user.login}>
-                                                            {user.login}
-                                                        </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate" title={user.email}>
                                                             {user.email}
                                                         </td>
                                                         <td className="px-4 py-4 whitespace-nowrap">
                                                             <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${getRoleBadgeColor(user.role)}`}>
                                                                 {user.role}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-4 py-4 whitespace-nowrap">
-                                                            <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${getProfessionalRoleBadgeColor(user.professionalRole)}`}>
-                                                                {user.professionalRole}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-500">
-                                                            {user.tempsPartiel ? `${user.pourcentageTempsPartiel ?? 100}%` : 'Non'}
-                                                        </td>
-                                                        <td className="px-4 py-4 whitespace-nowrap text-center">
-                                                            <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${user.actif ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                                {user.actif ? 'Oui' : 'Non'}
                                                             </span>
                                                         </td>
                                                         <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -331,7 +307,7 @@ function UsersPageContent() {
                                                             </button>
                                                             {/* --- Bouton Supprimer --- */}
                                                             <button
-                                                                onClick={() => handleDeleteUser(user.id)}
+                                                                onClick={() => handleDeleteUser(user.id.toString())}
                                                                 disabled={deleteDisabled} // Utiliser la logique calculée
                                                                 className="text-red-600 hover:text-red-800 mr-3 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:text-gray-400"
                                                                 title={deleteDisabled ? "Action non autorisée" : "Supprimer"}
@@ -340,7 +316,7 @@ function UsersPageContent() {
                                                             </button>
                                                             {/* --- Bouton Réinitialiser MDP --- */}
                                                             <button
-                                                                onClick={() => handleResetPassword(user.id)}
+                                                                onClick={() => handleResetPassword(user.id.toString())}
                                                                 disabled={resetPwdDisabled} // Utiliser la logique calculée
                                                                 className="text-yellow-600 hover:text-yellow-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:text-gray-400"
                                                                 title={resetPwdDisabled ? "Action non autorisée" : "Réinitialiser le mot de passe (au login)"}

@@ -19,6 +19,11 @@
             "name": "analyse-code-contexte",
             "enabled": true,
             "path": ".cursor/rules/analyse-code-contexte.json"
+        },
+        {
+            "name": "interactive-feedback",
+            "enabled": true,
+            "path": ".cursor/rules/interactive-feedback.json"
         }
     ]
 }

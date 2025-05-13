@@ -1,0 +1,9 @@
+{
+    "name": "cursor-mcp-interactive-feedback",
+    "version": "1.0.0",
+    "description": "MCP pour obtenir des retours interactifs dans Cursor",
+    "main": "index.js",
+    "author": "Vincent Perreard",
+    "license": "MIT",
+    "dependencies": {}
+}

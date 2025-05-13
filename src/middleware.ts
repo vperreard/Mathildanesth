@@ -51,7 +51,12 @@ export async function middleware(request: NextRequest) {
         !pathname.startsWith('/api/auth/') &&
         !pathname.includes('public')) {
 
-        if (!authCookie || !authCookie.value) {
+        // MODIFICATION: Autoriser les requêtes de développement avec les en-têtes x-user-role et x-user-id
+        const devBypassHeaders = process.env.NODE_ENV === 'development' &&
+            requestHeaders.has('x-user-role') &&
+            requestHeaders.has('x-user-id');
+
+        if (!authCookie && !devBypassHeaders) {
             return NextResponse.json(
                 { error: 'Authentification requise' },
                 { status: 401 }

@@ -26,13 +26,13 @@ const operatingRoomsStructure = {
           { id: uuid(), name: 'Salle 5', number: '5' },
           { id: uuid(), name: 'Salle 6', number: '6' },
           { id: uuid(), name: 'Salle 7', number: '7' },
+          { id: uuid(), name: 'Salle 8', number: '8' },
         ],
       },
       {
         id: uuid(),
         name: 'Septique',
         rooms: [
-          { id: uuid(), name: 'Salle 8', number: '8' },
           { id: uuid(), name: 'Salle 9', number: '9' },
           { id: uuid(), name: 'Salle 10', number: '10' },
           { id: uuid(), name: 'Salle 11', number: '11' },
@@ -91,12 +91,12 @@ export async function seedOperatingRooms() {
         { name: 'Salle 5', number: '5' },
         { name: 'Salle 6', number: '6' },
         { name: 'Salle 7', number: '7' },
+        { name: 'Salle 8', number: '8' },
       ],
     },
     {
       name: 'Septique',
       rooms: [
-        { name: 'Salle 8', number: '8' },
         { name: 'Salle 9', number: '9' },
         { name: 'Salle 10', number: '10' },
         { name: 'Salle 11', number: '11' },

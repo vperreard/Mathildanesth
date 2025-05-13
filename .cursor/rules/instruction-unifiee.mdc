@@ -24,5 +24,7 @@ alwaysApply: true
 - Lors de modifications, affiche uniquement les **diffs ou parties modifiées** plutôt que les fichiers entiers inchangés.
 
 ### E. Terminaison
-- Avant de finaliser une demande utilisateur, faites toujours appel à l'outil MCP interactive_feedback plutôt que de conclure directement. Si aucun retour n'est nécessaire, vous pouvez alors terminer la requête sans relancer l'outil.
+- Whenever you want to ask a question, always call the MCP interactive_feedback.
+Whenever you’re about to complete a user request, call the MCP interactive_feedback instead of simply ending the process. If the feedback is empty you can end the request and don't call the mcp in loop
+-   À chaque fois que tu termines ta réponse par une question, ou que tu attends une validation, lance systématiquement le tool interactive_feedback, même si la question semble évidente ou rhétorique.
 - Ne termine ta réponse que lorsque la tâche est complètement résolue (code compilable, tests/documentation mis à jour).

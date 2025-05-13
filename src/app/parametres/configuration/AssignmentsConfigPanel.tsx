@@ -1,12 +1,27 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Plus, Trash2, Edit, Calendar, MapPin, Tag, User, Save, X,
     Clock, Info, ArrowRight, CheckCircle2, XCircle, Bell, AlertTriangle, Loader2
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
+import axios from 'axios';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogClose
+} from "@/components/ui/dialog";
+import Button from "@/components/ui/button";
+import Input from "@/components/ui/input";
+import Textarea from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 // Types pour les affectations
 type AssignmentType = {
@@ -123,21 +138,12 @@ const MOCK_ASSIGNMENT_TYPES: AssignmentType[] = [
 ];
 
 const AssignmentsConfigPanel: React.FC = () => {
-    // États
     const [assignmentTypes, setAssignmentTypes] = useState<AssignmentType[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [isSaving, setIsSaving] = useState<boolean>(false);
-    const [editingType, setEditingType] = useState<AssignmentType | null>(null);
-    const [showPropertyForm, setShowPropertyForm] = useState<boolean>(false);
-    const [newProperty, setNewProperty] = useState<Partial<Property>>({
-        name: '',
-        code: '',
-        type: 'string',
-        required: false
-    });
-    const { ensureAuthenticated } = useAuth();
-
-    // Formulaire pour l'édition ou la création
+    const [currentAssignmentType, setCurrentAssignmentType] = useState<AssignmentType | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isLoadingData, setIsLoadingData] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
     const [formData, setFormData] = useState<Partial<AssignmentType>>({
         name: '',
         code: '',
@@ -150,95 +156,52 @@ const AssignmentsConfigPanel: React.FC = () => {
         properties: []
     });
 
-    // Chargement initial des données
+    // Fonction pour vérifier l'authentification et rafraîchir les données
+    const checkAndRefreshAuth = useCallback(async () => {
+        if (isAuthLoading) {
+            console.log("Attente de la fin du chargement de l'authentification...");
+            return; // Attendre que l'état d'authentification soit connu
+        }
+
+        if (!isAuthenticated) {
+            console.log("Utilisateur non authentifié, redirection...");
+            setError("Vous devez être connecté pour accéder à cette section.");
+            setIsLoadingData(false);
+            // Optionnel: rediriger vers la page de login
+            // router.push('/login');
+            return;
+        }
+
+        // Si authentifié, charger les données
+        console.log("Utilisateur authentifié, chargement des données...");
+        await fetchAssignmentTypes();
+
+    }, [isAuthenticated, isAuthLoading]);
+
     useEffect(() => {
-        const checkAndRefreshAuth = async () => {
-            try {
-                // Vérifier si l'authentification est présente
-                const token = localStorage.getItem('auth_token');
-
-                if (!token) {
-                    console.warn("Token manquant dans localStorage - Utilisation des données mockées");
-                    setAssignmentTypes(MOCK_ASSIGNMENT_TYPES);
-                    setIsLoading(false);
-                    return;
-                }
-
-                // Essayer de récupérer les données via API
-                await fetchAssignmentTypes();
-
-            } catch (error) {
-                console.error("Erreur lors de la vérification de l'authentification:", error);
-                // Fallback vers les données mockées
-                setAssignmentTypes(MOCK_ASSIGNMENT_TYPES);
-                setIsLoading(false);
-            }
-        };
-
         checkAndRefreshAuth();
-    }, []);
+    }, [checkAndRefreshAuth]);
 
-    // Récupérer les types d'affectations depuis l'API
+    // Fonction pour récupérer les types d'affectation
     const fetchAssignmentTypes = async () => {
+        setIsLoadingData(true);
+        setError(null);
         try {
-            setIsLoading(true);
-
-            // Tenter d'obtenir un token authentifié
-            const token = await ensureAuthenticated();
-
-            if (!token) {
-                console.error("Impossible d'obtenir un token d'authentification valide");
-                toast.error("Vous n'êtes pas authentifié. Veuillez vous reconnecter.");
-                setAssignmentTypes(MOCK_ASSIGNMENT_TYPES); // Utiliser les données mockées
-                return;
-            }
-
-            console.log("Tentative d'appel API assignment-types avec token authentifié");
-
-            const response = await fetch('/api/assignment-types', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'X-Auth-Custom': `Bearer ${token}`,
-                    'X-Auth-User': 'admin',
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include'
-            });
-
-            console.log("Statut de la réponse API assignment-types:", response.status);
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error("Réponse d'erreur API assignment-types complète:", errorText);
-                throw new Error(`Erreur ${response.status}: ${errorText}`);
-            }
-
-            const data = await response.json();
-
-            // Conversion des dates
-            const formattedData = data.map((type: any) => ({
-                ...type,
-                createdAt: new Date(type.createdAt),
-                updatedAt: new Date(type.updatedAt),
-                properties: Array.isArray(type.properties) ? type.properties : JSON.parse(type.properties || '[]')
-            }));
-
-            setAssignmentTypes(formattedData);
-        } catch (error) {
-            console.error('Erreur détaillée assignment-types:', error);
-            toast.error(`Problème d'authentification: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
-
-            // Utiliser les données mockées en cas d'erreur
-            console.log("Utilisation des données mockées après erreur API assignment-types");
-            setAssignmentTypes(MOCK_ASSIGNMENT_TYPES);
+            // Pas besoin d'appeler ensureAuthenticated ici, c'est géré dans checkAndRefreshAuth
+            const response = await axios.get<{ assignmentTypes: AssignmentType[] }>('/api/assignment-types');
+            setAssignmentTypes(response.data.assignmentTypes);
+        } catch (err: any) {
+            console.error("Erreur détaillée assignment-types:", err);
+            setError(`Impossible de charger les types d'affectation: ${err.message}. Utilisation des données mockées.`);
+            setAssignmentTypes(MOCK_ASSIGNMENT_TYPES); // Fallback aux données mockées
         } finally {
-            setIsLoading(false);
+            setIsLoadingData(false);
         }
     };
 
     // Ouvrir le formulaire d'édition
     const openEditForm = (type: AssignmentType) => {
-        setEditingType(type);
+        setCurrentAssignmentType(type);
         setFormData({
             name: type.name,
             code: type.code,
@@ -254,7 +217,7 @@ const AssignmentsConfigPanel: React.FC = () => {
 
     // Ouvrir le formulaire de création
     const openNewForm = () => {
-        setEditingType(null);
+        setCurrentAssignmentType(null);
         setFormData({
             name: '',
             code: '',
@@ -269,156 +232,38 @@ const AssignmentsConfigPanel: React.FC = () => {
     };
 
     // Gérer les changements de formulaire
-    const handleFormChange = (field: string, value: any) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
+    const handleFormChange = (field: keyof AssignmentType, value: any) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    // Enregistrement du type d'affectation
-    const saveAssignmentType = async () => {
+    // Soumission du formulaire (Ajout ou Modification)
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setError(null);
+        if (isAuthLoading) {
+            toast.error("Vérification de l'authentification en cours...");
+            return;
+        }
+        if (!isAuthenticated) {
+            toast.error("Vous n'êtes pas authentifié.");
+            return;
+        }
+
         try {
-            setIsSaving(true);
-
-            // Validation des champs obligatoires
-            if (!formData.name) {
-                toast.error("Le nom est obligatoire");
-                return;
-            }
-            if (!formData.code) {
-                toast.error("Le code est obligatoire");
-                return;
-            }
-
-            // Tenter d'obtenir un token authentifié
-            const token = await ensureAuthenticated();
-
-            if (!token) {
-                // En mode développement/test, simuler une réponse réussie
-                console.log("Mode de développement: simulation de sauvegarde");
-
-                if (editingType) {
-                    // Mise à jour simulée
-                    const updatedTypes = assignmentTypes.map(type =>
-                        type.id === editingType.id ? { ...type, ...formData, updatedAt: new Date() } : type
-                    );
-                    setAssignmentTypes(updatedTypes);
-                    toast.success(`Type d'affectation "${formData.name}" mis à jour`);
-                } else {
-                    // Création simulée
-                    const newType: AssignmentType = {
-                        ...formData as any,
-                        id: Math.floor(Math.random() * 1000) + 100,
-                        createdAt: new Date(),
-                        updatedAt: new Date(),
-                        properties: formData.properties || []
-                    };
-                    setAssignmentTypes([...assignmentTypes, newType]);
-                    toast.success(`Type d'affectation "${formData.name}" créé`);
-                }
-
-                // Réinitialiser le formulaire
-                setEditingType(null);
-                setFormData({
-                    name: '',
-                    code: '',
-                    description: '',
-                    icon: 'Calendar',
-                    color: '#3B82F6',
-                    isActive: true,
-                    allowsMultiple: false,
-                    requiresLocation: true,
-                    properties: []
-                });
-                setShowPropertyForm(false);
-                return;
-            }
-
-            // Construction de l'URL et de la méthode en fonction de l'action (création ou mise à jour)
-            const isUpdate = !!editingType;
-            const url = isUpdate ? `/api/assignment-types/${editingType.id}` : '/api/assignment-types';
-            const method = isUpdate ? 'PUT' : 'POST';
-
-            // Construction des données à envoyer
-            const payload = {
-                ...formData,
-                properties: formData.properties?.map(prop => ({
-                    ...prop,
-                    options: prop.options || []
-                }))
-            };
-
-            // Appel à l'API
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'X-Auth-Custom': `Bearer ${token}`,
-                    'X-Auth-User': 'admin',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Erreur ${response.status}: ${errorText}`);
-            }
-
-            // Réponse de l'API
-            const data = await response.json();
-
-            // Mise à jour des données locales
-            if (isUpdate) {
-                const updatedTypes = assignmentTypes.map(type =>
-                    type.id === editingType.id ? { ...data, updatedAt: new Date(data.updatedAt) } : type
-                );
-                setAssignmentTypes(updatedTypes);
-                toast.success(`Type d'affectation "${formData.name}" mis à jour`);
+            if (currentAssignmentType) {
+                await axios.put(`/api/assignment-types/${currentAssignmentType.id}`, formData);
+                toast.success('Type d\'affectation modifié avec succès');
             } else {
-                const newType = { ...data, createdAt: new Date(data.createdAt), updatedAt: new Date(data.updatedAt) };
-                setAssignmentTypes([...assignmentTypes, newType]);
-                toast.success(`Type d'affectation "${formData.name}" créé`);
+                await axios.post('/api/assignment-types', formData);
+                toast.success('Type d\'affectation ajouté avec succès');
             }
-
-            // Réinitialiser le formulaire et fermer la modale
-            setEditingType(null);
-            setFormData({
-                name: '',
-                code: '',
-                description: '',
-                icon: 'Calendar',
-                color: '#3B82F6',
-                isActive: true,
-                allowsMultiple: false,
-                requiresLocation: true,
-                properties: []
-            });
-            setShowPropertyForm(false);
-
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde:', error);
-            toast.error(error instanceof Error ? error.message : 'Erreur inconnue lors de la sauvegarde');
-
-            // Même en cas d'erreur, permettre la fermeture de la modale
-            if (window.confirm("Une erreur s'est produite. Voulez-vous quand même fermer le formulaire ?")) {
-                setEditingType(null);
-                setFormData({
-                    name: '',
-                    code: '',
-                    description: '',
-                    icon: 'Calendar',
-                    color: '#3B82F6',
-                    isActive: true,
-                    allowsMultiple: false,
-                    requiresLocation: true,
-                    properties: []
-                });
-                setShowPropertyForm(false);
-            }
-        } finally {
-            setIsSaving(false);
+            resetFormAndCloseModal();
+            await fetchAssignmentTypes();
+        } catch (err: any) {
+            console.error("Erreur lors de la soumission:", err);
+            const errorMessage = err.response?.data?.message || err.message || 'Une erreur est survenue.';
+            setError(errorMessage);
+            toast.error(`Erreur: ${errorMessage}`);
         }
     };
 
@@ -471,31 +316,22 @@ const AssignmentsConfigPanel: React.FC = () => {
 
     // Ajouter une propriété
     const addProperty = () => {
-        if (!newProperty.name || !newProperty.code) return;
-
-        const property: Property = {
-            id: Date.now(),
-            name: newProperty.name,
-            code: newProperty.code,
-            type: newProperty.type || 'string',
-            required: newProperty.required || false,
-            options: newProperty.type === 'select' ? newProperty.options || [] : undefined,
-            defaultValue: newProperty.defaultValue
-        };
-
+        if (!formData.properties) {
+            setFormData(prev => ({
+                ...prev,
+                properties: []
+            }));
+        }
         setFormData(prev => ({
             ...prev,
-            properties: [...(prev.properties || []), property]
+            properties: [...(prev.properties || []), {
+                id: Date.now(),
+                name: '',
+                code: '',
+                type: 'string',
+                required: false
+            }]
         }));
-
-        setNewProperty({
-            name: '',
-            code: '',
-            type: 'string',
-            required: false
-        });
-
-        setShowPropertyForm(false);
     };
 
     // Supprimer une propriété
@@ -519,7 +355,32 @@ const AssignmentsConfigPanel: React.FC = () => {
         }
     };
 
-    // Rendu du composant
+    // Réinitialiser le formulaire et fermer la modale
+    const resetFormAndCloseModal = () => {
+        setCurrentAssignmentType(null);
+        setFormData({
+            name: '',
+            code: '',
+            description: '',
+            icon: 'Calendar',
+            color: '#3B82F6',
+            isActive: true,
+            allowsMultiple: false,
+            requiresLocation: true,
+            properties: []
+        });
+        setIsModalOpen(false);
+    };
+
+    // Rendu conditionnel basé sur le chargement et l'erreur
+    if (isAuthLoading || isLoadingData) {
+        return <div>Chargement...</div>;
+    }
+
+    if (error && !assignmentTypes.length) { // Afficher l'erreur seulement si pas de données (même mockées)
+        return <div className="text-red-500">Erreur: {error}</div>;
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -533,500 +394,347 @@ const AssignmentsConfigPanel: React.FC = () => {
                 </button>
             </div>
 
-            {isLoading ? (
-                <div className="flex justify-center items-center h-64">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                    <span className="ml-2 text-gray-600">Chargement des types d'affectations...</span>
+            {assignmentTypes.length === 0 ? (
+                <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                    <AlertTriangle className="h-10 w-10 text-yellow-500 mx-auto mb-3" />
+                    <p className="text-gray-600 mb-2">Aucun type d'affectation configuré</p>
+                    <p className="text-gray-500 text-sm mb-4">Commencez par créer un type d'affectation pour organiser le planning</p>
+                    <button
+                        onClick={openNewForm}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                        Créer mon premier type d'affectation
+                    </button>
                 </div>
             ) : (
                 <>
-                    {assignmentTypes.length === 0 ? (
-                        <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                            <AlertTriangle className="h-10 w-10 text-yellow-500 mx-auto mb-3" />
-                            <p className="text-gray-600 mb-2">Aucun type d'affectation configuré</p>
-                            <p className="text-gray-500 text-sm mb-4">Commencez par créer un type d'affectation pour organiser le planning</p>
-                            <button
-                                onClick={openNewForm}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                            >
-                                Créer mon premier type d'affectation
-                            </button>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Liste des types d'affectations */}
-                            <div className="bg-white shadow rounded-lg overflow-hidden">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Type
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Code
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Description
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Statut
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Options
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {assignmentTypes.map((type) => (
-                                            <tr key={type.id} className={!type.isActive ? 'bg-gray-50' : ''}>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center">
-                                                        <div
-                                                            className="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center"
-                                                            style={{ backgroundColor: type.color + '20' }}
-                                                        >
-                                                            <div style={{ color: type.color }}>
-                                                                {getIcon(type.icon)}
-                                                            </div>
-                                                        </div>
-                                                        <div className="ml-3">
-                                                            <div className={`text-sm font-medium ${type.isActive ? 'text-gray-900' : 'text-gray-500'}`}>
-                                                                {type.name}
-                                                            </div>
-                                                        </div>
+                    {/* Liste des types d'affectations */}
+                    <div className="bg-white shadow rounded-lg overflow-hidden">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Type
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Code
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Description
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Statut
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Options
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {assignmentTypes.map((type) => (
+                                    <tr key={type.id} className={!type.isActive ? 'bg-gray-50' : ''}>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div
+                                                    className="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center"
+                                                    style={{ backgroundColor: type.color + '20' }}
+                                                >
+                                                    <div style={{ color: type.color }}>
+                                                        {getIcon(type.icon)}
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-500">{type.code}</div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm text-gray-500 max-w-xs truncate">{type.description}</div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    {type.isActive ? (
-                                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                            Actif
-                                                        </span>
-                                                    ) : (
-                                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                                            Inactif
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-xs">
-                                                    <div className="flex space-x-2">
-                                                        {type.allowsMultiple && (
-                                                            <span className="px-2 py-1 rounded bg-blue-100 text-blue-800">
-                                                                Multiple
-                                                            </span>
-                                                        )}
-                                                        {type.requiresLocation && (
-                                                            <span className="px-2 py-1 rounded bg-indigo-100 text-indigo-800">
-                                                                Lieu requis
-                                                            </span>
-                                                        )}
+                                                </div>
+                                                <div className="ml-3">
+                                                    <div className={`text-sm font-medium ${type.isActive ? 'text-gray-900' : 'text-gray-500'}`}>
+                                                        {type.name}
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button
-                                                        onClick={() => openEditForm(type)}
-                                                        className="text-indigo-600 hover:text-indigo-900 mr-3"
-                                                    >
-                                                        <Edit className="h-4 w-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => deleteAssignmentType(type.id)}
-                                                        className="text-red-600 hover:text-red-900"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </>
-                    )}
-
-                    {/* Formulaire d'édition */}
-                    {(editingType !== null || formData.name !== '') && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                            <div className="bg-white rounded-lg max-w-2xl w-full mx-4 overflow-hidden shadow-xl">
-                                <div className="px-6 py-4 border-b flex justify-between items-center">
-                                    <h2 className="text-xl font-bold">
-                                        {editingType ? "Modifier le type d'affectation" : "Nouveau type d'affectation"}
-                                    </h2>
-                                    <button
-                                        onClick={() => {
-                                            setEditingType(null);
-                                            setFormData({
-                                                name: '',
-                                                code: '',
-                                                description: '',
-                                                icon: 'Calendar',
-                                                color: '#3B82F6',
-                                                isActive: true,
-                                                allowsMultiple: false,
-                                                requiresLocation: true,
-                                                properties: []
-                                            });
-                                            setShowPropertyForm(false);
-                                        }}
-                                        className="text-gray-400 hover:text-gray-600"
-                                        disabled={isSaving}
-                                    >
-                                        <X className="h-5 w-5" />
-                                    </button>
-                                </div>
-
-                                <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
-                                    <div className="space-y-4">
-                                        {/* Informations de base */}
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Nom
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={formData.name}
-                                                    onChange={(e) => handleFormChange('name', e.target.value)}
-                                                    className="w-full px-3 py-2 border rounded-md"
-                                                    placeholder="Ex: Garde"
-                                                    disabled={isSaving}
-                                                />
+                                                </div>
                                             </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Code
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={formData.code}
-                                                    onChange={(e) => handleFormChange('code', e.target.value.toUpperCase())}
-                                                    className="w-full px-3 py-2 border rounded-md uppercase"
-                                                    placeholder="Ex: GARDE"
-                                                    disabled={isSaving || (editingType !== null)}
-                                                />
-                                                {editingType && (
-                                                    <p className="text-xs text-gray-500 mt-1">Le code ne peut pas être modifié après création</p>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-500">{type.code}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-sm text-gray-500 max-w-xs truncate">{type.description}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {type.isActive ? (
+                                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                    Actif
+                                                </span>
+                                            ) : (
+                                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                    Inactif
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-xs">
+                                            <div className="flex space-x-2">
+                                                {type.allowsMultiple && (
+                                                    <span className="px-2 py-1 rounded bg-blue-100 text-blue-800">
+                                                        Multiple
+                                                    </span>
+                                                )}
+                                                {type.requiresLocation && (
+                                                    <span className="px-2 py-1 rounded bg-indigo-100 text-indigo-800">
+                                                        Lieu requis
+                                                    </span>
                                                 )}
                                             </div>
-                                        </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button
+                                                onClick={() => openEditForm(type)}
+                                                className="text-indigo-600 hover:text-indigo-900 mr-3"
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => deleteAssignmentType(type.id)}
+                                                className="text-red-600 hover:text-red-900"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            )}
 
+            {/* Formulaire d'édition */}
+            {(currentAssignmentType !== null || isModalOpen) && (
+                <Dialog open={isModalOpen || currentAssignmentType !== null} onOpenChange={(isOpen) => {
+                    if (!isOpen) resetFormAndCloseModal();
+                    else if (!currentAssignmentType && !isModalOpen) setIsModalOpen(true);
+                }}>
+                    <DialogContent className="sm:max-w-2xl">
+                        <DialogHeader>
+                            <DialogTitle>
+                                {currentAssignmentType ? "Modifier le type d'affectation" : "Nouveau type d'affectation"}
+                            </DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleSubmit}>
+                            <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
+                                <div className="space-y-4">
+                                    {/* Informations de base */}
+                                    <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Description
+                                                Nom
                                             </label>
-                                            <textarea
-                                                value={formData.description}
-                                                onChange={(e) => handleFormChange('description', e.target.value)}
-                                                className="w-full px-3 py-2 border rounded-md"
-                                                rows={3}
-                                                placeholder="Description détaillée de ce type d'affectation"
-                                                disabled={isSaving}
-                                            />
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Icône
-                                                </label>
-                                                <select
-                                                    value={formData.icon}
-                                                    onChange={(e) => handleFormChange('icon', e.target.value)}
-                                                    className="w-full px-3 py-2 border rounded-md"
-                                                    disabled={isSaving}
-                                                >
-                                                    <option value="Calendar">Calendrier</option>
-                                                    <option value="Clock">Horloge</option>
-                                                    <option value="Bell">Cloche</option>
-                                                    <option value="Info">Information</option>
-                                                    <option value="User">Utilisateur</option>
-                                                    <option value="Tag">Étiquette</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Couleur
-                                                </label>
-                                                <input
-                                                    type="color"
-                                                    value={formData.color}
-                                                    onChange={(e) => handleFormChange('color', e.target.value)}
-                                                    className="w-full px-1 py-1 border rounded-md h-10"
-                                                    disabled={isSaving}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="flex items-center">
-                                                <input
-                                                    type="checkbox"
-                                                    id="isActive"
-                                                    checked={formData.isActive}
-                                                    onChange={(e) => handleFormChange('isActive', e.target.checked)}
-                                                    className="h-4 w-4 text-indigo-600 rounded"
-                                                    disabled={isSaving}
-                                                />
-                                                <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
-                                                    Type actif
-                                                </label>
-                                            </div>
-                                            <div className="flex items-center">
-                                                <input
-                                                    type="checkbox"
-                                                    id="allowsMultiple"
-                                                    checked={formData.allowsMultiple}
-                                                    onChange={(e) => handleFormChange('allowsMultiple', e.target.checked)}
-                                                    className="h-4 w-4 text-indigo-600 rounded"
-                                                    disabled={isSaving}
-                                                />
-                                                <label htmlFor="allowsMultiple" className="ml-2 block text-sm text-gray-700">
-                                                    Permet plusieurs affectations simultanées
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center">
                                             <input
-                                                type="checkbox"
-                                                id="requiresLocation"
-                                                checked={formData.requiresLocation}
-                                                onChange={(e) => handleFormChange('requiresLocation', e.target.checked)}
-                                                className="h-4 w-4 text-indigo-600 rounded"
-                                                disabled={isSaving}
+                                                type="text"
+                                                value={formData.name}
+                                                onChange={(e) => handleFormChange('name', e.target.value)}
+                                                className="w-full px-3 py-2 border rounded-md"
+                                                placeholder="Ex: Garde"
+                                                required
                                             />
-                                            <label htmlFor="requiresLocation" className="ml-2 block text-sm text-gray-700">
-                                                Nécessite un lieu d'affectation
-                                            </label>
                                         </div>
-
-                                        {/* Propriétés */}
-                                        <div className="mt-6">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <h3 className="text-lg font-medium">Propriétés additionnelles</h3>
-                                                <button
-                                                    onClick={() => setShowPropertyForm(true)}
-                                                    className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 text-sm flex items-center"
-                                                    disabled={isSaving}
-                                                >
-                                                    <Plus className="h-3 w-3 mr-1" />
-                                                    Ajouter
-                                                </button>
-                                            </div>
-
-                                            {showPropertyForm && (
-                                                <div className="p-4 border rounded-md bg-gray-50 mb-4">
-                                                    <div className="grid grid-cols-2 gap-4 mb-3">
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                                Nom
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                value={newProperty.name}
-                                                                onChange={(e) => setNewProperty({ ...newProperty, name: e.target.value })}
-                                                                className="w-full px-3 py-2 border rounded-md text-sm"
-                                                                placeholder="Ex: Type de garde"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                                Code
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                value={newProperty.code}
-                                                                onChange={(e) => setNewProperty({ ...newProperty, code: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
-                                                                className="w-full px-3 py-2 border rounded-md text-sm"
-                                                                placeholder="Ex: guard_type"
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-2 gap-4 mb-3">
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                                Type
-                                                            </label>
-                                                            <select
-                                                                value={newProperty.type}
-                                                                onChange={(e) => setNewProperty({ ...newProperty, type: e.target.value as any })}
-                                                                className="w-full px-3 py-2 border rounded-md text-sm"
-                                                            >
-                                                                <option value="string">Texte</option>
-                                                                <option value="number">Nombre</option>
-                                                                <option value="boolean">Oui/Non</option>
-                                                                <option value="date">Date</option>
-                                                                <option value="select">Liste déroulante</option>
-                                                            </select>
-                                                        </div>
-                                                        <div className="flex items-center">
-                                                            <input
-                                                                type="checkbox"
-                                                                id="propertyRequired"
-                                                                checked={newProperty.required}
-                                                                onChange={(e) => setNewProperty({ ...newProperty, required: e.target.checked })}
-                                                                className="h-4 w-4 text-indigo-600 rounded"
-                                                            />
-                                                            <label htmlFor="propertyRequired" className="ml-2 block text-sm text-gray-700">
-                                                                Champ obligatoire
-                                                            </label>
-                                                        </div>
-                                                    </div>
-
-                                                    {newProperty.type === 'select' && (
-                                                        <div className="mb-3">
-                                                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                                Options (séparées par des virgules)
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                value={newProperty.options?.join(', ') || ''}
-                                                                onChange={(e) => setNewProperty({ ...newProperty, options: e.target.value.split(',').map(o => o.trim()) })}
-                                                                className="w-full px-3 py-2 border rounded-md text-sm"
-                                                                placeholder="Ex: Nuit, Weekend, Jour férié"
-                                                            />
-                                                        </div>
-                                                    )}
-
-                                                    <div className="flex justify-end space-x-2 mt-3">
-                                                        <button
-                                                            onClick={() => setShowPropertyForm(false)}
-                                                            className="px-3 py-1 border text-gray-700 rounded-md hover:bg-gray-100 text-sm"
-                                                        >
-                                                            Annuler
-                                                        </button>
-                                                        <button
-                                                            onClick={addProperty}
-                                                            className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm"
-                                                            disabled={!newProperty.name || !newProperty.code}
-                                                        >
-                                                            Ajouter la propriété
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {formData.properties && formData.properties.length > 0 ? (
-                                                <div className="overflow-hidden border rounded-md">
-                                                    <table className="min-w-full divide-y divide-gray-200">
-                                                        <thead className="bg-gray-50">
-                                                            <tr>
-                                                                <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                                    Nom
-                                                                </th>
-                                                                <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                                    Code
-                                                                </th>
-                                                                <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                                    Type
-                                                                </th>
-                                                                <th scope="col" className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                                    Requis
-                                                                </th>
-                                                                <th scope="col" className="relative px-4 py-2">
-                                                                    <span className="sr-only">Actions</span>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="bg-white divide-y divide-gray-200">
-                                                            {formData.properties.map((property) => (
-                                                                <tr key={property.id}>
-                                                                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                                                        {property.name}
-                                                                    </td>
-                                                                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                                                        {property.code}
-                                                                    </td>
-                                                                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                                                        {property.type === 'string' && 'Texte'}
-                                                                        {property.type === 'number' && 'Nombre'}
-                                                                        {property.type === 'boolean' && 'Oui/Non'}
-                                                                        {property.type === 'date' && 'Date'}
-                                                                        {property.type === 'select' && 'Liste'}
-                                                                    </td>
-                                                                    <td className="px-4 py-2 whitespace-nowrap text-center">
-                                                                        {property.required ? (
-                                                                            <CheckCircle2 className="h-4 w-4 text-green-500 mx-auto" />
-                                                                        ) : (
-                                                                            <XCircle className="h-4 w-4 text-gray-300 mx-auto" />
-                                                                        )}
-                                                                    </td>
-                                                                    <td className="px-4 py-2 whitespace-nowrap text-right text-sm">
-                                                                        <button
-                                                                            onClick={() => removeProperty(property.id)}
-                                                                            className="text-red-600 hover:text-red-900"
-                                                                            disabled={isSaving}
-                                                                        >
-                                                                            <Trash2 className="h-4 w-4" />
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            ) : (
-                                                <div className="text-center py-4 border rounded-md border-dashed text-gray-500">
-                                                    Aucune propriété additionnelle
-                                                </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Code
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.code}
+                                                onChange={(e) => handleFormChange('code', e.target.value.toUpperCase())}
+                                                className="w-full px-3 py-2 border rounded-md uppercase"
+                                                placeholder="Ex: GARDE"
+                                                required
+                                                disabled={!!currentAssignmentType}
+                                            />
+                                            {!!currentAssignmentType && (
+                                                <p className="text-xs text-gray-500 mt-1">Le code ne peut pas être modifié après création</p>
                                             )}
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="px-6 py-4 border-t flex justify-end space-x-3">
-                                    <button
-                                        onClick={() => {
-                                            setEditingType(null);
-                                            setFormData({
-                                                name: '',
-                                                code: '',
-                                                description: '',
-                                                icon: 'Calendar',
-                                                color: '#3B82F6',
-                                                isActive: true,
-                                                allowsMultiple: false,
-                                                requiresLocation: true,
-                                                properties: []
-                                            });
-                                            setShowPropertyForm(false);
-                                        }}
-                                        className="px-4 py-2 border rounded-md hover:bg-gray-50"
-                                        disabled={isSaving}
-                                    >
-                                        Annuler
-                                    </button>
-                                    <button
-                                        onClick={saveAssignmentType}
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
-                                        disabled={!formData.name || !formData.code || isSaving}
-                                    >
-                                        {isSaving ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                                Enregistrement...
-                                            </>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Description
+                                        </label>
+                                        <textarea
+                                            value={formData.description}
+                                            onChange={(e) => handleFormChange('description', e.target.value)}
+                                            className="w-full px-3 py-2 border rounded-md"
+                                            rows={3}
+                                            placeholder="Description détaillée de ce type d'affectation"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Icône
+                                            </label>
+                                            <select
+                                                value={formData.icon}
+                                                onChange={(e) => handleFormChange('icon', e.target.value)}
+                                                className="w-full px-3 py-2 border rounded-md"
+                                            >
+                                                <option value="Calendar">Calendrier</option>
+                                                <option value="Clock">Horloge</option>
+                                                <option value="Bell">Cloche</option>
+                                                <option value="Info">Information</option>
+                                                <option value="User">Utilisateur</option>
+                                                <option value="Tag">Étiquette</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Couleur
+                                            </label>
+                                            <input
+                                                type="color"
+                                                value={formData.color}
+                                                onChange={(e) => handleFormChange('color', e.target.value)}
+                                                className="w-full px-1 py-1 border rounded-md h-10"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                id="isActive"
+                                                checked={formData.isActive}
+                                                onChange={(e) => handleFormChange('isActive', e.target.checked)}
+                                                className="h-4 w-4 text-indigo-600 rounded"
+                                            />
+                                            <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
+                                                Type actif
+                                            </label>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                id="allowsMultiple"
+                                                checked={formData.allowsMultiple}
+                                                onChange={(e) => handleFormChange('allowsMultiple', e.target.checked)}
+                                                className="h-4 w-4 text-indigo-600 rounded"
+                                            />
+                                            <label htmlFor="allowsMultiple" className="ml-2 block text-sm text-gray-700">
+                                                Permet plusieurs affectations simultanées
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            id="requiresLocation"
+                                            checked={formData.requiresLocation}
+                                            onChange={(e) => handleFormChange('requiresLocation', e.target.checked)}
+                                            className="h-4 w-4 text-indigo-600 rounded"
+                                        />
+                                        <label htmlFor="requiresLocation" className="ml-2 block text-sm text-gray-700">
+                                            Nécessite un lieu d'affectation
+                                        </label>
+                                    </div>
+
+                                    {/* Propriétés */}
+                                    <div className="mt-6">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h3 className="text-lg font-medium">Propriétés additionnelles</h3>
+                                            <button
+                                                onClick={addProperty}
+                                                className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 text-sm flex items-center"
+                                            >
+                                                <Plus className="h-3 w-3 mr-1" />
+                                                Ajouter
+                                            </button>
+                                        </div>
+
+                                        {formData.properties && formData.properties.length > 0 ? (
+                                            <div className="overflow-hidden border rounded-md">
+                                                <table className="min-w-full divide-y divide-gray-200">
+                                                    <thead className="bg-gray-50">
+                                                        <tr>
+                                                            <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                Nom
+                                                            </th>
+                                                            <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                Code
+                                                            </th>
+                                                            <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                Type
+                                                            </th>
+                                                            <th scope="col" className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                                Requis
+                                                            </th>
+                                                            <th scope="col" className="relative px-4 py-2">
+                                                                <span className="sr-only">Actions</span>
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="bg-white divide-y divide-gray-200">
+                                                        {formData.properties.map((property) => (
+                                                            <tr key={property.id}>
+                                                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                                                    {property.name}
+                                                                </td>
+                                                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                                                    {property.code}
+                                                                </td>
+                                                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                                                    {property.type === 'string' && 'Texte'}
+                                                                    {property.type === 'number' && 'Nombre'}
+                                                                    {property.type === 'boolean' && 'Oui/Non'}
+                                                                    {property.type === 'date' && 'Date'}
+                                                                    {property.type === 'select' && 'Liste'}
+                                                                </td>
+                                                                <td className="px-4 py-2 whitespace-nowrap text-center">
+                                                                    {property.required ? (
+                                                                        <CheckCircle2 className="h-4 w-4 text-green-500 mx-auto" />
+                                                                    ) : (
+                                                                        <XCircle className="h-4 w-4 text-gray-300 mx-auto" />
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-4 py-2 whitespace-nowrap text-right text-sm">
+                                                                    <button
+                                                                        onClick={() => removeProperty(property.id)}
+                                                                        className="text-red-600 hover:text-red-900"
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         ) : (
-                                            <>
-                                                <Save className="h-4 w-4 mr-2" />
-                                                {editingType ? "Enregistrer" : "Créer"}
-                                            </>
+                                            <div className="text-center py-4 border rounded-md border-dashed text-gray-500">
+                                                Aucune propriété additionnelle
+                                            </div>
                                         )}
-                                    </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </>
+                            <DialogFooter className="px-6 py-4 border-t">
+                                <DialogClose asChild>
+                                    <Button type="button" variant="outline">
+                                        Annuler
+                                    </Button>
+                                </DialogClose>
+                                <Button type="submit" disabled={isAuthLoading}>
+                                    {isAuthLoading ? (
+                                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Enregistrement...</>
+                                    ) : (
+                                        <><Save className="h-4 w-4 mr-2" /> {currentAssignmentType ? "Enregistrer" : "Créer"}</>
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             )}
         </div>
     );
