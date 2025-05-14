@@ -499,4 +499,94 @@ L'API actuelle est en version `v1`. Toutes les routes commencent par `/api/v1/le
 - Toutes les requêtes nécessitent une authentification via JWT
 - Les permissions sont vérifiées pour chaque opération
 - Les actions sensibles sont enregistrées dans le journal d'audit
-- Les données sensibles sont masquées dans les journaux 
+- Les données sensibles sont masquées dans les journaux
+
+## Module de Gestion des Compétences
+
+Ce module permet de gérer un référentiel de compétences et de les assigner aux utilisateurs.
+
+### Base URL pour les compétences
+
+```
+/api/skills
+/api/users
+/api/me
+```
+
+### Endpoints - Gestion du référentiel des Compétences (Admin)
+
+| Méthode | Endpoint              | Description                                   | Permissions requises |
+|---------|-----------------------|-----------------------------------------------|----------------------|
+| GET     | `/api/skills`         | Lister toutes les compétences                 | Admin                |
+| POST    | `/api/skills`         | Créer une nouvelle compétence                 | Admin                |
+| GET     | `/api/skills/:skillId`| Récupérer une compétence spécifique           | Admin                |
+| PUT     | `/api/skills/:skillId`| Mettre à jour une compétence                  | Admin                |
+| DELETE  | `/api/skills/:skillId`| Supprimer une compétence (et ses assignations)| Admin                |
+
+#### Exemple de payload pour POST /api/skills
+
+```json
+{
+  "name": "Intubation Difficile",
+  "description": "Maîtrise des techniques d'intubation en cas de difficulté prévue ou imprévue."
+}
+```
+
+#### Exemple de réponse pour GET /api/skills
+
+```json
+[
+  {
+    "id": "clxmq3w6d000008l3gq2h4v8k",
+    "name": "Intubation Difficile",
+    "description": "Maîtrise des techniques d'intubation en cas de difficulté prévue ou imprévue.",
+    "createdAt": "2024-05-15T10:00:00.000Z",
+    "updatedAt": "2024-05-15T10:00:00.000Z"
+  },
+  {
+    "id": "clxmq4x9z000108l3bksj2c1f",
+    "name": "Anesthésie Loco-Régionale Échoguidée",
+    "description": "Compétence en ALR sous guidage échographique.",
+    "createdAt": "2024-05-15T10:05:00.000Z",
+    "updatedAt": "2024-05-15T10:05:00.000Z"
+  }
+]
+```
+
+### Endpoints - Gestion des Compétences Utilisateur
+
+| Méthode | Endpoint                          | Description                                       | Permissions requises |
+|---------|-----------------------------------|---------------------------------------------------|----------------------|
+| GET     | `/api/users/:userId/skills`       | Lister les compétences assignées à un utilisateur | Admin                |
+| POST    | `/api/users/:userId/skills`       | Assigner une compétence à un utilisateur          | Admin                |
+| DELETE  | `/api/users/:userId/skills/:skillId`| Retirer une compétence d'un utilisateur         | Admin                |
+| GET     | `/api/me/skills`                  | Lister les propres compétences de l'utilisateur connecté | Utilisateur Connecté |
+
+#### Exemple de payload pour POST /api/users/:userId/skills
+
+```json
+{
+  "skillId": "clxmq3w6d000008l3gq2h4v8k"
+}
+```
+
+#### Exemple de réponse pour GET /api/users/:userId/skills et GET /api/me/skills
+
+```json
+[
+  {
+    "id": "clxmr6t0p000208l3c9fn0z7v", // ID de l'enregistrement UserSkill
+    "userId": "user_admin_id_or_target_user_id",
+    "skillId": "clxmq3w6d000008l3gq2h4v8k",
+    "assignedAt": "2024-05-15T11:00:00.000Z",
+    "assignedBy": "user_admin_id",
+    "skill": {
+      "id": "clxmq3w6d000008l3gq2h4v8k",
+      "name": "Intubation Difficile",
+      "description": "Maîtrise des techniques d'intubation en cas de difficulté prévue ou imprévue.",
+      "createdAt": "2024-05-15T10:00:00.000Z",
+      "updatedAt": "2024-05-15T10:00:00.000Z"
+    }
+  }
+]
+``` 

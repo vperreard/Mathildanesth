@@ -1,37 +1,33 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import { PrismaClient } from '@prisma/client';
-import { verifyAuthToken } from '@/lib/auth-utils';
-import { headers } from 'next/headers';
-import { BlocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
-import { OperatingSectorSchema } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 
 const prisma = new PrismaClient();
-const planningService = new BlocPlanningService();
 
-// GET tous les secteurs
-export async function GET() {
+export async function GET(request: Request) {
     try {
-        // Utiliser le système JWT personnalisé au lieu de next-auth
-        const authResult = await verifyAuthToken();
-
-        if (!authResult.authenticated) {
-            // Vérifier si l'en-tête x-user-role est présent (pour le développement)
-            const headersList = headers();
-            const userRole = headersList.get('x-user-role');
-
-            // Si nous sommes en développement et que le rôle admin est fourni dans l'en-tête
-            if (process.env.NODE_ENV === 'development' && userRole === 'ADMIN_TOTAL') {
-                console.log('[DEV MODE] Authentification par en-tête uniquement pour GET /api/operating-sectors');
-            } else {
-                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-            }
+        const session = await getServerSession(authOptions);
+        if (!session) {
+            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
-        // Utiliser le service qui ordonne correctement les secteurs
-        const sectors = await planningService.getAllOperatingSectors();
+        const { searchParams } = new URL(request.url);
+        const siteId = searchParams.get('siteId');
 
-        // Journalisation pour le débogage
-        console.log(`GET /api/operating-sectors: ${sectors.length} secteurs triés par displayOrder et site récupérés`);
+        const sectors = await prisma.operatingSector.findMany({
+            where: siteId ? { siteId } : undefined,
+            include: {
+                site: true,
+                rooms: {
+                    orderBy: { displayOrder: 'asc' }
+                }
+            },
+            orderBy: [
+                { displayOrder: { sort: 'asc', nulls: 'last' } },
+                { name: 'asc' }
+            ]
+        });
 
         return NextResponse.json(sectors);
     } catch (error) {
@@ -40,138 +36,42 @@ export async function GET() {
     }
 }
 
-// POST pour créer un nouveau secteur
 export async function POST(request: Request) {
     try {
-        // Vérifier l'authentification et les permissions
-        const authResult = await verifyAuthToken();
-
-        if (!authResult.authenticated) {
-            // Vérifier si l'en-tête x-user-role est présent (pour le développement)
-            const headersList = headers();
-            const userRole = headersList.get('x-user-role');
-
-            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
-                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-            }
-            console.log('[DEV MODE] Authentification par en-tête uniquement pour POST /api/operating-sectors');
-        }
-
-        const body = await request.json();
-        const result = OperatingSectorSchema.safeParse(body);
-
-        if (!result.success) {
-            return NextResponse.json({ error: 'Données invalides', details: result.error.format() }, { status: 400 });
-        }
-
-        // Validation spécifique du champ category
-        const validCategories = ['STANDARD', 'HYPERASEPTIQUE', 'OPHTALMOLOGIE', 'ENDOSCOPIE'];
-        if (body.category && !validCategories.includes(body.category)) {
-            return NextResponse.json({
-                error: 'Catégorie de secteur invalide',
-                details: `La catégorie doit être l'une des suivantes: ${validCategories.join(', ')}`
-            }, { status: 400 });
-        }
-
-        // Utiliser la méthode createOperatingSector du service BlocPlanningService
-        const sector = await planningService.createOperatingSector(result.data);
-        return NextResponse.json(sector, { status: 201 });
-    } catch (error) {
-        console.error('Erreur lors de la création d\'un secteur opératoire:', error);
-        return NextResponse.json({ error: 'Erreur lors de la création d\'un secteur opératoire' }, { status: 500 });
-    }
-}
-
-// PUT pour mettre à jour un secteur existant
-export async function PUT(request: NextRequest) {
-    try {
-        // Vérifier l'authentification et les permissions
-        const authResult = await verifyAuthToken();
-
-        if (!authResult.authenticated) {
-            // Vérifier si l'en-tête x-user-role est présent (pour le développement)
-            const headersList = headers();
-            const userRole = headersList.get('x-user-role');
-
-            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
-                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-            }
-            console.log('[DEV MODE] Authentification par en-tête uniquement pour PUT /api/operating-sectors');
+        const session = await getServerSession(authOptions);
+        if (!session) {
+            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
         const data = await request.json();
+        const { name, siteId, description, colorCode, isActive, displayOrder, category } = data;
 
-        if (!data.id) {
-            return NextResponse.json({ error: 'ID du secteur requis' }, { status: 400 });
+        if (!name || !siteId) {
+            return NextResponse.json({ error: 'Nom et site requis' }, { status: 400 });
         }
 
-        // Convertir l'ID en nombre si nécessaire
-        const sectorId = parseInt(data.id, 10);
-        if (isNaN(sectorId)) {
-            return NextResponse.json({ error: 'ID du secteur invalide' }, { status: 400 });
-        }
-
-        // Validation spécifique du champ category
-        const validCategories = ['STANDARD', 'HYPERASEPTIQUE', 'OPHTALMOLOGIE', 'ENDOSCOPIE'];
-        if (data.category && !validCategories.includes(data.category)) {
-            return NextResponse.json({
-                error: 'Catégorie de secteur invalide',
-                details: `La catégorie doit être l'une des suivantes: ${validCategories.join(', ')}`
-            }, { status: 400 });
-        }
-
-        // Utiliser la méthode updateOperatingSector du service BlocPlanningService
-        const updatedSector = await planningService.updateOperatingSector(sectorId, {
-            name: data.name,
-            colorCode: data.colorCode,
-            isActive: data.isActive,
-            description: data.description,
-            category: data.category || 'STANDARD' // Ajout du champ category avec valeur par défaut
+        const newSector = await prisma.operatingSector.create({
+            data: {
+                name,
+                siteId,
+                description,
+                colorCode,
+                isActive: isActive !== undefined ? isActive : true,
+                displayOrder,
+                category,
+                rules: data.rules || {}
+            },
+            include: {
+                site: true
+            }
         });
 
-        return NextResponse.json(updatedSector);
+        return NextResponse.json(newSector, { status: 201 });
     } catch (error) {
-        console.error('Erreur lors de la mise à jour du secteur:', error);
-        return NextResponse.json({ error: 'Erreur lors de la mise à jour du secteur' }, { status: 500 });
+        console.error('Erreur lors de la création du secteur:', error);
+        return NextResponse.json({
+            error: 'Erreur lors de la création du secteur',
+            details: error instanceof Error ? error.message : 'Erreur inconnue'
+        }, { status: 500 });
     }
 }
-
-// DELETE pour supprimer un secteur
-export async function DELETE(request: NextRequest) {
-    try {
-        // Vérifier l'authentification et les permissions
-        const authResult = await verifyAuthToken();
-
-        if (!authResult.authenticated) {
-            // Vérifier si l'en-tête x-user-role est présent (pour le développement)
-            const headersList = headers();
-            const userRole = headersList.get('x-user-role');
-
-            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
-                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-            }
-            console.log('[DEV MODE] Authentification par en-tête uniquement pour DELETE /api/operating-sectors');
-        }
-
-        const url = new URL(request.url);
-        const idStr = url.searchParams.get('id');
-
-        if (!idStr) {
-            return NextResponse.json({ error: 'ID du secteur requis' }, { status: 400 });
-        }
-
-        // Convertir l'ID en nombre
-        const id = parseInt(idStr, 10);
-        if (isNaN(id)) {
-            return NextResponse.json({ error: 'ID du secteur invalide' }, { status: 400 });
-        }
-
-        // Utiliser la méthode deleteOperatingSector du service BlocPlanningService
-        await planningService.deleteOperatingSector(id);
-
-        return NextResponse.json({ message: 'Secteur supprimé avec succès' });
-    } catch (error) {
-        console.error('Erreur lors de la suppression du secteur:', error);
-        return NextResponse.json({ error: 'Erreur lors de la suppression du secteur' }, { status: 500 });
-    }
-} 

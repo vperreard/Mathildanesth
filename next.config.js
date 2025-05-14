@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    reactStrictMode: false,
     // Configuration expérimentale pour désactiver explicitement Babel si nécessaire (à tester)
     // experimental: {
     //     forceSwcTransforms: true,

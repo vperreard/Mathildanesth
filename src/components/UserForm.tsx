@@ -11,6 +11,10 @@ import {
 // Importer les VALEURS des Enums depuis Prisma pour les valeurs par défaut
 import { Role, ProfessionalRole } from '@prisma/client';
 import { Eye, EyeOff } from 'lucide-react';
+import { Skill } from '@/types/skill'; // Importer Skill
+import { UserSkill } from '@/types/userSkill'; // Importer UserSkill
+import { Checkbox } from '@/components/ui/checkbox'; // Pour les checkboxes de compétences
+import { Label } from '@/components/ui/label'; // Pour les labels des checkboxes
 
 // Interface interne pour l'état du formulaire
 interface UserFormState {
@@ -34,12 +38,14 @@ interface UserFormState {
 }
 
 interface UserFormProps {
-    onSubmit: (data: UserFormData) => Promise<void>;
+    onSubmit: (data: UserFormData, selectedSkills?: string[]) => Promise<void>;
     onCancel: () => void;
     initialData?: User | null;
     isLoading?: boolean;
-    // Ajouter la prop pour la ref
-    // formRef?: Ref<HTMLFormElement>; // Ne pas utiliser formRef directement comme prop
+    canEditRole?: boolean;
+    allSkills: Skill[];
+    userSkills: UserSkill[];
+    skillsLoading?: boolean;
 }
 
 // Helper formatDateForInput
@@ -67,7 +73,7 @@ const defaultInitialState: UserFormState = {
 };
 
 // Utiliser forwardRef pour passer la ref à l'élément form
-const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCancel, initialData, isLoading = false }, ref) => {
+const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCancel, initialData, isLoading = false, canEditRole = false, allSkills, userSkills, skillsLoading = false }, ref) => {
     const [formData, setFormData] = useState<UserFormState>(() => {
         if (initialData) {
             // Créer l'état initial à partir de initialData
@@ -95,6 +101,7 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
     });
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [selectedSkillIds, setSelectedSkillIds] = useState<Set<string>>(new Set());
 
     const isEditMode = !!initialData?.id;
 
@@ -123,7 +130,13 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
             setFormData(defaultInitialState); // Réinitialiser
         }
         setError(null);
-    }, [initialData]);
+        // Mettre à jour les compétences sélectionnées lorsque userSkills change (pour l'édition)
+        const initialSelectedSkills = new Set<string>();
+        if (userSkills) {
+            userSkills.forEach(us => initialSelectedSkills.add(us.skillId));
+        }
+        setSelectedSkillIds(initialSelectedSkills);
+    }, [initialData, userSkills]);
 
     // Nouvelle fonction pour gérer les changements des checkboxes de jours
     const handleDayChange = (day: DayOfWeek, weekType: 'pair' | 'impair', checked: boolean) => {
@@ -187,6 +200,18 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
         }
     };
 
+    const handleSkillChange = (skillId: string, checked: boolean) => {
+        setSelectedSkillIds(prev => {
+            const newSelected = new Set(prev);
+            if (checked) {
+                newSelected.add(skillId);
+            } else {
+                newSelected.delete(skillId);
+            }
+            return newSelected;
+        });
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
@@ -237,10 +262,11 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
             // alias: formData.alias || null, // Alias n'est pas dans le state UserFormState
         };
 
-        console.log("Data to send:", dataToSend); // Log pour débogage
+        console.log("Data to send (UserForm):", dataToSend);
+        console.log("Selected skills (UserForm):", Array.from(selectedSkillIds));
 
         try {
-            await onSubmit(dataToSend);
+            await onSubmit(dataToSend, Array.from(selectedSkillIds));
         } catch (err: any) {
             console.error("Form submission error:", err);
             setError(err.message || 'Une erreur est survenue lors de la soumission.');
@@ -534,6 +560,43 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
                         />
                     </div>
                 </div>
+            </div>
+
+            {/* Ajout de la section pour les compétences utilisateur */}
+            <hr className="my-6" />
+
+            <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Compétences</h3>
+            <div className="bg-gray-50 p-4 rounded-lg">
+                {skillsLoading ? (
+                    <p className="text-sm text-gray-500">Chargement des compétences...</p>
+                ) : allSkills.length === 0 ? (
+                    <p className="text-sm text-gray-500">Aucune compétence disponible dans le référentiel.</p>
+                ) : (
+                    <div>
+                        <p className="text-sm text-gray-500 mb-4">
+                            Sélectionnez les compétences de cet utilisateur:
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {allSkills.map((skill) => (
+                                <div key={skill.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id={`skill-${skill.id}`}
+                                        checked={selectedSkillIds.has(skill.id)}
+                                        onCheckedChange={(checked) => handleSkillChange(skill.id, !!checked)}
+                                        disabled={!canEditRole} // Désactivé si pas les droits d'admin
+                                    />
+                                    <Label
+                                        htmlFor={`skill-${skill.id}`}
+                                        className="text-sm font-medium cursor-pointer"
+                                        title={skill.description || ''}
+                                    >
+                                        {skill.name}
+                                    </Label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="flex justify-end space-x-3 pt-6">

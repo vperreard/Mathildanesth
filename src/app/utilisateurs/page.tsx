@@ -6,16 +6,20 @@ import axios from 'axios';
 import UserForm from '@/components/UserForm';
 // Importer les TYPES depuis le fichier centralisé
 import { User, UserFormData, Role, ProfessionalRole, UserRole } from '@/types/user';
+import { Skill } from '@/types/skill'; // Assumant que vous créerez ce type
+import { UserSkill } from '@/types/userSkill'; // Assumant que vous créerez ce type
 import { useAuth } from '@/hooks/useAuth'; // Importer useAuth
 import ProtectedRoute from '@/components/ProtectedRoute'; // Importer ProtectedRoute
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 import { Label } from "@/components/ui/label"; // Import Label
+import { useToast } from "@/components/ui/use-toast"; // Ajout pour les notifications
 
 // Type Role et Interface User déplacés vers src/types/user.ts
 
 // Wrapper pour protéger la page entière
 function UsersPageContent() {
     const { user: currentUser, isLoading: authLoading } = useAuth(); // Obtenir l'utilisateur connecté
+    const { toast } = useToast(); // Initialisation du toast
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -24,6 +28,10 @@ function UsersPageContent() {
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [isCreating, setIsCreating] = useState<boolean>(false);
     const [showInactiveUsers, setShowInactiveUsers] = useState<boolean>(false); // Nouvel état
+
+    const [allSkills, setAllSkills] = useState<Skill[]>([]);
+    const [editingUserSkills, setEditingUserSkills] = useState<UserSkill[]>([]);
+    const [skillsLoading, setSkillsLoading] = useState<boolean>(false);
 
     // Référence pour le formulaire
     const formRef = useRef<HTMLFormElement>(null);
@@ -52,11 +60,49 @@ function UsersPageContent() {
         }
     }, [showInactiveUsers]);
 
+    // Fetch all available skills
+    const fetchAllSkills = useCallback(async () => {
+        try {
+            const response = await axios.get<Skill[]>('/api/skills');
+            setAllSkills(response.data);
+        } catch (err) {
+            console.error("Erreur fetchAllSkills:", err);
+            toast({ title: "Erreur", description: "Impossible de charger la liste des compétences.", variant: "destructive" });
+        }
+    }, [toast]);
+
+    // Fetch skills for the user being edited
+    const fetchUserSkills = useCallback(async (userId: string) => {
+        if (!userId) {
+            setEditingUserSkills([]);
+            return;
+        }
+        setSkillsLoading(true);
+        try {
+            const response = await axios.get<UserSkill[]>(`/api/users/${userId}/skills`);
+            setEditingUserSkills(response.data);
+        } catch (err) {
+            console.error(`Erreur fetchUserSkills pour ${userId}:`, err);
+            toast({ title: "Erreur", description: "Impossible de charger les compétences de l'utilisateur.", variant: "destructive" });
+            setEditingUserSkills([]); // Réinitialiser en cas d'erreur
+        }
+        setSkillsLoading(false);
+    }, [toast]);
+
     useEffect(() => {
         if (!authLoading && currentUser) {
             fetchUsers();
+            fetchAllSkills(); // Charger toutes les compétences au montage
         }
-    }, [fetchUsers, authLoading, currentUser]);
+    }, [fetchUsers, fetchAllSkills, authLoading, currentUser]);
+
+    useEffect(() => {
+        if (editingUser && editingUser.id) {
+            fetchUserSkills(editingUser.id);
+        } else {
+            setEditingUserSkills([]); // Vider si pas d'utilisateur en édition
+        }
+    }, [editingUser, fetchUserSkills]);
 
     // --- Effet pour scroller vers le formulaire --- 
     useEffect(() => {
@@ -93,13 +139,33 @@ function UsersPageContent() {
         setSuccessMessage(null); // Clear success message
     };
 
-    const handleCreateUser = async (formData: UserFormData) => {
+    const handleCreateUser = async (formData: UserFormData, selectedSkills: string[] = []) => {
         setActionLoading('creating');
         setError(null);
         setSuccessMessage(null);
         try {
             const response = await axios.post<User>('/api/utilisateurs', formData);
-            handleApiResponse(response.data);
+            const newUser = response.data;
+
+            // Si des compétences sont sélectionnées, les assigner au nouvel utilisateur
+            if (selectedSkills.length > 0) {
+                try {
+                    // Assigner chaque compétence sélectionnée
+                    for (const skillId of selectedSkills) {
+                        await axios.post(`/api/users/${newUser.id}/skills`, { skillId });
+                    }
+                    toast({ title: "Succès", description: `${selectedSkills.length} compétence(s) assignée(s) à l'utilisateur.` });
+                } catch (err) {
+                    console.error("Erreur lors de l'assignation des compétences:", err);
+                    toast({
+                        title: "Attention",
+                        description: "L'utilisateur a été créé mais une erreur est survenue lors de l'assignation des compétences.",
+                        variant: "warning"
+                    });
+                }
+            }
+
+            handleApiResponse(newUser);
         } catch (err: any) {
             setActionLoading(null);
             if (axios.isAxiosError(err) && err.response) {
@@ -110,13 +176,52 @@ function UsersPageContent() {
         }
     };
 
-    const handleUpdateUser = async (formData: UserFormData) => {
+    const handleUpdateUser = async (formData: UserFormData, selectedSkills: string[] = []) => {
         if (!editingUser) return;
-        setActionLoading(editingUser.id);
+        const userId = editingUser.id;
+        setActionLoading(userId);
         setError(null);
         try {
-            const response = await axios.put<User>(`/api/utilisateurs/${editingUser.id}`, formData);
-            handleApiResponse(response.data);
+            // Mettre à jour les infos principales de l'utilisateur
+            const response = await axios.put<User>(`/api/utilisateurs/${userId}`, formData);
+            const updatedUser = response.data;
+
+            // Gérer la synchronisation des compétences
+            try {
+                // Récupérer les IDs des compétences actuellement assignées
+                const currentSkillsResponse = await axios.get<UserSkill[]>(`/api/users/${userId}/skills`);
+                const currentSkillIds = currentSkillsResponse.data.map(us => us.skillId);
+
+                // Déterminer les compétences à ajouter et à supprimer
+                const skillsToAdd = selectedSkills.filter(id => !currentSkillIds.includes(id));
+                const skillsToRemove = currentSkillIds.filter(id => !selectedSkills.includes(id));
+
+                // Ajouter les nouvelles compétences
+                for (const skillId of skillsToAdd) {
+                    await axios.post(`/api/users/${userId}/skills`, { skillId });
+                }
+
+                // Supprimer les compétences non sélectionnées
+                for (const skillId of skillsToRemove) {
+                    await axios.delete(`/api/users/${userId}/skills/${skillId}`);
+                }
+
+                if (skillsToAdd.length > 0 || skillsToRemove.length > 0) {
+                    toast({
+                        title: "Succès",
+                        description: `${skillsToAdd.length} compétence(s) ajoutée(s) et ${skillsToRemove.length} retirée(s).`
+                    });
+                }
+            } catch (err) {
+                console.error("Erreur lors de la synchronisation des compétences:", err);
+                toast({
+                    title: "Attention",
+                    description: "L'utilisateur a été mis à jour mais une erreur est survenue lors de la synchronisation des compétences.",
+                    variant: "warning"
+                });
+            }
+
+            handleApiResponse(updatedUser);
         } catch (err: any) {
             console.error("Erreur handleUpdateUser:", err);
             setActionLoading(null);
@@ -227,6 +332,10 @@ function UsersPageContent() {
                             onCancel={handleCancelForm}
                             isLoading={actionLoading === 'creating' || actionLoading === editingUser?.id}
                             initialData={editingUser}
+                            allSkills={allSkills}
+                            userSkills={editingUserSkills}
+                            skillsLoading={skillsLoading}
+                            canEditRole={canEditRole}
                         />
                     </motion.div>
                 )}

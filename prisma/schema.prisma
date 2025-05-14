@@ -9,6 +9,17 @@ datasource db {
 }
 
 // --- NOUVELLES ÉNUMÉRATIONS ---
+enum ActivityCategory {
+  BLOC_OPERATOIRE
+  CONSULTATION
+  GARDE
+  ASTREINTE
+  REUNION
+  FORMATION
+  ADMINISTRATIF
+  AUTRE
+}
+
 enum Period {
   MATIN
   APRES_MIDI
@@ -41,6 +52,7 @@ model BlocTramePlanning {
   name         String                      @unique
   description  String?
   siteId       String?
+  site         Site?                       @relation("SiteBlocTramePlannings", fields: [siteId], references: [id])
   dateDebut    DateTime
   dateFin      DateTime?
   isActive     Boolean                     @default(true)
@@ -243,6 +255,17 @@ model User {
   incompatibilitiesAsUser1 PersonnelIncompatibility[] @relation("User1Incompatibilities")
   incompatibilitiesAsUser2 PersonnelIncompatibility[] @relation("User2Incompatibilities")
 
+  userRequests     UserRequest[]
+  assignedRequests UserRequest[] @relation("AssignedRequests")
+
+  // Relation aux compétences utilisateur
+  userSkills UserSkill[]
+
+  initiatedSwapRequests AssignmentSwapRequest[] @relation("InitiatedSwapRequests")
+  receivedSwapRequests  AssignmentSwapRequest[] @relation("ReceivedSwapRequests")
+
+  assignedSkills UserSkill[] @relation("AssignedSkillsByAdmin")
+
   @@map("users")
 }
 
@@ -315,23 +338,33 @@ model PlanningRule {
 }
 
 model OperatingRoom {
-  id                  Int                  @id @default(autoincrement())
-  name                String
-  number              String               @unique
-  sectorId            Int?
-  colorCode           String?
-  isActive            Boolean              @default(true)
-  supervisionRules    Json
-  type                RoomType             @default(STANDARD)
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  displayOrder        Int                  @default(0)
-  allowedSpecialties  String[]             @default([])
-  blocRoomAssignments BlocRoomAssignment[]
-  sector              OperatingSector?     @relation(fields: [sectorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  Assignment          Assignment[]
+  id                 Int      @id @default(autoincrement())
+  name               String // Nom usuel de la salle
+  number             String   @unique // Numéro officiel/identifiant unique
+  description        String?
+  roomType           RoomType @default(STANDARD)
+  capacity           Int      @default(1) // Capacité standard
+  isActive           Boolean  @default(true)
+  displayOrder       Int      @default(0)
+  colorCode          String? // Pour l'affichage
+  supervisionRules   Json? // Règles spécifiques de supervision pour cette salle
+  allowedSpecialties String[] @default([]) // Spécialités autorisées
 
-  @@index([sectorId])
+  siteId String
+  site   Site   @relation("SiteOperatingRooms", fields: [siteId], references: [id])
+
+  operatingSectorId Int?
+  operatingSector   OperatingSector? @relation(fields: [operatingSectorId], references: [id])
+
+  blocRoomAssignments BlocRoomAssignment[]
+  assignments         Assignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([siteId])
+  @@index([operatingSectorId])
+  @@map("operating_rooms")
 }
 
 model Rule {
@@ -481,6 +514,9 @@ model Assignment {
   Location            Location?          @relation(fields: [locationId], references: [id])
   locationId          Int?
 
+  proposedSwapRequests  AssignmentSwapRequest[] @relation("ProposedSwapAssignment")
+  requestedSwapRequests AssignmentSwapRequest[] @relation("RequestedSwapAssignment")
+
   @@index([date])
   @@index([userId, date])
   @@index([siteId, date])
@@ -488,19 +524,19 @@ model Assignment {
 }
 
 model OperatingSector {
-  id           Int            @id @default(autoincrement())
-  name         String         @unique
+  id           Int             @id @default(autoincrement())
+  name         String          @unique
   colorCode    String?
-  isActive     Boolean        @default(true)
+  isActive     Boolean         @default(true)
   description  String?
   rules        Json?
-  category     SectorCategory @default(STANDARD)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  category     SectorCategory  @default(STANDARD)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
   siteId       String?
   displayOrder Int?
   rooms        OperatingRoom[]
-  site         Site?          @relation(fields: [siteId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  site         Site?           @relation(fields: [siteId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([siteId])
 }
@@ -871,29 +907,37 @@ model Department {
 }
 
 model Site {
-  id                 String    @id @default(cuid())
-  name               String    @unique
-  description        String?
-  isActive           Boolean   @default(true)
-  displayOrder       Int?
-  address            String?
-  colorCode          String?             @default("#007bff")
+  id           String   @id @default(uuid())
+  name         String   @unique
+  description  String?
+  isActive     Boolean  @default(true)
+  address      String?
+  colorCode    String?
+  timezone     String   @default("Europe/Paris")
+  displayOrder Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  operatingRooms     OperatingRoom[]     @relation("SiteOperatingRooms")
   operatingSectors   OperatingSector[]
   users              User[]              @relation("SiteUsers")
-  regularAssignments RegularAssignment[]
-  surgeons           Surgeon[]           @relation("SurgeonSites")
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  blocTramePlannings BlocTramePlanning[] @relation("SiteBlocTramePlannings")
   blocDayPlannings   BlocDayPlanning[]
-  Assignment         Assignment[]
+  UserRequest        UserRequest[]       @relation("SiteUserRequests")
+
+  surgeons           Surgeon[]           @relation("SurgeonSites")
+  regularAssignments RegularAssignment[]
+  assignments        Assignment[]
+
+  activityTypes ActivityType[] @relation("ActivityTypeToSite")
 
   @@map("sites")
 }
 
 enum Role {
-  ADMIN_TOTAL
-  ADMIN_PARTIEL
   USER
+  ADMIN_PARTIEL
+  ADMIN_TOTAL
 }
 
 enum UserStatus {
@@ -1050,4 +1094,143 @@ enum RoomType {
   STANDARD
   FIV
   CONSULTATION
+}
+
+model RequestType {
+  id                    String        @id @default(uuid())
+  name                  String        @unique
+  description           String?
+  requiresAdminApproval Boolean       @default(true)
+  isActive              Boolean       @default(true)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  userRequests          UserRequest[]
+
+  @@map("request_types")
+}
+
+model UserRequest {
+  id          String            @id @default(uuid())
+  title       String // Titre de la requête
+  description String // Description détaillée
+  status      UserRequestStatus @default(SUBMITTED)
+  adminNotes  String? // Notes de l'administrateur
+
+  userId Int // Qui a fait la demande
+  user   User @relation(fields: [userId], references: [id])
+
+  requestTypeId String // Type de requête (lien vers RequestType)
+  requestType   RequestType @relation(fields: [requestTypeId], references: [id])
+
+  assignedToId Int? // Optionnel: à qui la tâche est assignée pour traitement
+  assignedTo   User? @relation("AssignedRequests", fields: [assignedToId], references: [id])
+
+  siteId String? // Site concerné par la requête, si applicable
+  site   Site?   @relation("SiteUserRequests", fields: [siteId], references: [id])
+
+  startDate DateTime?
+  endDate   DateTime?
+  details   Json?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  resolvedAt DateTime?
+
+  @@index([userId, status])
+  @@index([requestTypeId, status])
+  @@index([assignedToId, status])
+  @@map("user_requests")
+}
+
+enum UserRequestStatus {
+  SUBMITTED
+  IN_PROGRESS
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED_BY_USER
+}
+
+enum AssignmentSwapStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  EXPIRED
+}
+
+model AssignmentSwapRequest {
+  id              String @id @default(cuid())
+  initiatorUserId Int
+  initiator       User   @relation("InitiatedSwapRequests", fields: [initiatorUserId], references: [id])
+
+  proposedAssignmentId String
+  proposedAssignment   Assignment @relation("ProposedSwapAssignment", fields: [proposedAssignmentId], references: [id])
+
+  targetUserId Int?
+  targetUser   User? @relation("ReceivedSwapRequests", fields: [targetUserId], references: [id])
+
+  requestedAssignmentId String?
+  requestedAssignment   Assignment? @relation("RequestedSwapAssignment", fields: [requestedAssignmentId], references: [id])
+
+  status          AssignmentSwapStatus @default(PENDING)
+  message         String?
+  responseMessage String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiresAt DateTime?
+
+  @@index([initiatorUserId])
+  @@index([targetUserId])
+  @@index([proposedAssignmentId])
+  @@index([requestedAssignmentId])
+}
+
+// --- MODÈLE POUR LES COMPÉTENCES ---
+model Skill {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userSkills UserSkill[] // Relation vers les utilisateurs ayant cette compétence
+
+  @@map("skills")
+}
+
+// --- MODÈLE POUR LES COMPÉTENCES UTILISATEUR (TABLE DE JOINTURE) ---
+model UserSkill {
+  id         String   @id @default(cuid())
+  userId     Int // Référence l'ID de l'utilisateur (Int)
+  skillId    String // Référence l'ID de la compétence (String CUID)
+  assignedAt DateTime @default(now())
+  assignedBy Int? // ID de l'utilisateur (admin) qui a assigné la compétence, optionnel
+
+  user            User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill           Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  assignedByAdmin User? @relation("AssignedSkillsByAdmin", fields: [assignedBy], references: [id], onDelete: SetNull)
+
+  @@unique([userId, skillId], name: "user_skill_unique_constraint") // Assurer que chaque compétence n'est assignée qu'une fois par utilisateur
+  @@map("user_skills")
+}
+
+model ActivityType {
+  id          String           @id @default(uuid())
+  name        String           @unique // Ex: "Garde Anesthésie Pontoise", "Consultation Dr. Durand", "Bloc Salle 3"
+  description String?
+  category    ActivityCategory @default(AUTRE)
+  color       String? // Pour affichage dans le planning, ex: "#FF5733"
+  icon        String? // Nom d'une icône (ex: "BriefcaseIcon") ou slug pour affichage
+  isActive    Boolean          @default(true) // Pour pouvoir désactiver sans supprimer
+
+  // Relation Many-to-Many avec Site
+  // Une activité peut être disponible sur plusieurs sites, ou aucun (globale)
+  sites Site[] @relation("ActivityTypeToSite")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("activity_types")
 }

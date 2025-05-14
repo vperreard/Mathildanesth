@@ -1,6 +1,7 @@
 import NextAuth, { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import axios from 'axios';
+import { Role } from '@prisma/client';
 
 // Définir explicitement le type pour authOptions
 export const authOptions: AuthOptions = {
@@ -37,13 +38,24 @@ export const authOptions: AuthOptions = {
 
           if (response.data && response.data.user) {
             console.log('NextAuth authorize success, user data:', response.data.user);
-            // Assurez-vous que l'objet utilisateur retourné par votre API
-            // contient au moins un champ `id`.
-            // NextAuth s'attend à ce que l'objet utilisateur ait une propriété `id`.
-            // Si votre utilisateur a `userId` ou un autre nom, mappez-le ici.
+            const apiUser = response.data.user as { id?: string; userId?: string; role: Role; token: string;[key: string]: any };
+
+            const finalId = apiUser.id || apiUser.userId;
+            if (!finalId) {
+              console.error('NextAuth authorize error: User ID is missing from API response.');
+              return null; // ID manquant, échec de l'authentification
+            }
+
+            if (!apiUser.token) {
+              console.warn("NextAuth authorize: User object from API is missing 'token'. Ensure your login API returns it.");
+              // Vous pourriez aussi retourner null ici si le token est absolument requis
+            }
+
             return {
-              ...response.data.user,
-              id: response.data.user.id || response.data.user.userId,
+              ...apiUser,
+              id: finalId, // Garanti d'être une string ici
+              role: apiUser.role,
+              token: apiUser.token || 'dummy-token',
             };
           } else {
             console.log('NextAuth authorize failed, no user data in response:', response.data);
@@ -68,22 +80,26 @@ export const authOptions: AuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, account }) {
-      // `user` est passé uniquement lors de la connexion initiale
       if (account && user) {
-        // `account` est présent lors de la connexion via un provider
-        token.id = user.id;
-        // token.accessToken = account.access_token; // Si vous utilisez OAuth et avez besoin du token d'accès
-        // Ajoutez d'autres propriétés de l'utilisateur au token si nécessaire
-        // Exemple : token.role = user.role;
+        token.id = user.id; // user.id est maintenant garanti d'être une string
+        if (user.role) {
+          token.role = user.role;
+        }
+        if (user.token) {
+          token.accessToken = user.token;
+        }
       }
       return token;
     },
     async session({ session, token }) {
-      // `token` contient les données du JWT (enrichi par le callback jwt)
       if (session.user && token.id) {
         session.user.id = token.id as string;
-        // Ajoutez d'autres propriétés du token à la session si nécessaire
-        // Exemple : session.user.role = token.role;
+        if (token.role) {
+          session.user.role = token.role as Role;
+        }
+        if (token.accessToken) {
+          session.accessToken = token.accessToken as string;
+        }
       }
       return session;
     },

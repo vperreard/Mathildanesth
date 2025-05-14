@@ -212,14 +212,14 @@ export class BlocPlanningService {
     /**
      * Récupère un planning journalier par son ID avec toutes ses relations.
      */
-    async getBlocDayPlanningById(planningId: string): Promise<BlocDayPlanning & { site: Site, assignments: (BlocRoomAssignment & { operatingRoom: OperatingRoom & { sector: OperatingSector | null }, surgeon: Surgeon | null, staffAssignments: (BlocStaffAssignment & { user: User | null })[] })[], conflicts: BlocPlanningConflict[] } | null> {
+    async getBlocDayPlanningById(planningId: string): Promise<BlocDayPlanning & { site: Site, assignments: (BlocRoomAssignment & { operatingRoom: OperatingRoom & { operatingSector: OperatingSector | null }, surgeon: Surgeon | null, staffAssignments: (BlocStaffAssignment & { user: User | null })[] })[], conflicts: BlocPlanningConflict[] } | null> {
         return prisma.blocDayPlanning.findUnique({
             where: { id: planningId },
             include: {
                 site: true,
                 assignments: {
                     include: {
-                        operatingRoom: { include: { sector: true } },
+                        operatingRoom: { include: { operatingSector: true } }, // Modifié ici
                         surgeon: true,
                         staffAssignments: { include: { user: true } }
                     }
@@ -245,7 +245,7 @@ export class BlocPlanningService {
                 site: true,
                 assignments: {
                     include: {
-                        operatingRoom: { include: { sector: true } },
+                        operatingRoom: { include: { operatingSector: true } }, // Modifié ici
                         surgeon: true,
                         staffAssignments: { include: { user: true } }
                     }
@@ -272,7 +272,7 @@ export class BlocPlanningService {
                 site: true, // Accès direct aux champs de Site, pas de sous-relation siteConfiguration
                 assignments: {
                     include: {
-                        operatingRoom: { include: { sector: true } },
+                        operatingRoom: { include: { operatingSector: true } }, // Modifié ici
                         surgeon: true,
                         staffAssignments: {
                             include: {
@@ -461,19 +461,19 @@ export class BlocPlanningService {
                     supervisionOphtalmoCount: number, // Added for R3/R8 Ophtalmo specific
                     supervisionStandardCount: number, // Added for R8 Ophtalmo specific
                     isPrincipalInOphtalmo: boolean, // Added for R8 Ophtalmo specific
-                    assignments: (BlocStaffAssignment & { user: User | null, room: OperatingRoom & { sector: OperatingSector | null } })[]
+                    assignments: (BlocStaffAssignment & { user: User | null, room: OperatingRoom & { operatingSector: OperatingSector | null } })[]
                 }
             }
         } = {};
 
         for (const roomAssignment of assignments) {
-            if (!roomAssignment.operatingRoom || !roomAssignment.operatingRoom.sector) continue; // Sector is needed for type
+            if (!roomAssignment.operatingRoom || !roomAssignment.operatingRoom.operatingSector) continue; // Sector is needed for type // Modifié ici
             const period = roomAssignment.period;
-            const sectorType = roomAssignment.operatingRoom.sector &&
-                'category' in roomAssignment.operatingRoom.sector &&
-                typeof roomAssignment.operatingRoom.sector.category === 'string'
-                ? roomAssignment.operatingRoom.sector.category
-                : this.getSectorTypeFromName(roomAssignment.operatingRoom.sector?.name || '');
+            const sectorType = roomAssignment.operatingRoom.operatingSector && // Modifié ici
+                'category' in roomAssignment.operatingRoom.operatingSector && // Modifié ici
+                typeof roomAssignment.operatingRoom.operatingSector.category === 'string' // Modifié ici
+                ? roomAssignment.operatingRoom.operatingSector.category // Modifié ici
+                : this.getSectorTypeFromName(roomAssignment.operatingRoom.operatingSector?.name || ''); // Modifié ici
 
             if (!marAssignmentsByPeriod[period]) {
                 marAssignmentsByPeriod[period] = {};
@@ -510,7 +510,7 @@ export class BlocPlanningService {
                         }
                     }
                     // Explicitly cast room to include sector for type safety
-                    const roomWithSector = roomAssignment.operatingRoom as OperatingRoom & { sector: OperatingSector | null };
+                    const roomWithSector = roomAssignment.operatingRoom as OperatingRoom & { operatingSector: OperatingSector | null }; // Modifié ici
                     marRecord.assignments.push({ ...staff, room: roomWithSector });
                 }
             }
@@ -626,9 +626,9 @@ export class BlocPlanningService {
         const contiguityCheckBySector: { [sectorId: string]: { [period: string]: { [userId: number]: OperatingRoom[] } } } = {};
 
         for (const roomAssignment of assignments) {
-            if (!roomAssignment.operatingRoom || !roomAssignment.operatingRoom.sector) continue;
+            if (!roomAssignment.operatingRoom || !roomAssignment.operatingRoom.operatingSector) continue; // Modifié ici
 
-            const sectorId = roomAssignment.operatingRoom.sector.id;
+            const sectorId = roomAssignment.operatingRoom.operatingSector.id; // Modifié ici
             const period = roomAssignment.period;
 
             if (!contiguityCheckBySector[sectorId]) {
@@ -888,8 +888,8 @@ export class BlocPlanningService {
             }
 
             // Vérifier les règles spécifiques du secteur concernant le nombre d'IADEs requis
-            if (roomAssignment.operatingRoom?.sector) {
-                const sector = roomAssignment.operatingRoom.sector;
+            if (roomAssignment.operatingRoom?.operatingSector) { // Modifié ici
+                const sector = roomAssignment.operatingRoom.operatingSector; // Modifié ici
                 const sectorRules = getSectorRules(sector.rules);
                 const minIADESectorRequis = sectorRules.minIADEPerRoom;
 
@@ -909,9 +909,9 @@ export class BlocPlanningService {
         // R8: Règles Spécifiques par type de secteur
         for (const roomAssignment of assignments) {
             const room = roomAssignment.operatingRoom;
-            if (!room || !room.sector) continue;
+            if (!room || !room.operatingSector) continue; // Modifié ici
 
-            const sector = room.sector;
+            const sector = room.operatingSector; // Modifié ici
 
             // Début Solution Palliative pour sectorType (R8)
             // TODO: Remplacer par une méthode fiable (champ dédié sur OperatingSector ou propriété structurée dans sector.rules)
@@ -1399,54 +1399,73 @@ export class BlocPlanningService {
      * Factorisation de la transformation et validation des salles d'opération.
      */
     private transformAndValidateRooms(
-        roomsData: (Prisma.OperatingRoomGetPayload<{ include: { sector: { include: { site: true } } } }> | Prisma.OperatingRoomGetPayload<{}>)[], // Type plus précis pour roomsData
-        includeRelations: boolean // Doit être explicitement boolean
-    ): LegacyOperatingRoom[] { // Le type de retour est LegacyOperatingRoom
-        const validatedRooms = roomsData.map((room: any) => {
-            // Initialiser avec un nom de secteur par défaut
-            let currentSectorName = 'Non défini';
+        roomsData: (Prisma.OperatingRoomGetPayload<{ include: { operatingSector: { include: { site: true } } } }> | Prisma.OperatingRoomGetPayload<{}>)[], // Modifié ici
+        includeRelations: boolean
+    ): LegacyOperatingRoom[] {
+        console.log('[BlocPlanningService.transformAndValidateRooms] Reçu pour transformation (premiers 2 si dispo):', JSON.stringify(roomsData.slice(0, 2)));
+        console.log(`[BlocPlanningService.transformAndValidateRooms] Nombre total de salles reçues pour transformation: ${roomsData.length}`);
+        if (!roomsData || roomsData.length === 0) {
+            console.warn('[BlocPlanningService.transformAndValidateRooms] Aucune donnée de salle reçue pour transformation.');
+            return [];
+        }
 
-            // Vérifier si la relation sector existe et a un nom
-            if (includeRelations && room.sector && room.sector.name) {
-                // Prendre le nom de secteur tel quel sans normalisation pour éviter les problèmes de casse
-                currentSectorName = room.sector.name;
-                console.log(`[BlocPlanningService] Secteur détecté pour salle ${room.id} (${room.name}): "${currentSectorName}"`);
-            } else if (room.sectorId) {
-                // Si on a seulement l'ID du secteur mais pas la relation, on laisse "Non défini"
-                console.log(`[BlocPlanningService] Salle ${room.id} (${room.name}) a un sectorId ${room.sectorId} mais pas de relation sector`);
-                // currentSectorName reste à "Non défini"
+        const validatedRoomsInternal = roomsData.map((room: any, index: number) => {
+            if (index < 2) { // Loguer seulement pour les deux premières pour éviter la verbosité
+                console.log(`[BlocPlanningService.transformAndValidateRooms] Salle ${index} brute reçue par map:`, JSON.stringify(room));
             }
-
-            const roomForValidation: Partial<LegacyOperatingRoom> & { sectorId?: number, sector?: string } = {
-                id: room.id,
-                name: room.name,
-                number: room.number,
-                colorCode: room.colorCode,
-                isActive: room.isActive,
-                supervisionRules: (room.supervisionRules && typeof room.supervisionRules === 'object' && !Array.isArray(room.supervisionRules)) ? room.supervisionRules as Record<string, any> : {},
-                createdAt: room.createdAt,
-                updatedAt: room.updatedAt,
-                displayOrder: room.displayOrder === null ? undefined : room.displayOrder,
-                sectorId: room.sectorId === null ? undefined : room.sectorId,
-                // IMPORTANT: Toujours définir un nom de secteur, même si c'est "Non défini"
-                sector: currentSectorName
+            const roomForValidation: Partial<Omit<LegacyOperatingRoom, 'type'> & { type?: string, siteId?: string }> = {
+                id: typeof room.id === 'number' ? room.id : undefined,
+                name: typeof room.name === 'string' ? room.name : 'Nom manquant',
+                number: typeof room.number === 'string' ? room.number : 'Numéro manquant',
+                sectorId: typeof room.operatingSectorId === 'number' || room.operatingSectorId === null ? room.operatingSectorId : undefined, // Modifié ici (champ direct)
+                sector: typeof room.operatingSector === 'string' || room.operatingSector === null ? room.operatingSector : undefined, // Modifié ici (relation)
+                colorCode: typeof room.colorCode === 'string' || room.colorCode === null ? room.colorCode : undefined,
+                isActive: typeof room.isActive === 'boolean' ? room.isActive : true,
+                supervisionRules: typeof room.supervisionRules === 'object' && room.supervisionRules !== null ? room.supervisionRules : {},
+                createdAt: room.createdAt instanceof Date ? room.createdAt : undefined,
+                updatedAt: room.updatedAt instanceof Date ? room.updatedAt : undefined,
+                displayOrder: typeof room.displayOrder === 'number' ? room.displayOrder : undefined,
+                type: typeof room.type === 'string' ? room.type : undefined, // Pass as string, Zod will validate against enum
+                siteId: undefined,
             };
 
-            const parseResult = OperatingRoomSchema.safeParse(roomForValidation);
-            if (!parseResult.success) {
-                console.log(`Données invalides pour la salle ID ${room.id}, tentative de correction:`, roomForValidation);
-                // En cas d'échec, on tente une dernière correction
-                roomForValidation.sector = currentSectorName || 'Non défini';
-                const retryResult = OperatingRoomSchema.safeParse(roomForValidation);
-                if (!retryResult.success) {
-                    console.warn(`Correction échouée, données invalides pour la salle ID ${room.id}, elle sera ignorée:`, retryResult.error.flatten());
-                    return null;
-                }
-                return retryResult.data;
+            if (includeRelations && room.operatingSector && room.operatingSector.site && typeof room.operatingSector.site.id === 'string') { // Modifié ici
+                roomForValidation.siteId = room.operatingSector.site.id; // Modifié ici
             }
-            return parseResult.data;
+
+            const parseResult = OperatingRoomSchema.safeParse(roomForValidation);
+
+            if (index < 2) { // Loguer seulement pour les deux premières
+                console.log(`[BlocPlanningService.transformAndValidateRooms] Salle ${index} - roomForValidation:`, JSON.stringify(roomForValidation));
+                if (!parseResult.success) {
+                    console.warn(`[BlocPlanningService.transformAndValidateRooms] Salle ${index} - Échec de validation Zod (ID: ${room?.id}, Nom: ${room?.name}):`, JSON.stringify(parseResult.error.flatten()));
+                } else {
+                    console.log(`[BlocPlanningService.transformAndValidateRooms] Salle ${index} - Succès de validation Zod (ID: ${room?.id}, Nom: ${room?.name}). Données validées:`, JSON.stringify(parseResult.data));
+                }
+            }
+
+            if (!parseResult.success) {
+                // Ne loguer l'erreur que si ce n'est pas l'une des deux premières (déjà loguée en détail)
+                if (index >= 2) {
+                    console.warn(`Échec de validation Zod pour la salle (ID: ${room?.id}, Nom: ${room?.name}), elle sera ignorée:`, parseResult.error.flatten());
+                }
+                return null;
+            }
+
+            const validatedRoom = parseResult.data as LegacyOperatingRoom;
+
+            if (includeRelations && room.operatingSector) { // Modifié ici
+                (validatedRoom as any).sectorName = typeof room.operatingSector.name === 'string' ? room.operatingSector.name : 'Secteur inconnu'; // Modifié ici
+                if (room.operatingSector.site) { // Modifié ici
+                    (validatedRoom as any).siteName = typeof room.operatingSector.site.name === 'string' ? room.operatingSector.site.name : 'Site inconnu'; // Modifié ici
+                }
+            } else if (roomForValidation.sector) { // Conservé car roomForValidation.sector peut exister si includeRelations est faux
+                (validatedRoom as any).sectorName = roomForValidation.sector;
+            }
+
+            return validatedRoom;
         });
-        return validatedRooms.filter((r): r is LegacyOperatingRoom => r !== null);
+        return validatedRoomsInternal.filter((r): r is LegacyOperatingRoom => r !== null);
     }
 
 
@@ -1455,25 +1474,38 @@ export class BlocPlanningService {
      */
     async getAllOperatingRooms(includeRelations = true): Promise<LegacyOperatingRoom[]> {
         try {
-            const includeArgs = includeRelations ? { sector: { include: { site: true } } } : undefined;
+            const includeArgs = includeRelations ? { operatingSector: { include: { site: true } } } : undefined;
+            console.log('[BlocPlanningService.getAllOperatingRooms] Arguments d\'include pour Prisma:', JSON.stringify(includeArgs));
+
             const roomsData = await prisma.operatingRoom.findMany({
-                // where: { isActive: true }, // Pour getAll, on prend tout, même inactives initialement, isActive est dans le schéma Zod
                 include: includeArgs,
                 orderBy: [
                     ...(includeRelations ? [
-                        { sector: { site: { displayOrder: 'asc' } } as any },
-                        { sector: { site: { name: 'asc' } } as any },
-                        { sector: { displayOrder: 'asc' } as any },
-                        { sector: { name: 'asc' } as any },
+                        { operatingSector: { site: { displayOrder: 'asc' } } as any },
+                        { operatingSector: { site: { name: 'asc' } } as any },
+                        { operatingSector: { displayOrder: 'asc' } as any },
+                        { operatingSector: { name: 'asc' } as any },
                     ] : []),
                     { displayOrder: 'asc' },
                     { name: 'asc' }
                 ]
             });
-            return this.transformAndValidateRooms(roomsData as any, includeRelations);
+
+            console.log('[BlocPlanningService.getAllOperatingRooms] Données brutes de Prisma (premiers 2 si dispo):', JSON.stringify(roomsData.slice(0, 2)));
+            console.log(`[BlocPlanningService.getAllOperatingRooms] Nombre total de salles récupérées de Prisma: ${roomsData.length}`);
+
+            if (roomsData.length === 0) {
+                console.warn('[BlocPlanningService.getAllOperatingRooms] Aucune salle récupérée de Prisma.');
+            }
+
+            const transformedRooms = this.transformAndValidateRooms(roomsData as any, includeRelations);
+            console.log(`[BlocPlanningService.getAllOperatingRooms] Nombre de salles après transformation/validation: ${transformedRooms.length}`);
+            return transformedRooms;
         } catch (error) {
-            console.error("Erreur lors de la récupération des salles d'opération: ", error);
-            throw new Error("Impossible de récupérer les salles d'opération");
+            console.error("[BlocPlanningService.getAllOperatingRooms] Erreur lors de la récupération des salles d'opération: ", error);
+            // Ne pas simplement jeter l'erreur ici pour voir si le catch plus haut (dans la route API) le fait
+            // throw new Error("Impossible de récupérer les salles d'opération"); 
+            return []; // Retourner un tableau vide en cas d'erreur ici pour éviter de planter et voir si l'API renvoie quand même 200
         }
     }
 
@@ -1482,7 +1514,7 @@ export class BlocPlanningService {
      */
     async getActiveOperatingRooms(includeRelations = true): Promise<LegacyOperatingRoom[]> {
         try {
-            const includeArgs = includeRelations ? { sector: { include: { site: true } } } : undefined;
+            const includeArgs = includeRelations ? { operatingSector: { include: { site: true } } } : undefined;
             const roomsData = await prisma.operatingRoom.findMany({
                 where: {
                     isActive: true
@@ -1490,10 +1522,10 @@ export class BlocPlanningService {
                 include: includeArgs,
                 orderBy: [
                     ...(includeRelations ? [
-                        { sector: { site: { displayOrder: 'asc' } } as any },
-                        { sector: { site: { name: 'asc' } } as any },
-                        { sector: { displayOrder: 'asc' } as any },
-                        { sector: { name: 'asc' } as any },
+                        { operatingSector: { site: { displayOrder: 'asc' } } as any },
+                        { operatingSector: { site: { name: 'asc' } } as any },
+                        { operatingSector: { displayOrder: 'asc' } as any },
+                        { operatingSector: { name: 'asc' } as any },
                     ] : []),
                     { displayOrder: 'asc' },
                     { name: 'asc' }
@@ -1562,6 +1594,7 @@ export class BlocPlanningService {
                     { name: 'asc' }
                 ]
             });
+            // Correction de l'appel de fonction
             return this.transformAndValidateSectors(sectorsData as any, includeRelations);
         } catch (error) {
             console.error("Erreur lors de la récupération des secteurs opératoires: ", error);
@@ -1575,12 +1608,12 @@ export class BlocPlanningService {
      * @param sector Le secteur auquel appartiennent les salles
      * @returns true si les salles sont contiguës, false sinon
      */
-    private areRoomsContiguousLegacy(rooms: OperatingRoom[], sector?: OperatingSector): boolean {
+    private areRoomsContiguousLegacy(rooms: OperatingRoom[], sector?: OperatingSector): boolean { // Le paramètre ici est bien OperatingSector, pas de changement.
         if (rooms.length <= 1) return true;
 
         // Si on a le secteur et qu'il a une carte de contiguïté, l'utiliser
-        if (sector) {
-            const sectorRules = getSectorRules(sector.rules);
+        if (sector) { // ici sector est le paramètre de la fonction
+            const sectorRules = getSectorRules(sector.rules); // sector est le paramètre
             const contiguityMap = sectorRules.contiguityMap;
 
             if (contiguityMap) {
@@ -1633,14 +1666,14 @@ export class BlocPlanningService {
      * @returns Le type de secteur
      * @deprecated Utiliser directement le champ category ou déterminer à partir du nom
      */
-    private getSectorType(sector: OperatingSector): string {
+    private getSectorType(sector: OperatingSector): string { // Le paramètre ici est bien OperatingSector
         // Si le secteur a une catégorie définie, l'utiliser
-        if (sector && typeof sector === 'object' && 'category' in sector && sector.category) {
-            return String(sector.category);
+        if (sector && typeof sector === 'object' && 'category' in sector && sector.category) { // sector est le paramètre
+            return String(sector.category); // sector est le paramètre
         }
 
         // Sinon, utiliser l'ancien système basé sur le nom
-        return this.getSectorTypeFromName(sector.name);
+        return this.getSectorTypeFromName(sector.name); // sector est le paramètre
     }
 
     /**

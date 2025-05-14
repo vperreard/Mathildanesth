@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { UserSkill } from '@/types/userSkill';
 
 function ProfilePageContent() {
     const { user } = useAuth();
@@ -19,6 +20,32 @@ function ProfilePageContent() {
     const [currentPasswordType, setCurrentPasswordType] = useState('password');
     const [newPasswordType, setNewPasswordType] = useState('password');
     const [confirmPasswordType, setConfirmPasswordType] = useState('password');
+
+    // Nouvel état pour les compétences
+    const [userSkills, setUserSkills] = useState<UserSkill[]>([]);
+    const [loadingSkills, setLoadingSkills] = useState(false);
+    const [skillsError, setSkillsError] = useState<string | null>(null);
+
+    useEffect(() => {
+        // Fonction pour charger les compétences de l'utilisateur
+        const fetchUserSkills = async () => {
+            if (!user) return;
+
+            setLoadingSkills(true);
+            setSkillsError(null);
+            try {
+                const response = await axios.get<UserSkill[]>('/api/me/skills');
+                setUserSkills(response.data);
+            } catch (err) {
+                console.error('Erreur lors du chargement des compétences:', err);
+                setSkillsError('Impossible de charger vos compétences.');
+            } finally {
+                setLoadingSkills(false);
+            }
+        };
+
+        fetchUserSkills();
+    }, [user]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -78,6 +105,40 @@ function ProfilePageContent() {
                     <p><span className="font-medium text-gray-600">Email:</span> {user.email}</p>
                     <p><span className="font-medium text-gray-600">Rôle d'accès:</span> {user.role}</p>
                     <p><span className="font-medium text-gray-600">Rôle Professionnel:</span> {user.professionalRole}</p>
+                </div>
+
+                {/* Nouvelle section - Affichage des compétences */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-100 mb-8">
+                    <h2 className="text-xl font-semibold mb-4">Mes Compétences</h2>
+
+                    {loadingSkills ? (
+                        <p className="text-gray-500">Chargement de vos compétences...</p>
+                    ) : skillsError ? (
+                        <div className="p-3 bg-red-50 text-red-600 rounded-md">
+                            {skillsError}
+                        </div>
+                    ) : userSkills.length === 0 ? (
+                        <p className="text-gray-500 italic">
+                            Aucune compétence n'est associée à votre profil pour le moment.
+                        </p>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {userSkills.map((userSkill) => (
+                                <div
+                                    key={userSkill.id}
+                                    className="flex items-center p-2 bg-primary-50 border border-primary-100 rounded-md text-primary-700"
+                                >
+                                    <span className="inline-block w-2 h-2 rounded-full bg-primary-500 mr-2"></span>
+                                    <div>
+                                        <span className="font-medium">{userSkill.skill.name}</span>
+                                        {userSkill.skill.description && (
+                                            <p className="text-xs text-gray-600 mt-1">{userSkill.skill.description}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Message si changement de mot de passe requis */}

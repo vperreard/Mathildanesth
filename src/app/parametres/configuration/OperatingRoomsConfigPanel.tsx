@@ -110,33 +110,55 @@ const ROOM_TYPE_OPTIONS = [
 // Fonction pour normaliser les noms de secteurs
 const normalizeSectorName = (name?: string): string => {
     if (!name) return '';
-
-    // Convertir en minuscules et supprimer les espaces en trop
     let normalized = name.toLowerCase().trim();
+    let prefix = 'secteur ';
 
-    // Standardiser "secteur" au début
-    if (!normalized.startsWith('secteur') && !normalized.startsWith('europe')) {
-        normalized = 'secteur ' + normalized;
+    // Déterminer le préfixe en fonction de la présence de "europe"
+    if (normalized.includes('europe')) {
+        prefix = 'europe ';
+        // Nettoyer "europe" du nom pour éviter les doublons de préfixe comme "europe europe bloc"
+        normalized = normalized.replace(/\\beurope\\b/gi, '').trim(); // Correction: \\beurope\\b au lieu de \\bseurope\\b
+    } else {
+        // Nettoyer "secteur" du nom pour éviter les doublons de préfixe comme "secteur secteur x"
+        normalized = normalized.replace(/\\bsecteur\\b/gi, '').trim(); // \\b pour mot entier
     }
 
-    // Gérer les cas spécifiques
+    // Cas spécifiques basés sur des mots-clés
     if (normalized.includes('endo')) {
-        normalized = 'secteur endoscopie';
-    } else if (normalized.includes('sept') && !normalized.includes('asept')) {
-        normalized = 'secteur septique';
-    } else if (normalized.includes('asept') || normalized.includes('hyper')) {
-        normalized = 'secteur hyperaseptique';
-    } else if (normalized.includes('ophtalmo')) {
-        normalized = 'secteur ophtalmo';
-    } else if (normalized.includes('ambulatoire')) {
-        normalized = 'europe ambulatoire';
-    } else if (normalized.includes('europe') && !normalized.includes('ambulatoire')) {
-        normalized = 'europe bloc';
-    } else if (normalized.includes('intermediaire') || normalized.includes('intermédiaire')) {
-        normalized = 'secteur intermédiaire';
+        return prefix + 'endoscopie';
+    }
+    if (normalized.includes('sept') && !normalized.includes('asept')) {
+        return prefix + 'septique';
+    }
+    // Pour aseptique/hyperaseptique, on peut choisir un terme standard, par ex. 'aseptique'
+    if (normalized.includes('asept') || normalized.includes('hyper')) {
+        return prefix + 'aseptique'; // ou 'hyperaseptique' si préféré
+    }
+    if (normalized.includes('ophtalmo')) {
+        return prefix + 'ophtalmo';
+    }
+    if (normalized.includes('ambulatoire')) {
+        return prefix + 'ambulatoire';
+    }
+    // Si "bloc" est explicitement mentionné (et pas déjà couvert par une autre règle)
+    if (normalized.includes('bloc')) {
+        return prefix + 'bloc';
+    }
+    if (normalized.includes('intermediaire') || normalized.includes('intermédiaire')) {
+        return prefix + 'intermédiaire';
     }
 
-    return normalized;
+    // Si le nom normalisé après nettoyage des mots-clés et préfixes est vide,
+    // cela peut signifier que le nom original était juste "Europe" ou "Secteur"
+    if (normalized === '') {
+        if (prefix === 'europe ') return 'europe général'; // Nom par défaut pour "Europe" seul
+        return 'secteur général'; // Nom par défaut pour "Secteur" seul
+    }
+
+    // Pour tous les autres cas, on retourne le préfixe suivi du reste du nom normalisé
+    // Ex: "CHIR CARDIAQUE" -> prefix='secteur ', normalized='chir cardiaque' -> "secteur chir cardiaque"
+    // Ex: "URO SITE EUROPE" (après nettoyage de 'europe') -> prefix='europe ', normalized='uro site' -> "europe uro site"
+    return prefix + normalized;
 };
 
 // Fonction pour détecter si une salle est une salle d'endoscopie
@@ -466,6 +488,81 @@ const OperatingRoomsConfigPanel: React.FC = () => {
     // Stocker l'état initial des salles au début de la réorganisation
     const [initialRoomsStateForReorder, setInitialRoomsStateForReorder] = useState<OperatingRoom[]>([]);
 
+    // Calcul des salles filtrées par site
+    const allRoomsFilteredBySite = useMemo(() => {
+        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER_SITE] Filtre site actif: ${selectedSiteId === null ? 'Aucun (tous sites)' : selectedSiteId}`);
+        if (!selectedSiteId) {
+            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER_SITE] Retour de toutes les salles (${rooms.length}) car aucun filtre de site.`);
+            return rooms;
+        }
+        const filtered = rooms.filter(room => {
+            const roomSector = sectors.find(s => s.id === room.sectorId);
+            if (roomSector?.siteId === selectedSiteId) {
+                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER_SITE] Salle "${room.name}" (pas de siteId propre, mais secteur ${roomSector.name} est du site ${selectedSiteId}) -> incluse`);
+                return true;
+            }
+            if (room.siteId === selectedSiteId) {
+                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER_SITE] Salle "${room.name}" (siteId: ${room.siteId}) correspond au filtre ${selectedSiteId} -> incluse`);
+                return true;
+            }
+            // Uniquement si "Tous les sites" est sélectionné (selectedSiteId === null), ce qui est géré par le premier `if`
+            // donc ici, si la salle n'a pas de siteId et que son secteur n'est pas du site sélectionné, on l'exclut.
+            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER_SITE] Salle "${room.name}" (siteId: ${room.siteId}, secteur: ${roomSector?.name} siteId: ${roomSector?.siteId}) ne correspond pas au filtre ${selectedSiteId} -> exclue`);
+            return false;
+        });
+        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER_SITE] Salles après filtre de site (${selectedSiteId}): ${filtered.length} salles`);
+        return filtered;
+    }, [rooms, selectedSiteId, sectors]);
+
+    // Ce `useMemo` sert à déterminer quelles salles sont affichées SOUS chaque carte de secteur visible.
+    // Il respecte le filtre de site pour les secteurs eux-mêmes.
+    const assignedRoomsToVisibleSectorsMap = useMemo(() => {
+        const map = new Map<string, OperatingRoom[]>();
+        const currentSectorNamesToDisplay = sectorNames.filter(name => {
+            const sectorObject = sectors.find(s => normalizeSectorName(s.name) === normalizeSectorName(name));
+            if (!sectorObject) return false;
+            if (selectedSiteId === null) return true;
+            return sectorObject.siteId === selectedSiteId || !sectorObject.siteId;
+        });
+
+        currentSectorNamesToDisplay.forEach(sectorName => {
+            // Important: Passer allRoomsFilteredBySite pour que getSectorRooms opère sur les salles déjà filtrées par site.
+            const roomsInThisSector = getSectorRooms(sectorName, allRoomsFilteredBySite, sectors, sites);
+            map.set(sectorName, roomsInThisSector);
+        });
+        return map;
+    }, [sectorNames, allRoomsFilteredBySite, sectors, sites, selectedSiteId]);
+
+    // Ce `useMemo` détermine globalement si une salle est assignée à N'IMPORTE QUEL secteur (par ID ou détection)
+    // Il est utilisé pour la liste des "salles non assignées".
+    const trulyAssignedRoomIdsGlobalCheck = useMemo(() => {
+        const ids = new Set<number>();
+        sectorNames.forEach(globalSectorName => {
+            // Utiliser `rooms` (toutes les salles) pour ce check global, car une salle peut être
+            // assignée à un secteur d'un autre site que celui actuellement filtré.
+            const roomsInThisGlobalSector = getSectorRooms(globalSectorName, rooms, sectors, sites);
+            roomsInThisGlobalSector.forEach(room => ids.add(room.id));
+        });
+        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_GLOBAL_ASSIGNED_IDS] IDs des salles assignées globalement (total ${ids.size}):`, Array.from(ids));
+        return ids;
+    }, [rooms, sectors, sites, sectorNames]);
+
+    const unassignedRoomsToDisplay = useMemo(() => {
+        // Partir de allRoomsFilteredBySite pour que la section "non assignées" respecte aussi le filtre de site.
+        const unassigned = allRoomsFilteredBySite.filter(room => {
+            const isTrulyAssignedGlobally = trulyAssignedRoomIdsGlobalCheck.has(room.id);
+            if (DEBUG_MODE && !isTrulyAssignedGlobally) {
+                console.log(`[ORCP_DEBUG_UNASSIGNED] Salle "${room.name}" (ID: ${room.id}, siteId: ${room.siteId}) est considérée NON ASSIGNÉE (check global) pour affichage dans "non assignées" (filtre site: ${selectedSiteId}).`);
+            }
+            // if (DEBUG_MODE && isTrulyAssignedGlobally) {
+            //     console.log(`[ORCP_DEBUG_UNASSIGNED] Salle "${room.name}" (ID: ${room.id}) est ASSIGNÉE (check global), ne sera pas dans "non assignées".`);
+            // }
+            return !isTrulyAssignedGlobally;
+        });
+        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_UNASSIGNED] Salles non assignées finales (total ${unassigned.length} pour site ${selectedSiteId}): ${unassigned.map(r => `${r.name} (siteId ${r.siteId})`).join(', ') || 'Aucune'}`);
+        return unassigned;
+    }, [allRoomsFilteredBySite, trulyAssignedRoomIdsGlobalCheck, selectedSiteId]); // selectedSiteId pour la cohérence du log
+
     // Fonction pour récupérer les données
     const fetchData = async () => {
         setIsLoading(true);
@@ -759,38 +856,91 @@ const OperatingRoomsConfigPanel: React.FC = () => {
     };
 
     const handleAddClick = () => {
-        setIsEditing(null);
+        if (DEBUG_MODE) console.log("[ORCP_DEBUG_ADD] Clic sur Ajouter une salle");
+        const defaultSiteIdForNewRoom = selectedSiteId || (sites.length > 0 ? sites[0].id : null);
+        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_ADD] Site ID par défaut pour nouvelle salle: ${defaultSiteIdForNewRoom}`);
+
         setFormData({
             name: '',
             number: '',
-            sector: sectorNames.length > 0 ? sectorNames[0] : '',
+            sector: '',
             roomType: 'STANDARD',
             colorCode: '#CCCCCC',
             isActive: true,
-            supervisionRules: {
-                maxRoomsPerSupervisor: 2
-            },
-            siteId: null
+            supervisionRules: { maxRoomsPerSupervisor: 2 },
+            siteId: defaultSiteIdForNewRoom,
         });
-        setFormError(null);
+        setIsEditing(null);
         setIsModalOpen(true);
+        setFormError(null);
     };
 
     const handleEditClick = (room: OperatingRoom) => {
-        setIsEditing(room.id);
+        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Clic sur Modifier salle:`, room);
+        let effectiveSectorName = room.sector || '';
+        let effectiveSectorId = room.sectorId || null;
+        let finalSectorValueForForm = '';
+
+        if (!effectiveSectorId && room.id) {
+            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" n'a pas de sectorId. Tentative de détection...`);
+            // Itérer sur tous les noms de secteur connus dans le système
+            for (const sn of sectorNames) {
+                const roomsInSectorCandidate = getSectorRooms(sn, [room], sectors, sites);
+                if (roomsInSectorCandidate.length > 0 && roomsInSectorCandidate[0].id === room.id) {
+                    const detectedSectorObject = sectors.find(s => normalizeSectorName(s.name) === normalizeSectorName(sn));
+                    if (detectedSectorObject) {
+                        effectiveSectorName = detectedSectorObject.name; // Utiliser le nom canonique du secteur
+                        effectiveSectorId = detectedSectorObject.id;
+                        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" (ID: ${room.id}) : secteur DÉTECTÉ -> ${effectiveSectorName} (ID: ${effectiveSectorId})`);
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (effectiveSectorId) {
+            finalSectorValueForForm = String(effectiveSectorId);
+            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : Utilisation de l'ID de secteur ${effectiveSectorId} pour le formulaire.`);
+        } else if (effectiveSectorName && effectiveSectorName.toLowerCase() !== 'secteur non défini' && effectiveSectorName.trim() !== '') {
+            finalSectorValueForForm = effectiveSectorName; // Pourrait être un nom de secteur à créer
+            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : Utilisation du nom de secteur textuel "${effectiveSectorName}" pour le formulaire.`);
+        } else {
+            finalSectorValueForForm = '';
+            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : Pas de secteur défini, formulaire vide pour secteur.`);
+        }
+
+        let formSiteId = room.siteId || null;
+        if (!formSiteId && effectiveSectorId) {
+            const sectorData = sectors.find(s => s.id === effectiveSectorId);
+            if (sectorData && sectorData.siteId) {
+                formSiteId = sectorData.siteId;
+                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : siteId hérité du secteur ${sectorData.name} -> ${formSiteId}`);
+            }
+        }
+
+        if (!formSiteId && selectedSiteId) {
+            // Si aucun site n'est défini pour la salle ou son secteur (même après détection),
+            // et qu'un filtre de site est actif sur l'UI, on pré-remplit avec ce site.
+            // Cela aide si l'utilisateur ajoute une salle "sans secteur" pendant qu'un site est filtré.
+            formSiteId = selectedSiteId;
+            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Salle "${room.name}" : siteId pré-rempli avec le filtre de site actif ${selectedSiteId} car pas d'autre siteId trouvé.`);
+        }
+
+        if (DEBUG_MODE) console.log(`[ORCP_DEBUG_EDIT] Préparation du formulaire pour "${room.name}": sectorValue="${finalSectorValueForForm}", siteId=${formSiteId}`);
+
         setFormData({
             name: room.name,
             number: room.number || '',
-            sector: room.sector || '',
+            sector: finalSectorValueForForm,
             roomType: room.roomType || 'STANDARD',
             colorCode: room.colorCode || '#CCCCCC',
-            isActive: room.isActive !== false,
-            supervisionRules: {
-                maxRoomsPerSupervisor: room.supervisionRules?.maxRoomsPerSupervisor || 2
-            },
-            siteId: room.siteId || null
+            isActive: room.isActive !== undefined ? room.isActive : true,
+            supervisionRules: room.supervisionRules || { maxRoomsPerSupervisor: 2 },
+            siteId: formSiteId,
         });
+        setIsEditing(room.id);
         setIsModalOpen(true);
+        setFormError(null);
     };
 
     const handleDeleteClick = async (id: number) => {
@@ -892,8 +1042,9 @@ const OperatingRoomsConfigPanel: React.FC = () => {
             if (updates.length > 0) {
                 try {
                     const apiBaseUrl = window.location.origin;
-                    await axios.post(`${apiBaseUrl}/api/operating-rooms/batch-update-sector`, { rooms: updates }); // Changé de .patch à .post
-                    toast.success(`${updates.length} salle(s) mise(s) à jour.`);
+                    // La route est /api/operating-rooms/batch-update-sector et utilise POST
+                    await axios.post(`${apiBaseUrl}/api/operating-rooms/batch-update-sector`, { rooms: updates });
+                    toast.success(`${updates.length} salle(s) mise(s) à jour avec succès.`);
                     fetchData(); // Recharger les données après la sauvegarde
                 } catch (error) {
                     console.error("Erreur lors de la sauvegarde des modifications:", error);
@@ -1159,22 +1310,22 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                 <>
                     {/* Filtres par site avec boutons */}
                     {sites.length > 0 && (
-                        <div className="mb-2 bg-white p-2 rounded-lg shadow-sm border border-gray-200"> {/* p-4 -> p-2 */}
-                            <div className="flex flex-col gap-2"> {/* gap-4 -> gap-2 */}
+                        <div className="mb-3 bg-white p-3 rounded-lg shadow border border-gray-200">
+                            <div className="flex flex-col gap-2">
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-800">Filtrer par site</h3>
-                                    <p className="text-sm text-gray-500">Cliquez sur un site pour filtrer les salles affichées</p>
+                                    <h3 className="text-md font-semibold text-gray-700">Filtrer par site</h3>
+                                    <p className="text-xs text-gray-500 mt-1">Sélectionnez un site pour affiner la vue.</p>
                                 </div>
-                                <div className="flex flex-wrap gap-2 mt-2">
+                                <div className="flex flex-wrap gap-2 mt-1">
                                     {/* Bouton "Tous les sites" */}
                                     <button
                                         onClick={() => setSelectedSiteId(null)}
-                                        className={`flex items-center px-4 py-2 rounded-lg border transition-all duration-200 ${selectedSiteId === null
-                                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white border-transparent shadow-md'
-                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                        className={`flex items-center px-3 py-1.5 rounded-md border transition-all duration-200 text-sm focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-slate-500 ${selectedSiteId === null
+                                            ? 'bg-slate-700 hover:bg-slate-600 text-white shadow-md'
+                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 hover:border-gray-400 hover:shadow-sm'
                                             }`}
                                     >
-                                        <span className="h-3 w-3 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 mr-2"></span>
+                                        <span className={`h-2.5 w-2.5 rounded-full mr-2 ${selectedSiteId === null ? 'bg-slate-400' : 'bg-slate-500'}`}></span>
                                         Tous les sites
                                     </button>
 
@@ -1183,14 +1334,14 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                         <button
                                             key={site.id}
                                             onClick={() => setSelectedSiteId(site.id)}
-                                            className={`flex items-center px-4 py-2 rounded-lg border transition-all duration-200 ${selectedSiteId === site.id
-                                                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white border-transparent shadow-md'
-                                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                            className={`flex items-center px-3 py-1.5 rounded-md border transition-all duration-200 text-sm focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-slate-500 ${selectedSiteId === site.id
+                                                ? 'bg-slate-700 hover:bg-slate-600 text-white shadow-md'
+                                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 hover:border-gray-400 hover:shadow-sm'
                                                 }`}
                                         >
                                             <span
-                                                className="h-3 w-3 rounded-full mr-2"
-                                                style={{ backgroundColor: site.colorCode || getSiteColor(site.id) }}
+                                                className="h-2.5 w-2.5 rounded-full mr-2"
+                                                style={{ backgroundColor: selectedSiteId === site.id ? 'white' : (site.colorCode || getSiteColor(site.id)) }}
                                             ></span>
                                             {site.name}
                                         </button>
@@ -1199,14 +1350,14 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
                                 {/* Affichage du filtre actif */}
                                 {selectedSiteId && (
-                                    <div className="mt-2 flex items-center text-sm text-white py-1 px-3 rounded-full inline-block bg-blue-600 shadow-sm">
-                                        <span>Filtre actif : {sites.find(s => s.id === selectedSiteId)?.name}</span>
+                                    <div className="mt-2 flex items-center text-xs text-white py-1 px-2.5 rounded-full inline-block bg-blue-700 shadow">
+                                        <span>Filtre : {sites.find(s => s.id === selectedSiteId)?.name}</span>
                                         <button
                                             onClick={() => setSelectedSiteId(null)}
-                                            className="ml-2 text-white hover:text-blue-100"
+                                            className="ml-1.5 text-white hover:text-blue-200"
                                             aria-label="Effacer le filtre"
                                         >
-                                            <XMarkIcon className="h-4 w-4" />
+                                            <XMarkIcon className="h-3.5 w-3.5" />
                                         </button>
                                     </div>
                                 )}
@@ -1215,23 +1366,28 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                     )}
 
                     {/* Bouton d'ajout */}
-                    <div className="flex justify-between items-center mb-2">
-                        <h2 className="text-lg font-semibold">Salles d'opération</h2>
-                        <div className="flex gap-2">
-                            <Button onClick={handleAddClick} className="bg-blue-600 hover:bg-blue-700">
-                                <PlusIcon className="h-4 w-4 mr-2" />
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-bold text-gray-800">Salles d'opération</h2>
+                        <div className="flex gap-3">
+                            <Button
+                                onClick={handleAddClick}
+                                className="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            >
+                                <PlusIcon className="h-5 w-5 mr-2" />
                                 Ajouter une salle
                             </Button>
                             <Button
                                 onClick={handleGlobalReorderClick}
-                                variant={isReordering ? "destructive" : "outline"}
+                                variant="outline"
                                 className={`
-                                    ${isReordering ? 'bg-red-500 hover:bg-red-600 text-white' : 'text-gray-700 hover:bg-gray-100'}
-                                    transition-all duration-200
+                                    font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2
+                                    ${isReordering
+                                        ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white focus:ring-red-500'
+                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 focus:ring-gray-400'}
                                 `}
                             >
-                                <ArrowsUpDownIcon className="h-4 w-4 mr-2" />
-                                {isReordering ? 'Terminer la réorganisation' : 'Réorganiser les salles'}
+                                <ArrowsUpDownIcon className="h-5 w-5 mr-2" />
+                                {isReordering ? 'Terminer' : 'Réorganiser'}
                             </Button>
                         </div>
                     </div>
@@ -1245,112 +1401,138 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
                     {/* Conteneur des secteurs */}
                     <div className="grid grid-cols-1 gap-2">
-                        {sectorNames.map((sectorName) => {
-                            // Utiliser notre fonction de tri des salles par secteur
-                            const sectorRooms = getSortedSectorRooms(sectorName);
+                        {sectorNames
+                            .filter(name => {
+                                const sectorObject = sectors.find(s => normalizeSectorName(s.name) === normalizeSectorName(name));
+                                if (!sectorObject) return false;
+                                if (selectedSiteId === null) return true;
+                                return sectorObject.siteId === selectedSiteId || !sectorObject.siteId;
+                            })
+                            .map((sectorName) => {
+                                const sectorRooms = getSortedSectorRooms(sectorName);
+                                const sectorObject = sectors.find(s => normalizeSectorName(s.name) === normalizeSectorName(sectorName));
+                                const sectorColor = sectorObject?.colorCode || '#E5E7EB';
 
-                            return (
-                                <div
-                                    key={sectorName}
-                                    className="bg-white rounded-lg shadow py-1 px-2" // Commentaire retiré d'ici
-                                    data-sector-name={sectorName}
-                                >
-                                    <div className="flex justify-between items-center mb-1">
-                                        <h3 className="text-base font-semibold flex items-center">
-                                            <span className="flex-grow">{sectorName}</span>
-                                            <span className="text-sm text-gray-500 font-normal ml-2">
-                                                {sectorRooms.length} salle{sectorRooms.length !== 1 ? 's' : ''}
-                                            </span>
-                                        </h3>
+                                const isColorDark = (color: string): boolean => {
+                                    if (!color.startsWith('#')) return false;
+                                    const hex = color.replace('#', '');
+                                    const r = parseInt(hex.substring(0, 2), 16);
+                                    const g = parseInt(hex.substring(2, 4), 16);
+                                    const b = parseInt(hex.substring(4, 6), 16);
+                                    const luminance = (r * 299 + g * 587 + b * 114) / 1000;
+                                    return luminance < 128;
+                                };
+
+                                const textColorClass = 'text-gray-800';
+                                const subTextColorClass = 'text-gray-500';
+
+                                return (
+                                    <div
+                                        key={sectorName}
+                                        className={`rounded-xl shadow-lg py-3 px-4 ${isReordering ? 'relative border-2 border-transparent' : ''} ${dragOverTarget?.sectorName === sectorName && draggedItem && draggedItem.originalSectorName !== sectorName ? 'border-blue-400 ring-2 ring-blue-300 ring-opacity-75' : ''} transition-all duration-150`}
+                                        style={{ backgroundColor: sectorColor ? `${sectorColor}26` : 'rgba(239, 246, 255, 0.4)' }}
+                                        data-sector-name={sectorName}
+                                        onDragOver={(e) => {
+                                            if (isReordering && draggedItem && draggedItem.originalSectorName !== sectorName) {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setDragOverTarget({ sectorName: sectorName, index: sectorRooms.length });
+                                            }
+                                        }}
+                                        onDragLeave={(e) => {
+                                            if (isReordering && draggedItem && draggedItem.originalSectorName !== sectorName && dragOverTarget?.sectorName === sectorName) {
+                                                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                                if (e.clientX <= rect.left || e.clientX >= rect.right || e.clientY <= rect.top || e.clientY >= rect.bottom) {
+                                                    setDragOverTarget(null);
+                                                }
+                                            }
+                                        }}
+                                        onDrop={(e) => {
+                                            if (isReordering && draggedItem && draggedItem.originalSectorName !== sectorName) {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleRoomDrop(e, sectorRooms.length, sectorName);
+                                                setDragOverTarget(null);
+                                            }
+                                        }}
+                                    >
+                                        <div className="flex justify-between items-center mb-3">
+                                            <h3 className={`text-lg font-bold flex items-center ${textColorClass}`}>
+                                                <span className="flex-grow tracking-tight">{sectorName}</span>
+                                                <span className={`text-xs font-medium ml-3 px-1.5 py-0.5 rounded-full ${isColorDark(sectorColor) ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-500/5 hover:bg-gray-500/10'} ${subTextColorClass}`}>
+                                                    {sectorRooms.length} salle{sectorRooms.length !== 1 ? 's' : ''}
+                                                </span>
+                                            </h3>
+                                        </div>
+
+                                        {sectorRooms.length === 0 && isReordering ? (
+                                            <div
+                                                className="h-24 border-2 border-dashed border-gray-400/50 rounded-lg flex items-center justify-center text-gray-500/70 hover:border-blue-500/70 hover:bg-blue-500/5 transition-colors duration-200"
+                                                style={{ backgroundColor: sectorColor ? `${sectorColor}1A` : 'rgba(239, 246, 255, 0.2)' }}
+                                                onDragOver={(e) => handleRoomDragOver(e, 0, sectorName)}
+                                                onDragLeave={(e) => handleRoomDragLeave(e, sectorName)}
+                                                onDrop={(e) => handleRoomDrop(e, 0, sectorName)}
+                                            >
+                                                Déposer une salle ici
+                                            </div>
+                                        ) : sectorRooms.length === 0 ? (
+                                            <p className={`italic text-sm ${subTextColorClass}`}>Aucune salle dans ce secteur</p>
+                                        ) : (
+                                            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 ${isReordering ? 'p-2 border-2 border-dashed border-transparent rounded-lg' : ''} ${isReordering && draggedItem && draggedItem.originalSectorName !== sectorName && !dragOverTarget?.sectorName ? 'hover:border-blue-400/50' : ''}`}
+                                                data-sector-name={sectorName}
+                                            >
+                                                {sectorRooms.map((room, index) => (
+                                                    <div
+                                                        key={room.id}
+                                                        className={`room-item border rounded-xl py-2.5 px-3 flex items-center justify-between group transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-1 ${isReordering
+                                                            ? 'cursor-move bg-white/80 backdrop-blur-md hover:bg-blue-50/80'
+                                                            : 'bg-white/80 backdrop-blur-sm hover:bg-slate-50/70'
+                                                            } ${draggedItem?.id === room.id ? 'opacity-40 scale-90 shadow-xl' : ''} 
+                                                          ${dragOverTarget?.sectorName === sectorName && dragOverTarget?.index === index ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-current shadow-lg' : 'border-gray-200/70'
+                                                            }`}
+                                                        style={{ borderColor: dragOverTarget?.sectorName === sectorName && dragOverTarget?.index === index ? '' : (sectorColor ? `${sectorColor}26` : 'rgba(209, 213, 219, 0.3)') }}
+                                                        data-room-id={room.id}
+                                                        draggable={isReordering}
+                                                        onDragStart={(e) => handleRoomDragStart(e, room.id, index, sectorName)}
+                                                        onDragEnd={handleRoomDragEnd}
+                                                        onDragOver={(e) => handleRoomDragOver(e, index, sectorName)}
+                                                        onDragLeave={(e) => handleRoomDragLeave(e, sectorName)}
+                                                        onDrop={(e) => handleRoomDrop(e, index, sectorName)}
+                                                    >
+                                                        <div className="flex-grow">
+                                                            <div className="font-bold text-gray-700 text-base group-hover:text-blue-600 transition-colors">{room.name}</div>
+                                                            <div className="text-xs text-gray-500 group-hover:text-gray-600">N° {room.number || '-'}</div>
+                                                        </div>
+                                                        <div className={`flex space-x-1 ${isReordering ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'} transition-opacity duration-200`}>
+                                                            <button
+                                                                onClick={() => handleEditClick(room)}
+                                                                title="Modifier"
+                                                                className="p-2 rounded-lg text-gray-400 hover:bg-slate-100 hover:text-blue-600 transition-all duration-150 transform hover:scale-110"
+                                                                disabled={isReordering}
+                                                            >
+                                                                <PencilIcon className="h-4 w-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteClick(room.id)}
+                                                                title="Supprimer"
+                                                                className="p-2 rounded-lg text-gray-400 hover:bg-red-100 hover:text-red-600 transition-all duration-150 transform hover:scale-110"
+                                                                disabled={isReordering}
+                                                            >
+                                                                <TrashIcon className="h-4 w-4" />
+                                                            </button>
+                                                            {isReordering && (
+                                                                <div className="p-2 rounded-lg text-blue-500">
+                                                                    <ArrowsUpDownIcon className="h-4 w-4" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-
-                                    {sectorRooms.length === 0 && isReordering ? (
-                                        <div
-                                            className="h-16 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-400 hover:border-blue-500 hover:bg-blue-50 transition-colors"
-                                            onDragOver={(e) => handleRoomDragOver(e, 0, sectorName)}
-                                            onDragLeave={(e) => handleRoomDragLeave(e, sectorName)}
-                                            onDrop={(e) => handleRoomDrop(e, 0, sectorName)}
-                                        >
-                                            Déposer une salle ici
-                                        </div>
-                                    ) : sectorRooms.length === 0 ? (
-                                        <p className="text-gray-500 italic">Aucune salle dans ce secteur</p>
-                                    ) : (
-                                        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 ${isReordering ? 'p-2 border-2 border-dashed border-transparent rounded-md transition-colors hover:border-blue-400' : ''}`}
-                                            data-sector-name={sectorName}
-                                            onDragOver={(e) => {
-                                                if (isReordering && draggedItem && draggedItem.originalSectorName !== sectorName) {
-                                                    e.preventDefault();
-                                                    handleRoomDragOver(e, sectorRooms.length - 1, sectorName);
-                                                    const container = e.currentTarget as HTMLElement;
-                                                    container.classList.add('valid-drop-zone');
-                                                    container.classList.remove('drop-above');
-                                                    container.classList.remove('drop-below');
-                                                }
-                                            }}
-                                            onDragLeave={(e) => {
-                                                if (isReordering) {
-                                                    const container = e.currentTarget as HTMLElement;
-                                                    container.classList.remove('valid-drop-zone');
-                                                }
-                                            }}
-                                            onDrop={(e) => {
-                                                if (isReordering && draggedItem && draggedItem.originalSectorName !== sectorName) {
-                                                    handleRoomDrop(e, sectorRooms.length, sectorName);
-                                                }
-                                            }}
-                                        >
-                                            {sectorRooms.map((room, index) => (
-                                                <div
-                                                    key={room.id}
-                                                    className={`room-item border rounded-md py-1 px-2 flex items-center justify-between group transition-all duration-150 ease-in-out ${isReordering
-                                                        ? 'cursor-move bg-white hover:bg-blue-50 shadow-sm hover:shadow-md'
-                                                        : 'bg-gray-50 hover:bg-gray-100'
-                                                        } ${draggedItem?.id === room.id ? 'opacity-40 scale-95' : ''}
-                                                          ${dragOverTarget?.sectorName === sectorName && dragOverTarget?.index === index ? 'ring-2 ring-blue-500 ring-offset-1' : ''}
-                                                        `}
-                                                    data-room-id={room.id}
-                                                    draggable={isReordering}
-                                                    onDragStart={(e) => handleRoomDragStart(e, room.id, index, sectorName)}
-                                                    onDragEnd={handleRoomDragEnd}
-                                                    onDragOver={(e) => handleRoomDragOver(e, index, sectorName)}
-                                                    onDragLeave={(e) => handleRoomDragLeave(e, sectorName)}
-                                                    onDrop={(e) => handleRoomDrop(e, index, sectorName)}
-                                                >
-                                                    <div className="flex-grow">
-                                                        <div className="font-medium text-gray-800 text-sm">{room.name}</div>
-                                                        <div className="text-xs text-gray-500">N° {room.number}</div>
-                                                    </div>
-                                                    <div className={`flex space-x-1 ${isReordering ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
-                                                        <button
-                                                            onClick={() => handleEditClick(room)}
-                                                            title="Modifier"
-                                                            className="p-1.5 rounded-full text-gray-500 hover:bg-gray-200"
-                                                            disabled={isReordering}
-                                                        >
-                                                            <PencilIcon className="h-4 w-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteClick(room.id)}
-                                                            title="Supprimer"
-                                                            className="p-1.5 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-600"
-                                                            disabled={isReordering}
-                                                        >
-                                                            <TrashIcon className="h-4 w-4" />
-                                                        </button>
-                                                        {isReordering && (
-                                                            <div className="p-1.5 rounded-full text-blue-500">
-                                                                <ArrowsUpDownIcon className="h-4 w-4" />
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
                     </div>
 
                     {/* Section pour les salles sans secteur défini ou non affichées ailleurs */}
@@ -1396,47 +1578,44 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                         )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1"> {/* Assurer gap-1 ici aussi pour cohérence */}
-                            {rooms
-                                .filter((room: OperatingRoom) => {
-                                    // Garder uniquement les salles qui n'ont pas de `sectorId`
-                                    return !room.sectorId;
-                                })
-                                .map((room, index, unclassifiedRoomsArray) => (
-                                    <div
-                                        key={room.id}
-                                        className={`room-item border rounded-md py-1 px-2 flex items-center justify-between group transition-all duration-150 ease-in-out
-                                            ${isReordering ? 'cursor-move bg-white hover:bg-yellow-100 shadow-sm hover:shadow-md' : 'bg-white hover:bg-yellow-50'}
-                                            ${draggedItem?.id === room.id ? 'opacity-40 scale-95' : ''}
-                                            ${dragOverTarget?.sectorName === null && dragOverTarget?.index === index ? 'ring-2 ring-yellow-500 ring-offset-1' : ''}
-                                        `}
-                                        data-room-id={room.id}
-                                        draggable={isReordering}
-                                        onDragStart={(e) => handleRoomDragStart(e, room.id, index, null)}
-                                        onDragEnd={handleRoomDragEnd}
-                                        onDragOver={(e) => handleRoomDragOver(e, index, null)}
-                                        onDragLeave={(e) => handleRoomDragLeave(e, null)}
-                                        onDrop={(e) => handleRoomDrop(e, index, null)}
-                                    >
-                                        <div className="flex-grow">
-                                            <div className="font-medium text-gray-800 text-sm">{room.name}</div>
-                                            <div className="text-xs text-gray-500">N° {room.number}</div>
-                                            {room.siteId && (
-                                                <div className="text-xs text-blue-600 mt-0.5">
-                                                    Site: {sites.find(s => s.id === room.siteId)?.name || 'Inconnu'}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="flex space-x-1">
-                                            <button
-                                                onClick={() => handleEditClick(room)}
-                                                title="Assigner à un secteur"
-                                                className="p-1.5 rounded-full text-gray-500 hover:bg-gray-200"
-                                            >
-                                                <PencilIcon className="h-4 w-4" />
-                                            </button>
-                                        </div>
+                            {/* Utiliser unassignedRoomsToDisplay ici */}
+                            {unassignedRoomsToDisplay.map((room, index) => (
+                                <div
+                                    key={room.id}
+                                    className={`room-item border rounded-md py-1 px-2 flex items-center justify-between group transition-all duration-150 ease-in-out ${isReordering
+                                        ? 'cursor-move bg-white hover:bg-yellow-100 shadow-sm hover:shadow-md'
+                                        : 'bg-white hover:bg-yellow-50'}
+                                        ${draggedItem?.id === room.id ? 'opacity-40 scale-95' : ''}
+                                        ${dragOverTarget?.sectorName === null && dragOverTarget?.index === index ? 'ring-2 ring-yellow-500 ring-offset-1' : ''}
+                                    `}
+                                    data-room-id={room.id}
+                                    draggable={isReordering}
+                                    onDragStart={(e) => handleRoomDragStart(e, room.id, index, null)}
+                                    onDragEnd={handleRoomDragEnd}
+                                    onDragOver={(e) => handleRoomDragOver(e, index, null)}
+                                    onDragLeave={(e) => handleRoomDragLeave(e, null)}
+                                    onDrop={(e) => handleRoomDrop(e, index, null)}
+                                >
+                                    <div className="flex-grow">
+                                        <div className="font-medium text-gray-800 text-sm">{room.name}</div>
+                                        <div className="text-xs text-gray-500">N° {room.number}</div>
+                                        {room.siteId && (
+                                            <div className="text-xs text-blue-600 mt-0.5">
+                                                Site: {sites.find(s => s.id === room.siteId)?.name || 'Inconnu'}
+                                            </div>
+                                        )}
                                     </div>
-                                ))}
+                                    <div className="flex space-x-1">
+                                        <button
+                                            onClick={() => handleEditClick(room)}
+                                            title="Assigner à un secteur"
+                                            className="p-1.5 rounded-full text-gray-500 hover:bg-gray-200"
+                                        >
+                                            <PencilIcon className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
