@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma, User, Surgeon, OperatingRoom, OperatingSector, Site, Absence, /*UserRole,*/ /*SiteConfiguration,*/ ProfessionalRole, BlocAffectationHabituelle, BlocTramePlanning, BlocDayPlanning, BlocRoomAssignment, BlocStaffAssignment, BlocPlanningConflict, Period, DayOfWeek, WeekType, BlocPlanningStatus, ConflictSeverity, BlocStaffRole, LeaveStatus, IncompatibilityType } from '@prisma/client';
+import { PrismaClient, Prisma, User, Surgeon, OperatingRoom, OperatingSector, Site, Absence, ProfessionalRole, BlocAffectationHabituelle, BlocTramePlanning, BlocDayPlanning, BlocRoomAssignment, BlocStaffAssignment, BlocPlanningConflict, Period, DayOfWeek, WeekType, BlocPlanningStatus, ConflictSeverity, BlocStaffRole, LeaveStatus, IncompatibilityType } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import {
     OperatingRoom as LegacyOperatingRoom,
@@ -19,6 +19,9 @@ import { BlocConfig, TeamConfiguration } from '@/types/team-configuration';
 import { getSectorRules, areRoomsContiguous as areRoomsContiguousLib } from '../utils/sectorRulesParser';
 // Importer le service de règles de secteur/salle
 import { sectorTypeRulesService } from './sectorTypeRules';
+
+// Type pour les objets vides
+interface EmptyObject extends Record<string, never> { }
 
 // Instance Prisma
 const prisma = new PrismaClient();
@@ -1399,7 +1402,7 @@ export class BlocPlanningService {
      * Factorisation de la transformation et validation des salles d'opération.
      */
     private transformAndValidateRooms(
-        roomsData: (Prisma.OperatingRoomGetPayload<{ include: { operatingSector: { include: { site: true } } } }> | Prisma.OperatingRoomGetPayload<{}>)[], // Modifié ici
+        roomsData: (Prisma.OperatingRoomGetPayload<{ include: { operatingSector: { include: { site: true } } } }> | Prisma.OperatingRoomGetPayload<EmptyObject>)[],
         includeRelations: boolean
     ): LegacyOperatingRoom[] {
         console.log('[BlocPlanningService.transformAndValidateRooms] Reçu pour transformation (premiers 2 si dispo):', JSON.stringify(roomsData.slice(0, 2)));
@@ -1542,7 +1545,7 @@ export class BlocPlanningService {
      * Factorisation de la transformation et validation des secteurs opératoires.
      */
     private transformAndValidateSectors(
-        sectorsData: (Prisma.OperatingSectorGetPayload<{ include: { site: true, rooms: true } }> | Prisma.OperatingSectorGetPayload<{}>)[],
+        sectorsData: (Prisma.OperatingSectorGetPayload<{ include: { site: true, rooms: true } }> | Prisma.OperatingSectorGetPayload<EmptyObject>)[],
         includeRelations: boolean
     ): LegacyOperatingSector[] { // LegacyOperatingSector est OperatingSector de BlocModels.ts
         const validatedSectors = sectorsData.map((sector: any) => {

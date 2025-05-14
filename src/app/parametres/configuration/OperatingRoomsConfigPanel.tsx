@@ -27,6 +27,7 @@ import {
 } from "@/components/ui";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { toast } from 'react-hot-toast';
+import { DropResult } from 'react-beautiful-dnd';
 
 // Activation du mode debug
 const DEBUG_MODE = process.env.NODE_ENV === 'development';

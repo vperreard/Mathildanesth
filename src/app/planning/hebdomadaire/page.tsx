@@ -198,13 +198,15 @@ export default function WeeklyPlanningPage() {
             // Déterminer la plage de dates active
             let startDate: Date;
             let endDate: Date;
+
             if (activeDateRangeType === 'custom' && customStartDate && customEndDate) {
                 startDate = customStartDate;
                 endDate = customEndDate;
             } else {
-                startDate = startOfWeek(currentWeekStart, { weekStartsOn: 1 });
+                startDate = currentWeekStart;
                 endDate = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
             }
+
             console.log(`[WeeklyPlanningPage] Période : ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`);
 
             const responses = await Promise.all([
@@ -330,8 +332,8 @@ export default function WeeklyPlanningPage() {
             }
 
         } catch (error) {
-            console.error('[WeeklyPlanningPage] Erreur chargement data:', error);
-            toast.error("Erreur critique lors du chargement des données du planning.");
+            console.error("Erreur lors du chargement des données :", error);
+            toast.error("Erreur lors du chargement des données");
             setUsers([]);
             setRooms([]);
             setAssignments([]);
@@ -339,14 +341,13 @@ export default function WeeklyPlanningPage() {
         } finally {
             setIsLoadingData(false);
             setIsLoading(false);
-            console.log("[WeeklyPlanningPage] Chargement terminé");
         }
-    }, []);
+    }, [activeDateRangeType, customStartDate, customEndDate, currentWeekStart]);
 
     // Chargement initial au montage uniquement
     useEffect(() => {
         fetchDataAndConfig();
-    }, []);
+    }, [fetchDataAndConfig]);
 
     const handleSaveRoomOrder = (orderedRoomIds: string[]) => {
         const newConfig = { orderedRoomIds };

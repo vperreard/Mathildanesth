@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { headers } from 'next/headers';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+const prismaClient = new PrismaClient();
 
 interface RoomSectorUpdate {
     id: number;
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
                 return { id: roomUpdate.id, status: 'skipped', error: 'Invalid data format' };
             }
             try {
-                const updatedRoom = await prisma.operatingRoom.update({
+                const updatedRoom = await prismaClient.operatingRoom.update({
                     where: { id: roomUpdate.id },
                     data: { sectorId: roomUpdate.sectorId },
                 });
@@ -92,6 +93,37 @@ export async function POST(request: NextRequest) {
         console.error('[API] Erreur majeure lors de la mise à jour groupée des secteurs des salles:', error);
         return NextResponse.json(
             { error: 'Erreur majeure lors de la mise à jour groupée des secteurs des salles', details: (error as Error).message },
+            { status: 500 }
+        );
+    }
+}
+
+export async function PUT(request: NextRequest) {
+    try {
+        const { roomIds, sectorId } = await request.json();
+
+        if (!Array.isArray(roomIds)) {
+            return NextResponse.json(
+                { error: 'roomIds doit être un tableau' },
+                { status: 400 }
+            );
+        }
+
+        const updatedRooms = await prisma.operatingRoom.updateMany({
+            where: {
+                id: {
+                    in: roomIds
+                }
+            },
+            data: {
+                operatingSectorId: sectorId || null
+            }
+        });
+
+        return NextResponse.json(updatedRooms);
+    } catch (error) {
+        return NextResponse.json(
+            { error: 'Erreur lors de la mise à jour des salles' },
             { status: 500 }
         );
     }
