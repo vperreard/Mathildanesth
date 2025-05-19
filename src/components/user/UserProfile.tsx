@@ -90,7 +90,12 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             {/* Menu déroulant */}
             <div
                 id={menuId}
-                className={`absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-lg shadow-lg overflow-hidden transform transition-all duration-200 z-50 border border-gray-100 dark:border-slate-700 ${isMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 invisible'}`}
+                className={`absolute right-0 mt-2 w-56 rounded-lg shadow-lg overflow-hidden transform transition-all duration-200 z-50 border ${isMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 invisible'}`}
+                style={{
+                    ...(theme === 'dark'
+                        ? { backgroundColor: '#0F172A', borderColor: '#1E293B' } // slate-900, slate-800
+                        : { backgroundColor: 'white', borderColor: '#F3F4F6' }), // white, gray-100
+                }}
                 role="menu"
                 aria-orientation="vertical"
                 aria-labelledby="user-menu-button"
@@ -104,7 +109,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{user.prenom} {user.nom}</p>
-                                <p className="text-xs bg-gradient-to-r from-primary-600 via-secondary-600 to-tertiary-600 bg-clip-text text-transparent dark:text-slate-400">
+                                <p className="text-xs bg-gradient-to-r from-primary-600 via-secondary-600 to-tertiary-600 bg-clip-text text-transparent dark:text-slate-300">
                                     {roleLabel}
                                 </p>
                             </div>
@@ -115,7 +120,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                     <div className="py-1" role="none">
                         <Link
                             href="/profil"
-                            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors focus:outline-none focus:bg-gradient-to-r focus:from-primary-50 focus:via-secondary-50 focus:to-tertiary-50 dark:focus:bg-slate-700 focus:text-primary-600 dark:focus:text-primary-400"
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors focus:outline-none focus:bg-gradient-to-r focus:from-primary-50 focus:via-secondary-50 focus:to-tertiary-50 dark:focus:bg-slate-700 focus:text-primary-600 dark:focus:text-primary-400"
                             role="menuitem"
                             tabIndex={isMenuOpen ? 0 : -1}
                             onClick={() => setIsMenuOpen(false)}
@@ -128,7 +133,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
 
                         <Link
                             href="/parametres"
-                            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors focus:outline-none focus:bg-gradient-to-r focus:from-primary-50 focus:via-secondary-50 focus:to-tertiary-50 dark:focus:bg-slate-700 focus:text-primary-600 dark:focus:text-primary-400"
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors focus:outline-none focus:bg-gradient-to-r focus:from-primary-50 focus:via-secondary-50 focus:to-tertiary-50 dark:focus:bg-slate-700 focus:text-primary-600 dark:focus:text-primary-400"
                             role="menuitem"
                             tabIndex={isMenuOpen ? 0 : -1}
                             onClick={() => setIsMenuOpen(false)}
@@ -142,7 +147,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
 
                         <Link
                             href="/notifications"
-                            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors focus:outline-none focus:bg-gradient-to-r focus:from-primary-50 focus:via-secondary-50 focus:to-tertiary-50 dark:focus:bg-slate-700 focus:text-primary-600 dark:focus:text-primary-400"
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors focus:outline-none focus:bg-gradient-to-r focus:from-primary-50 focus:via-secondary-50 focus:to-tertiary-50 dark:focus:bg-slate-700 focus:text-primary-600 dark:focus:text-primary-400"
                             role="menuitem"
                             tabIndex={isMenuOpen ? 0 : -1}
                             onClick={() => setIsMenuOpen(false)}
@@ -156,7 +161,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
 
                         <button
                             onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                            className="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors focus:outline-none focus:bg-gradient-to-r focus:from-primary-50 focus:via-secondary-50 focus:to-tertiary-50 dark:focus:bg-slate-700 focus:text-primary-600 dark:focus:text-primary-400"
+                            className="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors focus:outline-none focus:bg-gradient-to-r focus:from-primary-50 focus:via-secondary-50 focus:to-tertiary-50 dark:focus:bg-slate-700 focus:text-primary-600 dark:focus:text-primary-400"
                             role="menuitem"
                             tabIndex={isMenuOpen ? 0 : -1}
                         >
@@ -168,7 +173,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
 
                         <button
                             onClick={onLogout}
-                            className="w-full flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus:outline-none focus:bg-red-50 dark:focus:bg-red-900/20"
+                            className="w-full flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors focus:outline-none focus:bg-red-50 dark:focus:bg-red-900/30"
                             role="menuitem"
                             tabIndex={isMenuOpen ? 0 : -1}
                         >

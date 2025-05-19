@@ -1,6 +1,6 @@
 // prisma/seed.ts
 // console.log("[SEED DEBUG] Début du script seed.ts");
-import { PrismaClient, Role, ProfessionalRole, WorkPatternType, WeekType, LeaveType } from '@prisma/client';
+import { PrismaClient, Role, ProfessionalRole, WorkPatternType, WeekType, LeaveType, RoomType, SectorCategory } from '@prisma/client';
 import bcrypt from 'bcrypt';
 // console.log("[SEED DEBUG] Import bcrypt OK");
 import fs from 'fs';
@@ -24,9 +24,8 @@ const usersCsvPath = path.resolve(__dirname, 'seed_data', 'users.csv');
 // console.log("[SEED DEBUG] Calcul surgeonsCsvPath...");
 const surgeonsCsvPath = path.resolve(__dirname, 'seed_data', 'surgeons.csv');
 // console.log("[SEED DEBUG] surgeonsCsvPath OK:", surgeonsCsvPath);
-// console.log("[SEED DEBUG] Calcul operatingRoomsCsvPath...");
-const operatingRoomsCsvPath = path.resolve(__dirname, 'seed_data', 'operating_rooms.csv');
-// console.log("[SEED DEBUG] operatingRoomsCsvPath OK:", operatingRoomsCsvPath);
+// Suppression de operatingRoomsCsvPath car les données sont maintenant en dur
+// const operatingRoomsCsvPath = path.resolve(__dirname, 'seed_data', 'operating_rooms.csv');
 const specialtySeparator = ';';
 // console.log("[SEED DEBUG] specialtySeparator OK");
 
@@ -250,19 +249,11 @@ const defaultSurgeons: SurgeonCsvData[] = [
     }
 ];
 
-const defaultOperatingRooms = [
-    {
-        name: 'Salle Opératoire 1',
-        number: '1',
-        sectorId: '1',
-        colorCode: '#FF0000',
-        isActive: 'true',
-        supervisionRules: JSON.stringify({ maxSurgeons: 2 })
-    }
-];
+// Suppression de defaultOperatingRooms
+// const defaultOperatingRooms = [ ... ];
 
-async function processUsers(users: UserCsvData[]) {
-    for (const user of users) {
+async function processUsers(usersData: UserCsvData[]) {
+    for (const user of usersData) {
         // Validation et conversion des données
         const login = user.login || `${user.prenom.toLowerCase()}.${user.nom.toLowerCase()}`;
         const email = user.email || `${login}@mathildanesth.local`;
@@ -346,247 +337,188 @@ async function processUsers(users: UserCsvData[]) {
     }
 }
 
+// Suppression de createDefaultOperatingSectors et processOperatingRooms
+// Ces logiques sont maintenant intégrées dans main() avec la nouvelle structure de données
+
+const sitesSeedData = [
+    {
+        siteName: "Clinique Mathilde",
+        siteColorCode: "#4A90E2", // Bleu Mathilde
+        sectors: [
+            {
+                sectorName: "Secteur hyperaseptique",
+                sectorColorCode: "#ADD8E6", // Light Blue
+                sectorCategory: SectorCategory.HYPERASEPTIQUE,
+                rooms: [
+                    { name: "Salle 1", number: "1" }, { name: "Salle 2", number: "2" }, { name: "Salle 3", number: "3" }, { name: "Salle 4", number: "4" }
+                ],
+            },
+            {
+                sectorName: "Secteur intermédiaire",
+                sectorColorCode: "#90EE90", // Light Green
+                sectorCategory: SectorCategory.STANDARD,
+                rooms: [
+                    { name: "Salle 5", number: "5" }, { name: "Salle 6", number: "6" }, { name: "Salle 7", number: "7" }
+                ],
+            },
+            {
+                sectorName: "Secteur septique",
+                sectorColorCode: "#FFB6C1", // Light Pink
+                sectorCategory: SectorCategory.STANDARD, // Ou une catégorie spécifique si elle existe
+                rooms: [
+                    { name: "Salle 8", number: "8" }, { name: "Salle 9", number: "9" }, { name: "Salle 10", number: "10" },
+                    { name: "Salle 11", number: "11" }, { name: "Salle 12", number: "12" }, { name: "Salle 12bis", number: "12bis" }
+                ],
+            },
+            {
+                sectorName: "Secteur ophtalmo",
+                sectorColorCode: "#FFFFE0", // Light Yellow
+                sectorCategory: SectorCategory.OPHTALMOLOGIE,
+                rooms: [
+                    { name: "Salle O14", number: "O14" }, { name: "Salle O15", number: "O15" },
+                    { name: "Salle O16", number: "O16" }, { name: "Salle O17", number: "O17" }
+                ],
+            },
+            {
+                sectorName: "Secteur endoscopie",
+                sectorColorCode: "#D8BFD8", // Thistle
+                sectorCategory: SectorCategory.ENDOSCOPIE,
+                rooms: [
+                    { name: "Salle Endo1", number: "Endo1" }, { name: "Salle Endo2", number: "Endo2" },
+                    { name: "Salle Endo3", number: "Endo3" }, { name: "Salle Endo4", number: "Endo4" }
+                ],
+            },
+        ],
+    },
+    {
+        siteName: "Clinique de l'Europe",
+        siteColorCode: "#F5A623", // Orange Europe
+        sectors: [
+            {
+                sectorName: "Bloc hospitalisation",
+                sectorColorCode: "#E6E6FA", // Lavender
+                sectorCategory: SectorCategory.STANDARD,
+                rooms: [
+                    { name: "Salle 1", number: "1" }, { name: "Salle 2", number: "2" }, { name: "Salle 3", number: "3" }, { name: "Salle 4", number: "4" },
+                    { name: "Salle 5", number: "5" }, { name: "Salle 6", number: "6" }, { name: "Salle 7", number: "7" }, { name: "Salle 8", number: "8" }
+                ],
+            },
+            {
+                sectorName: "Bloc ambulatoire",
+                sectorColorCode: "#AFEEEE", // Pale Turquoise
+                sectorCategory: SectorCategory.STANDARD, // Ou une catégorie spécifique si elle existe pour ambulatoire
+                rooms: [
+                    { name: "Salle A1", number: "A1" }, { name: "Salle A2", number: "A2" }, { name: "Salle A3", number: "A3" },
+                    { name: "Salle A4", number: "A4" }, { name: "Salle A5", number: "A5" }
+                ],
+            },
+        ],
+    },
+];
+
+
 async function main() {
-    console.log("[SEED DEBUG] Début du processus de seed");
+    console.log("[SEED DEBUG] Début du processus de seed V2 avec sites et secteurs custom");
+    const usersData = safeLoadCsv<UserCsvData>(usersCsvPath, defaultUsers);
+    await processUsers(usersData);
 
-    try {
-        // Charger les données avec fallback
-        const users = safeLoadCsv<UserCsvData>(usersCsvPath, defaultUsers);
-        const surgeons = safeLoadCsv<SurgeonCsvData>(surgeonsCsvPath, defaultSurgeons);
-        const operatingRooms = safeLoadCsv<{
-            name: string;
-            number: string;
-            sectorId: string;
-            colorCode: string;
-            isActive: string;
-            supervisionRules: string;
-        }>(operatingRoomsCsvPath, defaultOperatingRooms);
+    console.log("[SEED DEBUG] Début création Sites, Secteurs et Salles");
+    for (const siteData of sitesSeedData) {
+        const site = await prisma.site.upsert({
+            where: { name: siteData.siteName },
+            update: { description: `Site ${siteData.siteName}`, isActive: true, colorCode: siteData.siteColorCode, displayOrder: siteData.siteName === "Clinique Mathilde" ? 1 : 2 },
+            create: { name: siteData.siteName, description: `Site ${siteData.siteName}`, isActive: true, colorCode: siteData.siteColorCode, timezone: "Europe/Paris", displayOrder: siteData.siteName === "Clinique Mathilde" ? 1 : 2 },
+        });
+        console.log(`[SEED DEBUG] Site traité (upserted): ${site.name} (ID: ${site.id})`);
 
-        // Traitement des utilisateurs
-        await processUsers(users);
-
-        /* // START COMMENT BLOCK - Sectors and Rooms handled elsewhere
-        // Créer les secteurs opératoires
-        const operatingSectors = [
-            {
-                name: "Secteur A",
-                colorCode: "#FF0000",
-                isActive: true,
-                description: "Secteur principal",
-                rules: { maxRoomsPerSupervisor: 2 }
-            },
-            {
-                name: "Secteur B",
-                colorCode: "#00FF00",
-                isActive: true,
-                description: "Secteur secondaire",
-                rules: { maxRoomsPerSupervisor: 2 }
-            }
-        ];
-
-        for (const sector of operatingSectors) {
-            try {
-                const existingSector = await prisma.operatingSector.findUnique({
-                    where: { name: sector.name }
-                });
-
-                if (existingSector) {
-                    await prisma.operatingSector.update({
-                        where: { name: sector.name },
-                        data: sector
-                    });
-                    console.log(`[SEED DEBUG] Secteur opératoire mis à jour: ${sector.name}`);
-                } else {
-                    await prisma.operatingSector.create({
-                        data: sector
-                    });
-                    console.log(`[SEED DEBUG] Nouveau secteur opératoire créé: ${sector.name}`);
-                }
-            } catch (error) {
-                console.error(`[SEED DEBUG] Erreur lors du traitement du secteur ${sector.name}:`, error);
-            }
-        }
-
-        // Créer les salles d'opération
-        for (const room of operatingRooms) {
-            try {
-                const existingRoom = await prisma.operatingRoom.findUnique({
-                    where: { number: room.number }
-                });
-
-                const roomData = {
-                    name: room.name,
-                    number: room.number,
-                    sectorId: parseInt(room.sectorId),
-                    colorCode: room.colorCode,
-                    isActive: room.isActive.toLowerCase() === 'true',
-                    supervisionRules: JSON.parse(room.supervisionRules)
-                };
-
-                if (existingRoom) {
-                    await prisma.operatingRoom.update({
-                        where: { number: room.number },
-                        data: roomData
-                    });
-                    console.log(`[SEED DEBUG] Salle d'opération mise à jour: ${room.name}`);
-                } else {
-                    await prisma.operatingRoom.create({
-                        data: roomData
-                    });
-                    console.log(`[SEED DEBUG] Nouvelle salle d'opération créée: ${room.name}`);
-                }
-            } catch (error) {
-                console.error(`[SEED DEBUG] Erreur lors du traitement de la salle ${room.name}:`, error);
-            }
-        }
-        */ // END COMMENT BLOCK
-
-        // Créer les types de congés
-        for (const leaveType of leaveTypes) {
-            try {
-                const leaveTypeData = {
-                    code: leaveType.code,
-                    label: leaveType.label,
-                    description: leaveType.description,
-                    isActive: leaveType.isActive,
-                    isUserSelectable: leaveType.isUserSelectable,
-                    rules: leaveType.rules
-                };
-
-                // Use upsert to create or update the leave type setting
-                const upsertedLeaveType = await prisma.leaveTypeSetting.upsert({
-                    where: { code: leaveType.code },
-                    update: leaveTypeData, // Data to use if record exists
-                    create: leaveTypeData, // Data to use if record does not exist
-                });
-
-                // Log based on whether it was created or updated (optional, requires checking)
-                // Prisma upsert result doesn't directly tell if it created or updated,
-                // but we can assume it succeeded.
-                console.log(`[SEED DEBUG] Type de congé traité (upserted): ${leaveType.label}`);
-
-            } catch (error) {
-                console.error(`[SEED DEBUG] Erreur lors du traitement du type de congé ${leaveType.label}:`, error);
-            }
-        }
-
-        // Créer les rôles professionnels
-        const professionalRoles = [
-            {
-                id: '1',
-                code: 'MAR',
-                label: 'Médecin Anesthésiste Réanimateur',
-                description: 'Médecin spécialisé en anesthésie-réanimation',
-                isActive: true,
-                displayPreferences: {
-                    color: '#2196F3',
-                    icon: 'doctor',
-                    order: 1,
-                    visibility: {
-                        calendar: true,
-                        dashboard: true,
-                        planning: true
-                    }
-                }
-            },
-            {
-                id: '2',
-                code: 'IADE',
-                label: 'Infirmier Anesthésiste',
-                description: 'Infirmier spécialisé en anesthésie',
-                isActive: true,
-                displayPreferences: {
-                    color: '#4CAF50',
-                    icon: 'nurse',
-                    order: 2,
-                    visibility: {
-                        calendar: true,
-                        dashboard: true,
-                        planning: true
-                    }
-                }
-            },
-            {
-                id: '3',
-                code: 'SECRETAIRE',
-                label: 'Secrétaire',
-                description: 'Personnel administratif',
-                isActive: true,
-                displayPreferences: {
-                    color: '#FF9800',
-                    icon: 'secretary',
-                    order: 3,
-                    visibility: {
-                        calendar: true,
-                        dashboard: true,
-                        planning: true
-                    }
-                }
-            }
-        ];
-
-        for (const role of professionalRoles) {
-            try {
-                const existingRole = await prisma.professionalRoleConfig.findUnique({
-                    where: { code: role.code }
-                });
-
-                if (existingRole) {
-                    await prisma.professionalRoleConfig.update({
-                        where: { code: role.code },
-                        data: role
-                    });
-                    console.log(`[SEED DEBUG] Rôle professionnel mis à jour: ${role.code}`);
-                } else {
-                    await prisma.professionalRoleConfig.create({
-                        data: role
-                    });
-                    console.log(`[SEED DEBUG] Nouveau rôle professionnel créé: ${role.code}`);
-                }
-            } catch (error) {
-                console.error(`[SEED DEBUG] Erreur lors du traitement du rôle ${role.code}:`, error);
-            }
-        }
-
-        // Création des règles de transfert de quotas
-        for (const rule of quotaTransferRules) {
-            await prisma.quotaTransferRule.create({
-                data: {
-                    fromType: rule.fromType,
-                    toType: rule.toType,
-                    conversionRate: rule.conversionRate,
-                    maxTransferDays: rule.maxTransferDays,
-                    maxTransferPercentage: rule.maxTransferPercentage,
-                    requiresApproval: rule.requiresApproval,
-                    authorizedRoles: rule.authorizedRoles,
-                    isActive: rule.isActive
-                }
+        let sectorDisplayOrder = 1;
+        for (const sectorData of siteData.sectors) {
+            const currentSectorDisplayOrder = sectorDisplayOrder; // Capturer la valeur actuelle pour cet itération
+            const sector = await prisma.operatingSector.upsert({
+                where: { name: sectorData.sectorName }, // Supposant que name est globalement unique ou la logique désirée
+                update: { siteId: site.id, colorCode: sectorData.sectorColorCode, isActive: true, description: `${sectorData.sectorName} pour ${site.name}`, category: sectorData.sectorCategory || SectorCategory.STANDARD, displayOrder: currentSectorDisplayOrder },
+                create: { name: sectorData.sectorName, siteId: site.id, colorCode: sectorData.sectorColorCode, isActive: true, description: `${sectorData.sectorName} pour ${site.name}`, category: sectorData.sectorCategory || SectorCategory.STANDARD, displayOrder: currentSectorDisplayOrder },
             });
-        }
+            sectorDisplayOrder++; // Incrémenter pour le prochain secteur
+            console.log(`[SEED DEBUG] Secteur traité (upserted): ${sector.name} pour site ${site.name} (ID: ${sector.id}), displayOrder: ${currentSectorDisplayOrder}`);
 
-        // Création des règles de report de quotas
-        for (const rule of quotaCarryOverRules) {
-            await prisma.quotaCarryOverRule.create({
-                data: {
-                    leaveType: rule.leaveType,
-                    ruleType: rule.ruleType,
-                    value: rule.value,
-                    maxCarryOverDays: rule.maxCarryOverDays,
-                    expirationDays: rule.expirationDays,
-                    requiresApproval: rule.requiresApproval,
-                    authorizedRoles: rule.authorizedRoles,
-                    isActive: rule.isActive
-                }
-            });
+            let roomDisplayOrder = 1;
+            for (const roomSpec of sectorData.rooms) {
+                const sitePrefix = siteData.siteName.includes("Mathilde") ? "CM" : "CE";
+                const uniqueDBRoomNumber = `${sitePrefix}-${roomSpec.number}`;
+                const currentRoomDisplayOrder = roomDisplayOrder; // Capturer la valeur actuelle pour cet itération
+                await prisma.operatingRoom.upsert({
+                    where: { number: uniqueDBRoomNumber },
+                    update: { name: roomSpec.name, description: `Salle ${roomSpec.name} (${uniqueDBRoomNumber}) dans ${sector.name}`, roomType: RoomType.STANDARD, capacity: 1, isActive: true, displayOrder: currentRoomDisplayOrder, colorCode: sectorData.sectorColorCode, allowedSpecialties: [], siteId: site.id, operatingSectorId: sector.id, supervisionRules: { maxSimultaneousSupervisions: 2 } },
+                    create: { name: roomSpec.name, number: uniqueDBRoomNumber, description: `Salle ${roomSpec.name} (${uniqueDBRoomNumber}) dans ${sector.name}`, roomType: RoomType.STANDARD, capacity: 1, isActive: true, displayOrder: currentRoomDisplayOrder, colorCode: sectorData.sectorColorCode, allowedSpecialties: [], siteId: site.id, operatingSectorId: sector.id, supervisionRules: { maxSimultaneousSupervisions: 2 } },
+                });
+                roomDisplayOrder++; // Incrémenter pour la prochaine salle
+                console.log(`[SEED DEBUG] Salle traitée (upserted): '${roomSpec.name}' (DB Num: ${uniqueDBRoomNumber}) dans secteur ${sector.name}, displayOrder: ${currentRoomDisplayOrder}`);
+            }
         }
-
-        console.log("[SEED DEBUG] Fin du processus de seed");
-    } catch (error) {
-        console.error("[SEED FATAL ERROR]", error);
-        throw error;
-    } finally {
-        await prisma.$disconnect();
     }
+    console.log("[SEED DEBUG] Fin création Sites, Secteurs et Salles");
+
+    // Traitement des chirurgiens (après les sites si les chirurgiens sont liés aux sites)
+    // Pour l'instant, la liaison chirurgien-site n'est pas gérée dans ce CSV/logique de base
+    // const surgeons = safeLoadCsv<SurgeonCsvData>(surgeonsCsvPath, defaultSurgeons);
+    // await processSurgeons(surgeons); // Implémenter processSurgeons si nécessaire
+
+    console.log("[SEED DEBUG] Début création autres entités (Types Congés, Roles Pro, etc.)");
+    for (const leaveType of leaveTypes) {
+        try {
+            await prisma.leaveTypeSetting.upsert({
+                where: { code: leaveType.code },
+                update: { label: leaveType.label, description: leaveType.description, isActive: leaveType.isActive, isUserSelectable: leaveType.isUserSelectable, rules: leaveType.rules },
+                create: { code: leaveType.code, label: leaveType.label, description: leaveType.description, isActive: leaveType.isActive, isUserSelectable: leaveType.isUserSelectable, rules: leaveType.rules },
+            });
+            console.log(`[SEED DEBUG] Type de congé traité (upserted): ${leaveType.label}`);
+        } catch (error) {
+            console.error(`[SEED DEBUG] Erreur lors du traitement du type de congé ${leaveType.label}:`, error);
+        }
+    }
+
+    const professionalRoles = [
+        { id: '1', code: 'MAR', label: 'Médecin Anesthésiste Réanimateur', description: 'Médecin spécialisé en anesthésie-réanimation', isActive: true, displayPreferences: { color: '#2196F3', icon: 'doctor', order: 1, visibility: { calendar: true, dashboard: true, planning: true } } },
+        { id: '2', code: 'IADE', label: 'Infirmier Anesthésiste', description: 'Infirmier spécialisé en anesthésie', isActive: true, displayPreferences: { color: '#4CAF50', icon: 'nurse', order: 2, visibility: { calendar: true, dashboard: true, planning: true } } },
+        { id: '3', code: 'SECRETAIRE', label: 'Secrétaire', description: 'Personnel administratif', isActive: true, displayPreferences: { color: '#FF9800', icon: 'secretary', order: 3, visibility: { calendar: true, dashboard: true, planning: true } } }
+    ];
+    for (const role of professionalRoles) {
+        try {
+            await prisma.professionalRoleConfig.upsert({
+                where: { code: role.code },
+                update: { label: role.label, description: role.description, isActive: role.isActive, displayPreferences: role.displayPreferences },
+                create: { id: role.id, code: role.code, label: role.label, description: role.description, isActive: role.isActive, displayPreferences: role.displayPreferences },
+            });
+            console.log(`[SEED DEBUG] Rôle professionnel traité (upserted): ${role.code}`);
+        } catch (error) {
+            console.error(`[SEED DEBUG] Erreur lors du traitement du rôle ${role.code}:`, error);
+        }
+    }
+
+    console.log("[SEED DEBUG] Début création QuotaTransferRule");
+    for (const rule of quotaTransferRules) {
+        await prisma.quotaTransferRule.upsert({
+            where: { fromType_toType: { fromType: rule.fromType, toType: rule.toType } },
+            create: rule,
+            update: rule,
+        });
+        console.log(`[SEED DEBUG] Règle de transfert de quota traitée (upserted): ${rule.fromType} -> ${rule.toType}`);
+    }
+    console.log("[SEED DEBUG] Fin création QuotaTransferRule");
+
+    console.log("[SEED DEBUG] Début création QuotaCarryOverRule");
+    for (const rule of quotaCarryOverRules) {
+        await prisma.quotaCarryOverRule.upsert({
+            where: { leaveType: rule.leaveType },
+            create: rule,
+            update: rule,
+        });
+        console.log(`[SEED DEBUG] Règle de report de quota traitée (upserted): ${rule.leaveType}`);
+    }
+    console.log("[SEED DEBUG] Fin création QuotaCarryOverRule");
+
+    console.log("[SEED DEBUG] Fin du processus de seed");
 }
 
 // Ajout de logs supplémentaires

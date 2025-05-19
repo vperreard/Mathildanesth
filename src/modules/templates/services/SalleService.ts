@@ -1,3 +1,5 @@
+import { getClientAuthToken } from '@/lib/auth-client-utils'; // Importer la fonction
+
 export interface OperatingRoomFromAPI {
     id: number; // Correspond à l'ID de la base de données (Int)
     name: string; // Correspond à OperatingRoom.name
@@ -14,8 +16,18 @@ export class SalleService {
      */
     static async getSalles(): Promise<OperatingRoomFromAPI[]> {
         try {
+            const token = getClientAuthToken(); // Récupérer le token depuis localStorage
+            const headers: HeadersInit = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch(`${this.API_BASE_URL}/operating-rooms`, {
-                credentials: 'include' // Ajout pour l'authentification si nécessaire
+                method: 'GET',
+                headers: headers, // Utiliser les headers modifiés
+                credentials: 'include' // Garder au cas où, mais le header devrait primer
             });
 
             if (!response.ok) {

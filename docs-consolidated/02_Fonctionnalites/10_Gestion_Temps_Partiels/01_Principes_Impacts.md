@@ -8,15 +8,23 @@ Le projet `MATHILDA` identifie la "Gestion des temps partiels" comme une fonctio
 
 ## 2. Définition et Configuration du Temps Partiel
 
-- **Niveau Utilisateur** : La quotité de temps de travail est une propriété du profil utilisateur (`User`):
-  - Le champ `User.workingHours` (String) dans `prisma/schema.prisma` peut stocker cette information (ex: "80%", "28h/semaine", ou une référence à un cycle de travail spécifique).
-  - Il est crucial de définir clairement comment ce champ est interprété (pourcentage d'un temps plein de référence ? nombre d'heures hebdomadaires ? jours travaillés fixes ?).
-- **Temps Plein de Référence** : Le système doit connaître la base du temps plein dans l'établissement/service (ex: 35h, 39h) pour calculer correctement les proratas.
-- **Modalités du Temps Partiel** :
-  - **Jours Fixes Non Travaillés** : Certains temps partiels impliquent des jours de la semaine fixes où l'employé ne travaille pas (ex: jamais le mercredi).
-  - **Répartition sur la Semaine** : D'autres peuvent avoir un nombre d'heures réduit réparti différemment chaque semaine.
-  - **Cycles Spécifiques** : Certains temps partiels peuvent suivre des cycles pluri-hebdomadaires.
-    Mathildanesth doit permettre de configurer ces modalités, au minimum par des règles ou des indisponibilités récurrentes.
+- **Niveau Utilisateur** : La quotité et les modalités du temps de travail sont des propriétés du profil utilisateur (`User` dans `prisma/schema.prisma`):
+  - `tempsPartiel` (Boolean) : Indique si l'utilisateur est à temps partiel.
+  - `pourcentageTempsPartiel` (Float, optionnel) : Si `tempsPartiel` est vrai, ce champ stocke la quotité (ex: 0.8 pour un 80%).
+  - `workPattern` (Enum `WorkPatternType`) : Définit le modèle de travail :
+    - `FULL_TIME` : Temps plein standard 
+    - `FULL_TIME_WITH_FIXED_OFF_DAY` : **Temps plein avec jour(s) fixe(s) non travaillé(s)** (ex: MAR à temps plein travaillant 4 jours/semaine)
+    - `ALTERNATING_WEEKS` : Alternance de semaines avec configurations différentes
+    - `SPECIFIC_DAYS` : Jours spécifiques fixes (temps partiel ou autre organisation)
+  - `joursTravaillesSemaineImpaire` et `joursTravaillesSemainePaire` (Json) : Pour les utilisateurs en `SPECIFIC_DAYS`, `ALTERNATING_WEEKS` ou `FULL_TIME_WITH_FIXED_OFF_DAY`, ces champs listent les jours travaillés de la semaine.
+
+- **Cas spécifique des médecins à temps plein avec jours fixes non travaillés** : Il est important de noter que certains médecins (notamment les MARS) peuvent être considérés à temps plein mais travailler sur 4 jours par semaine, avec un jour fixe non travaillé. Cette configuration utilise `workPattern: FULL_TIME_WITH_FIXED_OFF_DAY` et les champs `joursTravaillesSemaineImpaire/Paire`, sans pour autant activer le flag `tempsPartiel`.
+
+- **Temps Plein de Référence** : Le système doit connaître la base du temps plein dans l'établissement/service (ex: 35h, 39h hebdomadaires, ou un nombre d'heures annuelles) pour calculer correctement les obligations des temps partiels (ex: un 80% sur base 39h). Cette base de référence est une configuration générale du système ou du site/département.
+
+- **Modalités du Temps Partiel via `workPattern` et jours spécifiques** :
+  - **Jours Fixes Non Travaillés** : Peut être géré via `workPattern: SPECIFIC_DAYS` ou `workPattern: FULL_TIME_WITH_FIXED_OFF_DAY` et la configuration des `joursTravaillesSemainePaire/Impaire`, ou par la création d'[Indisponibilités Récurrentes](../../../modules/unavailability/types/index.ts) (à vérifier si un tel module existe et comment il s'intègre).
+  - **Répartition sur la Semaine/Cycle** : Le `workPattern` (ex: `ALTERNATING_WEEKS`) et les jours spécifiques permettent de définir comment le volume horaire réduit est réparti.
 
 ## 3. Impact sur la Planification
 
@@ -40,8 +48,9 @@ Le projet `MATHILDA` identifie la "Gestion des temps partiels" comme une fonctio
 
 ### 4.1. Droits à Congés
 
-- Les droits à congés payés annuels (`User.annualLeaveAllowance`) peuvent être proratisés en fonction du temps de travail, selon la législation et les accords d'entreprise.
-- Le système de gestion des [Congés et Absences](../02_Gestion_Conges_Absences/01_Processus_Gestion_Conges_Absences.md) doit appliquer ce prorata lors du calcul des droits initiaux.
+- Les droits à congés payés annuels et autres types de congés sont gérés via le modèle `LeaveBalance` (champs `initial`, `used`, `remaining` pour un `userId`, `leaveType` et `year` donnés).
+- La proratisation des droits initiaux en fonction du temps de travail (défini par `tempsPartiel`, `pourcentageTempsPartiel` sur le modèle `User`) doit être appliquée lors de la création ou de la mise à jour annuelle des enregistrements `LeaveBalance`.
+- Le système de gestion des [Congés et Absences](../02_Gestion_Conges_Absences/01_Processus_Gestion_Conges_Absences.md) doit utiliser ces soldes proratisés.
 
 ### 4.2. Jours Fériés
 
@@ -59,9 +68,9 @@ Le projet `MATHILDA` identifie la "Gestion des temps partiels" comme une fonctio
 
 ## 6. Points Clés d'Implémentation
 
-- **Définition Claire des Données `User.workingHours`** : Standardiser le format et l'interprétation de ce champ.
-- **Moteur de Règles Adaptable** : Le [Moteur de Règles](../../03_Planning_Generation/01_Moteur_Regles.md) doit pouvoir prendre en compte la quotité de temps partiel dans ses conditions et calculs.
-  - Exemple de règle : "Un utilisateur à X% ne peut pas être affecté à plus de Y gardes par mois", où Y est fonction de X.
+- **Configuration Claire des Modalités de Temps Partiel sur `User`** : S'assurer que les champs `tempsPartiel`, `pourcentageTempsPartiel`, `workPattern`, et `joursTravaillesSemainePaire/Impaire` sont utilisés de manière cohérente pour définir les obligations et disponibilités.
+- **Définition d'un Temps Plein de Référence** : Paramètre système ou par entité (site/département) nécessaire pour interpréter les `pourcentageTempsPartiel`.
+- **Moteur de Règles Adaptable** : Le [Moteur de Règles](../../03_Planning_Generation/01_Moteur_Regles.md) doit pouvoir prendre en compte les informations de temps partiel du modèle `User` dans ses conditions et calculs.
 - **Gestion des Indisponibilités Récurrentes** : Permettre de définir facilement les jours fixes non travaillés pour les temps partiels concernés.
 
 ---

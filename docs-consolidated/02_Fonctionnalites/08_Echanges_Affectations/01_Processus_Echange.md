@@ -4,7 +4,7 @@
 
 Pour offrir de la flexibilité au personnel tout en maintenant une couverture de service adéquate, Mathildanesth propose un système d'échange d'affectations. Ce processus permet à deux utilisateurs de s'échanger des gardes, des vacations ou d'autres types d'affectations, sous réserve de validation par le système et/ou un administrateur.
 
-La roadmap (`documentation/roadmap-dev-updated.md`, Phase 3) mentionne les "Échanges d'affectations facilités (validation)". Le modèle `SwapRequest` dans `prisma/schema.prisma` fournit la structure de données pour gérer ces demandes.
+La roadmap (`documentation/roadmap-dev-updated.md`, Phase 3) mentionne les "Échanges d'affectations facilités (validation)". Le modèle `AssignmentSwapRequest` dans `prisma/schema.prisma` fournit la structure de données pour gérer ces demandes.
 
 ## 2. Objectifs du Module d'Échange
 
@@ -14,42 +14,43 @@ La roadmap (`documentation/roadmap-dev-updated.md`, Phase 3) mentionne les "Éch
 - **Traçabilité** : Garder un historique des demandes d'échange et des décisions.
 - **Processus de Validation Structuré** : Impliquer les bonnes personnes (utilisateurs concernés, administrateurs) dans le processus.
 
-## 3. Modèle de Données : `SwapRequest`
+## 3. Modèle de Données : `AssignmentSwapRequest`
 
-Le modèle `SwapRequest` (`prisma/schema.prisma`) est central :
+Le modèle `AssignmentSwapRequest` (`prisma/schema.prisma`) est central :
 
-- **`id`** : Identifiant unique de la demande.
-- **`assignmentId`** : L'affectation que le demandeur (`requesterId`) souhaite céder.
-- **`requesterId`** : L'utilisateur qui initie la demande d'échange.
-- **`requestedUserId`** : L'utilisateur à qui l'échange est proposé (le "répondant").
-- **`proposedAssignmentId`** (optionnel) : L'affectation que le répondant propose en contrepartie. Si nul, le demandeur cherche simplement quelqu'un pour prendre son affectation sans proposer un échange direct d'une de ses propres affectations.
-- **`status`** : État de la demande (ex: `PENDING`, `ACCEPTED_BY_USER`, `REJECTED_BY_USER`, `PENDING_ADMIN_APPROVAL`, `APPROVED`, `REJECTED_BY_ADMIN`, `CANCELED`).
-- **`requesterMessage`**, **`requestedUserMessage`**, **`adminMessage`** : Messages pour la communication.
-- `createdAt`, `updatedAt`.
+- **`id`** (String) : Identifiant unique de la demande.
+- **`initiatorUserId`** (Int) : L'utilisateur qui initie la demande d'échange (le "demandeur").
+- **`proposedAssignmentId`** (String) : L'ID de l'affectation que l'`initiatorUser` propose de céder.
+- **`targetUserId`** (Int, optionnel) : L'utilisateur à qui l'échange est proposé (le "destinataire" ou "répondant"). Si nul, la demande pourrait être ouverte.
+- **`requestedAssignmentId`** (String, optionnel) : L'ID de l'affectation appartenant au `targetUser` que l'`initiatorUser` souhaiterait obtenir en retour. Si nul, l'initiateur cherche simplement quelqu'un pour prendre son affectation `proposedAssignment`.
+- **`status`** (Enum `AssignmentSwapStatus`) : État de la demande (ex: `PENDING`, `ACCEPTED`, `REJECTED`, `APPROVED`, `CANCELLED`, `EXPIRED`).
+- **`message`** (String, optionnel) : Message de l'initiateur accompagnant la demande.
+- **`responseMessage`** (String, optionnel) : Message du destinataire en réponse.
+- `createdAt`, `updatedAt`, `expiresAt` (optionnel).
 
 ## 4. Processus Type d'un Échange
 
 Le processus peut varier légèrement selon que l'échange est direct (affectation contre affectation) ou une simple reprise d'affectation.
 
-### 4.1. Initiation de la Demande par l'Utilisateur A (Demandeur)
+### 4.1. Initiation de la Demande par l'Utilisateur A (`initiatorUser`)
 
-1.  **Sélection de l'Affectation à Échanger** : L'utilisateur A sélectionne une de ses affectations futures dans son planning (ex: une garde).
-2.  **Choix de l'Utilisateur B (Répondant)** : L'utilisateur A identifie un collègue B avec qui il souhaite échanger.
+1.  **Sélection de l'Affectation à Cédeer** : L'utilisateur A sélectionne une de ses affectations futures (`proposedAssignment`).
+2.  **Choix de l'Utilisateur B (`targetUser`)** : L'utilisateur A identifie un collègue B avec qui il souhaite échanger.
     - Le système pourrait suggérer des collègues éligibles (même rôle, compétences compatibles, etc.).
-3.  **Proposition d'une Affectation en Retour (Optionnel)** : Si l'utilisateur A souhaite un échange direct, il peut sélectionner une des affectations de B qu'il serait prêt à prendre en retour.
-    - Alternativement, A peut simplement demander à B de prendre son affectation, et B pourrait alors proposer une de ses affectations en échange (ou juste accepter de prendre celle de A).
-4.  **Ajout d'un Message (Optionnel)** : L'utilisateur A peut ajouter un message à l'attention de B.
-5.  **Soumission de la Demande** : Une `SwapRequest` est créée avec le statut `PENDING`.
+3.  **Proposition d'une Affectation en Retour (Optionnel)** : Si l'utilisateur A souhaite un échange direct, il peut sélectionner une des affectations de B qu'il serait prêt à prendre en retour (`requestedAssignment`).
+    - Alternativement, A peut simplement demander à B de prendre son affectation (`proposedAssignment`), et B pourrait alors proposer une de ses affectations en échange lors de sa réponse (nécessiterait une logique de contre-proposition ou une deuxième `AssignmentSwapRequest`).
+4.  **Ajout d'un Message (Optionnel)** : L'utilisateur A peut ajouter un `message`.
+5.  **Soumission de la Demande** : Une `AssignmentSwapRequest` est créée avec le statut `PENDING`.
 
-### 4.2. Notification et Réponse de l'Utilisateur B (Répondant)
+### 4.2. Notification et Réponse de l'Utilisateur B (`targetUser`)
 
 1.  **Notification** : L'utilisateur B est notifié de la demande d'échange.
-2.  **Examen de la Demande** : B consulte les détails (affectation de A, et son affectation proposée si applicable).
+2.  **Examen de la Demande** : B consulte les détails (l'affectation `proposedAssignment` de A, et l'affectation `requestedAssignment` de B si spécifiée par A).
 3.  **Actions Possibles pour B** :
-    - **Accepter l'Échange Tel Quel** : Si B est d'accord avec la proposition. La `SwapRequest` passe à `ACCEPTED_BY_USER` (ou directement à `PENDING_ADMIN_APPROVAL` si une validation admin est toujours requise).
-    - **Proposer une Contrepartie / Modifier la Proposition** : Si B veut prendre l'affectation de A mais proposer une autre de ses affectations en échange, ou si A n'avait rien proposé en retour et B veut le faire.
-    - **Refuser l'Échange** : La `SwapRequest` passe à `REJECTED_BY_USER`.
-    - **Ajouter un Message**.
+    - **Accepter l'Échange Tel Quel** : Si B est d'accord avec la proposition. La `AssignmentSwapRequest` passe à `ACCEPTED`.
+    - **Proposer une Contrepartie / Modifier la Proposition** : Si B veut prendre l'affectation de A mais proposer une autre de ses affectations en échange, ou si A n'avait rien proposé en retour et B veut le faire. Cela pourrait impliquer la création d'une nouvelle demande ou une modification de la demande existante si le modèle le supporte (actuellement, le modèle est plus simple).
+    - **Refuser l'Échange** : La `AssignmentSwapRequest` passe à `REJECTED`.
+    - **Ajouter un `responseMessage`**.
 
 ### 4.3. Validation par le Système
 
@@ -61,22 +62,22 @@ Le processus peut varier légèrement selon que l'échange est direct (affectati
 
 ### 4.4. Validation par un Administrateur (Si Nécessaire)
 
-Selon la configuration du service, certains échanges peuvent nécessiter une approbation finale par un administrateur/planificateur, même si les deux utilisateurs sont d'accord et que le système n'a pas détecté de violation majeure.
+Selon la configuration du service, certains échanges peuvent nécessiter une approbation finale par un administrateur/planificateur, même si les deux utilisateurs sont d'accord (statut `ACCEPTED`) et que le système n'a pas détecté de violation majeure.
 
-- La `SwapRequest` passe à `PENDING_ADMIN_APPROVAL`.
+- La `AssignmentSwapRequest` est en statut `ACCEPTED` et attend l'action de l'admin.
 - L'administrateur est notifié.
 - L'administrateur examine l'échange, les validations système, et peut :
-  - **Approuver** : La `SwapRequest` passe à `APPROVED`. Les affectations sont effectivement échangées dans le planning.
-  - **Rejeter** (avec motif) : La `SwapRequest` passe à `REJECTED_BY_ADMIN`.
+  - **Approuver** : La `AssignmentSwapRequest` passe à `APPROVED`. Les affectations sont effectivement échangées dans le planning.
+  - **Rejeter** (avec motif) : La `AssignmentSwapRequest` passe à `REJECTED` (ou un statut `DENIED_BY_ADMIN` plus spécifique si ajouté à l'enum `AssignmentSwapStatus`).
 
 ### 4.5. Finalisation et Notification
 
-- Une fois l'échange approuvé (par les utilisateurs et/ou l'admin), les `Assignment` concernées sont mises à jour dans la base de données (les `userId` sont échangés).
+- Une fois l'échange `APPROVED`, les `Assignment` concernées sont mises à jour dans la base de données (les `userId` sont échangés).
 - Les utilisateurs A et B sont notifiés du résultat final.
 
 ### 4.6. Annulation
 
-- Le demandeur (A) peut généralement annuler sa demande tant qu'elle n'est pas finalisée (`CANCELED`).
+- Le demandeur (A) peut généralement annuler sa demande tant qu'elle n'est pas finalisée (`APPROVED` ou `REJECTED`), la passant au statut `CANCELLED`.
 
 ## 5. Interface Utilisateur
 

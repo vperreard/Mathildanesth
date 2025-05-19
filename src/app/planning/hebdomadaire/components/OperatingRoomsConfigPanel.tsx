@@ -130,7 +130,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                                         <GripVertical className="h-5 w-5 text-gray-400" />
                                                     </div>
 
-                                                    <Droppable droppableId={sector} type="ROOM" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
+                                                    <Droppable droppableId={sector} type="ROOM">
                                                         {(provided) => (
                                                             <div
                                                                 {...provided.droppableProps}

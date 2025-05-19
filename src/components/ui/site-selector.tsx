@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+    SelectGroup,
+    SelectLabel
+} from "@/components/ui/select";
 
 export interface Site {
     id: string;
@@ -53,7 +62,11 @@ export default function SiteSelector({
         }
 
         if (autoSelectFirst && sites.length > 0 && !selectedSiteId) {
-            onChange(sites[0].id);
+            // S'assurer que le premier site est actif si possible
+            const firstActiveSite = sites.find(s => s.isActive !== false) || sites[0];
+            if (firstActiveSite) {
+                onChange(firstActiveSite.id);
+            }
         }
 
         setInitialized(true);
@@ -74,42 +87,54 @@ export default function SiteSelector({
         const search = current.toString();
         const query = search ? `?${search}` : '';
 
-        router.replace(`${pathname}${query}`);
+        // Utiliser router.replace pour éviter d'ajouter à l'historique de navigation
+        // seulement si le pathname et le query sont différents pour éviter boucle
+        if (`${pathname}${query}` !== `${pathname}${searchParams.toString() ? '?' + searchParams.toString() : ''}`) {
+            router.replace(`${pathname}${query}`);
+        }
+
     }, [selectedSiteId, persistInUrl, router, pathname, searchParams, urlParamName, initialized]);
 
-    // Filtrer les sites inactifs si nécessaire
     const activeSites = sites.filter(site => site.isActive !== false);
 
-    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newSiteId = e.target.value;
-        onChange(newSiteId === '' ? null : newSiteId);
+    const handleValueChange = (newSiteId: string) => {
+        onChange(newSiteId === 'all-sites-option' ? null : newSiteId);
     };
+
+    const displayValue = selectedSiteId ? activeSites.find(s => s.id === selectedSiteId)?.name : allSitesLabel;
 
     return (
         <div className={`site-selector ${className}`}>
-            <label htmlFor="site-selector" className="sr-only">Choisir un site</label>
-            <select
-                id="site-selector"
-                name="site-selector"
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                value={selectedSiteId || ''}
-                onChange={handleChange}
+            <Select
+                value={selectedSiteId || (includeAllSites ? 'all-sites-option' : '')}
+                onValueChange={handleValueChange}
                 disabled={disabled}
-                aria-label="Sélectionner un site"
             >
-                {includeAllSites && (
-                    <option value="">{allSitesLabel}</option>
-                )}
-                {activeSites.map((site) => (
-                    <option
-                        key={site.id}
-                        value={site.id}
-                        style={site.colorCode ? { backgroundColor: site.colorCode } : undefined}
-                    >
-                        {site.name}
-                    </option>
-                ))}
-            </select>
+                <SelectTrigger className="w-auto min-w-[180px] max-w-[300px]"> {/* Ajuster largeur au besoin */}
+                    <SelectValue placeholder={allSitesLabel || "Sélectionner un site"}>
+                        {displayValue}
+                    </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-slate-950 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+                    <SelectGroup>
+                        {includeAllSites && (
+                            <SelectItem value="all-sites-option">{allSitesLabel}</SelectItem>
+                        )}
+                        {activeSites.map((site) => (
+                            <SelectItem
+                                key={site.id}
+                                value={site.id}
+                            // Le style direct sur SelectItem n'est pas standard,
+                            // on pourrait utiliser des classes ou wrapper le contenu pour la couleur.
+                            // Pour l'instant, on omet le colorCode direct pour la simplicité de la migration.
+                            // Si besoin, on pourra ajouter un span avec une puce colorée ou autre.
+                            >
+                                {site.name}
+                            </SelectItem>
+                        ))}
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
         </div>
     );
 } 

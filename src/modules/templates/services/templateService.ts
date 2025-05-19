@@ -13,276 +13,49 @@ import {
     TemplateAdvancedFilter,
     ContrainteAffectation,
     ContrainteType,
-    PeriodeVariation
+    PeriodeVariation,
+    RoleType
 } from "../types/template";
 
+// Ajout d'un type pour les informations complètes d'ActivityType
+export interface FullActivityType {
+    id: string;
+    name: string;
+    code: string;
+    category: string;
+}
+
+// Type pour les valeurs de l'enum TypeSemaineTrame (pour référence dans le mapping)
+// Doit correspondre à l'enum Prisma TypeSemaineTrame
+type TypeSemaineTrameValue = 'TOUTES' | 'PAIRES' | 'IMPAIRES';
+
+// Type pour les valeurs de l'enum Period (pour référence dans le mapping)
+// Doit correspondre à l'enum Prisma Period
+type PeriodValue = 'MATIN' | 'APRES_MIDI' | 'JOURNEE_ENTIERE';
+
+// Objet de mappage pour les jours de la semaine
+const dayOfWeekMapping: { [key: string]: DayOfWeekValue } = {
+    'LUNDI': 'MONDAY',
+    'MARDI': 'TUESDAY',
+    'MERCREDI': 'WEDNESDAY',
+    'JEUDI': 'THURSDAY',
+    'VENDREDI': 'FRIDAY',
+    'SAMEDI': 'SATURDAY',
+    'DIMANCHE': 'SUNDAY',
+};
+
+// Type pour les valeurs de l'enum DayOfWeek (pour référence dans le mapping)
+type DayOfWeekValue = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+
+// Suppression de l'ancien service, on va appeler l'API directement
+// import { TrameHebdomadaireService, TrameHebdomadaireDTO, AffectationTrameDTO } from './TrameHebdomadaireService';
+
+import { getClientAuthToken } from "@/lib/auth-client-utils"; // Pour l'authentification
+
+const API_BASE_URL = '/api/trame-modeles'; // Nouvelle URL de base pour l'API
+
 // --- Mock Data Store ---
-const mockTemplates: PlanningTemplate[] = [
-    {
-        id: "tmpl_1",
-        nom: "Trame Standard Semaine",
-        description: "Trame classique pour les jours ouvrés.",
-        affectations: [
-            {
-                id: "a1",
-                jour: "LUNDI",
-                type: "CONSULTATION",
-                ouvert: true,
-                postesRequis: 2,
-                configuration: {
-                    id: "conf_a1",
-                    nom: "Consultation Lundi Matin",
-                    heureDebut: "08:30",
-                    heureFin: "12:30",
-                    postes: [
-                        {
-                            id: "poste_a1_1",
-                            nom: "Médecin Sénior",
-                            quantite: 1,
-                            status: "REQUIS",
-                            competencesRequises: "SENIOR"
-                        },
-                        {
-                            id: "poste_a1_2",
-                            nom: "Infirmier(e)",
-                            quantite: 1,
-                            status: "REQUIS",
-                            competencesRequises: "INTERMEDIAIRE"
-                        }
-                    ],
-                    priorite: 3,
-                    couleur: "#4CAF50",
-                    emplacementPhysique: "Salle 101"
-                }
-            },
-            { id: "a2", jour: "LUNDI", type: "BLOC_OPERATOIRE", ouvert: true, postesRequis: 1 },
-            { id: "a3", jour: "MARDI", type: "CONSULTATION", ouvert: true, postesRequis: 2 },
-            { id: "a4", jour: "MARDI", type: "BLOC_OPERATOIRE", ouvert: true, postesRequis: 1 },
-            { id: "a5", jour: "MERCREDI", type: "CONSULTATION", ouvert: true, postesRequis: 2 },
-            { id: "a6", jour: "JEUDI", type: "CONSULTATION", ouvert: true, postesRequis: 2 },
-            { id: "a7", jour: "JEUDI", type: "BLOC_OPERATOIRE", ouvert: true, postesRequis: 1 },
-            { id: "a8", jour: "VENDREDI", type: "CONSULTATION", ouvert: true, postesRequis: 2 },
-            { id: "a9", jour: "VENDREDI", type: "BLOC_OPERATOIRE", ouvert: false, postesRequis: 0 },
-            { id: "a10", jour: "SAMEDI", type: "GARDE_JOUR", ouvert: true, postesRequis: 1 },
-            { id: "a11", jour: "DIMANCHE", type: "GARDE_JOUR", ouvert: true, postesRequis: 1 },
-        ],
-        variations: [
-            {
-                id: "var_tmpl1_1",
-                affectationId: "a10",
-                nom: "Variation Samedi (période d'été)",
-                dateDebut: "2025-06-01",
-                dateFin: "2025-09-30",
-                typeVariation: "ETE",
-                configuration: {
-                    id: "conf_var_tmpl1_1",
-                    nom: "Garde Samedi Été",
-                    heureDebut: "08:00",
-                    heureFin: "20:00",
-                    postes: [
-                        {
-                            id: "poste_var_tmpl1_1_1",
-                            nom: "Médecin Sénior",
-                            quantite: 2,
-                            status: "REQUIS",
-                            competencesRequises: "SENIOR"
-                        },
-                        {
-                            id: "poste_var_tmpl1_1_2",
-                            nom: "Infirmier(e)",
-                            quantite: 2,
-                            status: "REQUIS",
-                            competencesRequises: "INTERMEDIAIRE"
-                        }
-                    ],
-                    priorite: 5,
-                    couleur: "#FF9800",
-                    notes: "Effectif renforcé pour la période estivale"
-                },
-                priorite: 10,
-                estRecurrent: true,
-                actif: true,
-                raisonVariation: "Augmentation de l'activité en période estivale"
-            }
-        ],
-        createdAt: new Date(2023, 10, 1),
-        updatedAt: new Date(2023, 10, 5),
-        departementId: "dept_1",
-        estActif: true,
-        estModele: true,
-        tags: ["Standard", "Hebdomadaire"]
-    },
-    {
-        id: "tmpl_2",
-        nom: "Trame Gardes Weekend",
-        description: "Trame spécifique pour les gardes du weekend.",
-        affectations: [
-            {
-                id: "b1",
-                jour: "SAMEDI",
-                type: "GARDE_JOUR",
-                ouvert: true,
-                postesRequis: 2,
-                configuration: {
-                    id: "conf_b1",
-                    nom: "Garde Jour du Samedi",
-                    heureDebut: "08:00",
-                    heureFin: "20:00",
-                    postes: [
-                        {
-                            id: "poste_b1_1",
-                            nom: "Médecin Senior",
-                            quantite: 1,
-                            status: "REQUIS",
-                            competencesRequises: "SENIOR"
-                        },
-                        {
-                            id: "poste_b1_2",
-                            nom: "Médecin Junior",
-                            quantite: 1,
-                            status: "REQUIS",
-                            competencesRequises: "JUNIOR"
-                        }
-                    ],
-                    priorite: 4,
-                    couleur: "#2196F3",
-                    contraintes: [
-                        {
-                            id: "contr_b1_1",
-                            type: "PERSONNEL",
-                            description: "Au moins un médecin senior doit être présent",
-                            obligatoire: true,
-                            priorite: 2
-                        }
-                    ]
-                }
-            },
-            {
-                id: "b2",
-                jour: "SAMEDI",
-                type: "GARDE_NUIT",
-                ouvert: true,
-                postesRequis: 1,
-                configuration: {
-                    id: "conf_b2",
-                    nom: "Garde Nuit du Samedi",
-                    heureDebut: "20:00",
-                    heureFin: "08:00",
-                    postes: [
-                        {
-                            id: "poste_b2_1",
-                            nom: "Médecin Senior",
-                            quantite: 1,
-                            status: "REQUIS",
-                            competencesRequises: "SENIOR"
-                        }
-                    ],
-                    priorite: 5,
-                    couleur: "#9C27B0"
-                }
-            },
-            { id: "b3", jour: "DIMANCHE", type: "GARDE_JOUR", ouvert: true, postesRequis: 2 },
-            { id: "b4", jour: "DIMANCHE", type: "GARDE_NUIT", ouvert: true, postesRequis: 1 },
-            { id: "b5", jour: "LUNDI", type: "ASTREINTE", ouvert: true, postesRequis: 1 }, // Exemple d'astreinte
-        ],
-        variations: [
-            {
-                id: "var_1",
-                affectationId: "b3",
-                nom: "Configuration spéciale jours fériés",
-                typeVariation: "JOURS_FERIES",
-                configuration: {
-                    id: "conf_var_1",
-                    nom: "Garde Jour Fériée",
-                    postes: [
-                        {
-                            id: "poste_var_1_1",
-                            nom: "Médecin Senior",
-                            quantite: 2,
-                            status: "REQUIS",
-                            competencesRequises: "SENIOR"
-                        }
-                    ],
-                    priorite: 8,
-                    couleur: "#F44336"
-                },
-                priorite: 10,
-                estRecurrent: true,
-                actif: true
-            }
-        ],
-        createdAt: new Date(2023, 11, 1),
-        updatedAt: new Date(2023, 11, 2),
-        departementId: "dept_1",
-        estActif: true,
-        estModele: false,
-        tags: ["Gardes", "Weekend"]
-    },
-    {
-        id: "tmpl_3",
-        nom: "Trame Période de Vacances",
-        description: "Trame adaptée pour les périodes de vacances scolaires avec effectif réduit.",
-        affectations: [
-            {
-                id: "c1",
-                jour: "LUNDI",
-                type: "CONSULTATION",
-                ouvert: true,
-                postesRequis: 1,
-                configuration: {
-                    id: "conf_c1",
-                    nom: "Consultation Lundi (Effectif réduit)",
-                    heureDebut: "09:00",
-                    heureFin: "17:00",
-                    postes: [
-                        {
-                            id: "poste_c1_1",
-                            nom: "Médecin",
-                            quantite: 1,
-                            status: "REQUIS",
-                            competencesRequises: "SENIOR"
-                        }
-                    ],
-                    priorite: 2,
-                    couleur: "#795548",
-                    notes: "Consultations regroupées sur la journée"
-                }
-            },
-            { id: "c2", jour: "MERCREDI", type: "CONSULTATION", ouvert: true, postesRequis: 1 },
-            { id: "c3", jour: "VENDREDI", type: "CONSULTATION", ouvert: true, postesRequis: 1 },
-            {
-                id: "c4",
-                jour: "SAMEDI",
-                type: "GARDE_JOUR",
-                ouvert: true,
-                postesRequis: 2,
-                configuration: {
-                    id: "conf_c4",
-                    nom: "Garde du Samedi (Vacances)",
-                    heureDebut: "09:00",
-                    heureFin: "21:00",
-                    postes: [
-                        {
-                            id: "poste_c4_1",
-                            nom: "Médecin",
-                            quantite: 2,
-                            status: "REQUIS"
-                        }
-                    ],
-                    priorite: 3,
-                    couleur: "#607D8B"
-                }
-            },
-            { id: "c5", jour: "DIMANCHE", type: "GARDE_JOUR", ouvert: true, postesRequis: 2 },
-        ],
-        createdAt: new Date(2024, 0, 15),
-        updatedAt: new Date(2024, 0, 15),
-        departementId: "dept_2",
-        estActif: true,
-        estModele: true,
-        tags: ["Vacances", "Effectif Réduit"]
-    },
-];
+// const mockTemplates: PlanningTemplate[] = [ ... ]; // S'assurer que c'est bien commenté ou vide
 
 // Données pour les postes disponibles
 const availablePostes = [
@@ -303,708 +76,520 @@ const availablePostes = [
 ];
 
 // Simulation d'une latence réseau
-const simulateNetworkDelay = (delayMs: number = 500) =>
-    new Promise((resolve) => setTimeout(resolve, delayMs));
+// const simulateNetworkDelay = (delayMs: number = 500) =>
+//     new Promise((resolve) => setTimeout(resolve, delayMs));
 
 /**
- * Génère un identifiant unique
+ * Génère un identifiant unique (si encore nécessaire localement, sinon l'API s'en charge)
  */
-const generateId = (prefix: string): string => {
-    return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+// const generateId = (prefix: string): string => {
+//     return `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+// };
+
+// Suppression des anciens helpers de mapping liés à TrameHebdomadaireDTO
+// const mapJourSemaineToDayOfWeek = (jour: string): DayOfWeek => {
+//     return jour as DayOfWeek; 
+// };
+
+// const mapAffectationDtoToTemplate = (dto: AffectationTrameDTO, index: number): TemplateAffectation => {
+//     // ... ancienne logique ... 
+// };
+
+// DTO pour la création d'une AffectationModele (POST /api/trame-modeles/{id}/affectations)
+interface AffectationModeleCreateDto {
+    activityTypeId: string;
+    jourSemaine: DayOfWeekValue; // Utilise notre type alias pour les valeurs de l'enum Prisma
+    periode: PeriodValue;
+    typeSemaine: TypeSemaineTrameValue;
+    operatingRoomId?: number;
+    priorite?: number;
+    isActive?: boolean;
+    detailsJson?: any;
+    personnelRequis?: {
+        create: Array<{
+            roleGenerique: string;
+            nombreRequis: number;
+            notes?: string;
+            // TODO: Ajouter d'autres champs si nécessaire depuis Prisma.PersonnelRequisModeleCreateInput
+            // professionalRoleId?: string; // Exemple: code du ProfessionalRoleConfig
+            // specialtyId?: number;
+            // personnelHabituelUserId?: number;
+            // personnelHabituelSurgeonId?: number;
+            // personnelHabituelNomExterne?: string;
+            detailsJson?: any; // Pour stocker des métadonnées frontend comme frontendPosteId
+        }>;
+    };
+}
+
+// Helper pour mapper AffectationModeleDTO (de l'API GET /trame-modeles?includeAffectations=true)
+// vers TemplateAffectation (frontend)
+const mapAffectationModeleDtoToTemplateAffectation = (affectationDto: any): TemplateAffectation => {
+    const typeAffectation = affectationDto.activityType?.code || affectationDto.activityType?.name || 'INCONNU';
+    const postesRequis = affectationDto.personnelRequis?.reduce((sum: number, pr: any) => sum + (pr.nombreRequis || 0), 0) || 0;
+
+    // Mapping inversé pour jourSemaine (pour affichage)
+    const invertedDayOfWeekMapping: { [key: string]: DayOfWeek } = {
+        'MONDAY': 'LUNDI',
+        'TUESDAY': 'MARDI',
+        'WEDNESDAY': 'MERCREDI',
+        'THURSDAY': 'JEUDI',
+        'FRIDAY': 'VENDREDI',
+        'SATURDAY': 'SAMEDI',
+        'SUNDAY': 'DIMANCHE',
+    };
+    const frontendJourSemaine = invertedDayOfWeekMapping[affectationDto.jourSemaine.toUpperCase() as keyof typeof invertedDayOfWeekMapping] || affectationDto.jourSemaine as DayOfWeek;
+
+    const configuration: AffectationConfiguration = {
+        id: affectationDto.detailsJson?.frontendConfigId || `conf_affect_${affectationDto.id}`,
+        nom: affectationDto.detailsJson?.frontendConfigNom || affectationDto.activityType?.name || 'Configuration par défaut',
+        postes: affectationDto.personnelRequis?.map((pr: any, index: number) => ({
+            id: pr.detailsJson?.frontendPosteId || `poste_${affectationDto.id}_${index}`,
+            nom: pr.roleGenerique || `Poste ${index + 1}`,
+            quantite: pr.nombreRequis || 0,
+            status: (pr.nombreRequis && pr.nombreRequis > 0) ? 'REQUIS' : 'INDISPONIBLE', // Utiliser les chaînes directes
+            competencesRequises: pr.detailsJson?.competencesRequisesFrontend || undefined,
+        })) || [],
+        heureDebut: affectationDto.detailsJson?.heureDebut || undefined,
+        heureFin: affectationDto.detailsJson?.heureFin || undefined,
+    };
+
+    return {
+        id: String(affectationDto.id),
+        jour: frontendJourSemaine,
+        type: typeAffectation as AffectationType,
+        ouvert: affectationDto.isActive !== undefined ? affectationDto.isActive : true,
+        postesRequis: postesRequis,
+        ordre: affectationDto.priorite || 0,
+        configuration: configuration,
+        // periode et typeSemaineLiee ne sont pas dans TemplateAffectation, donc on les omet ici
+    };
 };
 
-// --- Service API Mock ---
+// Helper pour mapper TrameModeleDTO (de l'API) vers PlanningTemplate (frontend)
+const mapTrameModeleDtoToPlanningTemplate = (dto: any): PlanningTemplate => {
+    return {
+        id: String(dto.id), // Assurer que l'ID est un string pour le frontend
+        nom: dto.name,
+        description: dto.description || '',
+        siteId: dto.siteId || null,
+        isActive: dto.isActive !== undefined ? dto.isActive : true,
+        dateDebutEffet: dto.dateDebutEffet ? new Date(dto.dateDebutEffet) : new Date(),
+        dateFinEffet: dto.dateFinEffet ? new Date(dto.dateFinEffet) : null,
+        recurrenceType: dto.recurrenceType,
+        joursSemaineActifs: dto.joursSemaineActifs || [],
+        typeSemaine: dto.typeSemaine,
+        roles: dto.roles || [RoleType.TOUS], // Mapper les rôles
+        affectations: Array.isArray(dto.affectations)
+            ? dto.affectations.map(mapAffectationModeleDtoToTemplateAffectation)
+            : [],
+        // Pour l'instant, on laisse vide pour que l'éditeur actuel fonctionne
+        // Il faudra une migration/adaptation de BlocPlanningTemplateEditor
+        // Ou un service qui mappe les AffectationModele vers TemplateAffectation
+        variations: [],   // Les variations ne sont pas encore gérées par ce mapping
+        createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
+        updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : new Date(),
+        // Les autres champs de PlanningTemplate (estModele, createdBy, etc.) peuvent être initialisés au besoin
+        estModele: true, // Supposition, car ce sont des "modèles"
+    };
+};
 
+// --- Service API --- 
 export const templateService = {
-    /**
-     * Récupère la liste de toutes les trames de planning.
-     */
     async getTemplates(): Promise<PlanningTemplate[]> {
-        await simulateNetworkDelay();
-        console.log("[Mock Service] Fetching templates...");
-        return [...mockTemplates]; // Retourner une copie pour éviter les mutations directes
-    },
-
-    /**
-     * Recherche de trames avec pagination et filtres
-     */
-    async searchTemplates(options: TemplateSearchOptions): Promise<PaginatedTemplateResult> {
-        await simulateNetworkDelay();
-        console.log(`[Mock Service] Searching templates with options:`, options);
-
-        let filtered = [...mockTemplates];
-
-        // Filtrer par département
-        if (options.departementId) {
-            filtered = filtered.filter(t => t.departementId === options.departementId);
-        }
-
-        // Filtrer par statut (archivé ou actif)
-        if (options.includeArchived === false) {
-            filtered = filtered.filter(t => t.estActif !== false);
-        }
-
-        // Filtrer par terme de recherche
-        if (options.searchTerm) {
-            const searchLower = options.searchTerm.toLowerCase();
-            filtered = filtered.filter(t =>
-                t.nom.toLowerCase().includes(searchLower) ||
-                (t.description?.toLowerCase().includes(searchLower)) ||
-                (t.tags?.some(tag => tag.toLowerCase().includes(searchLower)))
-            );
-        }
-
-        // Tri
-        const sortBy = options.sortBy || 'nom';
-        const sortDirection = options.sortDirection || 'asc';
-
-        filtered.sort((a, b) => {
-            let valueA, valueB;
-
-            if (sortBy === 'nom') {
-                valueA = a.nom.toLowerCase();
-                valueB = b.nom.toLowerCase();
-            } else if (sortBy === 'createdAt') {
-                valueA = a.createdAt?.getTime() || 0;
-                valueB = b.createdAt?.getTime() || 0;
-            } else if (sortBy === 'updatedAt') {
-                valueA = a.updatedAt?.getTime() || 0;
-                valueB = b.updatedAt?.getTime() || 0;
-            } else {
-                valueA = a[sortBy as keyof PlanningTemplate];
-                valueB = b[sortBy as keyof PlanningTemplate];
+        console.log("[Template Service] Appel de getTemplates via API /api/trame-modeles?includeAffectations=true...");
+        try {
+            const token = await getClientAuthToken();
+            const response = await fetch(`${API_BASE_URL}?includeAffectations=true`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: response.statusText }));
+                console.error("[Template Service] Erreur API lors de getTemplates:", response.status, errorData);
+                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de récupérer les trames'}`);
             }
-
-            if (sortDirection === 'asc') {
-                return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
-            } else {
-                return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+            const dtos: any[] = await response.json(); // Supposer que l'API retourne un tableau de TrameModele
+            console.log("--- Template Service --- GET --- DTOs bruts reçus de l'API ---");
+            console.log(JSON.stringify(dtos, null, 2));
+            console.log("-----------------------------------------------------------");
+            if (!Array.isArray(dtos)) {
+                console.error("[Template Service] ERREUR : la réponse de l'API n'est pas un array! Reçu:", dtos);
+                return [];
             }
-        });
-
-        // Pagination
-        const page = options.page || 1;
-        const pageSize = options.pageSize || 10;
-        const startIndex = (page - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-        const paginatedResults = filtered.slice(startIndex, endIndex);
-
-        return {
-            templates: paginatedResults,
-            total: filtered.length,
-            page,
-            pageSize,
-            totalPages: Math.ceil(filtered.length / pageSize)
-        };
+            const templates = dtos.map(mapTrameModeleDtoToPlanningTemplate);
+            console.log(`[Template Service] ${templates.length} templates mappés avec succès depuis l'API.`);
+            return templates;
+        } catch (error) {
+            console.error("[Template Service] Erreur DANS getTemplates (API):");
+            // Ne pas logguer l'objet error directement ici en production côté client pour éviter fuite d'infos
+            if (error instanceof Error) {
+                console.error(error.message);
+                throw error; // Rethrow pour que le composant puisse gérer
+            } else {
+                console.error("Une erreur inconnue est survenue dans getTemplates.");
+                throw new Error("Une erreur inconnue est survenue lors de la récupération des trames.");
+            }
+        }
     },
 
-    /**
-     * Recherche avancée de trames avec filtres complexes
-     */
-    async advancedSearch(filter: TemplateAdvancedFilter): Promise<PlanningTemplate[]> {
-        await simulateNetworkDelay();
-        console.log(`[Mock Service] Advanced search with filters:`, filter);
-
-        let filtered = [...mockTemplates];
-
-        // Filtrer par départements
-        if (filter.departementIds && filter.departementIds.length > 0) {
-            filtered = filtered.filter(t => t.departementId && filter.departementIds?.includes(t.departementId));
-        }
-
-        // Filtrer par types d'affectation (templates contenant au moins une affectation du type spécifié)
-        if (filter.types && filter.types.length > 0) {
-            filtered = filtered.filter(t =>
-                t.affectations.some(a => filter.types?.includes(a.type))
-            );
-        }
-
-        // Filtrer par jours de la semaine (templates contenant au moins une affectation pour le jour spécifié)
-        if (filter.jours && filter.jours.length > 0) {
-            filtered = filtered.filter(t =>
-                t.affectations.some(a => filter.jours?.includes(a.jour))
-            );
-        }
-
-        // Filtrer par plage de date de création
-        if (filter.dateCreationDebut) {
-            filtered = filtered.filter(t => t.createdAt && t.createdAt >= filter.dateCreationDebut!);
-        }
-        if (filter.dateCreationFin) {
-            filtered = filtered.filter(t => t.createdAt && t.createdAt <= filter.dateCreationFin!);
-        }
-
-        // Filtrer par créateurs
-        if (filter.createdBy && filter.createdBy.length > 0) {
-            filtered = filtered.filter(t => t.createdBy && filter.createdBy?.includes(t.createdBy));
-        }
-
-        // Filtrer par statut de modèle
-        if (filter.estModele !== undefined) {
-            filtered = filtered.filter(t => t.estModele === filter.estModele);
-        }
-
-        // Filtrer par tags
-        if (filter.tags && filter.tags.length > 0) {
-            filtered = filtered.filter(t =>
-                t.tags && filter.tags?.some(tag => t.tags?.includes(tag))
-            );
-        }
-
-        return filtered;
-    },
-
-    /**
-     * Recherche les trames par affectation
-     */
-    async findTemplatesByAffectationType(type: AffectationType): Promise<PlanningTemplate[]> {
-        await simulateNetworkDelay();
-        console.log(`[Mock Service] Finding templates with affectation type: ${type}`);
-
-        const templates = mockTemplates.filter(t =>
-            t.affectations.some(a => a.type === type)
-        );
-
-        return [...templates];
-    },
-
-    /**
-     * Récupère une trame spécifique par son ID.
-     */
     async getTemplateById(id: string): Promise<PlanningTemplate | null> {
-        await simulateNetworkDelay();
-        console.log(`[Mock Service] Fetching template by ID: ${id}`);
-        const template = mockTemplates.find((t) => t.id === id);
-        return template ? { ...template } : null; // Retourner une copie
+        console.log(`[Template Service] Fetching template by ID: ${id} via API /api/trame-modeles/${id}?includeAffectations=true...`);
+        try {
+            const token = await getClientAuthToken();
+            const response = await fetch(`${API_BASE_URL}/${id}?includeAffectations=true`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                if (response.status === 404) return null;
+                const errorData = await response.json().catch(() => ({ error: response.statusText }));
+                console.error("[Template Service] Erreur API lors de getTemplateById:", response.status, errorData);
+                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de récupérer la trame'}`);
+            }
+            const dto: any = await response.json(); // Supposer que l'API retourne un TrameModele
+            return mapTrameModeleDtoToPlanningTemplate(dto);
+        } catch (error) {
+            console.error(`[Template Service] Erreur DANS getTemplateById (API, id: ${id}):`);
+            if (error instanceof Error) {
+                console.error(error.message);
+                throw error;
+            } else {
+                console.error("Une erreur inconnue est survenue dans getTemplateById.");
+                throw new Error("Une erreur inconnue est survenue lors de la récupération de la trame.");
+            }
+        }
     },
 
-    /**
-     * Sauvegarde une trame (création ou mise à jour).
-     */
-    async saveTemplate(template: PlanningTemplate): Promise<PlanningTemplate> {
-        await simulateNetworkDelay(800);
-        console.log(`[Mock Service] Saving template: ${template.nom}`);
-        const existingIndex = mockTemplates.findIndex((t) => t.id === template.id);
+    async saveTemplate(
+        templateData: PlanningTemplate,
+        availableFullActivityTypes: FullActivityType[] // Nécessaire pour trouver activityTypeId
+    ): Promise<PlanningTemplate> {
+        console.log(`[Template Service] Appel de saveTemplate pour: ${templateData.nom} via API /api/trame-modeles...`);
+        const isCreating = !templateData.id || templateData.id === 'new';
+        let trameModeleId = isCreating ? null : templateData.id;
+        let savedOrUpdatedTrameModeleDto: any;
 
-        let savedTemplate: PlanningTemplate;
-
-        if (existingIndex > -1) {
-            // Mise à jour
-            savedTemplate = {
-                ...mockTemplates[existingIndex],
-                ...template,
-                updatedAt: new Date(),
-            };
-            mockTemplates[existingIndex] = savedTemplate;
-            console.log(`[Mock Service] Template updated: ${savedTemplate.id}`);
-        } else {
-            // Création
-            savedTemplate = {
-                ...template,
-                id: template.id.startsWith("temp_") ? generateId("tmpl") : template.id, // Générer un ID si temporaire
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                estActif: template.estActif ?? true
-            };
-            mockTemplates.push(savedTemplate);
-            console.log(`[Mock Service] Template created: ${savedTemplate.id}`);
-        }
-        return { ...savedTemplate }; // Retourner une copie
-    },
-
-    /**
-     * Supprime une trame.
-     */
-    async deleteTemplate(id: string): Promise<void> {
-        await simulateNetworkDelay();
-        console.log(`[Mock Service] Deleting template: ${id}`);
-        const index = mockTemplates.findIndex((t) => t.id === id);
-        if (index === -1) {
-            console.error(`[Mock Service] Template not found for deletion: ${id}`);
-            throw new Error("Template not found");
-        }
-        mockTemplates.splice(index, 1);
-        console.log(`[Mock Service] Template deleted: ${id}`);
-    },
-
-    /**
-     * Active ou désactive une trame.
-     */
-    async toggleTemplateStatus(id: string, isActive: boolean): Promise<PlanningTemplate> {
-        await simulateNetworkDelay();
-        console.log(`[Mock Service] Toggling template status: ${id} to ${isActive}`);
-        const index = mockTemplates.findIndex((t) => t.id === id);
-        if (index === -1) {
-            console.error(`[Mock Service] Template not found for status toggle: ${id}`);
-            throw new Error("Template not found");
-        }
-        mockTemplates[index] = {
-            ...mockTemplates[index],
-            estActif: isActive,
-            updatedAt: new Date()
+        // --- Étape 1: Sauvegarder/Mettre à jour les métadonnées de TrameModele ---
+        const tramePayload = {
+            name: templateData.nom,
+            description: templateData.description,
+            siteId: templateData.siteId,
+            isActive: templateData.isActive !== undefined ? templateData.isActive : true,
+            dateDebutEffet: templateData.dateDebutEffet ? new Date(templateData.dateDebutEffet).toISOString() : new Date().toISOString(),
+            dateFinEffet: templateData.dateFinEffet ? new Date(templateData.dateFinEffet).toISOString() : null,
+            recurrenceType: templateData.recurrenceType || 'HEBDOMADAIRE',
+            joursSemaineActifs: templateData.joursSemaineActifs && templateData.joursSemaineActifs.length > 0 ? templateData.joursSemaineActifs : [1, 2, 3, 4, 5],
+            typeSemaine: templateData.typeSemaine || 'TOUTES', // Assurer une valeur par défaut
+            roles: templateData.roles && templateData.roles.length > 0 ? templateData.roles : [RoleType.TOUS],
         };
-        console.log(`[Mock Service] Template status toggled: ${id}`);
-        return { ...mockTemplates[index] };
-    },
 
-    /**
-     * Duplique une trame existante.
-     */
-    async duplicateTemplate(id: string): Promise<PlanningTemplate> {
-        await simulateNetworkDelay();
-        console.log(`[Mock Service] Duplicating template: ${id}`);
-        const originalTemplate = mockTemplates.find((t) => t.id === id);
-        if (!originalTemplate) {
-            console.error(`[Mock Service] Template not found for duplication: ${id}`);
-            throw new Error("Template not found");
+        try {
+            const token = await getClientAuthToken();
+            const url = isCreating ? API_BASE_URL : `${API_BASE_URL}/${trameModeleId}`;
+            const method = isCreating ? 'POST' : 'PUT';
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(tramePayload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: response.statusText }));
+                throw new Error(errorData.error || `Erreur API (${response.status}): Impossible de sauvegarder les métadonnées de la trame.`);
+            }
+            savedOrUpdatedTrameModeleDto = await response.json();
+            trameModeleId = String(savedOrUpdatedTrameModeleDto.id); // Obtenir l'ID réel
+            console.log(`[Template Service] Métadonnées de la trame ${isCreating ? 'créées' : 'mises à jour'} avec succès. ID: ${trameModeleId}`);
+
+        } catch (error) {
+            console.error(`[Template Service] Erreur lors de la sauvegarde des métadonnées de la trame:`, error);
+            throw error; // Rethrow pour que le composant parent puisse gérer
         }
 
-        // Dupliquer toutes les sous-entités avec de nouveaux IDs
-        const newAffectations = originalTemplate.affectations.map(aff => {
-            const newAffId = generateId("affect");
-            const newAffectation: TemplateAffectation = {
-                ...aff,
-                id: newAffId
-            };
+        // --- Étape 2 & 3: Supprimer les anciennes affectations et créer les nouvelles ---
+        if (!trameModeleId) {
+            // Ne devrait pas arriver si l'étape 1 a réussi
+            throw new Error("ID de TrameModele non disponible après sauvegarde des métadonnées.");
+        }
 
-            // Si l'affectation a une configuration, la dupliquer aussi
-            if (aff.configuration) {
-                const newConfig: AffectationConfiguration = {
-                    ...aff.configuration,
-                    id: generateId("conf"),
-                    // Dupliquer les postes avec de nouveaux IDs
-                    postes: aff.configuration.postes.map(poste => ({
-                        ...poste,
-                        id: generateId("poste")
-                    })),
-                    // Dupliquer les contraintes si elles existent
-                    contraintes: aff.configuration.contraintes?.map(contrainte => ({
-                        ...contrainte,
-                        id: generateId("contr")
-                    }))
-                };
-                newAffectation.configuration = newConfig;
+        try {
+            const token = await getClientAuthToken();
+            // 2a. Récupérer les affectations existantes
+            const existingAffectationsResponse = await fetch(`${API_BASE_URL}/${trameModeleId}/affectations`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!existingAffectationsResponse.ok) throw new Error("Impossible de récupérer les affectations existantes.");
+            const existingAffectations: any[] = await existingAffectationsResponse.json();
+
+            // 2b. Supprimer chaque affectation existante
+            // Les appels DELETE doivent être séquentiels ou gérés avec Promise.all
+            const deletePromises = existingAffectations.map(aff =>
+                fetch(`${API_BASE_URL}/../affectation-modeles/${aff.id}`, { // Note: L'URL de suppression est différente
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(res => {
+                    if (!res.ok && res.status !== 404) { // Ignorer 404 si déjà supprimé
+                        console.warn(`Échec de la suppression de l'affectation ${aff.id}: ${res.status}`);
+                        // Gérer l'erreur ou la logguer, mais ne pas forcément bloquer tout le processus
+                    }
+                    return res;
+                })
+            );
+            await Promise.all(deletePromises);
+            console.log(`[Template Service] ${existingAffectations.length} affectations existantes supprimées pour la trame ${trameModeleId}.`);
+
+            // 3. Créer les nouvelles affectations
+            console.log(`[Template Service] Tentative de création de ${templateData.affectations.length} nouvelles affectations pour la trame ${trameModeleId}...`);
+            const createdAffectations: any[] = [];
+            for (const affectation of templateData.affectations) {
+                // Utiliser la nouvelle fonction de mapping
+                const affectationDto = mapTemplateAffectationToApiDto(
+                    affectation,
+                    templateData.typeSemaine as TypeSemaineTrameValue, // typeSemaine de la trame parente
+                    availableFullActivityTypes // Passer les types d'activité disponibles
+                );
+
+                if (!affectationDto) {
+                    console.warn(`[Template Service] Impossible de mapper l'affectation (jour: ${affectation.jour}, type: ${affectation.type}), elle sera ignorée.`);
+                    continue;
+                }
+
+                const createResponse = await fetch(`${API_BASE_URL}/${trameModeleId}/affectations`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(affectationDto)
+                });
+
+                if (!createResponse.ok) {
+                    const errBody = await createResponse.json().catch(() => ({}));
+                    console.error(`Échec de la création de l'affectation pour type '${affectation.type}': ${createResponse.status}`, errBody);
+                    // Lancer une erreur ici pourrait être trop strict si une seule affectation échoue
+                    // Pourrait collecter les erreurs et les retourner
+                    continue;
+                }
+
+                const createdAffectation = await createResponse.json();
+                createdAffectations.push(createdAffectation);
             }
 
-            return newAffectation;
-        });
+            console.log(`[Template Service] ${createdAffectations.length} nouvelles affectations créées pour la trame ${trameModeleId}.`);
 
-        // Dupliquer les variations si elles existent
-        const newVariations = originalTemplate.variations?.map(variation => {
-            // Trouver la nouvelle ID de l'affectation correspondante
-            const originalAffectation = originalTemplate.affectations.find(a => a.id === variation.affectationId);
-            const newAffectationIndex = originalAffectation ? originalTemplate.affectations.indexOf(originalAffectation) : -1;
-            const newAffectationId = newAffectationIndex >= 0 ? newAffectations[newAffectationIndex].id : variation.affectationId;
+        } catch (error) {
+            console.error(`[Template Service] Erreur lors de la gestion des affectations pour la trame ${trameModeleId}:`, error);
+            // Que faire ici? La trame a été sauvegardée, mais les affectations ont échoué.
+            // Peut-être retourner la trame avec un avertissement ou relancer une erreur spécifique.
+            throw new Error(`Erreur lors de la sauvegarde des affectations : ${error instanceof Error ? error.message : String(error)}`);
+        }
 
-            return {
-                ...variation,
-                id: generateId("var"),
-                affectationId: newAffectationId,
-                configuration: {
-                    ...variation.configuration,
-                    id: generateId("conf_var"),
-                    postes: variation.configuration.postes.map(poste => ({
-                        ...poste,
-                        id: generateId("poste_var")
-                    })),
-                    contraintes: variation.configuration.contraintes?.map(contrainte => ({
-                        ...contrainte,
-                        id: generateId("contr_var")
-                    }))
+        // Retourner la PlanningTemplate avec les données de la trame sauvegardée et les affectations (potentiellement mises à jour avec des ID réels)
+        // Pour cela, il faudrait re-récupérer la trame avec ses affectations.
+        // Ou, si les DTO retournés par la création d'affectation sont complets, les utiliser pour reconstruire.
+        // Pour l'instant, on retourne la trame mappée à partir de savedOrUpdatedTrameModeleDto, et les affectations telles qu'elles sont dans templateData (sans ID backend pour les nouvelles)
+        // L'idéal serait de re-fetch ou de mapper les résultats de createdAffectationResults.
+
+        // Pour une meilleure UX, on recharge la trame complète après toutes les opérations.
+        const finalTrame = await this.getTemplateById(trameModeleId as string);
+        if (!finalTrame) {
+            // Cela ne devrait pas arriver si tout s'est bien passé.
+            console.error(`[Template Service] CRITICAL: La trame ${trameModeleId} sauvegardée n'a pas pu être récupérée après la gestion des affectations.`);
+            // Retourner au moins ce qui a été sauvegardé au niveau des métadonnées, avec les affectations locales pour éviter un crash total
+            // mais signaler une forte incohérence.
+            const fallbackTrame = mapTrameModeleDtoToPlanningTemplate(savedOrUpdatedTrameModeleDto);
+            fallbackTrame.affectations = templateData.affectations; // Garder les affectations du frontend en dernier recours
+            return fallbackTrame;
+            // throw new Error("La trame sauvegardée n'a pas pu être récupérée après la gestion des affectations.");
+        }
+        return finalTrame;
+    },
+
+    async deleteTemplate(id: string): Promise<void> {
+        console.log(`[Template Service] Appel de deleteTemplate pour ID: ${id} via API /api/trame-modeles...`);
+        try {
+            const token = await getClientAuthToken();
+            const response = await fetch(`${API_BASE_URL}/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
-            };
-        });
+            });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: response.statusText }));
+                console.error("[Template Service] Erreur API lors de deleteTemplate:", response.status, errorData);
+                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de supprimer la trame'}`);
+            }
+            // Pas de contenu à retourner pour un DELETE réussi (200 ou 204)
+        } catch (error) {
+            console.error(`[Template Service] Erreur DANS deleteTemplate (API, id: ${id}):`);
+            if (error instanceof Error) {
+                console.error(error.message);
+                throw error;
+            } else {
+                console.error("Une erreur inconnue est survenue dans deleteTemplate.");
+                throw new Error("Une erreur inconnue est survenue lors de la suppression de la trame.");
+            }
+        }
+    },
 
-        const newTemplate: PlanningTemplate = {
+    // ... (autres fonctions comme duplicateTemplate, getAvailableAffectationTypes, etc. à adapter si besoin)
+    // Pour l'instant, je me concentre sur CRUD de base pour TrameModele.
+
+    // Exemple: duplicateTemplate pourrait appeler GET puis POST avec un nom modifié.
+    async duplicateTemplate(id: string, availableFullActivityTypes: FullActivityType[]): Promise<PlanningTemplate> {
+        console.log(`[Template Service] Tentative de duplication pour ID: ${id}`);
+        const originalTemplate = await this.getTemplateById(id);
+        if (!originalTemplate) {
+            throw new Error("Trame originale non trouvée pour la duplication.");
+        }
+
+        const duplicatedMetaData: PlanningTemplate = {
             ...originalTemplate,
-            id: generateId("tmpl"),
-            nom: `${originalTemplate.nom} (Copie)`,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            affectations: newAffectations,
-            variations: newVariations
+            id: 'new',
+            nom: `${originalTemplate.nom} (copie)`,
+            affectations: [],
+            variations: [],
+        };
+        delete duplicatedMetaData.createdAt;
+        delete duplicatedMetaData.updatedAt;
+
+        const trameAvecAffectationsDupliquees: PlanningTemplate = {
+            ...duplicatedMetaData,
+            affectations: (originalTemplate.affectations || []).map(aff => ({ ...aff, id: `temp_dup_${Date.now()}_${Math.random()}` })),
+            variations: (originalTemplate.variations || []).map(v => ({ ...v, id: `temp_var_dup_${Date.now()}_${Math.random()}` })),
         };
 
-        mockTemplates.push(newTemplate);
-        console.log(`[Mock Service] Template duplicated: ${newTemplate.id} from ${id}`);
-        return { ...newTemplate }; // Retourner une copie
+        return this.saveTemplate(trameAvecAffectationsDupliquees, availableFullActivityTypes);
     },
 
-    /**
-     * Récupère les types d'affectation disponibles.
-     */
-    async getAvailableAffectationTypes(): Promise<AffectationType[]> {
-        await simulateNetworkDelay();
-        console.log("[Mock Service] Fetching available affectation types...");
-        return ["CONSULTATION", "BLOC_OPERATOIRE", "GARDE_JOUR", "GARDE_NUIT", "ASTREINTE"];
-    },
-
-    /**
-     * Récupère les postes disponibles pour les configurations.
-     */
-    async getAvailablePostes(): Promise<string[]> {
-        await simulateNetworkDelay();
-        console.log("[Mock Service] Fetching available postes...");
-        return [...availablePostes];
-    },
-
-    /**
-     * Ajoute ou met à jour une configuration pour une affectation.
-     */
-    async saveAffectationConfiguration(
-        templateId: string,
-        affectationId: string,
-        configuration: AffectationConfiguration
-    ): Promise<AffectationConfiguration> {
-        await simulateNetworkDelay();
-        console.log(`[Mock Service] Saving configuration for affectation: ${affectationId} in template: ${templateId}`);
-
-        const templateIndex = mockTemplates.findIndex(t => t.id === templateId);
-        if (templateIndex < 0) {
-            console.error(`[Mock Service] Template not found: ${templateId}`);
-            throw new Error("Template not found");
-        }
-
-        const affectationIndex = mockTemplates[templateIndex].affectations.findIndex(a => a.id === affectationId);
-        if (affectationIndex < 0) {
-            console.error(`[Mock Service] Affectation not found: ${affectationId}`);
-            throw new Error("Affectation not found");
-        }
-
-        // Assurer que la configuration a un ID
-        const configToSave: AffectationConfiguration = {
-            ...configuration,
-            id: configuration.id || generateId("conf")
-        };
-
-        // Mise à jour de la configuration
-        mockTemplates[templateIndex].affectations[affectationIndex].configuration = configToSave;
-        mockTemplates[templateIndex].updatedAt = new Date();
-
-        console.log(`[Mock Service] Configuration saved for affectation: ${affectationId}`);
-        return { ...configToSave };
-    },
-
-    /**
-     * Ajoute ou met à jour une variation pour une affectation.
-     */
-    async saveConfigurationVariation(
-        templateId: string,
-        variation: ConfigurationVariation
-    ): Promise<ConfigurationVariation> {
-        await simulateNetworkDelay();
-        console.log(`[Mock Service] Saving variation for template: ${templateId}`);
-
-        const templateIndex = mockTemplates.findIndex(t => t.id === templateId);
-        if (templateIndex < 0) {
-            console.error(`[Mock Service] Template not found: ${templateId}`);
-            throw new Error("Template not found");
-        }
-
-        // Vérifier que l'affectation existe
-        const affectationExists = mockTemplates[templateIndex].affectations.some(a => a.id === variation.affectationId);
-        if (!affectationExists) {
-            console.error(`[Mock Service] Affectation not found: ${variation.affectationId}`);
-            throw new Error("Affectation not found");
-        }
-
-        // Initialiser le tableau des variations s'il n'existe pas
-        if (!mockTemplates[templateIndex].variations) {
-            mockTemplates[templateIndex].variations = [];
-        }
-
-        // Assurer que la variation a un ID
-        const variationToSave: ConfigurationVariation = {
-            ...variation,
-            id: variation.id || generateId("var")
-        };
-
-        // Vérifier si c'est une mise à jour ou une création
-        const variationIndex = mockTemplates[templateIndex].variations!.findIndex(v => v.id === variation.id);
-
-        if (variationIndex >= 0) {
-            // Mise à jour
-            mockTemplates[templateIndex].variations![variationIndex] = variationToSave;
-        } else {
-            // Création
-            mockTemplates[templateIndex].variations!.push(variationToSave);
-        }
-
-        mockTemplates[templateIndex].updatedAt = new Date();
-
-        console.log(`[Mock Service] Variation saved for template: ${templateId}`);
-        return { ...variationToSave };
-    },
-
-    /**
-     * Supprime une variation d'une trame.
-     */
-    async deleteVariation(templateId: string, variationId: string): Promise<void> {
-        await simulateNetworkDelay();
-        console.log(`[Mock Service] Deleting variation: ${variationId} from template: ${templateId}`);
-
-        const templateIndex = mockTemplates.findIndex(t => t.id === templateId);
-        if (templateIndex < 0) {
-            console.error(`[Mock Service] Template not found: ${templateId}`);
-            throw new Error("Template not found");
-        }
-
-        if (!mockTemplates[templateIndex].variations) {
-            console.error(`[Mock Service] Template has no variations: ${templateId}`);
-            throw new Error("Template has no variations");
-        }
-
-        const variationIndex = mockTemplates[templateIndex].variations!.findIndex(v => v.id === variationId);
-        if (variationIndex < 0) {
-            console.error(`[Mock Service] Variation not found: ${variationId}`);
-            throw new Error("Variation not found");
-        }
-
-        mockTemplates[templateIndex].variations!.splice(variationIndex, 1);
-        mockTemplates[templateIndex].updatedAt = new Date();
-
-        console.log(`[Mock Service] Variation deleted: ${variationId}`);
-    },
-
-    /**
-     * Récupère les niveaux de compétence disponibles.
-     */
-    async getAvailableSkillLevels(): Promise<SkillLevel[]> {
-        await simulateNetworkDelay();
-        console.log("[Mock Service] Fetching available skill levels...");
-        return ["JUNIOR", "INTERMEDIAIRE", "SENIOR", "EXPERT"];
-    },
-
-    /**
-     * Récupère les types de période de variation disponibles.
-     */
-    async getAvailablePeriodeVariations(): Promise<PeriodeVariation[]> {
-        await simulateNetworkDelay();
-        console.log("[Mock Service] Fetching available periode variations...");
-        return ["STANDARD", "VACANCES", "HIVER", "ETE", "JOURS_FERIES", "PERSONNALISEE"];
-    },
-
-    /**
-     * Ajoute une affectation à une trame existante
-     */
-    async addAffectation(
-        templateId: string,
-        affectation: Omit<TemplateAffectation, "id">
-    ): Promise<TemplateAffectation> {
-        await simulateNetworkDelay();
-        console.log(`[Mock Service] Adding affectation to template: ${templateId}`);
-
-        const templateIndex = mockTemplates.findIndex(t => t.id === templateId);
-        if (templateIndex < 0) {
-            console.error(`[Mock Service] Template not found: ${templateId}`);
-            throw new Error("Template not found");
-        }
-
-        const newAffectation: TemplateAffectation = {
-            ...affectation,
-            id: generateId("affect")
-        };
-
-        mockTemplates[templateIndex].affectations.push(newAffectation);
-        mockTemplates[templateIndex].updatedAt = new Date();
-
-        console.log(`[Mock Service] Affectation added to template: ${templateId}, new id: ${newAffectation.id}`);
-        return { ...newAffectation };
-    },
-
-    /**
-     * Supprime une affectation d'une trame
-     */
-    async deleteAffectation(templateId: string, affectationId: string): Promise<void> {
-        await simulateNetworkDelay();
-        console.log(`[Mock Service] Deleting affectation: ${affectationId} from template: ${templateId}`);
-
-        const templateIndex = mockTemplates.findIndex(t => t.id === templateId);
-        if (templateIndex < 0) {
-            console.error(`[Mock Service] Template not found: ${templateId}`);
-            throw new Error("Template not found");
-        }
-
-        const affectationIndex = mockTemplates[templateIndex].affectations.findIndex(a => a.id === affectationId);
-        if (affectationIndex < 0) {
-            console.error(`[Mock Service] Affectation not found: ${affectationId}`);
-            throw new Error("Affectation not found");
-        }
-
-        // Supprimer toutes les variations liées à cette affectation
-        if (mockTemplates[templateIndex].variations?.length) {
-            mockTemplates[templateIndex].variations = mockTemplates[templateIndex].variations!.filter(
-                v => v.affectationId !== affectationId
-            );
-        }
-
-        // Supprimer l'affectation
-        mockTemplates[templateIndex].affectations.splice(affectationIndex, 1);
-        mockTemplates[templateIndex].updatedAt = new Date();
-
-        console.log(`[Mock Service] Affectation deleted: ${affectationId}`);
-    },
-
-    /**
-     * Met à jour une affectation existante
-     */
-    async updateAffectation(
-        templateId: string,
-        affectationId: string,
-        updates: Partial<TemplateAffectation>
-    ): Promise<TemplateAffectation> {
-        await simulateNetworkDelay();
-        console.log(`[Mock Service] Updating affectation: ${affectationId} in template: ${templateId}`);
-
-        const templateIndex = mockTemplates.findIndex(t => t.id === templateId);
-        if (templateIndex < 0) {
-            console.error(`[Mock Service] Template not found: ${templateId}`);
-            throw new Error("Template not found");
-        }
-
-        const affectationIndex = mockTemplates[templateIndex].affectations.findIndex(a => a.id === affectationId);
-        if (affectationIndex < 0) {
-            console.error(`[Mock Service] Affectation not found: ${affectationId}`);
-            throw new Error("Affectation not found");
-        }
-
-        // Mise à jour de l'affectation
-        const updatedAffectation: TemplateAffectation = {
-            ...mockTemplates[templateIndex].affectations[affectationIndex],
-            ...updates
-        };
-
-        mockTemplates[templateIndex].affectations[affectationIndex] = updatedAffectation;
-        mockTemplates[templateIndex].updatedAt = new Date();
-
-        console.log(`[Mock Service] Affectation updated: ${affectationId}`);
-        return { ...updatedAffectation };
-    },
-
-    /**
-     * Récupère les tags utilisés dans toutes les trames
-     */
-    async getAllTemplateTags(): Promise<string[]> {
-        await simulateNetworkDelay();
-        return ["Standard", "Hebdomadaire", "Gardes", "Weekend", "Été", "Hiver", "Urgences"];
-    },
-
-    /**
-     * Exporte une trame sous forme de fichier JSON téléchargeable
-     * @param templateId ID de la trame à exporter
-     * @returns Un blob contenant les données de la trame formatées en JSON
-     */
-    async exportTemplateAsJSON(templateId: string): Promise<Blob> {
-        await simulateNetworkDelay();
-
-        // Récupérer la trame complète
-        const template = await this.getTemplateById(templateId);
-        if (!template) {
-            throw new Error(`Trame avec l'ID ${templateId} non trouvée`);
-        }
-
-        // Préparer les données d'export avec métadonnées
-        const exportData = {
-            template,
-            exportDate: new Date().toISOString(),
-            version: "1.0.0",
-            formatType: "trame-planning"
-        };
-
-        // Convertir en JSON avec formatage pour lisibilité
-        const jsonString = JSON.stringify(exportData, null, 2);
-
-        // Créer un Blob avec les données JSON
-        return new Blob([jsonString], { type: 'application/json' });
-    },
-
-    /**
-     * Importe une trame depuis un fichier JSON
-     * @param jsonFile Fichier JSON contenant les données de la trame
-     * @returns La trame importée avec un nouvel ID
-     */
-    async importTemplateFromJSON(jsonFile: File): Promise<PlanningTemplate> {
-        await simulateNetworkDelay();
-
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-
-            reader.onload = async (e) => {
-                try {
-                    const content = e.target?.result as string;
-                    const parsedData = JSON.parse(content);
-
-                    // Vérifier le format du fichier
-                    if (!parsedData.template || parsedData.formatType !== "trame-planning") {
-                        throw new Error("Format de fichier non valide");
-                    }
-
-                    // Extraire la trame
-                    const importedTemplate = parsedData.template as PlanningTemplate;
-
-                    // Attribuer de nouveaux IDs pour éviter les conflits
-                    const newTemplate = {
-                        ...importedTemplate,
-                        id: `tmpl_imported_${Date.now()}`,
-                        nom: `${importedTemplate.nom} (Importée)`,
-                        createdAt: new Date(),
-                        updatedAt: new Date()
-                    };
-
-                    // Attribuer de nouveaux IDs aux affectations et configurations
-                    newTemplate.affectations = importedTemplate.affectations.map(aff => ({
-                        ...aff,
-                        id: `aff_imported_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-                        configuration: aff.configuration ? {
-                            ...aff.configuration,
-                            id: `conf_imported_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-                            postes: aff.configuration.postes.map(poste => ({
-                                ...poste,
-                                id: `poste_imported_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
-                            }))
-                        } : undefined
-                    }));
-
-                    // Attribuer de nouveaux IDs aux variations si elles existent
-                    if (newTemplate.variations && importedTemplate.variations) {
-                        const affectationIdMap = new Map<string, string>();
-                        importedTemplate.affectations.forEach((aff, index) => {
-                            affectationIdMap.set(aff.id, newTemplate.affectations[index].id);
-                        });
-
-                        newTemplate.variations = importedTemplate.variations.map(variation => ({
-                            ...variation,
-                            id: `var_imported_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-                            affectationId: affectationIdMap.get(variation.affectationId) || variation.affectationId,
-                            configuration: {
-                                ...variation.configuration,
-                                id: `conf_var_imported_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-                                postes: variation.configuration.postes.map(poste => ({
-                                    ...poste,
-                                    id: `poste_var_imported_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
-                                }))
-                            }
-                        }));
-                    }
-
-                    // Simuler la sauvegarde de la trame importée
-                    await simulateNetworkDelay(1000);
-
-                    // Ajouter la trame aux trames existantes (simulation)
-                    mockTemplates.push(newTemplate);
-
-                    resolve(newTemplate);
-                } catch (error: unknown) {
-                    const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
-                    reject(new Error(`Erreur lors de l'importation de la trame: ${errorMessage}`));
+    // Fonctions utilitaires qui étaient dans le mock, à conserver si utiles globalement
+    async getAvailableAffectationTypes(): Promise<FullActivityType[]> { // MODIFIÉ: Type de retour
+        console.log("[Template Service] Appel de getAvailableAffectationTypes via API /api/activity-types...");
+        try {
+            const token = await getClientAuthToken();
+            const response = await fetch('/api/activity-types', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
-            };
+            });
 
-            reader.onerror = () => {
-                reject(new Error("Erreur lors de la lecture du fichier"));
-            };
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: response.statusText }));
+                console.error("[Template Service] Erreur API lors de getAvailableAffectationTypes:", response.status, errorData);
+                throw new Error(`Erreur API (${response.status}): ${errorData.error || "Impossible de récupérer les types d'activité"}`);
+            }
 
-            reader.readAsText(jsonFile);
-        });
+            const activityTypesFromApi: FullActivityType[] = await response.json(); // MODIFIÉ: Utiliser FullActivityType
+
+            if (!Array.isArray(activityTypesFromApi)) {
+                console.error("[Template Service] ERREUR : la réponse de /api/activity-types n'est pas un array! Reçu:", activityTypesFromApi);
+                return []; // Retourner vide en cas d'erreur de format
+            }
+
+            console.log("[Template Service] Types d'activité (complets) récupérés:", activityTypesFromApi);
+            return activityTypesFromApi;
+
+        } catch (error) {
+            console.error("[Template Service] Erreur DANS getAvailableAffectationTypes (API):", error);
+            if (error instanceof Error) {
+                console.warn("[Template Service] Retourne un tableau vide pour availableFullActivityTypes suite à une erreur API.", error.message);
+                return [];
+            } else {
+                console.error("Une erreur inconnue est survenue dans getAvailableAffectationTypes.");
+                throw new Error("Une erreur inconnue est survenue lors de la récupération des types d'affectation disponibles.");
+            }
+        }
+    },
+
+    async getAvailablePostes(): Promise<string[]> {
+        // Idem
+        return [
+            "Médecin Senior", "Médecin Junior", "Médecin", "Anesthésiste",
+            "Infirmier(e)", "Infirmier(e) Bloc", "Infirmier(e) Anesthésiste",
+            "Aide-soignant(e)", "Chirurgien", "Instrumentiste",
+            "Résident", "Interne", "Chef de Clinique", "Cadre de Santé"
+        ];
     }
+
+    // ... (reste des fonctions comme searchTemplates, advancedSearch, etc. à adapter si besoin)
+};
+
+const mapTemplateAffectationToApiDto = (
+    affectation: TemplateAffectation,
+    trameTypeSemaine: TypeSemaineTrameValue,
+    availableActivityTypes: FullActivityType[]
+): AffectationModeleCreateDto | null => {
+    const activityType = availableActivityTypes.find((at: FullActivityType) => at.code === affectation.type);
+    if (!activityType) {
+        console.error(`[Template Service] mapTemplateAffectationToApiDto: ActivityType avec le code '${affectation.type}' non trouvé.`);
+        return null;
+    }
+
+    const mappedJourSemaine = dayOfWeekMapping[affectation.jour.toUpperCase() as keyof typeof dayOfWeekMapping];
+    if (!mappedJourSemaine) {
+        console.error(`[Template Service] mapTemplateAffectationToApiDto: Jour de la semaine invalide ou non mappé: '${affectation.jour}'`);
+        return null;
+    }
+
+    const personnelRequisConfig = affectation.configuration?.postes
+        ?.filter(p => p.quantite > 0 && p.status !== 'INDISPONIBLE') // Utiliser la chaîne directe pour PosteStatus
+        .map(p => ({
+            roleGenerique: p.nom,
+            nombreRequis: p.quantite,
+            detailsJson: {
+                frontendPosteId: p.id,
+                frontendStatut: p.status
+            }
+        })) || [];
+
+    // Déterminer la période. Si TemplateAffectation n'a pas de champ `periode`,
+    // il faut décider d'où cette information provient. Pour l'instant, on met JOURNEE_ENTIERE par défaut.
+    // Si affectation.configuration.heureDebut et heureFin sont définis, on pourrait essayer de déduire MATIN/APRES_MIDI.
+    let periode: PeriodValue = 'JOURNEE_ENTIERE'; // Valeur par défaut
+    if (affectation.configuration?.heureDebut && affectation.configuration?.heureFin) {
+        // Logique simple pour déduire MATIN/APRES_MIDI (à affiner)
+        const debut = parseInt(affectation.configuration.heureDebut.split(':')[0]);
+        // const fin = parseInt(affectation.configuration.heureFin.split(':')[0]);
+        if (debut < 12) {
+            periode = 'MATIN'; // Simple supposition, pourrait être JOURNEE_ENTIERE si ça finit tard
+        } else {
+            periode = 'APRES_MIDI';
+        }
+        // Pour une logique plus robuste, il faudrait des heures de coupure claires (ex: avant 12h = MATIN, après 14h = APM)
+        // Et gérer le cas où ça couvre toute la journée.
+    }
+    // Si une affectation est de type 'GARDE_JOUR' ou 'GARDE_NUIT', la période est implicitement 'JOURNEE_ENTIERE' (ou NUIT)
+    if (affectation.type === 'GARDE_JOUR' || affectation.type === 'GARDE_NUIT') {
+        periode = 'JOURNEE_ENTIERE';
+    }
+
+    const dto: AffectationModeleCreateDto = {
+        activityTypeId: activityType.id,
+        jourSemaine: mappedJourSemaine,
+        periode: periode, // Utiliser la période déterminée
+        typeSemaine: trameTypeSemaine,
+        operatingRoomId: affectation.configuration?.emplacementPhysique ? parseInt(affectation.configuration.emplacementPhysique, 10) : undefined, // Supposant que salleId est dans emplacementPhysique
+        priorite: affectation.ordre !== undefined ? affectation.ordre : 5,
+        isActive: affectation.ouvert !== undefined ? affectation.ouvert : true,
+        detailsJson: {
+            frontendAffectationId: affectation.id,
+            frontendConfigId: affectation.configuration?.id,
+            frontendConfigNom: affectation.configuration?.nom,
+            heureDebut: affectation.configuration?.heureDebut,
+            heureFin: affectation.configuration?.heureFin,
+        },
+        ...(personnelRequisConfig.length > 0 && { personnelRequis: { create: personnelRequisConfig } }),
+    };
+
+    return dto;
 }; 

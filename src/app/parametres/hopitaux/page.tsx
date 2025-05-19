@@ -5,9 +5,9 @@ import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { Hospital, HospitalFormData } from '@/components/HospitalForm';
 import HospitalForm from '@/components/HospitalForm';
-import { Modal } from '@/components/Modal';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
+import Modal from '@/components/Modal';
+import Switch from '@/components/ui/switch';
+import Button from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 
 export default function HopitauxPage() {
@@ -230,11 +230,10 @@ export default function HopitauxPage() {
 
             <div className="mb-4 flex items-center space-x-2">
                 <Switch
-                    id="show-inactive"
                     checked={showInactive}
-                    onCheckedChange={setShowInactive}
+                    onChange={() => setShowInactive(prev => !prev)}
+                    label="Afficher les établissements inactifs"
                 />
-                <Label htmlFor="show-inactive">Afficher les établissements inactifs</Label>
             </div>
 
             {loading ? (
@@ -274,8 +273,8 @@ export default function HopitauxPage() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${hospital.isActive
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-gray-100 text-gray-800'
+                                            ? 'bg-green-100 text-green-800'
+                                            : 'bg-gray-100 text-gray-800'
                                             }`}>
                                             {hospital.isActive ? 'Actif' : 'Inactif'}
                                         </span>

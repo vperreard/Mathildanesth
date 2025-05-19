@@ -22,394 +22,287 @@ import Input from "@/components/ui/input";
 import Textarea from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { ActivityType, ActivityCategory, Period, Prisma } from '@prisma/client';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Types pour les affectations
-type AssignmentType = {
-    id: number;
-    name: string;
-    code: string;
-    description: string;
-    icon: string;
-    color: string;
-    isActive: boolean;
-    allowsMultiple: boolean;
-    requiresLocation: boolean;
-    properties: Property[];
-    createdAt: Date;
-    updatedAt: Date;
-};
-
-type Property = {
-    id: number;
-    name: string;
-    code: string;
-    type: 'string' | 'number' | 'boolean' | 'date' | 'select';
-    required: boolean;
-    options?: string[]; // Pour le type 'select'
-    defaultValue?: any;
-};
-
-// Données mockées pour contourner les problèmes d'authentification
-const MOCK_ASSIGNMENT_TYPES: AssignmentType[] = [
+const MOCK_ACTIVITY_TYPES: ActivityType[] = [
     {
-        id: 1,
-        name: "Garde",
-        code: "GARDE",
-        description: "Présence sur place assurant la permanence des soins",
-        icon: "Clock",
-        color: "#EC4899",
+        id: "mock-uuid-1",
+        name: "Garde Mock",
+        code: "GARDE_MOCK",
+        description: "Garde mockée pour démo",
+        category: ActivityCategory.GARDE,
+        color: "#FF5733",
+        icon: "Moon",
         isActive: true,
-        allowsMultiple: false,
-        requiresLocation: true,
-        properties: [
-            {
-                id: 101,
-                name: "Type de garde",
-                code: "type_garde",
-                type: "select",
-                required: true,
-                options: ["Jour", "Nuit", "Weekend", "Férié"]
-            },
-            {
-                id: 102,
-                name: "Durée (heures)",
-                code: "duree",
-                type: "number",
-                required: true
-            }
-        ],
-        createdAt: new Date('2023-01-10'),
-        updatedAt: new Date('2023-01-10')
+        defaultDurationHours: 12,
+        defaultPeriod: Period.JOURNEE_ENTIERE,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        siteIDs: [],
     },
     {
-        id: 2,
-        name: "Astreinte",
-        code: "ASTREINTE",
-        description: "Disponibilité à distance avec possibilité d'intervention",
-        icon: "Bell",
-        color: "#3B82F6",
-        isActive: true,
-        allowsMultiple: false,
-        requiresLocation: false,
-        properties: [
-            {
-                id: 201,
-                name: "Type d'astreinte",
-                code: "type_astreinte",
-                type: "select",
-                required: true,
-                options: ["Opérationnelle", "Sécurité", "Administrative"]
-            }
-        ],
-        createdAt: new Date('2023-01-15'),
-        updatedAt: new Date('2023-03-20')
+        id: "mock-uuid-2",
+        name: "Astreinte Mock",
+        code: "ASTREINTE_MOCK",
+        description: "Astreinte mockée pour démo",
+        category: ActivityCategory.ASTREINTE,
+        color: "#33CFFF",
+        icon: "Phone",
+        isActive: false,
+        defaultDurationHours: 24,
+        defaultPeriod: Period.JOURNEE_ENTIERE,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        siteIDs: [],
     },
-    {
-        id: 3,
-        name: "Consultation",
-        code: "CONSULTATION",
-        description: "Rendez-vous programmé avec un patient",
-        icon: "Calendar",
-        color: "#10B981",
-        isActive: true,
-        allowsMultiple: true,
-        requiresLocation: true,
-        properties: [
-            {
-                id: 301,
-                name: "Durée (minutes)",
-                code: "duree_minutes",
-                type: "number",
-                required: true,
-                defaultValue: 30
-            },
-            {
-                id: 302,
-                name: "Type de consultation",
-                code: "type_consultation",
-                type: "select",
-                required: true,
-                options: ["Première visite", "Suivi", "Pré-opératoire", "Post-opératoire"]
-            }
-        ],
-        createdAt: new Date('2023-01-20'),
-        updatedAt: new Date('2023-01-20')
-    }
 ];
 
-const AssignmentsConfigPanel: React.FC = () => {
-    const [assignmentTypes, setAssignmentTypes] = useState<AssignmentType[]>([]);
-    const [currentAssignmentType, setCurrentAssignmentType] = useState<AssignmentType | null>(null);
+interface AssignmentsConfigPanelProps {
+    // ...
+}
+
+const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... */ }) => {
+    const [activityTypes, setActivityTypes] = useState<ActivityType[]>([]);
+    const [currentActivityType, setCurrentActivityType] = useState<ActivityType | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoadingData, setIsLoadingData] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
-    const [formData, setFormData] = useState<Partial<AssignmentType>>({
+    const [formData, setFormData] = useState<Partial<ActivityType>>({
         name: '',
         code: '',
         description: '',
-        icon: 'Calendar',
-        color: '#3B82F6',
+        category: ActivityCategory.AUTRE,
+        color: '#FFFFFF',
+        icon: '',
         isActive: true,
-        allowsMultiple: false,
-        requiresLocation: true,
-        properties: []
+        defaultDurationHours: null,
+        defaultPeriod: null,
     });
 
-    // Fonction pour vérifier l'authentification et rafraîchir les données
-    const checkAndRefreshAuth = useCallback(async () => {
-        if (isAuthLoading) {
-            console.log("Attente de la fin du chargement de l'authentification...");
-            return; // Attendre que l'état d'authentification soit connu
-        }
-
-        if (!isAuthenticated) {
-            console.log("Utilisateur non authentifié, redirection...");
-            setError("Vous devez être connecté pour accéder à cette section.");
-            setIsLoadingData(false);
-            // Optionnel: rediriger vers la page de login
-            // router.push('/login');
-            return;
-        }
-
-        // Si authentifié, charger les données
-        console.log("Utilisateur authentifié, chargement des données...");
-        await fetchAssignmentTypes();
-
-    }, [isAuthenticated, isAuthLoading]);
-
-    useEffect(() => {
-        checkAndRefreshAuth();
-    }, [checkAndRefreshAuth]);
-
-    // Fonction pour récupérer les types d'affectation
-    const fetchAssignmentTypes = async () => {
+    const fetchActivityTypes = useCallback(async () => {
         setIsLoadingData(true);
         setError(null);
         try {
-            // Pas besoin d'appeler ensureAuthenticated ici, c'est géré dans checkAndRefreshAuth
-            const response = await axios.get<{ assignmentTypes: AssignmentType[] }>('/api/assignment-types');
-            setAssignmentTypes(response.data.assignmentTypes);
+            if (!isAuthLoading && !isAuthenticated) {
+                setError("Vous devez être connecté pour charger les types d'activités. Utilisation des données mockées.");
+                setActivityTypes(MOCK_ACTIVITY_TYPES);
+                setIsLoadingData(false);
+                return;
+            }
+            if (!isAuthLoading && isAuthenticated) {
+                const response = await axios.get<ActivityType[]>('/api/activity-types');
+                setActivityTypes(response.data);
+            } else if (isAuthLoading) {
+                console.log("Auth en cours de chargement, attente avant de fetcher les types d'activité.");
+                return;
+            }
         } catch (err: any) {
-            console.error("Erreur détaillée assignment-types:", err);
-            setError(`Impossible de charger les types d'affectation: ${err.message}. Utilisation des données mockées.`);
-            setAssignmentTypes(MOCK_ASSIGNMENT_TYPES); // Fallback aux données mockées
+            console.error("Erreur lors du chargement des types d'activité:", err);
+            setError(`Impossible de charger les types d'activité: ${err.message}. Utilisation des données mockées.`);
+            setActivityTypes(MOCK_ACTIVITY_TYPES);
         } finally {
             setIsLoadingData(false);
         }
+    }, [isAuthenticated, isAuthLoading]);
+
+    useEffect(() => {
+        fetchActivityTypes();
+    }, [fetchActivityTypes]);
+
+    const handleFormChange = (field: keyof Partial<ActivityType>, value: any) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    // Ouvrir le formulaire d'édition
-    const openEditForm = (type: AssignmentType) => {
-        setCurrentAssignmentType(type);
-        setFormData({
-            name: type.name,
-            code: type.code,
-            description: type.description,
-            icon: type.icon,
-            color: type.color,
-            isActive: type.isActive,
-            allowsMultiple: type.allowsMultiple,
-            requiresLocation: type.requiresLocation,
-            properties: [...type.properties]
-        });
+    const handleCheckboxChange = (field: keyof Partial<ActivityType>, checked: boolean) => {
+        setFormData(prev => ({ ...prev, [field]: checked }));
     };
 
-    // Ouvrir le formulaire de création
     const openNewForm = () => {
-        setCurrentAssignmentType(null);
+        setCurrentActivityType(null);
         setFormData({
             name: '',
             code: '',
             description: '',
-            icon: 'Calendar',
-            color: '#3B82F6',
+            category: ActivityCategory.AUTRE,
+            color: '#FFFFFF',
+            icon: '',
             isActive: true,
-            allowsMultiple: false,
-            requiresLocation: true,
-            properties: []
+            defaultDurationHours: null,
+            defaultPeriod: null,
         });
+        setIsModalOpen(true);
     };
 
-    // Gérer les changements de formulaire
-    const handleFormChange = (field: keyof AssignmentType, value: any) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+    const openEditForm = (type: ActivityType) => {
+        setCurrentActivityType(type);
+        setFormData({
+            name: type.name,
+            code: type.code,
+            description: type.description || '',
+            category: type.category,
+            color: type.color || '#FFFFFF',
+            icon: type.icon || '',
+            isActive: type.isActive,
+            defaultDurationHours: type.defaultDurationHours || null,
+            defaultPeriod: type.defaultPeriod || null,
+        });
+        setIsModalOpen(true);
     };
 
-    // Soumission du formulaire (Ajout ou Modification)
+    const resetFormAndCloseModal = () => {
+        setIsModalOpen(false);
+        setCurrentActivityType(null);
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        console.log("[AssignmentsConfigPanel] handleSubmit triggered.");
         setError(null);
-        if (isAuthLoading) {
-            toast.error("Vérification de l'authentification en cours...");
-            return;
-        }
-        if (!isAuthenticated) {
-            toast.error("Vous n'êtes pas authentifié.");
+
+        if (isAuthLoading || !isAuthenticated) {
+            toast.error("Vous devez être authentifié.");
+            console.warn("[AssignmentsConfigPanel] handleSubmit aborted: User not authenticated.");
             return;
         }
 
+        const dataToSubmit: Partial<Omit<ActivityType, 'id' | 'createdAt' | 'updatedAt' | 'sites'>> = {
+            name: formData.name || undefined,
+            code: formData.code || undefined,
+            description: formData.description || null,
+            category: formData.category || ActivityCategory.AUTRE,
+            color: formData.color || null,
+            icon: formData.icon || null,
+            isActive: formData.isActive === undefined ? true : formData.isActive,
+            defaultDurationHours: formData.defaultDurationHours ? parseFloat(String(formData.defaultDurationHours)) : null,
+            defaultPeriod: formData.defaultPeriod || null,
+        };
+
+        console.log("[AssignmentsConfigPanel] Raw dataToSubmit before cleaning:", JSON.parse(JSON.stringify(dataToSubmit)));
+
+        Object.keys(dataToSubmit).forEach(key => {
+            const K = key as keyof typeof dataToSubmit;
+            if (dataToSubmit[K] === undefined) {
+                delete dataToSubmit[K];
+            }
+        });
+
+        console.log("[AssignmentsConfigPanel] Cleaned dataToSubmit:", JSON.parse(JSON.stringify(dataToSubmit)));
+
+        const url = currentActivityType
+            ? `/api/activity-types/${currentActivityType.id}`
+            : '/api/activity-types';
+        const method = currentActivityType ? 'PUT' : 'POST';
+
+        console.log(`[AssignmentsConfigPanel] Method: ${method}, URL: ${url}`);
+
         try {
-            if (currentAssignmentType) {
-                await axios.put(`/api/assignment-types/${currentAssignmentType.id}`, formData);
-                toast.success('Type d\'affectation modifié avec succès');
+            let response;
+            if (method === 'PUT') {
+                console.log("[AssignmentsConfigPanel] PRE-AWAIT axios.put...");
+                response = await axios.put(url, dataToSubmit);
+                console.log("[AssignmentsConfigPanel] POST-AWAIT axios.put. Response received (or error if it threw).");
+                console.log("[AssignmentsConfigPanel] axios.put response:", response);
+                toast.success('Type d\'activité modifié avec succès');
             } else {
-                await axios.post('/api/assignment-types', formData);
-                toast.success('Type d\'affectation ajouté avec succès');
+                console.log("[AssignmentsConfigPanel] PRE-AWAIT axios.post...");
+                response = await axios.post(url, dataToSubmit);
+                console.log("[AssignmentsConfigPanel] POST-AWAIT axios.post. Response received (or error if it threw).");
+                console.log("[AssignmentsConfigPanel] axios.post response:", response);
+                toast.success('Type d\'activité ajouté avec succès');
             }
             resetFormAndCloseModal();
-            await fetchAssignmentTypes();
+            await fetchActivityTypes();
         } catch (err: any) {
-            console.error("Erreur lors de la soumission:", err);
-            const errorMessage = err.response?.data?.message || err.message || 'Une erreur est survenue.';
+            console.error("[AssignmentsConfigPanel] Error during submission (handleSubmit):", err);
+            if (err.response) {
+                console.error('[AssignmentsConfigPanel] Error response data (handleSubmit):', err.response.data);
+                console.error('[AssignmentsConfigPanel] Error response status (handleSubmit):', err.response.status);
+                console.error('[AssignmentsConfigPanel] Error response headers (handleSubmit):', err.response.headers);
+            } else if (err.request) {
+                console.error('[AssignmentsConfigPanel] Error request data (handleSubmit):', err.request);
+            } else {
+                console.error('[AssignmentsConfigPanel] Error message (handleSubmit):', err.message);
+            }
+            const errorMessage = err.response?.data?.error || err.message || 'Une erreur est survenue.';
             setError(errorMessage);
             toast.error(`Erreur: ${errorMessage}`);
         }
     };
 
-    // Supprimer un type d'affectation
-    const deleteAssignmentType = async (id: number) => {
-        // Confirmation
-        if (!confirm('Êtes-vous sûr de vouloir supprimer ce type d\'affectation ?')) {
+    const handleDelete = async (id: string) => {
+        console.log(`[AssignmentsConfigPanel] Attempting to delete activity type with ID: ${id}`);
+        if (!isAuthenticated) {
+            toast.error("Vous devez être authentifié pour supprimer.");
+            console.warn("[AssignmentsConfigPanel] Delete aborted: User not authenticated.");
             return;
         }
-
-        try {
-            // Version avec mock au lieu d'appel API
-            // Mise à jour du state local
-            setAssignmentTypes(prev => prev.filter(type => type.id !== id));
-            toast.success('Type d\'affectation supprimé');
-
-            /* Version avec API réelle
-            const response = await fetch(`/api/assignment-types/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                },
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erreur lors de la suppression');
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce type d'activité ?")) {
+            console.log(`[AssignmentsConfigPanel] User confirmed deletion for ID: ${id}`);
+            try {
+                console.log(`[AssignmentsConfigPanel] Calling axios.delete for /api/activity-types/${id}`);
+                const response = await axios.delete(`/api/activity-types/${id}`);
+                console.log("[AssignmentsConfigPanel] axios.delete response:", response); // LOG DE LA RÉPONSE
+                toast.success('Type d\'activité supprimé');
+                await fetchActivityTypes();
+            } catch (err: any) {
+                console.error('[AssignmentsConfigPanel] Error during deletion:', err);
+                if (err.response) {
+                    console.error('[AssignmentsConfigPanel] Error response data:', err.response.data);
+                    console.error('[AssignmentsConfigPanel] Error response status:', err.response.status);
+                    console.error('[AssignmentsConfigPanel] Error response headers:', err.response.headers);
+                } else if (err.request) {
+                    console.error('[AssignmentsConfigPanel] Error request data:', err.request);
+                } else {
+                    console.error('[AssignmentsConfigPanel] Error message:', err.message);
+                }
+                const errorMessage = err.response?.data?.error || err.message || 'Une erreur est survenue lors de la suppression.';
+                toast.error(`Erreur: ${errorMessage}`);
             }
-
-            const result = await response.json();
-
-            // Si le type a été désactivé au lieu d'être supprimé
-            if (result.isActive === false && result.id) {
-                setAssignmentTypes(prev => prev.map(type =>
-                    type.id === id ? { ...type, isActive: false } : type
-                ));
-                toast.success(result.message || 'Type d\'affectation désactivé');
-            } else {
-                // Si le type a été supprimé
-                setAssignmentTypes(prev => prev.filter(type => type.id !== id));
-                toast.success('Type d\'affectation supprimé');
-            }
-            */
-        } catch (error) {
-            console.error('Erreur:', error);
-            toast.error(error instanceof Error ? error.message : 'Erreur lors de la suppression');
+        } else {
+            console.log("[AssignmentsConfigPanel] User cancelled deletion.");
         }
     };
 
-    // Ajouter une propriété
-    const addProperty = () => {
-        if (!formData.properties) {
-            setFormData(prev => ({
-                ...prev,
-                properties: []
-            }));
-        }
-        setFormData(prev => ({
-            ...prev,
-            properties: [...(prev.properties || []), {
-                id: Date.now(),
-                name: '',
-                code: '',
-                type: 'string',
-                required: false
-            }]
-        }));
-    };
+    const [{ isDragging }, drag] = useDrag(() => ({
+        type: 'ASSIGNMENT_TYPE',
+        collect: (monitor) => ({
+            isDragging: monitor.isDragging(),
+        }),
+    }));
 
-    // Supprimer une propriété
-    const removeProperty = (id: number) => {
-        setFormData(prev => ({
-            ...prev,
-            properties: (prev.properties || []).filter(p => p.id !== id)
-        }));
-    };
-
-    // Obtenir l'icône pour un type d'affectation
-    const getIcon = (iconName: string) => {
-        switch (iconName) {
-            case 'Calendar': return <Calendar className="h-5 w-5" />;
-            case 'Clock': return <Clock className="h-5 w-5" />;
-            case 'Bell': return <Bell className="h-5 w-5" />;
-            case 'Info': return <Info className="h-5 w-5" />;
-            case 'User': return <User className="h-5 w-5" />;
-            case 'Tag': return <Tag className="h-5 w-5" />;
-            default: return <Calendar className="h-5 w-5" />;
-        }
-    };
-
-    // Réinitialiser le formulaire et fermer la modale
-    const resetFormAndCloseModal = () => {
-        setCurrentAssignmentType(null);
-        setFormData({
-            name: '',
-            code: '',
-            description: '',
-            icon: 'Calendar',
-            color: '#3B82F6',
-            isActive: true,
-            allowsMultiple: false,
-            requiresLocation: true,
-            properties: []
-        });
-        setIsModalOpen(false);
-    };
-
-    // Rendu conditionnel basé sur le chargement et l'erreur
-    if (isAuthLoading || isLoadingData) {
-        return <div>Chargement...</div>;
-    }
-
-    if (error && !assignmentTypes.length) { // Afficher l'erreur seulement si pas de données (même mockées)
-        return <div className="text-red-500">Erreur: {error}</div>;
+    if (isLoadingData && isAuthLoading) {
+        return <div className="p-4">Chargement initial...</div>;
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Gestion des Types d'Affectations</h1>
-                <button
-                    onClick={openNewForm}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center"
-                >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter un type
-                </button>
-            </div>
-
-            {assignmentTypes.length === 0 ? (
-                <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                    <AlertTriangle className="h-10 w-10 text-yellow-500 mx-auto mb-3" />
-                    <p className="text-gray-600 mb-2">Aucun type d'affectation configuré</p>
-                    <p className="text-gray-500 text-sm mb-4">Commencez par créer un type d'affectation pour organiser le planning</p>
-                    <button
-                        onClick={openNewForm}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                    >
-                        Créer mon premier type d'affectation
-                    </button>
+        <DndProvider backend={HTML5Backend}>
+            <div className="p-4 md:p-6">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-semibold text-gray-700">Configuration des Types d'Activité</h2>
+                    {isAuthenticated && <Button onClick={openNewForm}><Plus className="mr-2" /> Ajouter un type</Button>}
                 </div>
-            ) : (
-                <>
-                    {/* Liste des types d'affectations */}
-                    <div className="bg-white shadow rounded-lg overflow-hidden">
+
+                {!isAuthenticated && !isAuthLoading && (
+                    <div className="text-red-500 bg-red-100 p-4 rounded-md">
+                        Vous devez être connecté pour gérer les types d'activités.
+                        {error && <div>Détail: {error}</div>}
+                    </div>
+                )}
+
+                {isAuthenticated && error && !activityTypes.length && (
+                    <div className="text-red-500 bg-red-100 p-4 rounded-md">Erreur: {error}</div>
+                )}
+
+                {isAuthenticated && !isLoadingData && activityTypes.length === 0 && !error && (
+                    <p>Aucun type d'activité trouvé.</p>
+                )}
+
+                {isAuthenticated && activityTypes.length > 0 && (
+                    <div className="bg-white shadow rounded-lg overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
@@ -420,13 +313,16 @@ const AssignmentsConfigPanel: React.FC = () => {
                                         Code
                                     </th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Description
+                                        Catégorie
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Couleur
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Icône
                                     </th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Statut
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Options
                                     </th>
                                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Actions
@@ -434,309 +330,108 @@ const AssignmentsConfigPanel: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {assignmentTypes.map((type) => (
-                                    <tr key={type.id} className={!type.isActive ? 'bg-gray-50' : ''}>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div
-                                                    className="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center"
-                                                    style={{ backgroundColor: type.color + '20' }}
-                                                >
-                                                    <div style={{ color: type.color }}>
-                                                        {getIcon(type.icon)}
-                                                    </div>
-                                                </div>
-                                                <div className="ml-3">
-                                                    <div className={`text-sm font-medium ${type.isActive ? 'text-gray-900' : 'text-gray-500'}`}>
-                                                        {type.name}
-                                                    </div>
-                                                </div>
-                                            </div>
+                                {activityTypes.map((type, index) => (
+                                    <tr key={type.id} ref={drag} style={{ opacity: isDragging ? 0.5 : 1 }}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{type.name}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{type.code}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{type.category}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <div style={{ width: '20px', height: '20px', backgroundColor: type.color || undefined, borderRadius: '50%' }}></div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-500">{type.code}</div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm text-gray-500 max-w-xs truncate">{type.description}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {type.isActive ? (
-                                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                    Actif
-                                                </span>
-                                            ) : (
-                                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                                    Inactif
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-xs">
-                                            <div className="flex space-x-2">
-                                                {type.allowsMultiple && (
-                                                    <span className="px-2 py-1 rounded bg-blue-100 text-blue-800">
-                                                        Multiple
-                                                    </span>
-                                                )}
-                                                {type.requiresLocation && (
-                                                    <span className="px-2 py-1 rounded bg-indigo-100 text-indigo-800">
-                                                        Lieu requis
-                                                    </span>
-                                                )}
-                                            </div>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{type.icon}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {type.isActive ? <CheckCircle2 className="text-green-500" /> : <XCircle className="text-red-500" />}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button
-                                                onClick={() => openEditForm(type)}
-                                                className="text-indigo-600 hover:text-indigo-900 mr-3"
-                                            >
-                                                <Edit className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => deleteAssignmentType(type.id)}
-                                                className="text-red-600 hover:text-red-900"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
+                                            <Button variant="ghost" size="sm" onClick={() => openEditForm(type)} className="mr-2"><Edit /></Button>
+                                            <Button variant="ghost" size="sm" onClick={() => handleDelete(type.id)}><Trash2 /></Button>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
-                </>
-            )}
+                )}
 
-            {/* Formulaire d'édition */}
-            {(currentAssignmentType !== null || isModalOpen) && (
-                <Dialog open={isModalOpen || currentAssignmentType !== null} onOpenChange={(isOpen) => {
-                    if (!isOpen) resetFormAndCloseModal();
-                    else if (!currentAssignmentType && !isModalOpen) setIsModalOpen(true);
-                }}>
-                    <DialogContent className="sm:max-w-2xl">
-                        <DialogHeader>
-                            <DialogTitle>
-                                {currentAssignmentType ? "Modifier le type d'affectation" : "Nouveau type d'affectation"}
-                            </DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleSubmit}>
-                            <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
-                                <div className="space-y-4">
-                                    {/* Informations de base */}
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Nom
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={formData.name}
-                                                onChange={(e) => handleFormChange('name', e.target.value)}
-                                                className="w-full px-3 py-2 border rounded-md"
-                                                placeholder="Ex: Garde"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Code
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={formData.code}
-                                                onChange={(e) => handleFormChange('code', e.target.value.toUpperCase())}
-                                                className="w-full px-3 py-2 border rounded-md uppercase"
-                                                placeholder="Ex: GARDE"
-                                                required
-                                                disabled={!!currentAssignmentType}
-                                            />
-                                            {!!currentAssignmentType && (
-                                                <p className="text-xs text-gray-500 mt-1">Le code ne peut pas être modifié après création</p>
-                                            )}
-                                        </div>
-                                    </div>
-
+                {isModalOpen && (
+                    <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) resetFormAndCloseModal(); else setIsModalOpen(true); }}>
+                        <DialogContent className="sm:max-w-[500px]">
+                            <DialogHeader>
+                                <DialogTitle>{currentActivityType ? "Modifier le Type d'Activité" : "Ajouter un Type d'Activité"}</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={handleSubmit}>
+                                <div className="px-2 py-4 max-h-[70vh] overflow-y-auto space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Description
-                                        </label>
-                                        <textarea
-                                            value={formData.description}
-                                            onChange={(e) => handleFormChange('description', e.target.value)}
-                                            className="w-full px-3 py-2 border rounded-md"
-                                            rows={3}
-                                            placeholder="Description détaillée de ce type d'affectation"
+                                        <Label htmlFor="name">Nom</Label>
+                                        <Input id="name" name="name" value={formData.name || ''} onChange={(e) => handleFormChange('name', e.target.value)} required />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="code">Code</Label>
+                                        <Input id="code" name="code" value={formData.code || ''} onChange={(e) => handleFormChange('code', e.target.value)} required />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="description">Description</Label>
+                                        <Input id="description" name="description" value={formData.description || ''} onChange={(e) => handleFormChange('description', e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="category">Catégorie</Label>
+                                        <Select value={formData.category} onValueChange={(value) => handleFormChange('category', value as ActivityCategory)}>
+                                            <SelectTrigger><SelectValue placeholder="Sélectionner une catégorie" /></SelectTrigger>
+                                            <SelectContent>
+                                                {Object.values(ActivityCategory).map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="color">Couleur</Label>
+                                        <Input id="color" name="color" type="color" value={formData.color || '#FFFFFF'} onChange={(e) => handleFormChange('color', e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="icon">Icône (nom)</Label>
+                                        <Input id="icon" name="icon" value={formData.icon || ''} onChange={(e) => handleFormChange('icon', e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="defaultDurationHours">Durée par défaut (heures)</Label>
+                                        <Input
+                                            id="defaultDurationHours"
+                                            name="defaultDurationHours"
+                                            type="number"
+                                            value={formData.defaultDurationHours === null ? '' : String(formData.defaultDurationHours)}
+                                            onChange={(e) => handleFormChange('defaultDurationHours', e.target.value === '' ? null : parseFloat(e.target.value))}
+                                            placeholder="Ex: 8"
                                         />
                                     </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Icône
-                                            </label>
-                                            <select
-                                                value={formData.icon}
-                                                onChange={(e) => handleFormChange('icon', e.target.value)}
-                                                className="w-full px-3 py-2 border rounded-md"
-                                            >
-                                                <option value="Calendar">Calendrier</option>
-                                                <option value="Clock">Horloge</option>
-                                                <option value="Bell">Cloche</option>
-                                                <option value="Info">Information</option>
-                                                <option value="User">Utilisateur</option>
-                                                <option value="Tag">Étiquette</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Couleur
-                                            </label>
-                                            <input
-                                                type="color"
-                                                value={formData.color}
-                                                onChange={(e) => handleFormChange('color', e.target.value)}
-                                                className="w-full px-1 py-1 border rounded-md h-10"
-                                            />
-                                        </div>
+                                    <div>
+                                        <Label htmlFor="defaultPeriod">Période par défaut</Label>
+                                        <Select
+                                            value={formData.defaultPeriod || "__NULL_PERIOD__"}
+                                            onValueChange={(value) => {
+                                                const actualValue = value === "__NULL_PERIOD__" ? null : value as Period;
+                                                handleFormChange('defaultPeriod', actualValue);
+                                            }}
+                                        >
+                                            <SelectTrigger><SelectValue placeholder="Sélectionner une période" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="__NULL_PERIOD__">Aucune</SelectItem>
+                                                {Object.values(Period).map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                id="isActive"
-                                                checked={formData.isActive}
-                                                onChange={(e) => handleFormChange('isActive', e.target.checked)}
-                                                className="h-4 w-4 text-indigo-600 rounded"
-                                            />
-                                            <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
-                                                Type actif
-                                            </label>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                id="allowsMultiple"
-                                                checked={formData.allowsMultiple}
-                                                onChange={(e) => handleFormChange('allowsMultiple', e.target.checked)}
-                                                className="h-4 w-4 text-indigo-600 rounded"
-                                            />
-                                            <label htmlFor="allowsMultiple" className="ml-2 block text-sm text-gray-700">
-                                                Permet plusieurs affectations simultanées
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            id="requiresLocation"
-                                            checked={formData.requiresLocation}
-                                            onChange={(e) => handleFormChange('requiresLocation', e.target.checked)}
-                                            className="h-4 w-4 text-indigo-600 rounded"
-                                        />
-                                        <label htmlFor="requiresLocation" className="ml-2 block text-sm text-gray-700">
-                                            Nécessite un lieu d'affectation
-                                        </label>
-                                    </div>
-
-                                    {/* Propriétés */}
-                                    <div className="mt-6">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <h3 className="text-lg font-medium">Propriétés additionnelles</h3>
-                                            <button
-                                                onClick={addProperty}
-                                                className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 text-sm flex items-center"
-                                            >
-                                                <Plus className="h-3 w-3 mr-1" />
-                                                Ajouter
-                                            </button>
-                                        </div>
-
-                                        {formData.properties && formData.properties.length > 0 ? (
-                                            <div className="overflow-hidden border rounded-md">
-                                                <table className="min-w-full divide-y divide-gray-200">
-                                                    <thead className="bg-gray-50">
-                                                        <tr>
-                                                            <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                                Nom
-                                                            </th>
-                                                            <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                                Code
-                                                            </th>
-                                                            <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                                Type
-                                                            </th>
-                                                            <th scope="col" className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                                Requis
-                                                            </th>
-                                                            <th scope="col" className="relative px-4 py-2">
-                                                                <span className="sr-only">Actions</span>
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="bg-white divide-y divide-gray-200">
-                                                        {formData.properties.map((property) => (
-                                                            <tr key={property.id}>
-                                                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                                                    {property.name}
-                                                                </td>
-                                                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                                                    {property.code}
-                                                                </td>
-                                                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                                                    {property.type === 'string' && 'Texte'}
-                                                                    {property.type === 'number' && 'Nombre'}
-                                                                    {property.type === 'boolean' && 'Oui/Non'}
-                                                                    {property.type === 'date' && 'Date'}
-                                                                    {property.type === 'select' && 'Liste'}
-                                                                </td>
-                                                                <td className="px-4 py-2 whitespace-nowrap text-center">
-                                                                    {property.required ? (
-                                                                        <CheckCircle2 className="h-4 w-4 text-green-500 mx-auto" />
-                                                                    ) : (
-                                                                        <XCircle className="h-4 w-4 text-gray-300 mx-auto" />
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-4 py-2 whitespace-nowrap text-right text-sm">
-                                                                    <button
-                                                                        onClick={() => removeProperty(property.id)}
-                                                                        className="text-red-600 hover:text-red-900"
-                                                                    >
-                                                                        <Trash2 className="h-4 w-4" />
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        ) : (
-                                            <div className="text-center py-4 border rounded-md border-dashed text-gray-500">
-                                                Aucune propriété additionnelle
-                                            </div>
-                                        )}
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox id="isActive" name="isActive" checked={formData.isActive} onCheckedChange={(checked) => handleCheckboxChange('isActive', !!checked)} />
+                                        <Label htmlFor="isActive">Actif</Label>
                                     </div>
                                 </div>
-                            </div>
-                            <DialogFooter className="px-6 py-4 border-t">
-                                <DialogClose asChild>
-                                    <Button type="button" variant="outline">
-                                        Annuler
-                                    </Button>
-                                </DialogClose>
-                                <Button type="submit" disabled={isAuthLoading}>
-                                    {isAuthLoading ? (
-                                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Enregistrement...</>
-                                    ) : (
-                                        <><Save className="h-4 w-4 mr-2" /> {currentAssignmentType ? "Enregistrer" : "Créer"}</>
-                                    )}
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-            )}
-        </div>
+                                <DialogFooter className="mt-4">
+                                    <DialogClose asChild><Button type="button" variant="outline">Annuler</Button></DialogClose>
+                                    <Button type="submit">Sauvegarder</Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                )}
+            </div>
+        </DndProvider>
     );
 };
 

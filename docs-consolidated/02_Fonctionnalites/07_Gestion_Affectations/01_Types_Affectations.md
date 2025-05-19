@@ -6,23 +6,27 @@ Mathildanesth gère une variété de types d'affectations pour représenter les 
 
 ## 2. Concept de Type d'Affectation
 
-Un "type d'affectation" définit la nature d'une période de travail ou d'une tâche assignée à un utilisateur. Le système doit permettre une configuration flexible de ces types.
+Un "type d'affectation" définit la nature d'une période de travail ou d'une tâche assignée à un utilisateur. Le système s'appuie sur le modèle `ActivityType` pour une configuration flexible et détaillée de ces types.
 
-Bien qu'un modèle `AssignmentType` dédié ne soit pas explicitement visible dans `prisma/schema.prisma` (le modèle `Assignment` a un champ `type: String` et `assignmentTypeId: Int?`), la logique applicative doit nécessairement s'appuyer sur une typologie structurée des affectations, potentiellement gérée via une table de configuration ou des constantes applicatives enrichies.
+Le modèle `ActivityType` (`prisma/schema.prisma`) permet de définir chaque type d'activité avec les propriétés suivantes :
 
-Les éléments configurables pour chaque type d'affectation pourraient inclure :
+- **`id`** (String) : Identifiant unique du type d'activité.
+- **`name`** (String) : Nom descriptif (ex: "Garde Anesthésie Pontoise", "Consultation Dr. Durand").
+- **`code`** (String) : Code unique pour identification métier (ex: "GARDE_MAR_NUIT", "CONSULT_PREOP"). C'est probablement cette valeur qui est utilisée dans le champ `type` du modèle `Assignment`.
+- **`description`** (String, optionnel).
+- **`category`** (Enum `ActivityCategory`) : Catégorise l'activité (ex: `GARDE`, `ASTREINTE`, `BLOC_OPERATOIRE`, `CONSULTATION`, `FORMATION`, etc.).
+- **`color`** (String, optionnel) : Couleur pour l'affichage dans le planning.
+- **`icon`** (String, optionnel) : Icône pour l'affichage.
+- **`isActive`** (Boolean) : Permet de désactiver un type sans le supprimer.
+- **`defaultDurationHours`** (Float, optionnel) : Durée par défaut en heures.
+- **`defaultPeriod`** (Enum `Period`, optionnel) : Période par défaut (`MATIN`, `APRES_MIDI`, `JOURNEE_ENTIERE`).
+- Relations avec `Site` et `AffectationModele`.
 
-- **Code/Identifiant Unique** (ex: "GARDE_NUIT_MAR", "VAC_BLOC_AM", "CONSULT_SPE")
-- **Libellé** (ex: "Garde de Nuit MAR", "Vacation Bloc Après-Midi", "Consultation Spécialisée")
-- **Description**
-- **Rôle(s) Professionnel(s) Concerné(s)** (ex: ce type d'affectation ne peut être assigné qu'à des MAR, ou IADE, etc.)
-- **Couleur d'Affichage** : Pour la représentation visuelle dans les plannings.
-- **Propriétés de Durée** : Durée typique, si elle est fixe ou variable.
-- **Impact sur les Compteurs** : Comment cette affectation est-elle décomptée (temps de travail effectif, pénibilité, etc.) ?
-- **Règles Spécifiques Associées** : Certaines règles du [Moteur de Règles](../../03_Planning_Generation/01_Moteur_Regles.md) peuvent cibler des types d'affectations spécifiques.
-- **Compétences Requises** : Si des compétences particulières sont nécessaires.
+L'enum `ActivityCategory` comprend des valeurs comme : `GARDE`, `ASTREINTE`, `BLOC_OPERATOIRE`, `CONSULTATION`, `REUNION`, `FORMATION`, `ADMINISTRATIF`, `HORS_POSTE_SOINS`, `MISSION_EXTERIEURE`, `AUTRE`.
 
-## 3. Principaux Types d'Affectations Gérés
+Les éléments configurables pour chaque type d'affectation, via le modèle `ActivityType`, incluent donc son code, libellé, description, catégorie, couleur, durée par défaut, etc. Les rôles professionnels concernés ou les compétences requises peuvent être gérés par des règles métier ou des logiques applicatives associées à ces `ActivityType`.
+
+## 3. Principaux Types d'Affectations Gérés (Exemples basés sur `ActivityCategory` et `ActivityType`)
 
 ### 3.1. Gardes
 
@@ -85,15 +89,14 @@ Les éléments configurables pour chaque type d'affectation pourraient inclure :
 
 ## 4. Modèle `Assignment` (`prisma/schema.prisma`)
 
-Le modèle `Assignment` stocke les instances d'affectations. Champs pertinents :
+Le modèle `Assignment` stocke les instances d'affectations. Champs pertinents en lien avec le type :
 
 - `id` (String)
 - `userId` (Int) : L'utilisateur assigné.
-- `date` (DateTime) : Souvent la date de début, mais la sémantique peut dépendre du `type`.
+- `date` (DateTime) : Souvent la date de début.
 - `startDate` (DateTime)
 - `endDate` (DateTime)
-- `type` (String) : Le code ou identifiant du type d'affectation.
-- `assignmentTypeId` (Int, optionnel) : Pourrait lier à une table `AssignmentType` si elle était formalisée.
+- **`type` (String)** : Champ texte stockant le code du type d'affectation, faisant probablement référence au champ `code` d'un enregistrement `ActivityType`. Exemples donnés dans le schéma Prisma pour `Assignment.type`: "BLOC_OPERATION", "CONSULTATION", "GARDE_JOUR", "GARDE_NUIT", "ASTREINTE", "REPOS_GARDE", "FORMATION", etc. Ces chaînes devraient correspondre aux `ActivityType.code` configurés.
 - `role` (String, optionnel) : Rôle spécifique pour cette affectation (ex: "MAR Sénior de Garde").
 - `locationId` (Int, optionnel) : Lien vers une `Location` (salle, service).
 - `operatingRoomId` (Int, optionnel) : Spécifique pour le bloc.
@@ -103,10 +106,9 @@ Le modèle `Assignment` stocke les instances d'affectations. Champs pertinents :
 
 ## 5. Configuration et Administration
 
-- Une interface d'administration devrait permettre de gérer la liste des types d'affectations disponibles, leurs propriétés et les règles qui leur sont associées.
-  - Cette fonctionnalité pourrait être localisée sous `src/app/admin/assignment-types/` (mentionné dans la structure des API).
-- Cela permet d'adapter le système aux besoins spécifiques du service sans modifier le code.
+- Une interface d'administration (probablement située sous `src/app/admin/activity-types/` ou une route API comme `/api/activity-types/`) permet de gérer la liste des `ActivityType` disponibles, leurs propriétés (code, nom, catégorie, couleur, durée par défaut, etc.) et potentiellement les règles qui leur sont associées implicitement.
+- Cela permet d'adapter le système aux besoins spécifiques du service sans modifier le code source pour la définition des types d'activités.
 
 ---
 
-La définition claire et la configuration flexible des types d'affectations sont essentielles pour la précision de la planification, la pertinence des règles appliquées, et la clarté des plannings pour les utilisateurs.
+La définition claire et la configuration flexible des types d'affectations via le modèle `ActivityType` sont essentielles pour la précision de la planification, la pertinence des règles appliquées, et la clarté des plannings pour les utilisateurs.

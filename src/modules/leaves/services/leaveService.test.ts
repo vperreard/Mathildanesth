@@ -2,6 +2,30 @@
  * @jest-environment node
  */
 
+import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
+import { PrismaClient as RealPrismaClient, Prisma } from '@prisma/client';
+import { mockReset } from 'jest-mock-extended';
+
+// 1. Définir prismaMock tout en haut, avant les jest.mock
+const prismaMock = mockDeep<RealPrismaClient>();
+
+// 2. Mocker le module '@prisma/client'
+jest.mock('@prisma/client', () => {
+  const actualPrismaClientModule = jest.requireActual('@prisma/client') as typeof import('@prisma/client');
+  return {
+    __esModule: true,
+    ...actualPrismaClientModule, // Conserver tous les autres exports (enums, types Prisma, etc.)
+    PrismaClient: jest.fn(() => prismaMock), // Le constructeur retourne notre mock
+    Prisma: actualPrismaClientModule.Prisma, // Exposer Prisma pour Prisma.validator etc.
+  };
+});
+
+// 3. Mocker le module '@/lib/prisma' pour qu'il utilise notre prismaMock
+jest.mock('@/lib/prisma', () => ({
+  __esModule: true,
+  prisma: prismaMock, // Assurer que l'instance exportée est notre mock
+}));
+
 import {
   formatLeavePeriod,
   getLeaveTypeLabel,
@@ -23,45 +47,17 @@ import {
 // import { ConflictCheckResult, LeaveConflict, ConflictSeverity, ConflictType } from '../types/conflict'; // Commenté si non utilisé directement par les tests actifs
 import { WorkSchedule, WorkFrequency, Weekday, WeekType } from '../../profiles/types/workSchedule';
 // import { formatDate, ISO_DATE_FORMAT } from '@/utils/dateUtils'; // Commenté si non utilisé directement
-import { jest, describe, it, expect, beforeEach, beforeAll } from '@jest/globals';
-import { mockDeep, mockReset, DeepMockProxy } from 'jest-mock-extended';
-// Importer PrismaClient réel pour le typage et jest.requireActual
+import { jest, describe, it, expect, beforeEach, beforeAll, afterEach } from '@jest/globals';
 import {
-  PrismaClient as RealPrismaClient,
   LeaveStatus as PrismaLeaveStatus,
   LeaveType as PrismaLeaveType,
-  Prisma,
   Department as PrismaDepartment,
   Leave as PrismaLeave,
-} from '@prisma/client';
+} from '@prisma/client'; // Les types Prisma devraient toujours être disponibles après le mock de @prisma/client
 import { User, UserRole, ExperienceLevel } from '@/types/user';
 
-// 1. Créer l'instance mockée pour PrismaClient au niveau du module
-const prismaMock = mockDeep<RealPrismaClient>();
-
-// 2. Mocker le module '@prisma/client'
-jest.mock('@prisma/client', () => {
-  const { PrismaClient, ...originalModuleRest } = jest.requireActual(
-    '@prisma/client'
-  ) as typeof import('@prisma/client'); // Corrigé: Transtypage
-  return {
-    __esModule: true,
-    ...originalModuleRest, // Garder tous les exports originaux (enums, types, etc.)
-    PrismaClient: jest.fn(() => prismaMock), // Remplacer le constructeur par une fonction qui retourne notre mock
-  };
-});
-
-// 3. Mocker le module '@/lib/prisma'.
-//    Avec PrismaClient mocké ci-dessus, '@/lib/prisma' devrait initialiser
-//    son 'prismaInstance' avec notre 'prismaMock'.
-//    Ce mock sert de confirmation / sécurité.
-jest.mock('@/lib/prisma', () => ({
-  __esModule: true,
-  prisma: prismaMock, // S'assurer que l'export 'prisma' est bien notre mock
-}));
-
-// Importer PrismaClient ici APRÈS les mocks pour obtenir la version mockée du constructeur
-import { PrismaClient as MockablePrismaClientConstructor } from '@prisma/client';
+// Importer PrismaClient APRÈS les mocks pour obtenir le constructeur mocké
+import { PrismaClient as MockedPrismaClientConstructorAliased } from '@prisma/client';
 
 const mockAppLeave: Leave = {
   id: 'app-leave-id-1',
@@ -221,7 +217,7 @@ describe('leaveService', () => {
 
   beforeEach(() => {
     mockReset(prismaMock);
-    MockedPrismaClient = MockablePrismaClientConstructor as jest.MockedClass<
+    MockedPrismaClient = MockedPrismaClientConstructorAliased as jest.MockedClass<
       typeof RealPrismaClient
     >;
     MockedPrismaClient.mockClear();

@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Tab } from '@headlessui/react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useTheme } from '@/context/ThemeContext';
 import {
     Button,
     Card,
@@ -82,6 +83,7 @@ type LeaveAdjustmentFormData = {
 
 const LeaveManagementPanel: React.FC = () => {
     const { user, isLoading: authLoading } = useAuth();
+    const { theme } = useTheme();
     const [activeTab, setActiveTab] = useState(0);
 
     // États pour les règles de congés
@@ -481,369 +483,268 @@ const LeaveManagementPanel: React.FC = () => {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-6">Gestion des Congés Annuels</h2>
-
+        <div className={`leave-management-panel p-1 ${theme === 'dark' ? 'bg-slate-850' : 'bg-gray-50'}`}>
             <Tab.Group selectedIndex={activeTab} onChange={setActiveTab}>
-                <Tab.List className="flex p-1 space-x-1 bg-gray-100 rounded-xl mb-6">
-                    <Tab as={Fragment}>
-                        {({ selected }) => (
-                            <button
-                                className={`w-full py-2.5 text-sm font-medium rounded-lg focus:outline-none ${selected
-                                    ? 'bg-white text-blue-700 shadow'
-                                    : 'text-gray-600 hover:bg-white/[0.25] hover:text-blue-700'
-                                    }`}
-                            >
-                                Règles des Congés
-                            </button>
-                        )}
-                    </Tab>
-                    <Tab as={Fragment}>
-                        {({ selected }) => (
-                            <button
-                                className={`w-full py-2.5 text-sm font-medium rounded-lg focus:outline-none ${selected
-                                    ? 'bg-white text-blue-700 shadow'
-                                    : 'text-gray-600 hover:bg-white/[0.25] hover:text-blue-700'
-                                    }`}
-                            >
-                                Congés par Personnel
-                            </button>
-                        )}
-                    </Tab>
+                <Tab.List className="flex space-x-1 rounded-xl bg-primary-500/20 dark:bg-slate-700 p-1 mb-6 shadow">
+                    {['Règles Générales des Congés', 'Soldes Individuels des Congés'].map((category) => (
+                        <Tab as={Fragment} key={category}>
+                            {({ selected }) => (
+                                <button
+                                    className={`
+                                        w-full rounded-lg py-2.5 px-4 text-sm font-medium leading-5 
+                                        ring-white ring-opacity-60 ring-offset-2 ring-offset-primary-400 focus:outline-none focus:ring-2
+                                        transition-all duration-200 ease-in-out
+                                        ${selected
+                                            ? 'bg-white dark:bg-primary-600 text-primary-700 dark:text-white shadow-md'
+                                            : 'text-primary-200 hover:bg-white/[0.2] hover:text-white dark:text-slate-300 dark:hover:bg-slate-600 dark:hover:text-slate-100'
+                                        }`}
+                                >
+                                    {category}
+                                </button>
+                            )}
+                        </Tab>
+                    ))}
                 </Tab.List>
-
-                <Tab.Panels>
-                    {/* Onglet des règles de congés */}
-                    <Tab.Panel>
-                        <div className="mb-4 flex justify-between items-center">
-                            <h3 className="text-lg font-medium">Configuration des règles de congés par type de personnel</h3>
-                            <Button onClick={handleAddRule} className="flex items-center">
-                                <PlusIcon className="h-5 w-5 mr-2" />
-                                Ajouter une règle
-                            </Button>
-                        </div>
-
-                        {isLoadingRules ? (
-                            <p className="text-center py-4">Chargement des règles de congés...</p>
-                        ) : rulesError ? (
-                            <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
-                                <p className="text-red-700">{rulesError}</p>
-                            </div>
-                        ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Type de Personnel</TableHead>
-                                        <TableHead>Congés Annuels (jours)</TableHead>
-                                        <TableHead>Jours consécutifs max.</TableHead>
-                                        <TableHead>Statut</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {leaveRules.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="text-center py-4">
-                                                Aucune règle de congés configurée.
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : (
-                                        leaveRules.map(rule => (
-                                            <TableRow key={rule.id}>
-                                                <TableCell>
-                                                    {professionalRoleOptions.find(opt => opt.value === rule.professionalRole)?.label || rule.professionalRole}
-                                                </TableCell>
-                                                <TableCell>{rule.annualLeaveCount}</TableCell>
-                                                <TableCell>{rule.maxConsecutiveDays}</TableCell>
-                                                <TableCell>
-                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${rule.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                        {rule.isActive ? 'Actif' : 'Inactif'}
-                                                    </span>
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <Button
-                                                        onClick={() => handleEditRule(rule)}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="mr-2"
-                                                    >
-                                                        <PencilIcon className="h-4 w-4 mr-1" />
-                                                        Modifier
-                                                    </Button>
-                                                    <Button
-                                                        onClick={() => handleDeleteRule(rule.id)}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="text-red-600 hover:text-red-800"
-                                                    >
-                                                        <TrashIcon className="h-4 w-4 mr-1" />
-                                                        Supprimer
-                                                    </Button>
-                                                </TableCell>
+                <Tab.Panels className="mt-2">
+                    <Tab.Panel className="focus:outline-none">
+                        {/* Contenu pour Règles Générales */}
+                        <Card className="dark:bg-slate-800 dark:border-slate-700">
+                            <CardHeader className="dark:border-slate-700">
+                                <div className="flex justify-between items-center">
+                                    <CardTitle className="dark:text-slate-100">Règles Générales des Congés</CardTitle>
+                                    <Button onClick={handleAddRule} size="sm" className="dark:bg-primary-600 dark:hover:bg-primary-700 dark:text-white">
+                                        <PlusIcon className="mr-2 h-4 w-4" />
+                                        Ajouter une Règle
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                {isLoadingRules && <p className="text-center py-4 text-gray-500 dark:text-slate-400">Chargement...</p>}
+                                {rulesError && <p className="text-center py-4 text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/30 rounded-md">{rulesError}</p>}
+                                {!isLoadingRules && !rulesError && (
+                                    <Table className="dark:border-slate-700">
+                                        <TableHeader className="dark:border-slate-600">
+                                            <TableRow className="dark:border-slate-600">
+                                                <TableHead className="dark:text-slate-300">Rôle Professionnel</TableHead>
+                                                <TableHead className="dark:text-slate-300 text-center">Congés Annuels (j)</TableHead>
+                                                <TableHead className="dark:text-slate-300 text-center">Max Jours Consécutifs</TableHead>
+                                                <TableHead className="dark:text-slate-300 text-center">Statut</TableHead>
+                                                <TableHead className="dark:text-slate-300 text-right">Actions</TableHead>
                                             </TableRow>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
-                        )}
+                                        </TableHeader>
+                                        <TableBody>
+                                            {leaveRules.map((rule) => (
+                                                <TableRow key={rule.id} className="dark:border-slate-700 hover:dark:bg-slate-700/50">
+                                                    <TableCell className="font-medium dark:text-slate-200">{professionalRoleOptions.find(opt => opt.value === rule.professionalRole)?.label || rule.professionalRole}</TableCell>
+                                                    <TableCell className="text-center dark:text-slate-200">{rule.annualLeaveCount}</TableCell>
+                                                    <TableCell className="text-center dark:text-slate-200">{rule.maxConsecutiveDays}</TableCell>
+                                                    <TableCell className="text-center">
+                                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${rule.isActive ? 'bg-green-100 text-green-700 dark:bg-green-700 dark:text-green-200' : 'bg-red-100 text-red-700 dark:bg-red-700 dark:text-red-200'}`}>
+                                                            {rule.isActive ? 'Actif' : 'Inactif'}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button onClick={() => handleEditRule(rule)} variant="secondary" size="sm" className="mr-2 dark:bg-slate-600 dark:text-slate-200 dark:hover:bg-slate-500 dark:border-slate-500">
+                                                            <PencilIcon className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button onClick={() => handleDeleteRule(rule.id)} variant="danger" size="sm" className="dark:bg-red-700 dark:text-red-200 dark:hover:bg-red-600 dark:border-red-600">
+                                                            <TrashIcon className="h-4 w-4" />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </CardContent>
+                        </Card>
                     </Tab.Panel>
-
-                    {/* Onglet de gestion personnalisée des congés */}
-                    <Tab.Panel>
-                        <div className="mb-4">
-                            <h3 className="text-lg font-medium mb-4">Gestion des congés par personnel</h3>
-                            <div className="mb-4">
-                                <Input
-                                    placeholder="Rechercher un personnel..."
-                                    value={searchTerm}
-                                    onChange={e => setSearchTerm(e.target.value)}
-                                    className="max-w-md"
-                                />
-                            </div>
-                        </div>
-
-                        {isLoadingUserLeaves ? (
-                            <p className="text-center py-4">Chargement des données de congés...</p>
-                        ) : userLeavesError ? (
-                            <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
-                                <p className="text-red-700">{userLeavesError}</p>
-                            </div>
-                        ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Personnel</TableHead>
-                                        <TableHead>Fonction</TableHead>
-                                        <TableHead className="text-center">Congés Annuels</TableHead>
-                                        <TableHead className="text-center">Récupérations</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredUsers.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="text-center py-4">
-                                                {searchTerm ? 'Aucun résultat trouvé.' : 'Aucune donnée de congés disponible.'}
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : (
-                                        filteredUsers.map(user => (
-                                            <TableRow key={user.id}>
-                                                <TableCell>{user.userName}</TableCell>
-                                                <TableCell>
-                                                    {professionalRoleOptions.find(opt => opt.value === user.userRole)?.label || user.userRole}
-                                                </TableCell>
-                                                <TableCell className="text-center">
-                                                    <div>
-                                                        <span className="font-semibold">{user.annualLeavesRemaining}</span> / {user.annualLeavesTotal} jours restants
-                                                    </div>
-                                                    <div className="text-sm text-gray-500">
-                                                        ({user.annualLeavesUsed} jours posés)
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-center">
-                                                    <div>
-                                                        <span className="font-semibold">{user.recoveryLeavesRemaining}</span> / {user.recoveryLeavesTotal} jours restants
-                                                    </div>
-                                                    <div className="text-sm text-gray-500">
-                                                        ({user.recoveryLeavesUsed} jours posés)
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <Button
-                                                        onClick={() => handleOpenAdjustment(user)}
-                                                        variant="outline"
-                                                        size="sm"
-                                                    >
-                                                        <PencilIcon className="h-4 w-4 mr-1" />
-                                                        Ajuster
-                                                    </Button>
-                                                </TableCell>
+                    <Tab.Panel className="focus:outline-none">
+                        {/* Contenu pour Soldes Individuels */}
+                        <Card className="dark:bg-slate-800 dark:border-slate-700">
+                            <CardHeader className="dark:border-slate-700">
+                                <CardTitle className="dark:text-slate-100">Soldes Individuels des Congés</CardTitle>
+                                <div className="mt-4">
+                                    <Input
+                                        type="search"
+                                        placeholder="Rechercher un utilisateur (nom, rôle)..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="max-w-sm dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:placeholder-slate-400"
+                                    />
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                {isLoadingUserLeaves && <p className="text-center py-4 text-gray-500 dark:text-slate-400">Chargement...</p>}
+                                {userLeavesError && <p className="text-center py-4 text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/30 rounded-md">{userLeavesError}</p>}
+                                {!isLoadingUserLeaves && !userLeavesError && (
+                                    <Table className="dark:border-slate-700">
+                                        <TableHeader className="dark:border-slate-600">
+                                            <TableRow className="dark:border-slate-600">
+                                                <TableHead className="dark:text-slate-300">Utilisateur</TableHead>
+                                                <TableHead className="dark:text-slate-300">Rôle</TableHead>
+                                                <TableHead className="dark:text-slate-300 text-center">Congés Annuels (Rest./Total)</TableHead>
+                                                <TableHead className="dark:text-slate-300 text-center">Congés Récup. (Rest./Total)</TableHead>
+                                                <TableHead className="dark:text-slate-300 text-center">Actions</TableHead>
                                             </TableRow>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
-                        )}
+                                        </TableHeader>
+                                        <TableBody>
+                                            {filteredUsers.map((userLeave) => (
+                                                <TableRow key={userLeave.id} className="dark:border-slate-700 hover:dark:bg-slate-700/50">
+                                                    <TableCell className="font-medium dark:text-slate-200">{userLeave.userName}</TableCell>
+                                                    <TableCell className="dark:text-slate-300">{professionalRoleOptions.find(opt => opt.value === userLeave.userRole)?.label || userLeave.userRole}</TableCell>
+                                                    <TableCell className="text-center dark:text-slate-200">{userLeave.annualLeavesRemaining} / {userLeave.annualLeavesTotal}</TableCell>
+                                                    <TableCell className="text-center dark:text-slate-200">{userLeave.recoveryLeavesRemaining} / {userLeave.recoveryLeavesTotal}</TableCell>
+                                                    <TableCell className="text-center">
+                                                        <Button onClick={() => handleOpenAdjustment(userLeave)} variant="outline" size="sm" className="dark:bg-sky-600 dark:hover:bg-sky-500 dark:text-white dark:border-sky-500">
+                                                            <UserPlusIcon className="h-4 w-4 mr-1" /> Ajuster Solde
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </CardContent>
+                        </Card>
                     </Tab.Panel>
                 </Tab.Panels>
             </Tab.Group>
 
-            {/* Modal pour ajouter/modifier une règle de congés */}
-            <Dialog open={isRulesModalOpen} onOpenChange={setIsRulesModalOpen}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {isEditingRule ? 'Modifier la règle de congés' : 'Ajouter une règle de congés'}
-                        </DialogTitle>
-                    </DialogHeader>
+            {/* Modale pour Règles de Congés */}
+            {isRulesModalOpen && (
+                <Dialog open={isRulesModalOpen} onOpenChange={setIsRulesModalOpen}>
+                    <DialogContent className="sm:max-w-[425px] dark:bg-slate-800 dark:border-slate-700">
+                        <DialogHeader>
+                            <DialogTitle className="dark:text-slate-100">{isEditingRule !== null ? 'Modifier la Règle' : 'Ajouter une Règle'}</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleRulesSubmit} className="space-y-4 py-4">
+                            <div>
+                                <label htmlFor="professionalRole" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Rôle Professionnel</label>
+                                <select
+                                    id="professionalRole"
+                                    name="professionalRole"
+                                    value={rulesFormData.professionalRole}
+                                    onChange={handleRulesInputChange}
+                                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                    disabled={isEditingRule !== null}
+                                >
+                                    {professionalRoleOptions.map(option => (
+                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label htmlFor="annualLeaveCount" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Nombre de jours de congés annuels</label>
+                                <Input
+                                    type="number"
+                                    id="annualLeaveCount"
+                                    name="annualLeaveCount"
+                                    value={rulesFormData.annualLeaveCount}
+                                    onChange={handleRulesInputChange}
+                                    className="mt-1 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600"
+                                    min={0}
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="maxConsecutiveDays" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Nombre max. de jours consécutifs</label>
+                                <Input
+                                    type="number"
+                                    id="maxConsecutiveDays"
+                                    name="maxConsecutiveDays"
+                                    value={rulesFormData.maxConsecutiveDays}
+                                    onChange={handleRulesInputChange}
+                                    className="mt-1 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600"
+                                    min={0}
+                                />
+                            </div>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="isActiveRule"
+                                    name="isActive"
+                                    checked={rulesFormData.isActive}
+                                    onChange={handleRulesInputChange}
+                                    className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:border-slate-500 dark:focus:ring-primary-400 dark:text-primary-400 dark:checked:bg-primary-400"
+                                />
+                                <label htmlFor="isActiveRule" className="ml-2 block text-sm text-gray-900 dark:text-slate-200">Règle active</label>
+                            </div>
+                            <DialogFooter className="mt-6">
+                                <DialogClose asChild>
+                                    <Button type="button" variant="outline" className="dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-700 dark:hover:border-slate-500">Annuler</Button>
+                                </DialogClose>
+                                <Button type="submit" className="dark:bg-primary-600 dark:hover:bg-primary-700 dark:text-white">Enregistrer</Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            )}
 
-                    <form onSubmit={handleRulesSubmit} className="space-y-4 mt-4">
-                        <div>
-                            <label htmlFor="professionalRole" className="block text-sm font-medium text-gray-700 mb-1">
-                                Type de Personnel
-                            </label>
-                            <select
-                                id="professionalRole"
-                                name="professionalRole"
-                                value={rulesFormData.professionalRole}
-                                onChange={handleRulesInputChange}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2"
-                            >
-                                {professionalRoleOptions.map(option => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label htmlFor="annualLeaveCount" className="block text-sm font-medium text-gray-700 mb-1">
-                                Nombre de jours de congés annuels
-                            </label>
-                            <input
-                                type="number"
-                                id="annualLeaveCount"
-                                name="annualLeaveCount"
-                                min="0"
-                                max="50"
-                                value={rulesFormData.annualLeaveCount}
-                                onChange={handleRulesInputChange}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2"
-                            />
-                        </div>
-
-                        <div>
-                            <label htmlFor="maxConsecutiveDays" className="block text-sm font-medium text-gray-700 mb-1">
-                                Nombre maximum de jours consécutifs
-                            </label>
-                            <input
-                                type="number"
-                                id="maxConsecutiveDays"
-                                name="maxConsecutiveDays"
-                                min="1"
-                                max="30"
-                                value={rulesFormData.maxConsecutiveDays}
-                                onChange={handleRulesInputChange}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2"
-                            />
-                        </div>
-
-                        <div className="flex items-center">
-                            <input
-                                type="checkbox"
-                                id="isActive"
-                                name="isActive"
-                                checked={rulesFormData.isActive}
-                                onChange={handleRulesInputChange}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
-                                Règle active
-                            </label>
-                        </div>
-
-                        <DialogFooter>
-                            <DialogClose asChild>
-                                <Button type="button" variant="outline">
-                                    Annuler
-                                </Button>
-                            </DialogClose>
-                            <Button type="submit">
-                                {isEditingRule ? 'Enregistrer' : 'Ajouter'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
-
-            {/* Modal pour ajuster les congés d'un utilisateur */}
-            <Dialog open={isAdjustmentModalOpen} onOpenChange={setIsAdjustmentModalOpen}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                        <DialogTitle>
-                            Ajustement des congés - {selectedUser?.userName}
-                        </DialogTitle>
-                    </DialogHeader>
-
-                    <form onSubmit={handleAdjustmentSubmit} className="space-y-4 mt-4">
-                        <div>
-                            <label htmlFor="leaveType" className="block text-sm font-medium text-gray-700 mb-1">
-                                Type de congé
-                            </label>
-                            <select
-                                id="leaveType"
-                                name="leaveType"
-                                value={adjustmentFormData.leaveType}
-                                onChange={handleAdjustmentInputChange}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2"
-                            >
-                                <option value="annual">Congés annuels</option>
-                                <option value="recovery">Récupérations</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label htmlFor="adjustmentType" className="block text-sm font-medium text-gray-700 mb-1">
-                                Type d'ajustement
-                            </label>
-                            <select
-                                id="adjustmentType"
-                                name="adjustmentType"
-                                value={adjustmentFormData.adjustmentType}
-                                onChange={handleAdjustmentInputChange}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2"
-                            >
-                                <option value="add">Ajouter des jours</option>
-                                <option value="remove">Retirer des jours</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label htmlFor="numberOfDays" className="block text-sm font-medium text-gray-700 mb-1">
-                                Nombre de jours
-                            </label>
-                            <input
-                                type="number"
-                                id="numberOfDays"
-                                name="numberOfDays"
-                                min="1"
-                                max="30"
-                                value={adjustmentFormData.numberOfDays}
-                                onChange={handleAdjustmentInputChange}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2"
-                            />
-                        </div>
-
-                        <div>
-                            <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
-                                Motif de l'ajustement
-                            </label>
-                            <textarea
-                                id="reason"
-                                name="reason"
-                                rows={3}
-                                value={adjustmentFormData.reason}
-                                onChange={handleAdjustmentInputChange}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2"
-                                placeholder="Motif de l'ajustement..."
-                            />
-                        </div>
-
-                        <DialogFooter>
-                            <DialogClose asChild>
-                                <Button type="button" variant="outline">
-                                    Annuler
-                                </Button>
-                            </DialogClose>
-                            <Button type="submit">
-                                Confirmer l'ajustement
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+            {/* Modale pour Ajustement de Solde Utilisateur */}
+            {isAdjustmentModalOpen && selectedUser && (
+                <Dialog open={isAdjustmentModalOpen} onOpenChange={setIsAdjustmentModalOpen}>
+                    <DialogContent className="sm:max-w-md dark:bg-slate-800 dark:border-slate-700">
+                        <DialogHeader>
+                            <DialogTitle className="dark:text-slate-100">Ajuster le Solde de {selectedUser.userName}</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleAdjustmentSubmit} className="space-y-4 py-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">Type de congé</label>
+                                <select
+                                    name="leaveType"
+                                    value={adjustmentFormData.leaveType}
+                                    onChange={handleAdjustmentInputChange}
+                                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                >
+                                    <option value="annual">Congés Annuels</option>
+                                    <option value="recovery">Congés de Récupération</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">Type d'ajustement</label>
+                                <select
+                                    name="adjustmentType"
+                                    value={adjustmentFormData.adjustmentType}
+                                    onChange={handleAdjustmentInputChange}
+                                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                >
+                                    <option value="add">Ajouter des jours</option>
+                                    <option value="remove">Retirer des jours</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label htmlFor="numberOfDays" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Nombre de jours</label>
+                                <Input
+                                    type="number"
+                                    id="numberOfDays"
+                                    name="numberOfDays"
+                                    value={adjustmentFormData.numberOfDays}
+                                    onChange={handleAdjustmentInputChange}
+                                    className="mt-1 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600"
+                                    min={1}
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="reason" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Raison de l'ajustement</label>
+                                <textarea
+                                    id="reason"
+                                    name="reason"
+                                    rows={3}
+                                    value={adjustmentFormData.reason}
+                                    onChange={handleAdjustmentInputChange}
+                                    className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                />
+                            </div>
+                            <DialogFooter className="mt-6">
+                                <DialogClose asChild>
+                                    <Button type="button" variant="outline" className="dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-700 dark:hover:border-slate-500">Annuler</Button>
+                                </DialogClose>
+                                <Button type="submit" className="dark:bg-primary-600 dark:hover:bg-primary-700 dark:text-white">Appliquer l'Ajustement</Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 };

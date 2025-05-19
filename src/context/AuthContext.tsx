@@ -11,12 +11,22 @@ import React, {
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { User } from '@/types/user'; // Importer le type User
+import {
+  getClientAuthToken,
+  setClientAuthToken,
+  removeClientAuthToken
+} from '@/lib/auth-client-utils'; // Mise à jour de l'import
 // import Cookies from 'js-cookie'; // Plus nécessaire ici
 
 // Ajout d'un intercepteur pour afficher les headers, utile pour le debug
 axios.interceptors.request.use(
   config => {
-    // console.log('Request headers (sans Auth manuel):', config.headers);
+    // Ajouter le token aux headers si disponible
+    const token = getClientAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    console.log('[AuthContext Interceptor] Request headers:', config.url, config.headers);
 
     // Conserver l'ajout du timestamp pour éviter le cache
     if (config.url && (config.url.startsWith('/api/') || config.url.startsWith('api/'))) {
@@ -101,6 +111,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       console.log('AuthContext: Connexion réussie, réponse:', response.data);
 
+      // Stocker le token JWT reçu
+      if (response.data.token) {
+        setClientAuthToken(response.data.token);
+      } else {
+        console.warn('AuthContext: Token JWT non reçu après connexion.');
+      }
+
       // Définir l'utilisateur à partir de la réponse
       setUser(response.data.user);
 
@@ -117,11 +134,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       await axios.post('/api/auth/logout');
+      // Supprimer le token JWT
+      removeClientAuthToken();
       setUser(null);
       router.push('/auth/login');
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
-      // Déconnexion côté client même en cas d'erreur
+      // Supprimer le token JWT et déconnecter côté client même en cas d'erreur
+      removeClientAuthToken();
       setUser(null);
       router.push('/auth/login');
     }

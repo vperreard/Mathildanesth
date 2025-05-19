@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateAuthToken, setAuthToken } from '@/lib/auth-utils';
+import { generateAuthTokenServer, setAuthTokenServer } from '@/lib/auth-server-utils';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
@@ -83,23 +83,24 @@ export async function POST(req: NextRequest) {
 
         console.log(`API LOGIN SUCCESS: Authentification réussie pour ${user.login} (id=${user.id}), génération token...`);
 
-        const token = await generateAuthToken({
+        const token = await generateAuthTokenServer({
             userId: user.id,
             login: user.login, // Utiliser le vrai login pour le token
             role: user.role
         });
 
         console.log(`API LOGIN SUCCESS: Token généré, définition du cookie httpOnly...`);
-        await setAuthToken(token); // Définit le cookie httpOnly
+        await setAuthTokenServer(token); // Mise à jour de l'appel
 
-        // Ne PAS renvoyer le token dans la réponse, le cookie suffit
-        console.log(`API LOGIN SUCCESS: Connexion terminée pour ${user.login}.`);
+        // RENVOYER le token dans la réponse pour que le client puisse le stocker (localStorage)
+        console.log(`API LOGIN SUCCESS: Connexion terminée pour ${user.login}. Envoi du token et de l'utilisateur.`);
 
         // Exclure le mot de passe de la réponse
         const { password: _, ...userWithoutPassword } = user;
 
         return NextResponse.json({
-            user: userWithoutPassword
+            user: userWithoutPassword,
+            token: token // Ajouter le token ici
         });
     } catch (error) {
         console.error('API LOGIN FATAL ERROR:', error);

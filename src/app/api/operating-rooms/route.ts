@@ -1,14 +1,19 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { NextResponse, NextRequest } from 'next/server';
+import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
+        const authToken = request.headers.get('Authorization')?.replace('Bearer ', '');
+
+        if (!authToken) {
+            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        }
+
+        const authResult = await verifyAuthToken(authToken);
+        if (!authResult.authenticated) {
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
@@ -16,16 +21,14 @@ export async function GET(request: Request) {
         const siteId = searchParams.get('siteId');
         const sectorId = searchParams.get('sectorId');
 
-        let whereClause: any = {};
+        let whereClause: Prisma.OperatingRoomWhereInput = {};
 
         if (sectorId) {
-            // Filtrer directement par ID de secteur
             const sectorIdNum = parseInt(sectorId);
             if (!isNaN(sectorIdNum)) {
                 whereClause.operatingSectorId = sectorIdNum;
             }
         } else if (siteId) {
-            // Filtrer par site (via le secteur)
             whereClause.siteId = siteId;
         }
 
@@ -52,12 +55,21 @@ export async function GET(request: Request) {
     }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        // Récupérer et vérifier le token JWT
+        const authToken = request.headers.get('Authorization')?.replace('Bearer ', '');
+
+        if (!authToken) {
+            return NextResponse.json({ error: 'Non autorisé - Token manquant' }, { status: 401 });
         }
+
+        const authResult = await verifyAuthToken(authToken);
+        if (!authResult.authenticated) {
+            return NextResponse.json({ error: authResult.error || 'Non autorisé - Token invalide' }, { status: 401 });
+        }
+        // L'utilisateur est authentifié, on peut continuer
+        // authResult.userId et authResult.role sont disponibles si nécessaire
 
         const data = await request.json();
         const { name, number, operatingSectorId, siteId } = data;

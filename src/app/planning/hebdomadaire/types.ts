@@ -100,6 +100,9 @@ export type Room = {
     sector: string;
     colorCode?: string;
     order?: number;
+    siteId?: string | number;
+    sectorColorCode?: string;
+    sectorDisplayOrder?: number;
 };
 
 export type Shift = 'matin' | 'apresmidi' | 'morning' | 'afternoon' | 'full' | 'MORNING' | 'AFTERNOON' | 'FULL_DAY';

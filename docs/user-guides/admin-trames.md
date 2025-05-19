@@ -1,13 +1,13 @@
-# Guide d'Utilisation - Gestion des Trames d'Affectation
+# Guide d'Utilisation - Gestion des Trames
 
 ## Introduction
 
-Ce guide explique comment utiliser le système de trames d'affectation pour gérer les plannings récurrents des utilisateurs.
+Ce guide explique comment utiliser le système de trames pour gérer les plannings récurrents des utilisateurs.
 
 ## Accès au Système
 
 1. Connectez-vous à l'application avec vos identifiants administrateur
-2. Accédez à la section "Trames d'affectation" dans le menu principal
+2. Accédez à la section "Trames" dans le menu principal
 
 ## Création d'une Trame
 

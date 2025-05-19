@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { ProfessionalRole } from '@prisma/client';
+import { useTheme } from '@/context/ThemeContext';
 import {
     Button,
     Card,
@@ -43,6 +44,7 @@ type ProfessionalRoleData = {
 
 const ProfessionalRoleManagementPanel: React.FC = () => {
     const { user, isLoading: authLoading } = useAuth();
+    const { theme } = useTheme();
     const [roles, setRoles] = useState<ProfessionalRoleData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -171,188 +173,182 @@ const ProfessionalRoleManagementPanel: React.FC = () => {
     if (authLoading) {
         return (
             <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500 dark:border-primary-400"></div>
             </div>
         );
     }
 
     if (!user) {
         return (
-            <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mt-4">
-                <div className="text-center text-red-500">
-                    <p>Vous devez être connecté pour accéder à cette page.</p>
-                </div>
-            </div>
+            <Card className="mt-4 dark:bg-slate-800 dark:border-slate-700">
+                <CardContent className="pt-6">
+                    <div className="text-center text-red-500 dark:text-red-400">
+                        <p>Vous devez être connecté pour accéder à cette page.</p>
+                    </div>
+                </CardContent>
+            </Card>
         );
     }
 
     if (user.role !== 'ADMIN_TOTAL') {
         return (
-            <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mt-4">
-                <div className="text-center text-red-500">
-                    <p>Vous n'avez pas les permissions nécessaires pour accéder à cette page.</p>
-                </div>
-            </div>
+            <Card className="mt-4 dark:bg-slate-800 dark:border-slate-700">
+                <CardContent className="pt-6">
+                    <div className="text-center text-red-500 dark:text-red-400">
+                        <p>Vous n'avez pas les permissions nécessaires pour accéder à cette page.</p>
+                    </div>
+                </CardContent>
+            </Card>
         );
     }
 
     return (
-        <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-6">Gestion des Rôles Professionnels</h2>
-
-            <div className="mb-4 flex justify-between items-center">
-                <h3 className="text-lg font-medium">Configuration des rôles professionnels</h3>
-                <Button onClick={handleAddRole} className="flex items-center">
-                    <PlusIcon className="h-5 w-5 mr-2" />
-                    Ajouter un rôle
-                </Button>
-            </div>
-
-            {isLoading ? (
-                <p className="text-center py-4">Chargement des rôles professionnels...</p>
-            ) : error ? (
-                <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
-                    <p className="text-red-700">{error}</p>
-                </div>
-            ) : (
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Code</TableHead>
-                            <TableHead>Libellé</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Statut</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {roles.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center py-4">
-                                    Aucun rôle professionnel configuré.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            roles.map(role => (
-                                <TableRow key={role.id}>
-                                    <TableCell>{role.code}</TableCell>
-                                    <TableCell>{role.label}</TableCell>
-                                    <TableCell>{role.description}</TableCell>
-                                    <TableCell>
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${role.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                            {role.isActive ? 'Actif' : 'Inactif'}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button
-                                            onClick={() => handleEditRole(role)}
-                                            variant="outline"
-                                            size="sm"
-                                            className="mr-2"
-                                        >
-                                            <PencilIcon className="h-4 w-4 mr-1" />
-                                            Modifier
-                                        </Button>
-                                        <Button
-                                            onClick={() => handleDeleteRole(role.id)}
-                                            variant="outline"
-                                            size="sm"
-                                            className="text-red-600 hover:text-red-800"
-                                        >
-                                            <TrashIcon className="h-4 w-4 mr-1" />
-                                            Supprimer
-                                        </Button>
-                                    </TableCell>
+        <div className={`professional-roles-panel ${theme === 'dark' ? 'bg-slate-850' : 'bg-gray-50'} p-1 rounded-lg`}>
+            <Card className={theme === 'dark' ? "" : "bg-white"}>
+                <CardHeader className="dark:border-slate-700">
+                    <div className="flex justify-between items-center">
+                        <CardTitle className="dark:text-slate-100">Gestion des Rôles Professionnels</CardTitle>
+                        <Button
+                            onClick={handleAddRole}
+                            size="sm"
+                            className="dark:bg-primary-600 dark:hover:bg-primary-700 dark:text-white"
+                        >
+                            <PlusIcon className="h-5 w-5 mr-2" />
+                            Ajouter un rôle
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? (
+                        <p className="text-center py-4 dark:text-slate-400">Chargement des rôles professionnels...</p>
+                    ) : error ? (
+                        <div className="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-400 dark:border-red-600 p-4 mb-4">
+                            <p className="text-red-700 dark:text-red-300">{error}</p>
+                        </div>
+                    ) : (
+                        <Table className={theme === 'dark' ? "dark:border-slate-700" : "bg-white border border-gray-200"}>
+                            <TableHeader className={theme === 'dark' ? "dark:border-slate-600" : "border-b border-gray-200"}>
+                                <TableRow className={theme === 'dark' ? "dark:border-slate-600" : "border-b border-gray-200"}>
+                                    <TableHead className={theme === 'dark' ? "dark:text-slate-300" : "text-gray-900"}>Code</TableHead>
+                                    <TableHead className={theme === 'dark' ? "dark:text-slate-300" : "text-gray-900"}>Libellé</TableHead>
+                                    <TableHead className={theme === 'dark' ? "dark:text-slate-300" : "text-gray-900"}>Description</TableHead>
+                                    <TableHead className={theme === 'dark' ? "dark:text-slate-300" : "text-gray-900"}>Statut</TableHead>
+                                    <TableHead className={theme === 'dark' ? "text-right dark:text-slate-300" : "text-right text-gray-900"}>Actions</TableHead>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {roles.length === 0 ? (
+                                    <TableRow className={theme === 'dark' ? "dark:border-slate-700" : "border-b border-gray-200"}>
+                                        <TableCell colSpan={5} className={theme === 'dark' ? "text-center py-4 dark:text-slate-400" : "text-center py-4 text-gray-600"}>
+                                            Aucun rôle professionnel configuré.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    roles.map(role => (
+                                        <TableRow key={role.id} className={theme === 'dark' ? "dark:border-slate-700 hover:bg-slate-700/50" : "hover:bg-gray-50"}>
+                                            <TableCell className={theme === 'dark' ? "dark:text-slate-200" : "text-gray-900"}>{role.code}</TableCell>
+                                            <TableCell className={theme === 'dark' ? "dark:text-slate-200" : "text-gray-900"}>{role.label}</TableCell>
+                                            <TableCell className={theme === 'dark' ? "dark:text-slate-300" : "text-gray-600"}>{role.description}</TableCell>
+                                            <TableCell>
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${role.isActive ? (theme === 'dark' ? 'bg-green-700 text-green-200' : 'bg-green-100 text-green-800') : (theme === 'dark' ? 'bg-red-700 text-red-200' : 'bg-red-100 text-red-800')}`}>
+                                                    {role.isActive ? 'Actif' : 'Inactif'}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell className={theme === 'dark' ? "text-right dark:text-slate-300" : "text-right text-gray-900"}>
+                                                <Button
+                                                    onClick={() => handleEditRole(role)}
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className={theme === 'dark' ? "mr-2 dark:bg-slate-600 dark:text-slate-200 dark:hover:bg-slate-500 dark:border-slate-500" : "mr-2 bg-primary-600 hover:bg-primary-700 text-white"}
+                                                >
+                                                    <PencilIcon className="h-4 w-4 mr-1" />
+                                                    Modifier
+                                                </Button>
+                                                <Button
+                                                    onClick={() => handleDeleteRole(role.id)}
+                                                    variant="danger"
+                                                    size="sm"
+                                                    className={theme === 'dark' ? "dark:bg-red-700 dark:text-red-200 dark:hover:bg-red-600 dark:border-red-600" : "bg-red-700 hover:bg-red-800 text-white"}
+                                                >
+                                                    <TrashIcon className="h-4 w-4 mr-1" />
+                                                    Supprimer
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
+
+            {isModalOpen && (
+                <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                    <DialogContent className={theme === 'dark' ? "bg-slate-800 border-slate-700" : "bg-white"}>
+                        <DialogHeader>
+                            <DialogTitle className={theme === 'dark' ? "text-slate-100" : "text-gray-900"}>{isEditing ? 'Modifier le rôle' : 'Ajouter un rôle'}</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+                            <div>
+                                <label htmlFor="code" className={`block text-sm font-medium ${theme === 'dark' ? "text-slate-300" : "text-gray-700"}`}>Code</label>
+                                <select
+                                    id="code"
+                                    name="code"
+                                    value={formData.code}
+                                    onChange={handleInputChange}
+                                    className={`mt-1 block w-full pl-3 pr-10 py-2 text-base rounded-md focus:outline-none sm:text-sm ${theme === 'dark' ? "bg-slate-700 text-slate-200 border-slate-600 focus:ring-primary-500 focus:border-primary-500" : "border-gray-300 focus:ring-primary-500 focus:border-primary-500"}`}
+                                    disabled={!!isEditing}
+                                >
+                                    {Object.values(ProfessionalRole).map(roleCode => (
+                                        <option key={roleCode} value={roleCode}>{roleCode}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label htmlFor="label" className={`block text-sm font-medium ${theme === 'dark' ? "text-slate-300" : "text-gray-700"}`}>Libellé</label>
+                                <Input
+                                    type="text"
+                                    id="label"
+                                    name="label"
+                                    value={formData.label || ''}
+                                    onChange={handleInputChange}
+                                    className={`mt-1 ${theme === 'dark' ? "bg-slate-700 text-slate-200 border-slate-600" : "border-gray-300"}`}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="description" className={`block text-sm font-medium ${theme === 'dark' ? "text-slate-300" : "text-gray-700"}`}>Description</label>
+                                <textarea
+                                    id="description"
+                                    name="description"
+                                    rows={3}
+                                    value={formData.description || ''}
+                                    onChange={handleInputChange}
+                                    className={`mt-1 block w-full shadow-sm sm:text-sm rounded-md ${theme === 'dark' ? "bg-slate-700 text-slate-200 border-slate-600 focus:ring-primary-500 focus:border-primary-500" : "border-gray-300 focus:ring-primary-500 focus:border-primary-500"}`}
+                                />
+                            </div>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="isActiveRole"
+                                    name="isActive"
+                                    checked={formData.isActive}
+                                    onChange={handleInputChange}
+                                    className={`h-4 w-4 rounded focus:ring-offset-0 ${theme === 'dark' ? "text-primary-400 border-slate-500 focus:ring-primary-400 bg-slate-700" : "text-primary-600 border-gray-300 focus:ring-primary-500"}`}
+                                />
+                                <label htmlFor="isActiveRole" className={`ml-2 block text-sm ${theme === 'dark' ? "text-slate-200" : "text-gray-900"}`}>Rôle actif</label>
+                            </div>
+                            <DialogFooter className="mt-6">
+                                <DialogClose asChild>
+                                    <Button type="button" variant="outline" className={theme === 'dark' ? "text-slate-200 border-slate-600 hover:bg-slate-700 hover:border-slate-500" : "border-gray-300 hover:bg-gray-50"}>Annuler</Button>
+                                </DialogClose>
+                                <Button type="submit" className={theme === 'dark' ? "bg-primary-600 hover:bg-primary-700 text-white" : "bg-primary-600 hover:bg-primary-700 text-white"}>Enregistrer</Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             )}
-
-            {/* Modal pour ajouter/modifier un rôle */}
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {isEditing ? 'Modifier le rôle professionnel' : 'Ajouter un rôle professionnel'}
-                        </DialogTitle>
-                    </DialogHeader>
-
-                    <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                        <div>
-                            <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">
-                                Code
-                            </label>
-                            <select
-                                id="code"
-                                name="code"
-                                value={formData.code}
-                                onChange={handleInputChange}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2"
-                            >
-                                {Object.values(ProfessionalRole).map(role => (
-                                    <option key={role} value={role}>{role}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label htmlFor="label" className="block text-sm font-medium text-gray-700 mb-1">
-                                Libellé
-                            </label>
-                            <input
-                                type="text"
-                                id="label"
-                                name="label"
-                                value={formData.label}
-                                onChange={handleInputChange}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                                Description
-                            </label>
-                            <textarea
-                                id="description"
-                                name="description"
-                                value={formData.description}
-                                onChange={handleInputChange}
-                                rows={3}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2"
-                            />
-                        </div>
-
-                        <div className="flex items-center">
-                            <input
-                                type="checkbox"
-                                id="isActive"
-                                name="isActive"
-                                checked={formData.isActive}
-                                onChange={handleInputChange}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
-                                Rôle actif
-                            </label>
-                        </div>
-
-                        <DialogFooter>
-                            <DialogClose asChild>
-                                <Button type="button" variant="outline">
-                                    Annuler
-                                </Button>
-                            </DialogClose>
-                            <Button type="submit">
-                                {isEditing ? 'Enregistrer' : 'Ajouter'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 };

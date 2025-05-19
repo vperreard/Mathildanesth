@@ -18,8 +18,8 @@ Le projet `MATHILDA` identifiait un "Système de notification" comme une fonctio
 
 Le modèle `Notification` (`prisma/schema.prisma`) est au cœur du système :
 
-- `id` : Identifiant unique.
-- `userId` : Destinataire de la notification.
+- `id` (Int) : Identifiant unique.
+- `userId` (Int) : Destinataire de la notification (relation `user`).
 - `type` (String) : Catégorie de la notification. Exemples :
   - `NEW_LEAVE_REQUEST` : Nouvelle demande de congé soumise (pour le manager).
   - `LEAVE_STATUS_CHANGED` : Statut d'une demande de congé modifié (pour le demandeur).
@@ -32,9 +32,13 @@ Le modèle `Notification` (`prisma/schema.prisma`) est au cœur du système :
   - `GENERAL_ANNOUNCEMENT` : Annonce générale.
 - `title` (String) : Titre court de la notification.
 - `message` (String) : Contenu détaillé de la notification.
-- `isRead` (Boolean) : Indique si l'utilisateur a lu la notification.
-- `link` (String, optionnel) : Un lien direct vers l'élément concerné dans l'application (ex: la demande de congé, l'affectation modifiée).
+- `read` (Boolean) : Indique si l'utilisateur a lu la notification (nom du champ dans Prisma: `read`).
+- `createdBy` (Int) : ID de l'utilisateur (ou système) ayant initié l'événement (relation `creator`).
 - `createdAt`, `updatedAt`.
+
+Un champ `link` (pour une redirection directe vers l'élément concerné) n'est pas explicitement présent dans le modèle Prisma actuel. Ce lien pourrait être :
+- Inclus dans le corps du `message`.
+- Reconstruit dynamiquement côté client en se basant sur le `type` de la notification et d'éventuels identifiants passés dans le `message` ou un champ `metadata` (Json) qui pourrait être ajouté au modèle `Notification` si nécessaire.
 
 ## 4. Événements Déclenchant des Notifications (Exemples)
 

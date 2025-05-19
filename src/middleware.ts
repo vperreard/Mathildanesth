@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuthToken } from '@/lib/auth-utils';
-import type { UserJWTPayload } from '@/lib/auth-utils';
+import { verifyAuthToken } from '@/lib/auth-server-utils';
+import type { UserJWTPayload, AuthResult } from '@/lib/auth-client-utils';
 
 export async function middleware(request: NextRequest) {
     // Journaliser les informations sur la requête
@@ -29,20 +29,18 @@ export async function middleware(request: NextRequest) {
     // Si un cookie auth_token est trouvé, vérifier et décoder le token
     if (authCookie && authCookie.value) {
         try {
-            const authResult = await verifyAuthToken(authCookie.value);
+            const authResult: AuthResult = await verifyAuthToken(authCookie.value);
 
-            if (authResult.authenticated && authResult.user) {
-                const user = authResult.user as UserJWTPayload;
+            if (authResult.authenticated && authResult.userId && authResult.role) {
                 // Ajouter les informations utilisateur aux en-têtes
-                requestHeaders.set('x-user-id', user.userId.toString());
-                requestHeaders.set('x-user-login', user.login);
-                requestHeaders.set('x-user-role', user.role);
-                console.log('En-têtes ajoutés avec les informations utilisateur');
+                requestHeaders.set('x-user-id', authResult.userId.toString());
+                requestHeaders.set('x-user-role', authResult.role);
+                console.log('En-têtes ajoutés avec les informations utilisateur (ID et rôle)');
             } else {
-                console.warn('Token invalide ou expiré');
+                console.warn('Token invalide ou expiré selon le middleware');
             }
         } catch (error) {
-            console.error('Erreur lors de la vérification du token:', error);
+            console.error('Erreur lors de la vérification du token dans le middleware:', error);
         }
     }
 

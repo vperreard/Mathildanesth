@@ -1,15 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-    DialogDescription,
-    DialogClose,
-} from '@/components/ui/dialog';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Button from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,18 +8,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ActivityType, DetailedActivityInTrame, SlotStatus } from './BlocPlanningTemplateEditor';
 import { JourSemaine as ImportedJourSemaine, PeriodeJour as ImportedPeriodeJour } from '@/app/parametres/trames/EditeurTramesHebdomadaires';
 import { Personnel } from '@/modules/templates/services/PersonnelService';
-import { Salle } from '@/modules/templates/services/SalleService';
+import { OperatingRoomFromAPI as Salle } from '@/modules/templates/services/SalleService';
 import { toast } from 'react-hot-toast';
 
-// Ajout d'une interface pour les spécialités récupérées de l'API
 interface ApiSpecialty {
-    id: number | string; // L'ID peut être numérique ou une chaîne selon l'API
+    id: number | string;
     name: string;
-    // Ajouter d'autres champs si nécessaire, par exemple isPediatric, etc.
 }
 
 interface EditActivityModalProps {
-    isOpen: boolean;
     onClose: () => void;
     onSave: (activity: DetailedActivityInTrame) => void;
     initialActivity: DetailedActivityInTrame | null;
@@ -44,7 +32,6 @@ interface EditActivityModalProps {
 }
 
 const EditActivityModal: React.FC<EditActivityModalProps> = ({
-    isOpen,
     onClose,
     onSave,
     initialActivity,
@@ -59,8 +46,6 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
     iades,
 }) => {
     const [typeActivite, setTypeActivite] = useState<ActivityType>(initialActivity?.typeActivite || targetActivityType);
-
-    // Les IDs stockés dans l'état seront des chaînes (ou null) car c'est ce que les Selects manipulent.
     const [salleId, setSalleId] = useState<string | null>(initialActivity?.salleId ? String(initialActivity.salleId) : (targetSalleId ? String(targetSalleId) : null));
     const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
     const [chirurgienId, setChirurgienId] = useState<string | null>(initialActivity?.chirurgienId ? String(initialActivity.chirurgienId) : null);
@@ -71,176 +56,98 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
         initialActivity?.periode === ImportedPeriodeJour.JOURNEE_COMPLETE ||
         (initialActivity ? false : periode === ImportedPeriodeJour.JOURNEE_COMPLETE)
     );
-
-    // États pour les spécialités chargées depuis l'API
     const [availableSpecialties, setAvailableSpecialties] = useState<ApiSpecialty[]>([]);
     const [isLoadingSpecialties, setIsLoadingSpecialties] = useState<boolean>(false);
     const [errorSpecialties, setErrorSpecialties] = useState<string | null>(null);
 
-    // Log pour déboguer les spécialités
-    useEffect(() => {
-        if (isOpen && chirurgiens.length > 0) {
-            const testSpecialties = new Set(
-                chirurgiens.flatMap(c => c.specialties?.map(s => s.name) || []).filter(Boolean) as string[]
-            );
+    // Utilisation de useCallback pour stabiliser les références des fonctions
+    const fetchSpecialties = useCallback(async () => {
+        setIsLoadingSpecialties(true);
+        setErrorSpecialties(null);
+        try {
+            const response = await fetch('/api/specialties', { credentials: 'include' });
+            if (!response.ok) {
+                let errorMsg = `Erreur API (${response.status})`;
+                try { const errorData = await response.json(); errorMsg = errorData.message || errorMsg; } catch (e) { /* no json */ }
+                throw new Error(errorMsg);
+            }
+            const data: ApiSpecialty[] = await response.json();
+            setAvailableSpecialties(data);
+        } catch (error: any) {
+            console.error("Erreur lors du chargement des spécialités:", error);
+            setErrorSpecialties(error.message || "Impossible de charger les spécialités.");
+        } finally {
+            setIsLoadingSpecialties(false);
         }
-    }, [isOpen, chirurgiens]);
+    }, []);
+
+    useEffect(() => {
+        fetchSpecialties();
+    }, [fetchSpecialties]);
+
+    // Réorganisation du useEffect pour éviter les rendus inutiles
+    useEffect(() => {
+        if (!initialActivity) {
+            setTypeActivite(targetActivityType);
+            setSalleId(targetSalleId ? String(targetSalleId) : null);
+            setSelectedSpecialty(null);
+            setChirurgienId(null);
+            setMarId(null);
+            setIadeId(null);
+            setStatutOuverture(SlotStatus.OUVERT);
+            setIsFullDay(periode === ImportedPeriodeJour.JOURNEE_COMPLETE);
+            return;
+        }
+
+        setTypeActivite(initialActivity.typeActivite);
+        setSalleId(initialActivity.salleId ? String(initialActivity.salleId) : (targetSalleId ? String(targetSalleId) : null));
+        setChirurgienId(initialActivity.chirurgienId ? String(initialActivity.chirurgienId) : null);
+        setMarId(initialActivity.marId ? String(initialActivity.marId) : null);
+        setIadeId(initialActivity.iadeId ? String(initialActivity.iadeId) : null);
+        setStatutOuverture(initialActivity.statutOuverture || SlotStatus.OUVERT);
+        setIsFullDay(initialActivity.periode === ImportedPeriodeJour.JOURNEE_COMPLETE || (!!initialActivity.id && initialActivity.nomAffichage.includes("JOURNEE")));
+
+        // Vérification de spécialité uniquement si chirurgien et spécialités sont disponibles
+        if (initialActivity.chirurgienId && availableSpecialties.length > 0) {
+            const chirId = initialActivity.chirurgienId;
+            const initialChirFromList = chirurgiens.find(c => String(c.id) === chirId);
+            if (initialChirFromList?.specialties?.length) {
+                const foundSpecialty = initialChirFromList.specialties.find(cs =>
+                    availableSpecialties.some(as => String(as.id) === String(cs.id))
+                );
+                setSelectedSpecialty(foundSpecialty ? String(foundSpecialty.id) : null);
+            } else {
+                setSelectedSpecialty(null);
+            }
+        } else {
+            setSelectedSpecialty(null);
+        }
+    }, [initialActivity, targetActivityType, targetSalleId, periode, chirurgiens, availableSpecialties]);
 
     const isTypeLocked = targetActivityType === ActivityType.GARDE || targetActivityType === ActivityType.ASTREINTE || !!targetSalleId;
     const isSalleLocked = !!targetSalleId;
 
-    // Filtrer les chirurgiens en fonction de la spécialité sélectionnée
     const filteredChirurgiens = useMemo(() => {
-        if (!selectedSpecialty) {
-            return chirurgiens;
-        }
-        // S'assurer que selectedSpecialty est un ID (string ou number)
-        const specialtyIdToCompare = selectedSpecialty;
-        return chirurgiens.filter(c =>
-            c.specialties?.some(s => String(s.id) === String(specialtyIdToCompare))
-        );
+        if (!selectedSpecialty) return chirurgiens;
+        return chirurgiens.filter(c => c.specialties?.some(s => String(s.id) === String(selectedSpecialty)));
     }, [chirurgiens, selectedSpecialty]);
 
-    // Chargement des spécialités depuis l'API
-    useEffect(() => {
-        if (isOpen) {
-            const fetchSpecialties = async () => {
-                setIsLoadingSpecialties(true);
-                setErrorSpecialties(null);
-                try {
-                    const response = await fetch('/api/specialties', { credentials: 'include' });
-                    if (!response.ok) {
-                        let errorMsg = `Erreur API (${response.status})`;
-                        try {
-                            const errorData = await response.json();
-                            errorMsg = errorData.message || errorMsg;
-                        } catch (e) {
-                            // Pas de JSON ou autre erreur
-                        }
-                        throw new Error(errorMsg);
-                    }
-                    const data: ApiSpecialty[] = await response.json();
-                    setAvailableSpecialties(data);
-                } catch (error: any) {
-                    console.error("Erreur lors du chargement des spécialités:", error);
-                    setErrorSpecialties(error.message || "Impossible de charger les spécialités.");
-                    // Optionnel: afficher un toast d'erreur
-                    // toast.error("Impossible de charger la liste des spécialités.");
-                } finally {
-                    setIsLoadingSpecialties(false);
-                }
-            };
-            fetchSpecialties();
-        }
-    }, [isOpen]);
-
-    useEffect(() => {
-        if (isOpen) {
-            if (initialActivity) {
-                setTypeActivite(initialActivity.typeActivite);
-                setSalleId(initialActivity.salleId ? String(initialActivity.salleId) : (targetSalleId ? String(targetSalleId) : null));
-
-                const initialChirFromList = chirurgiens.find(c => String(c.id) === String(initialActivity.chirurgienId));
-                if (initialChirFromList && initialChirFromList.specialties && initialChirFromList.specialties.length > 0 && initialChirFromList.specialties[0].name) {
-                    setSelectedSpecialty(initialChirFromList.specialties[0].name);
-                } else {
-                    setSelectedSpecialty(null);
-                }
-                setChirurgienId(initialActivity.chirurgienId ? String(initialActivity.chirurgienId) : null);
-                setMarId(initialActivity.marId ? String(initialActivity.marId) : null);
-                setIadeId(initialActivity.iadeId ? String(initialActivity.iadeId) : null);
-                setStatutOuverture(initialActivity.statutOuverture || SlotStatus.OUVERT);
-                setIsFullDay(initialActivity.periode === ImportedPeriodeJour.JOURNEE_COMPLETE ||
-                    (!!initialActivity.id && initialActivity.nomAffichage.includes("JOURNEE")));
-
-                // Tenter de présélectionner la spécialité si initialActivity et le chirurgien sont là
-                // et que les spécialités API sont chargées
-                if (initialActivity?.chirurgienId && availableSpecialties.length > 0) {
-                    const initialChirFromList = chirurgiens.find(c => String(c.id) === String(initialActivity.chirurgienId));
-                    if (initialChirFromList?.specialties?.length) {
-                        // Chercher la première spécialité du chirurgien qui existe dans availableSpecialties
-                        const foundSpecialty = initialChirFromList.specialties.find(cs =>
-                            availableSpecialties.some(as => String(as.id) === String(cs.id))
-                        );
-                        if (foundSpecialty) {
-                            setSelectedSpecialty(String(foundSpecialty.id));
-                        } else {
-                            setSelectedSpecialty(null); //Fallback si aucune spécialité du chirurgien n'est dans la liste API
-                        }
-                    } else {
-                        setSelectedSpecialty(null); // Pas de spécialités pour ce chirurgien
-                    }
-                } else if (!initialActivity?.chirurgienId) {
-                    setSelectedSpecialty(null); // Pas de chirurgien initial, donc pas de spécialité pré-sélectionnée
-                }
-
-            } else {
-                setTypeActivite(targetActivityType);
-                setSalleId(targetSalleId ? String(targetSalleId) : null);
-                setSelectedSpecialty(null);
-                setChirurgienId(null);
-                setMarId(null);
-                setIadeId(null);
-                setStatutOuverture(SlotStatus.OUVERT);
-                setIsFullDay(periode === ImportedPeriodeJour.JOURNEE_COMPLETE);
-            }
-        }
-    }, [initialActivity, isOpen, targetActivityType, targetSalleId, chirurgiens, periode]);
-
-    // Réinitialiser chirurgienId si la spécialité change et que le chirurgien n'est plus valide
-    useEffect(() => {
-        if (chirurgienId && selectedSpecialty) {
-            // Vérifier si le chirurgienId actuel appartient à la nouvelle selectedSpecialty
-            const chir = chirurgiens.find(c => String(c.id) === chirurgienId);
-            const chirHasSelectedSpecialty = chir?.specialties?.some(s => String(s.id) === String(selectedSpecialty));
-
-            if (!chirHasSelectedSpecialty) {
-                setChirurgienId(null); // Réinitialiser si le chirurgien n'a pas cette spécialité
-            }
-        } else if (!selectedSpecialty) {
-            // Si aucune spécialité n'est sélectionnée, ne pas filtrer les chirurgiens par spécialité,
-            // donc on ne réinitialise pas chirurgienId ici.
-            // La liste filteredChirurgiens montrera tous les chirurgiens.
-        }
-    }, [selectedSpecialty, chirurgienId, chirurgiens]); // Retiré filteredChirurgiens des deps pour éviter boucle
-
-    const handleSpecialtyChange = (specialtyIdValue: string) => {
-        // specialtyIdValue est l'ID de la spécialité (string ou number converti en string)
+    const handleSpecialtyChange = useCallback((specialtyIdValue: string) => {
         setSelectedSpecialty(specialtyIdValue === 'all' ? null : specialtyIdValue);
-    };
+    }, []);
 
-    const handleSaveClick = () => {
-        // Commenter la vérification pour le MAR avec chirurgien en BLOC_SALLE
-        /*
-        if (typeActivite === ActivityType.BLOC_SALLE && chirurgienId && !marId) {
-            toast.error("Un MAR doit être sélectionné si un chirurgien est affecté au bloc.");
-            return;
-        }
-        */
-        // Laisser la vérification pour GARDE/ASTREINTE/CONSULTATION sans MAR, si elle est toujours pertinente
-        if ((typeActivite === ActivityType.GARDE || typeActivite === ActivityType.ASTREINTE || typeActivite === ActivityType.CONSULTATION) && !marId && typeActivite !== ActivityType.CONSULTATION /* Permettre consultation sans MAR pour l'instant */) {
-            // On pourrait vouloir affiner cette condition. Si CONSULTATION peut avoir un MAR optionnel, 
-            // cette vérification doit être ajustée. Pour l'instant, on la garde pour GARDE/ASTREINTE.
-            if (typeActivite === ActivityType.GARDE || typeActivite === ActivityType.ASTREINTE) {
-                toast.error("Un MAR doit être sélectionné pour les gardes et astreintes.");
-                return;
-            }
-        }
-
+    const handleSaveClick = useCallback(() => {
         if (typeActivite === ActivityType.BLOC_SALLE && !salleId) {
             toast.error("Veuillez sélectionner une salle pour le bloc.");
             return;
         }
 
-        // Ajout de la confirmation pour écrasement si 'Journée entière' est cochée
+        // Vérification pour journée complète
         if (isFullDay && (typeActivite === ActivityType.BLOC_SALLE || typeActivite === ActivityType.CONSULTATION)) {
             const confirmationMessage = periode === ImportedPeriodeJour.MATIN
                 ? "Vous allez appliquer cette activité sur la journée entière. Les données de l'après-midi seront écrasées. Confirmez-vous ?"
                 : "Vous allez appliquer cette activité sur la journée entière. Les données du matin seront écrasées. Confirmez-vous ?";
-
-            if (!window.confirm(confirmationMessage)) {
-                return; // L'utilisateur a annulé
-            }
+            if (!window.confirm(confirmationMessage)) return;
         }
 
         const createActivityObject = (currentPeriod: ImportedPeriodeJour, existingId?: string): DetailedActivityInTrame => {
@@ -250,264 +157,271 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
             const selectedMarInfo = mars.find(m => String(m.id) === marId);
             const selectedIadeInfo = iades.find(i => String(i.id) === iadeId);
 
-            console.log("[EditActivityModal] Données pour le nomAffichage:", {
-                typeActivite,
-                salleId,
-                selectedSalleInfo: selectedSalleInfo ? JSON.stringify(selectedSalleInfo) : 'null',
-                chirurgienId,
-                selectedChirurgienInfo: selectedChirurgienInfo ? JSON.stringify(selectedChirurgienInfo) : 'null',
-                marId,
-                selectedMarInfo: selectedMarInfo ? JSON.stringify(selectedMarInfo) : 'null',
-                iadeId,
-                selectedIadeInfo: selectedIadeInfo ? JSON.stringify(selectedIadeInfo) : 'null',
-                statutOuverture
-            });
-
-            const parts: string[] = [];
-
             switch (typeActivite) {
                 case ActivityType.BLOC_SALLE:
-                    if (selectedSalleInfo) parts.push(selectedSalleInfo.nom);
-                    else if (salleId) parts.push(`Salle ID:${salleId}`);
-                    else parts.push("Bloc");
-                    if (selectedChirurgienInfo) parts.push(`/ ${selectedChirurgienInfo.nom}`);
-                    else if (chirurgienId) parts.push(`/ Chir ID:${chirurgienId}`);
-                    const personnelBloc: string[] = [];
-                    if (selectedMarInfo) personnelBloc.push(`M: ${selectedMarInfo.nom}`);
-                    if (selectedIadeInfo) personnelBloc.push(`I: ${selectedIadeInfo.prenom || selectedIadeInfo.nom}`);
-                    if (personnelBloc.length > 0) parts.push(`(${personnelBloc.join(', ')})`);
+                    nomAffichage = selectedSalleInfo ? selectedSalleInfo.name : "Salle non spécifiée";
+                    if (selectedChirurgienInfo) nomAffichage += ` / ${selectedChirurgienInfo.nom}`;
                     break;
                 case ActivityType.CONSULTATION:
-                    parts.push("CONSULTATION");
-                    if (selectedSalleInfo) parts.push(selectedSalleInfo.nom);
-                    else if (salleId) parts.push(`Salle ID:${salleId}`);
-                    if (selectedMarInfo) parts.push(`/ M: ${selectedMarInfo.nom}`);
-                    parts.push(`(${statutOuverture})`);
+                    nomAffichage = `Consultation`;
+                    if (selectedMarInfo) nomAffichage += ` (${selectedMarInfo.nom})`;
+                    else if (selectedSalleInfo) nomAffichage += ` (${selectedSalleInfo.name})`;
                     break;
                 case ActivityType.GARDE:
-                    parts.push("GARDE");
-                    if (selectedMarInfo) parts.push(`/ ${selectedMarInfo.nom}`);
-                    else if (marId) parts.push(`/ MAR ID:${marId}`);
-                    else parts.push("/ MAR requis");
+                    nomAffichage = "GARDE";
+                    if (selectedMarInfo) nomAffichage += ` (${selectedMarInfo.nom})`;
                     break;
                 case ActivityType.ASTREINTE:
-                    parts.push("ASTREINTE");
-                    if (selectedMarInfo) parts.push(`/ ${selectedMarInfo.nom}`);
-                    else if (marId) parts.push(`/ MAR ID:${marId}`);
-                    else parts.push("/ MAR requis");
+                    nomAffichage = "ASTREINTE";
+                    if (selectedMarInfo) nomAffichage += ` (${selectedMarInfo.nom})`;
                     break;
                 default:
-                    const safeTypeActivite = String(typeActivite || '');
-                    parts.push(safeTypeActivite.replace('_', ' '));
-            }
-            nomAffichage = parts.join(' ').trim();
-            if (!nomAffichage) {
-                const safeTypeActiviteFallback = String(typeActivite || '');
-                nomAffichage = `${safeTypeActiviteFallback.replace('_', ' ')} ${salleId ? `Salle ${salleId}` : ''}`.trim();
+                    nomAffichage = "Activité";
             }
 
-            console.log("[EditActivityModal] nomAffichage construit:", nomAffichage);
-            console.log("[EditActivityModal] parts utilisées:", parts);
-
-            const resultActivity: DetailedActivityInTrame = {
-                id: existingId || initialActivity?.id || `new-activity-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            return {
+                id: existingId || initialActivity?.id || targetActivityRowKey + '_' + Date.now(),
                 jourSemaine: jour,
                 periode: currentPeriod,
                 typeActivite,
                 nomAffichage,
-                activityRowKey: targetActivityRowKey ?? undefined,
-                salleId: salleId,
-                chirurgienId: chirurgienId,
-                marId: marId,
-                iadeId: iadeId,
-                statutOuverture: (typeActivite === ActivityType.CONSULTATION || typeActivite === ActivityType.BLOC_SALLE) ? statutOuverture : undefined,
+                salleId,
+                chirurgienId,
+                marId,
+                iadeId,
+                statutOuverture: typeActivite === ActivityType.CONSULTATION || typeActivite === ActivityType.BLOC_SALLE ? statutOuverture : undefined,
+                activityRowKey: targetActivityRowKey,
             };
-
-            console.log("[EditActivityModal] Objet d'activité final:", JSON.stringify(resultActivity, null, 2));
-            return resultActivity;
         };
 
-        if (isFullDay && (typeActivite === ActivityType.BLOC_SALLE || typeActivite === ActivityType.CONSULTATION)) {
-            const activityMatin = createActivityObject(ImportedPeriodeJour.MATIN,
-                initialActivity && initialActivity.periode === ImportedPeriodeJour.MATIN ? initialActivity.id : undefined
-            );
-            console.log("[EditActivityModal] Valeur de activityToSave (MATIN) avant onSave:", JSON.stringify(activityMatin, null, 2));
-            onSave(activityMatin);
+        try {
+            // Création des objets d'activité en fonction du mode journée complète ou non
+            if (isFullDay) {
+                if (typeActivite === ActivityType.GARDE || typeActivite === ActivityType.ASTREINTE) {
+                    const activityJourneeComplete = createActivityObject(ImportedPeriodeJour.JOURNEE_COMPLETE, initialActivity?.id);
+                    onSave(activityJourneeComplete);
+                } else {
+                    const activityMatin = createActivityObject(ImportedPeriodeJour.MATIN,
+                        initialActivity?.periode === ImportedPeriodeJour.MATIN ? initialActivity.id : undefined);
+                    onSave(activityMatin);
 
-            const activityApresMidi = createActivityObject(ImportedPeriodeJour.APRES_MIDI,
-                initialActivity && initialActivity.periode === ImportedPeriodeJour.APRES_MIDI ? initialActivity.id :
-                    (initialActivity && initialActivity.id && isFullDay ? `new-activity-${Date.now()}-am` : undefined)
-            );
-            if (activityApresMidi.id === activityMatin.id && initialActivity?.periode !== ImportedPeriodeJour.APRES_MIDI) {
-                activityApresMidi.id = `new-activity-${Date.now()}-am-${Math.random().toString(36).substr(2, 5)}`;
+                    const activityApresMidi = createActivityObject(ImportedPeriodeJour.APRES_MIDI,
+                        initialActivity?.periode === ImportedPeriodeJour.APRES_MIDI ? initialActivity.id : undefined);
+                    onSave(activityApresMidi);
+                }
+            } else {
+                const activity = createActivityObject(periode, initialActivity?.id);
+                onSave(activity);
             }
 
-            console.log("[EditActivityModal] Valeur de activityToSave (APRES_MIDI) avant onSave:", JSON.stringify(activityApresMidi, null, 2));
-            onSave(activityApresMidi);
-
-        } else {
-            const currentPeriodForSave = (typeActivite === ActivityType.GARDE || typeActivite === ActivityType.ASTREINTE) ? ImportedPeriodeJour.JOURNEE_COMPLETE : periode;
-            const activityToSingleSave = createActivityObject(currentPeriodForSave);
-            console.log("[EditActivityModal] Valeur de activityToSave (SINGLE) avant onSave:", JSON.stringify(activityToSingleSave, null, 2));
-            onSave(activityToSingleSave);
+            // Fermeture propre, sans risk de re-render inutile
+            setTimeout(() => {
+                onClose();
+            }, 0);
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde de l'activité:", error);
+            toast.error("Une erreur est survenue lors de la sauvegarde de l'activité.");
         }
+    }, [typeActivite, salleId, isFullDay, jour, periode, targetActivityRowKey, onSave, onClose,
+        chirurgienId, marId, iadeId, statutOuverture, initialActivity, targetSalleId,
+        salles, chirurgiens, mars, iades]);
 
-        onClose();
-    };
-
-    if (!isOpen) return null;
-    const selectContentClassName = "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md";
+    // Empêcher la propagation des événements pour éviter les fermetures indésirables
+    const stopPropagation = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+    }, []);
 
     return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-[500px] flex flex-col">
-                <DialogHeader>
-                    <DialogTitle>
-                        Éditer l'activité pour {jour} - {" "}
-                        {isFullDay ? (
-                            <span className="text-red-600 font-semibold">MATIN & APRÈS-MIDI</span>
-                        ) : (
-                            periode === ImportedPeriodeJour.JOURNEE_COMPLETE ? 'Journée' : periode
-                        )}
-                    </DialogTitle>
-                    <DialogDescription>
-                        Configurez les détails de l'activité pour ce créneau.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="py-4 flex flex-col space-y-4">
-                    {/* Checkbox Journée Entière */}
-                    {(typeActivite === ActivityType.BLOC_SALLE || typeActivite === ActivityType.CONSULTATION) && periode !== ImportedPeriodeJour.JOURNEE_COMPLETE && (
-                        <div className="flex items-center space-x-2 mb-2">
-                            <Checkbox
-                                id="isFullDayCheckbox"
-                                checked={isFullDay}
-                                onCheckedChange={(checkedState) => setIsFullDay(Boolean(checkedState))}
-                            />
-                            <Label htmlFor="isFullDayCheckbox" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                Journée entière (applique à Matin & Après-midi)
-                            </Label>
-                        </div>
-                    )}
+        <div className="grid gap-4 py-4" onClick={stopPropagation}>
+            <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="activity-type" className="text-right">
+                    Type d\'activité
+                </Label>
+                <Select
+                    value={typeActivite}
+                    onValueChange={(value) => setTypeActivite(value as ActivityType)}
+                    disabled={isTypeLocked}
+                >
+                    <SelectTrigger id="activity-type" className="col-span-3">
+                        <SelectValue placeholder="Sélectionner type activité" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {Object.values(ActivityType).map(type => (
+                            <SelectItem key={type} value={type}>{type.replace(/_/g, ' ')}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
 
-                    {/* Type d'activité */}
-                    <div className="flex flex-col w-full">
-                        <Label htmlFor="typeActiviteModal" className="block text-sm font-medium mb-1">Type</Label>
-                        <Select value={typeActivite} onValueChange={(value) => setTypeActivite(value as ActivityType)} disabled={isTypeLocked}>
-                            <SelectTrigger id="typeActiviteModal" className="w-full"><SelectValue placeholder="Sélectionner type" /></SelectTrigger>
-                            <SelectContent className={selectContentClassName}>
-                                {Object.values(ActivityType).map(type => (
-                                    <SelectItem key={type} value={type}>{String(type).replace('_', ' ')}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Sélecteur de Salle */}
-                    {(typeActivite === ActivityType.BLOC_SALLE || typeActivite === ActivityType.CONSULTATION) && (
-                        <div className="flex flex-col w-full">
-                            <Label htmlFor="salleModal" className="block text-sm font-medium mb-1">Salle</Label>
-                            <Select value={salleId || 'none'} onValueChange={(value) => setSalleId(value === 'none' ? null : value)} disabled={isSalleLocked}>
-                                <SelectTrigger id="salleModal" className="w-full"><SelectValue placeholder="Sélectionner salle" /></SelectTrigger>
-                                <SelectContent className={selectContentClassName}>
-                                    <SelectItem value="none">Aucune</SelectItem>
-                                    {salles.map(s => (
-                                        s.id && <SelectItem key={String(s.id)} value={String(s.id)}>{s.nom}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-
-                    {/* Sélecteur de Spécialité */}
-                    {typeActivite === ActivityType.BLOC_SALLE && (
-                        <div className="flex flex-col w-full">
-                            <Label htmlFor="specialtyModal" className="block text-sm font-medium mb-1">Spécialité</Label>
-                            <Select value={selectedSpecialty || 'all'} onValueChange={handleSpecialtyChange}>
-                                <SelectTrigger id="specialtyModal" className="w-full"><SelectValue placeholder="Toutes spécialités" /></SelectTrigger>
-                                <SelectContent className={selectContentClassName}>
-                                    <SelectItem value="all">Toutes spécialités</SelectItem>
-                                    {availableSpecialties.map((spec) => (
-                                        <SelectItem key={spec.id} value={String(spec.id)}>
-                                            {spec.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-
-                    {/* Sélecteur Chirurgien */}
-                    {typeActivite === ActivityType.BLOC_SALLE && (
-                        <div className="flex flex-col w-full">
-                            <Label htmlFor="chirurgienModal" className="block text-sm font-medium mb-1">Chirurgien</Label>
-                            <Select value={chirurgienId || 'none'} onValueChange={(value) => setChirurgienId(value === 'none' ? null : value)}>
-                                <SelectTrigger id="chirurgienModal" className="w-full"><SelectValue placeholder="Sélectionner chirurgien" /></SelectTrigger>
-                                <SelectContent className={selectContentClassName}>
-                                    <SelectItem value="none">Aucun</SelectItem>
-                                    {filteredChirurgiens.map(c => (
-                                        c.id && <SelectItem key={String(c.id)} value={String(c.id)}>{c.prenom} {c.nom}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-
-                    {/* Statut Ouverture */}
-                    {(typeActivite === ActivityType.BLOC_SALLE || typeActivite === ActivityType.CONSULTATION) && (
-                        <div className="flex flex-col w-full">
-                            <Label htmlFor="statutOuvertureModal" className="block text-sm font-medium mb-1">Statut</Label>
-                            <Select value={statutOuverture} onValueChange={(value) => setStatutOuverture(value as SlotStatus)}>
-                                <SelectTrigger id="statutOuvertureModal" className="w-full"><SelectValue placeholder="Sélectionner statut" /></SelectTrigger>
-                                <SelectContent className={selectContentClassName}>
-                                    {Object.values(SlotStatus).map(stat => (
-                                        <SelectItem key={stat} value={stat}>{String(stat).replace('_', ' ')}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-
-                    {/* Sélecteur MAR */}
-                    {(typeActivite === ActivityType.BLOC_SALLE || typeActivite === ActivityType.CONSULTATION || typeActivite === ActivityType.GARDE || typeActivite === ActivityType.ASTREINTE) && (
-                        <div className="flex flex-col w-full">
-                            <Label htmlFor="marModal" className="block text-sm font-medium mb-1">MAR</Label>
-                            <Select value={marId || 'none'} onValueChange={(value) => setMarId(value === 'none' ? null : value)}>
-                                <SelectTrigger id="marModal" className="w-full"><SelectValue placeholder="Sélectionner MAR" /></SelectTrigger>
-                                <SelectContent className={selectContentClassName}>
-                                    <SelectItem value="none">Aucun</SelectItem>
-                                    {mars.map(m => (
-                                        m.id && <SelectItem key={String(m.id)} value={String(m.id)}>{m.prenom} {m.nom}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-
-                    {/* Sélecteur IADE */}
-                    {typeActivite === ActivityType.BLOC_SALLE && (
-                        <div className="flex flex-col w-full">
-                            <Label htmlFor="iadeModal" className="block text-sm font-medium mb-1">IADE</Label>
-                            <Select value={iadeId || 'none'} onValueChange={(value) => setIadeId(value === 'none' ? null : value)}>
-                                <SelectTrigger id="iadeModal" className="w-full"><SelectValue placeholder="Sélectionner IADE" /></SelectTrigger>
-                                <SelectContent className={selectContentClassName}>
-                                    <SelectItem value="none">Aucun</SelectItem>
-                                    {iades.map(i => (
-                                        i.id && <SelectItem key={String(i.id)} value={String(i.id)}>{i.prenom} {i.nom}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-
+            {(typeActivite === ActivityType.BLOC_SALLE || typeActivite === ActivityType.CONSULTATION) && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="slot-status" className="text-right">
+                        Statut créneau
+                    </Label>
+                    <Select
+                        value={statutOuverture}
+                        onValueChange={(value) => setStatutOuverture(value as SlotStatus)}
+                    >
+                        <SelectTrigger id="slot-status" className="col-span-3">
+                            <SelectValue placeholder="Statut" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={SlotStatus.OUVERT}>Ouvert</SelectItem>
+                            <SelectItem value={SlotStatus.FERME}>Fermé</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
-                <DialogFooter className="mt-2">
-                    <DialogClose asChild>
-                        <Button variant="ghost" onClick={onClose}>Annuler</Button>
-                    </DialogClose>
-                    <Button onClick={handleSaveClick}>Enregistrer</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            )}
+
+            {typeActivite === ActivityType.BLOC_SALLE && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="salle" className="text-right">
+                        Salle
+                    </Label>
+                    <Select
+                        value={salleId === null ? undefined : salleId}
+                        onValueChange={(value) => setSalleId(value === 'none' ? null : value)}
+                        disabled={isSalleLocked}
+                    >
+                        <SelectTrigger id="salle" className="col-span-3">
+                            <SelectValue placeholder="Sélectionner salle" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="none">Aucune</SelectItem>
+                            {salles.map(s => (
+                                <SelectItem
+                                    key={String(s.id)}
+                                    value={String(s.id)}
+                                >
+                                    {s.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
+
+            {(typeActivite === ActivityType.BLOC_SALLE || typeActivite === ActivityType.CONSULTATION) && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="specialty-select" className="text-right">Spécialité (Chir.)</Label>
+                    <Select
+                        value={selectedSpecialty === null ? undefined : selectedSpecialty}
+                        onValueChange={handleSpecialtyChange}
+                        disabled={isLoadingSpecialties}
+                    >
+                        <SelectTrigger id="specialty-select" className="col-span-3">
+                            <SelectValue placeholder="Filtrer par spécialité" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Toutes les spécialités</SelectItem>
+                            {isLoadingSpecialties && <SelectItem value="loading" disabled>Chargement...</SelectItem>}
+                            {errorSpecialties && <SelectItem value="error" disabled>{errorSpecialties}</SelectItem>}
+                            {availableSpecialties.map(spec => (
+                                <SelectItem key={spec.id} value={String(spec.id)}>{spec.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
+
+            {(typeActivite === ActivityType.BLOC_SALLE) && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="chirurgien" className="text-right">
+                        Chirurgien
+                    </Label>
+                    <Select
+                        value={chirurgienId === null ? undefined : chirurgienId}
+                        onValueChange={(value) => setChirurgienId(value === 'none' ? null : value)}
+                        disabled={!salleId && typeActivite === ActivityType.BLOC_SALLE && !isTypeLocked}
+                    >
+                        <SelectTrigger id="chirurgien" className="col-span-3">
+                            <SelectValue placeholder="Sélectionner chirurgien" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="none">Aucun</SelectItem>
+                            {filteredChirurgiens.map(c => (
+                                <SelectItem key={String(c.id)} value={String(c.id)}>{c.nom} {c.prenom}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
+
+            <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="mar" className="text-right">
+                    MAR
+                </Label>
+                <Select
+                    value={marId === null ? undefined : marId}
+                    onValueChange={(value) => setMarId(value === 'none' ? null : value)}
+                >
+                    <SelectTrigger id="mar" className="col-span-3">
+                        <SelectValue placeholder="Sélectionner MAR" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="none">Aucun</SelectItem>
+                        {mars.map(m => (
+                            <SelectItem key={String(m.id)} value={String(m.id)}>{m.nom} {m.prenom}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {(typeActivite === ActivityType.BLOC_SALLE) && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="iade" className="text-right">
+                        IADE
+                    </Label>
+                    <Select
+                        value={iadeId === null ? undefined : iadeId}
+                        onValueChange={(value) => setIadeId(value === 'none' ? null : value)}
+                    >
+                        <SelectTrigger id="iade" className="col-span-3">
+                            <SelectValue placeholder="Sélectionner IADE" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="none">Aucun</SelectItem>
+                            {iades.map(i => (
+                                <SelectItem key={String(i.id)} value={String(i.id)}>{i.nom} {i.prenom}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
+
+            {(typeActivite === ActivityType.BLOC_SALLE || typeActivite === ActivityType.CONSULTATION || typeActivite === ActivityType.GARDE || typeActivite === ActivityType.ASTREINTE) && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <div />
+                    <div className="col-span-3 flex items-center space-x-2">
+                        <Checkbox
+                            id="isFullDay"
+                            checked={isFullDay}
+                            onCheckedChange={(checked) => setIsFullDay(checked as boolean)}
+                        />
+                        <Label htmlFor="isFullDay">Journée entière</Label>
+                    </div>
+                </div>
+            )}
+
+            <div className="flex justify-end space-x-2 mt-6">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                        // Utilisation de setTimeout pour éviter les problèmes de re-render
+                        setTimeout(() => onClose(), 0);
+                    }}
+                >
+                    Annuler
+                </Button>
+                <Button
+                    type="button"
+                    onClick={handleSaveClick}
+                >
+                    Sauvegarder
+                </Button>
+            </div>
+        </div>
     );
 };
 

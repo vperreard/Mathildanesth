@@ -28,6 +28,7 @@ import {
 import { DialogClose } from "@radix-ui/react-dialog";
 import { toast } from 'react-hot-toast';
 import { DropResult } from 'react-beautiful-dnd';
+import { useTheme } from '@/context/ThemeContext'; // AJOUT
 
 // Activation du mode debug
 const DEBUG_MODE = process.env.NODE_ENV === 'development';
@@ -42,6 +43,7 @@ interface OperatingRoom {
     colorCode?: string;
     isActive?: boolean;
     sectorId?: number;
+    operatingSector?: OperatingSector; // Ajout pour refléter les données API
     supervisionRules?: {
         maxRoomsPerSupervisor?: number;
     };
@@ -197,7 +199,10 @@ const normalizeOperatingRooms = (rooms: any[]): OperatingRoom[] => {
         ...room,
         name: room.name || '',
         number: room.number || '',
-        sector: room.sector ? normalizeSectorName(room.sector) : '',
+        // Utiliser room.operatingSector.name si disponible, sinon le room.sector existant (improbable), sinon vide.
+        sector: room.operatingSector?.name
+            ? normalizeSectorName(room.operatingSector.name)
+            : (room.sector ? normalizeSectorName(room.sector) : ''),
         roomType: room.roomType || room.type || 'STANDARD',
         isActive: room.isActive !== false,
         displayOrder: room.displayOrder || 0
@@ -435,7 +440,7 @@ const getSectorRooms = (sectorName: string, allRooms: OperatingRoom[], sectorsDa
 };
 
 const OperatingRoomsConfigPanel: React.FC = () => {
-    // États pour les données
+    const { theme } = useTheme(); // AJOUT
     const [rooms, setRooms] = useState<OperatingRoom[]>([]);
     const [sectors, setSectors] = useState<OperatingSector[]>([]);
     const [sites, setSites] = useState<OperatingSite[]>([]);
@@ -486,7 +491,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
         siteId: null
     });
 
-    // Stocker l'état initial des salles au début de la réorganisation
+    // État pour stocker l'état initial des salles lors de la réorganisation
     const [initialRoomsStateForReorder, setInitialRoomsStateForReorder] = useState<OperatingRoom[]>([]);
 
     // Calcul des salles filtrées par site
@@ -605,6 +610,26 @@ const OperatingRoomsConfigPanel: React.FC = () => {
             if (sitesResponse.data && Array.isArray(sitesResponse.data)) {
                 console.log("[ORCP_LOG] Contenu de sitesResponse.data:", sitesResponse.data);
                 sitesList = sitesResponse.data;
+            }
+
+            // Enrichir les salles avec le nom de leur secteur à partir de sectorId
+            if (normalizedRooms.length > 0 && normalizedSectors.length > 0) {
+                normalizedRooms = normalizedRooms.map(room => {
+                    if (room.sectorId) {
+                        const foundSector = normalizedSectors.find(s => s.id === room.sectorId);
+                        if (foundSector) {
+                            // Utiliser le nom normalisé du secteur trouvé pour le champ room.sector
+                            // Cela assure la cohérence avec la logique de getSectorRooms qui s'attend à des noms normalisés.
+                            return { ...room, sector: normalizeSectorName(foundSector.name) };
+                        }
+                        else {
+                            // Si sectorId ne correspond à aucun secteur connu, garder room.sector tel quel (probablement vide)
+                            // et logguer cette situation si pertinent.
+                            if (DEBUG_MODE) console.warn(`[ORCP_WARN] Salle ID ${room.id} a un sectorId ${room.sectorId} qui ne correspond à aucun secteur connu.`);
+                        }
+                    }
+                    return room;
+                });
             }
 
             // Associer les sites aux salles
@@ -962,116 +987,13 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
     // Gestionnaires d'événements pour le drag & drop
     const handleGlobalReorderClick = async () => {
-        if (isReordering) { // Si on TERMINE la réorganisation
+        if (isReordering) {
             setIsReordering(false);
-
-            const updates: { id: number; sectorId?: number | null; displayOrder?: number; siteId?: number | null }[] = [];
-
-            // Utiliser une copie profonde de l'état actuel des salles et de l'ordre pour analyse
-            const finalRoomsState = JSON.parse(JSON.stringify(rooms)) as OperatingRoom[];
-            const finalRoomOrder = JSON.parse(JSON.stringify(roomOrder)) as RoomOrderConfig;
-
-            initialRoomsStateForReorder.forEach(initialRoom => {
-                const finalRoom = finalRoomsState.find(r => r.id === initialRoom.id);
-                if (!finalRoom) return; // Salle supprimée pendant la réorganisation? Ignorer pour l'instant.
-
-                let finalSectorId: number | null = null;
-                let finalDisplayOrder: number | undefined = undefined;
-
-                // 1. Déterminer le secteur final et l'ordre final de la salle
-                let foundInSector = false;
-                for (const sectorNameKey in finalRoomOrder) {
-                    const orderInSector = finalRoomOrder[sectorNameKey];
-                    const roomIndexInSector = orderInSector.indexOf(finalRoom.id);
-                    if (roomIndexInSector !== -1) {
-                        const sectorObject = sectors.find(s => normalizeSectorName(s.name) === sectorNameKey);
-                        finalSectorId = sectorObject?.id ?? null;
-                        finalDisplayOrder = roomIndexInSector;
-                        foundInSector = true;
-                        break;
-                    }
-                }
-                // Si non trouvée dans un secteur nommé, elle est considérée comme non classée (sectorId = null)
-                if (!foundInSector) {
-                    finalSectorId = null;
-                    // Pour les salles non classées, displayOrder peut ne pas être géré par finalRoomOrder.
-                    // On peut se baser sur l'ordre dans finalRoomsState.filter(r => !r.sectorId)
-                    // ou laisser undefined si l'API gère cela.
-                    // Par simplicité, on ne définit pas explicitement displayOrder pour les non classées ici,
-                    // sauf si leur sectorId initial était différent de null.
-                }
-
-                // 2. Comparer avec l'état initial et construire le payload de mise à jour
-                const needsSectorUpdate = initialRoom.sectorId !== finalSectorId;
-                // Pour displayOrder, on le met à jour s'il est défini et différent,
-                // ou si le secteur a changé et qu'un ordre est maintenant applicable/non applicable.
-                const needsOrderUpdate = (finalDisplayOrder !== undefined && initialRoom.displayOrder !== finalDisplayOrder) || (needsSectorUpdate && finalDisplayOrder !== undefined);
-
-                if (needsSectorUpdate || needsOrderUpdate) {
-                    const updatePayload: { id: number; sectorId?: number | null; displayOrder?: number; siteId?: number | null } = { id: finalRoom.id };
-
-                    if (needsSectorUpdate) {
-                        updatePayload.sectorId = finalSectorId;
-                    }
-                    // Envoyer l'ordre seulement s'il est applicable (salle dans un secteur nommé)
-                    if (finalDisplayOrder !== undefined && finalSectorId !== null) {
-                        updatePayload.displayOrder = finalDisplayOrder;
-                    }
-
-                    // Important : Si seul l'ordre a changé mais que la salle est dans un secteur,
-                    // il faut quand même envoyer le sectorId pour que l'API sache de quel secteur il s'agit.
-                    if (needsOrderUpdate && !needsSectorUpdate && finalSectorId !== null) {
-                        updatePayload.sectorId = finalSectorId; // Réaffirmer le sectorId
-                    }
-
-                    // Conserver le siteId. Les changements de site se font via le formulaire.
-                    if (finalRoom.siteId) {
-                        updatePayload.siteId = finalRoom.siteId;
-                    } else if (initialRoom.siteId && !finalRoom.siteId) {
-                        updatePayload.siteId = null; // Si le siteId a été explicitement enlevé (peu probable ici)
-                    }
-
-                    // Éviter d'envoyer un payload avec seulement l'ID si rien n'a changé
-                    if (Object.keys(updatePayload).length > 1) {
-                        updates.push(updatePayload);
-                    }
-                }
-            });
-
-            console.log("[ORCP_SAVE_DEBUG] Données à sauvegarder pour les salles:", JSON.parse(JSON.stringify(updates)));
-
-            if (updates.length > 0) {
-                try {
-                    const apiBaseUrl = window.location.origin;
-                    // La route est /api/operating-rooms/batch-update-sector et utilise POST
-                    await axios.post(`${apiBaseUrl}/api/operating-rooms/batch-update-sector`, { rooms: updates });
-                    toast.success(`${updates.length} salle(s) mise(s) à jour avec succès.`);
-                    fetchData(); // Recharger les données après la sauvegarde
-                } catch (error) {
-                    console.error("Erreur lors de la sauvegarde des modifications:", error);
-                    let errorMessage = "Erreur lors de la sauvegarde des modifications.";
-                    if (axios.isAxiosError(error) && error.response && error.response.data) {
-                        const apiError = error.response.data.message || error.response.data.error || JSON.stringify(error.response.data);
-                        errorMessage += ` Détail API: ${apiError}`;
-                        console.error('API Error Response:', error.response.data);
-                    }
-                    toast.error(errorMessage, { duration: 6000 });
-                }
-            } else {
-                toast('Aucune modification détectée à sauvegarder.'); // Changé en toast simple
-            }
-
-            // Réinitialiser les états de drag & drop et l'état initial
-            setDraggedItem(null);
-            setDragOverIndex(null);
-            setDragOverTarget(null);
-            setInitialRoomsStateForReorder([]);
-
-        } else { // Si on ACTIVE la réorganisation
+            // Sauvegarder les changements ici si nécessaire
+        } else {
+            setInitialRoomsStateForReorder([...rooms]);
             setIsReordering(true);
-            // Sauvegarder une copie profonde de l'état actuel des salles
-            setInitialRoomsStateForReorder(JSON.parse(JSON.stringify(rooms)));
-            toast("Mode réorganisation activé. Glissez-déposez les salles pour changer leur secteur ou leur ordre.", { duration: 4000 }); // Changé en toast simple
+            toast("Mode réorganisation activé. Glissez-déposez les salles pour changer leur secteur ou leur ordre.", { duration: 4000 });
         }
     };
 
@@ -1291,10 +1213,10 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
     // Rendu du composant
     return (
-        <div className="container mx-auto p-4">
+        <div className={`container mx-auto p-4 ${theme === 'dark' ? 'bg-slate-900' : ''}`}>
             <div className="mb-3">
-                <h1 className="text-2xl font-bold mb-2">Configuration des salles opératoires</h1>
-                <p className="text-gray-600">
+                <h1 className="text-2xl font-bold mb-2 dark:text-slate-100">Configuration des salles opératoires</h1>
+                <p className="text-gray-600 dark:text-slate-400">
                     Gérez vos salles d'opération et organisez-les par secteurs.
                 </p>
             </div>
@@ -1304,29 +1226,29 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                     <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
                 </div>
             ) : error ? (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 dark:bg-red-900/30 dark:border-red-700/50 dark:text-red-300">
                     <span className="block sm:inline">{error}</span>
                 </div>
             ) : (
                 <>
                     {/* Filtres par site avec boutons */}
                     {sites.length > 0 && (
-                        <div className="mb-3 bg-white p-3 rounded-lg shadow border border-gray-200">
+                        <div className="mb-3 bg-white dark:bg-slate-900 p-3 rounded-lg shadow border border-gray-200 dark:border-slate-700">
                             <div className="flex flex-col gap-2">
                                 <div>
-                                    <h3 className="text-md font-semibold text-gray-700">Filtrer par site</h3>
-                                    <p className="text-xs text-gray-500 mt-1">Sélectionnez un site pour affiner la vue.</p>
+                                    <h3 className="text-md font-semibold text-gray-700 dark:text-slate-200">Filtrer par site</h3>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Sélectionnez un site pour affiner la vue.</p>
                                 </div>
                                 <div className="flex flex-wrap gap-2 mt-1">
                                     {/* Bouton "Tous les sites" */}
                                     <button
                                         onClick={() => setSelectedSiteId(null)}
                                         className={`flex items-center px-3 py-1.5 rounded-md border transition-all duration-200 text-sm focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-slate-500 ${selectedSiteId === null
-                                            ? 'bg-slate-700 hover:bg-slate-600 text-white shadow-md'
-                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 hover:border-gray-400 hover:shadow-sm'
+                                            ? 'bg-slate-700 hover:bg-slate-600 text-white shadow-md dark:bg-primary-600 dark:hover:bg-primary-700'
+                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 hover:border-gray-400 hover:shadow-sm dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-600'
                                             }`}
                                     >
-                                        <span className={`h-2.5 w-2.5 rounded-full mr-2 ${selectedSiteId === null ? 'bg-slate-400' : 'bg-slate-500'}`}></span>
+                                        <span className={`h-2.5 w-2.5 rounded-full mr-2 ${selectedSiteId === null ? (theme === 'dark' ? 'bg-slate-400' : 'bg-slate-500') : (theme === 'dark' ? 'bg-slate-500' : 'bg-slate-400')}`}></span>
                                         Tous les sites
                                     </button>
 
@@ -1336,13 +1258,17 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                             key={site.id}
                                             onClick={() => setSelectedSiteId(site.id)}
                                             className={`flex items-center px-3 py-1.5 rounded-md border transition-all duration-200 text-sm focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-slate-500 ${selectedSiteId === site.id
-                                                ? 'bg-slate-700 hover:bg-slate-600 text-white shadow-md'
-                                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 hover:border-gray-400 hover:shadow-sm'
+                                                ? 'bg-slate-700 hover:bg-slate-600 text-white shadow-md dark:bg-primary-600 dark:hover:bg-primary-700'
+                                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 hover:border-gray-400 hover:shadow-sm dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-600'
                                                 }`}
                                         >
                                             <span
                                                 className="h-2.5 w-2.5 rounded-full mr-2"
-                                                style={{ backgroundColor: selectedSiteId === site.id ? 'white' : (site.colorCode || getSiteColor(site.id)) }}
+                                                style={{
+                                                    backgroundColor: selectedSiteId === site.id
+                                                        ? (theme === 'dark' ? 'white' : (site.colorCode || getSiteColor(site.id)))
+                                                        : (theme === 'dark' ? `${site.colorCode || getSiteColor(site.id)}B3` : (site.colorCode || getSiteColor(site.id)))
+                                                }}
                                             ></span>
                                             {site.name}
                                         </button>
@@ -1351,11 +1277,11 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
                                 {/* Affichage du filtre actif */}
                                 {selectedSiteId && (
-                                    <div className="mt-2 flex items-center text-xs text-white py-1 px-2.5 rounded-full inline-block bg-blue-700 shadow">
+                                    <div className="mt-2 flex items-center text-xs text-white py-1 px-2.5 rounded-full inline-block bg-blue-700 dark:bg-primary-500 shadow">
                                         <span>Filtre : {sites.find(s => s.id === selectedSiteId)?.name}</span>
                                         <button
                                             onClick={() => setSelectedSiteId(null)}
-                                            className="ml-1.5 text-white hover:text-blue-200"
+                                            className="ml-1.5 text-white hover:text-blue-200 dark:hover:text-primary-200"
                                             aria-label="Effacer le filtre"
                                         >
                                             <XMarkIcon className="h-3.5 w-3.5" />
@@ -1368,11 +1294,11 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
                     {/* Bouton d'ajout */}
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-bold text-gray-800">Salles d'opération</h2>
+                        <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100">Salles d'opération</h2>
                         <div className="flex gap-3">
                             <Button
                                 onClick={handleAddClick}
-                                className="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                className="bg-blue-700 hover:bg-blue-800 text-white dark:bg-primary-600 dark:hover:bg-primary-700 font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-primary-500 focus:ring-offset-2"
                             >
                                 <PlusIcon className="h-5 w-5 mr-2" />
                                 Ajouter une salle
@@ -1383,8 +1309,8 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                 className={`
                                     font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2
                                     ${isReordering
-                                        ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white focus:ring-red-500'
-                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 focus:ring-gray-400'}
+                                        ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white focus:ring-red-500 dark:focus:ring-red-500'
+                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100 focus:ring-gray-400 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-600 dark:focus:ring-slate-500'}
                                 `}
                             >
                                 <ArrowsUpDownIcon className="h-5 w-5 mr-2" />
@@ -1395,7 +1321,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
                     {/* Message de succès */}
                     {showSuccess && (
-                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
+                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 dark:bg-green-900/30 dark:border-green-700/50 dark:text-green-300">
                             <span className="block sm:inline">Les modifications ont été enregistrées avec succès.</span>
                         </div>
                     )}
@@ -1412,7 +1338,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                             .map((sectorName) => {
                                 const sectorRooms = getSortedSectorRooms(sectorName);
                                 const sectorObject = sectors.find(s => normalizeSectorName(s.name) === normalizeSectorName(sectorName));
-                                const sectorColor = sectorObject?.colorCode || '#E5E7EB';
+                                const sectorColor = sectorObject?.colorCode || (theme === 'dark' ? '#334155' : '#E5E7EB'); // slate-700 for dark, gray-200 for light as default
 
                                 const isColorDark = (color: string): boolean => {
                                     if (!color.startsWith('#')) return false;
@@ -1424,14 +1350,15 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                     return luminance < 128;
                                 };
 
-                                const textColorClass = 'text-gray-800';
-                                const subTextColorClass = 'text-gray-500';
+                                const textColorClass = theme === 'dark' ? 'text-slate-100' : 'text-gray-800'; // Simplifié pour le test
+                                const subTextColorClass = theme === 'dark' ? 'text-slate-300' : 'text-gray-500';
+                                const badgeBgClass = isColorDark(sectorColor) && theme === 'dark' ? 'bg-black/20 hover:bg-black/30' : (theme === 'dark' ? 'bg-slate-600 hover:bg-slate-500' : 'bg-gray-500/10 hover:bg-gray-500/20');
 
                                 return (
                                     <div
                                         key={sectorName}
-                                        className={`rounded-xl shadow-lg py-3 px-4 ${isReordering ? 'relative border-2 border-transparent' : ''} ${dragOverTarget?.sectorName === sectorName && draggedItem && draggedItem.originalSectorName !== sectorName ? 'border-blue-400 ring-2 ring-blue-300 ring-opacity-75' : ''} transition-all duration-150`}
-                                        style={{ backgroundColor: sectorColor ? `${sectorColor}26` : 'rgba(239, 246, 255, 0.4)' }}
+                                        className={`rounded-xl shadow-lg py-3 px-4 ${isReordering ? 'relative border-2 border-transparent' : ''} ${dragOverTarget?.sectorName === sectorName && draggedItem && draggedItem.originalSectorName !== sectorName ? 'border-blue-400 ring-2 ring-blue-300 ring-opacity-75 dark:border-blue-500 dark:ring-blue-400' : ''} transition-all duration-150`}
+                                        style={{ backgroundColor: theme === 'dark' ? `${sectorColor}B3` : `${sectorColor}3A` }} // Opacité ~70% pour le fond du secteur en sombre
                                         data-sector-name={sectorName}
                                         onDragOver={(e) => {
                                             if (isReordering && draggedItem && draggedItem.originalSectorName !== sectorName) {
@@ -1460,7 +1387,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                         <div className="flex justify-between items-center mb-3">
                                             <h3 className={`text-lg font-bold flex items-center ${textColorClass}`}>
                                                 <span className="flex-grow tracking-tight">{sectorName}</span>
-                                                <span className={`text-xs font-medium ml-3 px-1.5 py-0.5 rounded-full ${isColorDark(sectorColor) ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-500/5 hover:bg-gray-500/10'} ${subTextColorClass}`}>
+                                                <span className={`text-xs font-medium ml-3 px-1.5 py-0.5 rounded-full ${badgeBgClass} ${subTextColorClass}`}>
                                                     {sectorRooms.length} salle{sectorRooms.length !== 1 ? 's' : ''}
                                                 </span>
                                             </h3>
@@ -1468,8 +1395,8 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
                                         {sectorRooms.length === 0 && isReordering ? (
                                             <div
-                                                className="h-24 border-2 border-dashed border-gray-400/50 rounded-lg flex items-center justify-center text-gray-500/70 hover:border-blue-500/70 hover:bg-blue-500/5 transition-colors duration-200"
-                                                style={{ backgroundColor: sectorColor ? `${sectorColor}1A` : 'rgba(239, 246, 255, 0.2)' }}
+                                                className="h-24 border-2 border-dashed border-gray-400/50 dark:border-slate-600/50 rounded-lg flex items-center justify-center text-gray-500/70 dark:text-slate-500 hover:border-blue-500/70 dark:hover:border-blue-400 hover:bg-blue-500/5 dark:hover:bg-blue-900/20 transition-colors duration-200"
+                                                style={{ backgroundColor: theme === 'dark' ? `${sectorColor}80` : `${sectorColor}1A` }} // Opacité ~50% pour la zone de drop
                                                 onDragOver={(e) => handleRoomDragOver(e, 0, sectorName)}
                                                 onDragLeave={(e) => handleRoomDragLeave(e, sectorName)}
                                                 onDrop={(e) => handleRoomDrop(e, 0, sectorName)}
@@ -1479,19 +1406,19 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                         ) : sectorRooms.length === 0 ? (
                                             <p className={`italic text-sm ${subTextColorClass}`}>Aucune salle dans ce secteur</p>
                                         ) : (
-                                            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 ${isReordering ? 'p-2 border-2 border-dashed border-transparent rounded-lg' : ''} ${isReordering && draggedItem && draggedItem.originalSectorName !== sectorName && !dragOverTarget?.sectorName ? 'hover:border-blue-400/50' : ''}`}
+                                            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 ${isReordering ? 'p-2 border-2 border-dashed border-transparent dark:border-transparent rounded-lg' : ''} ${isReordering && draggedItem && draggedItem.originalSectorName !== sectorName && !dragOverTarget?.sectorName ? 'hover:border-blue-400/50 dark:hover:border-blue-500/50' : ''}`}
                                                 data-sector-name={sectorName}
                                             >
                                                 {sectorRooms.map((room, index) => (
                                                     <div
                                                         key={room.id}
                                                         className={`room-item border rounded-xl py-2.5 px-3 flex items-center justify-between group transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-1 ${isReordering
-                                                            ? 'cursor-move bg-white/80 backdrop-blur-md hover:bg-blue-50/80'
-                                                            : 'bg-white/80 backdrop-blur-sm hover:bg-slate-50/70'
+                                                            ? 'cursor-move bg-white/80 backdrop-blur-md hover:bg-blue-50/80 dark:bg-slate-700/80 dark:hover:bg-primary-700/60'
+                                                            : 'bg-white/80 backdrop-blur-sm hover:bg-slate-50/70 dark:bg-slate-700/70 dark:hover:bg-slate-600/70'
                                                             } ${draggedItem?.id === room.id ? 'opacity-40 scale-90 shadow-xl' : ''} 
-                                                          ${dragOverTarget?.sectorName === sectorName && dragOverTarget?.index === index ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-current shadow-lg' : 'border-gray-200/70'
+                                                          ${dragOverTarget?.sectorName === sectorName && dragOverTarget?.index === index ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-current shadow-lg dark:ring-blue-500 dark:ring-offset-slate-800' : 'border-gray-200/70 dark:border-slate-600/70'
                                                             }`}
-                                                        style={{ borderColor: dragOverTarget?.sectorName === sectorName && dragOverTarget?.index === index ? '' : (sectorColor ? `${sectorColor}26` : 'rgba(209, 213, 219, 0.3)') }}
+                                                        style={{ borderColor: dragOverTarget?.sectorName === sectorName && dragOverTarget?.index === index ? '' : (theme === 'dark' ? `${sectorColor}80` : `${sectorColor}3A`) }}
                                                         data-room-id={room.id}
                                                         draggable={isReordering}
                                                         onDragStart={(e) => handleRoomDragStart(e, room.id, index, sectorName)}
@@ -1501,14 +1428,14 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                                         onDrop={(e) => handleRoomDrop(e, index, sectorName)}
                                                     >
                                                         <div className="flex-grow">
-                                                            <div className="font-bold text-gray-700 text-base group-hover:text-blue-600 transition-colors">{room.name}</div>
-                                                            <div className="text-xs text-gray-500 group-hover:text-gray-600">N° {room.number || '-'}</div>
+                                                            <div className="font-bold text-gray-700 text-base group-hover:text-blue-600 transition-colors dark:text-slate-100 dark:group-hover:text-primary-300">{room.name}</div>
+                                                            <div className="text-xs text-gray-500 group-hover:text-gray-600 dark:text-slate-400 dark:group-hover:text-slate-300">N° {room.number || '-'}</div>
                                                         </div>
                                                         <div className={`flex space-x-1 ${isReordering ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'} transition-opacity duration-200`}>
                                                             <button
                                                                 onClick={() => handleEditClick(room)}
                                                                 title="Modifier"
-                                                                className="p-2 rounded-lg text-gray-400 hover:bg-slate-100 hover:text-blue-600 transition-all duration-150 transform hover:scale-110"
+                                                                className="p-2 rounded-lg text-gray-400 hover:bg-slate-100 hover:text-blue-600 transition-all duration-150 transform hover:scale-110 dark:text-slate-400 dark:hover:bg-slate-600 dark:hover:text-primary-400"
                                                                 disabled={isReordering}
                                                             >
                                                                 <PencilIcon className="h-4 w-4" />
@@ -1516,7 +1443,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                                             <button
                                                                 onClick={() => handleDeleteClick(room.id)}
                                                                 title="Supprimer"
-                                                                className="p-2 rounded-lg text-gray-400 hover:bg-red-100 hover:text-red-600 transition-all duration-150 transform hover:scale-110"
+                                                                className="p-2 rounded-lg text-gray-400 hover:bg-red-100 hover:text-red-600 transition-all duration-150 transform hover:scale-110 dark:text-slate-400 dark:hover:bg-red-700/30 dark:hover:text-red-400"
                                                                 disabled={isReordering}
                                                             >
                                                                 <TrashIcon className="h-4 w-4" />
@@ -1538,7 +1465,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
                     {/* Section pour les salles sans secteur défini ou non affichées ailleurs */}
                     <div
-                        className={`mt-3 rounded-lg p-2 ${isReordering ? 'bg-yellow-50 border-2 border-dashed border-yellow-400 hover:border-yellow-500' : 'bg-gray-100'}`}
+                        className={`mt-3 rounded-lg p-2 ${isReordering ? 'bg-yellow-50 border-2 border-dashed border-yellow-400 hover:border-yellow-500 dark:bg-yellow-900/20 dark:border-yellow-600/50 dark:hover:border-yellow-500' : 'bg-gray-100 dark:bg-slate-800 dark:border dark:border-slate-700'}`}
                         data-unclassified-area="true"
                         onDragOver={(e) => {
                             if (isReordering && draggedItem) {
@@ -1564,12 +1491,12 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                             }
                         }}
                     >
-                        <h3 className="text-base font-semibold mb-1">Salles sans secteur</h3>
-                        <p className="text-xs text-gray-600 mb-1">Salles qui n'ont pas de secteur défini. Vous pouvez glisser des salles ici ou depuis ici en mode réorganisation.</p>
+                        <h3 className="text-base font-semibold mb-1 dark:text-slate-200">Salles sans secteur</h3>
+                        <p className="text-xs text-gray-600 dark:text-slate-400 mb-1">Salles qui n'ont pas de secteur défini. Vous pouvez glisser des salles ici ou depuis ici en mode réorganisation.</p>
 
                         {isReordering && rooms.filter(room => !room.sectorId).length === 0 && (
                             <div
-                                className="h-16 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-400 hover:border-yellow-500 hover:bg-yellow-100 transition-colors"
+                                className="h-16 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-md flex items-center justify-center text-gray-400 dark:text-slate-500 hover:border-yellow-500 dark:hover:border-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors"
                                 onDragOver={(e) => handleRoomDragOver(e, 0, null)}
                                 onDragLeave={(e) => handleRoomDragLeave(e, null)}
                                 onDrop={(e) => handleRoomDrop(e, 0, null)}
@@ -1584,10 +1511,10 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                 <div
                                     key={room.id}
                                     className={`room-item border rounded-md py-1 px-2 flex items-center justify-between group transition-all duration-150 ease-in-out ${isReordering
-                                        ? 'cursor-move bg-white hover:bg-yellow-100 shadow-sm hover:shadow-md'
-                                        : 'bg-white hover:bg-yellow-50'}
+                                        ? 'cursor-move bg-white hover:bg-yellow-100 shadow-sm hover:shadow-md dark:bg-slate-700 dark:hover:bg-yellow-700/30'
+                                        : 'bg-white hover:bg-yellow-50 dark:bg-slate-700 dark:hover:bg-slate-600'}
                                         ${draggedItem?.id === room.id ? 'opacity-40 scale-95' : ''}
-                                        ${dragOverTarget?.sectorName === null && dragOverTarget?.index === index ? 'ring-2 ring-yellow-500 ring-offset-1' : ''}
+                                        ${dragOverTarget?.sectorName === null && dragOverTarget?.index === index ? 'ring-2 ring-yellow-500 dark:ring-yellow-400 ring-offset-1' : 'dark:border-slate-600'}
                                     `}
                                     data-room-id={room.id}
                                     draggable={isReordering}
@@ -1598,10 +1525,10 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                     onDrop={(e) => handleRoomDrop(e, index, null)}
                                 >
                                     <div className="flex-grow">
-                                        <div className="font-medium text-gray-800 text-sm">{room.name}</div>
-                                        <div className="text-xs text-gray-500">N° {room.number}</div>
+                                        <div className="font-medium text-gray-800 text-sm dark:text-slate-100">{room.name}</div>
+                                        <div className="text-xs text-gray-500 dark:text-slate-400">N° {room.number}</div>
                                         {room.siteId && (
-                                            <div className="text-xs text-blue-600 mt-0.5">
+                                            <div className="text-xs text-blue-600 dark:text-primary-400 mt-0.5">
                                                 Site: {sites.find(s => s.id === room.siteId)?.name || 'Inconnu'}
                                             </div>
                                         )}
@@ -1610,7 +1537,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                         <button
                                             onClick={() => handleEditClick(room)}
                                             title="Assigner à un secteur"
-                                            className="p-1.5 rounded-full text-gray-500 hover:bg-gray-200"
+                                            className="p-1.5 rounded-full text-gray-500 hover:bg-gray-200 dark:text-slate-400 dark:hover:bg-slate-600"
                                         >
                                             <PencilIcon className="h-4 w-4" />
                                         </button>
@@ -1779,18 +1706,8 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                             Annuler
                                         </Button>
                                     </DialogClose>
-                                    <Button type="submit" disabled={isSubmitting}>
-                                        {isSubmitting ? (
-                                            <span className="flex items-center">
-                                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                Enregistrement...
-                                            </span>
-                                        ) : (
-                                            <span>Enregistrer</span>
-                                        )}
+                                    <Button type="submit" disabled={isSubmitting} className="dark:bg-primary-600 dark:hover:bg-primary-700 dark:text-white">
+                                        {isSubmitting ? (isEditing ? 'Sauvegarde...' : 'Ajout...') : (isEditing ? 'Sauvegarder' : 'Ajouter')}
                                     </Button>
                                 </DialogFooter>
                             </form>

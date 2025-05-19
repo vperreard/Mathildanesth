@@ -17,9 +17,9 @@ import { getLogger } from '@/utils/logger';
 
 type CalculationStatus = 'idle' | 'loading' | 'success' | 'error';
 
-interface UseLeaveCalculationProps {
-    startDate?: Date | string | null;
-    endDate?: Date | string | null;
+export interface UseLeaveCalculationProps {
+    startDate?: Date | null;
+    endDate?: Date | null;
     workSchedule?: WorkSchedule;
     options?: LeaveCalculationOptions;
 }
@@ -70,7 +70,15 @@ export const useLeaveCalculation = ({
         }
 
         const logger = await getLogger();
-        logger.info('Starting leave calculation...', { startDate, endDate, scheduleId: workSchedule?.id });
+        logger.info('Starting leave calculation...', {
+            startDate,
+            endDate,
+            scheduleId: workSchedule?.id,
+            options: {
+                ...options,
+                ...calculationOptions
+            }
+        });
 
         try {
             setStatus('loading');
@@ -93,7 +101,12 @@ export const useLeaveCalculation = ({
                 setDetails(result);
                 setPublicHolidays(result.publicHolidays);
                 setStatus('success');
-                logger.info('Leave calculation successful', { countedDays: result.countedDays });
+                logger.info('Leave calculation successful', {
+                    countedDays: result.countedDays,
+                    halfDays: result.halfDays,
+                    isHalfDay: mergedOptions.isHalfDay,
+                    halfDayPeriod: mergedOptions.halfDayPeriod
+                });
             } else {
                 logger.warn('calculateLeaveCountedDays returned null or undefined');
                 throw new Error("Échec du calcul des jours de congés");

@@ -1,0 +1,358 @@
+{
+  "stats": {
+    "suites": 5,
+    "tests": 4,
+    "passes": 0,
+    "pending": 0,
+    "failures": 4,
+    "start": "2025-05-15T13:15:09.298Z",
+    "end": "2025-05-15T13:15:11.069Z",
+    "duration": 1771,
+    "testsRegistered": 9,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 5,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "3974334d-d6f1-4c25-90cc-343d04cdb0ac",
+      "title": "",
+      "fullFile": "cypress/e2e/compatibility/responsive-tests.spec.ts",
+      "file": "cypress/e2e/compatibility/responsive-tests.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "a5e4f940-002a-485e-8950-0ecaf8d04a86",
+          "title": "Tests de compatibilité responsive",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [],
+          "suites": [
+            {
+              "uuid": "24330eb5-d232-4e85-adf5-16855d430b90",
+              "title": "Tests sur mobile",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "affiche correctement le menu de navigation",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur mobile affiche correctement le menu de navigation",
+                  "timedOut": null,
+                  "duration": 132,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier que le menu hamburger est présent sur mobile\ncy.get('[data-cy=mobile-menu-button]').should('be.visible');\n// Cliquer sur le menu hamburger\ncy.get('[data-cy=mobile-menu-button]').click();\n// Vérifier que le menu s'ouvre\ncy.get('[data-cy=navigation-menu]').should('be.visible');",
+                  "err": {
+                    "message": "TypeError: Cannot read properties of undefined (reading 'mobile')\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests sur mobile`",
+                    "estack": "TypeError: Cannot read properties of undefined (reading 'mobile')\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests sur mobile`\n    at Context.eval (webpack://mathildanesth/./cypress/support/e2e.ts:46:44)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146118:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromiseCtx (http://localhost:3000/__cypress/runner/cypress_runner.js:1583:10)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2381:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)",
+                    "diff": null
+                  },
+                  "uuid": "e302add6-6e5b-4400-8231-ccba6943c4ee",
+                  "parentUUID": "24330eb5-d232-4e85-adf5-16855d430b90",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "affiche correctement la liste des congés",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur mobile affiche correctement la liste des congés",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/leaves');\n// Vérifier que les cartes de congés s'affichent en une colonne\ncy.get('[data-cy=leave-item]').should('have.css', 'width', '100%');",
+                  "err": {},
+                  "uuid": "d424e9cc-4ba1-4fd4-8391-93ef54c440da",
+                  "parentUUID": "24330eb5-d232-4e85-adf5-16855d430b90",
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "adapte correctement le calendrier",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur mobile adapte correctement le calendrier",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/calendar');\n// Vérifier que la vue par défaut est différente sur mobile\ncy.get('[data-cy=calendar-day-view]').should('be.visible');\n// Vérifier que les contrôles du calendrier sont adaptés\ncy.get('[data-cy=calendar-controls]').should('have.css', 'flex-direction', 'column');",
+                  "err": {},
+                  "uuid": "7dbabdbd-2963-4168-acab-ccb6154ee967",
+                  "parentUUID": "24330eb5-d232-4e85-adf5-16855d430b90",
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "e302add6-6e5b-4400-8231-ccba6943c4ee"
+              ],
+              "pending": [],
+              "skipped": [
+                "d424e9cc-4ba1-4fd4-8391-93ef54c440da",
+                "7dbabdbd-2963-4168-acab-ccb6154ee967"
+              ],
+              "duration": 132,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "2a51dbc6-f582-48fa-895b-507cd5fd6ec8",
+              "title": "Tests sur tablette",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "affiche correctement le menu de navigation",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur tablette affiche correctement le menu de navigation",
+                  "timedOut": null,
+                  "duration": 136,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier l'affichage correct du menu sur tablette\ncy.get('[data-cy=navigation-menu]').should('be.visible');",
+                  "err": {
+                    "message": "TypeError: Cannot read properties of undefined (reading 'tablet')\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests sur tablette`",
+                    "estack": "TypeError: Cannot read properties of undefined (reading 'tablet')\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests sur tablette`\n    at Context.eval (webpack://mathildanesth/./cypress/support/e2e.ts:46:44)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146118:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromiseCtx (http://localhost:3000/__cypress/runner/cypress_runner.js:1583:10)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2381:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)",
+                    "diff": null
+                  },
+                  "uuid": "b48f121b-0748-4265-8615-d517323a7d90",
+                  "parentUUID": "2a51dbc6-f582-48fa-895b-507cd5fd6ec8",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "affiche correctement la liste des congés",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur tablette affiche correctement la liste des congés",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/leaves');\n// Vérifier que les cartes de congés s'affichent en grille\ncy.get('[data-cy=leave-grid]').should('have.css', 'grid-template-columns');",
+                  "err": {},
+                  "uuid": "921c66ea-3c7e-4d2e-bb30-9ecc85a23b6e",
+                  "parentUUID": "2a51dbc6-f582-48fa-895b-507cd5fd6ec8",
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "b48f121b-0748-4265-8615-d517323a7d90"
+              ],
+              "pending": [],
+              "skipped": [
+                "921c66ea-3c7e-4d2e-bb30-9ecc85a23b6e"
+              ],
+              "duration": 136,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "5fe8961b-c2ef-4103-923f-94d3e3f6d9eb",
+              "title": "Tests sur desktop",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "affiche correctement le menu de navigation",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur desktop affiche correctement le menu de navigation",
+                  "timedOut": null,
+                  "duration": 119,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier l'affichage du menu latéral sur desktop\ncy.get('[data-cy=sidebar-navigation]').should('be.visible');",
+                  "err": {
+                    "message": "TypeError: Cannot read properties of undefined (reading 'desktop')\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests sur desktop`",
+                    "estack": "TypeError: Cannot read properties of undefined (reading 'desktop')\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests sur desktop`\n    at Context.eval (webpack://mathildanesth/./cypress/support/e2e.ts:46:44)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146118:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromiseCtx (http://localhost:3000/__cypress/runner/cypress_runner.js:1583:10)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2381:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)",
+                    "diff": null
+                  },
+                  "uuid": "34d249ce-199a-4436-a375-aa89be0106a0",
+                  "parentUUID": "5fe8961b-c2ef-4103-923f-94d3e3f6d9eb",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "affiche correctement le planning hebdomadaire",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur desktop affiche correctement le planning hebdomadaire",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\n// Vérifier que toutes les colonnes sont visibles\ncy.get('[data-cy=planning-day-column]').should('have.length.at.least', 5);",
+                  "err": {},
+                  "uuid": "e8e4df97-9fd8-4261-8deb-1e9252f936ed",
+                  "parentUUID": "5fe8961b-c2ef-4103-923f-94d3e3f6d9eb",
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "34d249ce-199a-4436-a375-aa89be0106a0"
+              ],
+              "pending": [],
+              "skipped": [
+                "e8e4df97-9fd8-4261-8deb-1e9252f936ed"
+              ],
+              "duration": 119,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "3e9969cb-e0f8-4157-81da-32968dfc9cee",
+              "title": "Tests sur grand écran",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "optimise l'affichage du planning",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur grand écran optimise l'affichage du planning",
+                  "timedOut": null,
+                  "duration": 134,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\n// Vérifier que l'interface exploite l'espace disponible\ncy.get('[data-cy=planning-container]').invoke('width').should('be.gt', 1800);",
+                  "err": {
+                    "message": "TypeError: Cannot read properties of undefined (reading 'widescreen')\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests sur grand écran`",
+                    "estack": "TypeError: Cannot read properties of undefined (reading 'widescreen')\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Tests sur grand écran`\n    at Context.eval (webpack://mathildanesth/./cypress/support/e2e.ts:46:44)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146118:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromiseCtx (http://localhost:3000/__cypress/runner/cypress_runner.js:1583:10)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2381:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)",
+                    "diff": null
+                  },
+                  "uuid": "e59ff05f-4c85-4940-9900-016011dc13db",
+                  "parentUUID": "3e9969cb-e0f8-4157-81da-32968dfc9cee",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "affiche correctement le tableau de bord",
+                  "fullTitle": "Tests de compatibilité responsive Tests sur grand écran affiche correctement le tableau de bord",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier que les widgets s'adaptent à l'espace disponible\ncy.get('[data-cy=dashboard-widgets]').invoke('width').should('be.gt', 1800);",
+                  "err": {},
+                  "uuid": "d5ab8dcb-e767-4057-93e6-be7e7fd7a99e",
+                  "parentUUID": "3e9969cb-e0f8-4157-81da-32968dfc9cee",
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "e59ff05f-4c85-4940-9900-016011dc13db"
+              ],
+              "pending": [],
+              "skipped": [
+                "d5ab8dcb-e767-4057-93e6-be7e7fd7a99e"
+              ],
+              "duration": 134,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            }
+          ],
+          "passes": [],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 0,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

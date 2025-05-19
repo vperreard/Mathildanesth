@@ -13,7 +13,8 @@ import {
 import { format, addWeeks, startOfWeek, endOfWeek, isToday, isWeekend, eachDayOfInterval, getISOWeek, isAfter, isBefore, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { motion } from "framer-motion";
-import { ApiService } from "@/services/api";
+import apiClient from "@/utils/apiClient";
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
     Assignment,
     DisplayConfig,
@@ -147,6 +148,9 @@ export default function WeeklyPlanningPage() {
 
     const ruleEngine = useMemo(() => new RuleEngine(), []);
 
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
     const [isLoadingData, setIsLoadingData] = useState(true);
@@ -160,11 +164,19 @@ export default function WeeklyPlanningPage() {
 
     // Filtrer les salles en fonction du site sélectionné, de la recherche et de la configuration d'affichage
     const filteredRooms = useMemo(() => {
+        console.log(`[WeeklyPlanningPage_filteredRooms] Calcul pour selectedSiteId: ${selectedSiteId}, ${rooms.length} salles au total avant filtre.`);
         let result = rooms;
 
         // 1. Filtre par site sélectionné
         if (selectedSiteId) {
-            result = result.filter(room => (room as any).siteId === selectedSiteId);
+            result = result.filter(room => {
+                // Assurer que room.siteId existe et comparer les chaînes de caractères
+                const roomSiteIdStr = room.siteId ? String(room.siteId) : null;
+                const selectedSiteIdStr = String(selectedSiteId);
+                const match = roomSiteIdStr === selectedSiteIdStr;
+                // console.log(`[DEBUG_FILTER_ROOM] Room: ${room.name} (ID: ${room.id}), RoomSiteID: ${roomSiteIdStr}, SelectedSiteID: ${selectedSiteIdStr}, Match: ${match}`);
+                return match;
+            });
         }
 
         // 2. Filtre par searchQuery et displayConfig
@@ -173,7 +185,7 @@ export default function WeeklyPlanningPage() {
             const isVisibleByConfig = !displayConfig || !displayConfig.hiddenRoomIds || !displayConfig.hiddenRoomIds.includes(String(room.id));
             return matchesSearch && isVisibleByConfig;
         });
-
+        console.log(`[WeeklyPlanningPage_filteredRooms] ${result.length} salles après filtre pour siteId: ${selectedSiteId}.`);
         return result;
     }, [rooms, selectedSiteId, searchQuery, displayConfig]);
 
@@ -191,8 +203,8 @@ export default function WeeklyPlanningPage() {
         console.log("[WeeklyPlanningPage] Chargement des données pour la période cible");
         setIsLoadingData(true);
         setIsLoading(true);
-        let finalConfig = { ...defaultDisplayConfig };
-        console.log("[WeeklyPlanningPage] finalConfig :", finalConfig);
+        // let finalConfig = { ...defaultDisplayConfig }; // Commenté car non utilisé directement ici
+        // console.log("[WeeklyPlanningPage] finalConfig :", finalConfig);
 
         try {
             // Déterminer la plage de dates active
@@ -209,35 +221,30 @@ export default function WeeklyPlanningPage() {
 
             console.log(`[WeeklyPlanningPage] Période : ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`);
 
-            const responses = await Promise.all([
-                fetch('/api/utilisateurs'),
-                fetch('/api/operating-rooms'),
-                fetch(`/api/assignments?start=${startDate.toISOString()}&end=${endDate.toISOString()}`),
-                fetch('/api/sites') // Appel API pour les sites
+            // Remplacer les appels fetch par apiClient
+            const [
+                usersResponse,
+                roomsResponse,
+                assignmentsResponse,
+                sitesResponse
+            ] = await Promise.all([
+                apiClient.get('/api/utilisateurs'),
+                apiClient.get('/api/operating-rooms'), // Temporairement sans siteId pour tout récupérer
+                apiClient.get(`/api/assignments?start=${startDate.toISOString()}&end=${endDate.toISOString()}`),
+                apiClient.get('/api/sites')
             ]);
 
-            const [usersResponseData, roomsResponseData, assignmentsResponseData, sitesResponseData] = await Promise.all(
-                responses.map(res => {
-                    if (!res.ok) {
-                        console.error(`[WeeklyPlanningPage] Erreur API ${res.url}: ${res.status} ${res.statusText}`);
-                        // Retourner une structure par défaut pour éviter de casser Promise.all plus tard
-                        if (res.url.includes('/api/utilisateurs')) return { users: [] };
-                        if (res.url.includes('/api/operating-rooms')) return { rooms: [] };
-                        if (res.url.includes('/api/assignments')) return { assignments: [] };
-                        if (res.url.includes('/api/sites')) return { sites: [] }; // Ajout pour les sites
-                        return {}; // Cas générique, peu probable ici
-                    }
-                    return res.json();
-                })
-            );
+            // Les données sont directement dans .data avec axios
+            const usersResponseData = usersResponse.data;
+            const roomsResponseData = roomsResponse.data;
+            const assignmentsResponseData = assignmentsResponse.data;
+            const sitesResponseData = sitesResponse.data;
 
-            console.log("[WeeklyPlanningPage] Données parsées API - Utilisateurs:", usersResponseData);
-            console.log("[WeeklyPlanningPage] Données parsées API - Salles:", roomsResponseData);
-            console.log("[WeeklyPlanningPage] Données parsées API - Assignations:", assignmentsResponseData);
-            console.log("[WeeklyPlanningPage] Données parsées API - Sites:", sitesResponseData); // Log pour les sites
+            console.log("[WeeklyPlanningPage] Données API (via apiClient) - Utilisateurs:", usersResponseData);
+            console.log("[WeeklyPlanningPage] Données API (via apiClient) - Salles:", roomsResponseData);
+            console.log("[WeeklyPlanningPage] Données API (via apiClient) - Assignations:", assignmentsResponseData);
+            console.log("[WeeklyPlanningPage] Données API (via apiClient) - Sites:", sitesResponseData);
 
-            // Correction: Ne pas supposer des formats spécifiques avec .users, .rooms, mais utiliser directement les tableaux
-            // si la réponse est déjà un tableau
             const usersData = Array.isArray(usersResponseData) ? usersResponseData :
                 (usersResponseData && Array.isArray(usersResponseData.users) ? usersResponseData.users : []);
 
@@ -273,31 +280,51 @@ export default function WeeklyPlanningPage() {
                 }
             }
 
-            // Normaliser les données des salles en préservant l'ordre de l'API (basé sur displayOrder)
-            const orderedRooms = fetchedRooms.map((room: Room) => {
-                // Normalisation du champ sector
-                let sectorName = '';
-                const sector: any = room.sector;
-                if (typeof sector === 'string') {
-                    sectorName = sector;
-                } else if (sector && typeof sector === 'object' && 'name' in sector) {
-                    sectorName = sector.name;
-                } else {
-                    sectorName = 'Non classé';
+            // Normaliser les données des salles
+            const orderedRooms = fetchedRooms.map((apiRoomData: any) => {
+                let sectorName = 'Sans secteur'; // Valeur par défaut
+                let roomColor = apiRoomData.colorCode || '#E5E7EB'; // Couleur de la salle elle-même
+                let sectorColor = '#F3F4F6'; // Couleur de fond par défaut pour l'en-tête de secteur (gris très clair)
+                let sectorOrder = Infinity; // Ordre par défaut pour le secteur
+
+                if (apiRoomData.operatingSector && typeof apiRoomData.operatingSector === 'object') {
+                    if (apiRoomData.operatingSector.name) {
+                        sectorName = apiRoomData.operatingSector.name;
+                    }
+                    if (apiRoomData.operatingSector.colorCode) {
+                        sectorColor = apiRoomData.operatingSector.colorCode;
+                    }
+                    if (apiRoomData.operatingSector.displayOrder !== undefined && apiRoomData.operatingSector.displayOrder !== null) {
+                        sectorOrder = apiRoomData.operatingSector.displayOrder;
+                    }
+                } else if (typeof apiRoomData.sector === 'string' && apiRoomData.sector.trim() !== '') {
+                    sectorName = apiRoomData.sector;
+                } else if (apiRoomData.sector && typeof apiRoomData.sector === 'object' && apiRoomData.sector.name) {
+                    sectorName = apiRoomData.sector.name;
+                    if (apiRoomData.sector.colorCode) {
+                        sectorColor = apiRoomData.sector.colorCode;
+                    }
+                    // Essayer de récupérer l'ordre du secteur depuis cet objet aussi, si la structure le permet
+                    if (apiRoomData.sector.displayOrder !== undefined && apiRoomData.sector.displayOrder !== null) {
+                        sectorOrder = apiRoomData.sector.displayOrder;
+                    }
                 }
 
-                // Utiliser l'ordre personnalisé si disponible, sinon conserver l'ordre de l'API
-                const orderIndex = currentRoomOrder.indexOf(String(room.id));
+                const orderIndex = currentRoomOrder.indexOf(String(apiRoomData.id));
+                const baseOrder = apiRoomData.displayOrder !== undefined && apiRoomData.displayOrder !== null ? apiRoomData.displayOrder : Infinity;
 
-                // Si la salle est dans l'ordre personnalisé, lui donner la priorité
-                // sinon préserver l'ordre venant de l'API (qui utilise déjà displayOrder)
-                const roomWithSector = {
-                    ...room,
+                const normalizedRoom: Room = {
+                    id: apiRoomData.id,
+                    name: apiRoomData.name || '',
+                    number: apiRoomData.number || undefined,
                     sector: sectorName,
-                    order: orderIndex === -1 ? Infinity : orderIndex
+                    colorCode: roomColor, // Couleur de la salle (peut être utilisée pour la carte de la salle plus tard)
+                    sectorColorCode: sectorColor, // Couleur pour l'en-tête du groupement de secteur
+                    order: orderIndex === -1 ? baseOrder : orderIndex,
+                    siteId: apiRoomData.siteId ? String(apiRoomData.siteId) : undefined,
+                    sectorDisplayOrder: sectorOrder, // Stocker l'ordre du secteur
                 };
-
-                return roomWithSector;
+                return normalizedRoom;
             });
 
             // Trier les salles: d'abord par ordre personnalisé s'il existe,
@@ -348,6 +375,59 @@ export default function WeeklyPlanningPage() {
     useEffect(() => {
         fetchDataAndConfig();
     }, [fetchDataAndConfig]);
+
+    // Effet pour initialiser selectedSiteId à partir de l'URL ou du premier site disponible
+    useEffect(() => {
+        if (!searchParams || !sitesList.length) return; // Attendre que searchParams et sitesList soient prêts
+
+        const siteIdFromUrl = searchParams.get('siteId');
+        const currentSelectedSiteId = selectedSiteId; // Capturer la valeur actuelle avant toute modification
+        console.log(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] Entrée useEffect. siteIdFromUrl: ${siteIdFromUrl}, currentSelectedSiteId: ${currentSelectedSiteId}, sitesList: ${sitesList.length}`);
+
+        if (siteIdFromUrl) {
+            // Si un siteId est dans l'URL et est valide
+            if (sitesList.some(site => site.id === siteIdFromUrl)) {
+                if (currentSelectedSiteId !== siteIdFromUrl) {
+                    setSelectedSiteId(siteIdFromUrl);
+                    console.log(`[WeeklyPlanningPage_EFFECT_URL] selectedSiteId mis à jour depuis URL: ${siteIdFromUrl}`);
+                } else {
+                    console.log(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] siteIdFromUrl (${siteIdFromUrl}) est déjà le currentSelectedSiteId. Rien à faire.`);
+                }
+            } else {
+                // siteId dans l'URL est invalide, ou pas encore dans sitesList :
+                console.warn(`[WeeklyPlanningPage_EFFECT_URL] siteId de l'URL (${siteIdFromUrl}) est invalide ou non trouvé dans sitesList (${sitesList.map(s => s.id).join(', ')}).`);
+                // Si un site est déjà sélectionné (par ex. par interaction user), ne pas l'écraser.
+                // Si aucun site n'est sélectionné, et que le SiteSelector ne va pas le faire, on pourrait initialiser.
+                // Mais avec autoSelectFirst={true} et persistInUrl={true} sur SiteSelector, il devrait gérer.
+                // On vérifie si un site par défaut est nécessaire SEULEMENT SI currentSelectedSiteId est encore null/undefined.
+                if (!currentSelectedSiteId && sitesList[0]?.id) {
+                    const defaultSiteId = sitesList[0].id;
+                    setSelectedSiteId(defaultSiteId);
+                    // Si on met à jour l'URL ici, cela redéclenchera le useEffect.
+                    // Il vaut mieux laisser SiteSelector (avec persistInUrl) être le seul à écrire l'URL suite à une sélection.
+                    // router.push(`/planning/hebdomadaire?siteId=${defaultSiteId}`, { scroll: false }); 
+                    console.log(`[WeeklyPlanningPage_EFFECT_URL] siteId de l'URL invalide ET currentSelectedSiteId vide. selectedSiteId initialisé avec le premier site par défaut: ${defaultSiteId}. L'URL devrait être mise à jour par SiteSelector.`);
+                } else {
+                    console.log(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] siteId de l'URL invalide, mais currentSelectedSiteId (${currentSelectedSiteId}) est déjà défini. On ne change rien.`);
+                }
+            }
+        } else {
+            // Pas de siteId dans l'URL
+            console.log(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] Pas de siteId dans l'URL.`);
+            // Si aucun site n'est sélectionné, et que SiteSelector n'a pas autoSelectFirst, on pourrait prendre le premier de la liste.
+            // SiteSelector avec autoSelectFirst={true} et persistInUrl={true} devrait gérer la sélection initiale et la mise à jour de l'URL.
+            if (!currentSelectedSiteId && sitesList[0]?.id) {
+                // Normalement, SiteSelector devrait déjà avoir fait son travail s'il est configuré avec autoSelectFirst.
+                // Ce bloc est une sécurité supplémentaire ou pour des cas où SiteSelector n'a pas persistInUrl.
+                // const defaultSiteId = sitesList[0].id;
+                // setSelectedSiteId(defaultSiteId);
+                // router.push(`/planning/hebdomadaire?siteId=${defaultSiteId}`, { scroll: false });
+                console.log(`[WeeklyPlanningPage_EFFECT_URL] Pas de siteId dans l'URL ET currentSelectedSiteId vide. SiteSelector devrait gérer l'initialisation et la mise à jour de l'URL.`);
+            } else {
+                console.log(`[WeeklyPlanningPage_EFFECT_URL_DEBUG] Pas de siteId dans l'URL, currentSelectedSiteId (${currentSelectedSiteId}) est déjà défini ou sitesList[0] n'existe pas. On ne change rien.`);
+            }
+        }
+    }, [searchParams, sitesList, router]); // selectedSiteId retiré des dépendances
 
     const handleSaveRoomOrder = (orderedRoomIds: string[]) => {
         const newConfig = { orderedRoomIds };
@@ -543,7 +623,7 @@ export default function WeeklyPlanningPage() {
         );
     };
 
-    const getWeekDays = () => {
+    const getWeekDays = useCallback(() => {
         let intervalStart: Date;
         let intervalEnd: Date;
 
@@ -564,7 +644,7 @@ export default function WeeklyPlanningPage() {
                 end: intervalEnd
             });
         }
-    };
+    }, [currentWeekStart, activeDateRangeType, customStartDate, customEndDate]);
 
     const getSurgeonDailyAssignments = (date: Date, surgeonId: string | number) => {
         const dateString = format(date, "yyyy-MM-dd");
@@ -637,213 +717,152 @@ export default function WeeklyPlanningPage() {
         );
     };
 
-    // Fonction pour rendre les assignations d'une salle spécifique
-    const renderRoomAssignments = useCallback((room: Room) => {
-        const weekDays = getWeekDays();
-        const dailyAssignments = getDailyAssignments(new Date(currentWeekStart), room.id);
-        const morningAssignments = dailyAssignments.filter(a => a.period === 'MORNING');
-        const afternoonAssignments = dailyAssignments.filter(a => a.period === 'AFTERNOON');
-        const morningDroppableId = `room-${room.id}-day-${format(currentWeekStart, 'yyyy-MM-dd')}-period-MORNING`;
-        const afternoonDroppableId = `room-${room.id}-day-${format(currentWeekStart, 'yyyy-MM-dd')}-period-AFTERNOON`;
-
-        return (
-            <div className="grid grid-cols-2 gap-1 h-full">
-                <Droppable droppableId={morningDroppableId} type="ASSIGNMENT" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
-                    {(provided, snapshot) => (
-                        <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            className={`min-h-[60px] p-1 rounded-md transition-colors duration-150 ease-in-out ${snapshot.isDraggingOver ? 'bg-blue-200 dark:bg-blue-700 shadow-inner' : 'bg-blue-50/30 dark:bg-blue-900/20'}`}
-                        >
-                            {morningAssignments.map((assignment, index) => renderAssignment(assignment, index))}
-                            {provided.placeholder}
-                        </div>
-                    )}
-                </Droppable>
-                <Droppable droppableId={afternoonDroppableId} type="ASSIGNMENT" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
-                    {(provided, snapshot) => (
-                        <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            className={`min-h-[60px] p-1 rounded-md transition-colors duration-150 ease-in-out ${snapshot.isDraggingOver ? 'bg-amber-200 dark:bg-amber-700 shadow-inner' : 'bg-amber-50/30 dark:bg-amber-900/20'}`}
-                        >
-                            {afternoonAssignments.map((assignment, index) => renderAssignment(assignment, index))}
-                            {provided.placeholder}
-                        </div>
-                    )}
-                </Droppable>
-            </div>
-        );
-    }, [currentWeekStart, getWeekDays, renderAssignment, filteredTempAssignments]);
-
     // Méthode de rendu pour la vue par salle
     const renderRoomView = useCallback(() => {
-        const weekDays = getWeekDays();
-        // Utiliser filteredRooms (du scope du composant, via useMemo) directement.
-        // Les variables roomsToDisplay et currentRoomsToDisplay ne sont plus nécessaires ici.
+        const daysToRender = getWeekDays();
 
-        if (!filteredRooms || filteredRooms.length === 0) {
-            return <div className="text-center p-8 text-gray-500 dark:text-gray-400">Aucune salle à afficher pour le site sélectionné ou les filtres actuels.</div>;
+        if (filteredRooms.length === 0) {
+            return (
+                <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+                    Aucune salle à afficher pour le site sélectionné ou les filtres actifs.
+                    {selectedSiteId && <p className="text-sm">Site ID: {selectedSiteId}</p>}
+                    {rooms.length > 0 && <p className="text-sm">Total salles chargées (avant filtre site): {rooms.length}</p>}
+                </div>
+            );
         }
 
-        const groupedRoomsBySector = filteredRooms.reduce((acc, room) => { // Utilise filteredRooms
-            const sector = room.sector || 'Non classé';
-            if (!acc[sector]) {
-                acc[sector] = [];
-            }
-            acc[sector].push(room);
-            return acc;
-        }, {} as Record<string, Room[]>);
+        interface SectorRenderInfo {
+            name: string;
+            colorCode: string;
+            rooms: Room[];
+            displayOrder: number;
+        }
 
-        Object.keys(groupedRoomsBySector).forEach(sector => {
-            groupedRoomsBySector[sector].sort((a, b) => {
-                if (a.order !== undefined && b.order !== undefined && a.order !== Infinity && b.order !== Infinity) {
-                    return a.order - b.order;
-                }
-                if (a.order !== undefined && a.order !== Infinity) return -1;
-                if (b.order !== undefined && b.order !== Infinity) return 1;
-                return 0;
-            });
+        const sectorsMap: Record<string, SectorRenderInfo> = filteredRooms.reduce((acc, room) => {
+            const sectorName = room.sector || 'Sans secteur';
+            const color = room.sectorColorCode || '#F3F4F6';
+            const order = room.sectorDisplayOrder ?? Infinity;
+            if (!acc[sectorName]) {
+                acc[sectorName] = { name: sectorName, colorCode: color, rooms: [], displayOrder: order };
+            }
+            acc[sectorName].rooms.push(room);
+            if (order < acc[sectorName].displayOrder) { // Garder le plus petit displayOrder pour le secteur
+                acc[sectorName].displayOrder = order;
+            }
+            return acc;
+        }, {} as Record<string, SectorRenderInfo>);
+
+        const sortedSectorsRenderInfo = Object.values(sectorsMap).sort((a, b) => {
+            if (a.displayOrder !== b.displayOrder) {
+                return a.displayOrder - b.displayOrder;
+            }
+            if (a.name === 'Sans secteur') return 1;
+            if (b.name === 'Sans secteur') return -1;
+            return a.name.localeCompare(b.name);
         });
 
-        const orderedSectorNames = filteredRooms // Utilise filteredRooms
-            .map(room => room.sector || 'Non classé')
-            .filter((sector, index, self) => self.indexOf(sector) === index);
-
-        const specialTypes = ['GARDE', 'ASTREINTE', 'CONSULTATION 1', 'CONSULTATION 2', 'CONSULTATION 3'];
-
         return (
-            <div className="p-4">
-                <div className="font-medium text-gray-700 dark:text-gray-200 mb-4">
-                    {
-                        activeDateRangeType === 'custom' && customStartDate && customEndDate ?
-                            `Période du ${format(customStartDate, "d MMMM", { locale: fr })} au ${format(customEndDate, "d MMMM yyyy", { locale: fr })}` :
-                            `Semaine du ${format(currentWeekStart, "d MMMM", { locale: fr })} au ${format(endOfWeek(currentWeekStart, { weekStartsOn: 1 }), "d MMMM yyyy", { locale: fr })}`
-                    }
-                </div>
-
-                <div className="overflow-x-auto relative">
-                    <table className="min-w-full border-collapse table-fixed">
-                        <thead>
-                            {/* ... En-têtes de tableau ... */}
-                            <tr className="bg-gray-50 dark:bg-slate-800">
-                                <th className="sticky left-0 z-20 py-2 px-3 border border-gray-300 dark:border-slate-700 text-left w-48 md:w-56 bg-gray-50 dark:bg-slate-800"></th>
-                                {weekDays.map((day) => (
-                                    <th
-                                        key={day.toISOString()}
-                                        colSpan={2}
-                                        className={`py-2 px-3 border border-gray-300 dark:border-slate-700 text-center 
-                                               ${isToday(day) ? "bg-blue-100 dark:bg-blue-900/50" : ""} 
-                                               ${isWeekend(day) ? "w-16 md:w-20 opacity-80 bg-gray-100 dark:bg-slate-800/80" : "w-36 md:w-44"}`}
-                                    >
-                                        <div className={`font-medium capitalize ${isWeekend(day) ? "text-xs md:text-sm text-gray-500 dark:text-gray-400" : ""}`}>
-                                            {format(day, "EEEE", { locale: fr })}
-                                        </div>
-                                        <div className={`${isWeekend(day) ? "text-xs text-gray-500 dark:text-gray-400" : "text-sm"}`}>
-                                            {format(day, "dd/MM", { locale: fr })}
-                                        </div>
-                                    </th>
-                                ))}
-                            </tr>
-                            <tr className="bg-gray-100 dark:bg-slate-700">
-                                <th className="sticky left-0 z-20 py-1 px-3 border border-gray-300 dark:border-slate-600 bg-gray-100 dark:bg-slate-700"></th>
-                                {weekDays.map((day) => (
-                                    <React.Fragment key={`${day.toISOString()}-periods`}>
-                                        <th className={`py-1 px-2 border border-gray-300 dark:border-slate-600 text-center bg-blue-50 dark:bg-blue-900/40 
-                                                   ${isWeekend(day) ? "w-8 md:w-10 text-xs opacity-80" : "w-18 md:w-22"}`}>
-                                            {isWeekend(day) ? "M" : "Matin"}
-                                        </th>
-                                        <th className={`py-1 px-2 border border-gray-300 dark:border-slate-600 text-center bg-amber-50 dark:bg-amber-900/40 
-                                                   ${isWeekend(day) ? "w-8 md:w-10 text-xs opacity-80" : "w-18 md:w-22"}`}>
-                                            {isWeekend(day) ? "A" : "Après-midi"}
-                                        </th>
-                                    </React.Fragment>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {/* Lignes pour les types spéciaux */}
-                            {specialTypes.map((type, typeIndex) => (
-                                <tr key={`${type}-${typeIndex}`} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                                    <td className="sticky left-0 z-10 py-2 px-3 border border-gray-300 dark:border-slate-700 font-semibold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200">
-                                        {type}
-                                    </td>
-                                    {weekDays.map((day, dayIndex) => (
-                                        <React.Fragment key={`${day.toISOString()}-special-${type}`}>
-                                            {/* Droppable MORNING pour specialTypes */}
-                                            <td className={`p-0 border border-gray-300 dark:border-slate-700 bg-blue-50/30 dark:bg-blue-900/20 ${isWeekend(day) ? "w-8 md:w-10 opacity-80" : "w-18 md:w-22"}`}>
-                                                <Droppable droppableId={`special-morning-${type}-${dayIndex}`} type="ASSIGNMENT" isDropDisabled={false} isCombineEnabled={false}>
-                                                    {(provided, snapshot) => (
-                                                        <div ref={provided.innerRef} {...provided.droppableProps} className={`p-1 ...`} style={{ height: '60px', overflow: 'auto' }}>
-                                                            {/* Utiliser filteredAssignments ici */}
-                                                            {filteredAssignments
-                                                                .filter(a => format(new Date(a.date), "yyyy-MM-dd") === format(day, "yyyy-MM-dd") && a.period === "MORNING" && a.type === type)
-                                                                .map((assignment, index) => renderAssignment(assignment, index))}
-                                                            {provided.placeholder}
-                                                        </div>
-                                                    )}
-                                                </Droppable>
-                                            </td>
-                                            {/* Droppable AFTERNOON pour specialTypes */}
-                                            <td className={`p-0 border border-gray-300 dark:border-slate-700 bg-amber-50/30 dark:bg-amber-900/20 ${isWeekend(day) ? "w-8 md:w-10 opacity-80" : "w-18 md:w-22"}`}>
-                                                <Droppable droppableId={`special-afternoon-${type}-${dayIndex}`} type="ASSIGNMENT" isDropDisabled={false} isCombineEnabled={false}>
-                                                    {(provided, snapshot) => (
-                                                        <div ref={provided.innerRef} {...provided.droppableProps} className={`p-1 ...`} style={{ height: '60px', overflow: 'auto' }}>
-                                                            {/* Utiliser filteredAssignments ici (actuellement vidé pour debug dnd) */}
-                                                            {/* {filteredAssignments
-                                                                .filter(a => format(new Date(a.date), "yyyy-MM-dd") === format(day, "yyyy-MM-dd") && a.period === "AFTERNOON" && a.type === type)
-                                                                .map((assignment, index) => renderAssignment(assignment, index))} */}
-                                                            {provided.placeholder}
-                                                        </div>
-                                                    )}
-                                                </Droppable>
-                                            </td>
-                                        </React.Fragment>
-                                    ))}
-                                </tr>
+            <div className="overflow-x-auto overflow-y-auto p-1 bg-white dark:bg-slate-900 rounded-lg shadow" style={{ maxHeight: 'calc(100vh - 200px)' }}> {/* Exemple de hauteur */}
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700 border-collapse border border-gray-300 dark:border-slate-600">
+                    <thead className="sticky top-0 z-30 bg-gray-50 dark:bg-slate-800">
+                        <tr>
+                            <th scope="col" className="sticky left-0 z-40 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-slate-600 min-w-[100px] bg-gray-50 dark:bg-slate-800">
+                                Secteur
+                            </th>
+                            <th scope="col" className="sticky left-[100px] z-40 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-slate-600 min-w-[120px] md:min-w-[150px] bg-gray-50 dark:bg-slate-800">
+                                Salle
+                            </th>
+                            {daysToRender.map(day => (
+                                <th key={day.toISOString()} colSpan={2} className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-slate-600 min-w-[200px] bg-gray-50 dark:bg-slate-800">
+                                    {format(day, "EEE dd/MM", { locale: fr })}
+                                </th>
                             ))}
-
-                            {/* Lignes pour les salles par secteur */}
-                            {orderedSectorNames.map(sector => (
-                                <React.Fragment key={sector}>
-                                    <tr>
-                                        <td
-                                            colSpan={weekDays.length * 2 + 1}
-                                            className="sticky left-0 z-10 p-2 bg-gray-200 dark:bg-slate-700 font-medium text-sm border-t border-b border-gray-300 dark:border-slate-600"
-                                        >
-                                            {sector}
-                                        </td>
-                                    </tr>
-                                    {groupedRoomsBySector[sector].map(room => (
-                                        <tr key={room.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                                            <td className="sticky left-0 z-10 py-2 px-3 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800">
-                                                <div className="font-semibold text-sm">{room.name}</div>
-                                                {room.number && <div className="text-xs text-gray-500 dark:text-gray-400">{room.number}</div>}
+                        </tr>
+                        <tr>
+                            <th scope="col" className="sticky left-0 z-40 px-3 py-2 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800" />
+                            <th scope="col" className="sticky left-[100px] z-40 px-3 py-2 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800" />
+                            {daysToRender.map(day => (
+                                <React.Fragment key={`${day.toISOString()}-periods`}>
+                                    <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-slate-600 min-w-[100px] bg-gray-50 dark:bg-slate-800">
+                                        Matin
+                                    </th>
+                                    <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-slate-600 min-w-[100px] bg-gray-50 dark:bg-slate-800">
+                                        Après-midi
+                                    </th>
+                                </React.Fragment>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-slate-700 bg-white dark:bg-slate-850">
+                        {sortedSectorsRenderInfo.map(sectorInfo => (
+                            <React.Fragment key={sectorInfo.name}>
+                                {/* La ligne d'en-tête du secteur est supprimée ici */}
+                                {sectorInfo.rooms
+                                    .sort((a, b) => {
+                                        const orderA = a.order ?? Infinity;
+                                        const orderB = b.order ?? Infinity;
+                                        if (orderA !== orderB) {
+                                            return orderA - orderB;
+                                        }
+                                        return (a.name || '').localeCompare(b.name || '');
+                                    })
+                                    .map((room, roomIndex) => (
+                                        <tr key={room.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50" style={{ backgroundColor: `${sectorInfo.colorCode}1A` /* 1A pour ~10% opacité en hex */ }}>
+                                            {roomIndex === 0 && (
+                                                <td
+                                                    rowSpan={sectorInfo.rooms.length}
+                                                    className="sticky left-0 z-20 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-slate-600 align-middle text-center"
+                                                    style={{
+                                                        backgroundColor: `${sectorInfo.colorCode}33`, /* 33 pour ~20% opacité */
+                                                        color: getTextColorForBackground(sectorInfo.colorCode),
+                                                        // writingMode: 'vertical-rl', // Supprimé
+                                                        // textOrientation: 'mixed', // Supprimé
+                                                        minWidth: '100px', // Augmenter un peu pour texte horizontal
+                                                        maxWidth: '150px' // Permettre le retour à la ligne
+                                                    }}
+                                                >
+                                                    {sectorInfo.name}
+                                                </td>
+                                            )}
+                                            <td
+                                                className="sticky left-[100px] z-20 px-3 py-2 text-sm font-medium text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-slate-600 w-36 max-w-xs"
+                                                style={{ backgroundColor: `${sectorInfo.colorCode}1A` }} // Appliquer aussi la couleur atténuée ici
+                                            >
+                                                {room.name}
+                                                <span className="block text-xs text-gray-500 dark:text-gray-400"> (N° {room.number || 'N/A'})</span>
                                             </td>
-                                            {weekDays.map((day) => {
-                                                // Utiliser filteredAssignments ici pour morningAssignments et afternoonAssignments
-                                                const morningAssignments = filteredAssignments.filter(a => format(new Date(a.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && a.roomId === room.id && a.period === 'MORNING');
-                                                const afternoonAssignments = filteredAssignments.filter(a => format(new Date(a.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && a.roomId === room.id && a.period === 'AFTERNOON');
-                                                const morningDroppableId = `room-${room.id}-day-${format(day, 'yyyy-MM-dd')}-period-MORNING`;
-                                                const afternoonDroppableId = `room-${room.id}-day-${format(day, 'yyyy-MM-dd')}-period-AFTERNOON`;
+                                            {daysToRender.map(day => {
+                                                const dayStr = format(day, 'yyyy-MM-dd');
+                                                const morningAssignments = getDailyAssignments(day, room.id).filter(a => a.period === 'MORNING' || a.shift === 'matin' || a.shift === 'MORNING' || (a.shift === 'FULL_DAY' || a.period === 'FULL_DAY'));
+                                                const afternoonAssignments = getDailyAssignments(day, room.id).filter(a => a.period === 'AFTERNOON' || a.shift === 'apresmidi' || a.shift === 'AFTERNOON' || (a.shift === 'FULL_DAY' || a.period === 'FULL_DAY'));
+
+                                                const morningDroppableId = `room-${room.id}-day-${dayStr}-period-MORNING`;
+                                                const afternoonDroppableId = `room-${room.id}-day-${dayStr}-period-AFTERNOON`;
+
                                                 return (
-                                                    <React.Fragment key={`${day.toISOString()}-room-${room.id}`}>
-                                                        {/* Droppable MORNING pour room */}
-                                                        <td className={`p-0 ...`}>
-                                                            <Droppable droppableId={morningDroppableId} type="ASSIGNMENT" isDropDisabled={false} isCombineEnabled={false}>
+                                                    <React.Fragment key={`${dayStr}-${room.id}-cells`}>
+                                                        <td className="px-0.5 py-0.5 align-top text-xs border border-gray-300 dark:border-slate-600 min-w-[100px] h-[60px]" style={{ backgroundColor: `${sectorInfo.colorCode}1A` }}>
+                                                            <Droppable droppableId={morningDroppableId} type="ASSIGNMENT" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
                                                                 {(provided, snapshot) => (
-                                                                    <div ref={provided.innerRef} {...provided.droppableProps} className={`p-1 ...`} style={{ minHeight: '60px', overflowY: 'auto' }}>
+                                                                    <div
+                                                                        ref={provided.innerRef}
+                                                                        {...provided.droppableProps}
+                                                                        className={`w-full h-full p-0.5 rounded-sm ${snapshot.isDraggingOver ? 'bg-blue-100 dark:bg-blue-600/30' : 'hover:bg-gray-50/50 dark:hover:bg-slate-700/20'}`}
+                                                                    >
                                                                         {morningAssignments.map((assignment, index) => renderAssignment(assignment, index))}
                                                                         {provided.placeholder}
                                                                     </div>
                                                                 )}
                                                             </Droppable>
                                                         </td>
-                                                        {/* Droppable AFTERNOON pour room */}
-                                                        <td className={`p-0 ...`}>
-                                                            <Droppable droppableId={afternoonDroppableId} type="ASSIGNMENT" isDropDisabled={false} isCombineEnabled={false}>
+                                                        <td className="px-0.5 py-0.5 align-top text-xs border border-gray-300 dark:border-slate-600 min-w-[100px] h-[60px]" style={{ backgroundColor: `${sectorInfo.colorCode}1A` }}>
+                                                            <Droppable droppableId={afternoonDroppableId} type="ASSIGNMENT" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
                                                                 {(provided, snapshot) => (
-                                                                    <div ref={provided.innerRef} {...provided.droppableProps} className={`p-1 ...`} style={{ minHeight: '60px', overflowY: 'auto' }}>
+                                                                    <div
+                                                                        ref={provided.innerRef}
+                                                                        {...provided.droppableProps}
+                                                                        className={`w-full h-full p-0.5 rounded-sm ${snapshot.isDraggingOver ? 'bg-amber-100 dark:bg-amber-600/30' : 'hover:bg-gray-50/50 dark:hover:bg-slate-700/20'}`}
+                                                                    >
                                                                         {afternoonAssignments.map((assignment, index) => renderAssignment(assignment, index))}
                                                                         {provided.placeholder}
                                                                     </div>
@@ -854,15 +873,18 @@ export default function WeeklyPlanningPage() {
                                                 );
                                             })}
                                         </tr>
-                                    ))}
-                                </React.Fragment>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                    ))
+                                }
+                            </React.Fragment>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         );
-    }, [filteredRooms, filteredAssignments, currentWeekStart, activeDateRangeType, customStartDate, customEndDate, getWeekDays, renderAssignment, isToday, isWeekend, format, fr]);
+    }, [filteredRooms, getWeekDays, users, getDailyAssignments, renderAssignment, getTextColorForBackground]);
+    // ATTENTION: selectedSiteId, rooms.length, currentWeekStart, activeDateRangeType, customStartDate, customEndDate retirés des dépendances
+    // car ils ne sont plus utilisés DIRECTEMENT par la logique de rendu de la table elle-même, mais par filteredRooms ou getWeekDays.
+    // getTextColorForBackground ajoutée.
 
     const renderLegend = () => {
         return (
@@ -1218,61 +1240,56 @@ export default function WeeklyPlanningPage() {
             return;
         }
         setIsSaving(true);
-        const originalAssignments = assignments;
+        // const originalAssignments = assignments; // Plus besoin si on ne restaure pas
 
         try {
-            // Préparer les données pour l'API batch
-            // Assurez-vous que le format correspond à ce qu'attend POST /api/assignments/batch
-            const assignmentsToSave = tempAssignments.map(tempAssign => {
-                // Convertir les champs si nécessaire (ex: userId en number si l'API l'attend)
-                return {
-                    ...tempAssign,
-                    userId: Number(tempAssign.userId), // Assumer que l'API batch attend un number
-                    date: new Date(tempAssign.date), // Envoyer objet Date ou string ISO?
-                    roomId: tempAssign.roomId ? Number(tempAssign.roomId) : null, // API attend number?
-                    // Retirer les champs non persistés (ex: `order` ajouté localement)
-                };
-            });
+            const assignmentsToSave = tempAssignments.map(tempAssign => ({
+                ...tempAssign,
+                userId: Number(tempAssign.userId),
+                date: new Date(tempAssign.date),
+                roomId: tempAssign.roomId ? Number(tempAssign.roomId) : null,
+            }));
 
-            console.log("Assignations envoyées à /api/assignments/batch:", assignmentsToSave);
+            console.log("Assignations envoyées à /api/assignments/batch (via apiClient):", assignmentsToSave);
 
-            const response = await fetch('/api/assignments/batch', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ assignments: assignmentsToSave }),
-            });
+            // Utiliser apiClient pour la sauvegarde aussi
+            const response = await apiClient.post('/api/assignments/batch', { assignments: assignmentsToSave });
 
-            const result = await response.json();
+            // Avec axios, le résultat est dans response.data
+            const result = response.data;
 
-            if (!response.ok) {
-                console.error("Erreur API batch:", result);
-                // Gérer les erreurs 207 (Multi-Status) spécifiquement
-                if (response.status === 207 && result.errors) {
-                    toast.error(`Erreur partielle: ${result.errors.length} affectation(s) non enregistrée(s).`);
-                } else {
-                    toast.error(result.error || "Erreur lors de la sauvegarde des changements.");
-                }
-                throw new Error(result.error || 'Sauvegarde échouée');
-            }
+            // La vérification de response.ok n'est plus nécessaire comme avec fetch, axios lève une erreur pour les status non-2xx
+            // Gérer les erreurs spécifiques si l'API batch retourne des erreurs dans le corps même avec un statut 2xx (si c'est le cas)
+            // if (response.status === 207 && result.errors) { // Exemple si 207 est possible et géré comme ça
+            //     toast.error(`Erreur partielle: ${result.errors.length} affectation(s) non enregistrée(s).`);
+            //     // Potentiellement throw new Error pour aller au catch, ou gérer différemment
+            // } else if (result.error) { // Si l'API retourne un champ "error" dans un 2xx
+            //    toast.error(result.error);
+            //    throw new Error(result.error);
+            // }
 
-            // Succès
-            setAssignments(tempAssignments); // Mettre à jour l'état principal
+
+            setAssignments(tempAssignments);
             setHasPendingChanges(false);
             setValidationResult(null);
             setIsConfirmationDialogOpen(false);
             toast.success(result.message || "Changements sauvegardés avec succès !");
 
-        } catch (error) {
-            console.error("Erreur lors de la sauvegarde des changements:", error);
-            // Ne pas restaurer tempAssignments ici pour permettre à l'utilisateur de réessayer
-            // setTempAssignments(originalAssignments); // Ou restaurer si on préfère annuler en cas d'erreur
-            toast.error(`Erreur sauvegarde: ${error instanceof Error ? error.message : 'Veuillez réessayer.'}`);
-            // Garder la modale ouverte ?
-            // setIsConfirmationDialogOpen(false);
+        } catch (error: any) { // Le catch d'axios error est plus détaillé
+            console.error("Erreur lors de la sauvegarde des changements (apiClient):", error);
+            let errorMessage = "Erreur lors de la sauvegarde des changements. Veuillez réessayer.";
+            if (error.response && error.response.data && error.response.data.error) {
+                errorMessage = error.response.data.error;
+            } else if (error.response && error.response.data && error.response.data.message) {
+                errorMessage = error.response.data.message; // S'il y a un message spécifique dans le corps de l'erreur
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            toast.error(errorMessage);
         } finally {
             setIsSaving(false);
         }
-    }, [tempAssignments, assignments, hasPendingChanges, validationResult]);
+    }, [tempAssignments, /* assignments, */ hasPendingChanges, validationResult]);
 
     const handleCancelChanges = useCallback(() => {
         setTempAssignments(assignments);
@@ -1330,126 +1347,115 @@ export default function WeeklyPlanningPage() {
     return (
         <div className="flex flex-col h-full p-4 md:p-6 bg-gray-50 dark:bg-slate-900">
             {/* En-tête principal */}
-            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                {/* Colonne de gauche: Titre et Navigation Date/Semaine + Sélecteur de site */}
-                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full md:w-auto">
-                    <h1 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 whitespace-nowrap">
-                        Planning {activeDateRangeType === 'week' ? 'Hebdomadaire' : 'Personnalisé'}
-                    </h1>
+            <div className="flex flex-col space-y-4">
+                {/* En-tête principal avec titre, navigation et sélecteur de site */}
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-2 border-b border-gray-200 dark:border-slate-700">
+                    <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+                        <h1 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+                            Planning {activeDateRangeType === 'week' ? 'Hebdomadaire' : 'Personnalisé'}
+                        </h1>
 
-                    {/* Contrôles de navigation de semaine - RESTAURÉS */}
-                    {activeDateRangeType === 'week' && (
-                        <div className="flex items-center border border-gray-300 dark:border-slate-700 rounded-md shadow-sm overflow-hidden">
-                            <Button onClick={goToPreviousWeek} variant="ghost" size="icon" aria-label="Semaine précédente" className="p-2 rounded-none hover:bg-gray-100 dark:hover:bg-slate-700">
-                                <ChevronLeftIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                            </Button>
-                            <Button onClick={goToCurrentWeek} variant="ghost" size="sm" className="px-3 py-2 border-l border-r border-gray-300 dark:border-slate-700 rounded-none text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">
-                                Aujourd'hui
-                            </Button>
-                            <Button onClick={goToNextWeek} variant="ghost" size="icon" aria-label="Semaine suivante" className="p-2 rounded-none hover:bg-gray-100 dark:hover:bg-slate-700">
-                                <ChevronRightIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                            </Button>
-                        </div>
-                    )}
-
-                    {/* Sélecteur de Site (remplacé par notre composant) */}
-                    {sitesList.length > 0 && (
-                        <div className="ml-2 sm:ml-4">
-                            <SiteSelector
-                                sites={sitesList}
-                                selectedSiteId={selectedSiteId}
-                                onChange={setSelectedSiteId}
-                                includeAllSites={true}
-                                allSitesLabel="Tous les sites"
-                                autoSelectFirst={true}
-                                persistInUrl={true}
-                            />
-                        </div>
-                    )}
-                </div>
-
-                {/* Colonne du milieu: Affichage de la date/semaine actuelle */}
-                <div className="flex-grow text-center md:text-left">
-                    {activeDateRangeType === 'week' && (
-                        <h2 className="text-xl md:text-2xl font-semibold text-gray-700 dark:text-gray-200 whitespace-nowrap">
-                            Semaine {getWeekNumber(currentWeekStart)} <span className="text-base font-normal">({format(currentWeekStart, "dd MMM", { locale: fr })} - {format(endOfWeek(currentWeekStart, { weekStartsOn: 1 }), "dd MMM yyyy", { locale: fr })})</span>
-                        </h2>
-                    )}
-                </div>
-
-                {/* Section Date et Numéro de semaine */}
-                <div className="flex items-baseline text-center md:text-left">
-                    {
-                        activeDateRangeType === 'custom' && customStartDate && customEndDate ?
-                            <div className="flex items-center gap-2">
-                                <span className="font-medium text-lg text-gray-700 dark:text-gray-300">
-                                    {format(customStartDate, "d MMM", { locale: fr })} - {format(customEndDate, "d MMM yyyy", { locale: fr })}
-                                </span>
-                                <Button
-                                    onClick={() => setIsDateRangeSelectorOpen(true)}
-                                    variant="ghost"
-                                    size="icon"
-                                    className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700"
-                                >
-                                    <CalendarIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                        {/* Contrôles de navigation de semaine */}
+                        {activeDateRangeType === 'week' && (
+                            <div className="flex items-center border border-gray-300 dark:border-slate-700 rounded-md shadow-sm overflow-hidden">
+                                <Button onClick={goToPreviousWeek} variant="ghost" size="icon" aria-label="Semaine précédente" className="p-2 rounded-none hover:bg-gray-100 dark:hover:bg-slate-700">
+                                    <ChevronLeftIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                                 </Button>
-                            </div> :
-                            <>
-                                <span className="font-medium text-xl text-gray-700 dark:text-gray-300">
-                                    {format(currentWeekStart, "MMMM yyyy", { locale: fr })}
-                                </span>
-                                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-                                    (Sem. {getWeekNumber(currentWeekStart)})
-                                </span>
-                                <Button
-                                    onClick={() => setIsDateRangeSelectorOpen(true)}
-                                    variant="ghost"
-                                    size="icon"
-                                    className="p-1 ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700"
-                                >
-                                    <CalendarIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                                <Button onClick={goToCurrentWeek} variant="ghost" size="sm" className="px-3 py-2 border-l border-r border-gray-300 dark:border-slate-700 rounded-none text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">
+                                    Aujourd'hui
                                 </Button>
-                            </>
-                    }
+                                <Button onClick={goToNextWeek} variant="ghost" size="icon" aria-label="Semaine suivante" className="p-2 rounded-none hover:bg-gray-100 dark:hover:bg-slate-700">
+                                    <ChevronRightIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* Sélecteur de Site */}
+                        {sitesList.length > 0 && (
+                            <div className="ml-0 sm:ml-4">
+                                <SiteSelector
+                                    sites={sitesList}
+                                    selectedSiteId={selectedSiteId}
+                                    onChange={setSelectedSiteId}
+                                    includeAllSites={true}
+                                    allSitesLabel="Tous les sites"
+                                    autoSelectFirst={true}
+                                    persistInUrl={true}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Affichage centralisé des informations de date et période */}
+                    <div className="flex items-center gap-2">
+                        {activeDateRangeType === 'custom' && customStartDate && customEndDate ? (
+                            <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">
+                                {format(customStartDate, "d MMM", { locale: fr })} - {format(customEndDate, "d MMM yyyy", { locale: fr })}
+                            </h2>
+                        ) : (
+                            <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">
+                                Semaine {getWeekNumber(currentWeekStart)} · {format(currentWeekStart, "MMMM yyyy", { locale: fr })}
+                                <span className="ml-2 text-sm font-normal">
+                                    ({format(currentWeekStart, "dd MMM", { locale: fr })} - {format(endOfWeek(currentWeekStart, { weekStartsOn: 1 }), "dd MMM", { locale: fr })})
+                                </span>
+                            </h2>
+                        )}
+                        <Button
+                            onClick={() => setIsDateRangeSelectorOpen(true)}
+                            variant="ghost"
+                            size="icon"
+                            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700"
+                        >
+                            <CalendarIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                        </Button>
+                    </div>
+
+                    {/* Section Recherche et Paramètres */}
+                    <div className="flex items-center space-x-2 w-full md:w-auto justify-center md:justify-end">
+                        <input
+                            type="text"
+                            placeholder="Rechercher salle/chir..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-slate-800 dark:text-gray-200 w-full sm:w-auto max-w-xs"
+                        />
+                        <Button
+                            onClick={openConfigPanel}
+                            variant="outline"
+                            size="icon"
+                            data-testid="open-config-button"
+                            aria-label="Configurer l'affichage"
+                            className="border-gray-300 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700"
+                        >
+                            <Cog6ToothIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                        </Button>
+                    </div>
                 </div>
 
-                {/* Sélecteur inline de la plage de dates */}
-                <div className="flex items-center gap-2">
-                    <DatePicker
-                        selected={customStartDate ?? startOfWeek(currentWeekStart, { weekStartsOn: 1 })}
-                        onChange={(date: Date | null) => { if (date) { setCustomStartDate(date); setActiveDateRangeType('custom'); } }}
-                        dateFormat="dd/MM/yyyy"
-                        className="px-2 py-1 border border-gray-300 dark:border-slate-700 rounded"
-                    />
-                    <DatePicker
-                        selected={customEndDate ?? endOfWeek(currentWeekStart, { weekStartsOn: 1 })}
-                        onChange={(date: Date | null) => { if (date) { setCustomEndDate(date); setActiveDateRangeType('custom'); } }}
-                        dateFormat="dd/MM/yyyy"
-                        className="px-2 py-1 border border-gray-300 dark:border-slate-700 rounded"
-                    />
-                    <Button onClick={fetchDataAndConfig} size="sm" className="ml-2">
-                        Actualiser
-                    </Button>
-                </div>
-
-                {/* Section Recherche et Paramètres */}
-                <div className="flex items-center space-x-2 w-full md:w-auto justify-center md:justify-end">
-                    <input
-                        type="text"
-                        placeholder="Rechercher salle/chir..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-slate-800 dark:text-gray-200 w-full sm:w-auto max-w-xs"
-                    />
+                {/* Contrôles de sélection de date */}
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <DatePicker
+                            selected={customStartDate ?? startOfWeek(currentWeekStart, { weekStartsOn: 1 })}
+                            onChange={(date: Date | null) => { if (date) { setCustomStartDate(date); setActiveDateRangeType('custom'); } }}
+                            dateFormat="dd/MM/yyyy"
+                            className="px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-slate-800 dark:text-gray-200 w-32"
+                        />
+                        <span className="text-gray-500 dark:text-gray-400">-</span>
+                        <DatePicker
+                            selected={customEndDate ?? endOfWeek(currentWeekStart, { weekStartsOn: 1 })}
+                            onChange={(date: Date | null) => { if (date) { setCustomEndDate(date); setActiveDateRangeType('custom'); } }}
+                            dateFormat="dd/MM/yyyy"
+                            minDate={customStartDate || undefined}
+                            className="px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-slate-800 dark:text-gray-200 w-32"
+                        />
+                    </div>
                     <Button
-                        onClick={openConfigPanel}
-                        variant="outline"
-                        size="icon"
-                        data-testid="open-config-button"
-                        aria-label="Configurer l'affichage"
-                        className="border-gray-300 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700"
+                        onClick={fetchDataAndConfig}
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600 w-full sm:w-auto"
                     >
-                        <Cog6ToothIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                        Actualiser
                     </Button>
                 </div>
             </div>

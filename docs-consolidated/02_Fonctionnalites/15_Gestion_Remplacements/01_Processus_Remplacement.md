@@ -13,6 +13,7 @@ La roadmap (`documentation/roadmap-dev-updated.md`) indique en Phase 2 (P1) le "
 - **Équité** : Proposer les remplacements de manière équitable (si possible, éviter de solliciter toujours les mêmes personnes).
 - **Respect des Règles** : Vérifier que le remplaçant est éligible (compétences, temps de travail, repos) pour le poste.
 - **Traçabilité** : Conserver un historique des remplacements effectués.
+- **Distinction avec les Échanges** : Ce processus se distingue des [Échanges d'Affectations](../08_Echanges_Affectations/01_Processus_Echange.md) qui sont généralement des accords mutuels entre deux utilisateurs. Ici, il s'agit de combler un poste vacant suite à une absence ou un besoin organisationnel.
 
 ## 3. Scénarios Déclenchant un Besoin de Remplacement
 
@@ -57,9 +58,10 @@ Le planificateur (ou le système) initie la recherche.
 
 ### 4.5. Notification
 
-- Le remplaçant est notifié de sa nouvelle affectation.
-- La personne initialement prévue (si applicable et si ce n'est pas elle qui a initié l'absence) peut être notifiée que son affectation a été couverte.
-- Les équipes concernées peuvent être informées du changement.
+- Le remplaçant est notifié de sa nouvelle affectation (`ASSIGNMENT_CREATED` ou `ASSIGNMENT_UPDATED`).
+- La personne initialement prévue (si applicable et si ce n'est pas elle qui a initié l'absence) peut être notifiée que son affectation a été couverte (`ASSIGNMENT_CANCELLED` ou `ASSIGNMENT_COVERED`).
+- Les équipes concernées ou les planificateurs peuvent être informés du changement (`PLANNING_CHANGE_NOTIFICATION`).
+- Si une demande de remplacement est envoyée à plusieurs utilisateurs potentiels, ils reçoivent une notification de type `REPLACEMENT_REQUESTED`. Ceux qui ne sont pas retenus ou si le poste est pourvu autrement reçoivent une notification `REPLACEMENT_OPPORTUNITY_CLOSED`.
 
 ## 5. Interface Utilisateur (Concepts)
 
@@ -84,10 +86,10 @@ Le planificateur (ou le système) initie la recherche.
 
 - Actuellement, il n'y a pas de modèle `ReplacementRequest` dédié dans `prisma/schema.prisma`.
 - Le processus pourrait s'appuyer sur :
-  - La modification du `userId` sur un `Assignment` existant.
+  - La modification du `userId` sur un `Assignment` existant (avec une trace de l'origine de la modification).
   - La création d'un nouvel `Assignment` pour le remplaçant et l'annulation/modification de l'original.
-  - Le modèle `SwapRequest` gère les échanges initiés par les utilisateurs eux-mêmes, ce qui est une forme de remplacement.
-- Pour un suivi plus fin, un modèle spécifique pourrait tracer l'origine de la demande de remplacement, les personnes sollicitées, et le remplaçant final.
+  - Le modèle `SwapRequest` ([`AssignmentSwapRequest`](../08_Echanges_Affectations/01_Processus_Echange.md)) gère les échanges initiés par les utilisateurs eux-mêmes, ce qui est une forme de remplacement, mais le besoin décrit ici est souvent initié par le service.
+- Pour un suivi plus fin, un modèle spécifique (ex: `StaffingNeed` ou `ReplacementOffer`) pourrait tracer l'origine de la demande de remplacement, les personnes sollicitées, et le remplaçant final, surtout si un système de "publication de besoin" est envisagé.
 
 ## 8. Points Clés
 

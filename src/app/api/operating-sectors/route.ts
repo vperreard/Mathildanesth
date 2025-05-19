@@ -1,15 +1,21 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { getAuthTokenServer, checkUserRole } from '@/lib/auth-server-utils';
+import type { UserRole as AuthUserRole } from '@/lib/auth-client-utils';
 
 const prisma = new PrismaClient();
 
-export async function GET(request: Request) {
+// Définir les rôles autorisés pour cette route
+const ALLOWED_ROLES_GET: AuthUserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'USER']; // Large pour l'instant
+const ALLOWED_ROLES_POST: AuthUserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL']; // Plus restrictif pour la création
+
+export async function GET(request: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        const token = await getAuthTokenServer();
+        const { hasRequiredRole, user, error: authError } = await checkUserRole(ALLOWED_ROLES_GET, token);
+
+        if (!hasRequiredRole || !user) {
+            return NextResponse.json({ error: authError || 'Non autorisé' }, { status: 401 });
         }
 
         const { searchParams } = new URL(request.url);
@@ -36,15 +42,17 @@ export async function GET(request: Request) {
     }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        const token = await getAuthTokenServer();
+        const { hasRequiredRole, user, error: authError } = await checkUserRole(ALLOWED_ROLES_POST, token);
+
+        if (!hasRequiredRole || !user) {
+            return NextResponse.json({ error: authError || 'Non autorisé' }, { status: 401 });
         }
 
         const data = await request.json();
-        const { name, siteId, description, colorCode, isActive, displayOrder, category } = data;
+        const { name, siteId, description, colorCode, isActive, displayOrder, category, rules } = data;
 
         if (!name || !siteId) {
             return NextResponse.json({ error: 'Nom et site requis' }, { status: 400 });
@@ -59,7 +67,8 @@ export async function POST(request: Request) {
                 isActive: isActive !== undefined ? isActive : true,
                 displayOrder,
                 category,
-                rules: data.rules || {}
+                rules: rules || {},
+                // createdBy: user.id, // Si vous souhaitez tracer qui a créé le secteur
             },
             include: {
                 site: true

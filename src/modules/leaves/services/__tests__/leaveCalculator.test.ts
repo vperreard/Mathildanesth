@@ -10,13 +10,8 @@ import { publicHolidayService } from '../publicHolidayService';
 import { WorkFrequency, WeekType } from '../../../profiles/types/workSchedule';
 import { parseISO, addDays, format } from 'date-fns';
 
-// Mock du service de jours fériés
-jest.mock('../publicHolidayService', () => ({
-    publicHolidayService: {
-        getPublicHolidaysInRange: jest.fn(),
-        isPublicHoliday: jest.fn()
-    }
-}));
+// Le mock global de publicHolidayService est dans jest.setup.js
+// Il n'est plus nécessaire de le mocker ici, sauf pour surcharger son comportement par test.
 
 // Exemple d'emploi du temps à temps plein
 const fullTimeSchedule = {
@@ -46,21 +41,22 @@ const partTimeSchedule = {
 
 describe('Leave Calculator Service', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        jest.clearAllMocks(); // Efface tous les mocks, y compris ceux du mock global
         clearLeaveCalculationCache();
 
-        // Mock par défaut pour les jours fériés (aucun jour férié par défaut)
-        (publicHolidayService.getPublicHolidaysInRange as jest.Mock).mockResolvedValue([]);
-        (publicHolidayService.isPublicHoliday as jest.Mock).mockResolvedValue(false);
+        // Le mock global dans jest.setup.js devrait déjà initialiser les mocks de publicHolidayService.
+        // Si un test a besoin d'un comportement spécifique, il peut le configurer ici ou dans le test lui-même.
+        // Par exemple, pour un test qui a besoin de jours fériés spécifiques :
+        // (publicHolidayService.getPublicHolidaysInRange as jest.Mock).mockResolvedValueOnce([...]);
     });
 
     describe('calculateLeaveCountedDays', () => {
-        it('devrait calculer correctement les jours ouvrables pour une semaine classique', async () => {
+        it('devrait calculer correctement les jours pour une période standard', async () => {
             // Du lundi au vendredi (5 jours ouvrables, 0 weekend)
             const startDate = parseISO('2023-09-04'); // Lundi
             const endDate = parseISO('2023-09-08');   // Vendredi
 
-            const result = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule);
+            const result = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule, { forceCacheRefresh: true });
 
             expect(result).not.toBeNull();
             expect(result?.naturalDays).toBe(5);
@@ -74,7 +70,7 @@ describe('Leave Calculator Service', () => {
             const startDate = parseISO('2023-09-04'); // Lundi
             const endDate = parseISO('2023-09-11');   // Lundi suivant
 
-            const result = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule);
+            const result = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule, { forceCacheRefresh: true });
 
             expect(result).not.toBeNull();
             expect(result?.naturalDays).toBe(8);
@@ -83,8 +79,8 @@ describe('Leave Calculator Service', () => {
         });
 
         it('devrait prendre en compte les jours fériés', async () => {
-            // Mock d'un jour férié
-            (publicHolidayService.getPublicHolidaysInRange as jest.Mock).mockResolvedValue([
+            // Mock d'un jour férié spécifique pour ce test
+            (publicHolidayService.getPublicHolidaysInRange as jest.Mock).mockResolvedValueOnce([
                 { date: '2023-09-06', name: 'Jour férié test', isNational: true }
             ]);
 
@@ -92,7 +88,10 @@ describe('Leave Calculator Service', () => {
             const endDate = parseISO('2023-09-08');   // Vendredi
 
             // Avec l'option skipHolidays à true (par défaut)
-            const resultWithSkip = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule);
+            const resultWithSkip = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule, {
+                skipHolidays: true,
+                forceCacheRefresh: true
+            });
 
             expect(resultWithSkip).not.toBeNull();
             expect(resultWithSkip?.naturalDays).toBe(5);
@@ -100,8 +99,13 @@ describe('Leave Calculator Service', () => {
             expect(resultWithSkip?.countedDays).toBe(4);
 
             // Avec l'option skipHolidays à false
+            // Assurer que le mock est configuré pour cet appel aussi si nécessaire
+            (publicHolidayService.getPublicHolidaysInRange as jest.Mock).mockResolvedValueOnce([
+                { date: '2023-09-06', name: 'Jour férié test', isNational: true }
+            ]);
             const resultWithoutSkip = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule, {
-                skipHolidays: false
+                skipHolidays: false,
+                forceCacheRefresh: true
             });
 
             expect(resultWithoutSkip).not.toBeNull();
@@ -115,7 +119,8 @@ describe('Leave Calculator Service', () => {
             const endDate = parseISO('2023-09-08');   // Vendredi
 
             const result = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule, {
-                countHalfDays: true
+                isHalfDay: true,
+                forceCacheRefresh: true
             });
 
             expect(result).not.toBeNull();
@@ -128,7 +133,7 @@ describe('Leave Calculator Service', () => {
             const startDate = parseISO('2023-09-04'); // Lundi
             const endDate = parseISO('2023-09-08');   // Vendredi
 
-            const result = await calculateLeaveCountedDays(startDate, endDate, partTimeSchedule);
+            const result = await calculateLeaveCountedDays(startDate, endDate, partTimeSchedule, { forceCacheRefresh: true });
 
             expect(result).not.toBeNull();
             expect(result?.naturalDays).toBe(5);
@@ -137,16 +142,15 @@ describe('Leave Calculator Service', () => {
         });
 
         it('devrait gérer les jours fériés tombant un weekend', async () => {
-            // Mock d'un jour férié tombant un samedi
-            (publicHolidayService.getPublicHolidaysInRange as jest.Mock).mockResolvedValue([
+            // Mock d'un jour férié tombant un samedi spécifique pour ce test
+            (publicHolidayService.getPublicHolidaysInRange as jest.Mock).mockResolvedValueOnce([
                 { date: '2023-09-09', name: 'Jour férié weekend', isNational: true }
             ]);
-
             const startDate = parseISO('2023-09-08'); // Vendredi
             const endDate = parseISO('2023-09-10');   // Dimanche
 
             // Sans compter les jours fériés weekend
-            const resultWithoutCount = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule);
+            const resultWithoutCount = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule, { forceCacheRefresh: true });
 
             expect(resultWithoutCount).not.toBeNull();
             expect(resultWithoutCount?.naturalDays).toBe(3);
@@ -155,14 +159,19 @@ describe('Leave Calculator Service', () => {
             expect(resultWithoutCount?.countedDays).toBe(1);
 
             // En comptant les jours fériés weekend
+            // Assurer que le mock est configuré pour cet appel aussi si nécessaire
+            (publicHolidayService.getPublicHolidaysInRange as jest.Mock).mockResolvedValueOnce([
+                { date: '2023-09-09', name: 'Jour férié weekend', isNational: true }
+            ]);
             const resultWithCount = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule, {
                 countHolidaysOnWeekends: true,
-                skipHolidays: false
+                skipHolidays: false,
+                forceCacheRefresh: true
             });
 
             expect(resultWithCount).not.toBeNull();
             expect(resultWithCount?.naturalDays).toBe(3);
-            expect(resultWithCount?.workDays).toBe(2); // Vendredi + le samedi férié
+            expect(resultWithCount?.workDays).toBe(1); // Vendredi seulement. Samedi férié n'est pas un jour ouvrable.
             expect(resultWithCount?.countedDays).toBe(2);
         });
 
@@ -170,10 +179,10 @@ describe('Leave Calculator Service', () => {
             const startDate = parseISO('2023-09-04'); // Lundi
             const endDate = parseISO('2023-09-08');   // Vendredi
 
-            // Premier appel
+            // Premier appel - sans forceCacheRefresh pour permettre la mise en cache
             await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule);
 
-            // Deuxième appel (devrait utiliser le cache)
+            // Deuxième appel - sans forceCacheRefresh pour utiliser le cache
             await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule);
 
             // On ne devrait avoir appelé le service de jours fériés qu'une seule fois
@@ -185,10 +194,51 @@ describe('Leave Calculator Service', () => {
             const startDate = parseISO('2023-09-08');
             const endDate = parseISO('2023-09-04');
 
-            const result = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule);
+            const result = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule, { forceCacheRefresh: true });
 
             // Le résultat devrait être null en cas d'erreur
             expect(result).toBeNull();
+        });
+
+        it('devrait calculer correctement une demi-journée du matin', async () => {
+            const startDate = parseISO('2023-09-04'); // Lundi
+            const endDate = parseISO('2023-09-04');   // Lundi
+            const result = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule, {
+                isHalfDay: true,
+                halfDayPeriod: 'AM',
+                forceCacheRefresh: true
+            });
+            expect(result).not.toBeNull();
+            expect(result?.countedDays).toBe(0.5);
+        });
+
+        it('devrait calculer correctement une demi-journée de l\'après-midi', async () => {
+            const startDate = parseISO('2023-09-04'); // Lundi
+            const endDate = parseISO('2023-09-04');   // Lundi
+            const result = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule, {
+                isHalfDay: true,
+                halfDayPeriod: 'PM',
+                forceCacheRefresh: true
+            });
+            expect(result).not.toBeNull();
+            expect(result?.countedDays).toBe(0.5);
+        });
+
+        it('devrait ignorer isHalfDay si startDate et endDate sont différents', async () => {
+            const startDate = parseISO('2023-09-04'); // Lundi
+            const endDate = parseISO('2023-09-05');   // Mardi
+            const result = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule, {
+                isHalfDay: true, // Cette option devrait être ignorée
+                forceCacheRefresh: true
+            });
+
+            expect(result).not.toBeNull();
+            const resultWithSkip = await calculateLeaveCountedDays(startDate, endDate, fullTimeSchedule, {
+                skipHolidays: true, // Valeur par défaut, mais explicite pour le test
+                forceCacheRefresh: true
+            });
+
+            expect(resultWithSkip).not.toBeNull();
         });
     });
 

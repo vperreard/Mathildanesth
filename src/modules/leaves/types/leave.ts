@@ -288,8 +288,18 @@ export interface Holiday {
  * Types et interfaces pour la gestion des congés
  */
 
-// Type pour les différents types de jours dans le calcul de congés
-export type LeaveDayType = 'REGULAR' | 'WEEKEND' | 'HOLIDAY' | 'NON_WORKING' | 'HALF_DAY';
+/**
+ * Types de jours dans le cadre des congés
+ * Utilisé pour catégoriser les jours dans les calculs de périodes de congés
+ */
+export type LeaveDayType =
+  | 'REGULAR'         // Jour normal travaillé
+  | 'WEEKEND'         // Jour de weekend
+  | 'HOLIDAY'         // Jour férié
+  | 'NON_WORKING'     // Jour non travaillé selon le planning
+  | 'HALF_DAY'        // Demi-journée de congé (remplace HALF_DAY_WORKED)
+  | 'FULL_DAY_WORKED' // Journée complète travaillée
+  | 'HALF_DAY_WORKED'; // Ancienne valeur, maintenue pour rétrocompatibilité, à préférer HALF_DAY
 
 /**
  * Détails d'un jour férié simplifié pour les calculs
@@ -356,19 +366,24 @@ export interface LeaveCalculationDetails {
 }
 
 /**
- * Options pour le calcul des jours de congés
+ * Options pour le calcul de jours de congés
  */
 export interface LeaveCalculationOptions {
-  // Ne pas compter les jours fériés (défaut: true)
+  // Ignorer les jours fériés (défaut: true)
   skipHolidays?: boolean;
 
-  // Compter les demi-journées (défaut: false)
-  countHalfDays?: boolean;
+  // Indique si la demande concerne une demi-journée (défaut: false)
+  // Ne s'applique que si startDate === endDate (un seul jour)
+  isHalfDay?: boolean;
+
+  // Période de la demi-journée (matin ou après-midi)
+  // N'est pris en compte que si isHalfDay est true
+  halfDayPeriod?: 'AM' | 'PM';
 
   // Compter les jours fériés tombant le weekend (défaut: false)
   countHolidaysOnWeekends?: boolean;
 
-  // Forcer le rafraîchissement du cache (défaut: false)
+  // Forcer le rafraîchissement du cache de calcul (défaut: false)
   forceCacheRefresh?: boolean;
 }
 

@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma'; // Import nommé
 import bcrypt from 'bcrypt';
-import { checkUserRole, UserRole } from '@/lib/auth-utils';
+import { checkUserRole } from '@/lib/auth-server-utils'; // Corrigé
+import type { UserRole } from '@/lib/auth-client-utils'; // Corrigé
 import { headers } from 'next/headers';
 import { Role as PrismaRole, ProfessionalRole, Prisma } from '@prisma/client';
 // Importer les types d'erreurs spécifiques
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
         return new NextResponse(JSON.stringify({ message: 'Accès non autorisé', error: authCheck.error }), { status: 403 });
     }
     if (authCheck.user) {
-        console.log("Vérification d'autorisation réussie pour utilisateur:", authCheck.user.login);
+        console.log(`Vérification d'autorisation réussie pour utilisateur ID: ${authCheck.user.id}, Role: ${authCheck.user.role}`);
     } else {
         // Gérer le cas où user est undefined même si hasRequiredRole est true (ne devrait pas arriver mais pour TypeScript)
         console.warn("Autorisation réussie mais objet utilisateur manquant dans authCheck.");

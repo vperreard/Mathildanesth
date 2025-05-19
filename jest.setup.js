@@ -1,5 +1,6 @@
 // jest.setup.js
-import '@testing-library/jest-dom'; // Pour les matchers DOM
+// import '@testing-library/jest-dom'; // Ancienne méthode
+import '@testing-library/jest-dom/jest-globals'; // Nouvelle tentative
 import 'whatwg-fetch'; // Polyfill fetch
 import { TextEncoder, TextDecoder } from 'util';
 import { fetch, Headers, Request, Response } from 'cross-fetch';
@@ -106,8 +107,8 @@ class MockBroadcastChannel {
     this.channel = channel;
     this.onmessage = null;
   }
-  postMessage(message) {}
-  close() {}
+  postMessage(message) { }
+  close() { }
 }
 
 global.BroadcastChannel = global.BroadcastChannel || MockBroadcastChannel;
@@ -123,3 +124,25 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 jest.setTimeout(10000);
 
 console.log('jest.setup.js loaded and mocks applied.');
+
+// Mock global pour PublicHolidayService pour éviter les appels API et calculs lourds par défaut
+jest.mock('@/modules/leaves/services/publicHolidayService', () => {
+  const actualPublicHolidayService = jest.requireActual('@/modules/leaves/services/publicHolidayService');
+  return {
+    publicHolidayService: {
+      // Conserver les autres méthodes non mockées si nécessaire, ou les mocker explicitement
+      // ...actualPublicHolidayService.publicHolidayService, // Ne pas faire ça si on veut surcharger des méthodes clés
+
+      getPublicHolidaysInRange: jest.fn().mockResolvedValue([]),
+      isPublicHoliday: jest.fn().mockResolvedValue(false),
+      getPublicHolidaysForYear: jest.fn().mockResolvedValue([]),
+      // Si preloadData est exporté et utilisé, sinon ce mock est inoffensif
+      // S'il n'est pas exporté, il ne peut pas être mocké directement ici de toute façon.
+      // On espère que mocker getPublicHolidaysForYear suffit à contrôler son comportement si preloadData l'appelle.
+      preloadData: jest.fn().mockResolvedValue(undefined), // Tentative, même si privé, le module pourrait l'exporter
+
+      // Conserver les constantes/enums exportés par le module s'il y en a
+      ...(actualPublicHolidayService.publicHolidayService ? {} : actualPublicHolidayService) // Pour conserver les exports non-objets
+    },
+  };
+});

@@ -46,49 +46,104 @@ enum ConflictSeverity {
   ERROR
 }
 
+// AJOUTS POUR TRAME MODELE
+enum RecurrenceTypeTrame {
+  AUCUNE
+  HEBDOMADAIRE
+  // MENSUELLE // Pour plus tard si besoin
+}
+
+enum TypeSemaineTrame {
+  TOUTES
+  PAIRES
+  IMPAIRES
+}
+
+// Nouvelle énumération pour les rôles des trames modèles
+enum TrameRoleType {
+  MAR
+  IADE
+  CHIRURGIEN
+  TOUS // Option par défaut ou si la trame s'applique à tous
+}
+
 // --- NOUVEAUX MODÈLES POUR LES TRAMES DE PLANNING BLOC (isolés) ---
-model BlocTramePlanning {
+model TrameModele {
   id           Int                         @id @default(autoincrement())
   name         String                      @unique
   description  String?
   siteId       String?
-  site         Site?                       @relation("SiteBlocTramePlannings", fields: [siteId], references: [id])
-  dateDebut    DateTime
-  dateFin      DateTime?
+  site         Site?                       @relation("SiteTrameModeles", fields: [siteId], references: [id])
+  
   isActive     Boolean                     @default(true)
-  affectations BlocAffectationHabituelle[]
+
+  dateDebutEffet      DateTime
+  dateFinEffet        DateTime?
+  recurrenceType      RecurrenceTypeTrame @default(HEBDOMADAIRE)
+  joursSemaineActifs  Int[]
+  typeSemaine         TypeSemaineTrame @default(TOUTES)
+
+  // Ajout du champ roles
+  roles               TrameRoleType[] @default([TOUS])
+
+  affectations AffectationModele[]
   createdAt    DateTime                    @default(now())
   updatedAt    DateTime                    @updatedAt
 
-  @@map("bloc_trame_plannings")
+  @@map("trame_modeles")
 }
 
-model BlocAffectationHabituelle {
+model AffectationModele {
   id                  Int               @id @default(autoincrement())
-  blocTramePlanningId Int
-  blocTramePlanning   BlocTramePlanning @relation(fields: [blocTramePlanningId], references: [id], onDelete: Cascade)
+  trameModeleId       Int
+  trameModele         TrameModele       @relation(fields: [trameModeleId], references: [id], onDelete: Cascade)
 
-  userId       Int?
-  user         User?    @relation(fields: [userId], references: [id])
-  chirurgienId Int?
-  surgeon      Surgeon? @relation(fields: [chirurgienId], references: [id])
+  activityTypeId      String
+  activityType        ActivityType      @relation("ActivityTypeAffectationModeles", fields: [activityTypeId], references: [id])
 
-  jourSemaine DayOfWeek
-  periode     Period
-  typeSemaine WeekType
+  jourSemaine         DayOfWeek
+  periode             Period
+  typeSemaine         TypeSemaineTrame
 
-  typeAffectation   String
-  roleInAffectation String?
+  operatingRoomId     Int?
+  operatingRoom       OperatingRoom?    @relation("OperatingRoomAffectationModeles", fields: [operatingRoomId], references: [id], onDelete: SetNull)
+  locationId          Int?
 
-  operatingRoomId Int?
-  specialiteChir  String?
+  priorite            Int      @default(5)
+  isActive            Boolean  @default(true)
+  detailsJson         Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  priorite    Int      @default(5)
-  detailsJson Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  personnelRequis     PersonnelRequisModele[]
 
-  @@map("bloc_affectation_habituelles")
+  @@map("affectation_modeles")
+}
+
+model PersonnelRequisModele {
+  id                        Int      @id @default(autoincrement())
+  affectationModeleId       Int
+  affectationModele         AffectationModele @relation(fields: [affectationModeleId], references: [id], onDelete: Cascade)
+
+  roleGenerique             String
+  professionalRoleId        String?
+  professionalRoleConfig    ProfessionalRoleConfig? @relation("RoleConfigPourPersonnelRequis", fields: [professionalRoleId], references: [code])
+  specialtyId               Int?
+  specialty                 Specialty? @relation("SpecialtyPourPersonnelRequis", fields: [specialtyId], references: [id])
+  
+  nombreRequis              Int      @default(1)
+
+  personnelHabituelUserId   Int?
+  userHabituel              User?    @relation("UserHabituelPourPersonnelRequis", fields: [personnelHabituelUserId], references: [id], onDelete: SetNull)
+  personnelHabituelSurgeonId Int?
+  surgeonHabituel           Surgeon? @relation("SurgeonHabituelPourPersonnelRequis", fields: [personnelHabituelSurgeonId], references: [id], onDelete: SetNull)
+  personnelHabituelNomExterne String?
+  
+  notes                       String?
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  @@map("personnel_requis_modeles")
 }
 
 // --- NOUVEAUX MODÈLES SPÉCIFIQUES AU PLANNING DU BLOC OPÉRATOIRE V2 ---
@@ -247,7 +302,7 @@ model User {
   blocStaffAssignments          BlocStaffAssignment[]
   blocPlanningConflictsResolved BlocPlanningConflict[]      @relation("ResolvedBy")
   blocPlanningConflictsForced   BlocPlanningConflict[]      @relation("ForcedBy")
-  blocTrameAffectations         BlocAffectationHabituelle[]
+  personnelRequisModelesCommeHabituel PersonnelRequisModele[] @relation("UserHabituelPourPersonnelRequis")
   canSuperviseOphtalmo          Boolean                     @default(false)
   canSuperviseEndo              Boolean                     @default(false)
 
@@ -275,6 +330,7 @@ model Specialty {
   isPediatric Boolean      @default(false)
   assignments Assignment[]
   surgeons    Surgeon[]    @relation("SpecialtyToSurgeon")
+  personnelRequisModeles PersonnelRequisModele[] @relation("SpecialtyPourPersonnelRequis")
 }
 
 model Surgeon {
@@ -294,9 +350,9 @@ model Surgeon {
   plannedAbsences             PlannedAbsence[]
   preferences                 SurgeonPreference[]
   regularAssignments          RegularAssignment[]
-  blocRoomAssignments         BlocRoomAssignment[] // Maintenu pour la rétrocompatibilité si utilisé ailleurs
+  blocRoomAssignments         BlocRoomAssignment[]
   absences                    Absence[]
-  blocTrameAffectations       BlocAffectationHabituelle[]
+  personnelRequisModelesCommeHabituel PersonnelRequisModele[] @relation("SurgeonHabituelPourPersonnelRequis")
   assignments                 Assignment[]                @relation("SurgeonAssignments")
   // Relations pour PersonnelIncompatibility
   incompatibilitiesAsSurgeon1 PersonnelIncompatibility[]  @relation("Surgeon1Incompatibilities")
@@ -358,6 +414,7 @@ model OperatingRoom {
 
   blocRoomAssignments BlocRoomAssignment[]
   assignments         Assignment[]
+  affectationModeles  AffectationModele[] @relation("OperatingRoomAffectationModeles")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -446,6 +503,11 @@ model Leave {
   parent             Leave?      @relation("RecurringLeaveOccurrences", fields: [parentId], references: [id])
   occurrences        Leave[]     @relation("RecurringLeaveOccurrences")
   user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  alerts             LeaveRequestAlert[]
+
+  isHalfDay          Boolean?
+  halfDayPeriod      String?
 
   @@index([userId])
   @@index([startDate, endDate])
@@ -568,6 +630,7 @@ model ProfessionalRoleConfig {
   displayPreferences Json?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  personnelRequisModeles PersonnelRequisModele[] @relation("RoleConfigPourPersonnelRequis")
 }
 
 model TeamConfiguration {
@@ -921,7 +984,7 @@ model Site {
   operatingRooms     OperatingRoom[]     @relation("SiteOperatingRooms")
   operatingSectors   OperatingSector[]
   users              User[]              @relation("SiteUsers")
-  blocTramePlannings BlocTramePlanning[] @relation("SiteBlocTramePlannings")
+  trameModeles       TrameModele[]       @relation("SiteTrameModeles")
   blocDayPlannings   BlocDayPlanning[]
   UserRequest        UserRequest[]       @relation("SiteUserRequests")
 
@@ -929,7 +992,7 @@ model Site {
   regularAssignments RegularAssignment[]
   assignments        Assignment[]
 
-  activityTypes ActivityType[] @relation("ActivityTypeToSite")
+  activityTypes ActivityType[] @relation("SiteActivityTypes")
 
   @@map("sites")
 }
@@ -1219,18 +1282,48 @@ model UserSkill {
 model ActivityType {
   id          String           @id @default(uuid())
   name        String           @unique // Ex: "Garde Anesthésie Pontoise", "Consultation Dr. Durand", "Bloc Salle 3"
+  code        String           @unique // Ajouté: Code unique pour identification métier
   description String?
   category    ActivityCategory @default(AUTRE)
   color       String? // Pour affichage dans le planning, ex: "#FF5733"
   icon        String? // Nom d'une icône (ex: "BriefcaseIcon") ou slug pour affichage
   isActive    Boolean          @default(true) // Pour pouvoir désactiver sans supprimer
 
+  defaultDurationHours Float?    // Ajouté: Durée par défaut en heures (ex: 4.0, 8.0, 12.0, 24.0)
+  defaultPeriod        Period?   // Ajouté: Période par défaut (MATIN, APRES_MIDI, JOURNEE_ENTIERE)
+
   // Relation Many-to-Many avec Site
   // Une activité peut être disponible sur plusieurs sites, ou aucun (globale)
-  sites Site[] @relation("ActivityTypeToSite")
+  // Relation à UN site (un type d'activité appartient à un site, ou à aucun si global)
+  site   Site?   @relation("SiteActivityTypes", fields: [siteId], references: [id])
+  siteId String? @map("site_id")
+  affectationModeles AffectationModele[] @relation("ActivityTypeAffectationModeles")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("activity_types")
+}
+
+model SchoolHolidayPeriod {
+  id        Int      @id @default(autoincrement())
+  name      String // e.g., "Vacances de Pâques 2025 Zone A"
+  startDate DateTime @db.Date // Store as Date without time
+  endDate   DateTime @db.Date // Store as Date without time
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("school_holiday_periods")
+}
+
+model LeaveRequestAlert {
+  id             Int      @id @default(autoincrement())
+  leaveId        String
+  leave          Leave    @relation(fields: [leaveId], references: [id], onDelete: Cascade)
+  ruleCode       String // e.g., "MAR_THRESHOLD_OFF_HOLIDAYS_EXCEEDED"
+  messageDetails String // e.g., "Currently 3 MAR on leave (threshold: 2)"
+  generatedAt    DateTime @default(now())
+
+  @@index([leaveId])
+  @@map("leave_request_alerts")
 }

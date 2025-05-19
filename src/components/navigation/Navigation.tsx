@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { memo, useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
 import { navigationGroups, isAdminGroup } from '@/utils/navigationConfig';
 
 interface NavLink {
@@ -41,6 +42,7 @@ const stagger = {
 const Navigation = memo(function Navigation({ links, isAdmin, mobileMenuOpen, onMobileMenuToggle }: NavigationProps) {
     const pathname = usePathname();
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+    const { theme } = useTheme();
 
     const toggleDropdown = (groupName: string) => {
         // Si le menu cliqué est déjà ouvert, le fermer
@@ -69,7 +71,7 @@ const Navigation = memo(function Navigation({ links, isAdmin, mobileMenuOpen, on
                 <motion.div key="accueil" variants={fadeIn}>
                     <Link
                         href="/"
-                        className={`px-4 py-2 text-gray-700 dark:text-slate-300 hover:text-primary-600 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 dark:hover:text-primary-400 rounded-lg hover:bg-primary-50 dark:hover:bg-slate-700 transition-all duration-200 font-medium text-sm ${pathname === '/' ? 'text-primary-600 bg-gradient-to-r from-primary-50 to-secondary-50 dark:text-primary-400 dark:bg-slate-700 dark:from-transparent dark:to-transparent' : ''
+                        className={`px-4 py-2 text-gray-700 dark:text-slate-200 hover:text-primary-600 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 dark:hover:text-primary-400 rounded-lg hover:bg-primary-50 dark:hover:bg-slate-600 transition-all duration-200 font-medium text-sm ${pathname === '/' ? 'text-primary-600 bg-gradient-to-r from-primary-50 to-secondary-50 dark:text-primary-400 dark:bg-slate-600 dark:from-transparent dark:to-transparent' : ''
                             }`}
                         aria-current={pathname === '/' ? 'page' : undefined}
                     >
@@ -80,7 +82,7 @@ const Navigation = memo(function Navigation({ links, isAdmin, mobileMenuOpen, on
                 {filteredGroups.map((group) => (
                     <motion.div key={group.name} variants={fadeIn} className="relative group">
                         <button
-                            className={`px-4 py-2 text-gray-700 dark:text-slate-300 hover:text-primary-600 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 dark:hover:text-primary-400 rounded-lg hover:bg-primary-50 dark:hover:bg-slate-700 transition-all duration-200 font-medium text-sm flex items-center ${group.links.some(link => link.href === pathname) ? 'text-primary-600 bg-gradient-to-r from-primary-50 to-secondary-50 dark:text-primary-400 dark:bg-slate-700 dark:from-transparent dark:to-transparent' : ''
+                            className={`px-4 py-2 text-gray-700 dark:text-slate-200 hover:text-primary-600 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 dark:hover:text-primary-400 rounded-lg hover:bg-primary-50 dark:hover:bg-slate-600 transition-all duration-200 font-medium text-sm flex items-center ${group.links.some(link => link.href === pathname) ? 'text-primary-600 bg-gradient-to-r from-primary-50 to-secondary-50 dark:text-primary-400 dark:bg-slate-600 dark:from-transparent dark:to-transparent' : ''
                                 }`}
                             onClick={() => toggleDropdown(group.name)}
                             aria-expanded={isDropdownOpen(group.name)}
@@ -96,8 +98,13 @@ const Navigation = memo(function Navigation({ links, isAdmin, mobileMenuOpen, on
 
                         {/* Menu déroulant desktop */}
                         <div
-                            className={`absolute left-0 mt-2 w-56 origin-top-left bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-md shadow-lg transition-all duration-200 z-50 ${isDropdownOpen(group.name) ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+                            className={`absolute left-0 mt-2 w-56 origin-top-left border rounded-md shadow-lg transition-all duration-200 z-50 ${isDropdownOpen(group.name) ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
                                 }`}
+                            style={
+                                theme === 'dark'
+                                    ? { backgroundColor: '#0F172A', borderColor: '#334155' } // slate-900, slate-700
+                                    : { backgroundColor: 'white', borderColor: '#E5E7EB' }   // blanc, gray-200
+                            }
                         >
                             <div className="py-1">
                                 {group.links.map((link) => (
@@ -105,8 +112,8 @@ const Navigation = memo(function Navigation({ links, isAdmin, mobileMenuOpen, on
                                         key={link.href}
                                         href={link.href}
                                         className={`block px-4 py-2 text-sm ${pathname === link.href
-                                            ? 'bg-gradient-to-r from-primary-50 via-secondary-50 to-tertiary-50 text-primary-600 dark:bg-slate-700 dark:text-primary-400 dark:from-transparent dark:via-transparent dark:to-transparent'
-                                            : 'text-gray-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400'
+                                            ? 'bg-gradient-to-r from-primary-50 via-secondary-50 to-tertiary-50 text-primary-600 dark:bg-slate-600 dark:text-primary-400 dark:from-transparent dark:via-transparent dark:to-transparent'
+                                            : 'text-gray-700 dark:text-slate-200 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-600 hover:text-primary-600 dark:hover:text-primary-400'
                                             }`}
                                         aria-current={pathname === link.href ? 'page' : undefined}
                                         onClick={() => toggleDropdown(group.name)}
@@ -120,7 +127,7 @@ const Navigation = memo(function Navigation({ links, isAdmin, mobileMenuOpen, on
                 ))}
             </>
         );
-    }, [filteredGroups, pathname, activeDropdown]);
+    }, [filteredGroups, pathname, activeDropdown, theme]);
 
     // Rendu des liens de navigation mobile avec sections dépliables
     const renderMobileNavigation = useMemo(() => {
@@ -128,7 +135,7 @@ const Navigation = memo(function Navigation({ links, isAdmin, mobileMenuOpen, on
             <>
                 <Link
                     href="/"
-                    className={`block px-4 py-2 text-gray-700 dark:text-slate-300 hover:text-primary-600 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-lg transition-colors ${pathname === '/' ? 'text-primary-600 bg-gradient-to-r from-primary-50 to-secondary-50 dark:text-primary-400 dark:bg-slate-700 dark:from-transparent dark:to-transparent' : ''
+                    className={`block px-4 py-2 text-gray-700 dark:text-slate-200 hover:text-primary-600 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-600 rounded-lg transition-colors ${pathname === '/' ? 'text-primary-600 bg-gradient-to-r from-primary-50 to-secondary-50 dark:text-primary-400 dark:bg-slate-600 dark:from-transparent dark:to-transparent' : ''
                         }`}
                     onClick={onMobileMenuToggle}
                     aria-current={pathname === '/' ? 'page' : undefined}
@@ -139,7 +146,7 @@ const Navigation = memo(function Navigation({ links, isAdmin, mobileMenuOpen, on
                 {filteredGroups.map((group) => (
                     <div key={group.name} className="py-1">
                         <button
-                            className="w-full flex justify-between items-center px-4 py-2 text-gray-700 dark:text-slate-300 hover:text-primary-600 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-lg transition-colors font-medium"
+                            className="w-full flex justify-between items-center px-4 py-2 text-gray-700 dark:text-slate-200 hover:text-primary-600 hover:bg-gradient-to-r hover:from-primary-50 hover:to-secondary-50 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-600 rounded-lg transition-colors font-medium"
                             onClick={() => toggleDropdown(group.name)}
                             aria-expanded={isDropdownOpen(group.name)}
                         >
@@ -158,8 +165,8 @@ const Navigation = memo(function Navigation({ links, isAdmin, mobileMenuOpen, on
                                         key={link.href}
                                         href={link.href}
                                         className={`block px-4 py-2 text-sm ${pathname === link.href
-                                            ? 'text-primary-600 bg-gradient-to-r from-primary-50 via-secondary-50 to-tertiary-50 dark:text-primary-400 dark:bg-slate-700 dark:from-transparent dark:via-transparent dark:to-transparent'
-                                            : 'text-gray-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400'
+                                            ? 'text-primary-600 bg-gradient-to-r from-primary-50 via-secondary-50 to-tertiary-50 dark:text-primary-400 dark:bg-slate-600 dark:from-transparent dark:via-transparent dark:to-transparent'
+                                            : 'text-gray-700 dark:text-slate-200 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-600 hover:text-primary-600 dark:hover:text-primary-400'
                                             }`}
                                         onClick={onMobileMenuToggle}
                                         aria-current={pathname === link.href ? 'page' : undefined}
@@ -195,7 +202,7 @@ const Navigation = memo(function Navigation({ links, isAdmin, mobileMenuOpen, on
             <div className="flex md:hidden">
                 <button
                     onClick={onMobileMenuToggle}
-                    className="p-2 rounded-lg text-gray-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 dark:focus:ring-primary-400 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+                    className="p-2 rounded-lg text-gray-500 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 dark:focus:ring-primary-400 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
                     aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
                     aria-expanded={mobileMenuOpen}
                     aria-controls={mobileMenuId}
@@ -216,7 +223,7 @@ const Navigation = memo(function Navigation({ links, isAdmin, mobileMenuOpen, on
             {mobileMenuOpen && (
                 <motion.nav
                     id={mobileMenuId}
-                    className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg-slate-800 shadow-lg border-b border-gray-100 dark:border-slate-700 max-h-[80vh] overflow-y-auto"
+                    className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg-slate-900 shadow-lg border-b border-gray-100 dark:border-slate-800 max-h-[80vh] overflow-y-auto"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}

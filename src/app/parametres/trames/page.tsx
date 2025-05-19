@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import BlocPlanningTemplateEditor from '@/components/trames/BlocPlanningTemplateEditor';
+import { TemplateManager } from '@/modules/templates/components/TemplateManager';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import EditeurTramesHebdomadaires from './EditeurTramesHebdomadaires';
@@ -14,7 +14,7 @@ export default function TramesPlanningPage() {
             <Tabs defaultValue="bloc">
                 <TabsList className="mb-8">
                     <TabsTrigger value="bloc">Planning de bloc</TabsTrigger>
-                    <TabsTrigger value="standard">Planning standard</TabsTrigger>
+                    <TabsTrigger value="standard">Trames</TabsTrigger>
                     <TabsTrigger value="garde">Gardes et astreintes</TabsTrigger>
                 </TabsList>
 
@@ -24,7 +24,7 @@ export default function TramesPlanningPage() {
                             <CardTitle>Trames de planning de bloc</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <BlocPlanningTemplateEditor />
+                            <TemplateManager />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -32,7 +32,7 @@ export default function TramesPlanningPage() {
                 <TabsContent value="standard">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Trames de planning standard</CardTitle>
+                            <CardTitle>Trames</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <EditeurTramesHebdomadaires />

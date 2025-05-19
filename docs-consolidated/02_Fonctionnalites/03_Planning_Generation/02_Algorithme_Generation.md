@@ -1,92 +1,69 @@
-# Algorithme de Génération Automatique de Planning
+# Algorithme de Génération de Planning
 
 ## 1. Introduction
 
-L'algorithme de génération automatique de planning est au cœur de la fonctionnalité de planification de Mathildanesth. Son objectif est de produire des plannings optimisés, équitables et conformes aux règles établies, tout en minimisant les interventions manuelles. Ce document décrit les principes de fonctionnement, les données d'entrée, les sorties attendues et les interactions avec le moteur de règles.
+La génération automatique de plannings médicaux est une tâche complexe en raison du grand nombre de contraintes à satisfaire, des multiples objectifs à optimiser (équité, couverture des besoins, préférences) et de la nécessité de produire des plannings robustes et flexibles. L'algorithme de Mathildanesth vise à aborder ces défis en utilisant une approche hybride combinant des techniques heuristiques, la satisfaction de contraintes et des phases d'optimisation.
 
-Le "Service de génération de planning" de `mathildanesth` est marqué comme complété dans `docs/technique/NEXT_STEPS.md`, avec des améliorations telles que la gestion des gardes consécutives et des shifts multiples. L'intégration avec les règles dynamiques est également un aspect clé (`RuleBasedPlanningGeneratorService` et `docs/technique/NEXT_STEPS.md` section "Intégration avec l'algorithme de génération").
+Le document `documentation/regles-planning-documentation.md` souligne l'architecture modulaire du moteur de règles, ce qui est fondamental pour l'algorithme qui s'appuie sur ces règles à chaque étape.
 
-## 2. Objectifs de l'Algorithme
+## 2. Principes Généraux de l'Algorithme
 
-- **Couverture des Besoins** : Assurer que tous les postes et services requis sont couverts par du personnel qualifié.
-- **Respect des Règles** : Intégrer et respecter au maximum les règles définies dans le [Moteur de Règles](./01_Moteur_Regles.md) (légales, organisationnelles, d'équité, de compétences).
-- **Équité** : Répartir de manière équitable les charges de travail, les gardes, les week-ends, et les types de postes pénibles entre les utilisateurs éligibles.
-- **Optimisation** : Rechercher des solutions de planning qui optimisent certains critères (ex: minimiser les changements d'affectation, maximiser la satisfaction des préférences utilisateurs si possible).
-- **Rapidité** : Générer des plannings dans un délai raisonnable.
-- **Flexibilité** : Pouvoir s'adapter à différents contextes et configurations (ex: plannings pour différents services, périodes variables).
+L'algorithme de génération de planning s'articule autour des principes suivants :
 
-## 3. Données d'Entrée pour la Génération
+*   **Approche par étapes** : La génération est décomposée en plusieurs phases distinctes (pré-traitement, affectation principale, post-traitement) pour gérer la complexité.
+*   **Priorisation des règles** : Les règles "dures" (légales, sécurité) sont prioritaires sur les règles "souples" (préférences, confort).
+*   **Itératif et adaptatif** : L'algorithme peut nécessiter des itérations pour trouver une solution satisfaisante, en ajustant les affectations pour résoudre les conflits.
+*   **Configurabilité** : De nombreux aspects de l'algorithme sont influencés par les paramètres définis dans [Règles de Configuration (`docs MATHILDA/05_Regles_Metier/02_Regles_Configuration.md`)](./../01_Moteur_Regles.md#3-configuration-des-règles).
 
-L'algorithme nécessite un ensemble complet de données pour fonctionner efficacement :
+## 3. Phases de l'Algorithme
 
-- **Période de Planification** : Dates de début et de fin pour lesquelles le planning doit être généré.
-- **Utilisateurs** :
-  - Liste des utilisateurs éligibles pour la planification.
-  - Profils utilisateurs : rôles professionnels, compétences, contrats (temps plein/partiel, jours spécifiques), dates d'entrée/sortie.
-  - Congés et absences approuvés.
-  - Indisponibilités déclarées.
-  - Préférences (si prises en compte).
-  - Compteurs existants (heures travaillées, nombre de gardes effectuées, etc.) pour assurer l'équité sur la durée.
-- **Besoins de Couverture (Demande)** :
-  - Définition des postes à pourvoir (ex: MAR de garde, IADE au bloc, consultation X).
-  - Nombre de personnes requises pour chaque poste et pour chaque créneau horaire.
-  - Compétences spécifiques requises pour certains postes.
-  - Peut provenir de trames de planning pré-configurées.
-- **Règles Actives** :
-  - Ensemble des règles (légales, organisationnelles, d'équité) fournies par le [Moteur de Règles](./01_Moteur_Regles.md).
-- **Planning Existant (Optionnel)** :
-  - Possibilité de partir d'un planning partiellement rempli ou d'un planning précédent pour assurer une continuité.
+### 3.1. Pré-traitement et Initialisation
 
-## 4. Processus Général de Génération (Conceptuel)
+Avant de commencer l'affectation, plusieurs étapes préparatoires sont nécessaires :
 
-Bien que les détails spécifiques de l'implémentation puissent varier, un algorithme de génération de planning suit généralement des étapes conceptuelles comme :
+*   **Collecte des données** :
+    *   Utilisateurs disponibles (avec leurs rôles, compétences, contrats, temps partiels).
+    *   Absences planifiées (congés, formations).
+    *   Demandes spécifiques (si prises en compte automatiquement).
+    *   Besoins de couverture pour chaque service/poste/salle.
+    *   Règles de planification actives.
+*   **Création des "slots" à pourvoir** : Définition de toutes les tâches ou postes qui doivent être couverts sur la période de planning.
+*   **Filtrage initial des candidats** : Pour chaque slot, une première liste de candidats potentiels peut être établie en fonction des compétences de base et des incompatibilités manifestes.
 
-1.  **Initialisation** : Chargement des données d'entrée (utilisateurs, besoins, règles, période).
-2.  **Pré-traitement** :
-    - Filtrage des utilisateurs non disponibles (congés, indisponibilités).
-    - Identification des contraintes les plus fortes.
-3.  **Construction / Affectation Itérative** :
-    - L'algorithme tente d'affecter des utilisateurs aux postes vacants, créneau par créneau ou poste par poste.
-    - À chaque tentative d'affectation, il consulte le moteur de règles pour vérifier la validité et l'impact de cette affectation.
-    - Des stratégies heuristiques, des techniques de recherche (backtracking, recherche locale), ou des approches basées sur des solveurs de contraintes (CSP) peuvent être utilisées.
-    - Prise en compte de l'équité en consultant les compteurs et l'historique des affectations.
-    - Gestion des spécificités comme les gardes consécutives ou les shifts multiples dans une journée (`docs/technique/NEXT_STEPS.md`).
-4.  **Optimisation (Optionnelle)** : Une fois une solution initiale trouvée, une phase d'optimisation peut chercher à améliorer le planning (ex: réduire le nombre de changements, mieux satisfaire les préférences).
-5.  **Validation Finale** : Le planning généré est à nouveau validé par le moteur de règles pour identifier les éventuelles violations restantes (surtout pour les règles non bloquantes).
+### 3.2. Affectation Principale
 
-## 5. Interaction avec le Moteur de Règles
+C'est le cœur de l'algorithme, où les utilisateurs sont assignés aux slots. Plusieurs stratégies peuvent être combinées :
 
-- **Validation Continue** : L'algorithme interroge le moteur de règles fréquemment pour s'assurer que les affectations envisagées ou réalisées sont conformes.
-- **Guidage par les Règles** : Les règles, en particulier celles de priorité élevée (bloquantes), guident les décisions de l'algorithme.
-- **Gestion des Violations** : Si des règles non bloquantes sont violées, l'algorithme peut tenter de les minimiser ou le signaler pour une révision manuelle.
-- `docs/technique/NEXT_STEPS.md` mentionne que l'intégration des règles dynamiques avec l'algorithme inclut la "Prise en compte des règles dynamiques lors de la génération" et le "Feedback visuel sur le respect des règles".
+*   **Approche basée sur les contraintes (Constraint Satisfaction Problem - CSP)** :
+    *   Les variables sont les affectations (quel utilisateur pour quel slot).
+    *   Les domaines sont les utilisateurs éligibles pour chaque slot.
+    *   Les contraintes sont les règles du [Moteur de Règles](./01_Moteur_Regles.md).
+    *   Des solveurs de contraintes ou des techniques de recherche avec backtracking peuvent être utilisés. `docs MATHILDA/05_Regles_Metier/01_Regles_Planification.md` évoque cette approche.
+*   **Heuristiques et priorisation** :
+    *   **Priorité aux tâches critiques** : Les postes indispensables sont pourvus en premier.
+    *   **Priorité aux utilisateurs avec peu d'options** : Pour éviter de bloquer certains utilisateurs en fin de processus.
+    *   **Rotation et équité** : Les heuristiques peuvent viser à distribuer équitablement les tâches pénibles ou les week-ends dès cette phase, en s'appuyant sur les compteurs d'équité.
+    *   **Affectation par type de personnel** : Par exemple, affecter d'abord les MAR, puis les IADE, en fonction des dépendances.
+*   **Gestion des demandes et préférences** : Les demandes validées sont traitées comme des contraintes fortes. Les préférences sont prises en compte avec un poids moins élevé.
 
-## 6. Sorties de l'Algorithme
+### 3.3. Post-traitement et Optimisation Initiale
 
-- **Planning Généré** : Un ensemble d'affectations (utilisateur, poste, date/heure de début, date/heure de fin).
-- **Rapport de Génération** :
-  - Liste des éventuelles violations de règles (avec leur sévérité).
-  - Statistiques sur le planning (taux de couverture, répartition des gardes, etc.).
-  - Indicateurs d'équité.
-- **Alertes** : Pour les situations où aucune solution satisfaisante n'a pu être trouvée pour certains postes ou contraintes.
+Une fois une première version du planning générée, des ajustements peuvent être nécessaires :
 
-## 7. Paramètres de Génération et Ajustements Manuels
+*   **Résolution de conflits mineurs** : Si des règles souples n'ont pu être totalement satisfaites.
+*   **Première passe d'équilibrage** : Ajustements pour améliorer les scores d'équité ou de fatigue sans violer les contraintes dures.
+*   **Vérification de la complétude** : S'assurer que tous les besoins critiques sont couverts.
 
-- L'interface utilisateur peut permettre de lancer la génération avec certains paramètres (ex: prioriser certaines règles, se concentrer sur une période ou un service spécifique).
-- Après la génération, une interface de validation et de modification manuelle (`docs/technique/NEXT_STEPS.md` mentionne cela comme une priorité moyenne) est essentielle pour que les planificateurs puissent ajuster le planning si nécessaire.
+## 4. Stratégies Spécifiques
 
-## 8. Évolutivité et Performance
+*   **Backtracking intelligent** : En cas de blocage (aucun utilisateur ne peut être affecté à un slot sans violer une contrainte dure), l'algorithme doit pouvoir revenir en arrière de manière efficace pour explorer d'autres solutions.
+*   **Gestion des affectations liées/conditionnelles** : Par exemple, un chirurgien nécessitant un IADE spécifique, ou une salle ne pouvant ouvrir que si une autre est fermée.
+*   **Recherche Tabou ou Recuit Simulé** : Comme mentionné dans `docs MATHILDA/05_Regles_Metier/01_Regles_Planification.md`, des techniques de métaheuristique pourraient être explorées pour l'optimisation ou pour sortir des optima locaux lors de la phase d'affectation.
 
-- L'algorithme doit être conçu pour gérer un nombre croissant d'utilisateurs, de règles et de postes sans dégradation prohibitive des performances.
-- Des optimisations peuvent inclure la parallélisation de certaines tâches, des techniques de mise en cache, ou la simplification des modèles de données pour les calculs intensifs.
+## 5. Considérations Techniques
 
-## 9. Améliorations Futures (Plan d'Action à Long Terme - `docs/technique/NEXT_STEPS.md`)
+*   **Performance** : La génération doit être suffisamment rapide pour être utilisable, surtout pour de grandes équipes ou des plannings complexes. Des optimisations algorithmiques et techniques (ex: parallélisation de certaines évaluations) sont cruciales.
+*   **Évolutivité** : L'algorithme doit pouvoir s'adapter à l'augmentation du nombre d'utilisateurs, de services et de règles.
+*   **Transparence** : Idéalement, l'algorithme devrait pouvoir fournir des explications sur les raisons de certaines affectations ou sur les difficultés rencontrées, s'appuyant sur le [Scoring et Évaluation](./03_Scoring_Evaluation.md).
 
-- **Algorithme avancé de génération des plannings** :
-  - Optimisation multi-objectifs.
-  - Apprentissage des préférences implicites.
-  - Améliorations basées sur le feedback utilisateur.
-
----
-
-La conception d'un algorithme de génération de planning est un défi complexe qui nécessite un équilibre entre la satisfaction des contraintes, l'optimisation des ressources, et la performance. L'approche itérative de `mathildanesth`, commençant par une base solide et intégrant progressivement des règles et des fonctionnalités plus avancées, est judicieuse.
+L'algorithme de génération est un processus itératif qui bénéficie d'un moteur de règles bien défini et d'un système de [scoring robuste](./03_Scoring_Evaluation.md) pour guider ses décisions. Des phases d'[optimisation plus poussées](./04_Optimisation_Planning.md) peuvent ensuite affiner le planning généré. 

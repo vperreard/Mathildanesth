@@ -1,0 +1,62 @@
+/* Styles pour les dialogues en plein écran */
+
+/* Dialog content - styles plus doux et centrés */
+[data-radix-dialog-content] {
+    width: 90vw !important;
+    height: 90vh !important;
+    max-width: 1800px !important;
+    max-height: 90vh !important;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* MUI Dialog - style centré et adapté */
+.MuiDialog-paper {
+    width: 90% !important;
+    height: 90% !important;
+    max-width: 1800px !important;
+    max-height: 90% !important;
+    position: relative !important;
+    margin: auto !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+/* MUI Dialog - style spécifique en mode fullscreen (mais pas vraiment plein écran) */
+.MuiDialog-paperFullScreen {
+    width: 90% !important;
+    height: 90% !important;
+    max-width: 1800px !important;
+    max-height: 90% !important;
+    margin: auto !important;
+    border-radius: 8px !important;
+    position: absolute !important;
+    top: 5% !important;
+    left: 5% !important;
+}
+
+/* Assurez-vous que le Dialog Content peut prendre tout l'espace disponible */
+.MuiDialogContent-root {
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Le contenu des panels de BlocPlanningTemplateEditor */
+.AssignmentConfigPanel,
+.VariationConfigPanel {
+    max-width: none !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Ajustements pour les dialogues enfants */
+[data-radix-dialog-content] .MuiDialog-root {
+    z-index: 10000 !important;
+}

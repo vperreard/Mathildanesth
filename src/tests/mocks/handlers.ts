@@ -216,6 +216,46 @@ export const handlers = [
         });
     }),
 
+    // Mock pour GET /api/leaves/balance
+    http.get('/api/leaves/balance', ({ request }) => {
+        const url = new URL(request.url);
+        const userId = url.searchParams.get('userId');
+        // Retourner un solde mocké simple. Ajustez selon les besoins des tests.
+        return HttpResponse.json({
+            userId: userId,
+            acquired: 25, // Solde acquis mocké
+            taken: 5,     // Solde pris mocké
+            pending: 2,   // Solde en attente mocké
+            available: 18 // Solde disponible mocké
+        });
+    }),
+
+    // Mock pour GET /api/leaves/quotas/transfer-rules/active
+    http.get('/api/leaves/quotas/transfer-rules/active', ({ request }) => {
+        // Retourner des règles de transfert actives mockées. Ajustez selon les besoins.
+        return HttpResponse.json([
+            // Exemple de règle de transfert active
+            { id: 'rule1', fromLeaveType: 'RTT', toLeaveType: 'ANNUAL', maxDaysTransferable: 5, conditions: {} },
+            { id: 'rule2', fromLeaveType: 'RECOVERY', toLeaveType: 'ANNUAL', ratio: 1, ruleType: 'STANDARD', name: "Récupération vers Congés Annuels", isActive: true }
+        ]);
+    }),
+
+    // Mock pour POST /api/leaves/quotas/transfer
+    http.post('/api/leaves/quotas/transfer', async ({ request }) => {
+        const transferRequest = await request.json();
+        // Simuler une réponse de transfert réussie. 
+        // Les tests spécifiques peuvent surcharger ce handler pour des scénarios d'erreur.
+        return HttpResponse.json(
+            {
+                success: true,
+                message: 'Transfert de quotas réussi (mocké).',
+                // Simuler un résultat de transfert si nécessaire par les tests
+                // Par exemple: updatedSourceBalance: {}, updatedTargetBalance: {}
+            },
+            { status: 200 }
+        );
+    }),
+
     // Mock GET /api/planning/day
     http.get('/api/planning/day', ({ request }) => {
         const url = new URL(request.url);

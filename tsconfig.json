@@ -7,8 +7,6 @@
       "esnext"
     ],
     "types": [
-      "jest",
-      "@testing-library/jest-dom",
       "node"
     ],
     "allowJs": true,
@@ -72,7 +70,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "global.d.ts"
   ],
   "exclude": [
     "node_modules"

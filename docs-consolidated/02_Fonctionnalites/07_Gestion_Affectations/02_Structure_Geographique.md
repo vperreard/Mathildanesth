@@ -16,9 +16,10 @@ Le modèle `Site` représente une entité géographique de haut niveau, typiquem
   - `name` (String) : Nom du site (ex: "Hôpital Central VilleX", "Clinique du Parc").
   - `address` (String, optionnel) : Adresse physique du site.
   - `isActive` (Boolean) : Si le site est actuellement en opération.
-  - `departments` (Relation vers `Department[]`) : Liste des départements appartenant à ce site.
-  - `operatingSectors` (Relation vers `OperatingSector[]`) : Secteurs opératoires liés à ce site.
+  - `operatingSectors` (Relation vers `OperatingSector[]`) : Secteurs opératoires liés à ce site (modèle `OperatingSector` possède un `siteId`).
   - `users` (Relation vers `User[]`) : Utilisateurs pouvant être rattachés à un ou plusieurs sites.
+  - `activityTypes` (Relation vers `ActivityType[]`) : Certains types d'activités peuvent être spécifiques à des sites.
+  - D'autres champs comme `colorCode`, `timezone`, `displayOrder` sont également présents.
 
 - **Utilisation** :
   - Permet de filtrer les plannings et les ressources par site dans les organisations multi-établissements.
@@ -34,14 +35,14 @@ Le modèle `Department` représente une division organisationnelle au sein d'un 
   - `id` (String) : Identifiant unique.
   - `name` (String) : Nom du département (ex: "Service d'Anesthésie-Réanimation", "Chirurgie Cardiaque", "Consultations Externes").
   - `description` (String, optionnel).
-  - `siteId` (String, optionnel) : Lien vers le `Site` parent.
   - `isActive` (Boolean).
-  - `users` (Relation vers `User[]`) : Utilisateurs appartenant à ce département.
+  - `users` (Relation vers `User[]`) : Liste des utilisateurs appartenant à ce département (via `User.departmentId`).
+  - D'autres champs comme `contactEmail`, `contactPhone`, `location` (texte descriptif) sont présents.
 
 - **Utilisation** :
   - Permet d'organiser le personnel et les affectations par service.
   - Les règles de planification ou les besoins de couverture peuvent être spécifiques à un département.
-  - Les utilisateurs (`User.departmentId`) sont souvent rattachés à un département principal.
+  - Les utilisateurs (`User.departmentId`) sont rattachés à un `Department` via leur profil. Un site peut regrouper des utilisateurs de plusieurs départements, et les utilisateurs peuvent être associés à des sites spécifiques.
 
 ## 4. Modèle `Location` (Lieu Spécifique)
 

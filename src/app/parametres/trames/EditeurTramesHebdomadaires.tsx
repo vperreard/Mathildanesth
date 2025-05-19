@@ -10,9 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { PlusCircleIcon, Trash2Icon, Edit3Icon, AlertCircleIcon, RefreshCwIcon } from 'lucide-react';
 import { TrameHebdomadaireService, TrameHebdomadaireDTO } from '@/modules/templates/services/TrameHebdomadaireService';
 import { PersonnelService, Personnel } from '@/modules/templates/services/PersonnelService';
-import { SalleService, Salle } from '@/modules/templates/services/SalleService';
+import { SalleService, OperatingRoomFromAPI } from '@/modules/templates/services/SalleService';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Spinner } from '@/components/ui/spinner'; // À créer/importer si ce composant n'existe pas
+import { RecurrenceTypeTrame, TypeSemaineTrame } from '@prisma/client';
 
 // Types de personnel (à affiner/importer si existent déjà)
 interface BasePersonnel {
@@ -23,7 +23,7 @@ interface BasePersonnel {
 
 interface Salle {
     id: string;
-    nom: string;
+    name: string;
 }
 
 // Énumérations pour la clarté
@@ -49,6 +49,13 @@ export enum TypeSemaine {
     TOUTES = 'TOUTES'
 }
 
+export enum RoleType {
+    MAR = 'MAR',
+    IADE = 'IADE',
+    CHIRURGIEN = 'CHIRURGIEN',
+    TOUS = 'TOUS'
+}
+
 interface AffectationTrame {
     id: string; // uuid
     jourSemaine: JourSemaine;
@@ -63,11 +70,18 @@ interface AffectationTrame {
 
 interface TrameHebdomadaire {
     id: string; // uuid
-    nom: string;
+    name: string;
     typeSemaine: TypeSemaine;
     description?: string; // Optionnel
+    roles?: RoleType[]; // Rôles associés à la trame
     affectations: AffectationTrame[];
     // Potentiellement des métadonnées: dateCreation, dateModification
+    siteId?: string | null;
+    isActive?: boolean;
+    dateDebutEffet?: string | Date;
+    dateFinEffet?: string | Date | null;
+    recurrenceType?: RecurrenceTypeTrame; // Importer depuis @prisma/client si besoin
+    joursSemaineActifs?: number[];
 }
 
 interface EditingCellInfo {
@@ -78,10 +92,10 @@ interface EditingCellInfo {
 
 // Données mockées pour le développement
 const mockSalles: Salle[] = [
-    { id: 'salle1', nom: 'Salle Op 1' },
-    { id: 'salle2', nom: 'Salle Op 2' },
-    { id: 'salle3', nom: 'Salle Endoscopie' },
-    { id: 'salle-na', nom: 'N/A - Pas de salle' }
+    { id: 'salle1', name: 'Salle Op 1' },
+    { id: 'salle2', name: 'Salle Op 2' },
+    { id: 'salle3', name: 'Salle Endoscopie' },
+    { id: 'salle-na', name: 'N/A - Pas de salle' }
 ];
 
 const mockChirurgiens: BasePersonnel[] = [
@@ -106,7 +120,7 @@ const mockIADEs: BasePersonnel[] = [
 const mockTramesInitiales: TrameHebdomadaire[] = [
     {
         id: 'trame-paires-std',
-        nom: 'Standard Semaines PAIRES',
+        name: 'Standard Semaines PAIRES',
         typeSemaine: TypeSemaine.PAIRE,
         description: 'Configuration type pour les semaines paires',
         affectations: [
@@ -116,7 +130,7 @@ const mockTramesInitiales: TrameHebdomadaire[] = [
     },
     {
         id: 'trame-impaires-cardio',
-        nom: 'Cardio Semaines IMPAIRES',
+        name: 'Cardio Semaines IMPAIRES',
         typeSemaine: TypeSemaine.IMPAIRE,
         description: 'Rotation cardio pour les semaines impaires',
         affectations: [
@@ -127,7 +141,7 @@ const mockTramesInitiales: TrameHebdomadaire[] = [
     },
     {
         id: 'trame-toutes-consult',
-        nom: 'Consultations Générales',
+        name: 'Consultations Générales',
         typeSemaine: TypeSemaine.TOUTES,
         affectations: [
             { id: 'aff-t1', jourSemaine: JourSemaine.JEUDI, periode: PeriodeJour.APRES_MIDI, chirurgienId: 'chir2' }, // Pas de salle spécifique
@@ -188,8 +202,35 @@ const EditeurTramesHebdomadaires: React.FC = () => {
     const fetchTrames = async () => {
         setIsLoadingTrames(true);
         try {
-            const tramesData = await TrameHebdomadaireService.getAllTrames();
-            setTrames(tramesData);
+            const tramesDataDTO = await TrameHebdomadaireService.getAllTrames();
+            console.log('[DEBUG] fetchTrames - DTO data:', tramesDataDTO);
+            // Mapper DTO en TrameHebdomadaire local
+            const tramesDataLocal: TrameHebdomadaire[] = tramesDataDTO.map(dto => {
+                const localAffectations: AffectationTrame[] = (dto.affectations || []).map((affDto): AffectationTrame => ({
+                    id: affDto.id ? affDto.id.toString() : `generated-aff-${Math.random().toString(36).substring(7)}`,
+                    jourSemaine: affDto.jourSemaine as JourSemaine,
+                    periode: affDto.periode as PeriodeJour,
+                    salleId: affDto.salleId ? affDto.salleId.toString() : null,
+                    chirurgienId: affDto.chirurgienId ? affDto.chirurgienId.toString() : null,
+                    marId: affDto.marId ? affDto.marId.toString() : null,
+                    iadeId: affDto.iadeId ? affDto.iadeId.toString() : null,
+                }));
+
+                return {
+                    id: dto.id.toString(),
+                    name: dto.name || dto.nom || 'Trame sans nom',
+                    typeSemaine: mapApiTypeSemaineToLocal(dto.typeSemaine),
+                    description: dto.description || undefined,
+                    affectations: localAffectations,
+                    siteId: dto.siteId,
+                    isActive: dto.isActive,
+                    dateDebutEffet: dto.dateDebutEffet,
+                    dateFinEffet: dto.dateFinEffet,
+                    recurrenceType: dto.recurrenceType,
+                    joursSemaineActifs: dto.joursSemaineActifs,
+                };
+            });
+            setTrames(tramesDataLocal);
             setIsLoadingTrames(false);
         } catch (err) {
             console.error("Erreur lors du chargement des trames:", err);
@@ -208,6 +249,10 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                 PersonnelService.getIADEs()
             ]);
 
+            console.log('[DEBUG] Chirurgiens Data:', chirurgiensData);
+            console.log('[DEBUG] MARs Data:', marsData);
+            console.log('[DEBUG] IADEs Data:', iadesData);
+
             setChirurgiens(chirurgiensData);
             setMars(marsData);
             setIades(iadesData);
@@ -223,8 +268,15 @@ const EditeurTramesHebdomadaires: React.FC = () => {
     const fetchSalles = async () => {
         setIsLoadingSalles(true);
         try {
-            const sallesData = await SalleService.getSalles();
-            setSalles(sallesData);
+            const sallesDataAPI = await SalleService.getSalles();
+            console.log('[DEBUG] Salles Data API:', sallesDataAPI);
+            // Mapper OperatingRoomFromAPI en Salle locale
+            const sallesDataLocal: Salle[] = sallesDataAPI.map(apiSalle => ({
+                id: apiSalle.id ? apiSalle.id.toString() : `salle-generated-${Math.random()}`, // Assurer que l'id est string
+                name: apiSalle.name || 'Salle sans nom', // Utiliser name, fallback si besoin
+            }));
+            console.log('[DEBUG] Salles Data Local:', sallesDataLocal);
+            setSalles(sallesDataLocal);
             setIsLoadingSalles(false);
         } catch (err) {
             console.error("Erreur lors du chargement des salles:", err);
@@ -242,16 +294,35 @@ const EditeurTramesHebdomadaires: React.FC = () => {
 
         setIsSaving(true);
         try {
-            const newTrame = {
-                nom: newTrameNom,
-                typeSemaine: newTrameTypeSemaine,
-                description: newTrameDescription || 'Nouvelle trame',
-                affectations: []
+            // Structure attendue par TrameHebdomadaireService.createTrame est CreateTrameModelePayload
+            // qui est Omit<TrameHebdomadaireDTO, 'id' | 'affectations'> mais avec des champs spécifiques
+            const payloadForCreate: Omit<TrameHebdomadaireDTO, 'id' | 'affectations'> = {
+                name: newTrameNom,
+                typeSemaine: mapLocalTypeSemaineToApi(newTrameTypeSemaine),
+                description: newTrameDescription || null,
             };
 
-            const createdTrame = await TrameHebdomadaireService.createTrame(newTrame);
-            setTrames(prevTrames => [...prevTrames, createdTrame]);
-            setSelectedTrame(createdTrame);
+            console.log('[DEBUG] handleCreateNewTrame - Payload for create:', payloadForCreate);
+            const createdTrameDTO = await TrameHebdomadaireService.createTrame(payloadForCreate);
+            console.log('[DEBUG] handleCreateNewTrame - Created DTO:', createdTrameDTO);
+
+            // Mapper le DTO retourné vers TrameHebdomadaire local
+            const createdTrameLocal: TrameHebdomadaire = {
+                id: createdTrameDTO.id.toString(),
+                name: createdTrameDTO.name || createdTrameDTO.nom || 'Trame sans nom',
+                typeSemaine: mapApiTypeSemaineToLocal(createdTrameDTO.typeSemaine),
+                description: createdTrameDTO.description || undefined,
+                affectations: [],
+                siteId: createdTrameDTO.siteId,
+                isActive: createdTrameDTO.isActive,
+                dateDebutEffet: createdTrameDTO.dateDebutEffet,
+                dateFinEffet: createdTrameDTO.dateFinEffet,
+                recurrenceType: createdTrameDTO.recurrenceType,
+                joursSemaineActifs: createdTrameDTO.joursSemaineActifs,
+            };
+
+            setTrames(prevTrames => [...prevTrames, createdTrameLocal]);
+            setSelectedTrame(createdTrameLocal);
             setNewTrameNom('');
             setNewTrameTypeSemaine(TypeSemaine.TOUTES);
             setNewTrameDescription('');
@@ -293,15 +364,19 @@ const EditeurTramesHebdomadaires: React.FC = () => {
     const openAffectationModal = (jour: JourSemaine, periode: PeriodeJour) => {
         if (!selectedTrame) return;
 
-        const existingAffectation = selectedTrame.affectations.find(
+        const existingAffectation = selectedTrame.affectations?.find(
             aff => aff.jourSemaine === jour && aff.periode === periode
         );
 
-        setEditingCellInfo({ jour, periode, affectation: existingAffectation });
-        setCurrentModalSalleId(existingAffectation?.salleId || 'salle-na');
-        setCurrentModalChirurgienId(existingAffectation?.chirurgienId || 'chir-na');
-        setCurrentModalMarId(existingAffectation?.marId || 'mar-na');
-        setCurrentModalIadeId(existingAffectation?.iadeId || 'iade-na');
+        console.log('[DEBUG] openAffectationModal - Jour:', jour, 'Periode:', periode);
+        console.log('[DEBUG] openAffectationModal - Selected Trame:', selectedTrame);
+        console.log('[DEBUG] openAffectationModal - Existing Affectation:', existingAffectation);
+
+        setEditingCellInfo({ jour, periode, affectation: existingAffectation || null });
+        setCurrentModalSalleId(existingAffectation?.salleId || null);
+        setCurrentModalChirurgienId(existingAffectation?.chirurgienId || null);
+        setCurrentModalMarId(existingAffectation?.marId || null);
+        setCurrentModalIadeId(existingAffectation?.iadeId || null);
         setIsAffectationModalOpen(true);
     };
 
@@ -310,78 +385,117 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         if (!selectedTrame || !editingCellInfo) return;
 
         setIsSaving(true);
-        const { jour, periode } = editingCellInfo;
-        let newAffectations = [...selectedTrame.affectations];
-        const existingAffectationIndex = newAffectations.findIndex(
-            aff => aff.jourSemaine === jour && aff.periode === periode
-        );
+        try {
+            const { jour, periode, affectation: existingAffectation } = editingCellInfo;
+            let newAffectations = [...(selectedTrame.affectations || [])];
 
-        const salleIdToSave = currentModalSalleId === 'salle-na' ? null : currentModalSalleId;
-        const chirurgienIdToSave = currentModalChirurgienId === 'chir-na' ? null : currentModalChirurgienId;
-        const marIdToSave = currentModalMarId === 'mar-na' ? null : currentModalMarId;
-        const iadeIdToSave = currentModalIadeId === 'iade-na' ? null : currentModalIadeId;
+            if (existingAffectation) {
+                newAffectations = newAffectations.map(aff =>
+                    aff.id === existingAffectation.id
+                        ? { ...aff, salleId: currentModalSalleId, chirurgienId: currentModalChirurgienId, marId: currentModalMarId, iadeId: currentModalIadeId }
+                        : aff
+                );
+            } else {
+                const newAffectation: AffectationTrame = {
+                    id: `local-aff-${Date.now()}-${Math.random().toString(36).substring(7)}`, // ID purement local pour la clé React
+                    jourSemaine: jour,
+                    periode: periode,
+                    salleId: currentModalSalleId,
+                    chirurgienId: currentModalChirurgienId,
+                    marId: currentModalMarId,
+                    iadeId: currentModalIadeId
+                };
+                newAffectations.push(newAffectation);
+            }
 
-        // L'affectation est considérée comme non vide si au moins un élément est défini
-        if (salleIdToSave || chirurgienIdToSave || marIdToSave || iadeIdToSave) {
-            const newOrUpdatedAffectation: AffectationTrame = {
-                id: editingCellInfo.affectation?.id || `affect-${Date.now()}`,
-                jourSemaine: jour,
-                periode: periode,
-                salleId: salleIdToSave,
-                chirurgienId: chirurgienIdToSave,
-                marId: marIdToSave,
-                iadeId: iadeIdToSave,
+            const updatedTrameForState = {
+                ...selectedTrame,
+                affectations: newAffectations
             };
 
-            if (existingAffectationIndex !== -1) {
-                newAffectations[existingAffectationIndex] = newOrUpdatedAffectation;
-            } else {
-                newAffectations.push(newOrUpdatedAffectation);
-            }
-        } else {
-            if (existingAffectationIndex !== -1) {
-                newAffectations.splice(existingAffectationIndex, 1);
-            }
-        }
+            console.log('[DEBUG] handleSaveAffectation - Updated Trame for State (local affectations):', updatedTrameForState);
 
-        const updatedTrame = { ...selectedTrame, affectations: newAffectations };
+            // TODO IMPORTANT: La sauvegarde des affectations doit se faire via une API dédiée,
+            // par exemple /api/trame-modeles/{trameId}/affectations.
+            // TrameHebdomadaireService.updateTrame ne gère probablement pas la mise à jour des affectations.
+            // Pour l'instant, on met à jour l'état local et on simule une sauvegarde de la trame principale (sans ses affectations).
 
-        try {
-            const savedTrame = await TrameHebdomadaireService.updateTrame(updatedTrame.id, updatedTrame);
-            setSelectedTrame(savedTrame);
-            setTrames(prevTrames => prevTrames.map(t => t.id === savedTrame.id ? savedTrame : t));
+            const trameDetailsToUpdate: TrameHebdomadaireDTO = {
+                id: selectedTrame.id,
+                name: selectedTrame.name,
+                typeSemaine: mapLocalTypeSemaineToApi(selectedTrame.typeSemaine),
+                description: selectedTrame.description || null,
+                affectations: [],
+                siteId: selectedTrame.siteId,
+                isActive: selectedTrame.isActive,
+                dateDebutEffet: selectedTrame.dateDebutEffet ? new Date(selectedTrame.dateDebutEffet).toISOString() : undefined,
+                dateFinEffet: selectedTrame.dateFinEffet ? new Date(selectedTrame.dateFinEffet).toISOString() : null,
+                recurrenceType: selectedTrame.recurrenceType,
+                joursSemaineActifs: selectedTrame.joursSemaineActifs,
+            };
+            console.log('[DEBUG] handleSaveAffectation - DTO for updateTrame (details only):', trameDetailsToUpdate);
+
+            await TrameHebdomadaireService.updateTrame(selectedTrame.id, trameDetailsToUpdate);
+
+
+            // Mise à jour de l'état local pour refléter les changements d'affectations (UI)
+            setSelectedTrame(updatedTrameForState);
+            setTrames(prevTrames =>
+                prevTrames.map(t => t.id === updatedTrameForState.id ? updatedTrameForState : t)
+            );
+
             setIsAffectationModalOpen(false);
             setEditingCellInfo(null);
-            setIsSaving(false);
+            // TODO: Afficher un message indiquant que les détails de la trame sont sauvegardés,
+            // mais que la sauvegarde individuelle des affectations est un TODO ou se fait autrement.
+            // toast.success('Détails de la trame sauvegardés. Sauvegarde des affectations à implémenter via API dédiée.');
+
         } catch (err) {
             console.error("Erreur lors de la sauvegarde de l'affectation:", err);
             setError("Impossible de sauvegarder l'affectation. Veuillez réessayer plus tard.");
+        } finally {
             setIsSaving(false);
         }
     };
 
     // Suppression d'une affectation directement depuis la modale
     const handleRemoveAffectationInModal = async () => {
-        if (!selectedTrame || !editingCellInfo) return;
+        if (!selectedTrame || !editingCellInfo?.affectation) return;
 
         setIsSaving(true);
-        const { jour, periode } = editingCellInfo;
-        let newAffectations = selectedTrame.affectations.filter(
-            aff => !(aff.jourSemaine === jour && aff.periode === periode)
-        );
-
-        const updatedTrame = { ...selectedTrame, affectations: newAffectations };
-
         try {
-            const savedTrame = await TrameHebdomadaireService.updateTrame(updatedTrame.id, updatedTrame);
-            setSelectedTrame(savedTrame);
-            setTrames(prevTrames => prevTrames.map(t => t.id === savedTrame.id ? savedTrame : t));
+            const affectationIdToRemove = editingCellInfo.affectation.id;
+            let newAffectations = (selectedTrame.affectations || []).filter(
+                aff => aff.id !== affectationIdToRemove
+            );
+
+            const updatedTrameForState = {
+                ...selectedTrame,
+                affectations: newAffectations
+            };
+
+            // TODO IMPORTANT: La suppression d'affectation doit aussi se faire via une API dédiée.
+            // Par exemple DELETE /api/trame-modeles/{trameId}/affectations/{affectationId}
+            // Pour l'instant, on met à jour uniquement l'état local.
+
+            console.log('[DEBUG] handleRemoveAffectationInModal - Affectation to remove ID:', affectationIdToRemove);
+            // Simuler un appel API ou appeler le vrai service de suppression d'affectation si disponible.
+            // await AffectationService.deleteAffectation(selectedTrame.id, affectationIdToRemove);
+
+
+            setSelectedTrame(updatedTrameForState);
+            setTrames(prevTrames =>
+                prevTrames.map(t => t.id === updatedTrameForState.id ? updatedTrameForState : t)
+            );
+
             setIsAffectationModalOpen(false);
             setEditingCellInfo(null);
-            setIsSaving(false);
+            // toast.info('Affectation retirée localement. Sauvegarde via API dédiée à implémenter.');
+
         } catch (err) {
             console.error("Erreur lors de la suppression de l'affectation:", err);
             setError("Impossible de supprimer l'affectation. Veuillez réessayer plus tard.");
+        } finally {
             setIsSaving(false);
         }
     };
@@ -399,7 +513,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         return (
             <div className="bg-blue-100 p-1 rounded text-xs text-blue-800 shadow-sm w-full text-left space-y-0.5">
                 {chir && chir.id !== 'chir-na' && <div className="font-semibold truncate">C: {`${chir.prenom.charAt(0)}. ${chir.nom}`}</div>}
-                {salle && salle.id !== 'salle-na' && <div className="text-gray-700 truncate">S: {salle.nom}</div>}
+                {salle && salle.id !== 'salle-na' && <div className="text-gray-700 truncate">S: {salle.name}</div>}
                 {mar && mar.id !== 'mar-na' && <div className="text-green-700 truncate">M: {`${mar.prenom.charAt(0)}. ${mar.nom}`}</div>}
                 {iade && iade.id !== 'iade-na' && <div className="text-purple-700 truncate">I: {`${iade.prenom.charAt(0)}. ${iade.nom}`}</div>}
             </div>
@@ -436,7 +550,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
     if (isLoading) {
         return (
             <div className="h-[300px] flex flex-col items-center justify-center">
-                <div className="mb-2">{/* Remplacer par votre composant Spinner */}Chargement...</div>
+                <div>Chargement...</div>
                 <p className="text-gray-500 text-sm">Chargement des données en cours...</p>
             </div>
         );
@@ -473,16 +587,19 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                                     <CardHeader className="p-0 pb-2">
                                         <CardTitle className="text-md">Nouvelle Trame</CardTitle>
                                     </CardHeader>
-                                    <CardContent className="p-0 space-y-3">
+                                    <CardContent className="space-y-4">
                                         <div>
-                                            <Label htmlFor="newTrameNom">Nom de la trame</Label>
+                                            <Label htmlFor="newTrameNom" className="text-lg font-medium text-blue-700">Nom de la trame *</Label>
                                             <Input
                                                 id="newTrameNom"
                                                 value={newTrameNom}
                                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTrameNom(e.target.value)}
-                                                placeholder="Ex: Standard Sem. Paires"
+                                                placeholder="Entrez le nom de la trame..."
                                                 disabled={isSaving}
+                                                className="border-2 border-blue-300 focus:border-blue-500 font-medium"
+                                                required
                                             />
+                                            {!newTrameNom.trim() && <p className="text-xs text-red-500 mt-1">Le nom de la trame est obligatoire</p>}
                                         </div>
                                         <div>
                                             <Label htmlFor="newTrameTypeSemaine">Type de semaine</Label>
@@ -546,8 +663,8 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                                         disabled={isSaving}
                                     >
                                         <div className="flex flex-col flex-grow">
-                                            <span className="font-medium">{trame.nom}</span>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">{trame.typeSemaine} - {trame.affectations.length} affect.</span>
+                                            <span className="font-medium">{trame.name}</span>
+                                            <span className="text-xs text-gray-500 dark:text-gray-400">{trame.typeSemaine} - {trame.affectations?.length || 0} affect.</span>
                                         </div>
                                         <Button
                                             variant="ghost"
@@ -570,8 +687,11 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                                 <div className="border rounded-lg p-4">
                                     <div className="flex justify-between items-center mb-4">
                                         <div>
-                                            <h3 className="text-xl font-semibold">Édition: <span className="text-blue-600">{selectedTrame.nom}</span></h3>
-                                            <p className="text-sm text-gray-500">Type: {selectedTrame.typeSemaine} {selectedTrame.description && `- ${selectedTrame.description}`}</p>
+                                            <h3 className="text-xl font-semibold">
+                                                <span className="text-gray-700">Édition de la trame :</span>
+                                                <span className="text-2xl text-blue-600 font-bold ml-2 border-b-2 border-blue-400 pb-1">{selectedTrame.name}</span>
+                                            </h3>
+                                            <p className="text-sm text-gray-500 mt-1">Type: {selectedTrame.typeSemaine} {selectedTrame.description && `- ${selectedTrame.description}`}</p>
                                         </div>
                                         {isSaving && <p className="text-sm text-blue-500">Sauvegarde en cours...</p>}
                                     </div>
@@ -585,7 +705,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
 
                                         {joursDeLaSemaine.flatMap(jour =>
                                             periodesDeLaJournee.map(periode => {
-                                                const affectationExistante = selectedTrame.affectations.find(
+                                                const affectationExistante = selectedTrame.affectations?.find(
                                                     aff => aff.jourSemaine === jour && aff.periode === periode
                                                 );
                                                 return (
@@ -626,7 +746,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                         <DialogHeader>
                             <DialogTitle>Éditer l'affectation</DialogTitle>
                             <DialogDescription>
-                                Pour {editingCellInfo.jour.toLowerCase()} - {editingCellInfo.periode.toLowerCase()} de la trame "{selectedTrame.nom}".
+                                Pour {editingCellInfo.jour.toLowerCase()} - {editingCellInfo.periode.toLowerCase()} de la trame "{selectedTrame.name}".
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
@@ -637,7 +757,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                                         <SelectValue placeholder="Choisir une salle" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {salles.map(s => <SelectItem key={s.id} value={s.id}>{s.nom}</SelectItem>)}
+                                        {salles.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -648,7 +768,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                                         <SelectValue placeholder="Choisir un chirurgien" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {chirurgiens.map(c => <SelectItem key={c.id} value={c.id}>{`${c.prenom} ${c.nom}`}</SelectItem>)}
+                                        {chirurgiens.map(c => <SelectItem key={c.id} value={c.id.toString()}>{`${c.prenom} ${c.nom}`}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -659,7 +779,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                                         <SelectValue placeholder="Choisir un MAR" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {mars.map(m => <SelectItem key={m.id} value={m.id}>{`${m.prenom} ${m.nom}`}</SelectItem>)}
+                                        {mars.map(m => <SelectItem key={m.id} value={m.id.toString()}>{`${m.prenom} ${m.nom}`}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -670,7 +790,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                                         <SelectValue placeholder="Choisir un IADE" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {iades.map(i => <SelectItem key={i.id} value={i.id}>{`${i.prenom} ${i.nom}`}</SelectItem>)}
+                                        {iades.map(i => <SelectItem key={i.id} value={i.id.toString()}>{`${i.prenom} ${i.nom}`}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -705,6 +825,30 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             )}
         </div>
     );
+};
+
+// Fonctions de mapping pour TypeSemaine
+const mapApiTypeSemaineToLocal = (apiTypeSemaine: TypeSemaineTrame | TypeSemaine): TypeSemaine => {
+    if (Object.values(TypeSemaine).includes(apiTypeSemaine as TypeSemaine)) {
+        return apiTypeSemaine as TypeSemaine;
+    }
+    switch (apiTypeSemaine) {
+        case TypeSemaineTrame.PAIRES: return TypeSemaine.PAIRE;
+        case TypeSemaineTrame.IMPAIRES: return TypeSemaine.IMPAIRE;
+        case TypeSemaineTrame.TOUTES:
+        default:
+            return TypeSemaine.TOUTES;
+    }
+};
+
+const mapLocalTypeSemaineToApi = (localTypeSemaine: TypeSemaine): TypeSemaineTrame => {
+    switch (localTypeSemaine) {
+        case TypeSemaine.PAIRE: return TypeSemaineTrame.PAIRES;
+        case TypeSemaine.IMPAIRE: return TypeSemaineTrame.IMPAIRES;
+        case TypeSemaine.TOUTES:
+        default:
+            return TypeSemaineTrame.TOUTES;
+    }
 };
 
 export default EditeurTramesHebdomadaires; 

@@ -23,8 +23,13 @@ export const navigationGroups = [
             { href: '/utilisateurs', label: 'Utilisateurs' },
             { href: '/parametres', label: 'Paramètres' },
             { href: '/parametres/configuration', label: 'Panneau de configuration' },
-            { href: '/parametres/trames', label: 'Trames Hebdomadaires' },
+            { href: '/parametres/trames', label: 'Trames' },
             { href: '/admin/bloc-operatoire', label: 'Bloc Opératoire' },
+            { href: '/parametres/hopitaux', label: 'Hôpitaux' },
+            { href: '/parametres/sites', label: 'Sites' },
+            { href: '/parametres/specialites', label: 'Spécialités' },
+            { href: '/parametres/types-conges', label: 'Types de Congés' },
+            { href: '/parametres/requetes', label: 'Types de Requêtes' },
         ]
     }
 ];

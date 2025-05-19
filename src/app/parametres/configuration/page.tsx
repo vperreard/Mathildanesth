@@ -17,12 +17,15 @@ import {
     Users,
     Clock
 } from 'lucide-react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 // Importer les composants UI
 import Button from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/context/ThemeContext';
 
 // Chargement dynamique des composants avec préchargement
 const TypesCongesPage = dynamic(() => import('../types-conges/page'), {
@@ -184,6 +187,7 @@ const menuItems: ConfigMenuItem[] = [
 
 const ConfigurationPanelPage: React.FC = () => {
     const [selectedItem, setSelectedItem] = useState<string>('types');
+    const { theme } = useTheme();
     const [preloadedComponents, setPreloadedComponents] = useState<Set<string>>(new Set(['types']));
 
     // Précharger les composants adjacents
@@ -248,65 +252,32 @@ const ConfigurationPanelPage: React.FC = () => {
     };
 
     return (
-        <div className="flex min-h-screen">
-            <aside className="w-1/4 p-6 border-r bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-700">
-                <h1
-                    className="text-3xl font-bold mb-6 bg-gradient-to-r from-primary-600 via-secondary-600 to-tertiary-600 bg-clip-text text-transparent dark:text-gray-100 flex items-center"
-                    style={{
-                        background: 'linear-gradient(to right, rgb(79, 70, 229), rgb(192, 38, 211), rgb(219, 39, 119))',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text'
-                    }}
-                >
-                    <Settings className="h-7 w-7 mr-2 text-primary-600 dark:text-primary-400" />
-                    Configuration
-                </h1>
-
-                {/* Bouton de test des couleurs */}
-                <div className="mb-4">
-                    <button
-                        className="w-full bg-primary-500 text-white p-2 rounded-md mb-2"
-                        onClick={testColors}
-                        style={{ backgroundColor: 'rgb(99, 102, 241)' }}
+        <div className="flex h-screen bg-background text-foreground">
+            {/* Sidebar */}
+            <nav className={cn("w-64 p-4 space-y-2 border-r", theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-200')}>
+                {menuItems.map((item) => (
+                    <Button
+                        key={item.id}
+                        variant={selectedItem === item.id ? "default" : "ghost"}
+                        className={cn(
+                            "w-full justify-start text-sm",
+                            selectedItem === item.id ? `${item.color} text-white` : 'text-foreground',
+                            selectedItem !== item.id && item.hoverColor
+                        )}
+                        onClick={() => setSelectedItem(item.id)}
                     >
-                        Test Couleur Primaire
-                    </button>
-                    <button
-                        className="w-full bg-gradient-to-r from-primary-500 via-secondary-500 to-tertiary-500 text-white p-2 rounded-md"
-                        onClick={testColors}
-                        style={{
-                            background: 'linear-gradient(to right, rgb(99, 102, 241), rgb(217, 70, 239), rgb(236, 72, 153))'
-                        }}
-                    >
-                        Test Dégradé
-                    </button>
-                </div>
+                        {item.icon}
+                        <span className="ml-2">{item.label}</span>
+                    </Button>
+                ))}
+            </nav>
 
-                <nav>
-                    <ul className="space-y-2">
-                        {menuItems.map((item) => (
-                            <li key={item.id}>
-                                <Button
-                                    variant={selectedItem === item.id ? "primary" : "ghost"}
-                                    onClick={() => setSelectedItem(item.id)}
-                                    fullWidth
-                                    className={cn(
-                                        "justify-start py-2.5 px-4 transition-all",
-                                        selectedItem === item.id ? "text-white shadow-md" : "hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 text-gray-700 dark:text-gray-200 dark:hover:bg-slate-700"
-                                    )}
-                                >
-                                    <span className={`mr-3 ${selectedItem === item.id ? 'text-white' : 'text-primary-600 dark:text-primary-400'}`}>{item.icon}</span>
-                                    {item.label}
-                                </Button>
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
-            </aside>
-            <main className="flex-1 p-6 bg-gray-50 dark:bg-slate-900">
-                <Suspense fallback={<div className="animate-pulse">Chargement...</div>}>
-                    {renderContent()}
+            {/* Main content */}
+            <main className="flex-1 p-6 overflow-auto">
+                <Suspense fallback={<div>Chargement du contenu...</div>}>
+                    <DndProvider backend={HTML5Backend}>
+                        {renderContent()}
+                    </DndProvider>
                 </Suspense>
             </main>
         </div>

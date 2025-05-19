@@ -150,35 +150,15 @@ export interface ConfigurationVariation {
 }
 
 /**
- * Représente une trame de planning complète.
- */
-export interface PlanningTemplate {
-    id: string; // Identifiant unique de la trame (peut être généré ou provenir de la BDD)
-    nom: string; // Nom donné à la trame par l'utilisateur
-    description?: string; // Description optionnelle
-    affectations: TemplateAffectation[]; // Liste des affectations définies dans cette trame
-    variations?: ConfigurationVariation[]; // Variations spécifiques à certaines périodes
-    // Ajouter d'autres métadonnées si nécessaire (ex: période de validité, auteur, etc.)
-    createdAt?: Date;
-    updatedAt?: Date;
-    createdBy?: string; // ID de l'utilisateur ayant créé la trame
-    departementId?: string; // ID du département auquel cette trame est associée
-    estActif?: boolean; // Indique si cette trame est active ou archivée
-    versionId?: string; // ID de version pour gestion des versions
-    estModele?: boolean; // Indique si c'est un modèle de trame réutilisable
-    dateValiditeDebut?: Date; // Date de début de validité de la trame
-    dateValiditeFin?: Date; // Date de fin de validité de la trame
-    referenceTrame?: string; // Référence externe de la trame
-    tags?: string[]; // Tags pour catégoriser la trame
-}
-
-/**
  * Props pour le composant éditeur de trames.
  */
 export interface BlocPlanningTemplateEditorProps {
     initialTemplate?: PlanningTemplate; // Trame existante à éditer (optionnel)
+    selectedTemplateId?: string;      // ID de la trame sélectionnée à charger (si initialTemplate n'est pas fourni pour cet ID)
     onSave: (template: PlanningTemplate) => Promise<void>; // Fonction appelée lors de la sauvegarde
+    onCancel?: () => void; // Fonction appelée lors de l'annulation ou de la fermeture
     availableAffectationTypes: AffectationType[]; // Liste des types d'affectations pouvant être ajoutés
+    templates?: PlanningTemplate[]; // Liste de toutes les trames (pour la recherche par ID dans loadTrames)
     isLoading?: boolean; // Indicateur de chargement pour la sauvegarde/initialisation
     availablePostes?: string[]; // Liste des postes disponibles
     readOnly?: boolean; // Mode lecture seule
@@ -263,5 +243,43 @@ export interface TemplateAdvancedFilter {
     dateCreationFin?: Date;
     createdBy?: string[];
     estModele?: boolean;
+    tags?: string[];
+}
+
+// Définition de RoleType ici, une seule fois.
+export enum RoleType {
+    MAR = 'MAR',
+    IADE = 'IADE',
+    CHIRURGIEN = 'CHIRURGIEN',
+    TOUS = 'TOUS'
+}
+
+/**
+ * Représente une trame de planning complète.
+ */
+export interface PlanningTemplate {
+    id: string | number;
+    nom: string;
+    description?: string;
+    affectations: TemplateAffectation[];
+    variations?: ConfigurationVariation[];
+    siteId?: string | null;
+    isActive?: boolean;
+    dateDebutEffet?: string | Date;
+    dateFinEffet?: string | Date | null;
+    recurrenceType?: string;
+    joursSemaineActifs?: number[];
+    typeSemaine?: string;
+    roles?: RoleType[];
+    createdAt?: string | Date;
+    updatedAt?: string | Date;
+    createdBy?: string;
+    departementId?: string;
+    estActif?: boolean;
+    versionId?: string;
+    estModele?: boolean;
+    dateValiditeDebut?: Date;
+    dateValiditeFin?: Date;
+    referenceTrame?: string;
     tags?: string[];
 } 

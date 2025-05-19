@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 // import { Inter, Montserrat } from 'next/font/google';
 import './globals.css';
+import '@/styles/dialog-fullscreen.css'; // Ajout des styles fullscreen pour les dialogues
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Providers } from './providers';

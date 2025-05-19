@@ -1,21 +1,41 @@
 import { LeavePermissionService, LeavePermission, LeaveRole } from '../LeavePermissionService';
 import { getSession, GetSessionParams } from 'next-auth/react';
 import { User, Role, ExperienceLevel } from '@/types/user';
-import { auditService, AuditActionType, AuditSeverity } from '../../services/AuditService';
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import AuditService from '@/services/AuditService';
 import { Session } from "next-auth";
+import { AuditActionType as RealAuditActionType, AuditSeverity as RealAuditSeverity, AuditEntry as RealAuditEntry, AuditService as RealAuditServiceType } from '../../services/AuditService';
+
+// Définir le type pour l'argument de createAuditEntry
+type CreateAuditEntryArg = Omit<RealAuditEntry, 'id' | 'timestamp'>;
 
 // Mock des dépendances
-// supprimer jest.mock('next-auth/react'); car un mock manuel est fourni
-jest.mock('../../services/AuditService', () => ({
-    auditService: {
-        logPermissionChange: jest.fn<() => Promise<void>>().mockResolvedValue(undefined)
-    }
-}));
+jest.mock('../../services/AuditService', () => {
+    const originalModule = jest.requireActual('../../services/AuditService') as typeof import('../../services/AuditService');
+    return {
+        __esModule: true,
+        // Exporter les types/enums réels
+        AuditActionType: originalModule.AuditActionType,
+        AuditSeverity: originalModule.AuditSeverity,
+        // Mocker seulement l'instance du service auditService
+        auditService: {
+            logPermissionChange: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+            // Typer explicitement jest.fn pour createAuditEntry
+            createAuditEntry: jest.fn<(entry: CreateAuditEntryArg) => Promise<RealAuditEntry>>()
+                .mockImplementation((entry) => { // entry est maintenant correctement typé comme CreateAuditEntryArg
+                    return Promise.resolve({
+                        id: 'mock-audit-id',
+                        timestamp: new Date(),
+                        ...entry,
+                    });
+                }),
+        }
+    };
+});
 
 // Mock des dépendances externes
-jest.mock('@/services/AuditService');
+// jest.mock('@/services/AuditService'); // Ce mock est plus général et pourrait interférer. Celui ci-dessus est plus spécifique.
+// Si @/services/AuditService est le même que ../../services/AuditService, alors un seul mock est nécessaire.
+// Je vais commenter celui-ci pour l'instant car le chemin relatif est plus précis pour le test actuel.
 
 describe('LeavePermissionService', () => {
     let permissionService: LeavePermissionService;
@@ -362,7 +382,7 @@ describe('LeavePermissionService', () => {
             // Assert
             expect(result).toBe(false);
             expect(mockFetch).toHaveBeenCalledTimes(1);
-            expect(auditService.logPermissionChange).toHaveBeenCalledWith(
+            expect(mockAuditServiceInstance.logPermissionChange).toHaveBeenCalledWith(
                 expect.anything(), // AuditActionType.PERMISSION_GRANT_FAILED - utiliser expect.anything() pour l'instant
                 expect.stringContaining('Échoué (API: 500)'),
                 expect.anything(), // AuditSeverity.ERROR - utiliser expect.anything() pour l'instant
@@ -424,7 +444,7 @@ describe('LeavePermissionService', () => {
             // Assert
             expect(result).toBe(false);
             expect(mockFetch).toHaveBeenCalledTimes(1);
-            expect(auditService.logPermissionChange).toHaveBeenCalledWith(
+            expect(mockAuditServiceInstance.logPermissionChange).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.stringContaining('Échoué (API: 500)'),
                 expect.anything(),
@@ -532,7 +552,7 @@ describe('LeavePermissionService', () => {
 
             // Assert
             expect(result).toBe(false);
-            expect(auditService.logPermissionChange).toHaveBeenCalledWith(
+            expect(mockAuditServiceInstance.logPermissionChange).toHaveBeenCalledWith(
                 expect.anything(), // AuditActionType.PERMISSION_RESET_FAILED
                 expect.stringContaining('Échoué (API: 500)'),
                 expect.anything(), // AuditSeverity.ERROR

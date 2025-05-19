@@ -1,45 +1,91 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { LeaveQueryCacheService } from '@/modules/leaves/services/LeaveQueryCacheService';
-import { LeaveEvent } from '@/modules/leaves/types/cache';
 import { logger } from '@/lib/logger';
-import { Prisma } from '@prisma/client';
+import { Prisma, LeaveType as PrismaLeaveType, LeaveStatus as PrismaLeaveStatus } from '@prisma/client';
 
-// Pour TypeScript, définir des enums manuellement si nécessaire
-enum LeaveType {
-    CongesPayes = 'CongesPayes',
-    RTT = 'RTT',
-    Maladie = 'Maladie',
-    Formation = 'Formation',
-    CongesSansSolde = 'CongesSansSolde',
-    Exceptionnel = 'Exceptionnel',
-    Recuperation = 'Recuperation'
-}
-
-enum LeaveStatus {
-    PENDING = 'PENDING',
-    APPROVED = 'APPROVED',
-    REJECTED = 'REJECTED',
-    CANCELLED = 'CANCELLED'
-}
-
-// Définir le type pour les ajustements de quota
-interface QuotaAdjustment {
-    id: string;
-    userId: number;
-    leaveType: string;
-    amount: number;
-    reason: string;
-    year: number;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-// Définir un type pour le résultat de la requête brute
+/**
+ * @api {get} /api/leaves/balance Récupérer le solde de congés d'un utilisateur pour une année donnée.
+ * @apiName GetLeaveBalance
+ * @apiGroup Leaves
+ * @apiVersion 1.0.0
+ *
+ * @apiParam {String} userId ID de l'utilisateur.
+ * @apiParam {String} year  Année pour laquelle calculer le solde (format YYYY).
+ * @apiParam {String} [annee] Année pour laquelle calculer le solde (alternative à `year`, format YYYY).
+ *
+ * @apiSuccess {Object} balances Un objet où chaque clé est un `typeCode` de congé (ex: "ANNUAL", "RTT").
+ * @apiSuccess {Object} balances.typeCode Détail du solde pour ce type.
+ * @apiSuccess {String} balances.typeCode.label Nom lisible du type de congé.
+ * @apiSuccess {Number} balances.typeCode.initial Solde initial configuré (depuis `LeaveBalance`).
+ * @apiSuccess {Number} balances.typeCode.carryOver Jours reportés de l'année précédente (depuis `QuotaCarryOver`).
+ * @apiSuccess {Number} balances.typeCode.transfers Jours transférés (positif si reçu, négatif si donné, depuis `QuotaTransfer`).
+ * @apiSuccess {Number} balances.typeCode.effectiveInitial Solde initial effectif (initial + carryOver + transfers).
+ * @apiSuccess {Number} balances.typeCode.used Jours approuvés et consommés.
+ * @apiSuccess {Number} balances.typeCode.pending Jours demandés et en attente d'approbation.
+ * @apiSuccess {Number} balances.typeCode.remaining Solde restant (effectiveInitial - used - pending).
+ * @apiSuccess {Object} totals Sommes globales pour tous les types de congés.
+ * @apiSuccess {Number} totals.initial Total des soldes initiaux.
+ * @apiSuccess {Number} totals.carryOver Total des jours reportés.
+ * @apiSuccess {Number} totals.transfers Total net des jours transférés.
+ * @apiSuccess {Number} totals.effectiveInitial Total des soldes initiaux effectifs.
+ * @apiSuccess {Number} totals.used Total des jours utilisés.
+ * @apiSuccess {Number} totals.pending Total des jours en attente.
+ * @apiSuccess {Number} totals.remaining Total des soldes restants.
+ * @apiSuccess {Object} metadata Informations sur la requête.
+ * @apiSuccess {Number} metadata.userId ID de l'utilisateur concerné.
+ * @apiSuccess {Number} metadata.year Année concernée.
+ * @apiSuccess {String} metadata.generatedAt Timestamp de la génération du solde.
+ *
+ * @apiSuccessExample {json} Succès:
+ * HTTP/1.1 200 OK
+ * {
+ *   "balances": {
+ *     "ANNUAL": {
+ *       "label": "Congés Annuels",
+ *       "initial": 25,
+ *       "carryOver": 2,
+ *       "transfers": -1,
+ *       "effectiveInitial": 26,
+ *       "used": 10,
+ *       "pending": 0,
+ *       "remaining": 16
+ *     },
+ *     "RTT": {
+ *       "label": "RTT",
+ *       "initial": 10,
+ *       "carryOver": 0,
+ *       "transfers": 1,
+ *       "effectiveInitial": 11,
+ *       "used": 5,
+ *       "pending": 2,
+ *       "remaining": 4
+ *     }
+ *   },
+ *   "totals": {
+ *     "initial": 35,
+ *     "carryOver": 2,
+ *     "transfers": 0,
+ *     "effectiveInitial": 37,
+ *     "used": 15,
+ *     "pending": 2,
+ *     "remaining": 20
+ *   },
+ *   "metadata": {
+ *     "userId": 123,
+ *     "year": 2024,
+ *     "generatedAt": "2024-07-30T10:00:00.000Z"
+ *   }
+ * }
+ *
+ * @apiError (400 Bad Request) {String} error Message si `userId` ou `year` sont manquants ou invalides.
+ * @apiError (500 Internal Server Error) {String} error Message en cas d'erreur serveur.
+ */
+// Définir un type pour le résultat de la requête brute sur les Leaves
 interface AggregatedLeave {
-    typeCode: string;
-    status: string;
-    totalDays: number | null; // Le SUM peut être null si aucun congé
+    typeCode: string; // Correspond à LeaveTypeSetting.code et Leave.typeCode
+    status: PrismaLeaveStatus;
+    totalDays: number | null;
 }
 
 // Obtenir le service de cache
@@ -51,244 +97,225 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
     }
 
-    const { userId, year } = req.query;
+    const { userId, year, annee } = req.query;
+    const yearString = (year || annee) as string;
+    const userIdString = userId as string;
 
-    if (!userId || !year) {
+    if (!userIdString || !yearString) {
         return res.status(400).json({ error: 'userId and year parameters are required' });
     }
 
-    const userIdInt = parseInt(userId as string, 10);
-    const targetYear = parseInt(year as string, 10);
+    const userIdInt = parseInt(userIdString, 10);
+    const targetYear = parseInt(yearString, 10);
 
     if (isNaN(userIdInt) || isNaN(targetYear)) {
         return res.status(400).json({ error: 'userId and year must be valid numbers' });
     }
 
     try {
-        // Générer la clé de cache
         const cacheKey = cacheService.generateBalanceKey(userIdInt.toString(), targetYear);
-
-        // Tenter de récupérer les données depuis le cache
         const cachedData = await cacheService.getCachedData(cacheKey);
         if (cachedData) {
             logger.debug(`Solde de congés récupéré depuis le cache: ${cacheKey}`);
             return res.status(200).json(cachedData);
         }
 
-        // Calculer les dates de début et de fin de l'année cible
-        const startDate = new Date(targetYear, 0, 1); // 1er Janvier
-        const endDate = new Date(targetYear, 11, 31, 23, 59, 59, 999); // 31 Décembre
+        const yearStartDate = new Date(targetYear, 0, 1);
+        const yearEndDate = new Date(targetYear, 11, 31, 23, 59, 59, 999);
 
-        // --- Définir les allocations annuelles par défaut (à rendre configurable plus tard) ---
-        const defaultAllowances: Record<string, number> = {
-            'CP': 25,       // CongesPayes
-            'RTT': 10,      // RTT
-            'MAL': 12,      // Maladie
-            'FORM': 5,      // Formation
-            'CSS': 0,       // CongesSansSolde
-            'EXCEP': 3,     // Exceptionnel
-            'RECUP': 0,     // Recuperation
-            'ANNUAL': 25,   // Au cas où les anciens codes sont encore utilisés
-            'RECOVERY': 10,
-            'SICK': 12,
-            'TRAINING': 5,
-            'UNPAID': 0,
-            'SPECIAL': 3,
-            'OTHER': 0,
-        };
+        // 1. Récupérer tous les types de congés actifs (LeaveTypeSetting)
+        const activeLeaveTypes = await prisma.leaveTypeSetting.findMany({
+            where: { isActive: true },
+            select: { code: true, label: true }
+        });
 
-        // Utiliser une approche différente pour éviter les problèmes de template string
-        // On va utiliser une requête SQL simple pour agréger les données
-        logger.info(`Récupération des congés pour userId: ${userIdInt}, année: ${targetYear}`);
-        let leavesByType: AggregatedLeave[] = [];
+        if (!activeLeaveTypes || activeLeaveTypes.length === 0) {
+            logger.warn("Aucun LeaveTypeSetting actif trouvé.", { userIdInt, targetYear });
+            const emptyResponse = {
+                balances: {},
+                totals: { initial: 0, acquired: 0, carryOver: 0, transfers: 0, effectiveInitial: 0, used: 0, pending: 0, remaining: 0 },
+                metadata: { userId: userIdInt, year: targetYear, generatedAt: new Date().toISOString() }
+            };
+            return res.status(200).json(emptyResponse);
+        }
 
+        // Initialiser la structure pour les soldes
+        const finalBalancesByType: Record<string, {
+            label: string;
+            initial: number;
+            acquired: number; // TODO: Calculer à partir de LeaveBalanceAdjustment si le modèle est identifié
+            carryOver: number; // Renommé pour correspondre à l'exemple de l'API (était carryOverIn)
+            transfers: number;
+            effectiveInitial: number;
+            used: number;
+            pending: number;
+            remaining: number;
+        }> = {};
+
+        activeLeaveTypes.forEach(lt => {
+            finalBalancesByType[lt.code] = {
+                label: lt.label,
+                initial: 0,
+                acquired: 0, // Initialisé à 0, source de données à confirmer
+                carryOver: 0,
+                transfers: 0,
+                effectiveInitial: 0,
+                used: 0,
+                pending: 0,
+                remaining: 0
+            };
+        });
+
+        // 2. Récupérer les LeaveBalance (pour le champ 'initial')
         try {
-            // Nous utilisons quand même Prisma.$queryRaw mais avec une approche simplifiée
-            const query = `
+            const leaveBalances = await prisma.leaveBalance.findMany({
+                where: {
+                    userId: userIdInt,
+                    year: targetYear,
+                    leaveType: { in: activeLeaveTypes.map(lt => lt.code as PrismaLeaveType) }
+                },
+                select: { leaveType: true, initial: true } // Seul 'initial' est lu depuis LeaveBalance
+            });
+            leaveBalances.forEach(lb => {
+                if (finalBalancesByType[lb.leaveType]) {
+                    finalBalancesByType[lb.leaveType].initial = lb.initial;
+                }
+            });
+        } catch (error) {
+            logger.error("Erreur lors de la récupération des LeaveBalance pour le solde initial", { error, userIdInt, targetYear });
+        }
+
+        // 3. Récupérer les QuotaCarryOver (reports de N-1 vers N, donc toYear = targetYear)
+        try {
+            const carryOvers = await prisma.quotaCarryOver.findMany({
+                where: {
+                    userId: userIdInt,
+                    toYear: targetYear,
+                    status: 'APPROVED', // S'assurer que seuls les reports approuvés sont comptés
+                    leaveType: { in: activeLeaveTypes.map(lt => lt.code as PrismaLeaveType) }
+                }
+            });
+            carryOvers.forEach(co => {
+                if (finalBalancesByType[co.leaveType]) {
+                    finalBalancesByType[co.leaveType].carryOver += co.amount;
+                }
+            });
+        } catch (error) {
+            logger.error("Erreur lors de la récupération des QuotaCarryOver", { error, userIdInt, targetYear });
+        }
+
+        // 4. Récupérer les QuotaTransfer (transferts affectant l'année cible)
+        try {
+            const transfers = await prisma.quotaTransfer.findMany({
+                where: {
+                    userId: userIdInt,
+                    status: 'APPROVED', // S'assurer que seuls les transferts approuvés sont comptés
+                    // Un transfert affecte le solde de l'année `targetYear`
+                    // Il faut une convention pour dire à quelle année un transfert s'applique.
+                    // Supposons que `transferDate` est indicative de l'année d'effet.
+                    transferDate: {
+                        gte: yearStartDate,
+                        lte: yearEndDate,
+                    },
+                    // Ou si le transfert a un champ `year` explicite: year: targetYear
+                }
+            });
+            transfers.forEach(qt => {
+                // Vérifier si le type de congé du transfert est suivi dans finalBalancesByType
+                if (finalBalancesByType[qt.toType]) { // Bénéficiaire
+                    finalBalancesByType[qt.toType].transfers += qt.convertedAmount;
+                }
+                if (finalBalancesByType[qt.fromType]) { // Cédant
+                    finalBalancesByType[qt.fromType].transfers -= qt.amount;
+                }
+            });
+        } catch (error) {
+            logger.error("Erreur lors de la récupération des QuotaTransfer", { error, userIdInt, targetYear });
+        }
+
+        // 5. Récupérer les congés posés (Leave) pour calculer used/pending
+        let leavesConsumedByType: AggregatedLeave[] = [];
+        try {
+            const queryLeaves = `
                 SELECT 
                     "typeCode",
                     "status", 
-                    COALESCE(SUM("countedDays"), 0)::integer as "totalDays"
+                    COALESCE(SUM("countedDays"), 0)::float as "totalDays"
                 FROM "Leave" 
                 WHERE 
                     "userId" = $1 
-                    AND (
-                        ("startDate" >= $2 AND "startDate" <= $3) 
-                        OR ("endDate" >= $2 AND "endDate" <= $3) 
-                        OR ("startDate" <= $2 AND "endDate" >= $3)
-                    ) 
-                    AND "status" != $4
+                    AND "startDate" <= $3 
+                    AND "endDate" >= $2   
+                    AND "status" != $4 
                 GROUP BY "typeCode", "status"
             `;
-
-            // Utiliser Prisma.$queryRawUnsafe avec les paramètres passés séparément
-            leavesByType = await prisma.$queryRawUnsafe<AggregatedLeave[]>(
-                query,
-                userIdInt,
-                startDate,
-                endDate,
-                LeaveStatus.CANCELLED
+            leavesConsumedByType = await prisma.$queryRawUnsafe<AggregatedLeave[]>(
+                queryLeaves, userIdInt, yearStartDate, yearEndDate, PrismaLeaveStatus.CANCELLED
             );
-
-            logger.debug('Résultat requête leavesByType:', { leavesByType });
         } catch (dbError) {
-            logger.error('Erreur lors de la récupération des congés', {
-                error: dbError,
-                userId: userIdInt,
-                year: targetYear,
+            logger.error('Erreur lors de la récupération des congés posés pour used/pending', {
+                error: dbError, userId: userIdInt, year: targetYear,
                 errorDetails: dbError instanceof Error ? dbError.message : String(dbError)
             });
-            return res.status(500).json({ error: 'Erreur base de données lors de la récupération des congés.' });
+            return res.status(500).json({ error: 'Erreur base de données lors de la récupération des congés posés.' });
         }
 
-        // Obtenir la liste des types de congés disponibles (basé sur les clés de defaultAllowances)
-        const leaveTypeCodes = Object.keys(defaultAllowances);
+        // 6. Appliquer used/pending et calculer les soldes finaux
+        activeLeaveTypes.forEach(lt => {
+            const balance = finalBalancesByType[lt.code];
+            if (!balance) return; // Ne devrait pas arriver si initialisé correctement
 
-        // Initialiser les compteurs avec les allocations par défaut
-        const detailsByType: Record<string, { initial: number, used: number, pending: number }> = {};
-        leaveTypeCodes.forEach(tc => {
-            detailsByType[tc] = {
-                initial: defaultAllowances[tc] || 0,
-                used: 0,
-                pending: 0
-            };
-        });
-
-        // Remplir les détails (utiliser le type AggregatedLeave)
-        leavesByType.forEach((leave: AggregatedLeave) => {
-            const { typeCode, status, totalDays } = leave;
-            const days = Number(totalDays || 0); // Gérer le cas null et convertir
-
-            // Vérifier si le typeCode existe dans les détails, sinon l'initialiser (ou logguer une alerte)
-            if (!detailsByType[typeCode]) {
-                logger.warn(`Type de congé (code) inconnu '${typeCode}' trouvé dans les données agrégées. Il n'a pas d'allocation par défaut définie.`);
-            }
-
-            // Si detailsByType[typeCode] peut être undefined (si on n'initialise pas ci-dessus), il faut le vérifier
-            if (detailsByType[typeCode]) {
-                // Utiliser les bonnes valeurs d'enum importées
-                if (status === LeaveStatus.APPROVED) {
-                    detailsByType[typeCode].used += days;
-                } else if (status === LeaveStatus.PENDING) {
-                    detailsByType[typeCode].pending += days;
+            leavesConsumedByType.forEach(consumed => {
+                if (consumed.typeCode === lt.code) {
+                    if (consumed.status === PrismaLeaveStatus.APPROVED) {
+                        balance.used += consumed.totalDays || 0;
+                    } else if (consumed.status === PrismaLeaveStatus.PENDING) {
+                        balance.pending += consumed.totalDays || 0;
+                    }
                 }
-            }
-        });
-
-        // Récupérer les ajustements avec une requête sur le modèle LeaveQuotaAdjustment
-        logger.info(`Récupération des ajustements de quota pour userId: ${userIdInt}, année: ${targetYear}`);
-        let quotaAdjustments: QuotaAdjustment[] = [];
-        try {
-            // Utiliser le bon modèle Prisma, vérifié dans le schéma
-            const adjustments = await prisma.$queryRaw<QuotaAdjustment[]>`
-                SELECT * FROM "LeaveQuotaAdjustment"
-                WHERE "userId" = ${userIdInt} AND "year" = ${targetYear}
-            `;
-
-            quotaAdjustments = adjustments;
-            logger.debug('Résultat requête quotaAdjustments:', { quotaAdjustments });
-        } catch (dbError) {
-            logger.error('Erreur lors de la récupération des ajustements de quota', {
-                error: dbError,
-                userId: userIdInt,
-                year: targetYear,
-                errorDetails: dbError instanceof Error ? dbError.message : String(dbError)
             });
-            return res.status(500).json({ error: 'Erreur base de données lors de la récupération des ajustements.' });
+
+            balance.effectiveInitial = parseFloat((balance.initial + balance.acquired + balance.carryOver + balance.transfers).toFixed(3));
+            balance.used = parseFloat(balance.used.toFixed(3));
+            balance.pending = parseFloat(balance.pending.toFixed(3));
+            balance.remaining = parseFloat((balance.effectiveInitial - balance.used - balance.pending).toFixed(3));
+
+            // Assurer la précision pour les autres champs aussi
+            balance.initial = parseFloat(balance.initial.toFixed(3));
+            balance.acquired = parseFloat(balance.acquired.toFixed(3));
+            balance.carryOver = parseFloat(balance.carryOver.toFixed(3));
+            balance.transfers = parseFloat(balance.transfers.toFixed(3));
+        });
+
+        // 7. Calculer les totaux globaux
+        const totals = { initial: 0, acquired: 0, carryOver: 0, transfers: 0, effectiveInitial: 0, used: 0, pending: 0, remaining: 0 };
+        for (const typeCode in finalBalancesByType) {
+            const balance = finalBalancesByType[typeCode];
+            totals.initial += balance.initial;
+            totals.acquired += balance.acquired;
+            totals.carryOver += balance.carryOver;
+            totals.transfers += balance.transfers;
+            totals.effectiveInitial += balance.effectiveInitial;
+            totals.used += balance.used;
+            totals.pending += balance.pending;
+            totals.remaining += balance.remaining;
         }
-
-        // Appliquer les ajustements
-        let totalAdjustment = 0;
-        const adjustmentsByType: Record<string, number> = {};
-
-        // Initialiser les ajustements par type à 0
-        leaveTypeCodes.forEach(tc => {
-            adjustmentsByType[tc] = 0;
+        Object.keys(totals).forEach(key => {
+            (totals as any)[key] = parseFloat((totals as any)[key].toFixed(3));
         });
 
-        quotaAdjustments.forEach((adjustment: QuotaAdjustment) => {
-            const type = adjustment.leaveType;
-            if (type in adjustmentsByType) {
-                adjustmentsByType[type] += adjustment.amount;
-                totalAdjustment += adjustment.amount;
-            } else {
-                logger.warn(`Type d'ajustement de quota inconnu trouvé: ${type} pour l'utilisateur ${userIdInt}. Ajustement ignoré.`);
-            }
-        });
-
-        // Calculer les totaux globaux et par type
-        let totalUsed = 0;
-        let totalPending = 0;
-        let totalInitial = 0;
-
-        const finalBalancesByType: Record<string, {
-            initial: number,
-            adjustment: number,
-            used: number,
-            pending: number,
-            remaining: number
-        }> = {};
-
-        Object.keys(detailsByType).forEach(type => {
-            // Si detailsByType[type] peut être undefined, il faut le gérer
-            if (!detailsByType[type]) {
-                logger.warn(`Le type ${type} n'a pas pu être traité pour les soldes finaux car il n'était pas dans detailsByType.`);
-                return; // Passer au suivant
-            }
-
-            const initial = detailsByType[type].initial;
-            const adjustmentAmount = adjustmentsByType[type] || 0;
-            const used = detailsByType[type].used;
-            const pending = detailsByType[type].pending;
-            const remaining = initial + adjustmentAmount - used - pending;
-
-            finalBalancesByType[type] = {
-                initial,
-                adjustment: adjustmentAmount,
-                used,
-                pending,
-                remaining
-            };
-
-            totalInitial += initial;
-            totalUsed += used;
-            totalPending += pending;
-        });
-
-        const resultPayload = {
-            userId: userIdInt,
-            year: targetYear,
+        const responseData = {
             balances: finalBalancesByType,
-            totals: {
-                initial: totalInitial,
-                adjustment: totalAdjustment,
-                used: totalUsed,
-                pending: totalPending,
-                remaining: totalInitial + totalAdjustment - totalUsed - totalPending
-            }
+            totals,
+            metadata: { userId: userIdInt, year: targetYear, generatedAt: new Date().toISOString() }
         };
 
-        // Mettre en cache les données calculées
-        try {
-            await cacheService.cacheData(cacheKey, resultPayload, 'BALANCE');
-            logger.debug(`Solde de congés mis en cache: ${cacheKey}`);
-        } catch (cacheError) {
-            logger.error('Erreur lors de la mise en cache du solde de congés', {
-                error: cacheError,
-                cacheKey,
-                errorDetails: cacheError instanceof Error ? cacheError.message : String(cacheError)
-            });
-            // Ne pas bloquer la réponse si le cache échoue, mais logguer l'erreur
-        }
+        await cacheService.cacheData(cacheKey, responseData, 'BALANCE'); // Utilisation de cacheData
+        logger.info(`Solde de congés calculé et mis en cache pour ${userIdInt}, année ${targetYear}`);
+        return res.status(200).json(responseData);
 
-        res.status(200).json(resultPayload);
-
-    } catch (error) {
-        logger.error(`Erreur inattendue dans /api/leaves/balance pour userId ${userIdInt}, year ${targetYear}`, {
-            error,
-            errorDetails: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined
-        });
-        res.status(500).json({ error: 'Internal server error' });
+    } catch (error: any) {
+        logger.error(`Erreur API GetLeaveBalance pour userId ${userIdInt}, année ${targetYear}:`, { error: error.message, stack: error.stack, details: error });
+        return res.status(500).json({ error: 'Erreur interne du serveur lors du calcul du solde de congés.' });
     }
-} 
+}

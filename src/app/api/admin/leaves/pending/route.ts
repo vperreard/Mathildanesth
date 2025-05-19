@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyAuthToken } from '@/lib/auth-utils';
+import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import type { LeaveStatus } from '@prisma/client';
@@ -65,43 +65,44 @@ export async function GET(request: NextRequest) {
         // Vérifier l'authentification via Next-Auth
         const session = await getServerSession(authOptions);
 
-        if (!session || !session.user) {
-            // Fallback sur l'ancien système d'authentification si nécessaire
-            const authResult = await verifyAuthToken();
+        let userIdForRequest: number | null = null;
 
-            if (!authResult.authenticated || !authResult.user) {
+        if (session && session.user && session.user.id) {
+            const userId = typeof session.user.id === 'string'
+                ? parseInt(session.user.id, 10)
+                : session.user.id as number;
+            if (!isNaN(userId)) {
+                userIdForRequest = userId;
+            }
+        } else {
+            // Fallback sur l'ancien système d'authentification si NextAuth échoue ou n'est pas utilisé
+            const authToken = request.headers.get('Authorization')?.replace('Bearer ', '');
+            if (!authToken) {
                 return NextResponse.json({
                     error: 'Non authentifié',
-                    message: authResult.error
+                    message: 'Token manquant'
                 }, { status: 401 });
             }
 
-            // Convertir l'ID en nombre si c'est une chaîne
-            const tokenUserId = typeof authResult.user.userId === 'string'
-                ? parseInt(authResult.user.userId, 10)
-                : authResult.user.userId as number;
+            const authResult = await verifyAuthToken(authToken);
 
-            if (isNaN(tokenUserId)) {
+            if (!authResult.authenticated || !authResult.userId) {
                 return NextResponse.json({
-                    error: 'ID utilisateur invalide'
-                }, { status: 400 });
+                    error: 'Non authentifié',
+                    message: authResult.error || 'Token invalide ou expiré'
+                }, { status: 401 });
             }
 
-            return handleAuthorizedRequest(tokenUserId);
+            userIdForRequest = authResult.userId;
         }
 
-        // S'assurer que userId est un nombre
-        const userId = typeof session.user.id === 'string'
-            ? parseInt(session.user.id, 10)
-            : session.user.id as number;
-
-        if (isNaN(userId)) {
+        if (userIdForRequest === null) {
             return NextResponse.json({
-                error: 'ID utilisateur invalide'
+                error: 'ID utilisateur invalide ou non authentifié'
             }, { status: 400 });
         }
 
-        return handleAuthorizedRequest(userId);
+        return handleAuthorizedRequest(userIdForRequest);
     } catch (error) {
         console.error('[API /api/admin/leaves/pending] Erreur:', error);
         return NextResponse.json(

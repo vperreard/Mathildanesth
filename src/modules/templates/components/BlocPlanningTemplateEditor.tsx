@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
 import {
     Card,
     CardHeader,
     CardContent,
     TextField,
-    Button,
+    Button as MuiButton,
     Grid,
     Box,
     Tabs,
@@ -15,10 +15,6 @@ import {
     FormControlLabel,
     Switch,
     Alert,
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
     Tooltip,
     Dialog,
     DialogTitle,
@@ -35,32 +31,87 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Paper
+    Paper,
+    CircularProgress,
+    FormGroup,
+    Checkbox
 } from '@mui/material';
 import {
     PlanningTemplate,
     TemplateAffectation,
     AffectationType,
     DayOfWeek,
-    BlocPlanningTemplateEditorProps,
     ConfigurationVariation,
-    PeriodeVariation
+    PeriodeVariation,
+    RoleType,
+    AffectationConfiguration
 } from '../types/template';
+import { FullActivityType } from '../services/templateService';
 import AssignmentConfigPanel from './AssignmentConfigPanel';
 import VariationConfigPanel from './VariationConfigPanel';
 import { templateService } from '../services/templateService';
 import {
-    Save as SaveIcon,
-    Plus as PlusIcon,
-    X as DeleteIcon,
-    Edit as EditIcon,
-    MoreHorizontal as MoreIcon,
-    Calendar as CalendarIcon,
-    ChevronDown as ExpandIcon,
-    FileUp as ExportIcon
+    PlusCircleIcon as PlusIcon,
+    Trash2Icon as TrashIcon,
+    Edit3Icon as EditIcon,
+    CalendarDaysIcon as CalendarIcon,
+    ChevronDownIcon as ExpandIcon,
+    UploadCloudIcon as ExportIcon,
+    XIcon,
+    AlertTriangleIcon,
+    CopyIcon,
+    SettingsIcon,
+    GripVerticalIcon,
+    InfoIcon,
+    UsersIcon,
+    CalendarPlusIcon,
+    RotateCcwIcon
 } from 'lucide-react';
 import { useDrag, useDrop, DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { toast } from 'react-hot-toast';
+import {
+    Select as ShadSelect,
+    SelectContent as ShadSelectContent,
+    SelectGroup as ShadSelectGroup,
+    SelectItem as ShadSelectItem,
+    SelectLabel as ShadSelectLabel,
+    SelectTrigger as ShadSelectTrigger,
+    SelectValue as ShadSelectValue,
+} from "@/components/ui/select";
+
+// Mise à jour des props pour inclure modalContentRef
+export interface BlocPlanningTemplateEditorProps {
+    initialTemplate?: PlanningTemplate;
+    selectedTemplateId?: string;
+    onSave: (template: PlanningTemplate) => Promise<void>;
+    onCancel?: () => void;
+    availableAffectationTypes: FullActivityType[];
+    templates?: PlanningTemplate[];
+    isLoading?: boolean;
+    availablePostes?: string[];
+    readOnly?: boolean;
+    onMuiModalOpenChange?: (isOpen: boolean) => void;
+}
+
+// Interface pour les méthodes exposées par la ref
+export interface BlocPlanningTemplateEditorHandle {
+    submit: () => Promise<void>;
+    isDirty: () => boolean;
+}
+
+// Définition de EMPTY_TEMPLATE
+const EMPTY_TEMPLATE: PlanningTemplate = {
+    id: '', // ou un ID temporaire comme `temp_${Date.now()}` si nécessaire avant sauvegarde
+    nom: 'Nouvelle Trame',
+    description: '',
+    affectations: [],
+    variations: [],
+    roles: [RoleType.TOUS],
+    // Initialiser les autres champs obligatoires ou optionnels de PlanningTemplate au besoin
+    // Par exemple, createdAt, updatedAt, etc., pourraient être initialisés à null ou undefined
+    // ou laissés pour être gérés par le backend/service lors de la création.
+};
 
 // Mapping des jours de la semaine pour l'affichage
 const DAYS_LABEL: Record<DayOfWeek, string> = {
@@ -192,7 +243,7 @@ const DraggableAffectation: React.FC<DraggableAffectationProps> = ({
                                 color="error"
                                 onClick={() => onDelete(affectation.id)}
                             >
-                                <DeleteIcon size={16} />
+                                <TrashIcon size={16} />
                             </IconButton>
                         </Tooltip>
                     </Box>
@@ -223,7 +274,7 @@ const DraggableAffectation: React.FC<DraggableAffectationProps> = ({
                 {affectation.configuration && (
                     <Box sx={{ mt: 1 }}>
                         <Typography variant="caption" color="text.secondary">
-                            {affectation.configuration.postes.length} poste(s) configuré(s)
+                            {Array.isArray(affectation.configuration.postes) ? affectation.configuration.postes.length : 0} poste(s) configuré(s)
                             {affectation.configuration.heureDebut && affectation.configuration.heureFin &&
                                 ` • ${affectation.configuration.heureDebut} - ${affectation.configuration.heureFin}`}
                         </Typography>
@@ -334,29 +385,45 @@ const TemplateAffectationsSummary = ({ template }: { template: PlanningTemplate 
 /**
  * Composant d'éditeur principal pour les trames de planning
  */
-const BlocPlanningTemplateEditor: React.FC<BlocPlanningTemplateEditorProps> = ({
-    initialTemplate,
-    onSave,
-    availableAffectationTypes,
-    isLoading = false,
-    availablePostes = [],
-    readOnly = false
-}) => {
+const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHandle, BlocPlanningTemplateEditorProps>((
+    {
+        initialTemplate,
+        selectedTemplateId,
+        onSave,
+        onCancel,
+        availableAffectationTypes,
+        templates: templatesFromProps,
+        isLoading: isLoadingProp = false,
+        availablePostes = [],
+        readOnly = false,
+        onMuiModalOpenChange
+    }, ref) => {
     // État pour la trame en cours d'édition
-    const [template, setTemplate] = useState<PlanningTemplate>(
-        initialTemplate || {
-            id: `temp_${Date.now()}`,
-            nom: 'Nouvelle trame',
-            affectations: [],
-            variations: []
-        }
-    );
+    const [template, setTemplate] = useState<PlanningTemplate>(() => {
+        const initial = initialTemplate && initialTemplate.id && initialTemplate.id !== 'new'
+            ? initialTemplate
+            : (initialTemplate && initialTemplate.id === 'new'
+                ? initialTemplate // Cas d'un nouveau template avec des valeurs pré-remplies (nom, rôles)
+                : EMPTY_TEMPLATE);
+        return {
+            ...initial,
+            affectations: initial.affectations || [],
+            variations: initial.variations || [],
+            roles: initial.roles || [RoleType.TOUS] // S'assurer que les rôles sont initialisés
+        };
+    });
+    const [isLoading, setIsLoading] = useState<boolean>(isLoadingProp);
+    const [error, setError] = useState<string | null>(null);
+    const [isModified, setIsModified] = useState<boolean>(false);
 
-    // État pour le jour sélectionné dans les onglets
-    const [selectedDay, setSelectedDay] = useState<DayOfWeek>('LUNDI');
+    // État pour le jour sélectionné dans les onglets (pour l'affichage)
+    const [currentViewingDay, setCurrentViewingDay] = useState<DayOfWeek>('LUNDI');
+
+    // Nouvel état pour les jours sélectionnés lors de l'ajout d'une affectation
+    const [joursSelectionnesPourAjout, setJoursSelectionnesPourAjout] = useState<DayOfWeek[]>(['LUNDI']);
 
     // État pour la nouvelle affectation à ajouter
-    const [newAffectationType, setNewAffectationType] = useState<AffectationType | ''>('');
+    const [newAffectationType, setNewAffectationType] = useState<string>('');
 
     // États pour les dialogues
     const [configPanelOpen, setConfigPanelOpen] = useState(false);
@@ -372,50 +439,75 @@ const BlocPlanningTemplateEditor: React.FC<BlocPlanningTemplateEditorProps> = ({
     // État pour les erreurs de validation
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    // Filtrer les affectations pour le jour sélectionné
-    const filteredAffectations = template.affectations
-        .filter(a => a.jour === selectedDay)
-        .sort((a, b) => (a.ordre || 0) - (b.ordre || 0));
+    // Helper pour mettre à jour le template et marquer comme modifié
+    const updateTemplate = useCallback((updater: (prev: PlanningTemplate) => PlanningTemplate) => {
+        setTemplate(updater);
+        setIsModified(true);
+    }, [setTemplate, setIsModified]);
 
-    // Ajouter une nouvelle affectation
+    // Filtrer les affectations pour le jour sélectionné (pour l'affichage dans l'onglet)
+    const filteredAffectations = Array.isArray(template.affectations)
+        ? template.affectations
+            .filter(a => a.jour === currentViewingDay)
+            .sort((a, b) => (a.ordre || 0) - (b.ordre || 0))
+        : [];
+
+    // Ajouter une nouvelle affectation (modifié pour multi-jours)
     const handleAddAffectation = () => {
-        if (!newAffectationType) {
-            setErrors({ ...errors, newAffectation: 'Veuillez sélectionner un type d\'affectation' });
+        if (!newAffectationType || newAffectationType === 'no-options') {
+            setErrors(prev => ({ ...prev, newAffectation: 'Veuillez sélectionner un type d\'affectation valide' }));
+            return;
+        }
+        if (joursSelectionnesPourAjout.length === 0) {
+            setErrors(prev => ({ ...prev, joursSelectionnesPourAjout: 'Veuillez sélectionner au moins un jour' }));
             return;
         }
 
-        // Vérifier si ce type d'affectation existe déjà pour ce jour
-        const exists = template.affectations.some(
-            a => a.jour === selectedDay && a.type === newAffectationType
-        );
+        const nouvellesAffectations: TemplateAffectation[] = [];
+        let erreurCreation = false;
+        const erreursMessages: string[] = [];
 
-        if (exists) {
-            setErrors({ ...errors, newAffectation: 'Ce type d\'affectation existe déjà pour ce jour' });
+        joursSelectionnesPourAjout.forEach(jour => {
+            const exists = template.affectations.some(
+                a => a.jour === jour && a.type === newAffectationType
+            );
+
+            if (exists) {
+                erreursMessages.push(`Le type d'affectation '${newAffectationType}' existe déjà pour ${DAYS_LABEL[jour]}.`);
+                erreurCreation = true;
+            } else {
+                const affectationsCeJour = template.affectations.filter(a => a.jour === jour);
+                nouvellesAffectations.push({
+                    id: `affect_${Date.now()}_${jour}_${Math.random().toString(36).substring(2, 9)}`,
+                    jour: jour,
+                    type: newAffectationType as AffectationType,
+                    ouvert: true,
+                    postesRequis: 1,
+                    ordre: affectationsCeJour.length
+                });
+            }
+        });
+
+        if (erreurCreation) {
+            setErrors(prev => ({ ...prev, newAffectation: erreursMessages.join(' ') }));
             return;
         }
 
-        const newAffectation: TemplateAffectation = {
-            id: `affect_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-            jour: selectedDay,
-            type: newAffectationType,
-            ouvert: true,
-            postesRequis: 1,
-            ordre: filteredAffectations.length
-        };
-
-        setTemplate(prev => ({
-            ...prev,
-            affectations: [...prev.affectations, newAffectation]
-        }));
+        if (nouvellesAffectations.length > 0) {
+            updateTemplate(prev => ({
+                ...prev,
+                affectations: [...prev.affectations, ...nouvellesAffectations]
+            }));
+        }
 
         // Réinitialiser le formulaire
         setNewAffectationType('');
-        setErrors({ ...errors, newAffectation: '' });
+        setErrors(prev => ({ ...prev, newAffectation: '', joursSelectionnesPourAjout: '' }));
     };
 
     // Supprimer une affectation
     const handleDeleteAffectation = (id: string) => {
-        setTemplate(prev => ({
+        updateTemplate(prev => ({
             ...prev,
             affectations: prev.affectations.filter(a => a.id !== id),
             // Supprimer aussi toutes les variations associées
@@ -425,7 +517,7 @@ const BlocPlanningTemplateEditor: React.FC<BlocPlanningTemplateEditorProps> = ({
 
     // Activer/désactiver une affectation
     const handleToggleAffectation = (id: string, isOpen: boolean) => {
-        setTemplate(prev => ({
+        updateTemplate(prev => ({
             ...prev,
             affectations: prev.affectations.map(a =>
                 a.id === id
@@ -437,7 +529,7 @@ const BlocPlanningTemplateEditor: React.FC<BlocPlanningTemplateEditorProps> = ({
 
     // Modifier le nombre de postes
     const handlePostesChange = (id: string, count: number) => {
-        setTemplate(prev => ({
+        updateTemplate(prev => ({
             ...prev,
             affectations: prev.affectations.map(a =>
                 a.id === id ? { ...a, postesRequis: count } : a
@@ -461,24 +553,62 @@ const BlocPlanningTemplateEditor: React.FC<BlocPlanningTemplateEditorProps> = ({
         }));
 
         // Mettre à jour le template
-        setTemplate(prev => ({
+        updateTemplate(prev => ({
             ...prev,
             affectations: prev.affectations
-                .filter(a => a.jour !== selectedDay)
+                .filter(a => a.jour !== currentViewingDay) // Utiliser currentViewingDay ici car move se fait dans le contexte d'un seul jour
                 .concat(updatedAffectations)
         }));
-    }, [filteredAffectations, selectedDay]);
+    }, [filteredAffectations, currentViewingDay, updateTemplate]);
 
     // Ouvrir le panel de configuration pour une affectation
     const handleEditAffectation = (affectation: TemplateAffectation) => {
+        console.log('[BlocEditor DEBUG] handleEditAffectation - Affectation sélectionnée:', affectation);
+        console.log('[BlocEditor DEBUG] Tentative d\'ouverture de AssignmentConfigPanel...');
         setSelectedAffectation(affectation);
         setConfigPanelOpen(true);
+        onMuiModalOpenChange?.(true);
     };
 
     // Fermer le panel de configuration
     const handleCloseConfigPanel = () => {
+        console.log('[BlocPlanningTemplateEditor] handleCloseConfigPanel appelé. Call stack:', new Error().stack);
         setConfigPanelOpen(false);
         setSelectedAffectation(null);
+        onMuiModalOpenChange?.(false);
+    };
+
+    // Gérer la modification de la configuration d'une affectation (appelé par AssignmentConfigPanel)
+    const handleConfigurationChange = (updatedAffectation: TemplateAffectation) => {
+        // Log pour voir ce qui est reçu du panel
+        console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - updatedAffectation reçue:', JSON.parse(JSON.stringify(updatedAffectation)));
+        console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - updatedAffectation.configuration?.postes AVANT calcul:', updatedAffectation.configuration?.postes ? JSON.parse(JSON.stringify(updatedAffectation.configuration.postes)) : 'undefined ou null');
+
+        let finalPostesRequis = 0;
+        if (updatedAffectation.configuration?.postes && Array.isArray(updatedAffectation.configuration.postes)) {
+            finalPostesRequis = updatedAffectation.configuration.postes.reduce((sum, poste) => sum + (Number(poste.quantite) || 0), 0);
+            console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - finalPostesRequis calculé à partir de configuration.postes:', finalPostesRequis);
+        } else {
+            // Si pas de postes dans la config, on essaie de garder la valeur existante sur updatedAffectation ou celle du template actuel
+            const existingAffectationInState = template.affectations.find(a => a.id === updatedAffectation.id);
+            finalPostesRequis = updatedAffectation.postesRequis !== undefined
+                ? updatedAffectation.postesRequis
+                : (existingAffectationInState?.postesRequis || 0);
+            console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - finalPostesRequis basé sur updatedAffectation.postesRequis ou état actuel:', finalPostesRequis);
+        }
+
+        // Assurer que l'affectation a un ID pour le mapping
+        const affectationToUpdate = {
+            ...updatedAffectation,
+            postesRequis: finalPostesRequis, // Utiliser la valeur recalculée/maintenue
+        };
+
+        console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - affectationToUpdate avant handleUpdateAffectation:', JSON.parse(JSON.stringify(affectationToUpdate)));
+
+        handleUpdateAffectation(affectationToUpdate); // Utilise la fonction existante pour mettre à jour la liste
+        setSelectedAffectation(null); // Ferme le panel (correction: setEditingAffectation -> setSelectedAffectation)
+        setConfigPanelOpen(false); // Assurer aussi la fermeture du panel via son état
+        setIsModified(true);
     };
 
     // Ouvrir le panel pour ajouter une variation
@@ -505,6 +635,7 @@ const BlocPlanningTemplateEditor: React.FC<BlocPlanningTemplateEditorProps> = ({
         setSelectedVariation(newVariation);
         setSelectedAffectationId(affectationId);
         setVariationPanelOpen(true);
+        onMuiModalOpenChange?.(true);
     };
 
     // Ouvrir le panel pour éditer une variation existante
@@ -512,6 +643,7 @@ const BlocPlanningTemplateEditor: React.FC<BlocPlanningTemplateEditorProps> = ({
         setSelectedVariation(variation);
         setSelectedAffectationId(variation.affectationId);
         setVariationPanelOpen(true);
+        onMuiModalOpenChange?.(true);
     };
 
     // Fermer le panel de variation
@@ -519,6 +651,7 @@ const BlocPlanningTemplateEditor: React.FC<BlocPlanningTemplateEditorProps> = ({
         setVariationPanelOpen(false);
         setSelectedVariation(null);
         setSelectedAffectationId(null);
+        onMuiModalOpenChange?.(false);
     };
 
     // Sauvegarder une variation
@@ -528,7 +661,7 @@ const BlocPlanningTemplateEditor: React.FC<BlocPlanningTemplateEditorProps> = ({
 
         if (variationIndex >= 0) {
             // Mise à jour d'une variation existante
-            setTemplate(prev => ({
+            updateTemplate(prev => ({
                 ...prev,
                 variations: variations.map(v =>
                     v.id === updatedVariation.id ? updatedVariation : v
@@ -536,7 +669,7 @@ const BlocPlanningTemplateEditor: React.FC<BlocPlanningTemplateEditorProps> = ({
             }));
         } else {
             // Ajout d'une nouvelle variation
-            setTemplate(prev => ({
+            updateTemplate(prev => ({
                 ...prev,
                 variations: [...variations, updatedVariation]
             }));
@@ -545,7 +678,7 @@ const BlocPlanningTemplateEditor: React.FC<BlocPlanningTemplateEditorProps> = ({
 
     // Supprimer une variation
     const handleDeleteVariation = (variationId: string) => {
-        setTemplate(prev => ({
+        updateTemplate(prev => ({
             ...prev,
             variations: prev.variations?.filter(v => v.id !== variationId) || []
         }));
@@ -555,342 +688,612 @@ const BlocPlanningTemplateEditor: React.FC<BlocPlanningTemplateEditorProps> = ({
         }
     };
 
-    // Mettre à jour une affectation depuis le panel de configuration
+    // Mettre à jour une affectation après configuration
     const handleUpdateAffectation = (updatedAffectation: TemplateAffectation) => {
-        setTemplate(prev => ({
+        console.log('[BlocEditor DEBUG] handleUpdateAffectation - Affectation mise à jour:', updatedAffectation);
+        updateTemplate(prev => ({
             ...prev,
             affectations: prev.affectations.map(a =>
                 a.id === updatedAffectation.id ? updatedAffectation : a
             )
         }));
+        // Ne pas fermer le panel ici, laisser AssignmentConfigPanel le faire via onSave/onClose
     };
 
     // Valider la trame avant sauvegarde
     const validateTemplate = (): boolean => {
         const newErrors: Record<string, string> = {};
+        console.log("[validateTemplate] Validation en cours pour la trame:", JSON.parse(JSON.stringify(template)));
 
         if (!template.nom.trim()) {
             newErrors.nom = 'Le nom de la trame est requis';
+            console.log("[validateTemplate] Erreur: Nom de trame vide.");
         }
 
         // Vérifier que les affectations ouvertes ont au moins un poste requis
-        const invalidAffectation = template.affectations.find(a => a.ouvert && a.postesRequis < 1);
+        // const invalidAffectation = template.affectations.find(a => a.ouvert && a.postesRequis < 1);
+        const invalidAffectation = template.affectations.find(a => a.ouvert && (!a.postesRequis || a.postesRequis < 1));
         if (invalidAffectation) {
-            newErrors.affectations = `L'affectation ${invalidAffectation.type} du ${DAYS_LABEL[invalidAffectation.jour]} doit avoir au moins un poste requis`;
+            // newErrors.affectations = `L'affectation ${invalidAffectation.type} du ${DAYS_LABEL[invalidAffectation.jour]} doit avoir au moins un poste requis`;
+            newErrors.affectations = `L'affectation ${invalidAffectation.type} du ${DAYS_LABEL[invalidAffectation.jour]} (ID: ${invalidAffectation.id}) doit avoir au moins un poste requis (actuel: ${invalidAffectation.postesRequis}, ouvert: ${invalidAffectation.ouvert})`;
+            console.log("[validateTemplate] Erreur: Affectation invalide trouvée:", JSON.parse(JSON.stringify(invalidAffectation)));
         }
 
         // Vérifier que les variations ont un nom
         const invalidVariation = template.variations?.find(v => !v.nom.trim());
         if (invalidVariation) {
             newErrors.variations = `Toutes les variations doivent avoir un nom`;
+            console.log("[validateTemplate] Erreur: Variation avec nom vide trouvée.");
         }
 
         setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        // return Object.keys(newErrors).length === 0;
+        const isValid = Object.keys(newErrors).length === 0;
+        console.log("[validateTemplate] Résultat de la validation:", isValid, "Erreurs:", newErrors);
+        return isValid;
     };
 
     // Sauvegarder la trame
     const handleSaveTemplate = async () => {
-        if (!validateTemplate() || readOnly) return;
-
+        if (!validateTemplate()) {
+            toast.error("Veuillez corriger les erreurs dans la trame avant de sauvegarder.");
+            return;
+        }
+        setIsLoading(true);
         try {
-            await onSave(template);
+            // Assurer que le template final a les rôles corrects (ceux de initialTemplate, car cet éditeur ne les modifie pas)
+            const templateToSave = {
+                ...template,
+                roles: initialTemplate?.roles || template.roles || [RoleType.TOUS]
+            };
+            // Log amélioré pour voir les affectations
+            console.log(
+                '[BlocPlanningTemplateEditor] Contenu de templateToSave AVANT appel à props.onSave:',
+                JSON.parse(JSON.stringify(templateToSave)), // Pour un affichage propre de l'objet
+                `Nombre d\'affectations: ${templateToSave.affectations?.length || 0}`,
+                'Affectations:',
+                JSON.stringify(templateToSave.affectations, null, 2) // Affiche les affectations en détail
+            );
+            await onSave(templateToSave);
+            toast.success("Trame sauvegardée avec succès !");
+            setIsModified(false);
         } catch (error) {
             console.error('Erreur lors de la sauvegarde de la trame:', error);
             setErrors({ save: 'Erreur lors de la sauvegarde de la trame' });
+        } finally {
+            setIsLoading(false);
         }
     };
+
+    // Exposer la méthode submit via la ref
+    useImperativeHandle(ref, () => ({
+        submit: handleSaveTemplate,
+        isDirty: () => isModified
+    }));
 
     // Chargement des types d'affectations disponibles
     useEffect(() => {
         if (!availableAffectationTypes || availableAffectationTypes.length === 0) {
-            const loadAffectationTypes = async () => {
-                try {
-                    await templateService.getAvailableAffectationTypes();
-                } catch (error) {
-                    console.error('Erreur lors du chargement des types d\'affectation:', error);
-                }
-            };
-
-            loadAffectationTypes();
+            // Le chargement initial des types est maintenant géré par TemplateManager
+            // templateService.getAvailableAffectationTypes() ne devrait plus être appelé ici directement
+            // Si la liste est vide, cela signifie que le parent n'a rien fourni ou que rien n'est disponible.
+            console.warn("[BlocPlanningTemplateEditor] availableAffectationTypes est vide ou non fourni.");
         }
     }, [availableAffectationTypes]);
 
+    // Sécurisation des données du template
+    useEffect(() => {
+        // LOGS AJOUTÉS ICI pour déboguer template.affectations
+        if (template) {
+            console.log(`[BlocEditor debug] ID trame: ${template.id}`);
+            console.log('[BlocEditor debug] Template état: ', JSON.parse(JSON.stringify(template || {})));
+
+            // Validation et correction du template
+            if (!template.affectations) {
+                console.warn('[BlocEditor debug] template.affectations est undefined, initialisation avec []');
+                updateTemplate(prev => ({
+                    ...prev,
+                    affectations: []
+                }));
+            } else if (!Array.isArray(template.affectations)) {
+                console.warn('[BlocEditor debug] template.affectations n\'est pas un array, conversion en []');
+                updateTemplate(prev => ({
+                    ...prev,
+                    affectations: []
+                }));
+            }
+
+            // Validation des variations
+            if (!template.variations) {
+                updateTemplate(prev => ({
+                    ...prev,
+                    variations: []
+                }));
+            }
+        }
+    }, [template, updateTemplate]);
+
+    const loadTrames = useCallback(async (id: string) => {
+        if (!id) return;
+
+        setIsLoading(true);
+        try {
+            // console.log(`[BlocEditor loadTrames] ID reçu: ${id}`);
+
+            // Recherche de la trame dans les templates fournis par les props
+            const tramePourEdition = templatesFromProps?.find(t => String(t.id) === String(id));
+
+            if (tramePourEdition) {
+                // console.log(`[BlocEditor loadTrames] tramePourEdition (avant typeof check): `, tramePourEdition);
+
+                // Vérification et normalisation des affectations et variations
+                const affectations = Array.isArray(tramePourEdition.affectations) ? tramePourEdition.affectations : [];
+                const variations = Array.isArray(tramePourEdition.variations) ? tramePourEdition.variations : [];
+
+                // Vérifier si le template actuel est déjà identique à tramePourEdition (pour éviter les mises à jour inutiles)
+                if (template.id !== tramePourEdition.id ||
+                    template.nom !== tramePourEdition.nom ||
+                    template.description !== tramePourEdition.description ||
+                    JSON.stringify(template.affectations || []) !== JSON.stringify(affectations) ||
+                    JSON.stringify(template.variations || []) !== JSON.stringify(variations)) {
+
+                    // Mise à jour du template uniquement si différent
+                    // console.log(`[BlocEditor loadTrames] Mise à jour du template avec la trame trouvée.`);
+                    setTemplate({
+                        ...tramePourEdition,
+                        affectations,
+                        variations,
+                    });
+                    setIsModified(false);
+                } else {
+                    // console.log(`[BlocEditor loadTrames] Template déjà à jour, pas de setTemplate.`);
+                }
+            } else {
+                setError(`Trame avec id ${id} non trouvée.`);
+            }
+        } catch (err) {
+            console.error(`[BlocEditor loadTrames] Erreur:`, err);
+            setError(err instanceof Error ? err.message : 'Erreur inconnue lors du chargement');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [templatesFromProps, setTemplate, setIsLoading, setError, setIsModified]);
+
+    // useEffect principal pour gérer le chargement et l'initialisation du template
+    // Dépendances : uniquement les props et les callbacks stables, pas template
+    useEffect(() => {
+        // console.log("[BlocEditor useEffect]", { initialTplId: initialTemplate?.id, selectedId: selectedTemplateId, currentTplId: template.id });
+
+        // Si un ID est sélectionné et qu'il est différent du template actuel, charger la trame
+        if (selectedTemplateId && selectedTemplateId !== template.id) {
+            // console.log(`[BlocEditor useEffect] Chargement via selectedTemplateId: ${selectedTemplateId}`);
+            loadTrames(selectedTemplateId);
+            return; // Sortir pour éviter d'exécuter les autres branches
+        }
+
+        // Si pas d'ID sélectionné mais un initialTemplate fourni, l'utiliser si différent
+        if (!selectedTemplateId && initialTemplate) {
+            const currentAffectations = template.affectations || [];
+            const initialAffectations = initialTemplate.affectations || [];
+            const currentVariations = template.variations || [];
+            const initialVariations = initialTemplate.variations || [];
+
+            // Vérifier si le template actuel est déjà identique à initialTemplate
+            if (template.id !== initialTemplate.id ||
+                template.nom !== initialTemplate.nom ||
+                JSON.stringify(currentAffectations) !== JSON.stringify(initialAffectations) ||
+                JSON.stringify(currentVariations) !== JSON.stringify(initialVariations)) {
+
+                // console.log("[BlocEditor useEffect] Application de initialTemplate");
+                setTemplate({
+                    ...initialTemplate,
+                    affectations: initialAffectations,
+                    variations: initialVariations,
+                });
+                setIsModified(false);
+            }
+            return; // Sortir pour éviter d'exécuter les autres branches
+        }
+
+        // Si ni ID sélectionné ni initialTemplate, et que le template n'est pas vide, le réinitialiser
+        if (!selectedTemplateId && !initialTemplate && template.id !== EMPTY_TEMPLATE.id) {
+            // console.log("[BlocEditor useEffect] Reset vers EMPTY_TEMPLATE");
+            setTemplate(EMPTY_TEMPLATE);
+            setIsModified(false);
+            return;
+        }
+
+        // Cas où selectedTemplateId est égal à template.id mais initialTemplate a changé et a le même ID
+        // (synchronisation avec initialTemplate si son contenu a changé)
+        if (selectedTemplateId && selectedTemplateId === template.id &&
+            initialTemplate && initialTemplate.id === selectedTemplateId) {
+
+            const currentAffectations = template.affectations || [];
+            const initialAffectations = initialTemplate.affectations || [];
+            const currentVariations = template.variations || [];
+            const initialVariations = initialTemplate.variations || [];
+
+            if (template.nom !== initialTemplate.nom ||
+                JSON.stringify(currentAffectations) !== JSON.stringify(initialAffectations) ||
+                JSON.stringify(currentVariations) !== JSON.stringify(initialVariations)) {
+
+                // console.log("[BlocEditor useEffect] Synchronisation avec initialTemplate (même ID)");
+                setTemplate({
+                    ...initialTemplate,
+                    affectations: initialAffectations,
+                    variations: initialVariations,
+                });
+                setIsModified(false);
+            }
+        }
+    }, [initialTemplate, selectedTemplateId, loadTrames, template.id, setIsModified]);
+
+    // Gestion du changement de `isLoadingProp` venant du parent
+    useEffect(() => {
+        setIsLoading(isLoadingProp);
+    }, [isLoadingProp]);
+
+    // Si initialTemplate est undefined et qu'on est en mode création (pas d'ID sélectionné)
+    // s'assurer que le template local est EMPTY_TEMPLATE ou celui passé pour un nouveau template.
+    // (Cette logique a été déplacée dans l'initialisation de useState et le useEffect principal)
+
+    if (isLoading && !template) { // Afficher le chargement seulement si template n'est pas encore défini
+        return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}><CircularProgress /></Box>;
+    }
+
+    if (error) {
+        return <Alert severity="error">{error}</Alert>;
+    }
+
+    // Rendu principal du composant
     return (
         <DndProvider backend={HTML5Backend}>
-            <Card>
-                <CardHeader
-                    title={
+            <Box sx={{ p: 2, pt: 0 }}>
+                {/* Section pour Nom, Description et Rôles avec Flexbox */}
+                <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', backgroundColor: 'grey.50', display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'flex-start' }}>
+                    <Box sx={{ flexGrow: 1, minWidth: { md: '300px' } }}>
                         <TextField
-                            fullWidth
                             label="Nom de la trame"
                             value={template.nom}
-                            onChange={(e) => setTemplate({ ...template, nom: e.target.value })}
-                            margin="normal"
-                            disabled={readOnly || isLoading}
+                            onChange={(e) => {
+                                updateTemplate(prev => ({ ...prev, nom: e.target.value }));
+                                if (errors.nom) setErrors(prev => ({ ...prev, nom: '' }));
+                            }}
+                            fullWidth
+                            variant="outlined"
+                            required
                             error={!!errors.nom}
                             helperText={errors.nom}
+                            disabled={readOnly || isLoading}
+                            size="small"
+                            InputProps={{ sx: { fontWeight: 'bold', fontSize: '1.1rem' } }}
                         />
-                    }
-                    subheader={
+                    </Box>
+                    <Box sx={{ flexGrow: 1, minWidth: { md: '250px' } }}>
                         <TextField
-                            fullWidth
-                            label="Description (optionnelle)"
+                            label="Description"
                             value={template.description || ''}
-                            onChange={(e) => setTemplate({ ...template, description: e.target.value })}
-                            margin="normal"
+                            onChange={(e) => updateTemplate(prev => ({ ...prev, description: e.target.value }))}
+                            fullWidth
                             multiline
-                            rows={2}
+                            minRows={1}
+                            maxRows={3}
+                            variant="outlined"
+                            size="small"
                             disabled={readOnly || isLoading}
                         />
-                    }
-                    action={
-                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 2 }}>
-                            {errors.save && (
-                                <Alert severity="error" sx={{ mb: 2 }}>
-                                    {errors.save}
-                                </Alert>
-                            )}
-                            <Tooltip title="Exporter la trame">
-                                <IconButton disabled={isLoading}>
-                                    <ExportIcon size={20} />
-                                </IconButton>
-                            </Tooltip>
-                            <Button
-                                variant="contained"
-                                startIcon={<SaveIcon />}
-                                onClick={handleSaveTemplate}
-                                disabled={!!errors.save || isLoading || readOnly}
+                    </Box>
+                    <Box sx={{ flexShrink: 0, pt: { xs: 0, md: '6px' }, minWidth: { xs: '100%', md: 'auto' } }}> {/* Ajustement pour rôles */}
+                        {(template.roles && template.roles.length > 0) && (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
+                                <Typography variant="body2" sx={{ fontWeight: 'medium', mr: 0.5, color: 'text.secondary' }}>Rôles :</Typography>
+                                {template.roles.map(role => (
+                                    <Chip key={role} label={role} size="small" color="info" variant="filled" sx={{ borderRadius: '6px', fontWeight: 'medium' }} />
+                                ))}
+                            </Box>
+                        )}
+                    </Box>
+                </Box>
+
+                <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                    <Tab label="Affectations" value="affectations" />
+                    <Tab
+                        label={
+                            <Badge
+                                badgeContent={template.variations?.length || 0}
+                                color="secondary"
+                                showZero={false}
                             >
-                                Enregistrer
-                            </Button>
+                                Variations
+                            </Badge>
+                        }
+                        value="variations"
+                    />
+                </Tabs>
+
+                {/* Contenu de l'onglet affectations */}
+                {activeTab === "affectations" && (
+                    <>
+                        {/* Onglets pour les jours de la semaine */}
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+                            <Tabs
+                                value={currentViewingDay}
+                                onChange={(_, newValue) => setCurrentViewingDay(newValue)}
+                                variant="scrollable"
+                                scrollButtons="auto"
+                                aria-label="Jours de la semaine"
+                            >
+                                {Object.entries(DAYS_LABEL).map(([day, label]) => (
+                                    <Tab key={day} label={label} value={day} />
+                                ))}
+                            </Tabs>
                         </Box>
-                    }
-                />
-                <Divider />
-                <CardContent>
-                    {/* Ajout du tableau récapitulatif */}
-                    {template.affectations.length > 0 && (
-                        <Box sx={{ mb: 4 }}>
-                            <Typography variant="h6" gutterBottom>
-                                Résumé de la trame
-                            </Typography>
-                            <TemplateAffectationsSummary template={template} />
-                        </Box>
-                    )}
 
-                    {/* Onglets pour basculer entre affectations et variations */}
-                    <Tabs
-                        value={activeTab}
-                        onChange={(_, newValue) => setActiveTab(newValue)}
-                        sx={{ mb: 3 }}
-                    >
-                        <Tab label="Affectations" value="affectations" />
-                        <Tab
-                            label={
-                                <Badge
-                                    badgeContent={template.variations?.length || 0}
-                                    color="secondary"
-                                    showZero={false}
-                                >
-                                    Variations
-                                </Badge>
-                            }
-                            value="variations"
-                        />
-                    </Tabs>
-
-                    {/* Contenu de l'onglet affectations */}
-                    {activeTab === "affectations" && (
-                        <>
-                            {/* Onglets pour les jours de la semaine */}
-                            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-                                <Tabs
-                                    value={selectedDay}
-                                    onChange={(_, newValue) => setSelectedDay(newValue)}
-                                    variant="scrollable"
-                                    scrollButtons="auto"
-                                    aria-label="Jours de la semaine"
-                                >
-                                    {Object.entries(DAYS_LABEL).map(([day, label]) => (
-                                        <Tab key={day} label={label} value={day} />
-                                    ))}
-                                </Tabs>
-                            </Box>
-
-                            {/* Zone d'affectations pour le jour sélectionné */}
-                            <Box sx={{ mb: 3 }}>
-                                <Typography variant="h6" gutterBottom>
-                                    Affectations pour {DAYS_LABEL[selectedDay]}
-                                </Typography>
-
-                                {filteredAffectations.length === 0 ? (
-                                    <Alert severity="info" sx={{ mb: 2 }}>
-                                        Aucune affectation définie pour ce jour. Utilisez le formulaire ci-dessous pour en ajouter.
-                                    </Alert>
-                                ) : (
-                                    <Box sx={{ mb: 2 }}>
-                                        {filteredAffectations.map((affectation, index) => (
-                                            <DraggableAffectation
-                                                key={affectation.id}
-                                                affectation={affectation}
-                                                onToggle={handleToggleAffectation}
-                                                onPostesChange={handlePostesChange}
-                                                onEdit={handleEditAffectation}
-                                                onDelete={handleDeleteAffectation}
-                                                onAddVariation={handleAddVariation}
-                                                variations={template.variations || []}
-                                                index={index}
-                                                moveAffectation={moveAffectation}
-                                            />
-                                        ))}
-                                    </Box>
-                                )}
-
-                                {/* Formulaire d'ajout d'affectation */}
-                                {!readOnly && (
-                                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 3 }}>
-                                        <FormControl sx={{ minWidth: 200, mr: 2 }} error={!!errors.newAffectation}>
-                                            <InputLabel>Type d'affectation</InputLabel>
-                                            <Select
-                                                value={newAffectationType}
-                                                label="Type d'affectation"
-                                                onChange={(e) => setNewAffectationType(e.target.value as AffectationType | '')}
-                                            >
-                                                <MenuItem value="">Sélectionner un type</MenuItem>
-                                                {availableAffectationTypes.map((type) => (
-                                                    <MenuItem
-                                                        key={type}
-                                                        value={type}
-                                                        disabled={filteredAffectations.some(a => a.type === type)}
-                                                    >
-                                                        {type}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                            {errors.newAffectation && (
-                                                <Typography variant="caption" color="error">
-                                                    {errors.newAffectation}
-                                                </Typography>
-                                            )}
-                                        </FormControl>
-                                        <Button
-                                            variant="contained"
-                                            color="primary"
-                                            onClick={handleAddAffectation}
-                                            disabled={!newAffectationType || isLoading}
-                                            startIcon={<PlusIcon size={16} />}
-                                        >
-                                            Ajouter
-                                        </Button>
-                                    </Box>
-                                )}
-                            </Box>
-                        </>
-                    )}
-
-                    {/* Contenu de l'onglet variations */}
-                    {activeTab === "variations" && (
+                        {/* Zone d'affectations pour le jour sélectionné */}
                         <Box sx={{ mb: 3 }}>
                             <Typography variant="h6" gutterBottom>
-                                Variations de configuration
+                                Affectations pour {DAYS_LABEL[currentViewingDay as DayOfWeek]}
                             </Typography>
 
-                            {template.variations?.length === 0 ? (
+                            {filteredAffectations.length === 0 ? (
                                 <Alert severity="info" sx={{ mb: 2 }}>
-                                    Aucune variation configurée. Les variations permettent d'adapter les configurations d'affectation pour des périodes spécifiques.
+                                    Aucune affectation définie pour ce jour. Utilisez le formulaire ci-dessous pour en ajouter.
                                 </Alert>
                             ) : (
                                 <Box sx={{ mb: 2 }}>
-                                    {template.variations?.map((variation) => {
-                                        // Trouver l'affectation associée
-                                        const affectation = template.affectations.find(a => a.id === variation.affectationId);
-                                        if (!affectation) return null; // Skip si l'affectation n'existe plus
+                                    {filteredAffectations.map((affectation, index) => (
+                                        <DraggableAffectation
+                                            key={affectation.id}
+                                            affectation={affectation}
+                                            onToggle={handleToggleAffectation}
+                                            onPostesChange={handlePostesChange}
+                                            onEdit={handleEditAffectation}
+                                            onDelete={handleDeleteAffectation}
+                                            onAddVariation={handleAddVariation}
+                                            variations={template.variations || []}
+                                            index={index}
+                                            moveAffectation={moveAffectation}
+                                        />
+                                    ))}
+                                </Box>
+                            )}
 
-                                        return (
-                                            <Card key={variation.id} variant="outlined" sx={{ mb: 2, p: 2 }}>
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <Box>
-                                                        <Typography variant="subtitle1">{variation.nom}</Typography>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            {affectation.type} - {DAYS_LABEL[affectation.jour]}
-                                                            {variation.typeVariation && ` • ${PERIOD_LABEL[variation.typeVariation]}`}
-                                                        </Typography>
-                                                        {variation.dateDebut && variation.dateFin && (
-                                                            <Typography variant="caption" color="text.secondary">
-                                                                Du {new Date(variation.dateDebut).toLocaleDateString()} au {new Date(variation.dateFin).toLocaleDateString()}
-                                                            </Typography>
+                            {/* Formulaire d'ajout d'affectation */}
+                            {!readOnly && (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', mt: 3, gap: 2 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                            <ShadSelect
+                                                onValueChange={(value: string) => {
+                                                    console.log('[BlocPlanningTemplateEditor] ShadSelect onValueChange - new value (code):', value);
+                                                    setNewAffectationType(value);
+                                                    if (errors.newAffectation) setErrors(prev => ({ ...prev, newAffectation: '' }));
+                                                }}
+                                                value={newAffectationType}
+                                            >
+                                                <ShadSelectTrigger className="w-[220px]">
+                                                    <ShadSelectValue placeholder="Sélectionner un type" />
+                                                </ShadSelectTrigger>
+                                                <ShadSelectContent>
+                                                    <ShadSelectGroup>
+                                                        {availableAffectationTypes.length === 0 && (
+                                                            <ShadSelectItem value="no-options" disabled>Aucun type disponible</ShadSelectItem>
                                                         )}
-                                                    </Box>
-                                                    <Box>
-                                                        <Tooltip title="Éditer la variation">
-                                                            <IconButton
-                                                                size="small"
-                                                                color="primary"
-                                                                onClick={() => handleEditVariation(variation)}
-                                                                sx={{ mr: 1 }}
+                                                        {availableAffectationTypes.map((activityTypeObj) => (
+                                                            <ShadSelectItem
+                                                                key={activityTypeObj.code}
+                                                                value={activityTypeObj.code}
+                                                                disabled={template.affectations.some(a => a.jour === currentViewingDay && a.type === activityTypeObj.code)}
                                                             >
-                                                                <EditIcon size={16} />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                        <Tooltip title="Supprimer">
-                                                            <IconButton
-                                                                size="small"
-                                                                color="error"
-                                                                onClick={() => handleDeleteVariation(variation.id)}
-                                                            >
-                                                                <DeleteIcon size={16} />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                    </Box>
-                                                </Box>
-                                            </Card>
-                                        );
-                                    })}
+                                                                {activityTypeObj.name}
+                                                            </ShadSelectItem>
+                                                        ))}
+                                                    </ShadSelectGroup>
+                                                </ShadSelectContent>
+                                            </ShadSelect>
+                                            {errors.newAffectation && (
+                                                <Typography variant="caption" color="error" sx={{ mt: 0.5, fontSize: '0.75rem' }}>
+                                                    {errors.newAffectation}
+                                                </Typography>
+                                            )}
+                                        </Box>
+
+                                        <MuiButton
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={handleAddAffectation}
+                                            disabled={!newAffectationType || newAffectationType === 'no-options' || joursSelectionnesPourAjout.length === 0 || isLoading}
+                                            startIcon={<PlusIcon size={16} />}
+                                            sx={{ alignSelf: 'flex-start' }}
+                                        >
+                                            Ajouter Affectation(s)
+                                        </MuiButton>
+                                    </Box>
+
+                                    {/* Sélection des jours pour l'ajout */}
+                                    <Box sx={{ mt: 2 }}>
+                                        <Typography variant="subtitle2" gutterBottom>Sélectionner le(s) jour(s) :</Typography>
+                                        <FormGroup row>
+                                            {(Object.keys(DAYS_LABEL) as DayOfWeek[]).map((day) => (
+                                                <FormControlLabel
+                                                    key={day}
+                                                    control={
+                                                        <Checkbox
+                                                            checked={joursSelectionnesPourAjout.includes(day)}
+                                                            onChange={(event) => {
+                                                                const checked = event.target.checked;
+                                                                setJoursSelectionnesPourAjout(prev =>
+                                                                    checked
+                                                                        ? [...prev, day]
+                                                                        : prev.filter(d => d !== day)
+                                                                );
+                                                                if (errors.joursSelectionnesPourAjout) setErrors(prev => ({ ...prev, joursSelectionnesPourAjout: '' }));
+                                                            }}
+                                                            size="small"
+                                                        />
+                                                    }
+                                                    label={DAYS_LABEL[day]}
+                                                />
+                                            ))}
+                                        </FormGroup>
+                                        {errors.joursSelectionnesPourAjout && (
+                                            <Typography variant="caption" color="error" sx={{ mt: 0.5, fontSize: '0.75rem' }}>
+                                                {errors.joursSelectionnesPourAjout}
+                                            </Typography>
+                                        )}
+                                    </Box>
                                 </Box>
                             )}
                         </Box>
-                    )}
-                </CardContent>
-            </Card>
+                    </>
+                )}
 
-            {/* Dialog de configuration d'affectation */}
-            <Dialog
-                open={configPanelOpen}
-                onClose={handleCloseConfigPanel}
-                fullWidth
-                maxWidth="md"
-            >
-                <DialogTitle>
-                    Configuration avancée de l'affectation
-                </DialogTitle>
-                <DialogContent>
-                    {selectedAffectation && (
+                {/* Contenu de l'onglet variations */}
+                {activeTab === "variations" && (
+                    <Box sx={{ mb: 3 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Variations de configuration
+                        </Typography>
+
+                        {template.variations?.length === 0 ? (
+                            <Alert severity="info" sx={{ mb: 2 }}>
+                                Aucune variation configurée. Les variations permettent d'adapter les configurations d'affectation pour des périodes spécifiques.
+                            </Alert>
+                        ) : (
+                            <Box sx={{ mb: 2 }}>
+                                {template.variations?.map((variation) => {
+                                    // Trouver l'affectation associée
+                                    const affectation = template.affectations.find(a => a.id === variation.affectationId);
+                                    if (!affectation) return null; // Skip si l'affectation n'existe plus
+
+                                    return (
+                                        <Card key={variation.id} variant="outlined" sx={{ mb: 2, p: 2 }}>
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <Box>
+                                                    <Typography variant="subtitle1">{variation.nom}</Typography>
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        {affectation.type} - {DAYS_LABEL[affectation.jour]}
+                                                        {variation.typeVariation && ` • ${PERIOD_LABEL[variation.typeVariation]}`}
+                                                    </Typography>
+                                                    {variation.dateDebut && variation.dateFin && (
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            Du {new Date(variation.dateDebut).toLocaleDateString()} au {new Date(variation.dateFin).toLocaleDateString()}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+                                                <Box>
+                                                    <Tooltip title="Éditer la variation">
+                                                        <IconButton
+                                                            size="small"
+                                                            color="primary"
+                                                            onClick={() => handleEditVariation(variation)}
+                                                            sx={{ mr: 1 }}
+                                                        >
+                                                            <EditIcon size={16} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    <Tooltip title="Supprimer">
+                                                        <IconButton
+                                                            size="small"
+                                                            color="error"
+                                                            onClick={() => handleDeleteVariation(variation.id)}
+                                                        >
+                                                            <TrashIcon size={16} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Box>
+                                            </Box>
+                                        </Card>
+                                    );
+                                })}
+                            </Box>
+                        )}
+                    </Box>
+                )}
+            </Box>
+
+            {/* MODALES MUI EN DESSOUS (leur position dans le JSX n'affecte pas leur affichage superposé) */}
+            {selectedAffectation && (
+                <Dialog
+                    open={configPanelOpen}
+                    onClose={handleCloseConfigPanel}
+                    fullWidth
+                    maxWidth="xl"
+                    PaperProps={{
+                        sx: {
+                            height: 'auto',
+                            minHeight: '80vh',
+                            maxHeight: '80vh',
+                            width: '90%',
+                            maxWidth: '1600px',
+                            margin: 'auto',
+                            borderRadius: '8px',
+                            position: 'relative',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                        }
+                    }}
+                    aria-labelledby="assignment-config-dialog-title"
+                >
+                    <DialogTitle sx={{ m: 0, p: 2 }}>
+                        Configuration de l'affectation
+                        <IconButton aria-label="close" onClick={handleCloseConfigPanel} sx={{ position: 'absolute', right: 8, top: 8, color: (theme) => theme.palette.grey[500] }}>
+                            <XIcon size={20} />
+                        </IconButton>
+                    </DialogTitle>
+                    <DialogContent dividers sx={{ overflowY: 'auto' }}>
                         <AssignmentConfigPanel
                             affectation={selectedAffectation}
-                            onChange={handleUpdateAffectation}
+                            onChange={handleConfigurationChange}
                             availablePostes={availablePostes}
                             isLoading={isLoading}
                         />
-                    )}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseConfigPanel}>Fermer</Button>
-                </DialogActions>
-            </Dialog>
+                    </DialogContent>
+                    <DialogActions>
+                        <MuiButton onClick={handleCloseConfigPanel}>Fermer</MuiButton>
+                    </DialogActions>
+                </Dialog>
+            )}
 
-            {/* Dialog de configuration de variation */}
-            <Dialog
-                open={variationPanelOpen}
-                onClose={handleCloseVariationPanel}
-                fullWidth
-                maxWidth="md"
-            >
-                <DialogTitle>
-                    Configuration de variation
-                </DialogTitle>
-                <DialogContent>
-                    {selectedVariation && (
+            {selectedVariation && (
+                <Dialog
+                    open={variationPanelOpen}
+                    onClose={handleCloseVariationPanel}
+                    maxWidth="xl"
+                    fullWidth
+                    sx={{ zIndex: 10000 }} // z-index élevé pour la modale MUI et son backdrop
+                    PaperProps={{
+                        sx: {
+                            overflowY: 'visible',
+                            zIndex: 10001, // z-index encore plus élevé pour le Paper
+                            height: 'auto',
+                            minHeight: '80vh',
+                            maxHeight: '80vh',
+                            width: '90%',
+                            maxWidth: '1600px',
+                            margin: 'auto',
+                            borderRadius: '8px',
+                            position: 'relative',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                        },
+                        onClick: (e: React.MouseEvent) => {
+                            console.log('[MUI Dialog Paper] onClick event on VariationConfigPanel');
+                            e.stopPropagation();
+                        },
+                        onPointerDown: (e: React.PointerEvent) => {
+                            console.log('[MUI Dialog Paper] onPointerDown event on VariationConfigPanel');
+                            e.stopPropagation();
+                        },
+                    }}
+                >
+                    <DialogTitle sx={{ m: 0, p: 2 }}>
+                        Configuration de la Variation
+                        <IconButton aria-label="close" onClick={handleCloseVariationPanel} sx={{ position: 'absolute', right: 8, top: 8, color: (theme) => theme.palette.grey[500] }}>
+                            <XIcon size={20} />
+                        </IconButton>
+                    </DialogTitle>
+                    <DialogContent dividers sx={{ overflowY: 'auto' }}>
                         <VariationConfigPanel
                             variation={selectedVariation}
                             onChange={handleSaveVariation}
@@ -898,14 +1301,14 @@ const BlocPlanningTemplateEditor: React.FC<BlocPlanningTemplateEditorProps> = ({
                             availablePostes={availablePostes}
                             isLoading={isLoading}
                         />
-                    )}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseVariationPanel}>Fermer</Button>
-                </DialogActions>
-            </Dialog>
+                    </DialogContent>
+                    <DialogActions>
+                        <MuiButton onClick={handleCloseVariationPanel}>Annuler</MuiButton>
+                    </DialogActions>
+                </Dialog>
+            )}
         </DndProvider>
     );
-};
+});
 
 export default BlocPlanningTemplateEditor; 

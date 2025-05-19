@@ -1,0 +1,164 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 4,
+    "passes": 4,
+    "pending": 0,
+    "failures": 0,
+    "start": "2025-05-15T13:09:06.007Z",
+    "end": "2025-05-15T13:09:10.826Z",
+    "duration": 4819,
+    "testsRegistered": 4,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "7bb12506-9ee8-4204-ab4f-f90cd97d03a2",
+      "title": "",
+      "fullFile": "cypress/e2e/performance/performance-tests.spec.ts",
+      "file": "cypress/e2e/performance/performance-tests.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "ad7d9389-7ba0-48fc-b4a8-feb261f9a227",
+          "title": "Tests de performance",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "évalue les performances de la page d'accueil",
+              "fullTitle": "Tests de performance évalue les performances de la page d'accueil",
+              "timedOut": null,
+              "duration": 1117,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Visiter la page d'accueil (supposons /planning/hebdomadaire comme page principale après login)\ncy.visitAsAuthenticatedUser('/planning/hebdomadaire');\n// Mesurer les performances avec Lighthouse\n// cy.lighthouse(); // Commenté temporairement car la commande échoue\ncy.log(\"Lighthouse test skipped\"); // Placeholder",
+              "err": {},
+              "uuid": "4ad91e05-a798-4887-a4a0-2adcf1dc3d3f",
+              "parentUUID": "ad7d9389-7ba0-48fc-b4a8-feb261f9a227",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "évalue les performances de la page de congés",
+              "fullTitle": "Tests de performance évalue les performances de la page de congés",
+              "timedOut": null,
+              "duration": 923,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/leaves');\n// cy.lighthouse(); // Commenté temporairement\ncy.log(\"Lighthouse test skipped\");",
+              "err": {},
+              "uuid": "ec292e34-96b2-4255-a45a-678213feded3",
+              "parentUUID": "ad7d9389-7ba0-48fc-b4a8-feb261f9a227",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "évalue les performances du calendrier",
+              "fullTitle": "Tests de performance évalue les performances du calendrier",
+              "timedOut": null,
+              "duration": 1247,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/calendar');\n// cy.lighthouse(); // Commenté temporairement\ncy.log(\"Lighthouse test skipped\");",
+              "err": {},
+              "uuid": "3e6a7556-5802-4b19-9442-f55f9e2553a7",
+              "parentUUID": "ad7d9389-7ba0-48fc-b4a8-feb261f9a227",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "évalue les performances du planning",
+              "fullTitle": "Tests de performance évalue les performances du planning",
+              "timedOut": null,
+              "duration": 974,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\n// cy.lighthouse(); // Commenté temporairement\ncy.log(\"Lighthouse test skipped\");",
+              "err": {},
+              "uuid": "c39449ee-66c6-4b29-bbdd-c012651ab269",
+              "parentUUID": "ad7d9389-7ba0-48fc-b4a8-feb261f9a227",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "4ad91e05-a798-4887-a4a0-2adcf1dc3d3f",
+            "ec292e34-96b2-4255-a45a-678213feded3",
+            "3e6a7556-5802-4b19-9442-f55f9e2553a7",
+            "c39449ee-66c6-4b29-bbdd-c012651ab269"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 4261,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

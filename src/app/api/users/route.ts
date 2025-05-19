@@ -1,17 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client'; // Importer l'enum Role de Prisma
+import { checkUserRole, getAuthTokenServer } from '@/lib/auth-server-utils';
+import type { UserRole as AuthUserRole } from '@/lib/auth-client-utils'; // Renommer pour éviter conflit
 
 // GET /api/users - Récupérer les utilisateurs, potentiellement filtrés par rôle
 export async function GET(request: NextRequest) {
     try {
-        // Vérifier la session utilisateur
-        const session = await getServerSession();
-        if (!session) {
-            return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        const token = await getAuthTokenServer();
+        if (!token) {
+            return NextResponse.json({ error: 'Token non fourni' }, { status: 401 });
         }
-        // TODO: Ajouter une vérification de rôle si nécessaire (ex: seul un admin peut lister tous les users)
+
+        // Pour l'instant, on vérifie juste si l'utilisateur est authentifié.
+        // On pourrait affiner avec des rôles spécifiques si nécessaire.
+        // Par exemple: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'] pour lister tous les utilisateurs.
+        // Ou vérifier si l'utilisateur demande ses propres informations.
+        const { hasRequiredRole, user, error: authError } = await checkUserRole([
+            'ADMIN_TOTAL', 'ADMIN_PARTIEL', 'USER', 'SUPER_ADMIN', 'CHIRURGIEN', 'ANESTHESISTE', 'IADE', 'IBODE', 'AS_BLOC', 'SECRETARY', 'SERVICE_CHIEF' // TODO: Ajuster les rôles autorisés
+        ] as AuthUserRole[], token);
+
+        if (!hasRequiredRole || !user) {
+            return NextResponse.json({ error: authError || 'Non autorisé' }, { status: 401 });
+        }
 
         // Récupérer le paramètre de requête 'role'
         const { searchParams } = new URL(request.url);
@@ -31,28 +42,24 @@ export async function GET(request: NextRequest) {
         const users = await prisma.user.findMany({
             where: whereClause,
             orderBy: [
-                { nom: 'asc' },  // Correction: utiliser nom
-                { prenom: 'asc' } // Correction: utiliser prenom
+                { nom: 'asc' },
+                { prenom: 'asc' }
             ],
             select: { // Sélectionner les champs nécessaires pour l'interface Personnel
                 id: true,
-                nom: true,    // Correction: utiliser nom
-                prenom: true, // Correction: utiliser prenom
+                nom: true,
+                prenom: true,
                 email: true,
                 role: true,
-                // Ajouter d'autres champs si nécessaire
-                // specialties: true, // Si les spécialités sont sur le User et non Surgeon
             }
         });
 
-        // Mapper le résultat Prisma vers l'interface Personnel attendue par le frontend
-        const personnelList = users.map(user => ({
-            id: user.id.toString(), // Assurer que l'ID est une chaîne si nécessaire
-            nom: user.nom || '',    // Correction: utiliser nom
-            prenom: user.prenom || '', // Correction: utiliser prenom
-            email: user.email,
-            role: user.role,
-            // specialties: user.specialties ? user.specialties.map(s => ({ id: s.id, name: s.name })) : [],
+        const personnelList = users.map(u => ({
+            id: u.id.toString(),
+            nom: u.nom || '',
+            prenom: u.prenom || '',
+            email: u.email,
+            role: u.role,
         }));
 
         return NextResponse.json(personnelList);

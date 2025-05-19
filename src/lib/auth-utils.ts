@@ -13,7 +13,7 @@ export interface UserJWTPayload extends jose.JWTPayload {
 // Type pour les rôles (au lieu d'importer de Prisma)
 export type UserRole = 'ADMIN_TOTAL' | 'ADMIN_PARTIEL' | 'USER';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'votre_secret_jwt_super_securise';
+const JWT_SECRET = process.env.JWT_SECRET || 'un_secret_jwt_robuste_et_difficile_a_deviner_pour_la_securite_de_l_application';
 const TOKEN_EXPIRATION = 24 * 60 * 60; // 24 heures en secondes
 
 export async function generateAuthToken(payload: any) {

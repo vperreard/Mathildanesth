@@ -1,4 +1,6 @@
 import { TypeSemaine, JourSemaine, PeriodeJour } from "@/app/parametres/trames/EditeurTramesHebdomadaires";
+import { RecurrenceTypeTrame, TypeSemaineTrame } from '@prisma/client';
+import { getClientAuthToken } from '@/lib/auth-client-utils';
 
 export interface AffectationTrameDTO {
     id: string;
@@ -8,87 +10,220 @@ export interface AffectationTrameDTO {
     chirurgienId?: string | null;
     marId?: string | null;
     iadeId?: string | null;
+    // Autres champs potentiels si l'API les fournit pour les affectations d'un TrameModele
 }
 
-export interface TrameHebdomadaireDTO {
-    id: string;
-    nom: string;
-    typeSemaine: TypeSemaine;
-    description?: string;
-    affectations: AffectationTrameDTO[];
+export interface TrameHebdomadaireDTO { // Ce DTO représente ce que TrameHebdomadaireService s'attend à manipuler/retourner
+    // Il doit correspondre aux données réellement retournées par l'API /api/trame-modeles (TrameModele Prisma)
+    id: number | string; // L'API retourne un number pour l'id
+    name: string; // Correction : champ obligatoire
+    nom?: string; // Optionnel, pour compatibilité descendante
+    typeSemaine: TypeSemaineTrame | TypeSemaine; // 'typeSemaine' dans l'API (enum Prisma), TypeSemaine côté client
+    description?: string | null;
+    affectations?: AffectationTrameDTO[]; // Les TrameModele n'ont pas d'affectations directes, ce champ sera souvent vide/null venant de l'API principale
+
+    // Champs présents dans TrameModele (API) et utiles pour le mapping vers PlanningTemplate
+    createdAt?: string | Date; // API retourne string (ISO date)
+    updatedAt?: string | Date; // API retourne string (ISO date)
+    isActive?: boolean;
+    siteId?: string | null;
+    dateDebutEffet?: string | Date;
+    dateFinEffet?: string | Date | null;
+    recurrenceType?: RecurrenceTypeTrame;
+    joursSemaineActifs?: number[];
+    // Et tout autre champ de TrameModele que l'on veut exposer via ce DTO
+}
+
+interface CreateTrameModelePayload { // Ce qui est envoyé à l'API pour la création
+    name: string;
+    description?: string | null;
+    siteId?: string | null;
+    isActive?: boolean;
+    dateDebutEffet: string;
+    dateFinEffet?: string | null;
+    recurrenceType: RecurrenceTypeTrame;
+    joursSemaineActifs: number[];
+    typeSemaine: TypeSemaineTrame;
 }
 
 export class TrameHebdomadaireService {
-    private static API_BASE_URL = '/api/trames';
+    private static API_BASE_URL = '/api/trame-modeles';
+
+    private static getAuthHeaders(): HeadersInit {
+        console.log('[TrameHebdomadaireService] Entrée dans getAuthHeaders');
+        const token = getClientAuthToken();
+        console.log('[TrameHebdomadaireService] Token récupéré par getClientAuthToken:', token);
+        // Si on est en train de créer une session ou d'envoyer un form, on laisse credentials mettre le cookie
+        // Sinon, on ajoute explicitement le token dans le header Authorization
+        const headers: HeadersInit = {
+            'Content-Type': 'application/json',
+        };
+
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+            console.log('[TrameHebdomadaireService] Authorization header ajouté:', headers['Authorization']);
+        } else {
+            console.warn('[TrameHebdomadaireService] Aucun token trouvé dans localStorage');
+        }
+
+        return headers;
+    }
 
     /**
-     * Récupère toutes les trames hebdomadaires
+     * Récupère toutes les trames modèles (anciennement trames hebdomadaires)
      */
     static async getAllTrames(): Promise<TrameHebdomadaireDTO[]> {
         try {
+            const headers = this.getAuthHeaders();
+            console.log('[TrameHebdomadaireService] Appel à getAllTrames avec headers:', JSON.stringify(headers));
             const response = await fetch(`${this.API_BASE_URL}`, {
+                method: 'GET',
+                headers,
+                cache: 'no-store',
                 credentials: 'include'
             });
 
             if (!response.ok) {
-                throw new Error(`Erreur lors de la récupération des trames: ${response.status}`);
+                if (response.status === 401) {
+                    console.error('Erreur 401 (Non autorisé) pour getAllTrames. Vérifiez le token.');
+                } else {
+                    console.warn(`Erreur API (${response.status}) lors de la récupération des trames modèles. Retour d'un tableau vide.`);
+                }
+                return [];
+            }
+            const data = await response.json();
+            console.log('[TrameHebdomadaireService] Données brutes de /api/trame-modeles (getAllTrames):', JSON.stringify(data)); // LOG AJOUTÉ
+
+            if (!Array.isArray(data)) {
+                console.error('Erreur: Les données reçues pour getAllTrames ne sont pas un tableau.', data);
+                return [];
             }
 
-            return await response.json();
+            // Vérifier si les trames ont des affectations
+            const trameSample = data.length > 0 ? data[0] : null;
+            if (trameSample) {
+                console.log(`[TrameHebdomadaireService] Premier élément a des affectations? ${trameSample.affectations !== undefined}`);
+                console.log(`[TrameHebdomadaireService] Premier élément - propriétés disponibles: ${Object.keys(trameSample).join(', ')}`);
+            }
+
+            return data;
         } catch (error) {
-            console.error("Erreur lors de la récupération des trames:", error);
-            // Pour le développement initial, retourner des données mockées
-            return this.getMockTrames();
+            console.error("[TrameHebdomadaireService] Erreur lors de la récupération des trames modèles (service catch getAllTrames):", error);
+            return [];
         }
     }
 
     /**
-     * Récupère une trame spécifique par son ID
+     * Récupère une trame modèle spécifique par son ID
      */
-    static async getTrameById(id: string): Promise<TrameHebdomadaireDTO> {
+    static async getTrameById(id: string): Promise<TrameHebdomadaireDTO | null> { // Modifié pour retourner null si non trouvé ou erreur
         try {
+            const headers = this.getAuthHeaders();
             const response = await fetch(`${this.API_BASE_URL}/${id}`, {
+                method: 'GET',
+                headers,
                 credentials: 'include'
             });
 
             if (!response.ok) {
-                throw new Error(`Erreur lors de la récupération de la trame: ${response.status}`);
+                if (response.status === 401) {
+                    console.error(`Erreur 401 (Non autorisé) pour getTrameById ${id}. Vérifiez le token.`);
+                } else if (response.status === 404) {
+                    console.warn(`Trame modèle ${id} non trouvée (404).`);
+                } else {
+                    console.warn(`Erreur API (${response.status}) lors de la récupération de la trame modèle ${id}.`);
+                }
+                return null;
             }
-
+            // On pourrait ajouter une validation de la structure de l'objet ici si nécessaire
             return await response.json();
         } catch (error) {
-            console.error(`Erreur lors de la récupération de la trame ${id}:`, error);
-            // Pour le développement initial, retourner une donnée mockée
-            return this.getMockTrames().find(t => t.id === id) || this.getMockTrames()[0];
+            console.error(`Erreur lors de la récupération de la trame modèle ${id} (service):`, error);
+            return null;
         }
     }
 
     /**
-     * Crée une nouvelle trame
+     * Crée une nouvelle trame modèle
      */
-    static async createTrame(trame: Omit<TrameHebdomadaireDTO, 'id'>): Promise<TrameHebdomadaireDTO> {
+    static async createTrame(trameClientData: Omit<TrameHebdomadaireDTO, 'id' | 'affectations'>): Promise<any> {
+        console.log('[TrameHebdomadaireService] Entrée dans createTrame avec données:', trameClientData);
+        let typeSemaineApi: TypeSemaineTrame;
+        switch (trameClientData.typeSemaine) {
+            case TypeSemaine.PAIRE:
+                typeSemaineApi = TypeSemaineTrame.PAIRES;
+                break;
+            case TypeSemaine.IMPAIRE:
+                typeSemaineApi = TypeSemaineTrame.IMPAIRES;
+                break;
+            case TypeSemaine.TOUTES:
+            default:
+                typeSemaineApi = TypeSemaineTrame.TOUTES;
+                break;
+        }
+
+        const payload: CreateTrameModelePayload = {
+            name: trameClientData.name,
+            description: trameClientData.description || null,
+            isActive: true,
+            dateDebutEffet: new Date().toISOString(), // Devrait peut-être venir du client
+            recurrenceType: RecurrenceTypeTrame.HEBDOMADAIRE, // Valeurs par défaut
+            joursSemaineActifs: [1, 2, 3, 4, 5], // Valeurs par défaut (Lundi à Vendredi)
+            typeSemaine: typeSemaineApi,
+            // siteId: 'default_site_id', // TODO: Le siteId est requis par TrameModele, à gérer
+        };
+
         try {
+            const headers = this.getAuthHeaders();
+            console.log('[TrameHebdomadaireService] Création de trame avec payload:', JSON.stringify(payload));
+            console.log('[TrameHebdomadaireService] Headers pour createTrame:', JSON.stringify(headers));
+
             const response = await fetch(`${this.API_BASE_URL}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(trame),
+                headers,
+                body: JSON.stringify(payload),
+                cache: 'no-store',
                 credentials: 'include'
             });
 
             if (!response.ok) {
-                throw new Error(`Erreur lors de la création de la trame: ${response.status}`);
+                const statusText = response.statusText;
+                console.error(`[TrameHebdomadaireService] Erreur ${response.status} (${statusText}) lors de la création`);
+
+                let errorBody;
+                try {
+                    errorBody = await response.json();
+                } catch (e) {
+                    errorBody = {
+                        message: 'Réponse non JSON de l\'API ou erreur de parsing.',
+                        details: statusText
+                    };
+                }
+
+                if (response.status === 409) {
+                    console.error('[TrameHebdomadaireService] Erreur API création trame modèle (409 Conflict):', errorBody);
+                    throw new Error(errorBody.message || 'Un modèle de trame avec ce nom existe déjà.');
+                } else if (response.status === 401) {
+                    console.error('[TrameHebdomadaireService] Erreur API création trame modèle (401 Unauthorized):', errorBody);
+                    throw new Error(errorBody.message || 'Action non autorisée. Vérifiez vos permissions ou reconnectez-vous.');
+                }
+
+                console.error('[TrameHebdomadaireService] Erreur API création trame modèle:', response.status, errorBody);
+                throw new Error(`Erreur lors de la création de la trame modèle: ${response.status} - ${errorBody.message || statusText}`);
             }
 
-            return await response.json();
+            const result = await response.json();
+            console.log('[TrameHebdomadaireService] Trame créée avec succès:', result);
+            return result;
         } catch (error) {
-            console.error("Erreur lors de la création de la trame:", error);
-            // Pour le développement initial, simuler un succès avec un nouvel ID
-            return {
-                ...trame,
-                id: `new-trame-${Date.now()}`
-            };
+            console.error("Erreur lors de la création de la trame modèle (service catch):", error);
+            // Rethrow l'erreur pour qu'elle soit traitée par le composant appelant
+            // Si l'erreur est déjà une instance de Error avec un message pertinent, la relancer telle quelle.
+            // Sinon, encapsuler dans une nouvelle Error.
+            if (error instanceof Error) {
+                throw error;
+            }
+            throw new Error('Une erreur technique est survenue lors de la création de la trame.');
         }
     }
 
@@ -96,59 +231,135 @@ export class TrameHebdomadaireService {
      * Met à jour une trame existante
      */
     static async updateTrame(id: string, trame: TrameHebdomadaireDTO): Promise<TrameHebdomadaireDTO> {
+        // Mapping typeSemaine client -> API
+        let typeSemaineApi: TypeSemaineTrame;
+        switch (trame.typeSemaine) {
+            case TypeSemaine.PAIRE:
+                typeSemaineApi = TypeSemaineTrame.PAIRES;
+                break;
+            case TypeSemaine.IMPAIRE:
+                typeSemaineApi = TypeSemaineTrame.IMPAIRES;
+                break;
+            case TypeSemaine.TOUTES:
+            default:
+                typeSemaineApi = TypeSemaineTrame.TOUTES;
+                break;
+        }
+
+        // Préparer le payload de mise à jour
+        const updatePayload = {
+            name: trame.name || trame.nom, // Compatibilité avec les deux champs
+            description: trame.description,
+            // On ne modifie que les champs fournis, les autres restent inchangés
+            isActive: trame.isActive,
+            typeSemaine: typeSemaineApi,
+            // Ces champs peuvent être ajoutés si nécessaires pour la mise à jour
+            // dateDebutEffet: trame.dateDebutEffet,
+            // dateFinEffet: trame.dateFinEffet,
+            // recurrenceType: trame.recurrenceType || RecurrenceTypeTrame.HEBDOMADAIRE,
+            // joursSemaineActifs: [1, 2, 3, 4, 5],
+        };
+
         try {
+            const headers = this.getAuthHeaders();
+            console.log('[TrameHebdomadaireService] Mise à jour de trame avec payload:', JSON.stringify(updatePayload));
+
             const response = await fetch(`${this.API_BASE_URL}/${id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(trame),
+                headers,
+                body: JSON.stringify(updatePayload),
                 credentials: 'include'
             });
 
             if (!response.ok) {
-                throw new Error(`Erreur lors de la mise à jour de la trame: ${response.status}`);
+                const statusText = response.statusText;
+                console.error(`[TrameHebdomadaireService] Erreur ${response.status} (${statusText}) lors de la mise à jour`);
+
+                let errorBody;
+                try {
+                    errorBody = await response.json();
+                } catch (e) {
+                    errorBody = {
+                        message: 'Réponse non JSON de l\'API ou erreur de parsing.',
+                        details: statusText
+                    };
+                }
+
+                console.error('[TrameHebdomadaireService] Erreur API mise à jour trame modèle:', response.status, errorBody);
+                throw new Error(`Erreur lors de la mise à jour de la trame modèle: ${response.status} - ${errorBody.message || statusText}`);
             }
 
-            return await response.json();
+            const result = await response.json();
+            console.log('[TrameHebdomadaireService] Trame mise à jour avec succès:', result);
+            return result;
         } catch (error) {
-            console.error(`Erreur lors de la mise à jour de la trame ${id}:`, error);
-            // Pour le développement initial, retourner la trame mise à jour telle quelle
-            return trame;
+            console.error("Erreur lors de la mise à jour de la trame modèle (service catch):", error);
+            if (error instanceof Error) {
+                throw error;
+            }
+            throw new Error('Une erreur technique est survenue lors de la mise à jour de la trame.');
         }
     }
 
     /**
-     * Supprime une trame
+     * Supprime une trame existante
      */
     static async deleteTrame(id: string): Promise<boolean> {
         try {
+            const headers = this.getAuthHeaders();
+            console.log('[TrameHebdomadaireService] Suppression de la trame modèle:', id);
+
             const response = await fetch(`${this.API_BASE_URL}/${id}`, {
                 method: 'DELETE',
+                headers,
                 credentials: 'include'
             });
 
             if (!response.ok) {
-                throw new Error(`Erreur lors de la suppression de la trame: ${response.status}`);
+                const statusText = response.statusText;
+                console.error(`[TrameHebdomadaireService] Erreur ${response.status} (${statusText}) lors de la suppression`);
+
+                let errorBody;
+                try {
+                    errorBody = await response.json();
+                } catch (e) {
+                    errorBody = {
+                        message: 'Réponse non JSON de l\'API ou erreur de parsing.',
+                        details: statusText
+                    };
+                }
+
+                console.error('[TrameHebdomadaireService] Erreur API suppression trame modèle:', response.status, errorBody);
+                throw new Error(`Erreur lors de la suppression de la trame modèle: ${response.status} - ${errorBody.message || statusText}`);
             }
 
-            return true;
+            // Si la réponse est un JSON, on peut la lire, sinon on retourne simplement true
+            try {
+                const result = await response.json();
+                console.log('[TrameHebdomadaireService] Résultat de la suppression:', result);
+                return true;
+            } catch (e) {
+                // Si pas de JSON, c'est OK aussi (204 No Content)
+                console.log('[TrameHebdomadaireService] Trame supprimée avec succès (pas de corps de réponse)');
+                return true;
+            }
         } catch (error) {
-            console.error(`Erreur lors de la suppression de la trame ${id}:`, error);
-            // Pour le développement initial, simuler un succès
-            return true;
+            console.error("Erreur lors de la suppression de la trame modèle (service catch):", error);
+            if (error instanceof Error) {
+                throw error;
+            }
+            throw new Error('Une erreur technique est survenue lors de la suppression de la trame.');
         }
     }
 
     /**
-     * Données mockées pour le développement
-     * Utilisées en fallback si l'API n'est pas disponible
+     * @deprecated Utilisé uniquement comme fallback si l'API échoue
      */
     private static getMockTrames(): TrameHebdomadaireDTO[] {
         return [
             {
                 id: 'trame-paires-std',
-                nom: 'Standard Semaines PAIRES',
+                name: 'Standard Semaines PAIRES',
                 typeSemaine: TypeSemaine.PAIRE,
                 description: 'Configuration type pour les semaines paires',
                 affectations: [
@@ -158,7 +369,7 @@ export class TrameHebdomadaireService {
             },
             {
                 id: 'trame-impaires-cardio',
-                nom: 'Cardio Semaines IMPAIRES',
+                name: 'Cardio Semaines IMPAIRES',
                 typeSemaine: TypeSemaine.IMPAIRE,
                 description: 'Rotation cardio pour les semaines impaires',
                 affectations: [

@@ -13,10 +13,10 @@
 - **(P1)** ✅ Amélioration significative de la **gestion globale des erreurs** (logging systématique via `errorLoggingService`, messages utilisateurs clairs, stratégies de récupération, `ErrorBoundary` React).
 - **(P1)** ✅ Refactorisation du module/composants `Leaves` (gestion des congés).
 - **(P1)** ✅ Finalisation de la logique de validation, décompte et gestion des conflits pour les congés.
-- **(P1)** ✅ Implémentation du système proactif d'alerte de conflits potentiels avec détection précoce des périodes à risque.
+- **(P1)** 🔄 Implémentation du système proactif d'alerte de conflits potentiels avec détection précoce des périodes à risque.
 - **(P1)** ✅ Implémentation du système de trames de planning avec affectations configurables.
-- **(P1)** ✅ Système de validation, duplication et exportation des trames.
-- **(P1)** ✅ Intégration du module de trames avec le module de planning.
+- **(P1)** 🔄 Système de validation, duplication et exportation des trames.
+- **(P1)** 🔄 Intégration du module de trames avec le module de planning.
 - **(P1)** 🔄 Implémentation de **tests unitaires** (Jest) pour tous les composants/fonctions refactorisés (Objectif couverture ≥ 70%).
   - ✅ Tests unitaires pour `useLeaveQuota` corrigés.
   - ✅ Tests unitaires pour `useRecurringLeaveValidation` (16/17 passant, 1 skipped - cache test).
@@ -48,27 +48,31 @@
 - **(P1)** Développement du module de **règles dynamiques (MVP)** :
   - ✅ Structure de base avec types et interfaces (Vérifiée et nettoyée)
   - ✅ Service du moteur de règles implémenté (`RuleEngineService` existant)
-  - ✅ Validation des règles (Moteur + `RuleForm`)
-  - ✅ Détection des conflits (Moteur, TODO: intégration UI)
-  - ✅ Mécanisme d'application et journalisation (Moteur + Logs générateur)
-  - ✅ Intégration avec générateur de planning (`RuleBasedPlanningGeneratorService` mis à jour)
-  - ✅ Service API pour CRUD (Existant ou à faire)
-  - ✅ Interface admin simple (`RuleForm` mis à jour, `RuleList` à faire/vérifier)
+  - 🔄 Validation des règles (Moteur + `RuleForm`)
+  - 🔄 Détection des conflits (Moteur, TODO: intégration UI)
+  - 🔄 Mécanisme d'application et journalisation (Moteur + Logs générateur)
+  - 🔄 Intégration avec générateur de planning (`RuleBasedPlanningGeneratorService` mis à jour)
+  - [ ] Service API pour CRUD (Existant ou à faire)
+  - 🔄 Interface admin simple (`RuleForm` mis à jour, `RuleList` à faire/vérifier)
   - [ ] Feedback visuel sur respect des règles dans UI planning (À faire)
   - [ ] Amélioration éditeur Conditions/Actions dans `RuleForm` (À faire)
 - **(P1)** Implémentation de la gestion des **indisponibilités** utilisateurs.
-- **(P1)** Interface de **validation/modification manuelle** des plannings.
-- **(P1)** Développement d'un système de **remplacements** / gestion des imprévus.
-- **(P1)** Développement de l'**algorithme de génération** des plannings (Version 1, focus sur règles de base).
-- **(P1)** Tests d'intégration des règles et de l'algorithme.
+- **(P1)** 🔄 Interface de **validation/modification manuelle** des plannings.
+- **(P1)** [ ] Développement d'un système de **remplacements** / gestion des imprévus.
+- **(P1)** 🔄 Développement de l'**algorithme de génération** des plannings (Version 1, focus sur règles de base).
+- **(P1)** 🔄 Tests d'intégration des règles et de l'algorithme.
 - **(P1)** Lancement d'une **phase Bêta** avec utilisateurs clés et collecte structurée des retours.
 - **(P1)** Corrections prioritaires basées sur les retours Bêta.
+- **(P1)** [ ] **Améliorations prioritaires à la gestion des disponibilités** :
+  - [ ] Développement d'une interface d'expression des préférences utilisateurs (jours préférés/évités)
+  - [ ] Mise en place d'un système d'affichage de l'impact des absences lors de la demande (nombre de collègues déjà absents)
+  - [ ] Création d'une vue consolidée des disponibilités pour les administrateurs
 - **(P2)** Mise en place d'un **tableau de bord analytique basique** (ex: répartition heures, taux de remplacement).
 - **(P2)** Documentation utilisateur initiale pour les fonctionnalités de planification.
 - **(P2)** Gestion détaillée des **profils utilisateurs** (Préférences spécifiques MAR/IADE, temps de travail personnalisé).
 - **(P3)** Gestion des **jours fériés** (configurable).
   - ✅ API route `GET /api/public-holidays` implémentée avec calcul local.
-- **(P3)** Implémentation d'une fonctionnalité simple d'**échange/permutation** de gardes entre médecins.
+- **(P3)** 🔄 Implémentation d'une fonctionnalité simple d'**échange/permutation** de gardes entre médecins.
 
 **Livrables Clés Phase 2 :** Module planification gardes/astreintes (MVP) opérationnel, Algorithme V1 fonctionnel, Analytics basiques, Version Bêta testée.
 
@@ -83,13 +87,17 @@
   - ✅ feedback visuel amélioré via transitions fluides (`transitions/index.ts`)
   - ✅ optimisation des requêtes avec hook personnalisé (`useOptimizedQuery.ts`)
   - ✅ mise en cache cohérente des données (`CacheService.ts`)
-  - 🔄 recherche performante
+  - ✅ recherche performante
   - ✅ Réorganisation du menu principal pour améliorer la clarté de la navigation (déplacement de "Gestion de la fatigue" vers "Panneau de configuration").
-- **(P1)** Adaptation **responsive complète** de l'interface web pour une expérience optimale sur tablettes et mobiles.
+- **(P1)** 🔄 Adaptation **responsive complète** de l'interface web pour une expérience optimale sur tablettes et mobiles.
+- **(P1)** [ ] **Améliorations avancées à la gestion des disponibilités** :
+  - [ ] Mise en place de tableaux de bord d'équité (répartition des gardes, week-ends, périodes de vacances scolaires)
+  - [ ] Système de gestion des exceptions au modèle de travail habituel (jours travaillés exceptionnellement)
+  - [ ] Amélioration des interfaces pour les administrateurs validant les absences (vue claire des conséquences)
 - **(P2)** Développement du module de **planification des consultations (MVP)** : gestion créneaux, règles répartition simples, intégration planning/congés.
 - **(P2)** Tests utilisateurs dédiés aux améliorations UX et au module consultations.
 - **(P2)** Vérifications et corrections d'**accessibilité** (WCAG).
-- **(P3)** Implémentation de fonctionnalités de **collaboration** : messagerie contextuelle simple, commentaires/annotations sur planning, historique modifications basique.
+- **(P3)** [ ] Implémentation de fonctionnalités de **collaboration** : messagerie contextuelle simple, commentaires/annotations sur planning, historique modifications basique.
 - **(P3)** Début des vérifications de conformité **RGPD**.
 - **(P4)** Mise en place d'un système de **thème** (Clair/Sombre).
   - ✅ Configuration de Tailwind CSS (`darkMode: 'class').
@@ -185,6 +193,10 @@
     - 🚧 Investigation restante pour les ajustements de quota et validation des `typeCode` dans `defaultAllowances`.
     - 🚧 Terminer le refactoring de `LeaveForm.tsx` pour utiliser correctement `useLeaveCalculation`.
   - 🚧 **Exécution des tests et analyse des résultats (BLOQUÉ - Problème d'environnement `npm`/`npx` non trouvé)**
+  - **(P2)** **Développement des fonctionnalités avancées de gestion des disponibilités** :
+    - Mise en place d'alertes proactives basées sur les patterns habituels et les trames
+    - Développement d'un outil de simulation pour tester l'impact des modifications de configuration
+    - Finalisation du système de détection d'anomalies (niveau 2 et 3)
 
 **Livrables Clés Phase 4 :** Module bloc opératoire (MVP+), Application sécurisée et performante, Documentation finale, Utilisateurs clés formés, Application prête pour production.
 
@@ -198,7 +210,6 @@
 - **(P3)** Complétion de l'**application mobile native** : fonctionnalités étendues, mode hors-ligne, optimisations UI/UX mobile.
 - **(P3)** **Intégrations** avec d'autres systèmes hospitaliers (si requis et priorisé).
 - **(P4)** Fonctionnalités avancées d'Analytics (prédictions, etc.).
-- **(P4)** Nouvelles fonctionnalités basées sur les retours post-déploiement.
 
 **Livrables Clés Phase 5 :** Applications mobiles natives (iOS/Android), Intégrations externes (si applicable).
 

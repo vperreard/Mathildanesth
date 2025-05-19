@@ -1,79 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuthToken, getAuthToken } from '@/lib/auth-utils';
-import { cookies } from 'next/headers';
+import { verifyAuthToken, getAuthTokenServer } from '@/lib/auth-server-utils';
 import { PrismaClient } from '@prisma/client';
 
-export async function GET(request: NextRequest) {
-    const prisma = new PrismaClient();
+export async function GET(req: NextRequest) {
+    let prisma: PrismaClient | null = null;
     try {
         console.log("## API /auth/me: Début de la vérification d'authentification");
         console.log("## API /auth/me: JWT_SECRET =", process.env.JWT_SECRET ? "[défini]" : "[NON DÉFINI]");
 
-        // Utiliser la fonction getAuthToken qui gère correctement l'accès aux cookies
-        const token = await getAuthToken();
-        console.log("## API /auth/me: token existe =", !!token);
-
-        if (!token) {
-            console.log("## API /auth/me: Pas de token trouvé dans les cookies");
-            return NextResponse.json(
-                { authenticated: false, error: 'Non authentifié - Aucun token' },
-                { status: 401 }
-            );
+        let tokenFromHeader: string | null = null;
+        const authHeader = req.headers.get('Authorization');
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            tokenFromHeader = authHeader.replace('Bearer ', '');
         }
 
-        // Vérifier le token JWT
-        console.log("## API /auth/me: Vérification du token...");
-        const authResult = await verifyAuthToken(token);
-        console.log("## API /auth/me: Résultat verifyAuthToken =", JSON.stringify(authResult));
-
-        if (!authResult.authenticated || !authResult.user) {
-            console.log("## API /auth/me: Token invalide ou utilisateur non trouvé dans le token");
-            return NextResponse.json(
-                { authenticated: false, error: authResult.error || 'Token invalide' },
-                { status: 401 }
-            );
+        let tokenFromCookie: string | null = null;
+        if (!tokenFromHeader) {
+            tokenFromCookie = await getAuthTokenServer();
         }
 
-        // Le token est valide, récupérer les informations complètes de l'utilisateur
-        try {
-            const userId = Number(authResult.user.userId);
-            console.log(`## API /auth/me: Récupération des infos utilisateur pour id=${userId}`);
+        const authToken: string | null = tokenFromHeader ? tokenFromHeader : tokenFromCookie;
+        const source = tokenFromHeader ? 'Header Authorization' : (tokenFromCookie ? 'Cookie httpOnly' : 'Aucun');
 
-            if (isNaN(userId)) {
-                console.error("## API /auth/me: userId invalide après conversion depuis le token", authResult.user);
-                return NextResponse.json(
-                    { authenticated: false, error: 'ID utilisateur invalide dans le token' },
-                    { status: 400 }
-                );
-            }
-
-            const user = await prisma.user.findUnique({
-                where: { id: userId }
-            });
-
-            if (!user) {
-                console.log(`## API /auth/me: Utilisateur id=${userId} non trouvé en base`);
-                return NextResponse.json(
-                    { authenticated: false, error: 'Utilisateur non trouvé' },
-                    { status: 401 }
-                );
-            }
-
-            // Exclure le mot de passe de la réponse
-            const { password, ...userWithoutPassword } = user;
-            console.log(`## API /auth/me: Utilisateur ${user.login} (id=${user.id}) authentifié avec succès`);
-
-            return NextResponse.json({
-                authenticated: true,
-                user: userWithoutPassword
-            });
-        } catch (dbError) {
-            console.error("## API /auth/me: Erreur lors de la récupération utilisateur en base:", dbError);
-            return NextResponse.json(
-                { authenticated: false, error: 'Erreur lors de la récupération des données utilisateur' },
-                { status: 500 }
-            );
+        if (!authToken) {
+            console.warn('API ME: Token non trouvé (ni header, ni cookie).');
+            return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
         }
+
+        console.log(`API ME: Token trouvé via ${source}. Vérification...`);
+
+        const authResult = await verifyAuthToken(authToken);
+
+        if (!authResult.authenticated || !authResult.userId) {
+            console.warn(`API ME: Échec vérification token. Erreur: ${authResult.error}`);
+            return NextResponse.json({ error: authResult.error || 'Session invalide ou expirée' }, { status: 401 });
+        }
+
+        console.log(`API ME: Token vérifié. User ID: ${authResult.userId}, Rôle: ${authResult.role}`);
+
+        prisma = new PrismaClient();
+        const user = await prisma.user.findUnique({
+            where: { id: authResult.userId },
+            select: {
+                id: true,
+                login: true,
+                email: true,
+                nom: true,
+                prenom: true,
+                role: true,
+            },
+        });
+
+        if (!user) {
+            console.warn(`API ME: Utilisateur non trouvé en BDD pour ID: ${authResult.userId}`);
+            return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
+        }
+
+        console.log(`API ME: Utilisateur ${user.login} récupéré avec succès.`);
+        return NextResponse.json({ user });
+
     } catch (error) {
         console.error('## API /auth/me: Erreur générale:', error);
         return NextResponse.json(
@@ -81,6 +66,6 @@ export async function GET(request: NextRequest) {
             { status: 500 }
         );
     } finally {
-        await prisma.$disconnect();
+        await prisma?.$disconnect();
     }
 } 

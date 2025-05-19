@@ -177,12 +177,41 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
     isLoading = false
 }) => {
     // State local pour la configuration en cours d'édition
-    const [config, setConfig] = useState<AffectationConfiguration>(
-        affectation.configuration || {
-            id: `conf_${Date.now()}`,
-            postes: []
+    const [config, setConfig] = useState<AffectationConfiguration>(() => {
+        const initialConfig = affectation.configuration;
+        const affectationEstOuverte = affectation.ouvert; // Lire l'état 'ouvert' de l'affectation parente
+
+        if (initialConfig && initialConfig.postes && initialConfig.postes.length > 0 && initialConfig.postes.every(p => p.quantite > 0)) {
+            // Si une config avec des postes valides (quantité > 0) existe, l'utiliser
+            return initialConfig;
+        } else if (affectationEstOuverte) {
+            // Si l'affectation est ouverte mais n'a pas de postes valides dans sa config
+            // initialiser avec un poste par défaut.
+            // Conserver le nom et les heures de la config si existants
+            return {
+                id: initialConfig?.id || `conf_${Date.now()}`,
+                nom: initialConfig?.nom || '',
+                postes: [{
+                    id: `poste_${Date.now()}_default_${Math.random().toString(36).substring(2, 7)}`,
+                    nom: 'Personnel requis', // Nom par défaut
+                    quantite: 1,
+                    status: 'REQUIS' as PosteStatus,
+                    competencesRequises: undefined
+                }],
+                heureDebut: initialConfig?.heureDebut || '',
+                heureFin: initialConfig?.heureFin || '',
+            };
+        } else {
+            // Si l'affectation est fermée ou n'a pas de config / postes valides, initialiser avec postes vides
+            return {
+                id: initialConfig?.id || `conf_${Date.now()}`,
+                nom: initialConfig?.nom || '',
+                postes: [],
+                heureDebut: initialConfig?.heureDebut || '',
+                heureFin: initialConfig?.heureFin || '',
+            };
         }
-    );
+    });
 
     // State pour le nouveau poste en cours d'ajout
     const [newPoste, setNewPoste] = useState<Partial<PosteConfiguration>>({
@@ -204,6 +233,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
             ...affectation,
             configuration: config
         };
+        console.log('[AssignmentConfigPanel DEBUG] useEffect config change - Updated affectation to be sent:', updatedAffectation);
         onChange(updatedAffectation);
     }, [config]);
 
@@ -237,10 +267,11 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
 
     // Gestion des changements pour le nouveau poste
     const handleNewPosteChange = (field: keyof PosteConfiguration, value: any) => {
-        setNewPoste(prev => ({
-            ...prev,
-            [field]: value
-        }));
+        setNewPoste(prev => {
+            const updatedNewPoste = { ...prev, [field]: value };
+            console.log('[AssignmentConfigPanel DEBUG] handleNewPosteChange - Field:', field, 'Value:', value, 'New newPoste state:', updatedNewPoste);
+            return updatedNewPoste;
+        });
     };
 
     // Validation du nouveau poste
@@ -259,6 +290,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
 
     // Ajout d'un nouveau poste
     const handleAddPoste = () => {
+        console.log('[AssignmentConfigPanel DEBUG] handleAddPoste - Attempting to add poste (current newPoste state):', newPoste);
         if (!validateNewPoste()) return;
 
         const posteToAdd: PosteConfiguration = {
@@ -270,10 +302,14 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
             rolesAutorises: newPoste.rolesAutorises
         };
 
-        setConfig(prev => ({
-            ...prev,
-            postes: [...prev.postes, posteToAdd]
-        }));
+        setConfig(prev => {
+            const newConfigPostes = [...prev.postes, posteToAdd];
+            console.log('[AssignmentConfigPanel DEBUG] handleAddPoste - Poste ajouté, nouvelle config.postes:', newConfigPostes);
+            return {
+                ...prev,
+                postes: newConfigPostes
+            };
+        });
 
         // Réinitialiser le formulaire d'ajout
         setNewPoste({
@@ -293,14 +329,19 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
 
     // Mettre à jour un poste existant
     const handleUpdatePoste = (posteId: string, field: keyof PosteConfiguration, value: any) => {
-        setConfig(prev => ({
-            ...prev,
-            postes: prev.postes.map(p =>
+        console.log('[AssignmentConfigPanel DEBUG] handleUpdatePoste - Poste ID:', posteId, 'Field:', field, 'Value:', value);
+        setConfig(prev => {
+            const updatedPostes = prev.postes.map(p =>
                 p.id === posteId
                     ? { ...p, [field]: value }
                     : p
-            )
-        }));
+            );
+            console.log('[AssignmentConfigPanel DEBUG] handleUpdatePoste - Poste mis à jour, nouvelle config.postes:', updatedPostes);
+            return {
+                ...prev,
+                postes: updatedPostes
+            };
+        });
     };
 
     // Déplacer un poste (drag-and-drop)
@@ -321,6 +362,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
 
     // Suggérer un poste depuis la liste disponible
     const handleSuggestionSelect = (nom: string) => {
+        console.log('[AssignmentConfigPanel DEBUG] handleSuggestionSelect - Suggestion cliquée:', nom);
         setNewPoste(prev => ({
             ...prev,
             nom
