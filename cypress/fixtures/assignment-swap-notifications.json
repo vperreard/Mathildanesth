@@ -1,0 +1,70 @@
+{
+    "users": {
+        "initiator": {
+            "email": "user.initiator@example.com",
+            "password": "password123",
+            "firstName": "User",
+            "lastName": "Initiator",
+            "id": 1001
+        },
+        "target": {
+            "email": "user.target@example.com",
+            "password": "password123",
+            "firstName": "Test",
+            "lastName": "Target",
+            "id": 1002
+        }
+    },
+    "assignments": {
+        "initiator": {
+            "id": "assignment-init-001",
+            "date": "2025-06-10T00:00:00.000Z",
+            "type": "GARDE_JOUR",
+            "salle": "Salle 1"
+        },
+        "target": {
+            "id": "assignment-target-001",
+            "date": "2025-06-10T00:00:00.000Z",
+            "type": "BLOC_OPERATION",
+            "salle": "Salle 2"
+        }
+    },
+    "swapRequests": {
+        "pending": {
+            "message": "Pourriez-vous échanger cette garde avec moi ?",
+            "status": "PENDING"
+        },
+        "accepted": {
+            "message": "Demande acceptée lors du test",
+            "status": "ACCEPTED",
+            "responseMessage": "Oui, je suis disponible à cette date."
+        },
+        "rejected": {
+            "message": "Demande refusée lors du test",
+            "status": "REJECTED",
+            "responseMessage": "Désolé, je ne suis pas disponible à cette date."
+        },
+        "cancelled": {
+            "message": "Demande qui sera annulée",
+            "status": "CANCELLED"
+        }
+    },
+    "notifications": {
+        "swapRequested": {
+            "type": "ASSIGNMENT_SWAP_REQUEST_RECEIVED",
+            "message": "Vous avez reçu une nouvelle demande d'échange d'affectation"
+        },
+        "swapAccepted": {
+            "type": "ASSIGNMENT_SWAP_REQUEST_ACCEPTED",
+            "message": "Votre demande d'échange a été acceptée"
+        },
+        "swapRejected": {
+            "type": "ASSIGNMENT_SWAP_REQUEST_REJECTED",
+            "message": "Votre demande d'échange a été refusée"
+        },
+        "swapCancelled": {
+            "type": "ASSIGNMENT_SWAP_REQUEST_CANCELLED",
+            "message": "Une demande d'échange vous concernant a été annulée"
+        }
+    }
+}

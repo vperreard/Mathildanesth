@@ -70,6 +70,30 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Un modèle de trame avec ce nom existe déjà.' }, { status: 409 });
         }
 
+        // Traitement du champ detailsJson
+        let processedDetailsJson = null;
+        if (data.detailsJson !== undefined) {
+            try {
+                // Si c'est déjà un objet JavaScript, on le laisse tel quel
+                if (typeof data.detailsJson === 'object' && data.detailsJson !== null) {
+                    processedDetailsJson = data.detailsJson;
+                }
+                // Si c'est une chaîne JSON, on la parse
+                else if (typeof data.detailsJson === 'string') {
+                    processedDetailsJson = JSON.parse(data.detailsJson);
+                }
+                // Si c'est autre chose, on le convertit en chaîne puis en objet
+                else {
+                    processedDetailsJson = JSON.parse(JSON.stringify(data.detailsJson));
+                }
+
+                console.log(`[API /api/trame-modeles POST] detailsJson traité:`, JSON.stringify(processedDetailsJson, null, 2));
+            } catch (jsonError) {
+                console.error(`[API /api/trame-modeles POST] Erreur lors du traitement de detailsJson:`, jsonError);
+                return NextResponse.json({ error: 'Le champ detailsJson doit être un objet JSON valide.' }, { status: 400 });
+            }
+        }
+
         const createPayload = {
             name: data.name,
             description: data.description || null,
@@ -84,6 +108,9 @@ export async function POST(req: NextRequest) {
             //     ? data.roles.filter((r: PrismaTrameRoleType) => Object.values(PrismaTrameRoleType).includes(r)) as PrismaTrameRoleType[]
             //     : [PrismaTrameRoleType && typeof PrismaTrameRoleType === 'object' && PrismaTrameRoleType.TOUS ? PrismaTrameRoleType.TOUS : 'TOUS' as PrismaTrameRoleType], // Fallback plus robuste
             // Temporairement, on ne sauvegarde pas les roles pour voir si le reste fonctionne
+
+            // Utiliser la version traitée de detailsJson
+            detailsJson: processedDetailsJson,
         };
         console.log("[API /api/trame-modeles POST] Prisma create payload (sans roles pour test):", JSON.stringify(createPayload, null, 2));
 
@@ -93,14 +120,31 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(trameModele, { status: 201 });
     } catch (error: any) {
-        console.error('Erreur lors de la création du modèle de trame:', error);
+        console.error('[API /api/trame-modeles POST] Erreur lors de la création du modèle de trame:', error);
+
+        // Afficher la stack trace pour plus de détails
+        if (error.stack) {
+            console.error('[API /api/trame-modeles POST] Stack trace:', error.stack);
+        }
+
         if (error.code === 'P2002' && error.meta?.target?.includes('name')) {
             return NextResponse.json({ error: 'Un modèle de trame avec ce nom existe déjà.' }, { status: 409 });
         }
+
+        // Détails supplémentaires pour le client dans la réponse
+        const errorDetails = {
+            message: error.message || 'Erreur interne du serveur.',
+            code: error.code || 'UNKNOWN',
+            meta: error.meta || {},
+        };
+
         // Log plus détaillé de l'erreur originale si possible
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error("[API /api/trame-modeles POST] Full error details:", errorMessage, error instanceof Error ? error.stack : '');
-        return NextResponse.json({ error: 'Erreur interne du serveur lors de la création du modèle de trame.', details: errorMessage }, { status: 500 });
+        console.error("[API /api/trame-modeles POST] Détails de l'erreur:", errorDetails);
+
+        return NextResponse.json({
+            error: 'Erreur interne du serveur lors de la création du modèle de trame.',
+            details: errorDetails
+        }, { status: 500 });
     }
 }
 

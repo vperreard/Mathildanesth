@@ -5,12 +5,11 @@ import type { AuthResult } from '@/lib/auth-client-utils';
 
 const prisma = new PrismaClient();
 
-interface RouteParams {
-    params: { trameModeleId: string };
-}
-
 // GET: Récupérer un modèle de trame spécifique par son ID
-export async function GET(req: NextRequest, { params }: RouteParams) {
+export async function GET(req: NextRequest, { params }: { params: { trameModeleId: string } }) {
+    const trameModeleId = params.trameModeleId;
+    console.log(`[API GET /trame-modeles/${trameModeleId}] Début du traitement.`);
+
     try {
         const authToken = req.headers.get('Authorization')?.replace('Bearer ', '');
         if (!authToken) {
@@ -21,7 +20,6 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             return NextResponse.json({ error: authResult.error || 'Non autorisé - Token invalide' }, { status: 401 });
         }
 
-        const trameModeleId = params.trameModeleId;
         const trameModele = await prisma.trameModele.findUnique({
             where: { id: parseInt(trameModeleId) },
             include: {
@@ -49,13 +47,16 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
         return NextResponse.json(trameModele);
     } catch (error: any) {
-        console.error(`Erreur lors de la récupération du modèle de trame ${params.trameModeleId}:`, error);
+        console.error(`Erreur lors de la récupération du modèle de trame ${trameModeleId}:`, error);
         return NextResponse.json({ error: 'Erreur interne du serveur.', details: error.message }, { status: 500 });
     }
 }
 
 // PUT: Mettre à jour un modèle de trame
-export async function PUT(req: NextRequest, { params }: RouteParams) {
+export async function PUT(req: NextRequest, { params }: { params: { trameModeleId: string } }) {
+    const trameModeleId = params.trameModeleId;
+    console.log(`[API PUT /trame-modeles/${trameModeleId}] Début du traitement.`);
+
     try {
         const authToken = req.headers.get('Authorization')?.replace('Bearer ', '');
         if (!authToken) {
@@ -66,8 +67,8 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
             return NextResponse.json({ error: authResult.error || 'Non autorisé ou droits insuffisants' }, { status: 401 });
         }
 
-        const trameModeleId = params.trameModeleId;
         const data = await req.json();
+        console.log(`[API PUT /trame-modeles/${trameModeleId}] Données reçues:`, JSON.stringify(data, null, 2));
 
         // Validation pour joursSemaineActifs si fourni (ISO 8601: Lundi=1, ..., Dimanche=7)
         if (data.joursSemaineActifs !== undefined) { // Vérifier seulement si le champ est présent dans la requête PUT
@@ -79,23 +80,30 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
             }
         }
 
-        // Validation pour le champ roles si fourni
-        /* if (data.roles) {
-            if (!Array.isArray(data.roles)) {
-                return NextResponse.json({ error: 'Le champ roles doit être un tableau.' }, { status: 400 });
-            }
-            if (PrismaTrameRoleType && typeof PrismaTrameRoleType === 'object' && Object.keys(PrismaTrameRoleType).length > 0) {
-                if (!data.roles.every((role: any) => Object.values(PrismaTrameRoleType).includes(role))) {
-                    return NextResponse.json(
-                        { error: `Le champ roles contient des valeurs invalides. Roles valides: ${Object.values(PrismaTrameRoleType).join(', ')}.` },
-                        { status: 400 }
-                    );
+        // Validation pour le champ detailsJson si fourni
+        let processedDetailsJson = undefined;
+        if (data.detailsJson !== undefined) {
+            // S'assurer que detailsJson est un objet valide pour PostgreSQL JSONB
+            try {
+                // Si c'est déjà un objet JavaScript, on le laisse tel quel
+                if (typeof data.detailsJson === 'object' && data.detailsJson !== null) {
+                    processedDetailsJson = data.detailsJson;
                 }
-            } else {
-                console.error("[API /api/trame-modeles PUT] PrismaTrameRoleType n'est pas défini ou est vide. Impossible de valider les rôles correctement.");
-                return NextResponse.json({ error: "Erreur interne: Impossible de valider les types de rôles." }, { status: 500 });
+                // Si c'est une chaîne JSON, on la parse
+                else if (typeof data.detailsJson === 'string') {
+                    processedDetailsJson = JSON.parse(data.detailsJson);
+                }
+                // Si c'est autre chose, on le convertit en chaîne puis en objet
+                else {
+                    processedDetailsJson = JSON.parse(JSON.stringify(data.detailsJson));
+                }
+
+                console.log(`[API PUT /trame-modeles/${trameModeleId}] detailsJson traité:`, JSON.stringify(processedDetailsJson, null, 2));
+            } catch (jsonError) {
+                console.error(`[API PUT /trame-modeles/${trameModeleId}] Erreur lors du traitement de detailsJson:`, jsonError);
+                return NextResponse.json({ error: 'Le champ detailsJson doit être un objet JSON valide.' }, { status: 400 });
             }
-        } */
+        }
 
         // Vérifier si un autre modèle de trame avec le même nom existe (sauf celui-ci)
         if (data.name) {
@@ -126,28 +134,66 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
             //     ? data.roles.filter((r: PrismaTrameRoleType) => Object.values(PrismaTrameRoleType).includes(r)) as PrismaTrameRoleType[]
             //     : (data.roles === undefined) ? undefined : [PrismaTrameRoleType && typeof PrismaTrameRoleType === 'object' && PrismaTrameRoleType.TOUS ? PrismaTrameRoleType.TOUS : 'TOUS' as PrismaTrameRoleType],
             // Temporairement, on ne sauvegarde pas les roles pour voir si le reste fonctionne
+
+            // Utiliser la version traitée de detailsJson
+            detailsJson: processedDetailsJson,
         };
 
-        const updatedTrameModele = await prisma.trameModele.update({
-            where: { id: parseInt(trameModeleId) },
-            data: updatePayload,
-        });
+        console.log(`[API PUT /trame-modeles/${trameModeleId}] Payload de mise à jour:`, JSON.stringify(updatePayload, null, 2));
 
-        return NextResponse.json(updatedTrameModele);
+        try {
+            const updatedTrameModele = await prisma.trameModele.update({
+                where: { id: parseInt(trameModeleId) },
+                data: updatePayload,
+            });
+
+            console.log(`[API PUT /trame-modeles/${trameModeleId}] Mise à jour réussie, ID: ${updatedTrameModele.id}`);
+            return NextResponse.json(updatedTrameModele);
+        } catch (updateError: any) {
+            console.error(`[API PUT /trame-modeles/${trameModeleId}] Erreur Prisma lors de la mise à jour:`, updateError);
+            console.error(`Code d'erreur Prisma: ${updateError.code}`);
+            console.error(`Message d'erreur Prisma: ${updateError.message}`);
+
+            if (updateError.meta) {
+                console.error(`Métadonnées d'erreur: ${JSON.stringify(updateError.meta)}`);
+            }
+
+            throw updateError; // Relancer l'erreur pour qu'elle soit traitée dans le catch principal
+        }
     } catch (error: any) {
-        console.error(`Erreur lors de la mise à jour du modèle de trame ${params.trameModeleId}:`, error);
+        console.error(`[API PUT /trame-modeles/${trameModeleId}] Erreur lors de la mise à jour:`, error);
+
+        // Afficher la stack trace pour plus de détails
+        if (error.stack) {
+            console.error(`[API PUT /trame-modeles/${trameModeleId}] Stack trace:`, error.stack);
+        }
+
         if (error.code === 'P2025') { // Record to update not found
             return NextResponse.json({ error: 'Modèle de trame non trouvé pour la mise à jour.' }, { status: 404 });
         }
         if (error.code === 'P2002' && error.meta?.target?.includes('name')) {
             return NextResponse.json({ error: 'Un autre modèle de trame avec ce nom existe déjà.' }, { status: 409 });
         }
-        return NextResponse.json({ error: 'Erreur interne du serveur.', details: error.message }, { status: 500 });
+
+        // Détails supplémentaires pour le client dans la réponse
+        const errorDetails = {
+            message: error.message || 'Erreur interne du serveur.',
+            code: error.code || 'UNKNOWN',
+            meta: error.meta || {},
+        };
+
+        return NextResponse.json({
+            error: 'Erreur interne du serveur.',
+            details: errorDetails
+        }, { status: 500 });
     }
 }
 
 // DELETE: Supprimer un modèle de trame
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
+export async function DELETE(req: NextRequest, { params }: { params: { trameModeleId: string } }) {
+    const trameModeleId = params.trameModeleId;
+    console.log(`[API DELETE /trame-modeles/${trameModeleId}] Début du traitement.`);
+
     try {
         const authToken = req.headers.get('Authorization')?.replace('Bearer ', '');
         if (!authToken) {
@@ -158,8 +204,6 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
             return NextResponse.json({ error: authResult.error || 'Non autorisé ou droits insuffisants' }, { status: 401 });
         }
 
-        const trameModeleId = params.trameModeleId;
-
         // La suppression des AffectationModele et PersonnelRequisModele se fera en cascade grâce à onDelete: Cascade dans le schéma Prisma.
         await prisma.trameModele.delete({
             where: { id: parseInt(trameModeleId) },
@@ -167,7 +211,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
 
         return NextResponse.json({ message: 'Modèle de trame supprimé avec succès' }, { status: 200 });
     } catch (error: any) {
-        console.error(`Erreur lors de la suppression du modèle de trame ${params.trameModeleId}:`, error);
+        console.error(`Erreur lors de la suppression du modèle de trame ${trameModeleId}:`, error);
         if (error.code === 'P2025') { // Record to delete not found
             return NextResponse.json({ error: 'Modèle de trame non trouvé pour la suppression.' }, { status: 404 });
         }

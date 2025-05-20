@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     Card,
     CardHeader,
@@ -172,10 +172,24 @@ const DraggablePoste: React.FC<DraggablePosteProps> = ({
  */
 const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
     affectation,
-    onChange,
+    onChange: onChangeProp,
     availablePostes,
     isLoading = false
 }) => {
+    console.log('[AssignmentConfigPanel DEBUG] Composant monté/rendu. Props reçues - affectation:', JSON.parse(JSON.stringify(affectation)), 'isLoading:', isLoading);
+
+    // Typer explicitement la callback pour clarifier l'intention
+    const onChange = onChangeProp as (config: AffectationConfiguration) => void;
+
+    // Ref pour suivre le montage initial
+    const isInitialMount = useRef(true);
+
+    // Utiliser une ref pour la fonction onChange pour éviter de redéclencher l'effet si seule sa référence change
+    const onChangeRef = useRef(onChange);
+    useEffect(() => {
+        onChangeRef.current = onChange;
+    }, [onChange]);
+
     // State local pour la configuration en cours d'édition
     const [config, setConfig] = useState<AffectationConfiguration>(() => {
         const initialConfig = affectation.configuration;
@@ -229,26 +243,31 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
 
     // Met à jour la configuration parent lors des changements
     useEffect(() => {
-        const updatedAffectation: TemplateAffectation = {
-            ...affectation,
-            configuration: config
-        };
-        console.log('[AssignmentConfigPanel DEBUG] useEffect config change - Updated affectation to be sent:', updatedAffectation);
-        onChange(updatedAffectation);
-    }, [config]);
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            // console.log('[AssignmentConfigPanel DEBUG] useEffect config change - Premier rendu, onChange non appelé.');
+        } else {
+            // console.log('[AssignmentConfigPanel DEBUG] useEffect config change - Changement détecté, appel de onChangeRef.current avec:', config);
+            onChangeRef.current(config); // Utiliser la réf
+        }
+    }, [config]); // Ne dépendre que de config
 
     // Mettre à jour les heures lors du chargement initial
     useEffect(() => {
         if (config.heureDebut) setHeureDebut(config.heureDebut);
         if (config.heureFin) setHeureFin(config.heureFin);
-    }, [affectation]);
+    }, [config.heureDebut, config.heureFin]);
 
     // Gestion des changements de la configuration globale
     const handleConfigChange = (field: keyof AffectationConfiguration, value: any) => {
-        setConfig(prev => ({
-            ...prev,
-            [field]: value
-        }));
+        console.log('[AssignmentConfigPanel DEBUG] handleConfigChange - Field:', field, 'Value:', value);
+        console.log('[AssignmentConfigPanel DEBUG] État actuel de config avant mise à jour:', JSON.stringify(config, null, 2));
+
+        setConfig(prev => {
+            const newConfig = { ...prev, [field]: value };
+            console.log('[AssignmentConfigPanel DEBUG] Nouveau config après mise à jour:', JSON.stringify(newConfig, null, 2));
+            return newConfig;
+        });
     };
 
     // Gestion des changements d'heure de début
@@ -290,57 +309,64 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
 
     // Ajout d'un nouveau poste
     const handleAddPoste = () => {
-        console.log('[AssignmentConfigPanel DEBUG] handleAddPoste - Attempting to add poste (current newPoste state):', newPoste);
         if (!validateNewPoste()) return;
 
-        const posteToAdd: PosteConfiguration = {
-            id: `poste_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-            nom: newPoste.nom || '',
-            quantite: newPoste.quantite || 1,
-            status: newPoste.status || 'REQUIS',
-            competencesRequises: newPoste.competencesRequises,
-            rolesAutorises: newPoste.rolesAutorises
-        };
-
         setConfig(prev => {
-            const newConfigPostes = [...prev.postes, posteToAdd];
-            console.log('[AssignmentConfigPanel DEBUG] handleAddPoste - Poste ajouté, nouvelle config.postes:', newConfigPostes);
-            return {
-                ...prev,
-                postes: newConfigPostes
+            if (!prev) return prev;
+            const newPosteToAdd: PosteConfiguration = {
+                id: `poste_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+                // S'assurer que les champs requis de PosteConfiguration sont fournis
+                // et que les types correspondent.
+                nom: newPoste.nom || 'Poste par défaut', // Fournir un fallback si newPoste.nom est undefined ou vide
+                quantite: newPoste.quantite !== undefined ? newPoste.quantite : 1, // Fallback pour quantite
+                status: newPoste.status || 'REQUIS', // Fallback pour status
+                competencesRequises: newPoste.competencesRequises, // Est optionnel, donc newPoste.competencesRequises (qui peut être undefined) est OK
+                // Les autres champs de newPoste (s'il y en a) qui sont aussi dans PosteConfiguration 
+                // et optionnels peuvent être spreadés ou assignés individuellement si nécessaire.
+                // Pour l'instant, on se concentre sur les champs directement gérés par le formulaire d'ajout.
             };
+            const updatedPostes = [...prev.postes, newPosteToAdd];
+            const newConfig = { ...prev, postes: updatedPostes };
+            console.log('[AssignmentConfigPanel DEBUG] handleAddPoste - newConfig après ajout poste:', JSON.stringify(newConfig, null, 2));
+            return newConfig;
         });
 
-        // Réinitialiser le formulaire d'ajout
+        // Réinitialiser le formulaire pour le nouveau poste
         setNewPoste({
             nom: '',
             quantite: 1,
-            status: 'REQUIS' as PosteStatus
+            status: 'REQUIS',
+            competencesRequises: undefined
         });
+        setErrors({});
     };
 
     // Supprimer un poste
     const handleDeletePoste = (posteId: string) => {
-        setConfig(prev => ({
-            ...prev,
-            postes: prev.postes.filter(p => p.id !== posteId)
-        }));
+        setConfig(prev => {
+            if (!prev) return prev;
+            const updatedPostes = prev.postes.filter(p => p.id !== posteId);
+            const newConfig = { ...prev, postes: updatedPostes };
+            console.log('[AssignmentConfigPanel DEBUG] handleDeletePoste - newConfig après suppression poste:', JSON.stringify(newConfig, null, 2));
+            // Si onChangeProp doit être appelé ici, ce serait :
+            // onChangeProp(newConfig);
+            return newConfig;
+        });
     };
 
     // Mettre à jour un poste existant
     const handleUpdatePoste = (posteId: string, field: keyof PosteConfiguration, value: any) => {
         console.log('[AssignmentConfigPanel DEBUG] handleUpdatePoste - Poste ID:', posteId, 'Field:', field, 'Value:', value);
         setConfig(prev => {
+            if (!prev) return prev;
             const updatedPostes = prev.postes.map(p =>
-                p.id === posteId
-                    ? { ...p, [field]: value }
-                    : p
+                p.id === posteId ? { ...p, [field]: value } : p
             );
-            console.log('[AssignmentConfigPanel DEBUG] handleUpdatePoste - Poste mis à jour, nouvelle config.postes:', updatedPostes);
-            return {
-                ...prev,
-                postes: updatedPostes
-            };
+            const newConfig = { ...prev, postes: updatedPostes };
+            console.log('[AssignmentConfigPanel DEBUG] handleUpdatePoste - newConfig après mise à jour poste:', JSON.stringify(newConfig, null, 2));
+            // Si onChangeProp doit être appelé ici, ce serait :
+            // onChangeProp(newConfig);
+            return newConfig;
         });
     };
 

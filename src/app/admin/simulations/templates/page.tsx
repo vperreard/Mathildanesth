@@ -1,0 +1,358 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { PlusIcon, Search, FilterIcon, BookmarkIcon, Trash2Icon, PencilIcon, CopyIcon, CalendarIcon } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import Button from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import Input from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogFooter, DialogHeader } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { fetchTemplates, deleteTemplate, useTemplateForScenario, SimulationTemplate } from '@/services/simulationTemplateService';
+
+export default function TemplatesPage() {
+    const router = useRouter();
+    const [templates, setTemplates] = useState<SimulationTemplate[]>([]);
+    const [filteredTemplates, setFilteredTemplates] = useState<SimulationTemplate[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState<string>('');
+    const [activeTab, setActiveTab] = useState<'all' | 'my' | 'public'>('all');
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    useEffect(() => {
+        loadTemplates();
+    }, []);
+
+    useEffect(() => {
+        applyFilters();
+    }, [templates, searchTerm, categoryFilter, activeTab]);
+
+    const loadTemplates = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const data = await fetchTemplates();
+            setTemplates(data);
+        } catch (err: any) {
+            setError(err.message || 'Erreur lors du chargement des templates');
+            toast.error('Erreur lors du chargement des templates');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const applyFilters = () => {
+        let filtered = [...templates];
+
+        // Filtrer par onglet
+        if (activeTab === 'my') {
+            filtered = filtered.filter(template => !template.isPublic);
+        } else if (activeTab === 'public') {
+            filtered = filtered.filter(template => template.isPublic);
+        }
+
+        // Filtrer par catégorie
+        if (categoryFilter) {
+            filtered = filtered.filter(template => template.category === categoryFilter);
+        }
+
+        // Filtrer par terme de recherche
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filtered = filtered.filter(
+                template =>
+                    template.name.toLowerCase().includes(term) ||
+                    (template.description && template.description.toLowerCase().includes(term))
+            );
+        }
+
+        setFilteredTemplates(filtered);
+    };
+
+    const handleDeleteTemplate = async () => {
+        if (!templateToDelete) return;
+
+        setIsDeleting(true);
+        try {
+            await deleteTemplate(templateToDelete);
+            setTemplates(prevTemplates => prevTemplates.filter(t => t.id !== templateToDelete));
+            toast.success('Template supprimé avec succès');
+            setDeleteDialogOpen(false);
+        } catch (err: any) {
+            toast.error('Erreur lors de la suppression du template: ' + err.message);
+        } finally {
+            setIsDeleting(false);
+            setTemplateToDelete(null);
+        }
+    };
+
+    const handleUseTemplate = async (templateId: string) => {
+        try {
+            toast.info('Création d\'un scénario à partir du template...');
+            const scenario = await useTemplateForScenario(templateId);
+            toast.success('Scénario créé avec succès');
+            router.push(`/admin/simulations/${scenario.id}/edit`);
+        } catch (err: any) {
+            toast.error('Erreur lors de la création du scénario: ' + err.message);
+        }
+    };
+
+    const getUniqueCategories = () => {
+        const categories = new Set(templates.map(t => t.category).filter(Boolean));
+        return Array.from(categories) as string[];
+    };
+
+    const renderEmptyState = () => (
+        <div className="flex flex-col items-center justify-center py-10 text-center">
+            <BookmarkIcon className="h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium">Aucun template trouvé</h3>
+            <p className="text-sm text-gray-500 mt-1 mb-4">
+                {activeTab === 'all'
+                    ? 'Vous n\'avez pas encore de templates. Créez votre premier template pour faciliter la création de scénarios répétitifs.'
+                    : activeTab === 'my'
+                        ? 'Vous n\'avez pas encore créé de templates personnels.'
+                        : 'Aucun template public disponible.'}
+            </p>
+            <Button
+                variant="default"
+                size="sm"
+                onClick={() => router.push('/admin/simulations/templates/new')}
+            >
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Créer un template
+            </Button>
+        </div>
+    );
+
+    return (
+        <div className="container p-4 mx-auto">
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h1 className="text-2xl font-bold">Templates de Simulation</h1>
+                    <p className="text-muted-foreground">
+                        Gérez des configurations réutilisables pour vos simulations de planning
+                    </p>
+                </div>
+                <Button
+                    variant="default"
+                    onClick={() => router.push('/admin/simulations/templates/new')}
+                >
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Nouveau Template
+                </Button>
+            </div>
+
+            <div className="mb-6">
+                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'all' | 'my' | 'public')}>
+                    <div className="flex justify-between items-center mb-4">
+                        <TabsList>
+                            <TabsTrigger value="all">Tous les templates</TabsTrigger>
+                            <TabsTrigger value="my">Mes templates</TabsTrigger>
+                            <TabsTrigger value="public">Templates publics</TabsTrigger>
+                        </TabsList>
+
+                        <div className="flex space-x-2">
+                            <div className="relative w-64">
+                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Rechercher..."
+                                    className="pl-8"
+                                    value={searchTerm}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+
+                            <Select value={categoryFilter || ""} onValueChange={setCategoryFilter}>
+                                <SelectTrigger className="w-40">
+                                    <SelectValue placeholder="Catégorie" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="">Toutes les catégories</SelectItem>
+                                    {getUniqueCategories().map((category) => (
+                                        <SelectItem key={category} value={category}>
+                                            {category}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <TabsContent value="all" className="mt-0">
+                        {isLoading ? (
+                            <div className="flex justify-center items-center h-64">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                            </div>
+                        ) : filteredTemplates.length ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {filteredTemplates.map((template) => (
+                                    <TemplateCard
+                                        key={template.id}
+                                        template={template}
+                                        onDelete={(id) => {
+                                            setTemplateToDelete(id);
+                                            setDeleteDialogOpen(true);
+                                        }}
+                                        onUse={handleUseTemplate}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            renderEmptyState()
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="my" className="mt-0">
+                        {isLoading ? (
+                            <div className="flex justify-center items-center h-64">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                            </div>
+                        ) : filteredTemplates.length ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {filteredTemplates.map((template) => (
+                                    <TemplateCard
+                                        key={template.id}
+                                        template={template}
+                                        onDelete={(id) => {
+                                            setTemplateToDelete(id);
+                                            setDeleteDialogOpen(true);
+                                        }}
+                                        onUse={handleUseTemplate}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            renderEmptyState()
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="public" className="mt-0">
+                        {isLoading ? (
+                            <div className="flex justify-center items-center h-64">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                            </div>
+                        ) : filteredTemplates.length ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {filteredTemplates.map((template) => (
+                                    <TemplateCard
+                                        key={template.id}
+                                        template={template}
+                                        onDelete={(id) => {
+                                            setTemplateToDelete(id);
+                                            setDeleteDialogOpen(true);
+                                        }}
+                                        onUse={handleUseTemplate}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            renderEmptyState()
+                        )}
+                    </TabsContent>
+                </Tabs>
+            </div>
+
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirmer la suppression</DialogTitle>
+                        <DialogDescription>
+                            Êtes-vous sûr de vouloir supprimer ce template ? Cette action est irréversible.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex space-x-2 justify-end">
+                        <Button
+                            variant="outline"
+                            onClick={() => setDeleteDialogOpen(false)}
+                            disabled={isDeleting}
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleDeleteTemplate}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Suppression...
+                                </>
+                            ) : (
+                                'Supprimer'
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
+}
+
+interface TemplateCardProps {
+    template: SimulationTemplate;
+    onDelete: (id: string) => void;
+    onUse: (id: string) => void;
+}
+
+function TemplateCard({ template, onDelete, onUse }: TemplateCardProps) {
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle className="text-lg">{template.name}</CardTitle>
+                        <CardDescription className="line-clamp-2 mt-1">
+                            {template.description || 'Aucune description'}
+                        </CardDescription>
+                    </div>
+                    {template.isPublic && (
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            Public
+                        </Badge>
+                    )}
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div className="text-sm text-muted-foreground mb-3">
+                    <div className="flex items-center mb-1">
+                        <CalendarIcon className="h-3.5 w-3.5 mr-1.5" />
+                        Créé le {new Date(template.createdAt).toLocaleDateString()}
+                    </div>
+                    {template.category && (
+                        <Badge variant="secondary" className="mt-1">
+                            {template.category}
+                        </Badge>
+                    )}
+                </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+                <div className="flex space-x-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onDelete(template.id)}
+                    >
+                        <Trash2Icon className="h-4 w-4" />
+                    </Button>
+                    <Link href={`/admin/simulations/templates/${template.id}/edit`} passHref>
+                        <Button variant="outline" size="sm">
+                            <PencilIcon className="h-4 w-4" />
+                        </Button>
+                    </Link>
+                </div>
+                <Button variant="default" size="sm" onClick={() => onUse(template.id)}>
+                    Utiliser
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+} 

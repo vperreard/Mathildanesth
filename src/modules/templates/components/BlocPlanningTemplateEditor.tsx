@@ -150,6 +150,8 @@ interface DraggableAffectationProps {
     variations: ConfigurationVariation[];
     index: number;
     moveAffectation: (dragIndex: number, hoverIndex: number) => void;
+    onEditVariation: (variation: ConfigurationVariation) => void;
+    onDeleteVariation: (variationId: string) => void;
 }
 
 const DraggableAffectation: React.FC<DraggableAffectationProps> = ({
@@ -161,7 +163,9 @@ const DraggableAffectation: React.FC<DraggableAffectationProps> = ({
     onAddVariation,
     variations,
     index,
-    moveAffectation
+    moveAffectation,
+    onEditVariation,
+    onDeleteVariation
 }) => {
     // Configuration du drag and drop
     const [{ isDragging }, dragRef] = useDrag({
@@ -231,7 +235,10 @@ const DraggableAffectation: React.FC<DraggableAffectationProps> = ({
                             <IconButton
                                 size="small"
                                 color="primary"
-                                onClick={() => onEdit(affectation)}
+                                onClick={() => {
+                                    console.log(`[DraggableAffectation] Crayon cliqué pour affectation ID: ${affectation.id}, Type: ${affectation.type}, Jour: ${affectation.jour}`);
+                                    onEdit(affectation);
+                                }}
                                 sx={{ mr: 1 }}
                             >
                                 <EditIcon size={16} />
@@ -563,11 +570,14 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
     // Ouvrir le panel de configuration pour une affectation
     const handleEditAffectation = (affectation: TemplateAffectation) => {
-        console.log('[BlocEditor DEBUG] handleEditAffectation - Affectation sélectionnée:', affectation);
-        console.log('[BlocEditor DEBUG] Tentative d\'ouverture de AssignmentConfigPanel...');
+        console.log(`[BlocPlanningTemplateEditor] DEBUT handleEditAffectation pour affectation ID: ${affectation.id}, Type: ${affectation.type}, Jour: ${affectation.jour}`);
+        console.log('[BlocEditor DEBUG] handleEditAffectation - Affectation sélectionnée (avant setState):', JSON.parse(JSON.stringify(affectation)));
+        console.log('[BlocEditor DEBUG] État actuel de configPanelOpen (avant setState):', configPanelOpen);
         setSelectedAffectation(affectation);
         setConfigPanelOpen(true);
-        onMuiModalOpenChange?.(true);
+        onMuiModalOpenChange?.(true); // Notifie le parent que le modal MUI est ouvert
+        console.log('[BlocEditor DEBUG] État de configPanelOpen (après setState): true (attendu)');
+        console.log('[BlocEditor DEBUG] selectedAffectation (après setState):', JSON.parse(JSON.stringify(affectation)));
     };
 
     // Fermer le panel de configuration
@@ -579,36 +589,51 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
     };
 
     // Gérer la modification de la configuration d'une affectation (appelé par AssignmentConfigPanel)
-    const handleConfigurationChange = (updatedAffectation: TemplateAffectation) => {
-        // Log pour voir ce qui est reçu du panel
-        console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - updatedAffectation reçue:', JSON.parse(JSON.stringify(updatedAffectation)));
-        console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - updatedAffectation.configuration?.postes AVANT calcul:', updatedAffectation.configuration?.postes ? JSON.parse(JSON.stringify(updatedAffectation.configuration.postes)) : 'undefined ou null');
+    const handleConfigurationChange = (updatedConfig: AffectationConfiguration) => {
+        console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - updatedConfig reçue:', JSON.parse(JSON.stringify(updatedConfig)));
 
-        let finalPostesRequis = 0;
-        if (updatedAffectation.configuration?.postes && Array.isArray(updatedAffectation.configuration.postes)) {
-            finalPostesRequis = updatedAffectation.configuration.postes.reduce((sum, poste) => sum + (Number(poste.quantite) || 0), 0);
-            console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - finalPostesRequis calculé à partir de configuration.postes:', finalPostesRequis);
-        } else {
-            // Si pas de postes dans la config, on essaie de garder la valeur existante sur updatedAffectation ou celle du template actuel
-            const existingAffectationInState = template.affectations.find(a => a.id === updatedAffectation.id);
-            finalPostesRequis = updatedAffectation.postesRequis !== undefined
-                ? updatedAffectation.postesRequis
-                : (existingAffectationInState?.postesRequis || 0);
-            console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - finalPostesRequis basé sur updatedAffectation.postesRequis ou état actuel:', finalPostesRequis);
+        if (!selectedAffectation) {
+            console.error("[BlocPlanningTemplateEditor] handleConfigurationChange - selectedAffectation est null. Impossible de mettre à jour la configuration.");
+            toast.error("Erreur: Aucune affectation sélectionnée pour la mise à jour de la configuration.");
+            setConfigPanelOpen(false);
+            onMuiModalOpenChange?.(false);
+            return;
         }
 
-        // Assurer que l'affectation a un ID pour le mapping
-        const affectationToUpdate = {
-            ...updatedAffectation,
-            postesRequis: finalPostesRequis, // Utiliser la valeur recalculée/maintenue
+        console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - selectedAffectation.configuration?.postes AVANT calcul:', selectedAffectation.configuration?.postes ? JSON.parse(JSON.stringify(selectedAffectation.configuration.postes)) : 'undefined ou null');
+        console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - updatedConfig.postes:', updatedConfig.postes ? JSON.parse(JSON.stringify(updatedConfig.postes)) : 'undefined ou null');
+
+        let finalPostesRequis = 0;
+        if (updatedConfig.postes && Array.isArray(updatedConfig.postes)) {
+            finalPostesRequis = updatedConfig.postes.reduce((sum, poste) => sum + (Number(poste.quantite) || 0), 0);
+            console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - finalPostesRequis calculé à partir de updatedConfig.postes:', finalPostesRequis);
+        } else {
+            // Si pas de postes dans la config, on essaie de garder la valeur existante sur selectedAffectation
+            finalPostesRequis = selectedAffectation.postesRequis || 0;
+            console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - finalPostesRequis basé sur selectedAffectation.postesRequis car updatedConfig.postes est vide/nul:', finalPostesRequis);
+        }
+
+        // Créer une nouvelle affectation mise à jour
+        const affectationToUpdate: TemplateAffectation = {
+            ...selectedAffectation, // Garde les propriétés de base de l'affectation (id, type, jour, ouvert)
+            configuration: updatedConfig, // Met à jour la configuration
+            postesRequis: finalPostesRequis, // Met à jour le nombre de postes requis
         };
 
         console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - affectationToUpdate avant handleUpdateAffectation:', JSON.parse(JSON.stringify(affectationToUpdate)));
 
         handleUpdateAffectation(affectationToUpdate); // Utilise la fonction existante pour mettre à jour la liste
-        setSelectedAffectation(null); // Ferme le panel (correction: setEditingAffectation -> setSelectedAffectation)
-        setConfigPanelOpen(false); // Assurer aussi la fermeture du panel via son état
-        setIsModified(true);
+        // setSelectedAffectation(null); // Déjà fait dans handleCloseConfigPanel
+        // setConfigPanelOpen(false); // Déjà fait dans handleCloseConfigPanel
+        // setIsModified(true); // handleUpdateAffectation appelle updateTemplate qui met isModified à true
+
+        // La fermeture du panel est gérée par AssignmentConfigPanel lui-même ou par handleCloseConfigPanel.
+        // Il faut s'assurer que handleCloseConfigPanel est appelé correctement.
+        // Pour l'instant, on se concentre sur la mise à jour des données.
+        // La ligne ci-dessous est commentée car la fermeture est gérée par handleCloseConfigPanel
+        // console.log("[BlocPlanningTemplateEditor] handleConfigurationChange - Fermeture du panel commentée pour test de visibilité.");
+        // On s'attend à ce que AssignmentConfigPanel appelle son propre `onClose` ou que l'utilisateur ferme manuellement,
+        // ce qui déclenchera handleCloseConfigPanel.
     };
 
     // Ouvrir le panel pour ajouter une variation
@@ -640,10 +665,13 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
     // Ouvrir le panel pour éditer une variation existante
     const handleEditVariation = (variation: ConfigurationVariation) => {
+        console.log(`[!!! BlocPlanningTemplateEditor] DEBUT handleEditVariation. Variation reçue:`, JSON.parse(JSON.stringify(variation)));
+        console.log(`[!!! BlocPlanningTemplateEditor] Avant setVariationPanelOpen(true). variationPanelOpen était: ${variationPanelOpen}`);
         setSelectedVariation(variation);
         setSelectedAffectationId(variation.affectationId);
         setVariationPanelOpen(true);
         onMuiModalOpenChange?.(true);
+        console.log(`[!!! BlocPlanningTemplateEditor] APRES setVariationPanelOpen(true). variationPanelOpen devrait être true.`);
     };
 
     // Fermer le panel de variation
@@ -656,24 +684,25 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
     // Sauvegarder une variation
     const handleSaveVariation = (updatedVariation: ConfigurationVariation) => {
-        const variations = template.variations || [];
-        const variationIndex = variations.findIndex(v => v.id === updatedVariation.id);
+        console.log(`[BlocPlanningTemplateEditor] handleSaveVariation appelée avec:`, JSON.parse(JSON.stringify(updatedVariation)));
+        const variationIndex = (template.variations || []).findIndex(v => v.id === updatedVariation.id);
 
         if (variationIndex >= 0) {
-            // Mise à jour d'une variation existante
             updateTemplate(prev => ({
                 ...prev,
-                variations: variations.map(v =>
+                variations: (prev.variations || []).map(v =>
                     v.id === updatedVariation.id ? updatedVariation : v
                 )
             }));
         } else {
-            // Ajout d'une nouvelle variation
             updateTemplate(prev => ({
                 ...prev,
-                variations: [...variations, updatedVariation]
+                variations: [...(prev.variations || []), updatedVariation]
             }));
         }
+        toast.success("Variation sauvegardée localement.");
+        setIsModified(true); // Marquer comme modifié
+        handleCloseVariationPanel(); // Fermer le panel après sauvegarde
     };
 
     // Supprimer une variation
@@ -690,7 +719,8 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
     // Mettre à jour une affectation après configuration
     const handleUpdateAffectation = (updatedAffectation: TemplateAffectation) => {
-        console.log('[BlocEditor DEBUG] handleUpdateAffectation - Affectation mise à jour:', updatedAffectation);
+        console.log('[BlocEditor DEBUG] handleUpdateAffectation - Affectation reçue pour mise à jour:', JSON.stringify(updatedAffectation, null, 2));
+        console.log('[BlocEditor DEBUG] handleUpdateAffectation - Postes dans updatedAffectation.configuration:', JSON.stringify(updatedAffectation.configuration?.postes, null, 2));
         updateTemplate(prev => ({
             ...prev,
             affectations: prev.affectations.map(a =>
@@ -780,6 +810,24 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
             console.warn("[BlocPlanningTemplateEditor] availableAffectationTypes est vide ou non fourni.");
         }
     }, [availableAffectationTypes]);
+
+    // Nettoyage des variations qui référencent des affectations inexistantes
+    useEffect(() => {
+        if (template && Array.isArray(template.variations) && template.variations.length > 0) {
+            const validAffectationIds = new Set(template.affectations.map(a => a.id));
+            const invalidVariations = template.variations.filter(v => !validAffectationIds.has(v.affectationId));
+
+            if (invalidVariations.length > 0) {
+                console.warn(`[BlocPlanningTemplateEditor] ${invalidVariations.length} variations référencent des affectations inexistantes et seront supprimées.`,
+                    invalidVariations.map(v => ({ id: v.id, affectationId: v.affectationId })));
+
+                updateTemplate(prev => ({
+                    ...prev,
+                    variations: prev.variations?.filter(v => validAffectationIds.has(v.affectationId)) || []
+                }));
+            }
+        }
+    }, [template.affectations, template.variations, updateTemplate]);
 
     // Sécurisation des données du template
     useEffect(() => {
@@ -1045,14 +1093,16 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                                         <DraggableAffectation
                                             key={affectation.id}
                                             affectation={affectation}
+                                            variations={template.variations || []}
+                                            index={index}
+                                            moveAffectation={moveAffectation}
                                             onToggle={handleToggleAffectation}
                                             onPostesChange={handlePostesChange}
                                             onEdit={handleEditAffectation}
                                             onDelete={handleDeleteAffectation}
                                             onAddVariation={handleAddVariation}
-                                            variations={template.variations || []}
-                                            index={index}
-                                            moveAffectation={moveAffectation}
+                                            onEditVariation={handleEditVariation}
+                                            onDeleteVariation={handleDeleteVariation}
                                         />
                                     ))}
                                 </Box>
@@ -1185,20 +1235,20 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                                                     <Tooltip title="Éditer la variation">
                                                         <IconButton
                                                             size="small"
-                                                            color="primary"
+                                                            color="info"
                                                             onClick={() => handleEditVariation(variation)}
                                                             sx={{ mr: 1 }}
                                                         >
-                                                            <EditIcon size={16} />
+                                                            <EditIcon size={14} />
                                                         </IconButton>
                                                     </Tooltip>
-                                                    <Tooltip title="Supprimer">
+                                                    <Tooltip title="Supprimer la variation">
                                                         <IconButton
                                                             size="small"
-                                                            color="error"
+                                                            color="warning"
                                                             onClick={() => handleDeleteVariation(variation.id)}
                                                         >
-                                                            <TrashIcon size={16} />
+                                                            <TrashIcon size={14} />
                                                         </IconButton>
                                                     </Tooltip>
                                                 </Box>
@@ -1216,75 +1266,86 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
             {selectedAffectation && (
                 <Dialog
                     open={configPanelOpen}
-                    onClose={handleCloseConfigPanel}
-                    fullWidth
-                    maxWidth="xl"
-                    PaperProps={{
-                        sx: {
-                            height: 'auto',
-                            minHeight: '80vh',
-                            maxHeight: '80vh',
-                            width: '90%',
-                            maxWidth: '1600px',
-                            margin: 'auto',
-                            borderRadius: '8px',
-                            position: 'relative',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
+                    onClose={(event, reason) => {
+                        // console.log("[BlocPlanningTemplateEditor] onClose du Dialog AssignmentConfigPanel (test avec IconButton). Reason:", reason);
+                        if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+                            // console.log("[BlocPlanningTemplateEditor] Fermeture du Dialog AssignmentConfigPanel (test avec IconButton) via backdrop ou escape.");
                         }
+                        handleCloseConfigPanel();
                     }}
+                    fullWidth
+                    maxWidth="md"
+                    disablePortal
                     aria-labelledby="assignment-config-dialog-title"
                 >
-                    <DialogTitle sx={{ m: 0, p: 2 }}>
-                        Configuration de l'affectation
-                        <IconButton aria-label="close" onClick={handleCloseConfigPanel} sx={{ position: 'absolute', right: 8, top: 8, color: (theme) => theme.palette.grey[500] }}>
-                            <XIcon size={20} />
+                    <DialogTitle id="assignment-config-dialog-title">
+                        Configuration de l'affectation : {selectedAffectation.type} - {DAYS_LABEL[selectedAffectation.jour]}
+                        <IconButton
+                            aria-label="close"
+                            onClick={handleCloseConfigPanel}
+                            sx={{
+                                position: 'absolute',
+                                right: 8,
+                                top: 8,
+                                color: (theme) => theme.palette.grey[500],
+                            }}
+                        >
+                            <XIcon />
                         </IconButton>
                     </DialogTitle>
-                    <DialogContent dividers sx={{ overflowY: 'auto' }}>
-                        <AssignmentConfigPanel
-                            affectation={selectedAffectation}
-                            onChange={handleConfigurationChange}
-                            availablePostes={availablePostes}
-                            isLoading={isLoading}
-                        />
+                    <DialogContent dividers sx={{ p: 2 }}>
+                        {(() => {
+                            // console.log('[BlocEditor DEBUG] Rendu Dialog pour AssignmentConfigPanel. configPanelOpen:', configPanelOpen);
+                            // console.log('[BlocEditor DEBUG] selectedAffectation dans le rendu:', selectedAffectation ? JSON.parse(JSON.stringify(selectedAffectation)) : null);
+                            if (isLoading) {
+                                // console.log('[BlocEditor DEBUG] Affichage CircularProgress car isLoading est true.');
+                                return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}><CircularProgress /></Box>;
+                            }
+                            if (!selectedAffectation) {
+                                // console.error('[BlocEditor ERROR] selectedAffectation est null DANS LE RENDU du DialogContent. Ne devrait pas arriver si configPanelOpen est true ET selectedAffectation est la condition.');
+                                return <Alert severity="error">Erreur: Aucune affectation sélectionnée pour la configuration.</Alert>;
+                            }
+                            // console.log('[BlocEditor DEBUG] Passage des props à AssignmentConfigPanel:', {
+                            //     affectation: JSON.parse(JSON.stringify(selectedAffectation)),
+                            //     availablePostes: availablePostes || [],
+                            //     isLoading
+                            // });
+                            return (
+                                <AssignmentConfigPanel
+                                    affectation={selectedAffectation}
+                                    onChange={handleConfigurationChange}
+                                    availablePostes={availablePostes || []}
+                                    isLoading={isLoading}
+                                />
+                            );
+                        })()}
                     </DialogContent>
-                    <DialogActions>
-                        <MuiButton onClick={handleCloseConfigPanel}>Fermer</MuiButton>
-                    </DialogActions>
                 </Dialog>
             )}
 
             {selectedVariation && (
                 <Dialog
                     open={variationPanelOpen}
-                    onClose={handleCloseVariationPanel}
-                    maxWidth="xl"
+                    onClose={(event, reason) => {
+                        // console.log("[BlocPlanningTemplateEditor] onClose du Dialog VariationConfigPanel. Reason:", reason);
+                        if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+                            // console.log("[BlocPlanningTemplateEditor] Fermeture du Dialog VariationConfigPanel via backdrop ou escape.");
+                        }
+                        handleCloseVariationPanel();
+                    }}
                     fullWidth
-                    sx={{ zIndex: 10000 }} // z-index élevé pour la modale MUI et son backdrop
+                    maxWidth="lg"
+                    disablePortal
                     PaperProps={{
-                        sx: {
-                            overflowY: 'visible',
-                            zIndex: 10001, // z-index encore plus élevé pour le Paper
-                            height: 'auto',
-                            minHeight: '80vh',
-                            maxHeight: '80vh',
-                            width: '90%',
-                            maxWidth: '1600px',
-                            margin: 'auto',
-                            borderRadius: '8px',
-                            position: 'relative',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                        },
+                        sx: { /* Styles originaux à conserver si présents, sinon supprimer sx */ },
                         onClick: (e: React.MouseEvent) => {
-                            console.log('[MUI Dialog Paper] onClick event on VariationConfigPanel');
+                            // console.log('[MUI Dialog Paper] onClick event on VariationConfigPanel');
                             e.stopPropagation();
                         },
                         onPointerDown: (e: React.PointerEvent) => {
-                            console.log('[MUI Dialog Paper] onPointerDown event on VariationConfigPanel');
+                            // console.log('[MUI Dialog Paper] onPointerDown event on VariationConfigPanel');
                             e.stopPropagation();
-                        },
+                        }
                     }}
                 >
                     <DialogTitle sx={{ m: 0, p: 2 }}>

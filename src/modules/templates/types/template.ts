@@ -169,7 +169,7 @@ export interface BlocPlanningTemplateEditorProps {
  */
 export interface AssignmentConfigPanelProps {
     affectation: TemplateAffectation;
-    onChange: (updatedAffectation: TemplateAffectation) => void;
+    onChange: (config: AffectationConfiguration) => void;
     availablePostes: string[];
     isLoading?: boolean;
 }

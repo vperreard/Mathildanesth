@@ -85,6 +85,9 @@ model TrameModele {
 
   // Ajout du champ roles
   roles               TrameRoleType[] @default([TOUS])
+  
+  // Champ pour stocker les variations et d'autres données JSON personnalisées
+  detailsJson         Json?
 
   affectations AffectationModele[]
   createdAt    DateTime                    @default(now())
@@ -278,7 +281,6 @@ model User {
   dashboards                    Dashboard[]
   duties                        Duty[]
   loginLogs                     LoginLog[]
-  createdNotifications          Notification[]              @relation("CreatedNotifications")
   notifications                 Notification[]              @relation("UserNotifications")
   onCalls                       OnCall[]
   createdRules                  Rule[]                      @relation("CreatedRules")
@@ -320,6 +322,18 @@ model User {
   receivedSwapRequests  AssignmentSwapRequest[] @relation("ReceivedSwapRequests")
 
   assignedSkills UserSkill[] @relation("AssignedSkillsByAdmin")
+
+  createdSimulationScenarios     SimulationScenario[]           @relation("UserSimulationScenarios")
+  createdSimulationTemplates     SimulationTemplate[]           @relation("UserSimulationTemplates")
+
+  triggeredNotifications        Notification[]              @relation("TriggeredByUserNotifications")
+  authoredMessages              ContextualMessage[]         @relation("AuthoredMessages")
+
+  // Relations pour TeamConfiguration
+  teamMembership                TeamConfiguration[]         @relation("TeamMembers")
+  teamResponsibilities          TeamConfiguration[]         @relation("TeamResponsibles")
+
+  notificationPreferences       NotificationPreference? @relation("UserNotificationPreferences")
 
   @@map("users")
 }
@@ -579,6 +593,9 @@ model Assignment {
   proposedSwapRequests  AssignmentSwapRequest[] @relation("ProposedSwapAssignment")
   requestedSwapRequests AssignmentSwapRequest[] @relation("RequestedSwapAssignment")
 
+  contextualMessages ContextualMessage[] @relation("AssignmentContextualMessages")
+  notifications      Notification[]      @relation("NotificationRelatedAssignment")
+
   @@index([date])
   @@index([userId, date])
   @@index([siteId, date])
@@ -635,10 +652,18 @@ model ProfessionalRoleConfig {
 
 model TeamConfiguration {
   id            String   @id @default(cuid())
-  name          String
+  name          String   @unique
   description   String?
-  isDefault     Boolean  @default(false)
-  isActive      Boolean  @default(true)
+  siteId        String?
+  site          Site?    @relation("SiteTeamConfigurations", fields: [siteId], references: [id])
+  members       User[]   @relation("TeamMembers")
+  responsibles  User[]   @relation("TeamResponsibles")
+  rules         Json     // Règles spécifiques à l'équipe
+  workingHours  Json?    // Horaires de travail type
+  leaveQuotas   Json?    // Quotas de congés spécifiques
+  skillsNeeded  Json?    // Compétences requises pour l'équipe
+  configuration Json?    // Configuration diverse
+
   gardes        Json
   consultations Json
   bloc          Json
@@ -657,6 +682,9 @@ model TeamConfiguration {
   algorithme    Json?
   rapports      Json?
   audit         Json?
+  
+  isDefault     Boolean  @default(false)
+  isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -773,20 +801,32 @@ model PlannedAbsence {
 }
 
 model Notification {
-  id        Int      @id @default(autoincrement())
-  type      String
-  title     String
-  message   String
-  read      Boolean  @default(false)
-  userId    Int
-  createdBy Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  creator   User     @relation("CreatedNotifications", fields: [createdBy], references: [id])
-  user      User     @relation("UserNotifications", fields: [userId], references: [id])
+  id        String    @id @default(cuid())
+  userId    Int // L'utilisateur qui reçoit la notification (doit être Int si User.id est Int)
+  user      User      @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@index([createdBy])
+  type      NotificationType // NOUVEAU CHAMP: utilise l'énumération
+
+  message   String    // Le contenu textuel de la notification
+  link      String?   // Lien optionnel vers l'élément concerné
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  // Qui a déclenché la notification (optionnel)
+  triggeredByUserId Int?
+  triggeredByUser   User?     @relation("TriggeredByUserNotifications", fields: [triggeredByUserId], references: [id], onDelete:SetNull)
+
+  // Contexte de la notification (liens optionnels vers les entités concernées)
+  relatedAssignmentId String?
+  relatedAssignment   Assignment? @relation("NotificationRelatedAssignment", fields: [relatedAssignmentId], references: [id], onDelete:SetNull)
+
+  relatedRequestId String?
+  relatedRequest    UserRequest? @relation("NotificationRelatedRequest", fields: [relatedRequestId], references: [id], onDelete:SetNull)
+
+  // Ajoutez d'autres liens contextuels si nécessaire (ex: relatedCommentId)
+
+  @@index([userId, isRead])
+  @@map("notifications") // Assurez-vous que le nom de la table est correct
 }
 
 model Dashboard {
@@ -994,6 +1034,8 @@ model Site {
 
   activityTypes ActivityType[] @relation("SiteActivityTypes")
 
+  teamConfigurations TeamConfiguration[] @relation("SiteTeamConfigurations")
+
   @@map("sites")
 }
 
@@ -1199,6 +1241,9 @@ model UserRequest {
   updatedAt  DateTime  @updatedAt
   resolvedAt DateTime?
 
+  contextualMessages ContextualMessage[] @relation("UserRequestContextualMessages")
+  notifications      Notification[]      @relation("NotificationRelatedRequest")
+
   @@index([userId, status])
   @@index([requestTypeId, status])
   @@index([assignedToId, status])
@@ -1326,4 +1371,211 @@ model LeaveRequestAlert {
 
   @@index([leaveId])
   @@map("leave_request_alerts")
+}
+
+// --- MODÈLES POUR LA SIMULATION DE PLANNING ---
+
+model SimulationTemplate {
+  id                  String   @id @default(uuid())
+  name                String
+  description         String?
+  isPublic            Boolean  @default(false)  // Si le template peut être utilisé par tous les utilisateurs
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  createdById         Int
+  createdBy           User     @relation("UserSimulationTemplates", fields: [createdById], references: [id])
+  
+  // Paramètres de base du template
+  parametersJson      Json     // Mêmes paramètres que SimulationScenario
+  
+  // Catégorie pour faciliter le classement/filtrage
+  category            String?  // Ex: "Vacances scolaires", "Effectif réduit", "Planning été"
+  
+  @@map("simulation_templates")
+}
+
+model SimulationScenario {
+  id                  String   @id @default(uuid())
+  name                String
+  description         String?
+  createdAt           DateTime @default(now())
+  createdById         Int
+  createdBy           User     @relation("UserSimulationScenarios", fields: [createdById], references: [id])
+
+  // Paramètres de la simulation
+  // - période de simulation (startDate, endDate)
+  // - règles modifiées (IDs ou définitions complètes)
+  // - effectifs ajustés (ex: liste d'utilisateurs exclus/ajoutés temporairement)
+  // - trames alternatives (IDs de TrameModele à utiliser)
+  // - ... autres paramètres spécifiques
+  parametersJson      Json
+  
+  // Référence optionnelle au template utilisé
+  templateId          String?
+  
+  // Optionnel: Si la simulation part d'un snapshot d'un planning existant (ex: BlocDayPlanning)
+  // basePlanningSnapshotId String?
+
+  results             SimulationResult[]
+
+  @@map("simulation_scenarios")
+}
+
+model SimulationResult {
+  id                  String   @id @default(uuid())
+  scenarioId          String
+  scenario            SimulationScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  
+  createdAt           DateTime @default(now())
+  
+  // Le planning "virtuel" généré.
+  // Pourrait être une structure JSON complexe ou pointer vers des versions "simulées" des modèles de planning actuels.
+  // Pour une première version, un JSON stockant les affectations simulées pourrait suffire.
+  // Exemple: { assignments: [...], dailyStats: {...} }
+  generatedPlanningData Json
+  
+  // Statistiques clés issues de la simulation
+  // Exemple: { coverageRate: 0.95, ruleViolations: 5, totalAssignments: 150 }
+  statisticsJson      Json
+  
+  // Alertes de conflits potentiels identifiés
+  // Exemple: [{ ruleId: "...", message: "...", severity: "ERROR" }]
+  conflictAlertsJson  Json?
+  
+  // Optionnel: Données de comparaison avec un planning de référence (actuel ou autre scénario)
+  // Exemple: { diffAssignments: [...], kpiChanges: {...} }
+  comparisonDataJson  Json?
+
+  // État de la simulation (utile si le calcul est long/asynchrone)
+  status              SimulationStatus @default(PENDING)
+  errorMessage        String? // En cas d'échec de la simulation
+
+  @@map("simulation_results")
+}
+
+enum SimulationStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+// --- FIN MODÈLES POUR LA SIMULATION DE PLANNING ---
+
+// NOUVELLE ÉNUMÉRATION POUR LES TYPES DE NOTIFICATION
+enum NotificationType {
+  // Messages & Commentaires
+  NEW_CONTEXTUAL_MESSAGE
+  MENTION_IN_MESSAGE
+  NEW_PLANNING_COMMENT
+
+  // Échanges d'affectations
+  ASSIGNMENT_SWAP_REQUEST_RECEIVED
+  ASSIGNMENT_SWAP_REQUEST_ACCEPTED
+  ASSIGNMENT_SWAP_REQUEST_REJECTED
+  ASSIGNMENT_SWAP_REQUEST_APPROVED_ADMIN
+  ASSIGNMENT_SWAP_REQUEST_CANCELLED
+
+  // Infos & Alertes Planning
+  ASSIGNMENT_REMINDER
+  PLANNING_UPDATED_IMPACTING_YOU
+  LEAVE_REQUEST_STATUS_CHANGED // Pourrait déjà exister sous une autre forme
+  NEW_OPEN_SHIFT_AVAILABLE
+
+  // Admin/Système
+  TEAM_PLANNING_PUBLISHED
+  RULE_CONFLICT_DETECTED_ADMIN
+
+  // Notifications générales (à ajouter si besoin)
+  GENERAL_INFO
+  SYSTEM_ALERT
+}
+
+// --- NOUVEAU MODÈLE POUR LA MESSAGERIE CONTEXTUELLE ---
+model ContextualMessage {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  Int
+  author    User     @relation("AuthoredMessages", fields: [authorId], references: [id], onDelete: Cascade)
+
+  assignmentId String?
+  assignment   Assignment? @relation("AssignmentContextualMessages", fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  contextDate DateTime? @db.Date
+
+  requestId String?
+  request   UserRequest? @relation("UserRequestContextualMessages", fields: [requestId], references: [id], onDelete: Cascade)
+
+  parentId  String?
+  parent    ContextualMessage?  @relation("Thread", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies   ContextualMessage[] @relation("Thread")
+
+  @@index([assignmentId])
+  @@index([contextDate])
+  @@index([requestId])
+  @@index([authorId])
+  @@map("contextual_messages")
+}
+
+// --- NOUVEAU MODÈLE POUR LES COMMENTAIRES SUR PLANNING (Optionnel, si distinct de ContextualMessage) ---
+// Si nous décidons que les commentaires de planning sont suffisamment différents
+// pour justifier leur propre modèle. Sinon, on utilise ContextualMessage avec contextDate.
+// Pour l'instant, je vais commenter cette partie et nous pourrons l'activer si besoin.
+/*
+model PlanningComment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  Int
+  author    User     @relation("AuthoredPlanningComments", fields: [authorId], references: [id], onDelete: Cascade)
+
+  date      DateTime @db.Date // Commentaire pour un jour spécifique
+
+  // Optionnel: portée (site, équipe, etc.)
+  // siteId    String?
+  // site      Site?    @relation(fields: [siteId], references: [id])
+
+  @@index([date])
+  @@index([authorId])
+  @@map("planning_comments")
+}
+*/
+
+// --- MODÈLE POUR LES PRÉFÉRENCES DE NOTIFICATIONS ---
+model NotificationPreference {
+  id        String   @id @default(cuid())
+  userId    Int
+  user      User     @relation("UserNotificationPreferences", fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Types de notifications
+  assignmentReminders          Boolean @default(true)  // Rappels d'affectations
+  assignmentSwapRequests       Boolean @default(true)  // Demandes d'échange
+  assignmentSwapResponses      Boolean @default(true)  // Réponses aux demandes d'échange
+  assignmentSwapAdminActions   Boolean @default(true)  // Actions administratives sur les échanges
+  contextualMessages           Boolean @default(true)  // Messages contextuels
+  mentionsInMessages           Boolean @default(true)  // Mentions dans les messages
+  planningUpdates              Boolean @default(true)  // Mises à jour du planning
+  leaveRequestStatusChanges    Boolean @default(true)  // Changements de statut des demandes de congés
+  openShifts                   Boolean @default(false) // Postes ouverts disponibles
+  teamPlanningPublished        Boolean @default(true)  // Publication du planning d'équipe
+  
+  // Canaux de notification
+  emailEnabled                 Boolean @default(true)  // Notifications par email
+  inAppEnabled                 Boolean @default(true)  // Notifications dans l'application
+  pushEnabled                  Boolean @default(false) // Notifications push (si implémentées)
+  
+  // Périodes de non-dérangement
+  quietHoursEnabled            Boolean @default(false) // Activer les heures calmes
+  quietHoursStart              String? @default("22:00") // Début des heures calmes (format HH:MM)
+  quietHoursEnd                String? @default("08:00") // Fin des heures calmes (format HH:MM)
+  quietHoursDays               String? // Jours avec heures calmes (format JSON ["MON", "TUE", ...])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId])
+  @@map("notification_preferences")
 }

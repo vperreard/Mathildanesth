@@ -1,13 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
-import { Prisma, LeaveStatus, Role as UserRolePrisma, Leave as PrismaLeave, LeaveType } from '@prisma/client'; // Importer PrismaLeave et Prisma, LeaveType
+import { Prisma, LeaveStatus, Role as UserRolePrisma, Leave as PrismaLeave, LeaveType, NotificationType } from '@prisma/client'; // Importer PrismaLeave et Prisma, LeaveType, NotificationType
 import { z } from 'zod';
 import { calculateCountedDays } from '@/modules/leaves/utils/dateCalculations';
 import { LeaveQueryCacheService } from '@/modules/leaves/services/LeaveQueryCacheService';
 import { LeaveEvent } from '@/modules/leaves/types/cache'; // Importer directement de types/cache
 import { parseISO } from 'date-fns'; // Importer parseISO
 import { getSession } from 'next-auth/react'; // Importer getSession
+import { createNotification } from '@/lib/notifications'; // Ajout de createNotification
 // import { getSession } from 'next-auth/react'; // Ou une autre méthode pour obtenir la session
 
 // Schéma de validation pour la mise à jour d'un congé
@@ -233,12 +234,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             // Mettre à jour le statut à PENDING lors d'une modification par l'utilisateur
             // Si un admin modifie, les règles peuvent être différentes.
-            dataToUpdate.status = LeaveStatus.PENDING;
+            const previousStatus = existingLeave.status;
+            let newStatus = previousStatus;
 
-            const updatedLeave: PrismaLeave = await prisma.leave.update({
+            // Si l'utilisateur modifie sa propre demande PENDING, elle reste PENDING.
+            // Si un admin modifie une demande PENDING (ou autre statut) de l'utilisateur, elle repasse en PENDING.
+            if (requestingUserId === existingLeave.userId) {
+                if (previousStatus === LeaveStatus.PENDING) {
+                    newStatus = LeaveStatus.PENDING;
+                }
+                // Si l'utilisateur modifie une demande déjà approuvée/rejetée, cela ne devrait pas être permis par la logique de permission plus haut.
+                // Mais par sécurité, on la repasse PENDING.
+                else {
+                    newStatus = LeaveStatus.PENDING;
+                }
+            } else { // Un admin modifie
+                newStatus = LeaveStatus.PENDING; // Modification par un admin remet en PENDING pour re-validation/soumission.
+            }
+            dataToUpdate.status = newStatus;
+
+            const updatedLeave = await prisma.leave.update({ // Retiré le typage PrismaLeave explicite
                 where: { id: leaveId },
                 data: dataToUpdate,
+                // include: { user: { select: {id: true, prenom: true, nom: true } } } // Commenté pour éviter erreur de type si l'outil ne le gère pas bien
             });
+
+            // Notification si un admin a modifié la demande de l'utilisateur
+            // On utilise updatedLeave.userId qui est toujours présent.
+            if (requestingUserId !== updatedLeave.userId) {
+                const adminUser = await prisma.user.findUnique({ where: { id: requestingUserId }, select: { prenom: true, nom: true } });
+                const adminName = adminUser ? `${adminUser.prenom} ${adminUser.nom}`.trim() : 'un administrateur'; // Attention aux backticks ici
+                const notificationMessage = `Votre demande de congé a été modifiée par ${adminName} et est en attente de validation. Nouveau statut: ${updatedLeave.status}.`;
+                const linkToLeave = `/mes-conges?leaveId=${updatedLeave.id}`;
+
+                await createNotification({
+                    userId: updatedLeave.userId, // Utiliser directement updatedLeave.userId
+                    type: NotificationType.LEAVE_REQUEST_STATUS_CHANGED,
+                    message: notificationMessage,
+                    link: linkToLeave,
+                    triggeredByUserId: requestingUserId,
+                });
+            }
+
+            // Invalider le cache
 
             // Invalider le cache
             const cacheService = LeaveQueryCacheService.getInstance();
@@ -286,6 +324,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
             });
 
+            // Notification si le congé est annulé
+            if (updatedLeave.status === LeaveStatus.CANCELLED && existingLeave.userId) {
+                // Déterminer qui a annulé
+                let cancellerName = 'Quelqu\'un';
+                if (session && session.user && typeof session.user.name === 'string') { // Vérifier que session.user.name est une string
+                    cancellerName = session.user.name;
+                }
+
+                // Éviter de notifier l'utilisateur s'il a annulé lui-même.
+                // La notification est plus pertinente si un admin annule pour l'utilisateur.
+                if (requestingUserId !== existingLeave.userId) {
+                    const notificationMessage = `Votre demande de congé du ${new Date(updatedLeave.startDate).toLocaleDateString('fr-FR')} au ${new Date(updatedLeave.endDate).toLocaleDateString('fr-FR')} a été annulée par ${cancellerName}.`;
+                    const linkToLeave = `/mes-conges?leaveId=${updatedLeave.id}`;
+                    await createNotification({
+                        userId: existingLeave.userId,
+                        type: NotificationType.LEAVE_REQUEST_STATUS_CHANGED,
+                        message: notificationMessage,
+                        link: linkToLeave,
+                        triggeredByUserId: requestingUserId,
+                    });
+                }
+            }
+
+            return res.status(200).json({
+                message: 'Leave successfully cancelled',
+                leave: updatedLeave
+            });
             // Invalidation du cache (similaire à PUT)
             const cacheService = LeaveQueryCacheService.getInstance();
             const affectedYears = new Set([

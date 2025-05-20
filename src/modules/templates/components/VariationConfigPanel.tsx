@@ -71,11 +71,6 @@ const VariationConfigPanel: React.FC<VariationConfigPanelProps> = ({
     // State pour les erreurs de validation
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    // Met à jour la variation parent lors des changements
-    useEffect(() => {
-        onChange(variationData);
-    }, [variationData]);
-
     // Gestion des changements de la variation
     const handleChange = (field: keyof ConfigurationVariation, value: any) => {
         setVariationData(prev => ({
@@ -120,7 +115,7 @@ const VariationConfigPanel: React.FC<VariationConfigPanelProps> = ({
     // Soumettre la configuration
     const handleSubmit = () => {
         if (!validateConfiguration()) return;
-        // La mise à jour est déjà gérée par l'effet
+        onChange(variationData);
     };
 
     return (

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { LeaveStatus } from '@prisma/client';
+import { LeaveStatus, NotificationType } from '@prisma/client';
 import { verifyAuthToken } from '@/lib/auth-utils';
+import { createNotification } from '@/lib/notifications';
 
 /**
  * POST /api/admin/leaves/[id]/reject
@@ -83,6 +84,26 @@ export async function POST(
                 }
             }
         });
+
+        // Envoyer une notification à l'utilisateur
+        if (updatedLeave && updatedLeave.user) {
+            const adminFullName = `${admin.prenom} ${admin.nom}`.trim();
+            let notificationMessage = `Votre demande de congé du ${new Date(updatedLeave.startDate).toLocaleDateString('fr-FR')} au ${new Date(updatedLeave.endDate).toLocaleDateString('fr-FR')} a été rejetée par ${adminFullName}.`;
+            if (updatedLeave.comment) {
+                notificationMessage += ` Motif : ${updatedLeave.comment}`;
+            }
+            // TODO: Déterminer le lien exact vers la demande de congé ou la liste des congés de l'utilisateur
+            const linkToLeave = `/mes-conges?leaveId=${updatedLeave.id}`; // Exemple de lien
+
+            await createNotification({
+                userId: updatedLeave.userId,
+                type: NotificationType.LEAVE_REQUEST_STATUS_CHANGED,
+                message: notificationMessage,
+                link: linkToLeave,
+                triggeredByUserId: Number(adminId),
+                // relatedLeaveId: updatedLeave.id // Si relation directe
+            });
+        }
 
         // Préparer la réponse
         const userName = leave.user ? `${leave.user.prenom} ${leave.user.nom}` : `Utilisateur #${leave.userId}`;

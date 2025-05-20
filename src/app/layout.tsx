@@ -6,7 +6,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Providers } from './providers';
 import 'react-toastify/dist/ReactToastify.css';
-import { ToastContainer } from 'react-toastify';
+import NotificationToast from '@/components/notifications/NotificationToast';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import ErrorDisplay from '@/components/ErrorDisplay';
@@ -60,19 +60,7 @@ export default function RootLayout({
                                 >
                                     {children}
                                 </ErrorBoundary>
-                                <ToastContainer
-                                    position="top-right"
-                                    autoClose={5000}
-                                    hideProgressBar={false}
-                                    newestOnTop={false}
-                                    closeOnClick
-                                    rtl={false}
-                                    pauseOnFocusLoss
-                                    draggable
-                                    pauseOnHover
-                                    theme="colored"
-                                    toastClassName="rounded-lg shadow-md"
-                                />
+                                <NotificationToast />
                                 <div className="fixed bottom-4 right-4 z-50">
                                     <NotificationCenter />
                                 </div>

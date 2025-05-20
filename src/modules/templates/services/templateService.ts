@@ -105,27 +105,31 @@ interface AffectationModeleCreateDto {
     priorite?: number;
     isActive?: boolean;
     detailsJson?: any;
-    personnelRequis?: {
-        create: Array<{
-            roleGenerique: string;
-            nombreRequis: number;
-            notes?: string;
-            // TODO: Ajouter d'autres champs si nécessaire depuis Prisma.PersonnelRequisModeleCreateInput
-            // professionalRoleId?: string; // Exemple: code du ProfessionalRoleConfig
-            // specialtyId?: number;
-            // personnelHabituelUserId?: number;
-            // personnelHabituelSurgeonId?: number;
-            // personnelHabituelNomExterne?: string;
-            detailsJson?: any; // Pour stocker des métadonnées frontend comme frontendPosteId
-        }>;
-    };
+    personnelRequis?: Array<{
+        roleGenerique: string;
+        nombreRequis: number;
+        notes?: string;
+        // TODO: Ajouter d'autres champs si nécessaire depuis Prisma.PersonnelRequisModeleCreateInput
+        // professionalRoleId?: string; // Exemple: code du ProfessionalRoleConfig
+        // specialtyId?: number;
+        // personnelHabituelUserId?: number;
+        // personnelHabituelSurgeonId?: number;
+        // personnelHabituelNomExterne?: string;
+        detailsJson?: any; // Pour stocker des métadonnées frontend comme frontendPosteId
+    }>;
 }
 
 // Helper pour mapper AffectationModeleDTO (de l'API GET /trame-modeles?includeAffectations=true)
 // vers TemplateAffectation (frontend)
 const mapAffectationModeleDtoToTemplateAffectation = (affectationDto: any): TemplateAffectation => {
     const typeAffectation = affectationDto.activityType?.code || affectationDto.activityType?.name || 'INCONNU';
-    const postesRequis = affectationDto.personnelRequis?.reduce((sum: number, pr: any) => sum + (pr.nombreRequis || 0), 0) || 0;
+    let postesCalculated = affectationDto.personnelRequis?.reduce((sum: number, pr: any) => sum + (pr.nombreRequis || 0), 0) || 0;
+
+    const estOuvert = affectationDto.isActive !== undefined ? affectationDto.isActive : true;
+
+    if (estOuvert && postesCalculated === 0) {
+        postesCalculated = 1;
+    }
 
     // Mapping inversé pour jourSemaine (pour affichage)
     const invertedDayOfWeekMapping: { [key: string]: DayOfWeek } = {
@@ -142,31 +146,52 @@ const mapAffectationModeleDtoToTemplateAffectation = (affectationDto: any): Temp
     const configuration: AffectationConfiguration = {
         id: affectationDto.detailsJson?.frontendConfigId || `conf_affect_${affectationDto.id}`,
         nom: affectationDto.detailsJson?.frontendConfigNom || affectationDto.activityType?.name || 'Configuration par défaut',
-        postes: affectationDto.personnelRequis?.map((pr: any, index: number) => ({
+        postes: affectationDto.detailsJson?.frontendPostes || affectationDto.personnelRequis?.map((pr: any, index: number) => ({
             id: pr.detailsJson?.frontendPosteId || `poste_${affectationDto.id}_${index}`,
             nom: pr.roleGenerique || `Poste ${index + 1}`,
             quantite: pr.nombreRequis || 0,
-            status: (pr.nombreRequis && pr.nombreRequis > 0) ? 'REQUIS' : 'INDISPONIBLE', // Utiliser les chaînes directes
-            competencesRequises: pr.detailsJson?.competencesRequisesFrontend || undefined,
+            status: pr.detailsJson?.frontendStatut || ((pr.nombreRequis && pr.nombreRequis > 0) ? 'REQUIS' : 'INDISPONIBLE'),
+            competencesRequises: pr.detailsJson?.competencesRequises,
+            rolesAutorises: pr.detailsJson?.rolesAutorises,
+            parametres: pr.detailsJson?.parametres,
+            disponibiliteRequise: pr.detailsJson?.disponibiliteRequise,
+            remplacable: pr.detailsJson?.remplacable,
+            tempsTravailMinimum: pr.detailsJson?.tempsTravailMinimum,
+            formationRequise: pr.detailsJson?.formationRequise,
+            superviseur: pr.detailsJson?.superviseur,
+            ordrePriorite: pr.detailsJson?.ordrePriorite
         })) || [],
         heureDebut: affectationDto.detailsJson?.heureDebut || undefined,
         heureFin: affectationDto.detailsJson?.heureFin || undefined,
+        notes: affectationDto.detailsJson?.notes,
+        emplacementPhysique: affectationDto.detailsJson?.emplacementPhysique,
+        equipementsRequis: affectationDto.detailsJson?.equipementsRequis,
+        dureePreparation: affectationDto.detailsJson?.dureePreparation,
+        dureeNettoyage: affectationDto.detailsJson?.dureeNettoyage,
+        parametres: affectationDto.detailsJson?.parametres,
+        priorite: affectationDto.priorite || 0,
+        couleur: affectationDto.detailsJson?.couleur,
+        contraintes: affectationDto.detailsJson?.contraintes
     };
 
     return {
         id: String(affectationDto.id),
         jour: frontendJourSemaine,
         type: typeAffectation as AffectationType,
-        ouvert: affectationDto.isActive !== undefined ? affectationDto.isActive : true,
-        postesRequis: postesRequis,
+        ouvert: estOuvert,
+        postesRequis: affectationDto.detailsJson?.frontendPostesRequis !== undefined ? affectationDto.detailsJson?.frontendPostesRequis : postesCalculated,
         ordre: affectationDto.priorite || 0,
         configuration: configuration,
-        // periode et typeSemaineLiee ne sont pas dans TemplateAffectation, donc on les omet ici
     };
 };
 
 // Helper pour mapper TrameModeleDTO (de l'API) vers PlanningTemplate (frontend)
 const mapTrameModeleDtoToPlanningTemplate = (dto: any): PlanningTemplate => {
+    const variations = dto.detailsJson?.frontendVariations || [];
+    if (variations.length) {
+        console.log(`[Template Service] ${variations.length} variations trouvées dans detailsJson pour la trame ${dto.id}`);
+    }
+
     return {
         id: String(dto.id), // Assurer que l'ID est un string pour le frontend
         nom: dto.name,
@@ -182,10 +207,8 @@ const mapTrameModeleDtoToPlanningTemplate = (dto: any): PlanningTemplate => {
         affectations: Array.isArray(dto.affectations)
             ? dto.affectations.map(mapAffectationModeleDtoToTemplateAffectation)
             : [],
-        // Pour l'instant, on laisse vide pour que l'éditeur actuel fonctionne
-        // Il faudra une migration/adaptation de BlocPlanningTemplateEditor
-        // Ou un service qui mappe les AffectationModele vers TemplateAffectation
-        variations: [],   // Les variations ne sont pas encore gérées par ce mapping
+        // Récupérer les variations depuis detailsJson si elles existent
+        variations: variations,
         createdAt: dto.createdAt ? new Date(dto.createdAt) : new Date(),
         updatedAt: dto.updatedAt ? new Date(dto.updatedAt) : new Date(),
         // Les autres champs de PlanningTemplate (estModele, createdBy, etc.) peuvent être initialisés au besoin
@@ -285,6 +308,45 @@ export const templateService = {
             joursSemaineActifs: templateData.joursSemaineActifs && templateData.joursSemaineActifs.length > 0 ? templateData.joursSemaineActifs : [1, 2, 3, 4, 5],
             typeSemaine: templateData.typeSemaine || 'TOUTES', // Assurer une valeur par défaut
             roles: templateData.roles && templateData.roles.length > 0 ? templateData.roles : [RoleType.TOUS],
+            // Inclure les variations dans detailsJson dès la création/mise à jour initiale
+            detailsJson: templateData.variations && templateData.variations.length > 0 ? {
+                frontendVariations: templateData.variations.map(v => {
+                    // S'assurer que tous les champs de la variation sont compatibles avec JSON
+                    const sanitizedVariation = {
+                        id: v.id || `var_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+                        affectationId: v.affectationId,
+                        nom: v.nom || "Variation sans nom",
+                        priorite: typeof v.priorite === 'number' ? v.priorite : 5,
+                        typeVariation: v.typeVariation || 'PERSONNALISEE',
+                        dateDebut: v.dateDebut ? new Date(v.dateDebut).toISOString() : null,
+                        dateFin: v.dateFin ? new Date(v.dateFin).toISOString() : null,
+                        joursSpecifiques: Array.isArray(v.joursSpecifiques) ? v.joursSpecifiques : [],
+                        actif: v.actif !== undefined ? v.actif : true
+                    };
+
+                    // Nettoyer la configuration pour qu'elle soit JSON-compatible
+                    if (v.configuration) {
+                        const sanitizedConfig = {
+                            id: v.configuration.id || `conf_var_${Date.now()}`,
+                            postes: Array.isArray(v.configuration.postes) ? v.configuration.postes.map(p => ({
+                                id: p.id || `poste_var_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+                                nom: p.nom || "Poste sans nom",
+                                quantite: typeof p.quantite === 'number' ? p.quantite : 0,
+                                status: p.status || 'REQUIS'
+                            })) : [],
+                            heureDebut: v.configuration.heureDebut || undefined,
+                            heureFin: v.configuration.heureFin || undefined,
+                            notes: v.configuration.notes || undefined,
+                        };
+                        return {
+                            ...sanitizedVariation,
+                            configuration: sanitizedConfig
+                        };
+                    }
+
+                    return sanitizedVariation;
+                })
+            } : undefined
         };
 
         try {
@@ -385,6 +447,73 @@ export const templateService = {
 
             console.log(`[Template Service] ${createdAffectations.length} nouvelles affectations créées pour la trame ${trameModeleId}.`);
 
+            // Log pour débugage des affectations et postes
+            console.log(`[Template Service DEBUG] Affectations sauvegardées:`, createdAffectations.length);
+            console.log(`[Template Service DEBUG] Exemple première affectation si existe:`,
+                createdAffectations.length > 0 ? JSON.stringify(createdAffectations[0], null, 2) : 'aucune affectation');
+
+            // Créer un mappage entre les anciens IDs d'affectation (frontendAffectationId) et les nouveaux IDs
+            const affectationIdMapping: Record<string, string> = {};
+            createdAffectations.forEach(aff => {
+                const frontendId = aff.detailsJson?.frontendAffectationId;
+                if (frontendId && String(aff.id)) {
+                    affectationIdMapping[frontendId] = String(aff.id);
+                }
+            });
+
+            console.log(`[Template Service] Mappage des IDs d'affectation créé:`, affectationIdMapping);
+
+            // Si des variations existent, mettre à jour leurs références d'affectationId
+            if (templateData.variations && templateData.variations.length > 0 && Object.keys(affectationIdMapping).length > 0) {
+                console.log(`[Template Service] Mise à jour des références d'affectationId dans ${templateData.variations.length} variations...`);
+
+                // Créer un nouvel objet detailsJson avec les variations mises à jour
+                const updatedVariations = templateData.variations.map(v => {
+                    // Si l'ancien ID d'affectation a été mappé à un nouvel ID, utiliser ce dernier
+                    const newAffectationId = affectationIdMapping[v.affectationId] || v.affectationId;
+                    return {
+                        ...v,
+                        affectationId: newAffectationId
+                    };
+                });
+
+                // Récupérer d'abord la trame complète pour obtenir le detailsJson actuel
+                const trameResponse = await fetch(`${API_BASE_URL}/${trameModeleId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!trameResponse.ok) {
+                    console.error(`[Template Service] Erreur lors de la récupération de la trame pour mise à jour des variations:`, await trameResponse.text());
+                } else {
+                    const trameData = await trameResponse.json();
+                    // Préserver les autres données dans detailsJson tout en mettant à jour frontendVariations
+                    const updatedDetailsJson = {
+                        ...(trameData.detailsJson || {}),
+                        frontendVariations: updatedVariations
+                    };
+
+                    // Mettre à jour detailsJson avec les variations mises à jour
+                    const updateResponse = await fetch(`${API_BASE_URL}/${trameModeleId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            detailsJson: updatedDetailsJson
+                        })
+                    });
+
+                    if (!updateResponse.ok) {
+                        console.error(`[Template Service] Erreur lors de la mise à jour des références d'affectationId dans les variations:`, await updateResponse.text());
+                    } else {
+                        console.log(`[Template Service] Références d'affectationId mises à jour avec succès dans les variations.`);
+                    }
+                }
+            }
+
         } catch (error) {
             console.error(`[Template Service] Erreur lors de la gestion des affectations pour la trame ${trameModeleId}:`, error);
             // Que faire ici? La trame a été sauvegardée, mais les affectations ont échoué.
@@ -392,24 +521,30 @@ export const templateService = {
             throw new Error(`Erreur lors de la sauvegarde des affectations : ${error instanceof Error ? error.message : String(error)}`);
         }
 
-        // Retourner la PlanningTemplate avec les données de la trame sauvegardée et les affectations (potentiellement mises à jour avec des ID réels)
-        // Pour cela, il faudrait re-récupérer la trame avec ses affectations.
-        // Ou, si les DTO retournés par la création d'affectation sont complets, les utiliser pour reconstruire.
-        // Pour l'instant, on retourne la trame mappée à partir de savedOrUpdatedTrameModeleDto, et les affectations telles qu'elles sont dans templateData (sans ID backend pour les nouvelles)
-        // L'idéal serait de re-fetch ou de mapper les résultats de createdAffectationResults.
+        // --- Étape 3: Sauvegarder les variations (extensions des affectations) ---
+        console.log(`[Template Service] ${templateData.variations?.length || 0} variations incluses dans le payload initial de la trame ${trameModeleId}.`);
+
+        // Note: Les variations sont maintenant sauvegardées dans le detailsJson dès la création/mise à jour initiale
+        // Nous n'avons donc pas besoin de faire une mise à jour séparée ici.
+
+        // Si pour une raison quelconque les variations n'ont pas été correctement sauvegardées,
+        // nous pourrions ajouter un mécanisme de vérification et correction ici.
 
         // Pour une meilleure UX, on recharge la trame complète après toutes les opérations.
+        console.log(`[Template Service DEBUG] Chargement de la trame complète après sauvegarde...`);
         const finalTrame = await this.getTemplateById(trameModeleId as string);
+
         if (!finalTrame) {
             // Cela ne devrait pas arriver si tout s'est bien passé.
             console.error(`[Template Service] CRITICAL: La trame ${trameModeleId} sauvegardée n'a pas pu être récupérée après la gestion des affectations.`);
             // Retourner au moins ce qui a été sauvegardé au niveau des métadonnées, avec les affectations locales pour éviter un crash total
-            // mais signaler une forte incohérence.
             const fallbackTrame = mapTrameModeleDtoToPlanningTemplate(savedOrUpdatedTrameModeleDto);
             fallbackTrame.affectations = templateData.affectations; // Garder les affectations du frontend en dernier recours
             return fallbackTrame;
-            // throw new Error("La trame sauvegardée n'a pas pu être récupérée après la gestion des affectations.");
         }
+
+        console.log(`[Template Service DEBUG] Trame chargée avec ${finalTrame.affectations.length || 0} affectations.`);
+        console.log(`[Template Service DEBUG] Exemple première affectation si existe:`, finalTrame.affectations.length ? JSON.stringify(finalTrame.affectations[0], null, 2) : 'aucune affectation');
         return finalTrame;
     },
 
@@ -524,6 +659,12 @@ export const templateService = {
     // ... (reste des fonctions comme searchTemplates, advancedSearch, etc. à adapter si besoin)
 };
 
+/**
+ * Mapper une affectation template côté client (TemplateAffectation) vers le format API
+ * @param affectation - L'affectation à mapper
+ * @param trameTypeSemaine - Le type de semaine de la trame parente (TOUTES, PAIRES, IMPAIRES)
+ * @returns L'objet DTO prêt à être envoyé à l'API
+ */
 const mapTemplateAffectationToApiDto = (
     affectation: TemplateAffectation,
     trameTypeSemaine: TypeSemaineTrameValue,
@@ -541,20 +682,31 @@ const mapTemplateAffectationToApiDto = (
         return null;
     }
 
-    const personnelRequisConfig = affectation.configuration?.postes
-        ?.filter(p => p.quantite > 0 && p.status !== 'INDISPONIBLE') // Utiliser la chaîne directe pour PosteStatus
-        .map(p => ({
-            roleGenerique: p.nom,
-            nombreRequis: p.quantite,
-            detailsJson: {
-                frontendPosteId: p.id,
-                frontendStatut: p.status
-            }
-        })) || [];
+    // Calculer le nombre total de postes requis
+    const totalPostesRequis = affectation.configuration?.postes
+        ?.filter(p => p.quantite > 0 && p.status !== 'INDISPONIBLE')
+        .reduce((total, poste) => total + poste.quantite, 0) || 0;
 
-    // Déterminer la période. Si TemplateAffectation n'a pas de champ `periode`,
-    // il faut décider d'où cette information provient. Pour l'instant, on met JOURNEE_ENTIERE par défaut.
-    // Si affectation.configuration.heureDebut et heureFin sont définis, on pourrait essayer de déduire MATIN/APRES_MIDI.
+    const nombrePostesRequis = (totalPostesRequis > 0) ? totalPostesRequis : (affectation.ouvert ? affectation.postesRequis : 0);
+
+    // Simple array of personnelRequis objects (not nested with 'create')
+    let personnelRequis: Array<{
+        roleGenerique: string;
+        nombreRequis: number;
+        notes?: string;
+    }> = [];
+
+    if (nombrePostesRequis > 0) {
+        personnelRequis = [{
+            roleGenerique: affectation.type || "Poste par défaut",
+            nombreRequis: nombrePostesRequis,
+            notes: `Postes créés automatiquement pour l'affectation de type ${affectation.type}`
+        }];
+    }
+
+    console.log(`[Template Service DEBUG] personnelRequisConfig simplifié avant création du DTO:`, JSON.stringify(personnelRequis, null, 2));
+    console.log(`[Template Service DEBUG] Nombre total de postes requis calculé: ${nombrePostesRequis}`);
+
     let periode: PeriodValue = 'JOURNEE_ENTIERE'; // Valeur par défaut
     if (affectation.configuration?.heureDebut && affectation.configuration?.heureFin) {
         // Logique simple pour déduire MATIN/APRES_MIDI (à affiner)
@@ -587,9 +739,50 @@ const mapTemplateAffectationToApiDto = (
             frontendConfigNom: affectation.configuration?.nom,
             heureDebut: affectation.configuration?.heureDebut,
             heureFin: affectation.configuration?.heureFin,
+            // Sauvegarder les postes complets dans detailsJson pour restauration
+            frontendPostes: affectation.configuration?.postes,
+            frontendPostesRequis: affectation.postesRequis,
+            // Sauvegarder les autres détails de la configuration
+            notes: affectation.configuration?.notes,
+            emplacementPhysique: affectation.configuration?.emplacementPhysique,
+            equipementsRequis: affectation.configuration?.equipementsRequis,
+            dureePreparation: affectation.configuration?.dureePreparation,
+            dureeNettoyage: affectation.configuration?.dureeNettoyage,
+            parametres: affectation.configuration?.parametres,
+            priorite: affectation.configuration?.priorite,
+            couleur: affectation.configuration?.couleur,
+            contraintes: affectation.configuration?.contraintes
         },
-        ...(personnelRequisConfig.length > 0 && { personnelRequis: { create: personnelRequisConfig } }),
+        // L'API attend directement un tableau de personnel requis
+        personnelRequis: personnelRequis.length > 0 ? personnelRequis : undefined,
     };
 
     return dto;
+};
+
+/**
+ * Mappe une variation de configuration côté client vers le format API
+ * Stockera les données dans detailsJson car il n'y a pas encore de table dédiée
+ */
+const mapVariationToApiDto = (
+    variation: ConfigurationVariation,
+    trameId: string
+): any => {
+    // Pour l'instant, nous allons stocker la variation comme une extension de l'affectation
+    // via son champ detailsJson
+    return {
+        affectationId: variation.affectationId,
+        trameModeleId: trameId,
+        variationData: {
+            id: variation.id,
+            nom: variation.nom,
+            priorite: variation.priorite,
+            typeVariation: variation.typeVariation,
+            dateDebut: variation.dateDebut,
+            dateFin: variation.dateFin,
+            joursSpecifiques: variation.joursSpecifiques,
+            actif: variation.actif !== undefined ? variation.actif : true,
+            configuration: variation.configuration,
+        }
+    };
 }; 

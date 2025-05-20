@@ -120,6 +120,41 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
     }
 
     /**
+     * Génère un planning en respectant les règles dynamiques et retourne des détails complets (incluant les violations et scores)
+     */
+    public async generatePlanningWithDetails(): Promise<OptimizationResult> {
+        console.log('Début de la génération de planning détaillée basée sur les règles...');
+
+        if (this.dynamicRules.length === 0) {
+            await this.loadRules();
+        }
+
+        this.optimizationAttempts = 0;
+        this.optimizationScores = [];
+
+        const initialAssignments = await super.generatePlanning();
+        console.log(`Planning initial généré (pour détails) avec ${initialAssignments.length} affectations.`);
+
+        const optimizedResult = await this.optimizePlanning(initialAssignments);
+
+        console.log(
+            `Génération détaillée terminée. Score final: ${optimizedResult.score.toFixed(2)}. ` +
+            `${optimizedResult.validAssignments.length} affectations valides. ` +
+            `${optimizedResult.violatedRules.length} règles violées.`
+        );
+        this.eventBus.emit({
+            type: 'planning:generatedWithDetails',
+            data: {
+                assignmentsCount: optimizedResult.validAssignments.length,
+                violatedRulesCount: optimizedResult.violatedRules.length,
+                score: optimizedResult.score
+            }
+        });
+
+        return optimizedResult;
+    }
+
+    /**
      * Optimise un planning existant en appliquant les règles dynamiques
      */
     private async optimizePlanning(assignments: Assignment[]): Promise<OptimizationResult> {

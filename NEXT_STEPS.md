@@ -315,9 +315,9 @@ Ce document liste les actions prioritaires et les points d'attention pour les pr
             - [ ] **Validation Schéma**: Confirmer la structure définitive du modèle `LeaveBalance` dans `schema.prisma` et s'assurer de sa cohérence à travers le projet.
             - [ ] **Fiabilisation des Mises à Jour**: S'assurer que tous les processus modifiant les soldes (demandes, transferts, reports, ajustements) mettent à jour `LeaveBalance` de manière fiable et atomique.
             - [ ] **Optimisation API Balance**: Envisager de simplifier l'API `/api/leaves/balance` si `LeaveBalance` devient une source de vérité complète et constamment à jour.
-        - 🚧 **Amélioration UX et Gestion des Erreurs (Formulaire de Congés)**:
-            - [ ] Afficher des messages d'erreur plus précis et informatifs dans `LeaveForm.tsx`.
-            - [ ] Améliorer le retour visuel pendant les phases de calcul et de soumission du formulaire de congé.
+            - [ ] **Amélioration UX et Gestion des Erreurs (Formulaire de Congés)**:
+                - [ ] Afficher des messages d'erreur plus précis et informatifs dans `LeaveForm.tsx`.
+                - [ ] Améliorer le retour visuel pendant les phases de calcul et de soumission du formulaire de congé.
 
 ### 2. Système de Règles Dynamiques (Avancement)
 
@@ -325,3 +325,40 @@ Ce document liste les actions prioritaires et les points d'attention pour les pr
     - **Actions Immédiates :**
         - 🔄 **Interface Admin Règles :**
             - Finaliser `
+
+# Mise à jour des Travaux Réalisés (Simulation Planning)
+
+Suite à l'implémentation des templates de simulation, nous avons considérablement amélioré la fonctionnalité de simulation. Voici un résumé des avancées récentes:
+
+## Travaux Réalisés
+
+### 1. Module de Simulation
+- ✅ **Interface de Création de Simulation :**
+    - Interface à onglets pour remplacer l'éditeur JSON brut
+    - Sélection intuitive de dates, sites, règles et utilisateurs
+- ✅ **Visualisation des Résultats :**
+    - Présentation structurée avec des onglets (Résumé, Conflits, Participants, Détails)
+    - Visualisations graphiques des statistiques clés
+    - Système d'auto-refresh pour les simulations en cours
+- ✅ **Export des Résultats :**
+    - Export PDF et Excel avec mise en forme
+    - Exportation des statistiques, conflits et affectations
+- ✅ **Templates de simulation :**
+    - Système permettant de sauvegarder des configurations types pour accélérer la création de scénarios
+    - Interface de gestion des templates avec création, édition et suppression
+    - Catégorisation des templates et permissions (public/privé)
+
+## Prochaines Tâches Prioritaires
+
+### 1. Simulation Planning (Optimisations)
+- [ ] **Optimisations UI :**
+    - Améliorer la réactivité de l'interface pour les grandes simulations
+    - Ajouter des filtres plus avancés pour les résultats de simulation
+- [ ] **Moteur de Simulation :**
+    - Optimiser l'algorithme pour réduire les temps de calcul
+    - Ajouter des options avancées pour la distribution de charge
+- [ ] **Dashboard Analytique :**
+    - Développer une interface de visualisation consolidée des statistiques
+    - Permettre la comparaison visuelle des différents scénarios
+
+Ces améliorations continueront à renforcer le module de simulation, le rendant plus flexible, performant et utile pour la planification hospitalière.

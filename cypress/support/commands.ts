@@ -63,6 +63,12 @@ declare global {
             // Commandes lighthouse et pa11y
             lighthouse(thresholds?: any, opts?: any, config?: any): void;
             pa11y(options?: any): void;
+
+            /**
+             * Commande pour se déconnecter
+             * Exemple: cy.logout()
+             */
+            logout(): Chainable<void>;
         }
     }
 }
@@ -221,4 +227,15 @@ Cypress.Commands.add('waitForApi', () => {
     cy.wait('@apiRequest').then((interception) => {
         expect(interception.response?.statusCode).to.be.oneOf([200, 201, 204]);
     });
+});
+
+/**
+ * Commande pour se déconnecter
+ * Exemple: cy.logout()
+ */
+Cypress.Commands.add('logout', () => {
+    cy.clearCookies();
+    cy.clearLocalStorage();
+    // Optionnel: appeler une API de déconnexion si nécessaire
+    // cy.request('POST', '/api/auth/logout');
 }); 

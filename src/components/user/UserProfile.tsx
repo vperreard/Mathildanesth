@@ -159,6 +159,20 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                             <span className="ml-auto bg-gradient-to-r from-primary-100 to-secondary-100 text-primary-600 dark:bg-primary-900 dark:text-primary-300 text-xs px-2 py-0.5 rounded-full">3</span>
                         </Link>
 
+                        <Link
+                            href="/profil/notifications"
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors focus:outline-none focus:bg-gradient-to-r focus:from-primary-50 focus:via-secondary-50 focus:to-tertiary-50 dark:focus:bg-slate-700 focus:text-primary-600 dark:focus:text-primary-400"
+                            role="menuitem"
+                            tabIndex={isMenuOpen ? 0 : -1}
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            Préférences des notifications
+                        </Link>
+
                         <button
                             onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
                             className="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gradient-to-r hover:from-primary-50 hover:via-secondary-50 hover:to-tertiary-50 dark:hover:bg-slate-700 hover:text-primary-600 dark:hover:text-primary-400 transition-colors focus:outline-none focus:bg-gradient-to-r focus:from-primary-50 focus:via-secondary-50 focus:to-tertiary-50 dark:focus:bg-slate-700 focus:text-primary-600 dark:focus:text-primary-400"

@@ -13,6 +13,7 @@ import { navigationLinks, adminLinks } from '@/utils/navigationConfig';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppearance } from '@/hooks/useAppearance';
+import { NotificationBell } from './notifications/NotificationBell';
 
 const fadeIn = {
     hidden: { opacity: 0, y: -10 },
@@ -112,7 +113,10 @@ const Header = memo(function Header() {
                                 {isLoading ? (
                                     <div className="h-8 w-20 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" aria-label="Chargement du profil" role="status"></div>
                                 ) : user ? (
-                                    <UserProfile user={user} onLogout={logout} />
+                                    <>
+                                        <NotificationBell />
+                                        <UserProfile user={user} onLogout={logout} />
+                                    </>
                                 ) : (
                                     <LoginForm idPrefix="header-" />
                                 )}

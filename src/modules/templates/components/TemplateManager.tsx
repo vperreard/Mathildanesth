@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { templateService, FullActivityType } from '../services/templateService';
-import { PlanningTemplate, RoleType } from '../types/template';
-import BlocPlanningTemplateEditor from './BlocPlanningTemplateEditor';
+import { PlanningTemplate, RoleType, Site } from '../types/template';
+import BlocPlanningTemplateEditor, { BlocPlanningTemplateEditorHandle } from './BlocPlanningTemplateEditor';
 import { useRouter, usePathname } from 'next/navigation';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -18,99 +18,97 @@ import { MoreHorizontal, Loader2, Plus } from "lucide-react";
 import { toast } from "react-toastify";
 import { Label } from "@/components/ui/label";
 import Input from "@/components/ui/input";
+import { toast as hotToast } from 'react-hot-toast';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useSession } from 'next-auth/react';
+import SimpleDropdownMenu from "@/components/ui/dropdown-menu";
 
-// Interface pour exposer la méthode de sauvegarde du composant enfant
-interface BlocPlanningTemplateEditorHandle {
-    submit: () => Promise<void>;
-    isDirty: () => boolean;
+export interface TemplateManagerProps {
+    initialTemplatesParam?: PlanningTemplate[]; // Renommé pour éviter confusion avec l'état
+    availableSitesParam: Site[];
+    availableActivityTypesParam: FullActivityType[];
+    availableRolesParam: RoleType[];
 }
 
-export const TemplateManager: React.FC = () => {
-    console.log('[DEBUG TemplateManager] Component RENDERED - src/modules/templates/components/TemplateManager.tsx');
-    const [templates, setTemplates] = useState<PlanningTemplate[]>([]);
+export const TemplateManager: React.FC<TemplateManagerProps> = ({
+    initialTemplatesParam = [],
+    availableSitesParam,
+    availableActivityTypesParam,
+    availableRolesParam
+}) => {
+    console.log('[DEBUG TemplateManager] Component RENDERED with props');
+    const { data: session } = useSession();
+    const [templates, setTemplates] = useState<PlanningTemplate[]>(initialTemplatesParam);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
     const [editingTemplate, setEditingTemplate] = useState<PlanningTemplate | null>(null);
     const [editingTemplateRoles, setEditingTemplateRoles] = useState<RoleType[]>([RoleType.TOUS]);
-    const [availableTypes, setAvailableTypes] = useState<FullActivityType[]>([]);
+    const [availableTypes, setAvailableTypes] = useState<FullActivityType[]>(availableActivityTypesParam);
     const [isMuiChildModalOpen, setIsMuiChildModalOpen] = useState<boolean>(false);
     const [saveProcessCompleted, setSaveProcessCompleted] = useState<boolean>(false);
     const router = useRouter();
     const pathname = usePathname();
 
-    const isSavingRef = useRef(false); // Ref pour l'état de sauvegarde
+    const isSavingRef = useRef(false);
 
-    // Ref pour appeler la méthode de sauvegarde de l'éditeur enfant
     const editorRef = React.useRef<BlocPlanningTemplateEditorHandle>(null);
+    const radixDialogContentRef = useRef<HTMLDivElement>(null);
 
-    // Gérer pointer-events sur le body lorsque l'état de la modale MUI change
     useEffect(() => {
+        const radixDialogPortalElement = radixDialogContentRef.current?.closest('div[role="dialog"][data-state="open"]');
+
         if (isMuiChildModalOpen) {
-            // Lorsque la modale MUI s'ouvre, s'assurer que le body autorise les pointer-events
-            // Utilisation d'un setTimeout pour s'exécuter après les possibles modifications de Radix
-            const timer = setTimeout(() => {
-                console.log("[TemplateManager EFFECT] MUI child open, setting body.style.pointerEvents = ''");
-                document.body.style.pointerEvents = '' // ou 'auto'
-            }, 0);
-            return () => {
-                clearTimeout(timer);
-                // Lorsque la modale MUI se ferme, Radix devrait reprendre la main.
-                // Si la modale Radix principale est toujours ouverte, Radix pourrait remettre pointer-events: none sur le body.
-                // Si la modale Radix principale est aussi fermée, alors le body devrait être 'auto'.
-                // Laisser Radix gérer ou forcer 'auto' si on est sûr que tout est fermé.
-                // Pour l'instant, on ne fait rien ici, en attendant de voir le comportement de Radix.
-                console.log("[TemplateManager EFFECT] MUI child closed. Body pointer events will be managed by Radix or default.");
-            };
+            console.log("[TemplateManager EFFECT] MUI child open, setting body.style.pointerEvents = ''");
+            document.body.style.pointerEvents = '';
+
+            if (radixDialogPortalElement) {
+                console.log("[TemplateManager EFFECT] Setting aria-hidden=false on Radix dialog portal element.");
+                radixDialogPortalElement.setAttribute('aria-hidden', 'false');
+            } else {
+                console.warn("[TemplateManager EFFECT] Could not find Radix dialog portal to set aria-hidden while MUI child is open.");
+            }
         } else {
-            // Si la modale MUI est fermée et que la modale Radix est potentiellement encore ouverte,
-            // Radix devrait gérer les pointer-events du body.
-            // Si on voulait être plus directif, on pourrait faire :
-            // if (!isEditorOpen) document.body.style.pointerEvents = 'auto';
-            // Mais il est préférable de laisser Radix gérer si possible.
-            console.log("[TemplateManager EFFECT] MUI child closed, no specific body.style.pointerEvents override from here.");
+            console.log("[TemplateManager EFFECT] MUI child closed.");
+            if (radixDialogPortalElement) {
+                console.log("[TemplateManager EFFECT] Radix portal element found, letting Radix manage its aria-hidden state on MUI close.");
+            }
+
+            if (document.body.style.pointerEvents === '') {
+                document.body.style.pointerEvents = 'auto';
+                console.log("[TemplateManager EFFECT] Reset body.style.pointerEvents to 'auto'.");
+            }
         }
     }, [isMuiChildModalOpen]);
 
-    // Effet pour réinitialiser isSavingRef après la fermeture de la modale post-sauvegarde
     useEffect(() => {
         if (!isEditorOpen && isSavingRef.current && saveProcessCompleted) {
             console.log("[TemplateManager EFFECT] Save completed and modal closed, resetting isSavingRef.");
             isSavingRef.current = false;
-            setSaveProcessCompleted(false); // Réinitialiser le déclencheur de l'effet
+            setSaveProcessCompleted(false);
         }
     }, [isEditorOpen, saveProcessCompleted]);
 
     const createOutsideInteractionHandler = useCallback((eventName: string) => (event: Event) => {
-        // Si une modale MUI enfant est explicitement marquée comme ouverte,
-        // on empêche toute interaction extérieure de fermer la modale Radix parente.
-        // Cela donne la priorité à l'interaction avec la modale MUI.
         if (isMuiChildModalOpen) {
             console.log(`[TemplateManager] ${eventName}: MUI child modal is open. Preventing Radix Dialog closure.`);
-            event.preventDefault(); // Empêche la fermeture de la modale Radix
-            event.stopPropagation(); // Empêche d'autres listeners de réagir
+            event.preventDefault();
+            event.stopPropagation();
             return;
         }
 
         const target = event.target as HTMLElement;
         console.log(`[TemplateManager] ${eventName} - target:`, target);
 
-        // Si la cible est dans une modale MUI, un menu MUI, ou un popover MUI, ne rien faire.
-        // Note: Cette partie devient moins critique si la vérification isMuiChildModalOpen ci-dessus fonctionne bien,
-        // mais elle reste une bonne sécurité.
         if (target.closest('.MuiDialog-root') ||
             target.closest('.MuiMenu-list') ||
             target.closest('.MuiPopover-paper') ||
             target.closest('.MuiAutocomplete-popper')
         ) {
             console.log(`[TemplateManager] ${eventName}: Target is within an MUI component. Allowing event to propagate to MUI.`);
-            // On ne fait pas event.preventDefault() ici pour que MUI puisse gérer l'événement.
-            // Cependant, si Radix doit rester ouvert, il faudrait aussi un preventDefault() ici.
-            // La logique avec isMuiChildModalOpen est plus robuste.
             return;
         }
 
-        // Si un select Radix (ShadCN) ou un DropdownMenu Radix est ouvert à l'intérieur de cette Dialog Radix
         const isRadixElementOpen =
             document.querySelector('[data-state="open"][data-radix-select-content]') ||
             document.querySelector('[data-state="open"][data-radix-dropdown-menu-content]');
@@ -123,13 +121,10 @@ export const TemplateManager: React.FC = () => {
 
     const handlePointerDownOutside = useMemo(() => createOutsideInteractionHandler('onPointerDownOutside'), [createOutsideInteractionHandler]);
     const handleFocusOutside = useMemo(() => createOutsideInteractionHandler('onFocusOutside'), [createOutsideInteractionHandler]);
-    // onInteractOutside est souvent redondant si onPointerDownOutside est géré, mais on le garde pour couvrir tous les cas.
     const handleInteractOutside = useMemo(() => createOutsideInteractionHandler('onInteractOutside'), [createOutsideInteractionHandler]);
 
     const handleEscapeKeyDown = useCallback((event: KeyboardEvent) => {
         console.log('[TemplateManager] handleEscapeKeyDown');
-        // Si un Select Radix (ShadCN) ou un DropdownMenu Radix est ouvert à l'intérieur de cette Dialog Radix,
-        // empêcher Escape de fermer la Dialog Radix principale. L'Escape devrait fermer le select/dropdown interne.
         const hasOpenRadixSelect = document.querySelector('[data-state="open"][data-radix-select-content]');
         const hasOpenRadixDropdown = document.querySelector('[data-state="open"][data-radix-dropdown-menu-content]');
 
@@ -137,10 +132,8 @@ export const TemplateManager: React.FC = () => {
             console.log('[TemplateManager] Radix select/dropdown is open. Preventing default on escapeKeyDown to keep Radix Dialog open.');
             event.preventDefault();
         }
-        // Sinon, laisser Escape fermer la Dialog Radix principale (comportement par défaut de Radix Dialog).
     }, []);
 
-    // Callback pour gérer l'état d'ouverture des modales MUI enfants
     const handleMuiModalOpenChange = useCallback((isOpen: boolean) => {
         console.log(`[TemplateManager] MUI child modal is now: ${isOpen ? 'OPEN' : 'CLOSED'}`);
         setIsMuiChildModalOpen(isOpen);
@@ -152,15 +145,12 @@ export const TemplateManager: React.FC = () => {
         try {
             const fetchedTemplatesSource = await templateService.getTemplates();
 
-            // Sanitize templates (ensure affectations and variations are arrays)
             const sanitizedNewTemplates = fetchedTemplatesSource.map(template => ({
                 ...template,
                 affectations: Array.isArray(template.affectations) ? template.affectations : [],
                 variations: Array.isArray(template.variations) ? template.variations : [],
             }));
 
-            // Only update state if the templates have actually changed
-            // Cette comparaison est basique et peut être améliorée si nécessaire (ex: deep-diff)
             setTemplates(prevTemplates => {
                 if (JSON.stringify(prevTemplates) !== JSON.stringify(sanitizedNewTemplates)) {
                     return sanitizedNewTemplates;
@@ -188,37 +178,31 @@ export const TemplateManager: React.FC = () => {
     }, [setAvailableTypes]);
 
     const handleEditorOpenChange = useCallback((openState: boolean) => {
-        // S'assurer que le log est bien celui-ci pour vérifier la valeur de isSavingRef.current
         console.log(`%c[TemplateManager V3] Dialog onOpenChange. openState: ${openState}, current editingTemplate ID: ${editingTemplate?.id}, isSavingRef.current: ${isSavingRef.current}. Call stack:`, 'color: dodgerblue; font-weight: bold;', new Error().stack);
 
-        if (!openState) { // Si on tente de fermer
+        if (!openState) {
             if (isSavingRef.current) {
-                // Fermeture due à une sauvegarde. `editingTemplate` a déjà été mis à null par handleSaveTemplate.
-                // `isSavingRef` sera remis à `false` par l'useEffect après fermeture effective.
                 console.log("[TemplateManager] Closing dialog: save operation has initiated this.");
                 setIsEditorOpen(false);
-            } else if (editorRef.current?.isDirty()) { // MODIFIÉ: Utiliser isDirty de l'éditeur
+            } else if (editorRef.current?.isDirty()) {
                 if (confirm("Vous avez des modifications non sauvegardées dans l'éditeur de trame. Êtes-vous sûr de vouloir fermer ?")) {
                     console.log("[TemplateManager] Closing dialog: user confirmed to close with unsaved changes.");
                     setIsEditorOpen(false);
-                    setEditingTemplate(null); // Réinitialiser pour la prochaine ouverture
+                    setEditingTemplate(null);
                 } else {
-                    // L'utilisateur a annulé, on ne fait rien (Radix ne fermera pas si l'état open n'est pas mis à false)
                     console.log("[TemplateManager] Closing dialog: user cancelled closing.");
                     return;
                 }
             } else {
-                // Fermeture normale (nouvelle trame non encore sauvegardée, ou pas de `editingTemplate`, ou pas de modifs)
                 console.log("[TemplateManager] Closing dialog: no specific unsaved changes condition met for prompt or no changes detected.");
                 setIsEditorOpen(false);
-                setEditingTemplate(null); // Réinitialiser pour la prochaine ouverture
+                setEditingTemplate(null);
             }
-        } else { // Si on ouvre
+        } else {
             console.log("[TemplateManager] Opening dialog.");
             setIsEditorOpen(true);
-            // Ne pas toucher à editingTemplate ici, il est défini par handleCreateNew ou handleEdit
         }
-    }, [editingTemplate, setIsEditorOpen, setEditingTemplate]); // editingTemplate, isSavingRef (implicite via current) et editorRef (implicite via current) sont utilisés.
+    }, [editingTemplate, setIsEditorOpen, setEditingTemplate]);
 
     const handleCreateNew = useCallback(() => {
         console.log('[DEBUG TemplateManager] handleCreateNew called');
@@ -264,7 +248,6 @@ export const TemplateManager: React.FC = () => {
     const handleDelete = useCallback(async (id: string, name: string) => {
         console.log("[TemplateManager] handleDelete called for ID:", id, "Name:", name);
 
-        // Fonction pour effectuer la suppression et fermer le toast de confirmation
         const performDeleteAction = async (confirmationToastId: string | number) => {
             try {
                 await templateService.deleteTemplate(id);
@@ -275,13 +258,12 @@ export const TemplateManager: React.FC = () => {
                 setError("Erreur lors de la suppression de la trame.");
                 toast.error("Impossible de supprimer la trame.");
             } finally {
-                toast.dismiss(confirmationToastId); // Fermer le toast de confirmation
+                toast.dismiss(confirmationToastId);
             }
         };
 
-        // Afficher le toast de confirmation
         const confirmationToastId = toast.info(
-            ({ closeToast }) => ( // closeToast est injecté par react-toastify
+            ({ closeToast }) => (
                 <div>
                     <p className="font-bold mb-2">Confirmation de suppression</p>
                     <p>Êtes-vous sûr de vouloir supprimer la trame "{name}" ?</p>
@@ -295,7 +277,7 @@ export const TemplateManager: React.FC = () => {
                         </button>
                         <button
                             className="px-4 py-1 bg-gray-200 rounded"
-                            onClick={() => toast.dismiss(confirmationToastId)} // Utiliser aussi l'ID ici pour la robustesse
+                            onClick={() => toast.dismiss(confirmationToastId)}
                         >
                             Annuler
                         </button>
@@ -305,10 +287,10 @@ export const TemplateManager: React.FC = () => {
             {
                 autoClose: false,
                 closeOnClick: false,
-                toastId: `delete-confirmation-${id}` // Optionnel: donner un ID unique pour éviter les doublons si cliqué rapidement
+                toastId: `delete-confirmation-${id}`
             }
         );
-    }, [loadTemplates, setError]); // Ajout de setError aux dépendances si utilisé dans le catch
+    }, [loadTemplates, setError]);
 
     const handleSaveTemplate = useCallback(async (templateToSave: PlanningTemplate) => {
         setIsLoading(true);
@@ -349,26 +331,22 @@ export const TemplateManager: React.FC = () => {
         }
     }, [editingTemplateRoles, loadTemplates, setIsLoading, setIsEditorOpen, setEditingTemplate, availableTypes]);
 
-    // useEffect après tous les useCallback
     useEffect(() => {
         loadTemplates();
         loadAvailableTypes();
     }, [loadTemplates, loadAvailableTypes]);
 
-    // Sélection automatique de la première trame si aucune sélection et si la liste n'est pas vide
     useEffect(() => {
-        if (isEditorOpen) { // Ne pas interférer si l'éditeur est actif
+        if (isEditorOpen) {
             return;
         }
         if (templates.length > 0 && !editingTemplate) {
-            // setEditingTemplate(templates[0]);
         }
         else if (templates.length === 0 && editingTemplate) {
             setEditingTemplate(null);
         }
     }, [templates, editingTemplate, isEditorOpen, setEditingTemplate]);
 
-    // Recharger les trames à chaque fois que la fenêtre redevient active
     useEffect(() => {
         const handleVisibility = () => {
             if (document.visibilityState === 'visible') {
@@ -379,7 +357,6 @@ export const TemplateManager: React.FC = () => {
         return () => document.removeEventListener('visibilitychange', handleVisibility);
     }, [loadTemplates]);
 
-    // Ajout de useMemo pour stabiliser la référence de `templates` passée à l'éditeur
     const memoizedTemplates = useMemo(() => templates, [templates]);
     const memoizedAvailableTypes = useMemo(() => availableTypes, [availableTypes]);
 
@@ -395,7 +372,6 @@ export const TemplateManager: React.FC = () => {
     }
 
     if (isLoading) {
-        // Utilisation de Loader2 avec animation
         return (
             <div className="flex justify-center items-center h-64">
                 <Loader2 className="mr-2 h-16 w-16 animate-spin" />
@@ -481,23 +457,25 @@ export const TemplateManager: React.FC = () => {
                         </Button>
                     </DialogTrigger>
                     <DialogPortal>
-                        <DialogOverlay style={{ pointerEvents: isMuiChildModalOpen ? 'none' : 'auto' }} />
+                        <DialogOverlay />
                         <DialogContent
-                            className="w-[90vw] h-[90vh] max-w-[1800px] sm:w-[90vw] sm:max-w-[1800px] md:w-[90vw] md:max-w-[1800px] lg:w-[90vw] lg:max-w-[1800px] xl:w-[90vw] xl:max-w-[1800px] flex flex-col p-4"
+                            className="sm:max-w-[95vw] md:max-w-[90vw] lg:max-w-[80vw] xl:max-w-[70vw] h-[90vh] flex flex-col p-0 gap-0"
                             onEscapeKeyDown={handleEscapeKeyDown}
                             onPointerDownOutside={handlePointerDownOutside}
                             onFocusOutside={handleFocusOutside}
                             onInteractOutside={handleInteractOutside}
-                            style={isMuiChildModalOpen ? { pointerEvents: 'auto' } : {}}
+                            ref={radixDialogContentRef}
                         >
                             <DialogHeader className="p-2">
-                                <DialogTitle className="text-lg">{editingTemplate ? "Modifier la Trame de Bloc" : "Créer une Nouvelle Trame de Bloc"}</DialogTitle>
+                                <DialogTitle className="text-lg font-semibold">
+                                    {editingTemplate ? "Modifier la Trame de Bloc" : "Créer une Nouvelle Trame de Bloc"}
+                                </DialogTitle>
                                 <DialogDescription className="sr-only">
                                     {editingTemplate ? "Modifiez les détails de la trame de bloc existante et ses affectations." : "Configurez les détails pour une nouvelle trame de bloc et ses affectations."}
                                 </DialogDescription>
                             </DialogHeader>
                             {isEditorOpen && (
-                                <div className="flex-grow overflow-y-auto w-full h-full" style={{ minHeight: "calc(90vh - 100px)" }}> {/* Ajustement pour le footer */}
+                                <div className="flex-grow overflow-y-auto w-full h-full" style={{ minHeight: "calc(90vh - 100px)" }}>
                                     <BlocPlanningTemplateEditor
                                         ref={editorRef}
                                         initialTemplate={editingTemplate || undefined}
@@ -509,7 +487,6 @@ export const TemplateManager: React.FC = () => {
                                     />
                                 </div>
                             )}
-                            {/* Pied de page de la modale avec les boutons Sauvegarder et Annuler */}
                             {isEditorOpen && (
                                 <div className="flex justify-end gap-2 p-4 border-t">
                                     <Button variant="outline" onClick={() => handleEditorOpenChange(false)}>
@@ -518,11 +495,7 @@ export const TemplateManager: React.FC = () => {
                                     <Button
                                         onClick={async () => {
                                             if (editorRef.current) {
-                                                // La validation et la sauvegarde réelle se font DANS BlocPlanningTemplateEditor via sa prop onSave
-                                                // Ici, on déclenche juste la soumission qui mènera à l'appel de props.onSave
                                                 await editorRef.current.submit();
-                                                // handleSaveTemplate (de TemplateManager) sera appelé par BlocPlanningTemplateEditor via la prop onSave
-                                                // La fermeture de la modale est gérée dans handleSaveTemplate de TemplateManager
                                             }
                                         }}
                                     >

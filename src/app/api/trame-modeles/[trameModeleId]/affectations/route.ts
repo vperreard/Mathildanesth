@@ -8,8 +8,10 @@ export async function POST(
     request: NextRequest,
     { params }: { params: { trameModeleId: string } }
 ) {
-    console.log("\n--- POST /api/trame-modeles/[trameModeleId]/affectations START ---");
+    const { trameModeleId } = params;
+    console.log(`[API POST /trame-modeles/${trameModeleId}/affectations] Début du traitement.`);
 
+    console.log("\n--- POST /api/trame-modeles/[trameModeleId]/affectations START ---");
     let token = request.cookies.get('token')?.value;
     if (!token) {
         const authHeader = request.headers.get('Authorization');
@@ -34,7 +36,6 @@ export async function POST(
     //     return NextResponse.json({ error: 'Accès interdit' }, { status: 403 });
     // }
 
-    const { trameModeleId } = params;
     if (!trameModeleId || isNaN(parseInt(trameModeleId))) {
         console.warn("POST /api/trame-modeles/[trameModeleId]/affectations: Invalid trameModeleId");
         return NextResponse.json({ error: 'ID du modèle de trame invalide' }, { status: 400 });
@@ -58,6 +59,10 @@ export async function POST(
             personnelRequis, // Tableau de PersonnelRequisModele
         } = body;
 
+        // Log for debugging personnelRequis structure
+        console.log("POST /api/trame-modeles/[trameModeleId]/affectations - personnelRequis structure:",
+            JSON.stringify(personnelRequis, null, 2));
+
         // Validations de base
         if (!activityTypeId || !jourSemaine || !periode || !typeSemaine) {
             console.warn("POST .../affectations: Validation failed - Champs requis manquants");
@@ -71,59 +76,79 @@ export async function POST(
             return NextResponse.json({ error: 'Modèle de trame parent non trouvé' }, { status: 404 });
         }
 
-        // Préparer les données pour Prisma, y compris les nested writes pour personnelRequis
-        const createData: Prisma.AffectationModeleCreateInput = {
-            trameModele: { connect: { id: trameId } },
-            activityType: { connect: { id: activityTypeId } },
-            jourSemaine,
-            periode,
-            typeSemaine,
-            priorite: priorite !== undefined ? parseInt(priorite) : 5,
-            isActive: isActive !== undefined ? isActive : true,
-            detailsJson: detailsJson || undefined,
-            ...(operatingRoomId && { operatingRoom: { connect: { id: parseInt(operatingRoomId) } } }),
-            // locationId n'est pas dans le modèle AffectationModele, donc pas de connexion pour l'instant
-            ...(personnelRequis && personnelRequis.length > 0 && {
-                personnelRequis: {
-                    create: personnelRequis.map((pr: any) => ({
-                        roleGenerique: pr.roleGenerique,
-                        nombreRequis: pr.nombreRequis !== undefined ? parseInt(pr.nombreRequis) : 1,
-                        notes: pr.notes || undefined,
-                        ...(pr.professionalRoleId && { professionalRoleConfig: { connect: { code: pr.professionalRoleId } } }),
-                        ...(pr.specialtyId && { specialty: { connect: { id: parseInt(pr.specialtyId) } } }),
-                        ...(pr.personnelHabituelUserId && { userHabituel: { connect: { id: parseInt(pr.personnelHabituelUserId) } } }),
-                        ...(pr.personnelHabituelSurgeonId && { surgeonHabituel: { connect: { id: parseInt(pr.personnelHabituelSurgeonId) } } }),
-                        personnelHabituelNomExterne: pr.personnelHabituelNomExterne || undefined,
-                    })),
+        try {
+            // Préparer les données pour Prisma, y compris les nested writes pour personnelRequis
+            const createData: Prisma.AffectationModeleCreateInput = {
+                trameModele: { connect: { id: trameId } },
+                activityType: { connect: { id: activityTypeId } },
+                jourSemaine,
+                periode,
+                typeSemaine,
+                priorite: priorite !== undefined ? parseInt(priorite.toString()) : 5,
+                isActive: isActive !== undefined ? isActive : true,
+                detailsJson: detailsJson ? detailsJson : undefined,
+                ...(operatingRoomId && { operatingRoom: { connect: { id: parseInt(operatingRoomId.toString()) } } }),
+                // locationId n'est pas dans le modèle AffectationModele, donc pas de connexion pour l'instant
+                ...(personnelRequis && Array.isArray(personnelRequis) && personnelRequis.length > 0 && {
+                    personnelRequis: {
+                        create: personnelRequis.map((pr: any) => ({
+                            roleGenerique: pr.roleGenerique,
+                            nombreRequis: pr.nombreRequis || 1,
+                            notes: pr.notes
+                            // Le champ affectationModele est automatiquement géré par Prisma 
+                            // dans un create imbriqué (nested create)
+                        }))
+                    }
+                })
+            };
+
+            console.log("POST .../affectations: Structure finale de createData:", JSON.stringify(createData, null, 2));
+
+            const newAffectationModele = await prisma.affectationModele.create({
+                data: createData,
+                include: {
+                    personnelRequis: true, // Inclure le personnel requis dans la réponse
+                    activityType: true,
+                    operatingRoom: true,
                 },
-            }),
-        };
+            });
 
-        console.log("POST .../affectations: Creating new AffectationModele in DB with data:", JSON.stringify(createData, null, 2));
-        const newAffectationModele = await prisma.affectationModele.create({
-            data: createData,
-            include: {
-                personnelRequis: true, // Inclure le personnel requis dans la réponse
-                activityType: true,
-                operatingRoom: true,
-            },
-        });
-
-        console.log("POST .../affectations: AffectationModele created successfully:", newAffectationModele);
-        console.log("--- POST /api/trame-modeles/[trameModeleId]/affectations END ---\n");
-        return NextResponse.json(newAffectationModele, { status: 201 });
+            console.log("POST .../affectations: AffectationModele created successfully:", newAffectationModele);
+            console.log("--- POST /api/trame-modeles/[trameModeleId]/affectations END ---\n");
+            return NextResponse.json(newAffectationModele, { status: 201 });
+        } catch (prismaError) {
+            console.error("Erreur Prisma détaillée:", prismaError);
+            throw prismaError; // Relancer pour la gestion globale des erreurs
+        }
 
     } catch (error) {
         console.error("Error during POST /api/trame-modeles/[trameModeleId]/affectations:", error);
+
+        // Afficher plus d'informations sur l'erreur
+        if (error instanceof Error) {
+            console.error("Message d'erreur:", error.message);
+            console.error("Stack trace:", error.stack);
+        }
+
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             // Gérer les erreurs Prisma spécifiques (ex: contrainte unique, clé étrangère non trouvée)
             if (error.code === 'P2025') { // Foreign key constraint failed
                 console.error("Prisma Error P2025: An operation failed because it depends on one or more records that were required but not found.", error.meta);
                 return NextResponse.json({ error: `Erreur de référence: ${error.meta?.cause || 'une entité liée est introuvable'}` }, { status: 400 });
             }
+
+            // Ajouter d'autres codes d'erreur Prisma courants
+            if (error.code === 'P2002') { // Unique constraint failed
+                console.error("Prisma Error P2002: Unique constraint failed", error.meta);
+                return NextResponse.json({ error: `Contrainte d'unicité non respectée: ${error.meta?.target}` }, { status: 400 });
+            }
+
+            // Retourner le code Prisma pour le débogage
+            return NextResponse.json({ error: `Erreur Prisma (${error.code}): ${error.message}`, meta: error.meta }, { status: 500 });
         }
+
         console.log("--- POST /api/trame-modeles/[trameModeleId]/affectations END (with error) ---\n");
-        return NextResponse.json({ error: 'Erreur lors de la création de l\'affectation modèle' }, { status: 500 });
+        return NextResponse.json({ error: 'Erreur lors de la création de l\'affectation modèle', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
     }
 }
 
@@ -131,8 +156,10 @@ export async function GET(
     request: NextRequest,
     { params }: { params: { trameModeleId: string } }
 ) {
-    console.log("\n--- GET /api/trame-modeles/[trameModeleId]/affectations START ---");
+    const { trameModeleId } = params;
+    console.log(`[API GET /trame-modeles/${trameModeleId}/affectations] Début du traitement.`);
 
+    console.log("\n--- GET /api/trame-modeles/[trameModeleId]/affectations START ---");
     let token = request.cookies.get('token')?.value;
     if (!token) {
         const authHeader = request.headers.get('Authorization');
@@ -152,7 +179,6 @@ export async function GET(
         return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
     }
 
-    const { trameModeleId } = params;
     if (!trameModeleId || isNaN(parseInt(trameModeleId))) {
         console.warn("GET /api/trame-modeles/[trameModeleId]/affectations: Invalid trameModeleId");
         return NextResponse.json({ error: 'ID du modèle de trame invalide' }, { status: 400 });
@@ -194,9 +220,8 @@ export async function GET(
         console.log("--- GET /api/trame-modeles/[trameModeleId]/affectations END ---\n");
         return NextResponse.json(affectations);
 
-    } catch (error) {
-        console.error("Error during GET /api/trame-modeles/[trameModeleId]/affectations:", error);
-        console.log("--- GET /api/trame-modeles/[trameModeleId]/affectations END (with error) ---\n");
-        return NextResponse.json({ error: 'Erreur lors de la récupération des affectations modèle' }, { status: 500 });
+    } catch (error: any) {
+        console.error(`Erreur lors de la récupération des affectations pour la trame ${trameModeleId}:`, error);
+        return NextResponse.json({ error: 'Erreur interne du serveur.', details: error.message }, { status: 500 });
     }
-} 
+}
