@@ -5,153 +5,161 @@ Ce document détaille les étapes prévues pour la refonte du système de gestio
 ## Objectifs Généraux
 
 1.  **Système de Trames Modèles :**
-    *   Permettre la création de "trames modèles" réutilisables.
-    *   Une trame modèle est liée à un **site**.
-    *   Une trame modèle définit une **récurrence** (ex: hebdomadaire, semaines paires/impaires, jours spécifiques).
-    *   Une trame modèle contient un ensemble d'**"Affectations Modèles"** (ou "Postes Types").
+
+    - Permettre la création de "trames modèles" réutilisables.
+    - Une trame modèle est liée à un **site**.
+    - Une trame modèle définit une **récurrence** (ex: hebdomadaire, semaines paires/impaires, jours spécifiques).
+    - Une trame modèle contient un ensemble d'**"Affectations Modèles"** (ou "Postes Types").
 
 2.  **Affectations Modèles (Postes Types) :**
-    *   Définit un besoin/slot à pourvoir au sein d'une trame (ex: "Salle de bloc X", "Consultation Y", "Garde Z").
-    *   Est caractérisée par un **type d'activité** (ex: BLOC_OPERATOIRE, CONSULTATION, GARDE - via le modèle `ActivityType`).
-    *   Peut être liée à un **lieu** (ex: `OperatingRoom.id` ou `Location.id`).
-    *   Définit les **besoins en personnel** pour ce slot (ex: 1 Anesthésiste, 1 Chirurgien Ortho, 1 IADE).
-        *   Permet d'assigner du **personnel habituel** (optionnel) à ces besoins pour cette trame.
+
+    - Définit un besoin/slot à pourvoir au sein d'une trame (ex: "Salle de bloc X", "Consultation Y", "Garde Z").
+    - Est caractérisée par un **type d'activité** (ex: BLOC_OPERATOIRE, CONSULTATION, GARDE - via le modèle `ActivityType`).
+    - Peut être liée à un **lieu** (ex: `OperatingRoom.id` ou `Location.id`).
+    - Définit les **besoins en personnel** pour ce slot (ex: 1 Anesthésiste, 1 Chirurgien Ortho, 1 IADE).
+      - Permet d'assigner du **personnel habituel** (optionnel) à ces besoins pour cette trame.
 
 3.  **Application des Trames :**
-    *   Utiliser les trames modèles pour pré-remplir les plannings lors de la génération (automatique ou manuelle).
-    *   Permettre d'ouvrir/fermer des affectations au sein d'une trame appliquée pour une période donnée.
+    - Utiliser les trames modèles pour pré-remplir les plannings lors de la génération (automatique ou manuelle).
+    - Permettre d'ouvrir/fermer des affectations au sein d'une trame appliquée pour une période donnée.
 
 ## Plan d'Implémentation Détaillé
 
 ### Phase 1: Consolidation et Extension des Modèles de Base (Schéma Prisma)
 
 1.  **Modèle `ActivityType` (anciennement `AssignmentType`) :**
-    *   **Action :** Vérifier et compléter les champs pour couvrir tous les types d'activités (BLOC, CONSULTATION, GARDE, ASTREINTE, etc.).
-    *   **Champs à considérer/ajouter :** `defaultDurationHours: Float?`, `defaultPeriod: Period?`.
-    *   **API :** S'assurer que la route `/api/activity-types` (anciennement `/api/assignment-types`) est fonctionnelle (en mettant de côté les erreurs de linter sur le champ `code` si elles s'avèrent être des faux positifs liés à l'environnement).
+
+    - **Action :** Vérifier et compléter les champs pour couvrir tous les types d'activités (BLOC, CONSULTATION, GARDE, ASTREINTE, etc.).
+    - **Champs à considérer/ajouter :** `defaultDurationHours: Float?`, `defaultPeriod: Period?`.
+    - **API :** S'assurer que la route `/api/activity-types` (anciennement `/api/assignment-types`) est fonctionnelle (en mettant de côté les erreurs de linter sur le champ `code` si elles s'avèrent être des faux positifs liés à l'environnement).
 
 2.  **Modèle `TrameModele` (généralisation de `BlocTramePlanning`) :**
-    *   **Action :** Renommer `BlocTramePlanning` en `TrameModele`.
-    *   **Champs à conserver/modifier :**
-        *   `id`, `name`, `description`, `siteId` (et relation `site`).
-        *   `isActive`, `createdAt`, `updatedAt`.
-    *   **Gestion de la récurrence (approche simplifiée pour commencer) :**
-        *   `dateDebutEffet`: `DateTime` (date de début d'application de la trame).
-        *   `dateFinEffet`: `DateTime?` (date de fin d'application, si applicable).
-        *   `recurrenceType`: `String` (enum implicite : `AUCUNE`, `HEBDOMADAIRE`). *Pour l'instant, on se concentre sur HEBDOMADAIRE.*
-        *   `joursSemaineActifs`: `Int[]` (ex: `[0,1,2,3,4]` pour Lundi à Vendredi, si Dimanche=0, Lundi=1...).
-        *   `typeSemaine`: `String` (enum implicite : `TOUTES`, `PAIRES`, `IMPAIRES`).
-    *   **Relation :** `affectations: AffectationModele[]`.
-    *   **Map DB :** `@@map("trame_modeles")`.
+
+    - **Action :** Renommer `BlocTramePlanning` en `TrameModele`.
+    - **Champs à conserver/modifier :**
+      - `id`, `name`, `description`, `siteId` (et relation `site`).
+      - `isActive`, `createdAt`, `updatedAt`.
+    - **Gestion de la récurrence (approche simplifiée pour commencer) :**
+      - `dateDebutEffet`: `DateTime` (date de début d'application de la trame).
+      - `dateFinEffet`: `DateTime?` (date de fin d'application, si applicable).
+      - `recurrenceType`: `String` (enum implicite : `AUCUNE`, `HEBDOMADAIRE`). _Pour l'instant, on se concentre sur HEBDOMADAIRE._
+      - `joursSemaineActifs`: `Int[]` (ex: `[0,1,2,3,4]` pour Lundi à Vendredi, si Dimanche=0, Lundi=1...).
+      - `typeSemaine`: `String` (enum implicite : `TOUTES`, `PAIRES`, `IMPAIRES`).
+    - **Relation :** `affectations: AffectationModele[]`.
+    - **Map DB :** `@@map("trame_modeles")`.
 
 3.  **Modèle `AffectationModele` (généralisation de `BlocAffectationHabituelle`) :**
-    *   **Action :** Renommer `BlocAffectationHabituelle` en `AffectationModele`.
-    *   **Champs à conserver/modifier :**
-        *   `id`.
-        *   Lien vers `TrameModele`: `trameModeleId`, `trameModele`.
-        *   `activityTypeId`: `String` (lien vers `ActivityType.id` ou `ActivityType.code` - préférer `id` si possible pour la performance des jointures, mais `code` est plus stable si les ID peuvent changer lors d'imports/exports). *À discuter, pour l'instant, supposons `String` pour `ActivityType.code` si c'est l'identifiant métier fort.*
-        *   `operatingRoomId`: `Int?` (conserver pour le bloc).
-        *   `locationId`: `Int?` (ajouter pour une notion de lieu plus générique, à lier à un futur modèle `Location` si différent d'OperatingRoom).
-        *   `periode`: `Period` (enum : MATIN, APRES_MIDI, JOURNEE_ENTIERE, NUIT).
-        *   `jourSemaineOverride`: `DayOfWeek?` (pour surcharger le jour si la trame est globale mais cette affectation est spécifique).
-        *   `typeSemaineOverride`: `WeekType?` (pour surcharger le type de semaine).
-        *   `priorite`: `Int @default(5)`.
-        *   `detailsJson`: `Json?`.
-        *   `isActive`: `Boolean @default(true)` (permet "d'ouvrir/fermer" ce slot dans la trame modèle).
-        *   `createdAt`, `updatedAt`.
-    *   **Relation vers personnel requis :** `personnelRequis: PersonnelRequisModele[]`.
-    *   **Supprimer :** `userId`, `chirurgienId`, `roleInAffectation`, `typeAffectation`, `specialiteChir` (ces notions seront portées par `PersonnelRequisModele` et `ActivityType`).
-    *   **Map DB :** `@@map("affectation_modeles")`.
+
+    - **Action :** Renommer `BlocAffectationHabituelle` en `AffectationModele`.
+    - **Champs à conserver/modifier :**
+      - `id`.
+      - Lien vers `TrameModele`: `trameModeleId`, `trameModele`.
+      - `activityTypeId`: `String` (lien vers `ActivityType.id` ou `ActivityType.code` - préférer `id` si possible pour la performance des jointures, mais `code` est plus stable si les ID peuvent changer lors d'imports/exports). _À discuter, pour l'instant, supposons `String` pour `ActivityType.code` si c'est l'identifiant métier fort._
+      - `operatingRoomId`: `Int?` (conserver pour le bloc).
+      - `locationId`: `Int?` (ajouter pour une notion de lieu plus générique, à lier à un futur modèle `Location` si différent d'OperatingRoom).
+      - `periode`: `Period` (enum : MATIN, APRES_MIDI, JOURNEE_ENTIERE, NUIT).
+      - `jourSemaineOverride`: `DayOfWeek?` (pour surcharger le jour si la trame est globale mais cette affectation est spécifique).
+      - `typeSemaineOverride`: `WeekType?` (pour surcharger le type de semaine).
+      - `priorite`: `Int @default(5)`.
+      - `detailsJson`: `Json?`.
+      - `isActive`: `Boolean @default(true)` (permet "d'ouvrir/fermer" ce slot dans la trame modèle).
+      - `createdAt`, `updatedAt`.
+    - **Relation vers personnel requis :** `personnelRequis: PersonnelRequisModele[]`.
+    - **Supprimer :** `userId`, `chirurgienId`, `roleInAffectation`, `typeAffectation`, `specialiteChir` (ces notions seront portées par `PersonnelRequisModele` et `ActivityType`).
+    - **Map DB :** `@@map("affectation_modeles")`.
 
 4.  **Nouveau Modèle `PersonnelRequisModele` :**
-    *   **Action :** Créer ce nouveau modèle.
-    *   **Champs :**
-        *   `id: Int @id @default(autoincrement())`.
-        *   `affectationModeleId: Int`, et relation `affectationModele: AffectationModele`.
-        *   `roleGenerique: String` (Texte libre décrivant le rôle requis, ex: "Anesthésiste Réanimateur", "Chirurgien (Ortho)", "IBODE", "Personnel externe de nettoyage", etc. Ce champ est clé pour les personnels non `User`/`Surgeon`).
-        *   `professionalRoleId: String?` (Optionnel: Lien vers `ProfessionalRoleConfig.code` si le `roleGenerique` correspond à un rôle structuré d'un `User`).
-        *   `specialtyId: Int?` (Optionnel: Lien vers `Specialty.id` si le rôle est lié à une spécialité spécifique).
-        *   `nombreRequis: Int @default(1)`.
-        *   `personnelHabituelUserId: Int?` (Optionnel: Lien vers `User.id`).
-        *   `personnelHabituelSurgeonId: Int?` (Optionnel: Lien vers `Surgeon.id`).
-        *   `personnelHabituelNomExterne: String?` (Optionnel: Nom texte si ni User ni Surgeon).
-        *   `notes: String?`.
-    *   **Relations (à définir avec `relation(...)` pour les champs optionnels) :**
-        *   `professionalRole: ProfessionalRoleConfig?`
-        *   `specialty: Specialty?`
-        *   `userHabituel: User?`
-        *   `surgeonHabituel: Surgeon?`
-    *   **Map DB :** `@@map("personnel_requis_modeles")`.
+
+    - **Action :** Créer ce nouveau modèle.
+    - **Champs :**
+      - `id: Int @id @default(autoincrement())`.
+      - `affectationModeleId: Int`, et relation `affectationModele: AffectationModele`.
+      - `roleGenerique: String` (Texte libre décrivant le rôle requis, ex: "Anesthésiste Réanimateur", "Chirurgien (Ortho)", "IBODE", "Personnel externe de nettoyage", etc. Ce champ est clé pour les personnels non `User`/`Surgeon`).
+      - `professionalRoleId: String?` (Optionnel: Lien vers `ProfessionalRoleConfig.code` si le `roleGenerique` correspond à un rôle structuré d'un `User`).
+      - `specialtyId: Int?` (Optionnel: Lien vers `Specialty.id` si le rôle est lié à une spécialité spécifique).
+      - `nombreRequis: Int @default(1)`.
+      - `personnelHabituelUserId: Int?` (Optionnel: Lien vers `User.id`).
+      - `personnelHabituelSurgeonId: Int?` (Optionnel: Lien vers `Surgeon.id`).
+      - `personnelHabituelNomExterne: String?` (Optionnel: Nom texte si ni User ni Surgeon).
+      - `notes: String?`.
+    - **Relations (à définir avec `relation(...)` pour les champs optionnels) :**
+      - `professionalRole: ProfessionalRoleConfig?`
+      - `specialty: Specialty?`
+      - `userHabituel: User?`
+      - `surgeonHabituel: Surgeon?`
+    - **Map DB :** `@@map("personnel_requis_modeles")`.
 
 5.  **Dépréciation/Migration des Anciens Modèles de Trames :**
-    *   **Action :** Identifier les fonctionnalités de `RegularAssignment`, `TrameAffectation`, `TramePeriod`, `TrameAssignment`, `TramePost` qui ne sont pas couvertes par la nouvelle structure.
-    *   **Stratégie :** Pour l'instant, ne pas les supprimer. Se concentrer sur la construction de la nouvelle structure. La migration ou dépréciation sera une étape ultérieure.
+    - **Action :** Identifier les fonctionnalités de `RegularAssignment`, `TrameAffectation`, `TramePeriod`, `TrameAssignment`, `TramePost` qui ne sont pas couvertes par la nouvelle structure.
+    - **Stratégie :** Pour l'instant, ne pas les supprimer. Se concentrer sur la construction de la nouvelle structure. La migration ou dépréciation sera une étape ultérieure.
 
 ### Phase 2: APIs pour la Gestion des Trames Modèles
 
 1.  **API `/api/activity-types` (ex `/api/assignment-types`) :**
-    *   **Action :** S'assurer que le CRUD est complet et fonctionnel pour `ActivityType`.
+
+    - **Action :** S'assurer que le CRUD est complet et fonctionnel pour `ActivityType`.
 
 2.  **API `/api/trame-modeles` (CRUD pour `TrameModele` et ses `AffectationModele`/`PersonnelRequisModele` imbriqués) :**
-    *   **`POST /api/trame-modeles` :**
-        *   Crée un `TrameModele`.
-        *   Peut optionnellement créer des `AffectationModele` et leurs `PersonnelRequisModele` associés en une seule transaction (nested writes).
-    *   **`GET /api/trame-modeles` :**
-        *   Liste les `TrameModele`.
-        *   Filtres : `siteId`, `isActive`.
-        *   Pagination.
-    *   **`GET /api/trame-modeles/{id}` :**
-        *   Récupère un `TrameModele` par son ID.
-        *   Inclut les `AffectationModele` et leurs `PersonnelRequisModele` (via `include` Prisma).
-    *   **`PUT /api/trame-modeles/{id}` :**
-        *   Met à jour un `TrameModele`.
-        *   Permet de gérer les mises à jour, créations, suppressions des `AffectationModele` et `PersonnelRequisModele` imbriqués.
-    *   **`DELETE /api/trame-modeles/{id}` :**
-        *   Supprime un `TrameModele` (et ses enfants en cascade si configuré).
+    - **`POST /api/trame-modeles` :**
+      - Crée un `TrameModele`.
+      - Peut optionnellement créer des `AffectationModele` et leurs `PersonnelRequisModele` associés en une seule transaction (nested writes).
+    - **`GET /api/trame-modeles` :**
+      - Liste les `TrameModele`.
+      - Filtres : `siteId`, `isActive`.
+      - Pagination.
+    - **`GET /api/trame-modeles/{id}` :**
+      - Récupère un `TrameModele` par son ID.
+      - Inclut les `AffectationModele` et leurs `PersonnelRequisModele` (via `include` Prisma).
+    - **`PUT /api/trame-modeles/{id}` :**
+      - Met à jour un `TrameModele`.
+      - Permet de gérer les mises à jour, créations, suppressions des `AffectationModele` et `PersonnelRequisModele` imbriqués.
+    - **`DELETE /api/trame-modeles/{id}` :**
+      - Supprime un `TrameModele` (et ses enfants en cascade si configuré).
 
 ### Phase 3: Interface Utilisateur (UI)
 
 1.  **Gestion des "Types d'Activité" (`ActivityType`) :**
-    *   **Page :** `/parametres/types-activites` (ou similaire).
-    *   **Fonctionnalités :** Tableau listant les `ActivityType`, boutons pour créer, éditer, supprimer. Formulaire modal/page pour l'édition.
+
+    - **Page :** `/parametres/types-activites` (ou similaire).
+    - **Fonctionnalités :** Tableau listant les `ActivityType`, boutons pour créer, éditer, supprimer. Formulaire modal/page pour l'édition.
 
 2.  **Gestion des "Trames Modèles" (`TrameModele`) :**
-    *   **Page :** `/parametres/trames-modeles` (ou similaire).
-    *   **Fonctionnalités :**
-        *   Tableau listant les `TrameModele` (nom, site, description, statut actif).
-        *   Bouton "Créer une trame modèle".
-        *   Actions : Éditer, Dupliquer, Supprimer une trame.
-    *   **Vue/Édition d'une Trame Modèle (ex: `/parametres/trames-modeles/{id}`) :**
-        *   **Onglet 1: Informations Générales**
-            *   Formulaire: Nom, description, site, dates d'effet, paramètres de récurrence (jours actifs, type de semaine).
-        *   **Onglet 2: Structure de la Trame (Affectations/Postes)**
-            *   Affichage tabulaire (ou grille) représentant la semaine type (ou la structure de la trame).
-            *   Chaque cellule (ou ligne) représente une `AffectationModele` (un poste type) pour une `periode` (matin, AM, journée).
-            *   Permettre d'ajouter une "Affectation Modèle" :
-                *   Choisir le type d'activité (`ActivityType`).
-                *   Spécifier le lieu (`OperatingRoom` ou `Location`).
-                *   Définir le(s) `PersonnelRequisModele` (rôle générique, nb, personnel habituel).
-                *   Spécifier la période et les jours concernés dans la trame.
-            *   Permettre d'éditer/supprimer une `AffectationModele`.
-            *   Permettre de marquer une `AffectationModele` comme `isActive` (ouverte/fermée par défaut dans cette trame).
+    - **Page :** `/parametres/trames-modeles` (ou similaire).
+    - **Fonctionnalités :**
+      - Tableau listant les `TrameModele` (nom, site, description, statut actif).
+      - Bouton "Créer une trame modèle".
+      - Actions : Éditer, Dupliquer, Supprimer une trame.
+    - **Vue/Édition d'une Trame Modèle (ex: `/parametres/trames-modeles/{id}`) :**
+      - **Onglet 1: Informations Générales**
+        - Formulaire: Nom, description, site, dates d'effet, paramètres de récurrence (jours actifs, type de semaine).
+      - **Onglet 2: Structure de la Trame (Affectations/Postes)**
+        - Affichage tabulaire (ou grille) représentant la semaine type (ou la structure de la trame).
+        - Chaque cellule (ou ligne) représente une `AffectationModele` (un poste type) pour une `periode` (matin, AM, journée).
+        - Permettre d'ajouter une "Affectation Modèle" :
+          - Choisir le type d'activité (`ActivityType`).
+          - Spécifier le lieu (`OperatingRoom` ou `Location`).
+          - Définir le(s) `PersonnelRequisModele` (rôle générique, nb, personnel habituel).
+          - Spécifier la période et les jours concernés dans la trame.
+        - Permettre d'éditer/supprimer une `AffectationModele`.
+        - Permettre de marquer une `AffectationModele` comme `isActive` (ouverte/fermée par défaut dans cette trame).
 
 ### Phase 4: Logique d'Application des Trames au Planning
 
 1.  **Service `TrameApplicationService` :**
-    *   **Fonction :** `applyTrameToDateRange(trameModeleId: Int, siteId: String, startDate: Date, endDate: Date): Promise<GeneratedAssignment[]>`
-    *   **Logique :**
-        *   Récupère le `TrameModele` et ses `AffectationModele` / `PersonnelRequisModele`.
-        *   Pour chaque jour dans `startDate` à `endDate`:
-            *   Vérifie si la trame s'applique (selon sa récurrence et ses dates d'effet).
-            *   Si oui, pour chaque `AffectationModele` active dans la trame :
-                *   Crée une instance d'affectation concrète (ex: `Assignment` ou `BlocDayPlanning` / `BlocRoomAssignment` pour le bloc).
-                *   Pré-remplit avec les infos de l'`AffectationModele` (type, lieu, personnel habituel).
-    *   Gère les conflits potentiels (ex: si une affectation existe déjà).
+    - **Fonction :** `applyTrameToDateRange(trameModeleId: Int, siteId: String, startDate: Date, endDate: Date): Promise<GeneratedAssignment[]>`
+    - **Logique :**
+      - Récupère le `TrameModele` et ses `AffectationModele` / `PersonnelRequisModele`.
+      - Pour chaque jour dans `startDate` à `endDate`:
+        - Vérifie si la trame s'applique (selon sa récurrence et ses dates d'effet).
+        - Si oui, pour chaque `AffectationModele` active dans la trame :
+          - Crée une instance d'affectation concrète (ex: `Assignment` ou `BlocDayPlanning` / `BlocRoomAssignment` pour le bloc).
+          - Pré-remplit avec les infos de l'`AffectationModele` (type, lieu, personnel habituel).
+    - Gère les conflits potentiels (ex: si une affectation existe déjà).
 
 ### Phase 5: Documentation
 
-*   **Action :** Mettre à jour la documentation technique (modèles de données Prisma, endpoints API Swagger/OpenAPI) au fur et à mesure de l'implémentation.
-*   Créer/mettre à jour les guides utilisateurs pour les nouvelles fonctionnalités de gestion des trames.
+- **Action :** Mettre à jour la documentation technique (modèles de données Prisma, endpoints API Swagger/OpenAPI) au fur et à mesure de l'implémentation.
+- Créer/mettre à jour les guides utilisateurs pour les nouvelles fonctionnalités de gestion des trames.
 
 ---
 
@@ -162,6 +170,71 @@ Concernant la liaison `activityTypeId` dans `AffectationModele` à `ActivityType
 La `RRULE` sera mise de côté pour l'instant au profit de champs de récurrence hebdomadaire simples.
 La gestion du personnel se fera via le nouveau modèle `PersonnelRequisModele` comme discuté.
 
+# Plan d'Amélioration des Interfaces Trames et Affectations
+
+En parallèle de l'implémentation technique du système de trames et affectations, une refonte complète des interfaces utilisateur est prévue. Ce plan d'amélioration vise à rendre le système plus intuitif, visuel et efficace pour les utilisateurs.
+
+## Problématiques identifiées
+
+- Interfaces actuelles complexes et peu intuitives
+- Manque de visualisation claire des patterns d'affectation
+- Difficulté à configurer les variations (semaines paires/impaires)
+- Ambiguïté dans la gestion des gardes 24h et leur représentation
+- Gestion laborieuse des rôles au bloc opératoire
+
+## Améliorations prévues
+
+### 1. Interface visuelle en grille pour les trames
+
+- **Objectif :** Créer une vue calendrier hebdomadaire pour éditer visuellement les trames
+- **Fonctionnalités clés :**
+  - Salles/postes en lignes, jours/périodes en colonnes
+  - Code couleur pour différencier les types d'affectations
+  - Glisser-déposer pour rapide configuration
+
+### 2. Simplification de la création des trames
+
+- **Objectif :** Créer un assistant par étapes pour guider les utilisateurs
+- **Étapes :**
+  1. Définition de la période et du type (semaines paires/impaires/toutes)
+  2. Configuration des salles ouvertes/fermées par défaut
+  3. Affectation du personnel habituel
+- **Ajouts :**
+  - Possibilité de dupliquer une trame existante
+  - Templates prédéfinis pour accélérer la création
+
+### 3. Gestion spécifique des gardes et astreintes
+
+- **Objectif :** Créer une interface dédiée pour les gardes/astreintes
+- **Fonctionnalités :**
+  - Visualisation claire du format 24h
+  - Représentation automatique du repos post-garde
+  - Distinction visuelle entre gardes et affectations journée complète au bloc
+
+### 4. Intégration des vacances scolaires
+
+- **Objectif :** Permettre la récupération automatique des dates de vacances scolaires
+- **Solution :** Intégrer l'API data.education.gouv.fr ou équivalent
+- **Configuration :** Interface pour sélectionner les zones scolaires (A, B, C)
+
+### 5. Interface optimisée pour les chirurgiens
+
+- **Objectif :** Faciliter la gestion des 70 chirurgiens sur 21 salles
+- **Approche :**
+  - Vue en grille avec manipulation rapide
+  - Menu contextuel pour étendre les périodes (matin→journée)
+  - Sélection multiple pour modifications en bloc
+
+## Séquence de développement recommandée
+
+1. **Conception des maquettes UI** pour validation du concept (Figma)
+2. **Prototype interactif** pour tester l'approche en grille et glisser-déposer
+3. **Implémentation progressive** en commençant par la vue calendrier
+4. **Intégration de l'API vacances scolaires** et configuration des zones
+5. **Tests utilisateurs** avec feedback itératif
+
+Un document détaillé des spécifications UI est disponible dans `docs-consolidated/02_Fonctionnalites/07_Gestion_Affectations/02_Refonte_UI_Trames_Affectations.md`.
+
 # Prochaines Étapes pour Mathildanesth
 
 Ce document liste les actions prioritaires et les points d'attention pour les prochaines semaines de développement. Il est basé sur la [ROADMAP.md](ROADMAP.md) et l'état actuel du projet.
@@ -169,6 +242,7 @@ Ce document liste les actions prioritaires et les points d'attention pour les pr
 ## Focus Principal : Stabilisation & Finalisation Phase 1 / Démarrage Phase 2
 
 ### 1. Gestion des Congés & Absences (Finalisation)
+
     - **Objectif :** S'assurer que toute la logique de décompte, validation, et gestion des conflits est robuste et sans bugs.
     - **Actions Immédiates :**
         - 🚧 **Finalisation `GET /api/leaves/balance` :**
@@ -191,6 +265,7 @@ Ce document liste les actions prioritaires et les points d'attention pour les pr
             - [ ] Améliorer le retour visuel pendant les phases de calcul et de soumission du formulaire de congé.
 
 ### 2. Système de Règles Dynamiques (Avancement)
+
     - **Objectif :** Avoir un moteur de règles pleinement fonctionnel avec une interface d'administration basique pour les règles de planification.
     - **Actions Immédiates :**
         - 🔄 **Interface Admin Règles :**
@@ -200,36 +275,65 @@ Ce document liste les actions prioritaires et les points d'attention pour les pr
         - 🔄 **Intégration UI Planning :** Commencer l'intégration du feedback visuel sur le respect (ou non) des règles directement dans l'interface du planning.
         - 🚧 **Résoudre interférence tests `blocPlanningService.test.ts` :** Isoler les tests pour qu'ils passent de manière fiable.
 
-### 3. Algorithme de Génération de Planning (V1 - Démarrage/Continuation)
+### 3. Module de Simulation (Amélioration Progressive)
+
+    - **Objectif :** Rendre le module de simulation plus intuitif, performant et visuellement informatif.
+    - **Actions Immédiates :**
+        - ✅ **Interface de Création de Simulation :**
+            - Interface à onglets pour remplacer l'éditeur JSON brut.
+            - Sélection intuitive de dates, sites, règles et utilisateurs.
+        - ✅ **Visualisation des Résultats :**
+            - Présentation structurée avec des onglets (Résumé, Conflits, Participants, Détails).
+            - Visualisations graphiques des statistiques clés.
+            - Système d'auto-refresh pour les simulations en cours.
+        - ✅ **Export des Résultats :**
+            - Export PDF et Excel avec mise en forme.
+            - Exportation des statistiques, conflits et affectations.
+        - 🚧 **Prochaines fonctionnalités :**
+            - [ ] **Templates de simulation :** Système permettant de sauvegarder des configurations types pour accélérer la création de scénarios.
+            - [ ] **Dashboard analytique :** Créer un tableau de bord consolidant les métriques de toutes les simulations.
+            - [ ] **Comparaison de scénarios :** Interface pour comparer côte à côte les résultats de plusieurs simulations.
+            - [ ] **Assistant IA :** Intégrer des suggestions d'amélioration basées sur l'analyse des résultats.
+
+### 4. Algorithme de Génération de Planning (V1 - Démarrage/Continuation)
+
     - **Objectif :** Produire une première version de l'algorithme capable de générer des plannings de gardes/astreintes en respectant les règles de base.
     - **Actions Immédiates :**
         - 🔄 **Développement Algorithme :** Poursuivre le développement en s'appuyant sur `RuleBasedPlanningGeneratorService`.
         - 🔄 **Intégration Moteur de Règles :** S'assurer que l'algorithme utilise correctement le `RuleEngineService`.
         - ⏳ **Tests d'Intégration :** Planifier et commencer à écrire des tests d'intégration pour l'algorithme avec différents jeux de règles.
 
-### 4. Planification du Bloc Opératoire (Continuation)
+### 5. Planification du Bloc Opératoire (Continuation)
+
     - **Objectif :** Stabiliser et enrichir les fonctionnalités du planning hebdomadaire du bloc.
     - **Actions Immédiates :**
         - 🔄 **Amélioration Feedback DND :** Améliorer le retour visuel lors du glisser-déposer dans le planning hebdomadaire.
         - 🔄 **Validation Manuelle :** Poursuivre le développement des interfaces pour la validation et la modification manuelle des plannings du bloc.
         - ⏳ **Gestion des affectations complexes :** Étudier l'ajout de logique pour les affectations complexes (ex: plusieurs anesthésistes par salle, types d'actes).
+        - ⏳ **Refonte UI Trames et Affectations :** Concevoir et prototyper les nouvelles interfaces visuelles pour la gestion des trames et affectations selon les spécifications du document `docs-consolidated/02_Fonctionnalites/07_Gestion_Affectations/02_Refonte_UI_Trames_Affectations.md`.
 
-### 5. Tests et Qualité (Continu)
+### 6. Tests et Qualité (Continu)
+
     - **Objectif :** Maintenir et améliorer la qualité globale du code.
     - **Actions Immédiates :**
         - 🔄 **Couverture de Tests :** Continuer d'augmenter la couverture de tests pour tous les modules critiques.
         - 🚧 **Problème d'environnement `npm`/`npx` :** Identifier et résoudre le problème bloquant l'exécution des tests (mentionné dans `roadmap-dev-updated.md`).
         - 🔄 **Accessibilité & Performance :** Garder ces aspects à l'esprit lors des nouveaux développements et planifier des passes de tests dédiées.
 
-### 6. Documentation (Mise à jour)
+### 7. Documentation (Mise à jour)
+
     - **Objectif :** S'assurer que la documentation reflète l'état actuel du projet.
     - **Actions Immédiates :**
-        - Mettre à jour `docs-consolidated/*` pour refléter les dernières avancées (notamment sur le bloc opératoire, les règles, les congés).
+        - Mettre à jour `docs-consolidated/*` pour refléter les dernières avancées (notamment sur le bloc opératoire, les règles, les congés, les simulations).
         - Commencer à esquisser la documentation utilisateur pour les fonctionnalités stabilisées.
         - 🚧 **Documentation spécifique Module Congés**:
             - [ ] Rédiger ou mettre à jour les guides utilisateurs pour la fonctionnalité des demi-journées.
             - [ ] Documenter le processus interne de calcul et de mise à jour des soldes de congés.
+        - 🚧 **Documentation Module Simulation**:
+            - [ ] Créer un guide utilisateur expliquant comment créer un scénario et interpréter les résultats.
+            - [ ] Documenter le format des exports PDF/Excel pour les utilisateurs qui souhaitent partager les résultats.
 
 ## Points d'Attention Particuliers
+
 - **Communication :** Maintenir une communication fluide sur les blocages et les avancées.
-- **Priorisation :** Revoir régulièrement les priorités en fonction des retours et des difficultés rencontrées. 
+- **Priorisation :** Revoir régulièrement les priorités en fonction des retours et des difficultés rencontrées.
