@@ -235,6 +235,61 @@ En parallèle de l'implémentation technique du système de trames et affectatio
 
 Un document détaillé des spécifications UI est disponible dans `docs-consolidated/02_Fonctionnalites/07_Gestion_Affectations/02_Refonte_UI_Trames_Affectations.md`.
 
+# Améliorations des Simulations de Planning
+
+Avec l'implémentation des templates de simulation, nous avons franchi une étape importante dans la gestion des simulations de planning. Voici les prochaines étapes d'amélioration prévues:
+
+## Améliorations à Court Terme
+
+### 1. Renforcement des Templates de Simulation
+- **Objectif :** Enrichir les fonctionnalités des templates pour maximiser leur utilité
+- **Actions Prioritaires :**
+  - [ ] Ajouter des filtres supplémentaires sur la liste des templates (récemment créés, les plus utilisés)
+  - [ ] Implémenter une fonctionnalité de clonage/duplication de templates
+  - [ ] Ajouter des indicateurs d'utilisation (combien de fois un template a été utilisé)
+  - [ ] Permettre l'importation/exportation de templates entre environnements
+
+### 2. Dashboard de Simulation
+- **Objectif :** Créer un tableau de bord analytique pour faciliter la comparaison des scénarios
+- **Fonctionnalités à Développer :**
+  - [ ] Vue comparative de plusieurs scénarios côte à côte
+  - [ ] Indicateurs clés de performance (KPIs) configurables
+  - [ ] Visualisation graphique des résultats (graphiques de répartition des charges de travail, etc.)
+  - [ ] Analyse d'impact des changements de paramètres
+
+### 3. Amélioration des Exports
+- **Objectif :** Renforcer les options d'export pour faciliter le partage des résultats
+- **Actions :**
+  - [ ] Enrichir les exports PDF avec plus d'indicateurs visuels
+  - [ ] Améliorer la mise en page des exports Excel pour une meilleure analyse
+  - [ ] Permettre l'export sélectif de parties spécifiques des résultats
+  - [ ] Implémenter l'export automatique par email à une liste de destinataires
+
+## Évolutions à Moyen Terme
+
+### 1. Intégration IA Assistive
+- **Objectif :** Incorporer des fonctionnalités d'IA pour analyser et optimiser les scénarios
+- **Fonctionnalités :**
+  - [ ] Analyser automatiquement les résultats pour détecter des opportunités d'optimisation
+  - [ ] Suggérer des paramètres alternatifs pour améliorer les résultats
+  - [ ] Prédire l'impact des changements avant leur application
+
+### 2. Mode Collaboratif
+- **Objectif :** Permettre la collaboration sur les simulations entre plusieurs utilisateurs
+- **Fonctionnalités :**
+  - [ ] Partage contrôlé de templates et scénarios avec d'autres utilisateurs
+  - [ ] Annotations et commentaires sur les résultats
+  - [ ] Historique des modifications et des versions
+
+### 3. Tests Automatisés
+- **Objectif :** Vérifier automatiquement la robustesse des templates face à différentes situations
+- **Fonctionnalités :**
+  - [ ] Tests de stress (simulation avec nombre élevé d'utilisateurs/contraintes)
+  - [ ] Tests de sensibilité (analyse de l'impact des variations de paramètres)
+  - [ ] Rapports automatiques de validité des templates
+
+---
+
 # Prochaines Étapes pour Mathildanesth
 
 Ce document liste les actions prioritaires et les points d'attention pour les prochaines semaines de développement. Il est basé sur la [ROADMAP.md](ROADMAP.md) et l'état actuel du projet.
@@ -269,71 +324,4 @@ Ce document liste les actions prioritaires et les points d'attention pour les pr
     - **Objectif :** Avoir un moteur de règles pleinement fonctionnel avec une interface d'administration basique pour les règles de planification.
     - **Actions Immédiates :**
         - 🔄 **Interface Admin Règles :**
-            - Finaliser `RuleForm` pour l'édition complète des conditions et actions.
-            - Développer/Vérifier `RuleList` pour l'affichage et la gestion (activation/désactivation) des règles.
-            - S'assurer que le CRUD via API pour les règles est fonctionnel (si marqué comme [ ] dans la roadmap détaillée, le développer).
-        - 🔄 **Intégration UI Planning :** Commencer l'intégration du feedback visuel sur le respect (ou non) des règles directement dans l'interface du planning.
-        - 🚧 **Résoudre interférence tests `blocPlanningService.test.ts` :** Isoler les tests pour qu'ils passent de manière fiable.
-
-### 3. Module de Simulation (Amélioration Progressive)
-
-    - **Objectif :** Rendre le module de simulation plus intuitif, performant et visuellement informatif.
-    - **Actions Immédiates :**
-        - ✅ **Interface de Création de Simulation :**
-            - Interface à onglets pour remplacer l'éditeur JSON brut.
-            - Sélection intuitive de dates, sites, règles et utilisateurs.
-        - ✅ **Visualisation des Résultats :**
-            - Présentation structurée avec des onglets (Résumé, Conflits, Participants, Détails).
-            - Visualisations graphiques des statistiques clés.
-            - Système d'auto-refresh pour les simulations en cours.
-        - ✅ **Export des Résultats :**
-            - Export PDF et Excel avec mise en forme.
-            - Exportation des statistiques, conflits et affectations.
-        - 🚧 **Prochaines fonctionnalités :**
-            - [ ] **Templates de simulation :** Système permettant de sauvegarder des configurations types pour accélérer la création de scénarios.
-            - [ ] **Dashboard analytique :** Créer un tableau de bord consolidant les métriques de toutes les simulations.
-            - [ ] **Comparaison de scénarios :** Interface pour comparer côte à côte les résultats de plusieurs simulations.
-            - [ ] **Assistant IA :** Intégrer des suggestions d'amélioration basées sur l'analyse des résultats.
-
-### 4. Algorithme de Génération de Planning (V1 - Démarrage/Continuation)
-
-    - **Objectif :** Produire une première version de l'algorithme capable de générer des plannings de gardes/astreintes en respectant les règles de base.
-    - **Actions Immédiates :**
-        - 🔄 **Développement Algorithme :** Poursuivre le développement en s'appuyant sur `RuleBasedPlanningGeneratorService`.
-        - 🔄 **Intégration Moteur de Règles :** S'assurer que l'algorithme utilise correctement le `RuleEngineService`.
-        - ⏳ **Tests d'Intégration :** Planifier et commencer à écrire des tests d'intégration pour l'algorithme avec différents jeux de règles.
-
-### 5. Planification du Bloc Opératoire (Continuation)
-
-    - **Objectif :** Stabiliser et enrichir les fonctionnalités du planning hebdomadaire du bloc.
-    - **Actions Immédiates :**
-        - 🔄 **Amélioration Feedback DND :** Améliorer le retour visuel lors du glisser-déposer dans le planning hebdomadaire.
-        - 🔄 **Validation Manuelle :** Poursuivre le développement des interfaces pour la validation et la modification manuelle des plannings du bloc.
-        - ⏳ **Gestion des affectations complexes :** Étudier l'ajout de logique pour les affectations complexes (ex: plusieurs anesthésistes par salle, types d'actes).
-        - ⏳ **Refonte UI Trames et Affectations :** Concevoir et prototyper les nouvelles interfaces visuelles pour la gestion des trames et affectations selon les spécifications du document `docs-consolidated/02_Fonctionnalites/07_Gestion_Affectations/02_Refonte_UI_Trames_Affectations.md`.
-
-### 6. Tests et Qualité (Continu)
-
-    - **Objectif :** Maintenir et améliorer la qualité globale du code.
-    - **Actions Immédiates :**
-        - 🔄 **Couverture de Tests :** Continuer d'augmenter la couverture de tests pour tous les modules critiques.
-        - 🚧 **Problème d'environnement `npm`/`npx` :** Identifier et résoudre le problème bloquant l'exécution des tests (mentionné dans `roadmap-dev-updated.md`).
-        - 🔄 **Accessibilité & Performance :** Garder ces aspects à l'esprit lors des nouveaux développements et planifier des passes de tests dédiées.
-
-### 7. Documentation (Mise à jour)
-
-    - **Objectif :** S'assurer que la documentation reflète l'état actuel du projet.
-    - **Actions Immédiates :**
-        - Mettre à jour `docs-consolidated/*` pour refléter les dernières avancées (notamment sur le bloc opératoire, les règles, les congés, les simulations).
-        - Commencer à esquisser la documentation utilisateur pour les fonctionnalités stabilisées.
-        - 🚧 **Documentation spécifique Module Congés**:
-            - [ ] Rédiger ou mettre à jour les guides utilisateurs pour la fonctionnalité des demi-journées.
-            - [ ] Documenter le processus interne de calcul et de mise à jour des soldes de congés.
-        - 🚧 **Documentation Module Simulation**:
-            - [ ] Créer un guide utilisateur expliquant comment créer un scénario et interpréter les résultats.
-            - [ ] Documenter le format des exports PDF/Excel pour les utilisateurs qui souhaitent partager les résultats.
-
-## Points d'Attention Particuliers
-
-- **Communication :** Maintenir une communication fluide sur les blocages et les avancées.
-- **Priorisation :** Revoir régulièrement les priorités en fonction des retours et des difficultés rencontrées.
+            - Finaliser `
