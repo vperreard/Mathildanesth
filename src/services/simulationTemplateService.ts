@@ -19,6 +19,25 @@ export interface SimulationTemplate extends SimulationTemplateBase {
     };
 }
 
+// Type pour la personnalisation du template
+export interface TemplateCustomization {
+    name: string;
+    description?: string;
+    dates: {
+        startDate: string;
+        endDate: string;
+    };
+    absences?: {
+        userIds: number[];
+        surgeonIds: number[];
+    };
+    options?: {
+        ignoreLeaves: boolean;
+        prioritizeExistingAssignments: boolean;
+        balanceWorkload: boolean;
+    };
+}
+
 /**
  * Récupère la liste des templates de simulation
  */
@@ -135,6 +154,119 @@ export async function deleteTemplate(templateId: string) {
         return await response.json();
     } catch (error) {
         console.error(`Erreur lors de la suppression du template ${templateId}:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Duplique un template existant
+ */
+export async function duplicateTemplate(sourceTemplateId: string, newName: string) {
+    try {
+        const response = await fetch('/api/simulations/templates/duplicate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                sourceTemplateId,
+                name: newName,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Erreur lors de la duplication du template');
+        }
+
+        return await response.json() as SimulationTemplate;
+    } catch (error) {
+        console.error(`Erreur lors de la duplication du template ${sourceTemplateId}:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Prépare les données pour créer un scénario à partir d'un template
+ * Récupère le template et initialise les données de base pour le scénario
+ */
+export async function prepareTemplateForScenario(templateId: string) {
+    try {
+        const template = await fetchTemplate(templateId);
+
+        // Préparer les données de base pour le scénario
+        const baseScenarioData = {
+            name: `${template.name} - ${new Date().toLocaleDateString()}`,
+            description: template.description,
+            parametersJson: {
+                ...template.parametersJson,
+                // Assurez-vous que les dates sont au bon format ou utilisez des dates par défaut
+                startDate: template.parametersJson.startDate || new Date().toISOString().split('T')[0],
+                endDate: template.parametersJson.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                // Initialiser les listes d'absences si elles n'existent pas
+                absentUserIds: template.parametersJson.absentUserIds || [],
+                absentSurgeonIds: template.parametersJson.absentSurgeonIds || [],
+                // Initialiser les options avec des valeurs par défaut si nécessaire
+                options: {
+                    ignoreLeaves: template.parametersJson.options?.ignoreLeaves || false,
+                    prioritizeExistingAssignments: template.parametersJson.options?.prioritizeExistingAssignments !== false,
+                    balanceWorkload: template.parametersJson.options?.balanceWorkload !== false
+                }
+            }
+        };
+
+        return {
+            template,
+            baseScenarioData
+        };
+    } catch (error) {
+        console.error(`Erreur lors de la préparation du scénario à partir du template ${templateId}:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Crée un scénario personnalisé à partir d'un template
+ */
+export async function createScenarioFromTemplate(templateId: string, customization: TemplateCustomization) {
+    try {
+        const template = await fetchTemplate(templateId);
+
+        // Construire les paramètres pour le scénario
+        const parametersJson = {
+            ...template.parametersJson,
+            startDate: customization.dates.startDate,
+            endDate: customization.dates.endDate,
+            absentUserIds: customization.absences?.userIds || [],
+            absentSurgeonIds: customization.absences?.surgeonIds || [],
+            options: {
+                ...template.parametersJson.options,
+                ...customization.options
+            }
+        };
+
+        // Créer le scénario
+        const response = await fetch('/api/simulations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: customization.name,
+                description: customization.description || template.description,
+                parametersJson,
+                templateId: template.id
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Erreur lors de la création du scénario à partir du template');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error(`Erreur lors de la création du scénario à partir du template ${templateId}:`, error);
         throw error;
     }
 }
