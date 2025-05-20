@@ -17,7 +17,7 @@ import Switch from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { CalendarIcon, UsersIcon, ClockIcon, AlertTriangle } from 'lucide-react';
 
-// Types temporaires pour le prototype
+// Exports pour l'utilisation dans d'autres composants
 export type WeekType = 'ALL' | 'EVEN' | 'ODD';
 export type DayPeriod = 'MORNING' | 'AFTERNOON' | 'FULL_DAY';
 export type StaffRole = 'MAR' | 'SURGEON' | 'IADE' | 'IBODE';

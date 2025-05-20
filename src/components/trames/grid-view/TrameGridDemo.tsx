@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import TrameGridView, { TrameModele, AffectationModele, RequiredStaff, DayPeriod } from './TrameGridView';
+import dynamic from 'next/dynamic';
+
+// Import dynamique pour éviter les problèmes SSR avec react-beautiful-dnd
+const TrameGridView = dynamic(() => import('./TrameGridView'), { ssr: false });
+
+// Importer uniquement les types
+import type { TrameModele } from './TrameGridView';
 
 // Données simulées pour la démo
 const mockTrame: TrameModele = {
@@ -161,10 +167,16 @@ const mockTrame: TrameModele = {
 
 const TrameGridDemo: React.FC = () => {
     const [trame, setTrame] = useState<TrameModele>(mockTrame);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Simuler le chargement des données
     useEffect(() => {
-        console.log('Chargement de la trame de démo');
+        // Simuler un délai de chargement
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 500);
+
+        return () => clearTimeout(timer);
     }, []);
 
     // Gérer les modifications de la trame
@@ -173,15 +185,25 @@ const TrameGridDemo: React.FC = () => {
         setTrame(updatedTrame);
     };
 
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-[300px]">
+                <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-2xl font-bold mb-6">Démo Interface Grille de Trames</h1>
 
             <div className="bg-white shadow-md rounded-lg p-6">
-                <TrameGridView
-                    trame={trame}
-                    onTrameChange={handleTrameChange}
-                />
+                {TrameGridView && (
+                    <TrameGridView
+                        trame={trame}
+                        onTrameChange={handleTrameChange}
+                    />
+                )}
             </div>
         </div>
     );
