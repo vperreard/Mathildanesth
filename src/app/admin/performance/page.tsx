@@ -1,12 +1,6 @@
 import { Suspense } from 'react';
 import AdminLayout from '@/components/layouts/AdminLayout';
-import dynamic from 'next/dynamic';
-
-// Import dynamique du composant client pour éviter les erreurs de SSR
-const PerformanceMonitor = dynamic(
-    () => import('@/components/admin/PerformanceMonitor'),
-    { ssr: false }
-);
+import PerformanceClientWrapper from './client';
 
 export const metadata = {
     title: 'Monitoring des Performances | Mathildanesth',
@@ -18,7 +12,7 @@ export default function PerformancePage() {
         <AdminLayout title="Monitoring des Performances">
             <div className="p-4">
                 <Suspense fallback={<div className="flex justify-center p-12">Chargement...</div>}>
-                    <PerformanceMonitor />
+                    <PerformanceClientWrapper />
                 </Suspense>
 
                 <div className="mt-12 p-4 bg-white shadow rounded-lg">
