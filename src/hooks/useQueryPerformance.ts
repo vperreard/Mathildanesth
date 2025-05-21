@@ -2,19 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { prisma } from '@/lib/prisma';
-
-interface PerformanceMetrics {
-    cacheSize: number;
-    cacheHits: number;
-    cacheMisses: number;
-    cacheHitRate: number;
-    lastQueryDuration: number | null;
-    averageQueryDuration: number | null;
-    slowestQuery: {
-        name: string;
-        duration: number;
-    } | null;
-}
+import { usePerformance } from '@/context/PerformanceContext';
+import { usePathname } from 'next/navigation';
 
 // Type pour prisma avec statistiques de cache
 type PrismaWithCache = typeof prisma & {
@@ -26,102 +15,129 @@ type PrismaWithCache = typeof prisma & {
     }
 };
 
+interface QueryPerformanceHookReturn {
+    lastQueryDuration: number | null;
+    averageQueryDuration: number | null;
+    slowestQuery: {
+        name: string;
+        duration: number;
+        timestamp: number;
+    } | null;
+    cacheStats: {
+        size: number;
+        hits: number;
+        misses: number;
+        hitRate: number;
+    };
+    queryCount: number;
+    pageLoadTimes: {
+        page: string;
+        loadTime: number;
+        timestamp: number;
+    }[];
+    navigationHistory: {
+        from: string;
+        to: string;
+        duration: number;
+        timestamp: number;
+    }[];
+    recordQuery: (name: string, startTime: number) => void;
+    resetMetrics: () => void;
+}
+
 /**
  * Hook pour mesurer et surveiller les performances des requêtes
- * Fonctionne en coordination avec le système de cache Prisma
+ * Les métriques sont persistantes entre les navigations
  */
-export function useQueryPerformance() {
-    const [metrics, setMetrics] = useState<PerformanceMetrics>({
-        cacheSize: 0,
-        cacheHits: 0,
-        cacheMisses: 0,
-        cacheHitRate: 0,
-        lastQueryDuration: null,
-        averageQueryDuration: null,
-        slowestQuery: null
-    });
+export function useQueryPerformance(): QueryPerformanceHookReturn {
+    const {
+        metrics,
+        recordQueryPerformance,
+        updateCacheStats,
+        recordPageLoad,
+        recordPageNavigation,
+        resetMetrics
+    } = usePerformance();
 
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [error, setError] = useState<Error | null>(null);
+    const pathname = usePathname();
+    const [prevPathname, setPrevPathname] = useState<string | null>(null);
+    const [navigationType, setNavigationType] = useState<'initial' | 'navigation'>('initial');
+    const [navigationStartTime, setNavigationStartTime] = useState<number | null>(null);
 
-    // Récupérer les métriques de cache
-    const refreshMetrics = useCallback(async () => {
-        try {
-            setIsLoading(true);
+    // Surveiller les changements de page pour mesurer les performances de navigation
+    useEffect(() => {
+        // Ne rien faire au chargement initial
+        if (!prevPathname && navigationType === 'initial') {
+            setPrevPathname(pathname);
+            const pageLoadTime = performance.now();
+            recordPageLoad(pathname || 'unknown', pageLoadTime);
+            return;
+        }
 
-            // Accéder aux statistiques du cache si disponibles
-            if ((prisma as PrismaWithCache).$cacheStats) {
-                const cacheStats = (prisma as PrismaWithCache).$cacheStats();
-
-                setMetrics(prev => ({
-                    ...prev,
-                    cacheSize: cacheStats.size,
-                    cacheHits: cacheStats.hits,
-                    cacheMisses: cacheStats.misses,
-                    cacheHitRate: cacheStats.hitRate
-                }));
+        // Si c'est une navigation (pas le premier rendu)
+        if (prevPathname && pathname !== prevPathname) {
+            // Si on a un temps de début de navigation
+            if (navigationStartTime) {
+                const navDuration = performance.now() - navigationStartTime;
+                recordPageNavigation(prevPathname, pathname || 'unknown', navDuration);
             }
 
-            setError(null);
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error('Erreur lors de la récupération des métriques'));
-        } finally {
-            setIsLoading(false);
+            // Mettre à jour pour la prochaine navigation
+            setPrevPathname(pathname);
+            setNavigationType('navigation');
+            setNavigationStartTime(performance.now());
         }
-    }, []);
+    }, [pathname, prevPathname, navigationType, navigationStartTime, recordPageNavigation, recordPageLoad]);
 
-    // Mesurer les performances d'une requête
-    const measureQuery = useCallback(async <T>(
-        queryName: string,
-        queryFn: () => Promise<T>
-    ): Promise<T> => {
-        const startTime = performance.now();
-        try {
-            const result = await queryFn();
-            const duration = performance.now() - startTime;
-
-            setMetrics(prev => {
-                const newMetrics = {
-                    ...prev,
-                    lastQueryDuration: duration,
-                    averageQueryDuration: prev.averageQueryDuration
-                        ? (prev.averageQueryDuration + duration) / 2
-                        : duration
-                };
-
-                // Enregistrer la requête la plus lente
-                if (!prev.slowestQuery || duration > prev.slowestQuery.duration) {
-                    newMetrics.slowestQuery = {
-                        name: queryName,
-                        duration
-                    };
-                }
-
-                return newMetrics;
-            });
-
-            return result;
-        } catch (error) {
-            // Enregistrer l'erreur mais la propager pour la gestion externe
-            throw error;
-        }
-    }, []);
-
-    // Rafraîchir les métriques au montage
+    // Récupérer les statistiques de cache de Prisma
     useEffect(() => {
-        refreshMetrics();
+        // Vérifier si prisma a des statistiques de cache
+        try {
+            // @ts-ignore - Accès aux statistiques internes
+            const cacheStats = (prisma as PrismaWithCache).$cacheStats?.();
+            if (cacheStats) {
+                updateCacheStats(cacheStats);
+            }
+        } catch (error) {
+            // Ignorer les erreurs - le cache n'est peut-être pas disponible
+        }
 
-        // Optionnel: rafraîchir périodiquement
-        const intervalId = setInterval(refreshMetrics, 30000); // toutes les 30 sec
+        const interval = setInterval(() => {
+            try {
+                // @ts-ignore - Accès aux statistiques internes
+                const cacheStats = (prisma as PrismaWithCache).$cacheStats?.();
+                if (cacheStats) {
+                    updateCacheStats(cacheStats);
+                }
+            } catch (error) {
+                // Ignorer les erreurs
+            }
+        }, 5000);
 
-        return () => clearInterval(intervalId);
-    }, [refreshMetrics]);
+        return () => clearInterval(interval);
+    }, [updateCacheStats]);
 
+    // Fonction pour enregistrer une requête
+    const recordQuery = useCallback((name: string, startTime: number) => {
+        const duration = performance.now() - startTime;
+        recordQueryPerformance(name, duration);
+    }, [recordQueryPerformance]);
+
+    // Retourner les valeurs du contexte et la fonction d'enregistrement
     return {
-        metrics,
-        isLoading,
-        error,
-        refreshMetrics,
-        measureQuery
+        lastQueryDuration: metrics.lastQueryDuration,
+        averageQueryDuration: metrics.averageQueryDuration,
+        slowestQuery: metrics.slowestQuery,
+        cacheStats: {
+            size: metrics.cacheSize,
+            hits: metrics.cacheHits,
+            misses: metrics.cacheMisses,
+            hitRate: metrics.cacheHitRate
+        },
+        queryCount: metrics.queryCount,
+        pageLoadTimes: metrics.pageLoadTimes,
+        navigationHistory: metrics.navigationHistory,
+        recordQuery,
+        resetMetrics
     };
 } 
