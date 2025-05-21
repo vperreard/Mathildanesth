@@ -8,6 +8,7 @@ export const navigationGroups = [
             { href: '/planning/simulateur', label: 'Simulateur' },
             { href: '/calendar', label: 'Calendrier' },
             { href: '/leaves', label: 'Congés' },
+            { href: '/consultations', label: 'Consultations' },
         ]
     },
     {
@@ -25,6 +26,7 @@ export const navigationGroups = [
             { href: '/parametres/configuration', label: 'Panneau de configuration' },
             { href: '/parametres/trames', label: 'Trames' },
             { href: '/admin/bloc-operatoire', label: 'Bloc Opératoire' },
+            { href: '/admin/performance', label: 'Monitoring Performance' },
             { href: '/parametres/hopitaux', label: 'Hôpitaux' },
             { href: '/parametres/sites', label: 'Sites' },
             { href: '/parametres/specialites', label: 'Spécialités' },
@@ -47,6 +49,7 @@ export const adminLinks = [
     '/parametres/configuration',
     '/parametres/configuration/fatigue',
     '/admin/bloc-operatoire',
+    '/admin/performance',
     '/statistiques',
     '/parametres/trames',
 ];
