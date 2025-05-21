@@ -4,7 +4,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import '@/styles/dialog-fullscreen.css'; // Ajout des styles fullscreen pour les dialogues
 import dynamic from 'next/dynamic';
-import { Suspense, useEffect } from 'react';
+import { Suspense } from 'react';
 import { Providers } from '@/app/providers';
 import 'react-toastify/dist/ReactToastify.css';
 // Correction du chemin d'importation de NotificationToast
@@ -15,6 +15,8 @@ import { LayoutErrorFallback } from '@/components/Calendar/ErrorFallbacks';
 import { ThemeProvider } from '@/context/ThemeContext';
 // Import des composants clients pour les notifications
 import { ClientNotificationCenter, ClientSimulationNotifications } from '@/components/notifications/ClientNotifications';
+// Import du wrapper client pour le préchargeur
+import ClientPrefetcherWrapper from '@/components/ClientPrefetcherWrapper';
 
 // Chargement dynamique des composants non critiques avec priorité
 const Header = dynamic(() => import('@/components/Header'), {
@@ -27,10 +29,7 @@ const Footer = dynamic(() => import('@/components/Footer'), {
     loading: () => <div className="h-10 bg-gray-100 animate-pulse"></div>
 });
 
-// Chargement dynamique et optimisé du préchargeur
-const Prefetcher = dynamic(() => import('@/components/Prefetcher'), {
-    ssr: false,
-});
+// Suppression du préchargeur chargé dynamiquement (déplacé dans le composant client)
 
 // Suppression des configurations de polices Next.js
 // const inter = Inter({
@@ -128,10 +127,8 @@ export default function RootLayout({
                             </main>
                             <Footer />
 
-                            {/* Préchargeur de routes et données */}
-                            <Suspense fallback={null}>
-                                <Prefetcher />
-                            </Suspense>
+                            {/* Préchargeur de routes et données via un wrapper client */}
+                            <ClientPrefetcherWrapper />
                         </div>
                     </ThemeProvider>
                 </Providers>
