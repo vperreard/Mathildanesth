@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from 'react';
 import { prisma } from '@/lib/prisma';
 
@@ -13,6 +15,16 @@ interface PerformanceMetrics {
         duration: number;
     } | null;
 }
+
+// Type pour prisma avec statistiques de cache
+type PrismaWithCache = typeof prisma & {
+    $cacheStats: () => {
+        size: number;
+        hits: number;
+        misses: number;
+        hitRate: number;
+    }
+};
 
 /**
  * Hook pour mesurer et surveiller les performances des requêtes
@@ -38,8 +50,8 @@ export function useQueryPerformance() {
             setIsLoading(true);
 
             // Accéder aux statistiques du cache si disponibles
-            if ((prisma as any).$cacheStats) {
-                const cacheStats = (prisma as any).$cacheStats();
+            if ((prisma as PrismaWithCache).$cacheStats) {
+                const cacheStats = (prisma as PrismaWithCache).$cacheStats();
 
                 setMetrics(prev => ({
                     ...prev,

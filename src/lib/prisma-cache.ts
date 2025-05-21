@@ -1,3 +1,8 @@
+// Empêcher le client browser d'exécuter ce code (pour Next.js App Router)
+// Ce code s'exécute uniquement côté serveur
+// @ts-ignore
+const isServer = typeof window === 'undefined';
+
 import { PrismaClient } from '@prisma/client';
 
 // Typage pour les entrées de cache
@@ -155,11 +160,13 @@ export class PrismaCache implements PrismaCacheService {
     }
 }
 
-// Singleton du cache
-export const prismaCache = new PrismaCache({
-    defaultTTL: 5 * 60 * 1000, // 5 minutes
-    cleanupInterval: 10 * 60 * 1000 // 10 minutes
-});
+// Singleton du cache - uniquement si nous sommes côté serveur
+export const prismaCache = isServer
+    ? new PrismaCache({
+        defaultTTL: 5 * 60 * 1000, // 5 minutes
+        cleanupInterval: 10 * 60 * 1000 // 10 minutes
+    })
+    : null;
 
 /**
  * Crée une clé de cache basée sur la requête et ses paramètres
@@ -181,8 +188,19 @@ export function createCacheKey(model: string, operation: string, params: any = {
  * Client Prisma amélioré avec cache intégré
  */
 export function createCachedPrismaClient() {
+    // Ne créer le client que côté serveur
+    if (!isServer) {
+        console.warn('Tentative de création du client Prisma côté navigateur. Cette opération est ignorée.');
+        return null;
+    }
+
     const prisma = new PrismaClient();
     const cache = prismaCache;
+
+    if (!cache) {
+        console.warn('Cache non initialisé. Le client Prisma sera utilisé sans cache.');
+        return prisma;
+    }
 
     // Wrap des méthodes de requête pour ajouter le cache
     // Note: c'est une première implémentation, à étendre/améliorer
@@ -290,4 +308,4 @@ export function createCachedPrismaClient() {
 }
 
 // Exporter une instance unique du client Prisma avec cache
-export const cachedPrisma = createCachedPrismaClient(); 
+export const cachedPrisma = isServer ? createCachedPrismaClient() : null; 

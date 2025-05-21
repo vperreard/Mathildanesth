@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { Card, Statistic, Table, Button, Spin, Alert, Tag, Progress } from 'antd';
 import { useQueryPerformance } from '@/hooks/useQueryPerformance';

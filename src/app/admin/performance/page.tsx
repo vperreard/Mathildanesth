@@ -1,6 +1,12 @@
 import { Suspense } from 'react';
 import AdminLayout from '@/components/layouts/AdminLayout';
-import PerformanceMonitor from '@/components/admin/PerformanceMonitor';
+import dynamic from 'next/dynamic';
+
+// Import dynamique du composant client pour éviter les erreurs de SSR
+const PerformanceMonitor = dynamic(
+    () => import('@/components/admin/PerformanceMonitor'),
+    { ssr: false }
+);
 
 export const metadata = {
     title: 'Monitoring des Performances | Mathildanesth',
