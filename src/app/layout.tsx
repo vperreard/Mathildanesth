@@ -4,7 +4,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import '@/styles/dialog-fullscreen.css'; // Ajout des styles fullscreen pour les dialogues
 import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Providers } from '@/app/providers';
 import 'react-toastify/dist/ReactToastify.css';
 // Correction du chemin d'importation de NotificationToast
@@ -13,8 +13,10 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { LayoutErrorFallback } from '@/components/Calendar/ErrorFallbacks';
 // Correction du chemin d'importation de ThemeProvider
 import { ThemeProvider } from '@/context/ThemeContext';
+// Import des composants clients pour les notifications
+import { ClientNotificationCenter, ClientSimulationNotifications } from '@/components/notifications/ClientNotifications';
 
-// Chargement dynamique des composants non critiques
+// Chargement dynamique des composants non critiques avec priorité
 const Header = dynamic(() => import('@/components/Header'), {
     ssr: true,
     loading: () => <div className="h-16 bg-primary-100 animate-pulse"></div>
@@ -25,15 +27,10 @@ const Footer = dynamic(() => import('@/components/Footer'), {
     loading: () => <div className="h-10 bg-gray-100 animate-pulse"></div>
 });
 
-const NotificationCenter = dynamic(
-    () => import('@/components/notifications/NotificationCenter').then(mod => ({ default: mod.NotificationCenter })),
-    { ssr: false }
-);
-
-const SimulationNotifications = dynamic(
-    () => import('@/components/notifications/SimulationNotifications').then(mod => ({ default: mod.SimulationNotifications })),
-    { ssr: false }
-);
+// Chargement dynamique et optimisé du préchargeur
+const Prefetcher = dynamic(() => import('@/components/Prefetcher'), {
+    ssr: false,
+});
 
 // Suppression des configurations de polices Next.js
 // const inter = Inter({
@@ -107,6 +104,12 @@ export default function RootLayout({
                     type="font/woff2"
                     crossOrigin="anonymous"
                 />
+
+                {/* Préchargement des scripts critiques */}
+                <link
+                    rel="modulepreload"
+                    href="/_next/static/chunks/main.js"
+                />
             </head>
             <body className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
                 <Providers>
@@ -120,16 +123,15 @@ export default function RootLayout({
                                     {children}
                                 </ErrorBoundary>
                                 <NotificationToast />
-                                <Suspense fallback={null}>
-                                    <div className="fixed bottom-4 right-4 z-50">
-                                        <NotificationCenter />
-                                    </div>
-                                </Suspense>
-                                <Suspense fallback={null}>
-                                    <SimulationNotifications />
-                                </Suspense>
+                                <ClientNotificationCenter />
+                                <ClientSimulationNotifications />
                             </main>
                             <Footer />
+
+                            {/* Préchargeur de routes et données */}
+                            <Suspense fallback={null}>
+                                <Prefetcher />
+                            </Suspense>
                         </div>
                     </ThemeProvider>
                 </Providers>
