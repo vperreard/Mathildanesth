@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { templateService, FullActivityType } from '../services/templateService';
-import { PlanningTemplate, RoleType, Site } from '../types/template';
+import { PlanningTemplate, RoleType } from '../types/template';
 import BlocPlanningTemplateEditor, { BlocPlanningTemplateEditorHandle } from './BlocPlanningTemplateEditor';
 import { useRouter, usePathname } from 'next/navigation';
 import { DndProvider } from 'react-dnd';
@@ -19,13 +19,13 @@ import { toast } from "react-toastify";
 import { Label } from "@/components/ui/label";
 import Input from "@/components/ui/input";
 import { toast as hotToast } from 'react-hot-toast';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useSession } from 'next-auth/react';
 import SimpleDropdownMenu from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export interface TemplateManagerProps {
     initialTemplatesParam?: PlanningTemplate[]; // Renommé pour éviter confusion avec l'état
-    availableSitesParam: Site[];
+    availableSitesParam: any[]; // Correction du type pour éviter l'erreur d'import
     availableActivityTypesParam: FullActivityType[];
     availableRolesParam: RoleType[];
 }
@@ -385,64 +385,93 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     }
 
     if (templates.length === 0) {
-        return <div className="text-orange-600 p-4">Aucune trame reçue du service. Vérifiez le mapping ou la réponse API.</div>;
+        return (
+            <div className="p-8 text-center flex flex-col items-center justify-center space-y-4">
+                <div className="text-orange-600 mb-4">Aucune trame disponible dans le système.</div>
+                <p className="text-muted-foreground">Vous pouvez créer votre première trame dès maintenant.</p>
+                <Button onClick={handleCreateNew} className="mt-2">
+                    <Plus className="h-4 w-4 mr-2" /> Créer une nouvelle trame
+                </Button>
+            </div>
+        );
     }
 
     return (
         <DndProvider backend={HTML5Backend}>
-            <div className="container mx-auto p-4">
-                <div className="flex justify-between items-center mb-4">
+            <div className="container mx-auto p-6">
+                <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-bold">Gestion des Trames de Planning</h1>
-                    <div className="flex gap-2">
-                        <Button onClick={handleCreateNew}>Créer une nouvelle trame</Button>
-                        <Button variant="outline" onClick={loadTemplates}>Rafraîchir</Button>
+                    <div className="flex gap-3">
+                        <Button variant="outline" onClick={loadTemplates} className="px-4">Rafraîchir</Button>
                     </div>
                 </div>
 
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Nom</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Type Semaine</TableHead>
-                            <TableHead>Rôles</TableHead>
-                            <TableHead><span className="sr-only">Actions</span></TableHead>
+                <div className="bg-gray-50 p-4 rounded-md mb-6 flex items-center border">
+                    <div className="bg-purple-100 p-2 rounded-full mr-3">
+                        <Plus className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <p className="text-gray-700">
+                        Pour créer une nouvelle trame, utilisez le bouton violet en bas à droite de l'écran.
+                    </p>
+                </div>
+
+                <Table className="border rounded-md">
+                    <TableHeader className="bg-gray-50">
+                        <TableRow className="hover:bg-gray-50">
+                            <TableHead className="py-4 font-semibold text-gray-700">Nom</TableHead>
+                            <TableHead className="py-4 font-semibold text-gray-700">Description</TableHead>
+                            <TableHead className="py-4 font-semibold text-gray-700">Type Semaine</TableHead>
+                            <TableHead className="py-4 font-semibold text-gray-700">Rôles</TableHead>
+                            <TableHead className="py-4 font-semibold text-gray-700">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {templates.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center">Aucune trame trouvée.</TableCell>
+                                <TableCell colSpan={5} className="text-center py-8">Aucune trame trouvée.</TableCell>
                             </TableRow>
                         ) : (
                             templates.map((template) => (
-                                <TableRow key={template.id}>
-                                    <TableCell className="font-medium">{template.nom}</TableCell>
-                                    <TableCell>{template.description || '-'}</TableCell>
-                                    <TableCell>{template.typeSemaine || 'N/A'}</TableCell>
-                                    <TableCell>
+                                <TableRow key={template.id} className="hover:bg-gray-50 border-b">
+                                    <TableCell className="font-medium py-4">{template.nom}</TableCell>
+                                    <TableCell className="py-4">{template.description || '-'}</TableCell>
+                                    <TableCell className="py-4">{template.typeSemaine || 'N/A'}</TableCell>
+                                    <TableCell className="py-4">
                                         <div className="flex flex-wrap gap-1">
                                             {(template.roles && template.roles.length > 0 ? template.roles : [RoleType.TOUS]).map(role => (
-                                                <span key={role} className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                                <span key={role} className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-md font-medium">
                                                     {role}
                                                 </span>
                                             ))}
                                         </div>
                                     </TableCell>
-                                    <TableCell>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                                    <span className="sr-only">Ouvrir menu</span>
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => handleEdit(template)}>Modifier</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleDuplicate(String(template.id))}>Dupliquer</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleDelete(String(template.id), template.nom)} className="text-red-600">Supprimer</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                    <TableCell className="py-4">
+                                        <div className="flex items-center space-x-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleEdit(template)}
+                                                className="px-3"
+                                            >
+                                                Modifier
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleDuplicate(String(template.id))}
+                                                className="px-3"
+                                            >
+                                                Dupliquer
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-red-600 border-red-200 hover:bg-red-50 px-3"
+                                                onClick={() => handleDelete(String(template.id), template.nom)}
+                                            >
+                                                Supprimer
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -451,11 +480,6 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 </Table>
 
                 <Dialog modal={false} open={isEditorOpen} onOpenChange={handleEditorOpenChange}>
-                    <DialogTrigger asChild>
-                        <Button onClick={handleCreateNew} className="mb-4">
-                            <Plus className="mr-2 h-4 w-4" /> Nouvelle Trame de Bloc
-                        </Button>
-                    </DialogTrigger>
                     <DialogPortal>
                         <DialogOverlay />
                         <DialogContent
@@ -506,6 +530,27 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                         </DialogContent>
                     </DialogPortal>
                 </Dialog>
+
+                {/* Bouton flottant pour ajouter une nouvelle trame */}
+                <div className="fixed bottom-6 right-6">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={handleCreateNew}
+                                    size="lg"
+                                    className="rounded-full shadow-lg h-16 w-16 p-0 bg-purple-600 hover:bg-purple-700 transition-all duration-200 ease-in-out hover:scale-105"
+                                >
+                                    <Plus className="h-8 w-8" />
+                                    <span className="sr-only">Nouvelle trame</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Créer une nouvelle trame</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
             </div>
         </DndProvider>
     );

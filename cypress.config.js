@@ -178,11 +178,57 @@ module.exports = defineConfig({
             // Enregistrer toutes les tâches
             on('task', tasks);
 
+            // Créer un dossier pour les résultats s'il n'existe pas
+            const resultsDir = path.join(__dirname, 'results');
+            if (!fs.existsSync(resultsDir)) {
+                fs.mkdirSync(resultsDir, { recursive: true });
+            }
+
+            // Tâche pour enregistrer les métriques de performance
+            on('task', {
+                logPerformance({ type, name, duration, timestamp, status }) {
+                    const resultsFile = path.join(resultsDir, 'performance.json');
+
+                    // Lire les résultats existants ou créer un nouvel array
+                    let results = [];
+                    if (fs.existsSync(resultsFile)) {
+                        try {
+                            results = JSON.parse(fs.readFileSync(resultsFile, 'utf8'));
+                        } catch (error) {
+                            console.error('Erreur de lecture du fichier de résultats:', error);
+                        }
+                    }
+
+                    // Ajouter la nouvelle métrique
+                    results.push({
+                        type,
+                        name,
+                        duration,
+                        timestamp,
+                        status,
+                        run: new Date().toISOString()
+                    });
+
+                    // Écrire les résultats mis à jour
+                    fs.writeFileSync(resultsFile, JSON.stringify(results, null, 2));
+
+                    // Afficher un message dans la console
+                    console.log(`Performance enregistrée: ${type} ${name} - ${duration}ms`);
+
+                    return null; // Les tâches Cypress doivent retourner quelque chose
+                }
+            });
+
             return config;
         },
     },
 
-    // component: { ... } // Garder commenté pour l'instant
+    component: {
+        devServer: {
+            framework: 'next',
+            bundler: 'webpack',
+        },
+    },
 
     env: {
         apiUrl: 'http://localhost:3000/api',

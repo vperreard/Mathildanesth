@@ -13,7 +13,7 @@ export async function GET(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
-    const { id } = params;
+    const { id } = await Promise.resolve(params);
     console.log(`\n--- GET /api/assignments/swap/${id} START ---`);
 
     // Authentification

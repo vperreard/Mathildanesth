@@ -4,169 +4,145 @@
 const isServer = typeof window === 'undefined';
 
 import { PrismaClient } from '@prisma/client';
+import NodeCache from 'node-cache';
 
-// Typage pour les entrées de cache
-interface CacheEntry<T> {
-    data: T;
-    timestamp: number;
-    expiresAt: number;
+// Configuration du cache
+const CACHE_TTL = 5 * 60; // 5 minutes en secondes
+const CACHE_CHECK_PERIOD = 60; // Vérification d'expiration toutes les 60 secondes
+
+// Création du cache
+const prismaCache = new NodeCache({
+    stdTTL: CACHE_TTL,
+    checkperiod: CACHE_CHECK_PERIOD,
+    useClones: false,
+});
+
+// Type pour les clés de cache
+type CacheKey = string;
+
+// Fonction pour générer une clé de cache basée sur le nom de la méthode et les arguments
+function generateCacheKey(
+    modelName: string,
+    operation: string,
+    args: any
+): CacheKey {
+    return `${modelName}:${operation}:${JSON.stringify(args)}`;
 }
 
-// Interface publique du service de cache
-export interface PrismaCacheService {
-    get<T>(key: string): T | null;
-    set<T>(key: string, data: T, ttl?: number): void;
-    invalidate(key: string): void;
-    invalidateByPattern(pattern: string): void;
-    clear(): void;
-    stats(): CacheStats;
-}
-
-// Statistiques du cache
-interface CacheStats {
-    size: number;
-    hits: number;
-    misses: number;
-    hitRate: number;
-}
-
-/**
- * Service de cache pour les requêtes Prisma
- * Permet de mettre en cache les résultats des requêtes fréquentes
- * avec un TTL configurable et une invalidation sélective
- */
-export class PrismaCache implements PrismaCacheService {
-    private cache: Map<string, CacheEntry<any>>;
-    private hits: number;
-    private misses: number;
-    private DEFAULT_TTL: number;
-    private cleanupInterval: NodeJS.Timeout | null;
-
-    constructor(options?: { defaultTTL?: number; cleanupInterval?: number }) {
-        this.cache = new Map();
-        this.hits = 0;
-        this.misses = 0;
-        this.DEFAULT_TTL = options?.defaultTTL || 5 * 60 * 1000; // 5 minutes par défaut
-        this.cleanupInterval = null;
-
-        // Planifier le nettoyage périodique du cache
-        const interval = options?.cleanupInterval || 10 * 60 * 1000; // 10 minutes par défaut
-        this.cleanupInterval = setInterval(() => this.cleanup(), interval);
+// Classe pour étendre PrismaClient avec le cache
+export class PrismaCacheClient extends PrismaClient {
+    constructor() {
+        super();
+        this.setupCache();
     }
 
-    /**
-     * Récupère une entrée du cache
-     * @param key Clé du cache
-     * @returns Les données en cache ou null si non trouvées/expirées
-     */
-    get<T>(key: string): T | null {
-        const entry = this.cache.get(key);
-        const now = Date.now();
+    private setupCache() {
+        // Intercepter les requêtes Prisma
+        this.$use(async (params, next) => {
+            // Ne pas mettre en cache les mutations
+            if (
+                params.action === 'create' ||
+                params.action === 'update' ||
+                params.action === 'delete' ||
+                params.action === 'updateMany' ||
+                params.action === 'deleteMany' ||
+                params.action === 'upsert'
+            ) {
+                // Invalider le cache pour ce modèle lors des mutations
+                if (params.model) {
+                    this.invalidateCache(params.model);
+                }
+                return next(params);
+            }
 
-        if (!entry) {
-            this.misses++;
-            return null;
-        }
+            // Pour les opérations de lecture, vérifier le cache
+            if (
+                params.action === 'findUnique' ||
+                params.action === 'findFirst' ||
+                params.action === 'findMany'
+            ) {
+                const cacheKey = generateCacheKey(
+                    params.model || 'unknown', // Utiliser 'unknown' si model est undefined
+                    params.action,
+                    params.args
+                );
 
-        // Vérifier si l'entrée a expiré
-        if (now > entry.expiresAt) {
-            this.cache.delete(key);
-            this.misses++;
-            return null;
-        }
+                // Vérifier si les données sont dans le cache
+                const cachedData = prismaCache.get<any>(cacheKey);
+                if (cachedData) {
+                    console.log(`[PrismaCache] Cache hit: ${cacheKey}`);
+                    return cachedData;
+                }
 
-        this.hits++;
-        return entry.data;
-    }
+                // Si pas dans le cache, exécuter la requête
+                console.log(`[PrismaCache] Cache miss: ${cacheKey}`);
+                const result = await next(params);
 
-    /**
-     * Définit une entrée dans le cache
-     * @param key Clé du cache
-     * @param data Données à mettre en cache
-     * @param ttl Durée de vie en millisecondes (valeur par défaut sinon)
-     */
-    set<T>(key: string, data: T, ttl?: number): void {
-        const now = Date.now();
-        const expiresAt = now + (ttl || this.DEFAULT_TTL);
+                // Stocker le résultat dans le cache
+                prismaCache.set(cacheKey, result);
+                return result;
+            }
 
-        this.cache.set(key, {
-            data,
-            timestamp: now,
-            expiresAt
+            // Pour toutes les autres opérations, passer au middleware suivant
+            return next(params);
         });
     }
 
-    /**
-     * Invalide une entrée spécifique du cache
-     * @param key Clé à invalider
-     */
-    invalidate(key: string): void {
-        this.cache.delete(key);
+    // Méthode pour invalider le cache pour un modèle spécifique
+    public invalidateCache(modelName: string) {
+        // Invalider uniquement les clés associées à ce modèle
+        const keys = prismaCache.keys().filter((key) => key.startsWith(`${modelName}:`));
+        console.log(`[PrismaCache] Invalidating ${keys.length} keys for model ${modelName}`);
+        keys.forEach((key: string) => prismaCache.del(key));
     }
 
-    /**
-     * Invalide toutes les entrées correspondant à un motif
-     * @param pattern Motif à rechercher dans les clés
-     */
-    invalidateByPattern(pattern: string): void {
-        const regex = new RegExp(pattern);
-        for (const key of this.cache.keys()) {
-            if (regex.test(key)) {
-                this.cache.delete(key);
-            }
-        }
+    // Méthode pour invalider tout le cache
+    public invalidateAllCache() {
+        // Invalider tout le cache
+        console.log('[PrismaCache] Invalidating entire cache');
+        prismaCache.flushAll();
     }
 
-    /**
-     * Vide complètement le cache
-     */
-    clear(): void {
-        this.cache.clear();
+    // Méthode pour invalider une clé spécifique
+    public invalidateCacheKey(key: CacheKey) {
+        console.log(`[PrismaCache] Invalidating specific key: ${key}`);
+        prismaCache.del(key);
     }
 
-    /**
-     * Nettoie les entrées expirées du cache
-     */
-    private cleanup(): void {
-        const now = Date.now();
-        for (const [key, entry] of this.cache.entries()) {
-            if (now > entry.expiresAt) {
-                this.cache.delete(key);
-            }
-        }
+    // Méthode pour précharger le cache
+    public preloadCache(
+        modelName: string,
+        operation: string,
+        args: any,
+        data: any
+    ) {
+        const cacheKey = generateCacheKey(modelName, operation, args);
+        console.log(`[PrismaCache] Preloading cache: ${cacheKey}`);
+        prismaCache.set(cacheKey, data);
     }
 
-    /**
-     * Retourne les statistiques actuelles du cache
-     */
-    stats(): CacheStats {
-        const totalRequests = this.hits + this.misses;
+    // Statistiques du cache
+    public getCacheStats() {
         return {
-            size: this.cache.size,
-            hits: this.hits,
-            misses: this.misses,
-            hitRate: totalRequests > 0 ? this.hits / totalRequests : 0
+            keys: prismaCache.keys().length,
+            hits: prismaCache.getStats().hits,
+            misses: prismaCache.getStats().misses,
+            ksize: prismaCache.getStats().ksize,
+            vsize: prismaCache.getStats().vsize,
         };
-    }
-
-    /**
-     * Libère les ressources utilisées par le cache
-     */
-    dispose(): void {
-        if (this.cleanupInterval) {
-            clearInterval(this.cleanupInterval);
-            this.cleanupInterval = null;
-        }
     }
 }
 
-// Singleton du cache - uniquement si nous sommes côté serveur
-export const prismaCache = isServer
-    ? new PrismaCache({
-        defaultTTL: 5 * 60 * 1000, // 5 minutes
-        cleanupInterval: 10 * 60 * 1000 // 10 minutes
-    })
-    : null;
+// Instance singleton du client Prisma avec cache
+export const prismaCacheClient = new PrismaCacheClient();
+
+// Middleware pour les API qui expose les statistiques du cache
+export function cacheStatsMiddleware(req: any, res: any, next: any) {
+    if (req.url === '/api/cache-stats' && req.method === 'GET') {
+        return res.json(prismaCacheClient.getCacheStats());
+    }
+    next();
+}
 
 /**
  * Crée une clé de cache basée sur la requête et ses paramètres
@@ -195,7 +171,7 @@ export function createCachedPrismaClient() {
     }
 
     const prisma = new PrismaClient();
-    const cache = prismaCache;
+    const cache = prismaCacheClient;
 
     if (!cache) {
         console.warn('Cache non initialisé. Le client Prisma sera utilisé sans cache.');
@@ -218,14 +194,14 @@ export function createCachedPrismaClient() {
             const originalFindMany = model.findMany;
             model.findMany = async function (params: any) {
                 const cacheKey = createCacheKey(modelName, 'findMany', params);
-                const cachedResult = cache.get(cacheKey);
+                const cachedResult = prismaCache.get(cacheKey);
 
                 if (cachedResult !== null) {
                     return cachedResult;
                 }
 
                 const result = await originalFindMany.call(this, params);
-                cache.set(cacheKey, result);
+                prismaCache.set(cacheKey, result);
                 return result;
             };
         }
@@ -235,14 +211,14 @@ export function createCachedPrismaClient() {
             const originalFindUnique = model.findUnique;
             model.findUnique = async function (params: any) {
                 const cacheKey = createCacheKey(modelName, 'findUnique', params);
-                const cachedResult = cache.get(cacheKey);
+                const cachedResult = prismaCache.get(cacheKey);
 
                 if (cachedResult !== null) {
                     return cachedResult;
                 }
 
                 const result = await originalFindUnique.call(this, params);
-                cache.set(cacheKey, result);
+                prismaCache.set(cacheKey, result);
                 return result;
             };
         }
@@ -252,14 +228,14 @@ export function createCachedPrismaClient() {
             const originalFindFirst = model.findFirst;
             model.findFirst = async function (params: any) {
                 const cacheKey = createCacheKey(modelName, 'findFirst', params);
-                const cachedResult = cache.get(cacheKey);
+                const cachedResult = prismaCache.get(cacheKey);
 
                 if (cachedResult !== null) {
                     return cachedResult;
                 }
 
                 const result = await originalFindFirst.call(this, params);
-                cache.set(cacheKey, result);
+                prismaCache.set(cacheKey, result);
                 return result;
             };
         }
@@ -269,14 +245,14 @@ export function createCachedPrismaClient() {
             const originalCount = model.count;
             model.count = async function (params: any) {
                 const cacheKey = createCacheKey(modelName, 'count', params);
-                const cachedResult = cache.get(cacheKey);
+                const cachedResult = prismaCache.get(cacheKey);
 
                 if (cachedResult !== null) {
                     return cachedResult;
                 }
 
                 const result = await originalCount.call(this, params);
-                cache.set(cacheKey, result);
+                prismaCache.set(cacheKey, result);
                 return result;
             };
         }
@@ -292,7 +268,7 @@ export function createCachedPrismaClient() {
                     const result = await originalMutation.call(this, params);
 
                     // Invalider toutes les entrées liées à ce modèle
-                    cache.invalidateByPattern(`^${modelName}\\.`);
+                    cache.invalidateCache(modelName);
 
                     return result;
                 };
@@ -301,7 +277,7 @@ export function createCachedPrismaClient() {
     }
 
     // Ajouter une méthode pour accéder aux stats du cache
-    (prisma as any).$cacheStats = () => cache.stats();
+    (prisma as any).$cacheStats = () => cache.getCacheStats();
 
     // Retourner le client amélioré
     return prisma;

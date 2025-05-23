@@ -1,13 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken, getAuthTokenServer } from '@/lib/auth-server-utils';
 import { PrismaClient } from '@prisma/client';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../[...nextauth]/route';
 
 export async function GET(req: NextRequest) {
     let prisma: PrismaClient | null = null;
     try {
         console.log("## API /auth/me: Début de la vérification d'authentification");
-        console.log("## API /auth/me: JWT_SECRET =", process.env.JWT_SECRET ? "[défini]" : "[NON DÉFINI]");
 
+        // 1. Vérifier d'abord via NextAuth (la méthode privilégiée)
+        const session = await getServerSession(authOptions);
+
+        if (session?.user?.id) {
+            console.log(`API ME: Utilisateur authentifié via NextAuth. ID: ${session.user.id}, Login: ${session.user.login}`);
+
+            // Récupérer rapidement les données utilisateur depuis NextAuth
+            const userData = {
+                id: session.user.id,
+                login: session.user.login,
+                email: session.user.email,
+                name: session.user.name,
+                role: session.user.role,
+                accessToken: session.user.accessToken
+            };
+
+            return NextResponse.json({
+                user: userData,
+                authMethod: 'nextauth',
+                authenticated: true
+            });
+        }
+
+        console.log("API ME: Session NextAuth non trouvée. Tentative avec token personnalisé...");
+
+        // 2. Si pas de session NextAuth, essayer avec le token personnalisé
         let tokenFromHeader: string | null = null;
         const authHeader = req.headers.get('Authorization');
         if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -19,12 +46,15 @@ export async function GET(req: NextRequest) {
             tokenFromCookie = await getAuthTokenServer();
         }
 
-        const authToken: string | null = tokenFromHeader ? tokenFromHeader : tokenFromCookie;
+        const authToken: string | null = tokenFromHeader || tokenFromCookie;
         const source = tokenFromHeader ? 'Header Authorization' : (tokenFromCookie ? 'Cookie httpOnly' : 'Aucun');
 
         if (!authToken) {
-            console.warn('API ME: Token non trouvé (ni header, ni cookie).');
-            return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+            console.warn('API ME: Token non trouvé (ni header, ni cookie, ni session).');
+            return NextResponse.json({
+                error: 'Non authentifié',
+                authenticated: false
+            }, { status: 401 });
         }
 
         console.log(`API ME: Token trouvé via ${source}. Vérification...`);
@@ -33,7 +63,10 @@ export async function GET(req: NextRequest) {
 
         if (!authResult.authenticated || !authResult.userId) {
             console.warn(`API ME: Échec vérification token. Erreur: ${authResult.error}`);
-            return NextResponse.json({ error: authResult.error || 'Session invalide ou expirée' }, { status: 401 });
+            return NextResponse.json({
+                error: authResult.error || 'Session invalide ou expirée',
+                authenticated: false
+            }, { status: 401 });
         }
 
         console.log(`API ME: Token vérifié. User ID: ${authResult.userId}, Rôle: ${authResult.role}`);
@@ -53,11 +86,18 @@ export async function GET(req: NextRequest) {
 
         if (!user) {
             console.warn(`API ME: Utilisateur non trouvé en BDD pour ID: ${authResult.userId}`);
-            return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
+            return NextResponse.json({
+                error: 'Utilisateur non trouvé',
+                authenticated: false
+            }, { status: 404 });
         }
 
-        console.log(`API ME: Utilisateur ${user.login} récupéré avec succès.`);
-        return NextResponse.json({ user });
+        console.log(`API ME: Utilisateur ${user.login} récupéré avec succès via token personnalisé.`);
+        return NextResponse.json({
+            user,
+            authMethod: 'custom_token',
+            authenticated: true
+        });
 
     } catch (error) {
         console.error('## API /auth/me: Erreur générale:', error);

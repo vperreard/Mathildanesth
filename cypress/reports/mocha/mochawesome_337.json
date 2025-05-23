@@ -1,0 +1,226 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 6,
+    "passes": 0,
+    "pending": 0,
+    "failures": 6,
+    "start": "2025-05-20T20:01:49.269Z",
+    "end": "2025-05-20T20:02:07.294Z",
+    "duration": 18025,
+    "testsRegistered": 6,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "4fd24722-276a-428d-86d4-87fb3fcf7fc5",
+      "title": "",
+      "fullFile": "cypress/e2e/auth/authentication.spec.ts",
+      "file": "cypress/e2e/auth/authentication.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "0e69e770-ab66-43db-b26a-e986d2f575f3",
+          "title": "Authentification et gestion des sessions",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "permet la connexion avec des identifiants valides",
+              "fullTitle": "Authentification et gestion des sessions permet la connexion avec des identifiants valides",
+              "timedOut": null,
+              "duration": 15820,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/auth/login');\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=password-input]').type(testUser.password);\ncy.get('[data-cy=login-button]').click();\n// Vérifier la redirection après connexion\ncy.url().should(function (url) {\n    expect(url).to.satisfy(function (url) {\n        return url.includes('/dashboard') || url.includes('/planning');\n    });\n});\n// Vérifier que le nom de l'utilisateur est affiché\ncy.get('[data-cy=user-name]').should('contain', testUser.name);",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/login\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/login\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:20:11)",
+                "diff": null
+              },
+              "uuid": "feec9b95-bf6a-4e9b-bb90-6ed820c19885",
+              "parentUUID": "0e69e770-ab66-43db-b26a-e986d2f575f3",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "affiche un message d'erreur pour des identifiants invalides",
+              "fullTitle": "Authentification et gestion des sessions affiche un message d'erreur pour des identifiants invalides",
+              "timedOut": null,
+              "duration": 411,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/auth/login');\ncy.get('[data-cy=email-input]').type('utilisateur.invalide@example.com');\ncy.get('[data-cy=password-input]').type('mot_de_passe_incorrect');\ncy.get('[data-cy=login-button]').click();\n// Vérifier le message d'erreur\ncy.get('[data-cy=notification-error]')\n    .should('be.visible')\n    .and('contain', 'Identifiants invalides');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/login\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/login\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:37:11)",
+                "diff": null
+              },
+              "uuid": "d1ac9d6a-cc36-4c76-889e-0a165507cc96",
+              "parentUUID": "0e69e770-ab66-43db-b26a-e986d2f575f3",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "maintient la session utilisateur après rafraîchissement de la page",
+              "fullTitle": "Authentification et gestion des sessions maintient la session utilisateur après rafraîchissement de la page",
+              "timedOut": null,
+              "duration": 409,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter via l'API (plus rapide que via l'UI)\ncy.loginByApi(testUser.email, testUser.password);\n// Visiter la page d'accueil\ncy.visitAsAuthenticatedUser('/dashboard');\n// Vérifier que l'utilisateur est connecté\ncy.get('[data-cy=user-name]').should('contain', testUser.name);\n// Rafraîchir la page\ncy.reload();\n// Vérifier que l'utilisateur est toujours connecté\ncy.get('[data-cy=user-name]').should('contain', testUser.name);",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:145:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)",
+                "diff": null
+              },
+              "uuid": "23e4cf0d-59f1-4109-bb09-fda93d77be72",
+              "parentUUID": "0e69e770-ab66-43db-b26a-e986d2f575f3",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet la déconnexion",
+              "fullTitle": "Authentification et gestion des sessions permet la déconnexion",
+              "timedOut": null,
+              "duration": 395,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter via l'API\ncy.loginByApi(testUser.email, testUser.password);\ncy.visitAsAuthenticatedUser('/dashboard');\n// Ouvrir le menu utilisateur et cliquer sur déconnexion\ncy.get('[data-cy=user-menu]').click();\ncy.get('[data-cy=logout-option]').click();\n// Vérifier la redirection vers la page de connexion\ncy.url().should('include', '/auth/login');\n// Essayer d'accéder à une page protégée\ncy.visit('/dashboard');\n// Vérifier qu'on est redirigé vers la page de connexion\ncy.url().should('include', '/auth/login');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/dashboard\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:145:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)",
+                "diff": null
+              },
+              "uuid": "9d870c3c-2d76-4341-b5a4-649d1bf3528d",
+              "parentUUID": "0e69e770-ab66-43db-b26a-e986d2f575f3",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "redirige vers la page demandée après connexion",
+              "fullTitle": "Authentification et gestion des sessions redirige vers la page demandée après connexion",
+              "timedOut": null,
+              "duration": 401,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Essayer d'accéder à une page protégée sans être connecté\ncy.visit('/planning');\n// Vérifier qu'on est redirigé vers la page de connexion\ncy.url().should('include', '/auth/login');\n// Se connecter\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=password-input]').type(testUser.password);\ncy.get('[data-cy=login-button]').click();\n// Vérifier qu'on est redirigé vers la page initialement demandée\ncy.url().should('include', '/planning');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/planning\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/planning\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:86:11)",
+                "diff": null
+              },
+              "uuid": "3cbea1b1-43b5-46df-9dba-602159deda85",
+              "parentUUID": "0e69e770-ab66-43db-b26a-e986d2f575f3",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet la récupération de mot de passe",
+              "fullTitle": "Authentification et gestion des sessions permet la récupération de mot de passe",
+              "timedOut": null,
+              "duration": 416,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/auth/login');\n// Cliquer sur le lien \"Mot de passe oublié\"\ncy.get('[data-cy=forgot-password-link]').click();\n// Vérifier qu'on est sur la page de récupération de mot de passe\ncy.url().should('include', '/auth/reset-password');\n// Saisir l'email et soumettre\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=submit-button]').click();\n// Vérifier le message de confirmation\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Instructions envoyées');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/login\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/login\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:101:11)",
+                "diff": null
+              },
+              "uuid": "3aaaba4e-0a04-45eb-8e6e-6b15ff1c7980",
+              "parentUUID": "0e69e770-ab66-43db-b26a-e986d2f575f3",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "feec9b95-bf6a-4e9b-bb90-6ed820c19885",
+            "d1ac9d6a-cc36-4c76-889e-0a165507cc96",
+            "23e4cf0d-59f1-4109-bb09-fda93d77be72",
+            "9d870c3c-2d76-4341-b5a4-649d1bf3528d",
+            "3cbea1b1-43b5-46df-9dba-602159deda85",
+            "3aaaba4e-0a04-45eb-8e6e-6b15ff1c7980"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 17852,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

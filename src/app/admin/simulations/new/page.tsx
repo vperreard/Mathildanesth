@@ -1,617 +1,508 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Button from '@/components/ui/button';
-import Input from '@/components/ui/input';
-import Textarea from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { ArrowLeftIcon, Loader2, CalendarIcon, UsersIcon, ScrollTextIcon, BuildingIcon } from 'lucide-react';
-import { toast } from 'sonner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeftIcon, Loader2, Save, PlusCircle, XCircle } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 
-// Type pour les utilisateurs
-interface User {
+// Types
+interface SimulationRule {
     id: string;
-    nom: string;
-    prenom: string;
-    email: string;
-    role: string;
-}
-
-// Type pour les règles
-interface Rule {
-    id: string;
-    name: string;
-    description: string;
     type: string;
+    description: string;
     enabled: boolean;
+    priority: number;
+    parameters: Record<string, any>;
 }
 
-// Type pour les sites
-interface Site {
+interface SimulationTemplate {
     id: string;
     name: string;
-    isActive: boolean;
+    category?: string;
 }
 
-// Type pour les paramètres de simulation
-interface SimulationParams {
-    period: {
-        startDate: string;
-        endDate: string;
-    };
-    siteId?: string;
-    rules: Rule[];
-    userIds?: string[];
-}
-
-export default function NewSimulationScenarioPage() {
+export default function NewSimulationPage() {
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [templates, setTemplates] = useState<SimulationTemplate[]>([]);
+
+    // États du formulaire
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [fieldErrors, setFieldErrors] = useState<Record<string, string[] | undefined>>({});
-    const [activeTab, setActiveTab] = useState('basic');
+    const [startDate, setStartDate] = useState<Date | null>(new Date());
+    const [endDate, setEndDate] = useState<Date | null>(new Date(new Date().setDate(new Date().getDate() + 14)));
+    const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+    const [selectedSite, setSelectedSite] = useState<string>('');
+    const [sites, setSites] = useState<{ id: string, name: string }[]>([]);
+    const [parameters, setParameters] = useState<Record<string, any>>({
+        maxShiftsPerWeek: 5,
+        minRestBetweenShifts: 11,
+        enforceSkillRequirements: true,
+        considerPreferences: true,
+        allowWeekendOverrides: false
+    });
+    const [rules, setRules] = useState<SimulationRule[]>([
+        {
+            id: '1',
+            type: 'MAX_CONSECUTIVE_DAYS',
+            description: 'Maximum 5 jours consécutifs de travail',
+            enabled: true,
+            priority: 1,
+            parameters: { maxDays: 5 }
+        },
+        {
+            id: '2',
+            type: 'MIN_REST_BETWEEN_SHIFTS',
+            description: 'Repos minimum de 11h entre services',
+            enabled: true,
+            priority: 2,
+            parameters: { minHours: 11 }
+        },
+        {
+            id: '3',
+            type: 'WEEKEND_BALANCE',
+            description: 'Équilibrer les weekends de travail',
+            enabled: true,
+            priority: 3,
+            parameters: { maxImbalance: 1 }
+        }
+    ]);
 
-    // États pour les paramètres structurés
-    const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-    const [endDate, setEndDate] = useState<Date | undefined>(
-        new Date(new Date().setDate(new Date().getDate() + 30)) // Par défaut, 30 jours après aujourd'hui
-    );
-    const [selectedSiteId, setSelectedSiteId] = useState<string | undefined>(undefined);
-    const [selectedRules, setSelectedRules] = useState<Rule[]>([]);
-    const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-
-    // États pour les données à charger depuis l'API
-    const [sites, setSites] = useState<Site[]>([]);
-    const [rules, setRules] = useState<Rule[]>([]);
-    const [users, setUsers] = useState<User[]>([]);
-    const [isLoadingData, setIsLoadingData] = useState(true);
-    const [loadingError, setLoadingError] = useState<string | null>(null);
-
-    // État pour les paramètres JSON avancés (optionnel)
-    const [showAdvancedEditor, setShowAdvancedEditor] = useState(false);
-    const [advancedJsonString, setAdvancedJsonString] = useState('{}');
-
-    // Charger les données des API
+    // Charger les données initiales
     useEffect(() => {
-        const fetchData = async () => {
-            setIsLoadingData(true);
-            setLoadingError(null);
-
+        const fetchInitialData = async () => {
+            setIsLoading(true);
             try {
+                // Charger les templates de simulation
+                const templatesResponse = await fetch('/api/simulations/templates');
+                if (templatesResponse.ok) {
+                    const templatesData = await templatesResponse.json();
+                    setTemplates(templatesData.data);
+                }
+
                 // Charger les sites
                 const sitesResponse = await fetch('/api/sites');
-                if (!sitesResponse.ok) throw new Error('Échec du chargement des sites');
-                const sitesData = await sitesResponse.json();
-                setSites(sitesData);
-
-                // Charger les règles
-                const rulesResponse = await fetch('/api/rules');
-                if (!rulesResponse.ok) throw new Error('Échec du chargement des règles');
-                const rulesData = await rulesResponse.json();
-                setRules(rulesData);
-
-                // Charger les utilisateurs
-                const usersResponse = await fetch('/api/users');
-                if (!usersResponse.ok) throw new Error('Échec du chargement des utilisateurs');
-                const usersData = await usersResponse.json();
-                setUsers(usersData);
-            } catch (err) {
-                console.error('Erreur lors du chargement des données:', err);
-                setLoadingError(err instanceof Error ? err.message : 'Erreur lors du chargement des données');
-                toast.error("Erreur lors du chargement des données nécessaires");
+                if (sitesResponse.ok) {
+                    const sitesData = await sitesResponse.json();
+                    setSites(sitesData.data);
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement des données initiales:', error);
+                toast.error('Erreur lors du chargement des données initiales');
             } finally {
-                setIsLoadingData(false);
+                setIsLoading(false);
             }
         };
 
-        fetchData();
+        fetchInitialData();
     }, []);
 
-    // Préparer les paramètres JSON à partir des champs structurés
-    const prepareSimulationParams = (): SimulationParams => {
-        const params: SimulationParams = {
-            period: {
-                startDate: startDate ? format(startDate, 'yyyy-MM-dd') : '',
-                endDate: endDate ? format(endDate, 'yyyy-MM-dd') : '',
-            },
-            rules: selectedRules,
-        };
-
-        if (selectedSiteId) {
-            params.siteId = selectedSiteId;
-        }
-
-        if (selectedUserIds.length > 0) {
-            params.userIds = selectedUserIds;
-        }
-
-        return params;
+    // Toggle l'état d'une règle
+    const toggleRuleEnabled = (ruleId: string) => {
+        setRules(prevRules =>
+            prevRules.map(rule =>
+                rule.id === ruleId
+                    ? { ...rule, enabled: !rule.enabled }
+                    : rule
+            )
+        );
     };
 
-    // Validation de base du formulaire
-    const validateForm = (): boolean => {
-        const errors: Record<string, string[]> = {};
-
-        if (!name.trim()) {
-            errors.name = ["Le nom est requis."];
-        }
-
-        if (!startDate) {
-            errors.startDate = ["La date de début est requise."];
-        }
-
-        if (!endDate) {
-            errors.endDate = ["La date de fin est requise."];
-        }
-
-        if (startDate && endDate && startDate > endDate) {
-            errors.endDate = ["La date de fin doit être après la date de début."];
-        }
-
-        if (selectedRules.length === 0) {
-            errors.rules = ["Au moins une règle doit être sélectionnée."];
-        }
-
-        setFieldErrors(errors);
-        return Object.keys(errors).length === 0;
+    // Met à jour un paramètre
+    const updateParameter = (key: string, value: any) => {
+        setParameters(prev => ({ ...prev, [key]: value }));
     };
 
-    // Gérer la soumission du formulaire
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        setIsLoading(true);
-        setError(null);
-        setFieldErrors({});
-
-        if (!validateForm()) {
-            setIsLoading(false);
-            toast.warning("Veuillez corriger les erreurs dans le formulaire.");
+    // Enregistrer le scénario
+    const saveScenario = async () => {
+        if (!name || !startDate || !endDate) {
+            toast.error('Veuillez remplir tous les champs obligatoires');
             return;
         }
 
-        // Préparer les paramètres JSON
-        let parametersJson = showAdvancedEditor
-            ? JSON.parse(advancedJsonString)
-            : prepareSimulationParams();
+        if (endDate && startDate && endDate < startDate) {
+            toast.error('La date de fin doit être postérieure à la date de début');
+            return;
+        }
 
+        setIsSaving(true);
         try {
-            const response = await fetch('/api/simulations', {
+            // Préparer les données à envoyer
+            const scenarioData = {
+                name,
+                description,
+                startDate: startDate?.toISOString(),
+                endDate: endDate?.toISOString(),
+                templateId: selectedTemplateId || null,
+                siteId: selectedSite || null,
+                parameters: {
+                    ...parameters,
+                    rules: rules
+                        .filter(rule => rule.enabled)
+                        .map(({ id, type, priority, parameters }) => ({
+                            type,
+                            priority,
+                            parameters
+                        }))
+                }
+            };
+
+            // Envoyer les données
+            const response = await fetch('/api/simulations/scenarios', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name,
-                    description,
-                    parametersJson
-                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(scenarioData)
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                if (response.status === 400 && errorData.errors) {
-                    setFieldErrors(errorData.errors);
-                    setError("Veuillez corriger les erreurs dans le formulaire.");
-                } else {
-                    setError(errorData.error || "Échec de la création du scénario.");
-                }
-                throw new Error(errorData.error || 'Failed to create scenario');
+                throw new Error(errorData.error || 'Erreur lors de la création du scénario');
             }
 
-            const newScenario = await response.json();
-            toast.success("Scénario créé avec succès !");
-            router.push('/admin/simulations');
-        } catch (err) {
-            console.error(err);
+            const result = await response.json();
+            toast.success('Scénario créé avec succès');
+
+            // Rediriger vers la page du scénario créé
+            router.push(`/admin/simulations/scenarios/${result.data.id}`);
+        } catch (error) {
+            console.error('Erreur lors de la création du scénario:', error);
+            toast.error(error instanceof Error ? error.message : 'Erreur lors de la création du scénario');
         } finally {
-            setIsLoading(false);
+            setIsSaving(false);
         }
     };
 
-    // Toggle pour la sélection d'une règle
-    const toggleRule = (rule: Rule) => {
-        setSelectedRules(prevRules => {
-            const isSelected = prevRules.some(r => r.id === rule.id);
-            if (isSelected) {
-                return prevRules.filter(r => r.id !== rule.id);
-            } else {
-                return [...prevRules, rule];
-            }
-        });
-    };
-
-    // Toggle pour la sélection d'un utilisateur
-    const toggleUser = (userId: string) => {
-        setSelectedUserIds(prevIds => {
-            const isSelected = prevIds.includes(userId);
-            if (isSelected) {
-                return prevIds.filter(id => id !== userId);
-            } else {
-                return [...prevIds, userId];
-            }
-        });
-    };
-
-    // Mise à jour de l'éditeur JSON avancé lorsque les paramètres structurés changent
-    useEffect(() => {
-        if (!showAdvancedEditor) {
-            const params = prepareSimulationParams();
-            setAdvancedJsonString(JSON.stringify(params, null, 2));
-        }
-    }, [startDate, endDate, selectedSiteId, selectedRules, selectedUserIds, showAdvancedEditor]);
-
-    // Afficher un indicateur de chargement si les données sont en cours de chargement
-    if (isLoadingData) {
+    if (isLoading) {
         return (
-            <div className="flex justify-center items-center h-screen">
-                <Loader2 className="h-12 w-12 animate-spin text-primary mr-2" />
-                <p className="text-lg">Chargement des données...</p>
-            </div>
-        );
-    }
-
-    // Afficher une erreur si le chargement des données a échoué
-    if (loadingError) {
-        return (
-            <div className="container mx-auto py-8 text-center">
-                <div className="text-red-500 mb-4">
-                    Erreur lors du chargement des données: {loadingError}
-                </div>
-                <Button onClick={() => window.location.reload()}>Réessayer</Button>
+            <div className="container mx-auto p-4 flex flex-col items-center justify-center min-h-[70vh]">
+                <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+                <p>Chargement des données...</p>
             </div>
         );
     }
 
     return (
-        <div className="container mx-auto py-8 max-w-3xl">
-            <Link href="/admin/simulations" passHref>
-                <Button variant="outline" className="mb-4">
-                    <ArrowLeftIcon className="mr-2 h-4 w-4" /> Retour à la liste
-                </Button>
-            </Link>
+        <div className="container mx-auto py-6 px-4">
+            <div className="mb-8">
+                <Link href="/admin/simulations" className="inline-flex items-center text-sm text-primary hover:underline mb-2">
+                    <ArrowLeftIcon className="mr-2 h-4 w-4" />
+                    Retour à la liste des simulations
+                </Link>
+                <h1 className="text-3xl font-bold mb-2">Nouveau Scénario de Simulation</h1>
+                <p className="text-muted-foreground">
+                    Créez un scénario pour simuler un planning et analyser les résultats
+                </p>
+            </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Créer un nouveau scénario de simulation</CardTitle>
-                    <CardDescription>
-                        Définissez les paramètres pour votre scénario de simulation en complétant ce formulaire.
-                    </CardDescription>
-                </CardHeader>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Informations de base</CardTitle>
+                            <CardDescription>Définissez les paramètres principaux de la simulation</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <Label htmlFor="scenario-name" className="mb-1 block">Nom du scénario <span className="text-red-500">*</span></Label>
+                                <Input
+                                    id="scenario-name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Ex: Simulation planning été 2024"
+                                    className="w-full"
+                                />
+                            </div>
 
-                <form onSubmit={handleSubmit}>
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                        <TabsList className="grid grid-cols-4 mx-4 mb-2">
-                            <TabsTrigger value="basic">Informations de base</TabsTrigger>
-                            <TabsTrigger value="period">
-                                <CalendarIcon className="h-4 w-4 mr-2" /> Période
-                            </TabsTrigger>
-                            <TabsTrigger value="rules">
-                                <ScrollTextIcon className="h-4 w-4 mr-2" /> Règles
-                            </TabsTrigger>
-                            <TabsTrigger value="participants">
-                                <UsersIcon className="h-4 w-4 mr-2" /> Participants
-                            </TabsTrigger>
-                        </TabsList>
+                            <div>
+                                <Label htmlFor="scenario-description" className="mb-1 block">Description</Label>
+                                <Textarea
+                                    id="scenario-description"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    placeholder="Décrivez l'objectif de cette simulation..."
+                                    className="w-full h-20"
+                                />
+                            </div>
 
-                        {/* Onglet Informations de base */}
-                        <TabsContent value="basic">
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Nom du scénario *</Label>
-                                    <Input
-                                        id="name"
-                                        type="text"
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        placeholder="Ex: Simulation été 2024 avec équipe réduite"
-                                        className={fieldErrors.name ? "border-red-500" : ""}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label className="mb-1 block">Date de début <span className="text-red-500">*</span></Label>
+                                    <DatePicker
+                                        selected={startDate}
+                                        onSelect={setStartDate}
                                     />
-                                    {fieldErrors.name && <p className="text-sm text-red-500">{fieldErrors.name.join(', ')}</p>}
                                 </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="description">Description</Label>
-                                    <Textarea
-                                        id="description"
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="Décrivez l'objectif et le contexte de cette simulation..."
-                                        rows={3}
-                                        className={fieldErrors.description ? "border-red-500" : ""}
+                                <div>
+                                    <Label className="mb-1 block">Date de fin <span className="text-red-500">*</span></Label>
+                                    <DatePicker
+                                        selected={endDate}
+                                        onSelect={setEndDate}
                                     />
-                                    {fieldErrors.description && <p className="text-sm text-red-500">{fieldErrors.description.join(', ')}</p>}
                                 </div>
+                            </div>
 
-                                <div className="space-y-2">
-                                    <div className="flex items-center mt-6">
-                                        <Checkbox
-                                            id="showAdvanced"
-                                            checked={showAdvancedEditor}
-                                            onCheckedChange={(checked) => setShowAdvancedEditor(!!checked)}
-                                        />
-                                        <Label htmlFor="showAdvanced" className="ml-2">
-                                            Afficher l'éditeur JSON avancé
-                                        </Label>
-                                    </div>
-
-                                    {showAdvancedEditor && (
-                                        <div className="mt-4">
-                                            <Label htmlFor="advancedJson">Paramètres JSON avancés</Label>
-                                            <Textarea
-                                                id="advancedJson"
-                                                value={advancedJsonString}
-                                                onChange={(e) => setAdvancedJsonString(e.target.value)}
-                                                rows={10}
-                                                className="font-mono text-sm"
-                                            />
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                Modifiez directement le JSON des paramètres de simulation. Assurez-vous que le format est valide.
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </TabsContent>
-
-                        {/* Onglet Période */}
-                        <TabsContent value="period">
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="startDate">Date de début *</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    className={`w-full justify-start text-left font-normal ${fieldErrors.startDate ? "border-red-500" : ""
-                                                        }`}
-                                                >
-                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                    {startDate ? (
-                                                        format(startDate, 'PPP', { locale: fr })
-                                                    ) : (
-                                                        <span>Sélectionnez une date</span>
-                                                    )}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={startDate}
-                                                    onSelect={setStartDate}
-                                                    initialFocus
-                                                    locale={fr}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                        {fieldErrors.startDate && <p className="text-sm text-red-500">{fieldErrors.startDate.join(', ')}</p>}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="endDate">Date de fin *</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    className={`w-full justify-start text-left font-normal ${fieldErrors.endDate ? "border-red-500" : ""
-                                                        }`}
-                                                >
-                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                    {endDate ? (
-                                                        format(endDate, 'PPP', { locale: fr })
-                                                    ) : (
-                                                        <span>Sélectionnez une date</span>
-                                                    )}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={endDate}
-                                                    onSelect={setEndDate}
-                                                    initialFocus
-                                                    locale={fr}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                        {fieldErrors.endDate && <p className="text-sm text-red-500">{fieldErrors.endDate.join(', ')}</p>}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="site">Site (optionnel)</Label>
-                                    <Select value={selectedSiteId} onValueChange={setSelectedSiteId}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Sélectionnez un site" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="template-select" className="mb-1 block">Modèle de simulation</Label>
+                                    <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                                        <SelectTrigger id="template-select">
+                                            <SelectValue placeholder="Sélectionner un modèle" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">Tous les sites</SelectItem>
-                                            {sites.map((site) => (
-                                                <SelectItem key={site.id} value={site.id}>
-                                                    {site.name}
+                                            <SelectItem value="">Aucun modèle</SelectItem>
+                                            {templates.map(template => (
+                                                <SelectItem key={template.id} value={template.id}>
+                                                    {template.name} {template.category ? `(${template.category})` : ''}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <p className="text-xs text-gray-500">
-                                        Si aucun site n'est sélectionné, la simulation portera sur tous les sites.
-                                    </p>
                                 </div>
-                            </CardContent>
-                        </TabsContent>
+                                <div>
+                                    <Label htmlFor="site-select" className="mb-1 block">Site</Label>
+                                    <Select value={selectedSite} onValueChange={setSelectedSite}>
+                                        <SelectTrigger id="site-select">
+                                            <SelectValue placeholder="Sélectionner un site" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">Tous les sites</SelectItem>
+                                            {sites.map(site => (
+                                                <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                        {/* Onglet Règles */}
+                    <Tabs defaultValue="rules" className="w-full">
+                        <TabsList className="mb-4">
+                            <TabsTrigger value="rules">Règles et Contraintes</TabsTrigger>
+                            <TabsTrigger value="preferences">Préférences</TabsTrigger>
+                            <TabsTrigger value="advanced">Paramètres avancés</TabsTrigger>
+                        </TabsList>
+
                         <TabsContent value="rules">
-                            <CardContent>
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center">
-                                        <Label className="text-base">Règles à appliquer *</Label>
-                                        <span className="text-sm text-gray-500">
-                                            {selectedRules.length} sélectionnée(s)
-                                        </span>
-                                    </div>
-
-                                    {fieldErrors.rules && <p className="text-sm text-red-500">{fieldErrors.rules.join(', ')}</p>}
-
-                                    <div className="border rounded-md divide-y max-h-80 overflow-y-auto">
-                                        {rules.length === 0 ? (
-                                            <div className="p-4 text-center text-gray-500">
-                                                Aucune règle disponible
-                                            </div>
-                                        ) : (
-                                            rules.map((rule) => (
-                                                <div key={rule.id} className="flex items-start p-3 hover:bg-gray-50">
-                                                    <Checkbox
-                                                        id={`rule-${rule.id}`}
-                                                        checked={selectedRules.some(r => r.id === rule.id)}
-                                                        onCheckedChange={() => toggleRule(rule)}
-                                                        className="mt-1"
-                                                    />
-                                                    <div className="ml-3">
-                                                        <Label htmlFor={`rule-${rule.id}`} className="font-medium">
-                                                            {rule.name}
-                                                        </Label>
-                                                        <p className="text-sm text-gray-500 mt-1">{rule.description}</p>
-                                                        <div className="flex mt-1 gap-2">
-                                                            <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
-                                                                {rule.type}
-                                                            </span>
-                                                            {rule.enabled ? (
-                                                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                                                                    Activée
-                                                                </span>
-                                                            ) : (
-                                                                <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">
-                                                                    Désactivée
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Règles et Contraintes</CardTitle>
+                                    <CardDescription>Configurez les règles appliquées lors de la simulation</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        {rules.map(rule => (
+                                            <div key={rule.id} className="flex items-start space-x-3 p-3 rounded-md border bg-card">
+                                                <Checkbox
+                                                    id={`rule-${rule.id}`}
+                                                    checked={rule.enabled}
+                                                    onCheckedChange={() => toggleRuleEnabled(rule.id)}
+                                                    className="mt-1"
+                                                />
+                                                <div className="flex-1">
+                                                    <Label htmlFor={`rule-${rule.id}`} className="font-medium">
+                                                        {rule.description}
+                                                    </Label>
+                                                    <p className="text-sm text-muted-foreground mt-1">
+                                                        Type: {rule.type}, Priorité: {rule.priority}
+                                                    </p>
                                                 </div>
-                                            ))
-                                        )}
+                                            </div>
+                                        ))}
+
+                                        <div className="text-center pt-2">
+                                            <Button variant="outline" size="sm" type="button" disabled>
+                                                <PlusCircle className="h-4 w-4 mr-2" />
+                                                Ajouter une règle personnalisée
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
-                            </CardContent>
+                                </CardContent>
+                            </Card>
                         </TabsContent>
 
-                        {/* Onglet Participants */}
-                        <TabsContent value="participants">
-                            <CardContent>
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center">
-                                        <Label className="text-base">Participants (optionnel)</Label>
-                                        <span className="text-sm text-gray-500">
-                                            {selectedUserIds.length} sélectionné(s)
-                                        </span>
-                                    </div>
-
-                                    <p className="text-sm text-gray-500">
-                                        Sélectionnez les utilisateurs à inclure spécifiquement dans cette simulation.
-                                        Si aucun utilisateur n'est sélectionné, tous les utilisateurs actifs seront inclus.
-                                    </p>
-
-                                    <div className="flex gap-2 mb-4 flex-wrap">
-                                        <Select
-                                            value=""
-                                            onValueChange={(value) => {
-                                                if (value) {
-                                                    // Filtrer les utilisateurs par rôle
-                                                    const filteredUsers = users.filter(user => user.role === value);
-                                                    // Sélectionner tous les utilisateurs filtrés
-                                                    setSelectedUserIds(prevIds => {
-                                                        const newIds = [...prevIds];
-                                                        filteredUsers.forEach(user => {
-                                                            if (!newIds.includes(user.id)) {
-                                                                newIds.push(user.id);
-                                                            }
-                                                        });
-                                                        return newIds;
-                                                    });
-                                                }
-                                            }}
-                                        >
-                                            <SelectTrigger className="w-[200px]">
-                                                <SelectValue placeholder="Filtrer par rôle" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="">Tous les rôles</SelectItem>
-                                                {Array.from(new Set(users.map(user => user.role))).map(role => (
-                                                    <SelectItem key={role} value={role}>
-                                                        {role}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => setSelectedUserIds([])}
-                                            className="h-10"
-                                        >
-                                            Désélectionner tout
-                                        </Button>
-                                    </div>
-
-                                    <div className="border rounded-md divide-y max-h-80 overflow-y-auto">
-                                        {users.length === 0 ? (
-                                            <div className="p-4 text-center text-gray-500">
-                                                Aucun utilisateur disponible
+                        <TabsContent value="preferences">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Préférences</CardTitle>
+                                    <CardDescription>Définissez les préférences à prendre en compte</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <Label htmlFor="consider-preferences" className="text-base">Prendre en compte les préférences</Label>
+                                                <p className="text-sm text-muted-foreground mt-1">
+                                                    Permet d'intégrer les préférences individuelles dans la génération du planning
+                                                </p>
                                             </div>
-                                        ) : (
-                                            users.map((user) => (
-                                                <div key={user.id} className="flex items-start p-3 hover:bg-gray-50">
-                                                    <Checkbox
-                                                        id={`user-${user.id}`}
-                                                        checked={selectedUserIds.includes(user.id)}
-                                                        onCheckedChange={() => toggleUser(user.id)}
-                                                        className="mt-1"
-                                                    />
-                                                    <div className="ml-3">
-                                                        <Label htmlFor={`user-${user.id}`} className="font-medium">
-                                                            {user.prenom} {user.nom}
-                                                        </Label>
-                                                        <p className="text-sm text-gray-500">{user.email}</p>
-                                                        <span className="inline-block mt-1 text-xs bg-gray-100 px-2 py-1 rounded-full">
-                                                            {user.role}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
+                                            <Checkbox
+                                                id="consider-preferences"
+                                                checked={parameters.considerPreferences}
+                                                onCheckedChange={(checked) => updateParameter('considerPreferences', checked)}
+                                            />
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <Label htmlFor="weekend-overrides" className="text-base">Permettre les dérogations weekend</Label>
+                                                <p className="text-sm text-muted-foreground mt-1">
+                                                    Autorise certaines exceptions aux règles pour les weekends
+                                                </p>
+                                            </div>
+                                            <Checkbox
+                                                id="weekend-overrides"
+                                                checked={parameters.allowWeekendOverrides}
+                                                onCheckedChange={(checked) => updateParameter('allowWeekendOverrides', checked)}
+                                            />
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <Label htmlFor="enforce-skills" className="text-base">Exiger les compétences requises</Label>
+                                                <p className="text-sm text-muted-foreground mt-1">
+                                                    Vérifie que le personnel affecté possède les compétences nécessaires
+                                                </p>
+                                            </div>
+                                            <Checkbox
+                                                id="enforce-skills"
+                                                checked={parameters.enforceSkillRequirements}
+                                                onCheckedChange={(checked) => updateParameter('enforceSkillRequirements', checked)}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                            </CardContent>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        <TabsContent value="advanced">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Paramètres avancés</CardTitle>
+                                    <CardDescription>Ajustez les paramètres fins de la simulation</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <Label htmlFor="max-shifts" className="mb-1 block">Nombre maximum de services par semaine</Label>
+                                            <div className="flex items-center gap-2">
+                                                <Input
+                                                    id="max-shifts"
+                                                    type="number"
+                                                    min={1}
+                                                    max={7}
+                                                    value={parameters.maxShiftsPerWeek}
+                                                    onChange={(e) => updateParameter('maxShiftsPerWeek', parseInt(e.target.value) || 0)}
+                                                    className="w-20"
+                                                />
+                                                <span className="text-sm text-muted-foreground">services</span>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <Label htmlFor="min-rest" className="mb-1 block">Repos minimum entre services</Label>
+                                            <div className="flex items-center gap-2">
+                                                <Input
+                                                    id="min-rest"
+                                                    type="number"
+                                                    min={0}
+                                                    max={48}
+                                                    value={parameters.minRestBetweenShifts}
+                                                    onChange={(e) => updateParameter('minRestBetweenShifts', parseInt(e.target.value) || 0)}
+                                                    className="w-20"
+                                                />
+                                                <span className="text-sm text-muted-foreground">heures</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </TabsContent>
                     </Tabs>
+                </div>
 
-                    <CardFooter className="flex justify-between border-t p-6">
-                        <Button type="button" variant="outline" onClick={() => router.push('/admin/simulations')}>
-                            Annuler
-                        </Button>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Création en cours...
-                                </>
-                            ) : (
-                                'Créer le scénario'
-                            )}
-                        </Button>
-                    </CardFooter>
-                </form>
-            </Card>
+                <div>
+                    <Card className="sticky top-4">
+                        <CardHeader>
+                            <CardTitle>Résumé</CardTitle>
+                            <CardDescription>Aperçu du scénario à créer</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <p className="font-medium">{name || 'Nouveau scénario'}</p>
+                                <p className="text-sm text-muted-foreground">{description || 'Aucune description'}</p>
+                            </div>
+
+                            <div className="text-sm">
+                                <div className="flex justify-between py-1 border-b">
+                                    <span className="text-muted-foreground">Période</span>
+                                    <span>
+                                        {startDate?.toLocaleDateString()} - {endDate?.toLocaleDateString()}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b">
+                                    <span className="text-muted-foreground">Modèle</span>
+                                    <span>
+                                        {templates.find(t => t.id === selectedTemplateId)?.name || 'Aucun'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b">
+                                    <span className="text-muted-foreground">Site</span>
+                                    <span>
+                                        {sites.find(s => s.id === selectedSite)?.name || 'Tous les sites'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b">
+                                    <span className="text-muted-foreground">Règles actives</span>
+                                    <span>
+                                        {rules.filter(r => r.enabled).length} / {rules.length}
+                                    </span>
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardFooter className="flex flex-col gap-3">
+                            <Button
+                                className="w-full"
+                                onClick={saveScenario}
+                                disabled={isSaving || !name || !startDate || !endDate}
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        Enregistrement...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="h-4 w-4 mr-2" />
+                                        Créer le scénario
+                                    </>
+                                )}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={() => router.push('/admin/simulations')}
+                            >
+                                <XCircle className="h-4 w-4 mr-2" />
+                                Annuler
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </div>
+            </div>
         </div>
     );
 } 

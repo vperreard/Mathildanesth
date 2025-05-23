@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { useSession } from 'next-auth/react';
+import { createAuthHeaders } from '@/lib/auth-helpers';
 
 export interface NotificationPreferences {
     id: string;
@@ -30,6 +32,15 @@ export interface NotificationPreferences {
 
     createdAt: string;
     updatedAt: string;
+
+    digestFrequency: 'none' | 'daily' | 'weekly';
+    notifyOn: {
+        messages: boolean;
+        updates: boolean;
+        reminders: boolean;
+        mentions: boolean;
+        // Autres types de notifications...
+    };
 }
 
 export type NotificationPreferencesUpdate = Partial<Omit<NotificationPreferences, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>;
@@ -38,18 +49,30 @@ export function useNotificationPreferences() {
     const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const { data: session } = useSession();
 
     /**
      * Récupère les préférences de notifications
      */
     const fetchPreferences = useCallback(async () => {
+        if (!session) {
+            setError('Vous devez être connecté pour accéder à vos préférences de notifications');
+            return null;
+        }
+
         setIsLoading(true);
         setError(null);
 
         try {
-            const response = await fetch('/api/notifications/preferences');
+            const headers = createAuthHeaders(session);
+            const response = await fetch('/api/notifications/preferences', { headers });
 
             if (!response.ok) {
+                if (response.status === 401) {
+                    setError('Non autorisé : Veuillez vous connecter pour accéder à vos préférences');
+                    return null;
+                }
+
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Erreur lors de la récupération des préférences');
             }
@@ -65,42 +88,51 @@ export function useNotificationPreferences() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [session]);
 
     /**
      * Met à jour les préférences de notifications
      */
-    const updatePreferences = useCallback(async (updates: NotificationPreferencesUpdate) => {
+    const updatePreferences = useCallback(async (updatedPreferences: Partial<NotificationPreferences>) => {
+        if (!session) {
+            setError('Vous devez être connecté pour mettre à jour vos préférences de notifications');
+            return false;
+        }
+
         setIsLoading(true);
         setError(null);
 
         try {
+            const headers = createAuthHeaders(session);
             const response = await fetch('/api/notifications/preferences', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(updates)
+                headers,
+                body: JSON.stringify(updatedPreferences),
             });
 
             if (!response.ok) {
+                if (response.status === 401) {
+                    setError('Non autorisé : Veuillez vous connecter pour mettre à jour vos préférences');
+                    return false;
+                }
+
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Erreur lors de la mise à jour des préférences');
             }
 
-            const data = await response.json();
-            setPreferences(data);
+            const updatedData = await response.json();
+            setPreferences(updatedData);
             toast.success('Préférences de notifications mises à jour');
-            return data;
+            return true;
         } catch (err: any) {
             const errorMessage = err.message || 'Erreur inconnue';
             setError(errorMessage);
             toast.error(`Erreur: ${errorMessage}`);
-            return null;
+            return false;
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [session]);
 
     /**
      * Réinitialise toutes les préférences aux valeurs par défaut
@@ -123,7 +155,14 @@ export function useNotificationPreferences() {
             quietHoursEnabled: false,
             quietHoursStart: '22:00',
             quietHoursEnd: '08:00',
-            quietHoursDays: null
+            quietHoursDays: null,
+            digestFrequency: 'none',
+            notifyOn: {
+                messages: true,
+                updates: true,
+                reminders: true,
+                mentions: true
+            }
         };
 
         return await updatePreferences(defaultPreferences);

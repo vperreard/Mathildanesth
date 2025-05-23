@@ -7,7 +7,17 @@ Ce dossier contient tous les tests pour l'application Mathildanesth.
 - `tests/unit/` : Contient les tests unitaires, organisés par type (services, components, hooks, utils) et par module si applicable (ex: `tests/unit/modules/rules/`).
 - `tests/integration/` : Contient les tests d'intégration qui vérifient l'interaction entre plusieurs unités (ex: service + base de données mockée).
 - `tests/e2e/` : (Futur) Contient les tests End-to-End utilisant Cypress.
+  - Note: Les tests E2E actuels sont dans le dossier `cypress/e2e/`. Voir `cypress/README.md` pour plus de détails.
 - `tests/factories/` : Contient des fonctions utilitaires (factories) pour générer des données de test cohérentes (utilisateurs, affectations, etc.).
+
+## Stratégies de Test
+
+Nous utilisons plusieurs stratégies complémentaires pour assurer la qualité du code :
+
+1. **Tests unitaires** : Valident les comportements de petites unités de code isolées
+2. **Tests d'intégration** : Vérifient l'interaction entre plusieurs unités
+3. **Tests E2E** : Valident le comportement de l'application du point de vue de l'utilisateur
+4. **Mode simulation** : Pour les tests E2E, permet de tester des fonctionnalités dont l'UI n'est pas encore complète (voir `cypress/README.md` pour plus de détails)
 
 ## Lancer les Tests
 

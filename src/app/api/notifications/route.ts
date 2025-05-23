@@ -8,56 +8,76 @@ import { createNotification } from '@/lib/notifications';
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || typeof session.user.id !== 'number') {
-        return NextResponse.json({ error: 'Non autorisé ou session invalide' }, { status: 401 });
+        return NextResponse.json({
+            error: 'Non autorisé: Vous devez être connecté pour accéder aux notifications',
+            code: 'AUTH_REQUIRED'
+        }, { status: 401 });
     }
+
     const userId = session.user.id;
-
     const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '10', 10);
-    const filter = searchParams.get('filter');
 
+    // Pagination
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
     const skip = (page - 1) * limit;
 
-    let whereClause: Prisma.NotificationWhereInput = { userId };
-    if (filter === 'read') {
-        whereClause.isRead = true;
-    } else if (filter === 'unread') {
-        whereClause.isRead = false;
+    // Filtrage
+    const unreadOnly = searchParams.get('unreadOnly') === 'true';
+    const type = searchParams.get('type') as NotificationType | null;
+
+    // Construction de la requête avec les filtres
+    const whereClause: any = { userId };
+    if (unreadOnly) {
+        whereClause.readAt = null;
+    }
+    if (type) {
+        whereClause.type = type;
     }
 
     try {
+        // Récupération des notifications avec pagination et filtres
         const notifications = await prisma.notification.findMany({
             where: whereClause,
-            orderBy: {
-                createdAt: 'desc',
-            },
-            skip: skip,
+            orderBy: { createdAt: 'desc' },
             take: limit,
+            skip,
             include: {
-                triggeredByUser: { select: { id: true, login: true } },
-            }
+                triggerUser: {
+                    select: { id: true, login: true, email: true },
+                },
+                relatedAssignment: {
+                    select: { id: true, title: true, date: true },
+                },
+                relatedRequest: {
+                    select: { id: true, title: true, status: true },
+                },
+                relatedContextualMessage: {
+                    select: { id: true, content: true },
+                },
+            },
         });
 
-        const totalNotifications = await prisma.notification.count({
+        // Comptage total pour la pagination
+        const totalCount = await prisma.notification.count({
             where: whereClause,
         });
 
+        // Comptage des notifications non lues
         const unreadCount = await prisma.notification.count({
-            where: {
-                userId,
-                isRead: false,
-            }
+            where: { userId, readAt: null },
         });
 
         return NextResponse.json({
             notifications,
-            totalPages: Math.ceil(totalNotifications / limit),
-            currentPage: page,
-            totalNotifications,
+            pagination: {
+                page,
+                limit,
+                totalCount,
+                totalPages: Math.ceil(totalCount / limit),
+            },
             unreadCount,
-        }, { status: 200 });
-
+        });
     } catch (error) {
         console.error('Erreur lors de la récupération des notifications:', error);
         return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });

@@ -1,0 +1,111 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-05-21T17:29:39.488Z",
+    "end": "2025-05-21T17:29:41.224Z",
+    "duration": 1736,
+    "testsRegistered": 1,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "9fb04d37-c40f-401e-ab60-4a60700afee5",
+      "title": "",
+      "fullFile": "cypress/e2e/performance/debug-auth.cy.js",
+      "file": "cypress/e2e/performance/debug-auth.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "37f6c307-2cb8-4bb6-ba9b-b7bd3a8b8f37",
+          "title": "Déboguer authentification",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "Vérifie la structure de la page de connexion",
+              "fullTitle": "Déboguer authentification Vérifie la structure de la page de connexion",
+              "timedOut": null,
+              "duration": 1536,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Visiter la page avec un timeout augmenté\ncy.visit('/', {\n  timeout: 60000,\n  failOnStatusCode: false\n});\n// Prendre une capture d'écran de la page\ncy.screenshot('debug/login-page');\n// Lister tous les éléments de la page\ncy.document().then(doc => {\n  // Afficher le HTML de la page pour comprendre sa structure\n  cy.log('STRUCTURE DE LA PAGE');\n  cy.log(doc.body.innerHTML.substring(0, 1000)); // Afficher les 1000 premiers caractères\n  // Chercher tous les champs de type email et password\n  cy.log('CHAMPS DE FORMULAIRE');\n  const inputFields = Array.from(doc.querySelectorAll('input'));\n  inputFields.forEach(field => {\n    cy.log(`Type: ${field.type}, ID: ${field.id}, Name: ${field.name}, Data-test: ${field.getAttribute('data-test')}`);\n  });\n  // Chercher tous les boutons\n  cy.log('BOUTONS');\n  const buttons = Array.from(doc.querySelectorAll('button'));\n  buttons.forEach(button => {\n    cy.log(`Text: ${button.textContent}, Type: ${button.type}, ID: ${button.id}, Data-test: ${button.getAttribute('data-test')}`);\n  });\n});",
+              "err": {
+                "message": "Error: ENOENT: no such file or directory, open '/Users/vincentperreard/Mathildanesth/.next/server/vendor-chunks/mime-db.js'",
+                "estack": "Error: ENOENT: no such file or directory, open '/Users/vincentperreard/Mathildanesth/.next/server/vendor-chunks/mime-db.js'\n    at Object.readFileSync (node:fs:441:20)\n    at getMaybeCachedSource (node:internal/modules/cjs/loader:1569:18)\n    at Object..js (node:internal/modules/cjs/loader:1650:19)\n    at Module.load (node:internal/modules/cjs/loader:1318:32)\n    at Function._load (node:internal/modules/cjs/loader:1128:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:315:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)\n    at Module.<anonymous> (node:internal/modules/cjs/loader:1340:12)\n    at mod.require (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/require-hook.js:65:28)\n    at require (node:internal/modules/helpers:141:16)\n    at __webpack_require__.f.require (file:///Users/vincentperreard/Mathildanesth/.next/server/webpack-runtime.js:218:28)\n    at <unknown> (file:///Users/vincentperreard/Mathildanesth/.next/server/webpack-runtime.js:111:40)\n    at Array.reduce (<anonymous>)\n    at __webpack_require__.e (file:///Users/vincentperreard/Mathildanesth/.next/server/webpack-runtime.js:110:67)\n    at Array.map (<anonymous>)\n    at __webpack_require__.X (file:///Users/vincentperreard/Mathildanesth/.next/server/webpack-runtime.js:177:22)\n    at <unknown> (file:///Users/vincentperreard/Mathildanesth/.next/server/app/page.js:1076:47)\n    at Object.<anonymous> (file:///Users/vincentperreard/Mathildanesth/.next/server/app/page.js:1079:3)\n    at Module._compile (node:internal/modules/cjs/loader:1546:14)\n    at Object..js (node:internal/modules/cjs/loader:1689:10)\n    at Module.load (node:internal/modules/cjs/loader:1318:32)\n    at Function._load (node:internal/modules/cjs/loader:1128:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:315:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:218:24)\n    at Module.<anonymous> (node:internal/modules/cjs/loader:1340:12)\n    at mod.require (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/require-hook.js:65:28)\n    at require (node:internal/modules/helpers:141:16)\n    at requirePage (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/require.js:103:84)\n    at loadComponentsImpl (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/load-components.js:132:57)\n    at async DevServer.findPageComponentsImpl (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/next-server.js:820:36)\n    at async DevServer.findPageComponents (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/dev/next-dev-server.js:628:16)\n    at async DevServer.renderPageComponent (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/base-server.js:2389:24)\n    at async DevServer.renderToResponseImpl (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/base-server.js:2440:32)\n    at async DevServer.pipeImpl (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/base-server.js:1007:25)\n    at async NextNodeServer.handleCatchallRenderRequest (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/next-server.js:305:17)\n    at async DevServer.handleRequestImpl (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/base-server.js:899:17)\n    at async (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/dev/next-dev-server.js:371:20)\n    at async Span.traceAsyncFn (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/trace/trace.js:157:20)\n    at async DevServer.handleRequest (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/dev/next-dev-server.js:368:24)\n    at async invokeRender (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/lib/router-server.js:237:21)\n    at async handleRequest (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/lib/router-server.js:428:24)\n    at async requestHandlerImpl (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/lib/router-server.js:452:13)\n    at async Server.requestListener (file:///Users/vincentperreard/Mathildanesth/node_modules/next/dist/server/lib/start-server.js:158:13)",
+                "diff": null
+              },
+              "uuid": "3e7e9188-af5c-46ab-9766-349428eea3cd",
+              "parentUUID": "37f6c307-2cb8-4bb6-ba9b-b7bd3a8b8f37",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "3e7e9188-af5c-46ab-9766-349428eea3cd"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 1536,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

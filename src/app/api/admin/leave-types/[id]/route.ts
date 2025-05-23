@@ -23,7 +23,7 @@ interface RouteParams {
  * Réservé aux administrateurs.
  */
 export async function PUT(request: Request, { params }: RouteParams) {
-    const { id } = params; // Récupérer l'ID depuis les paramètres de la route
+    const { id } = await Promise.resolve(params); // Récupérer l'ID depuis les paramètres de la route
 
     try {
         // --- Authentification commentée temporairement --- 

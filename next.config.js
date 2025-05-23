@@ -6,8 +6,10 @@ const nextConfig = {
         forceSwcTransforms: true,
         optimizeCss: true, // Optimisation CSS activée
         optimisticClientCache: true, // Mise en cache optimiste côté client
-        turbo: true, // Utiliser Turbo pour la génération
     },
+
+    // Utiliser Turbopack pour la génération (option déplacée hors de experimental)
+    turbopack: true,
 
     poweredByHeader: false, // Supprime l'en-tête X-Powered-By pour la sécurité
 

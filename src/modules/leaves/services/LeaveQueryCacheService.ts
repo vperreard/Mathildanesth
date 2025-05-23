@@ -10,6 +10,7 @@ import { format } from 'date-fns';
  */
 export class LeaveQueryCacheService {
     private static instance: LeaveQueryCacheService;
+    private isRedisAvailable: boolean = true;
 
     // Durées de vie du cache selon la nature des données
     private readonly TTL = {
@@ -32,7 +33,10 @@ export class LeaveQueryCacheService {
     };
 
     // Constructeur privé (pattern Singleton)
-    private constructor() { }
+    private constructor() {
+        // Vérifier la disponibilité de Redis au démarrage
+        this.checkRedisAvailability();
+    }
 
     /**
      * Obtenir l'instance unique du service
@@ -42,6 +46,19 @@ export class LeaveQueryCacheService {
             LeaveQueryCacheService.instance = new LeaveQueryCacheService();
         }
         return LeaveQueryCacheService.instance;
+    }
+
+    /**
+     * Vérifie si Redis est disponible
+     */
+    private async checkRedisAvailability(): Promise<void> {
+        try {
+            this.isRedisAvailable = await redis.ping();
+            console.log(`Redis disponibilité: ${this.isRedisAvailable ? 'OK' : 'NON DISPONIBLE'}`);
+        } catch (error) {
+            console.error('Redis n\'est pas disponible:', error);
+            this.isRedisAvailable = false;
+        }
     }
 
     /**
@@ -111,12 +128,22 @@ export class LeaveQueryCacheService {
      * Met en cache des données avec TTL approprié
      */
     public async cacheData<T>(key: string, data: T, type: keyof typeof this.TTL): Promise<void> {
+        // Vérifier d'abord si Redis est disponible
+        if (!this.isRedisAvailable) {
+            await this.checkRedisAvailability();
+            if (!this.isRedisAvailable) {
+                console.warn(`Cache désactivé: Redis n'est pas disponible`);
+                return;
+            }
+        }
+
         try {
             const ttl = this.TTL[type];
             await redis.set(key, JSON.stringify(data), 'EX', ttl);
             console.log(`Cache mis à jour: ${key} (TTL: ${ttl}s)`);
         } catch (error) {
             console.error(`Erreur lors de la mise en cache (${key}):`, error);
+            this.isRedisAvailable = false;
             // Ne pas faire échouer l'opération en cas d'erreur de cache
         }
     }
@@ -126,6 +153,15 @@ export class LeaveQueryCacheService {
      * @returns Les données ou null si non trouvées
      */
     public async getCachedData<T>(key: string): Promise<T | null> {
+        // Vérifier d'abord si Redis est disponible
+        if (!this.isRedisAvailable) {
+            await this.checkRedisAvailability();
+            if (!this.isRedisAvailable) {
+                console.warn(`Cache désactivé: Redis n'est pas disponible`);
+                return null;
+            }
+        }
+
         try {
             const cachedData = await redis.get(key);
             if (!cachedData) return null;
@@ -133,6 +169,7 @@ export class LeaveQueryCacheService {
             return JSON.parse(cachedData) as T;
         } catch (error) {
             console.error(`Erreur lors de la récupération du cache (${key}):`, error);
+            this.isRedisAvailable = false;
             return null;
         }
     }
@@ -143,6 +180,15 @@ export class LeaveQueryCacheService {
      * @param data Données associées à l'événement
      */
     public async invalidateCache(event: LeaveEvent, data: any): Promise<void> {
+        // Vérifier d'abord si Redis est disponible
+        if (!this.isRedisAvailable) {
+            await this.checkRedisAvailability();
+            if (!this.isRedisAvailable) {
+                console.warn(`Invalidation du cache ignorée: Redis n'est pas disponible`);
+                return;
+            }
+        }
+
         try {
             // Stratégie d'invalidation selon le type d'événement
             switch (event) {
@@ -172,6 +218,7 @@ export class LeaveQueryCacheService {
             }
         } catch (error) {
             console.error(`Erreur lors de l'invalidation du cache:`, error);
+            this.isRedisAvailable = false;
         }
     }
 

@@ -1,0 +1,338 @@
+{
+  "stats": {
+    "suites": 2,
+    "tests": 10,
+    "passes": 0,
+    "pending": 0,
+    "failures": 10,
+    "start": "2025-05-20T20:24:08.244Z",
+    "end": "2025-05-20T20:25:20.992Z",
+    "duration": 72748,
+    "testsRegistered": 10,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "5e903ac3-1ca9-4d4e-a15c-33e11a62359b",
+      "title": "",
+      "fullFile": "cypress/e2e/notifications/notifications.spec.ts",
+      "file": "cypress/e2e/notifications/notifications.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "d9eb46ad-e5e9-4f39-827a-9fdfa8595428",
+          "title": "Système de notifications",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "affiche correctement l'icône de notification dans le header",
+              "fullTitle": "Système de notifications affiche correctement l'icône de notification dans le header",
+              "timedOut": null,
+              "duration": 5681,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/');\ncy.wait('@getNotifications');\n// Vérifier que l'icône de notification est présente\ncy.get('[data-cy=notification-bell]').should('exist');\n// Vérifier le badge avec le nombre de notifications non lues\ncy.get('[data-cy=notification-count]').should('be.visible');",
+              "err": {
+                "message": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotifications`. No request ever occurred.\n\nhttps://on.cypress.io/wait",
+                "estack": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotifications`. No request ever occurred.\n\nhttps://on.cypress.io/wait\n    at cypressErr (http://localhost:3000/__cypress/runner/cypress_runner.js:76205:18)\n    at Object.errByPath (http://localhost:3000/__cypress/runner/cypress_runner.js:76259:10)\n    at checkForXhr (http://localhost:3000/__cypress/runner/cypress_runner.js:137464:84)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137490:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at whenStable (http://localhost:3000/__cypress/runner/cypress_runner.js:145846:68)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:145787:14)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1671:18)\n    at Promise._fulfill (http://localhost:3000/__cypress/runner/cypress_runner.js:1615:18)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:5420:46)",
+                "diff": null
+              },
+              "uuid": "2e043e86-d687-45b4-a4eb-e90648c8b788",
+              "parentUUID": "d9eb46ad-e5e9-4f39-827a-9fdfa8595428",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "ouvre le panneau de notifications au clic sur l'icône",
+              "fullTitle": "Système de notifications ouvre le panneau de notifications au clic sur l'icône",
+              "timedOut": null,
+              "duration": 5534,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/');\ncy.wait('@getNotifications');\n// Cliquer sur l'icône de notification\ncy.get('[data-cy=notification-bell]').click();\n// Vérifier que le panneau de notifications est ouvert\ncy.get('[data-cy=notification-panel]').should('be.visible');\n// Vérifier que les notifications sont affichées\ncy.get('[data-cy=notification-item]').should('have.length.greaterThan', 0);",
+              "err": {
+                "message": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotifications`. No request ever occurred.\n\nhttps://on.cypress.io/wait",
+                "estack": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotifications`. No request ever occurred.\n\nhttps://on.cypress.io/wait\n    at cypressErr (http://localhost:3000/__cypress/runner/cypress_runner.js:76205:18)\n    at Object.errByPath (http://localhost:3000/__cypress/runner/cypress_runner.js:76259:10)\n    at checkForXhr (http://localhost:3000/__cypress/runner/cypress_runner.js:137464:84)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137490:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at whenStable (http://localhost:3000/__cypress/runner/cypress_runner.js:145846:68)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:145787:14)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1671:18)\n    at Promise._fulfill (http://localhost:3000/__cypress/runner/cypress_runner.js:1615:18)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:5420:46)",
+                "diff": null
+              },
+              "uuid": "7ca59e03-6e6d-4c84-aa0b-2b70608b61d2",
+              "parentUUID": "d9eb46ad-e5e9-4f39-827a-9fdfa8595428",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "marque les notifications comme lues lorsqu'elles sont visualisées",
+              "fullTitle": "Système de notifications marque les notifications comme lues lorsqu'elles sont visualisées",
+              "timedOut": null,
+              "duration": 15931,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/notifications');\ncy.wait('@getNotifications');\n// Attendre que les notifications soient chargées\ncy.get('[data-cy=notification-item]').should('have.length.greaterThan', 0);\n// Cliquer sur une notification non lue\ncy.get('[data-cy=notification-item]:not(.read)').first().click();\n// Vérifier que la requête de marquage comme lu a été envoyée\ncy.wait('@markNotificationsAsRead').its('request.body').should('not.be.empty');\n// Vérifier que la notification a été marquée comme lue visuellement\ncy.get('[data-cy=notification-item].read').should('exist');",
+              "err": {
+                "message": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotifications`. No request ever occurred.\n\nhttps://on.cypress.io/wait",
+                "estack": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotifications`. No request ever occurred.\n\nhttps://on.cypress.io/wait\n    at cypressErr (http://localhost:3000/__cypress/runner/cypress_runner.js:76205:18)\n    at Object.errByPath (http://localhost:3000/__cypress/runner/cypress_runner.js:76259:10)\n    at checkForXhr (http://localhost:3000/__cypress/runner/cypress_runner.js:137464:84)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137490:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at whenStable (http://localhost:3000/__cypress/runner/cypress_runner.js:145846:68)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:145787:14)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1671:18)\n    at Promise._fulfill (http://localhost:3000/__cypress/runner/cypress_runner.js:1615:18)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:5420:46)",
+                "diff": null
+              },
+              "uuid": "b0e63dfd-047e-4c7e-8e72-d61b7a22b541",
+              "parentUUID": "d9eb46ad-e5e9-4f39-827a-9fdfa8595428",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "navigue vers la page de détails lors du clic sur une notification",
+              "fullTitle": "Système de notifications navigue vers la page de détails lors du clic sur une notification",
+              "timedOut": null,
+              "duration": 5571,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/notifications');\ncy.wait('@getNotifications');\n// Attendre que les notifications soient chargées\ncy.get('[data-cy=notification-item]').should('have.length.greaterThan', 0);\n// Cliquer sur une notification avec lien vers une affectation\ncy.get('[data-cy=notification-item][data-type=\"ASSIGNMENT_SWAP_REQUEST_RECEIVED\"]').first().click();\n// Vérifier que la navigation a bien eu lieu vers la page d'échange d'affectations\ncy.url().should('include', '/planning/echanges');",
+              "err": {
+                "message": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotifications`. No request ever occurred.\n\nhttps://on.cypress.io/wait",
+                "estack": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotifications`. No request ever occurred.\n\nhttps://on.cypress.io/wait\n    at cypressErr (http://localhost:3000/__cypress/runner/cypress_runner.js:76205:18)\n    at Object.errByPath (http://localhost:3000/__cypress/runner/cypress_runner.js:76259:10)\n    at checkForXhr (http://localhost:3000/__cypress/runner/cypress_runner.js:137464:84)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137490:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at whenStable (http://localhost:3000/__cypress/runner/cypress_runner.js:145846:68)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:145787:14)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1671:18)\n    at Promise._fulfill (http://localhost:3000/__cypress/runner/cypress_runner.js:1615:18)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:5420:46)",
+                "diff": null
+              },
+              "uuid": "0575403f-725c-462f-9572-9f538731729c",
+              "parentUUID": "d9eb46ad-e5e9-4f39-827a-9fdfa8595428",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet de marquer toutes les notifications comme lues",
+              "fullTitle": "Système de notifications permet de marquer toutes les notifications comme lues",
+              "timedOut": null,
+              "duration": 5668,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/notifications');\ncy.wait('@getNotifications');\n// Cliquer sur le bouton \"Tout marquer comme lu\"\ncy.get('[data-cy=mark-all-read]').click();\n// Vérifier que la requête de marquage comme lu a été envoyée avec all=true\ncy.wait('@markNotificationsAsRead').its('request.body').should('deep.include', { all: true });\n// Vérifier que toutes les notifications sont marquées comme lues\ncy.get('[data-cy=notification-item]:not(.read)').should('not.exist');\ncy.get('[data-cy=notification-count]').should('contain', '0');",
+              "err": {
+                "message": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotifications`. No request ever occurred.\n\nhttps://on.cypress.io/wait",
+                "estack": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotifications`. No request ever occurred.\n\nhttps://on.cypress.io/wait\n    at cypressErr (http://localhost:3000/__cypress/runner/cypress_runner.js:76205:18)\n    at Object.errByPath (http://localhost:3000/__cypress/runner/cypress_runner.js:76259:10)\n    at checkForXhr (http://localhost:3000/__cypress/runner/cypress_runner.js:137464:84)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137490:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at whenStable (http://localhost:3000/__cypress/runner/cypress_runner.js:145846:68)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:145787:14)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1671:18)\n    at Promise._fulfill (http://localhost:3000/__cypress/runner/cypress_runner.js:1615:18)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:5420:46)",
+                "diff": null
+              },
+              "uuid": "56fa1d79-d8dc-41e3-9306-c253d1693d1a",
+              "parentUUID": "d9eb46ad-e5e9-4f39-827a-9fdfa8595428",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "met à jour le nombre de notifications en temps réel",
+              "fullTitle": "Système de notifications met à jour le nombre de notifications en temps réel",
+              "timedOut": null,
+              "duration": 5566,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/');\ncy.wait('@getNotifications');\n// Noter le nombre initial de notifications\ncy.get('[data-cy=notification-count]').invoke('text').then(function (initialCount) {\n    // Simuler la réception d'une nouvelle notification\n    cy.window().then(function (win) {\n        // Simuler un événement WebSocket\n        var wsEvent = new CustomEvent('notification', {\n            detail: {\n                id: 'new-notification-id',\n                type: 'ASSIGNMENT_SWAP_REQUEST_RECEIVED',\n                title: 'Nouvelle demande d\\'échange',\n                message: 'Vous avez reçu une nouvelle demande d\\'échange d\\'affectation',\n                isRead: false,\n                createdAt: new Date().toISOString()\n            }\n        });\n        win.dispatchEvent(wsEvent);\n    });\n    // Vérifier que le compteur a été incrémenté\n    cy.get('[data-cy=notification-count]').should('not.have.text', initialCount);\n});",
+              "err": {
+                "message": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotifications`. No request ever occurred.\n\nhttps://on.cypress.io/wait",
+                "estack": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotifications`. No request ever occurred.\n\nhttps://on.cypress.io/wait\n    at cypressErr (http://localhost:3000/__cypress/runner/cypress_runner.js:76205:18)\n    at Object.errByPath (http://localhost:3000/__cypress/runner/cypress_runner.js:76259:10)\n    at checkForXhr (http://localhost:3000/__cypress/runner/cypress_runner.js:137464:84)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137490:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at whenStable (http://localhost:3000/__cypress/runner/cypress_runner.js:145846:68)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:145787:14)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1671:18)\n    at Promise._fulfill (http://localhost:3000/__cypress/runner/cypress_runner.js:1615:18)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:5420:46)",
+                "diff": null
+              },
+              "uuid": "c62d2b90-e0eb-4a80-b5b8-77ebcbeec66d",
+              "parentUUID": "d9eb46ad-e5e9-4f39-827a-9fdfa8595428",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "2e043e86-d687-45b4-a4eb-e90648c8b788",
+            "7ca59e03-6e6d-4c84-aa0b-2b70608b61d2",
+            "b0e63dfd-047e-4c7e-8e72-d61b7a22b541",
+            "0575403f-725c-462f-9572-9f538731729c",
+            "56fa1d79-d8dc-41e3-9306-c253d1693d1a",
+            "c62d2b90-e0eb-4a80-b5b8-77ebcbeec66d"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 43951,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        },
+        {
+          "uuid": "66fc1e8d-b216-4070-8b66-833ca2aa2eda",
+          "title": "Préférences de notifications",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "accède à la page de préférences de notifications",
+              "fullTitle": "Préférences de notifications accède à la page de préférences de notifications",
+              "timedOut": null,
+              "duration": 4538,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/');\n// Ouvrir le menu utilisateur\ncy.get('[data-cy=user-menu-button]').click();\n// Cliquer sur l'option \"Préférences des notifications\"\ncy.contains('Préférences des notifications').click();\n// Vérifier que la page de préférences est chargée\ncy.url().should('include', '/profil/notifications');\ncy.get('h1').should('contain', 'Préférences de Notifications');\n// Vérifier que la requête de préférences a été effectuée\ncy.wait('@getNotificationPreferences');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=user-menu-button]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=user-menu-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/notifications/notifications.spec.ts:130:11)",
+                "diff": null
+              },
+              "uuid": "e81fa181-b922-4545-a0dd-b1151acfac8a",
+              "parentUUID": "66fc1e8d-b216-4070-8b66-833ca2aa2eda",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "modifie les préférences de notifications",
+              "fullTitle": "Préférences de notifications modifie les préférences de notifications",
+              "timedOut": null,
+              "duration": 6361,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/profil/notifications');\ncy.wait('@getNotificationPreferences');\n// Activer/désactiver une préférence\ncy.contains('Demandes d\\'échange').parent().find('div[role=\"switch\"]').click();\n// Vérifier que la requête de mise à jour a été envoyée\ncy.wait('@updateNotificationPreferences').its('request.body')\n    .should('deep.include', { assignmentSwapRequests: false });\n// Vérifier qu'une notification de succès s'affiche\ncy.get('.Toastify__toast--success').should('be.visible');\n// Rafraîchir la page et vérifier que les changements persistent\ncy.reload();\ncy.wait('@getNotificationPreferences');\n// Vérifier que l'état du toggle reflète la préférence enregistrée\ncy.contains('Demandes d\\'échange').parent().find('div[role=\"switch\"]')\n    .should('have.attr', 'aria-checked', 'false');",
+              "err": {
+                "message": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotificationPreferences`. No request ever occurred.\n\nhttps://on.cypress.io/wait",
+                "estack": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotificationPreferences`. No request ever occurred.\n\nhttps://on.cypress.io/wait\n    at cypressErr (http://localhost:3000/__cypress/runner/cypress_runner.js:76205:18)\n    at Object.errByPath (http://localhost:3000/__cypress/runner/cypress_runner.js:76259:10)\n    at checkForXhr (http://localhost:3000/__cypress/runner/cypress_runner.js:137464:84)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137490:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at whenStable (http://localhost:3000/__cypress/runner/cypress_runner.js:145846:68)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:145787:14)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1671:18)\n    at Promise._fulfill (http://localhost:3000/__cypress/runner/cypress_runner.js:1615:18)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:5420:46)",
+                "diff": null
+              },
+              "uuid": "c9bd5c1a-ef6e-4a90-86de-27436020f885",
+              "parentUUID": "66fc1e8d-b216-4070-8b66-833ca2aa2eda",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "gère les périodes de non-dérangement",
+              "fullTitle": "Préférences de notifications gère les périodes de non-dérangement",
+              "timedOut": null,
+              "duration": 11873,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/profil/notifications');\ncy.wait('@getNotificationPreferences');\n// Activer les heures calmes\ncy.contains('Activer les heures calmes').parent().find('div[role=\"switch\"]').click();\n// Vérifier que la section d'heures calmes apparaît\ncy.get('input[type=\"time\"]').should('be.visible');\n// Modifier les heures calmes\ncy.get('input[type=\"time\"]').first().clear().type('23:00');\ncy.get('input[type=\"time\"]').last().clear().type('07:00');\n// Sélectionner des jours\ncy.contains('LUN').click();\ncy.contains('MAR').click();\n// Vérifier que les requêtes de mise à jour ont été envoyées\ncy.wait('@updateNotificationPreferences').its('request.body')\n    .should('deep.include', { quietHoursEnabled: true });\ncy.wait('@updateNotificationPreferences').its('request.body')\n    .should('deep.include', { quietHoursStart: '23:00' });\ncy.wait('@updateNotificationPreferences').its('request.body')\n    .should('have.property', 'quietHoursDays').and('include', 'LUN').and('include', 'MAR');",
+              "err": {
+                "message": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotificationPreferences`. No request ever occurred.\n\nhttps://on.cypress.io/wait",
+                "estack": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotificationPreferences`. No request ever occurred.\n\nhttps://on.cypress.io/wait\n    at cypressErr (http://localhost:3000/__cypress/runner/cypress_runner.js:76205:18)\n    at Object.errByPath (http://localhost:3000/__cypress/runner/cypress_runner.js:76259:10)\n    at checkForXhr (http://localhost:3000/__cypress/runner/cypress_runner.js:137464:84)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137490:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at whenStable (http://localhost:3000/__cypress/runner/cypress_runner.js:145846:68)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:145787:14)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1671:18)\n    at Promise._fulfill (http://localhost:3000/__cypress/runner/cypress_runner.js:1615:18)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:5420:46)",
+                "diff": null
+              },
+              "uuid": "1f79262c-c995-470e-ba25-ef2e5d0c1024",
+              "parentUUID": "66fc1e8d-b216-4070-8b66-833ca2aa2eda",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "réinitialise toutes les préférences",
+              "fullTitle": "Préférences de notifications réinitialise toutes les préférences",
+              "timedOut": null,
+              "duration": 5583,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/profil/notifications');\ncy.wait('@getNotificationPreferences');\n// Cliquer sur le bouton de réinitialisation\ncy.contains('Réinitialiser').click();\n// Confirmer la réinitialisation\ncy.on('window:confirm', function () { return true; });\n// Vérifier que la requête de réinitialisation a été envoyée\ncy.wait('@updateNotificationPreferences');\n// Vérifier qu'une notification de succès s'affiche\ncy.get('.Toastify__toast--success').should('be.visible')\n    .and('contain', 'Préférences réinitialisées avec succès');",
+              "err": {
+                "message": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotificationPreferences`. No request ever occurred.\n\nhttps://on.cypress.io/wait",
+                "estack": "CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `getNotificationPreferences`. No request ever occurred.\n\nhttps://on.cypress.io/wait\n    at cypressErr (http://localhost:3000/__cypress/runner/cypress_runner.js:76205:18)\n    at Object.errByPath (http://localhost:3000/__cypress/runner/cypress_runner.js:76259:10)\n    at checkForXhr (http://localhost:3000/__cypress/runner/cypress_runner.js:137464:84)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137490:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at whenStable (http://localhost:3000/__cypress/runner/cypress_runner.js:145846:68)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:145787:14)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1671:18)\n    at Promise._fulfill (http://localhost:3000/__cypress/runner/cypress_runner.js:1615:18)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:5420:46)",
+                "diff": null
+              },
+              "uuid": "32f974a7-f262-4488-bb00-d2e17c2e3c89",
+              "parentUUID": "66fc1e8d-b216-4070-8b66-833ca2aa2eda",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "e81fa181-b922-4545-a0dd-b1151acfac8a",
+            "c9bd5c1a-ef6e-4a90-86de-27436020f885",
+            "1f79262c-c995-470e-ba25-ef2e5d0c1024",
+            "32f974a7-f262-4488-bb00-d2e17c2e3c89"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 28355,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

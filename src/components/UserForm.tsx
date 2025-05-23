@@ -3,7 +3,7 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle, Ref } from 'react';
 // Importer les TYPES depuis /types/user
 import {
-    User, UserFormData, DayOfWeek,
+    User, UserFormData, Weekday,
     Role as RoleType, // Renommer pour éviter conflit
     ProfessionalRole as ProfessionalRoleType, // Renommer
     WorkPatternType, WeekType
@@ -33,8 +33,8 @@ interface UserFormState {
     password?: string;
     workPattern: WorkPatternType;
     workOnMonthType: WeekType | null;
-    joursTravaillesSemainePaire: DayOfWeek[];
-    joursTravaillesSemaineImpaire: DayOfWeek[];
+    joursTravaillesSemainePaire: Weekday[];
+    joursTravaillesSemaineImpaire: Weekday[];
 }
 
 interface UserFormProps {
@@ -139,11 +139,11 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
     }, [initialData, userSkills]);
 
     // Nouvelle fonction pour gérer les changements des checkboxes de jours
-    const handleDayChange = (day: DayOfWeek, weekType: 'pair' | 'impair', checked: boolean) => {
+    const handleDayChange = (day: Weekday, weekType: 'pair' | 'impair', checked: boolean) => {
         setFormData((prev) => {
             const field = weekType === 'pair' ? 'joursTravaillesSemainePaire' : 'joursTravaillesSemaineImpaire';
             const currentDays = prev[field];
-            let newDays: DayOfWeek[];
+            let newDays: Weekday[];
 
             if (checked) {
                 // Ajouter le jour s'il n'est pas déjà présent
@@ -492,7 +492,7 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
                                     Jours travaillés (Semaines Paires)
                                 </label>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                    {Object.values(DayOfWeek).map((day) => (
+                                    {Object.values(Weekday).map((day) => (
                                         <div key={`pair-${day}`} className="flex items-center">
                                             <input
                                                 id={`day-pair-${day}`}
@@ -515,7 +515,7 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
                                     Jours travaillés (Semaines Impaires)
                                 </label>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                    {Object.values(DayOfWeek).map((day) => (
+                                    {Object.values(Weekday).map((day) => (
                                         <div key={`impair-${day}`} className="flex items-center">
                                             <input
                                                 id={`day-impair-${day}`}

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'; // Ajustez le chemin si nécessaire
 import { Role } from '@prisma/client'; // Ajouté pour référence au type Role
+import { emitUpdatedContextualMessage, emitDeletedContextualMessage } from '@/lib/socket'; // Ajout pour WebSockets
 
 interface ContextualMessageUpdateInput {
     content: string;
@@ -15,7 +16,7 @@ export async function PUT(req: NextRequest, { params }: { params: { messageId: s
         return NextResponse.json({ error: 'Non autorisé ou session invalide' }, { status: 401 });
     }
     const userId = session.user.id;
-    const { messageId } = params;
+    const { messageId } = await Promise.resolve(params);
 
     if (!messageId) {
         return NextResponse.json({ error: 'ID du message manquant' }, { status: 400 });
@@ -55,6 +56,9 @@ export async function PUT(req: NextRequest, { params }: { params: { messageId: s
                 },
             },
         });
+
+        // Émettre un événement WebSocket pour la mise à jour du message
+        emitUpdatedContextualMessage(updatedMessage);
 
         return NextResponse.json(updatedMessage, { status: 200 });
     } catch (error) {
@@ -97,6 +101,13 @@ export async function DELETE(req: NextRequest, { params }: { params: { messageId
             return NextResponse.json({ error: 'Vous n\'êtes pas autorisé à supprimer ce message' }, { status: 403 });
         }
 
+        // Collecter les informations de contexte avant suppression pour l'événement WebSocket
+        const contextInfo = {
+            assignmentId: messageToDelete.assignmentId || undefined,
+            contextDate: messageToDelete.contextDate || undefined,
+            requestId: messageToDelete.requestId || undefined
+        };
+
         // Gérer la suppression des réponses : Pour l'instant, suppression simple.
         // Si les réponses doivent être conservées, il faudrait les ré-attacher ou les marquer.
         // Exemple: marquer les réponses comme orphelines ou les supprimer en cascade (configurer dans le schéma Prisma)
@@ -108,6 +119,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { messageId
         await prisma.contextualMessage.delete({
             where: { id: messageId },
         });
+
+        // Émettre un événement WebSocket pour la suppression du message
+        emitDeletedContextualMessage(messageId, contextInfo);
 
         return NextResponse.json({ message: 'Message supprimé avec succès' }, { status: 200 }); // Ou 204 No Content
     } catch (error) {

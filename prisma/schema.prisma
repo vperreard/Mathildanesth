@@ -570,6 +570,7 @@ model Assignment {
   chirurgien          String? // Nom du chirurgien (legacy ou si pas de modèle Surgeon lié)
   salle               String? // Nom de la salle (legacy ou si pas de modèle OperatingRoom lié)
   type                String // Ex: BLOC_OPERATION, CONSULTATION, GARDE_JOUR, GARDE_NUIT, ASTREINTE, REPOS_GARDE, FORMATION, CONGRES, MALADIE, MATERNITE, ABS_AUTORISEE, ABS_NON_AUTORISEE, FERIE
+  period              Period?           // MATIN, APRES_MIDI ou JOURNEE_ENTIERE - Utile pour les consultations et autres activités créneautées
   statut              String? // Ex: PREVU, REALISE, ANNULE
   heureDebut          String? // Format HH:MM
   heureFin            String? // Format HH:MM
@@ -1395,30 +1396,28 @@ model SimulationTemplate {
 }
 
 model SimulationScenario {
-  id                  String   @id @default(uuid())
-  name                String
-  description         String?
-  createdAt           DateTime @default(now())
-  createdById         Int
-  createdBy           User     @relation("UserSimulationScenarios", fields: [createdById], references: [id])
-
-  // Paramètres de la simulation
-  // - période de simulation (startDate, endDate)
-  // - règles modifiées (IDs ou définitions complètes)
-  // - effectifs ajustés (ex: liste d'utilisateurs exclus/ajoutés temporairement)
-  // - trames alternatives (IDs de TrameModele à utiliser)
-  // - ... autres paramètres spécifiques
-  parametersJson      Json
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   
-  // Référence optionnelle au template utilisé
-  templateId          String?
+  // Ajout de la relation avec l'utilisateur créateur
+  createdById Int?
+  createdBy   User?    @relation("UserSimulationScenarios", fields: [createdById], references: [id])
   
-  // Optionnel: Si la simulation part d'un snapshot d'un planning existant (ex: BlocDayPlanning)
-  // basePlanningSnapshotId String?
+  // Paramètres de configuration de la simulation
+  parameters Json?
 
-  results             SimulationResult[]
-
-  @@map("simulation_scenarios")
+  // Relations
+  results SimulationResult[]
+  intermediateResults SimulationIntermediateResult[]
+  
+  // Champs pour le suivi du statut et des notifications
+  status String? @default("created") // created, queued, running, completed, failed
+  lastProgress Int? @default(0) // 0-100
+  lastProgressUpdatedAt DateTime?
+  lastMessage String?
 }
 
 model SimulationResult {
@@ -1432,11 +1431,11 @@ model SimulationResult {
   // Pourrait être une structure JSON complexe ou pointer vers des versions "simulées" des modèles de planning actuels.
   // Pour une première version, un JSON stockant les affectations simulées pourrait suffire.
   // Exemple: { assignments: [...], dailyStats: {...} }
-  generatedPlanningData Json
+  resultData          Json?
   
   // Statistiques clés issues de la simulation
   // Exemple: { coverageRate: 0.95, ruleViolations: 5, totalAssignments: 150 }
-  statisticsJson      Json
+  statisticsJson      Json?
   
   // Alertes de conflits potentiels identifiés
   // Exemple: [{ ruleId: "...", message: "...", severity: "ERROR" }]
@@ -1449,8 +1448,25 @@ model SimulationResult {
   // État de la simulation (utile si le calcul est long/asynchrone)
   status              SimulationStatus @default(PENDING)
   errorMessage        String? // En cas d'échec de la simulation
+  executionTime       Int?    // Temps d'exécution en millisecondes
+  
+  metricsData         Json?   // Données métriques aggrégées pour l'affichage
 
   @@map("simulation_results")
+}
+
+// Nouveau modèle pour stocker les résultats intermédiaires des simulations
+model SimulationIntermediateResult {
+  scenarioId          String
+  scenario            SimulationScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  stepName            String   // Nom de l'étape intermédiaire (ex: "staff-allocation", "rule-evaluation")
+  data                Json     // Données intermédiaires
+  hash                String   // Hash des données pour vérifier si elles ont changé
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@id([scenarioId, stepName])
+  @@map("simulation_intermediate_results")
 }
 
 enum SimulationStatus {

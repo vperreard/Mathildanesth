@@ -22,7 +22,7 @@ export async function PUT(
     }
     // TODO: Ajouter vérification de rôle si nécessaire
 
-    const { affectationModeleId } = params;
+    const { affectationModeleId } = await Promise.resolve(params);
     if (!affectationModeleId || isNaN(parseInt(affectationModeleId))) {
         console.warn("PUT /api/affectation-modeles/[id]: Invalid affectationModeleId");
         return NextResponse.json({ error: 'ID de l\'affectation modèle invalide' }, { status: 400 });

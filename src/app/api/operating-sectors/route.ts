@@ -35,6 +35,17 @@ export async function GET(request: NextRequest) {
             ]
         });
 
+        // Log détaillé pour le débogage
+        console.log(`GET /api/operating-sectors: Récupération de ${sectors.length} secteurs`);
+        if (sectors.length > 0) {
+            console.log("Premier secteur récupéré:", {
+                id: sectors[0].id,
+                name: sectors[0].name,
+                displayOrder: sectors[0].displayOrder,
+                siteId: sectors[0].siteId
+            });
+        }
+
         return NextResponse.json(sectors);
     } catch (error) {
         console.error('Erreur lors de la récupération des secteurs opératoires:', error);

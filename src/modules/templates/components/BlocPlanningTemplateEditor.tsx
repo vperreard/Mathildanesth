@@ -108,6 +108,9 @@ const EMPTY_TEMPLATE: PlanningTemplate = {
     affectations: [],
     variations: [],
     roles: [RoleType.TOUS],
+    joursSemaineActifs: [1, 2, 3, 4, 5], // Lundi à vendredi par défaut
+    typeSemaine: 'TOUTES', // Toutes les semaines par défaut
+    dateDebutEffet: new Date(), // Date d'aujourd'hui par défaut
     // Initialiser les autres champs obligatoires ou optionnels de PlanningTemplate au besoin
     // Par exemple, createdAt, updatedAt, etc., pourraient être initialisés à null ou undefined
     // ou laissés pour être gérés par le backend/service lors de la création.
@@ -1040,6 +1043,94 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                                 ))}
                             </Box>
                         )}
+                    </Box>
+                </Box>
+
+                {/* Nouvelle section pour sélectionner les jours actifs de la trame */}
+                <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', backgroundColor: 'rgba(0, 0, 0, 0.02)' }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                        Jours actifs de la trame
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" paragraph>
+                        Sélectionnez les jours de la semaine où cette trame est active.
+                    </Typography>
+                    <FormGroup row>
+                        {(Object.keys(DAYS_LABEL) as DayOfWeek[]).map((day) => {
+                            // Conversion des jours de type DayOfWeek (LUNDI, etc.) vers valeurs numériques (1 pour lundi, etc.)
+                            const dayNumber = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'].indexOf(day) + 1;
+                            return (
+                                <FormControlLabel
+                                    key={day}
+                                    control={
+                                        <Checkbox
+                                            checked={template.joursSemaineActifs?.includes(dayNumber) ?? false}
+                                            onChange={(event) => {
+                                                const checked = event.target.checked;
+                                                const currentJours = template.joursSemaineActifs || [];
+                                                const newJours = checked
+                                                    ? [...currentJours, dayNumber].sort()
+                                                    : currentJours.filter(d => d !== dayNumber);
+
+                                                updateTemplate(prev => ({ ...prev, joursSemaineActifs: newJours }));
+                                            }}
+                                            size="small"
+                                        />
+                                    }
+                                    label={DAYS_LABEL[day]}
+                                />
+                            );
+                        })}
+                    </FormGroup>
+                </Box>
+
+                {/* Nouvelle section pour sélectionner le type de semaine */}
+                <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', backgroundColor: 'rgba(0, 0, 0, 0.01)' }}>
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
+                        <Box sx={{ flex: 1 }}>
+                            <Typography variant="subtitle2" gutterBottom>
+                                Type de semaine
+                            </Typography>
+                            <ShadSelect
+                                onValueChange={(value: 'TOUTES' | 'PAIRES' | 'IMPAIRES') => {
+                                    updateTemplate(prev => ({ ...prev, typeSemaine: value }));
+                                }}
+                                value={template.typeSemaine || 'TOUTES'}
+                            >
+                                <ShadSelectTrigger className="w-full">
+                                    <ShadSelectValue placeholder="Sélectionner un type" />
+                                </ShadSelectTrigger>
+                                <ShadSelectContent>
+                                    <ShadSelectGroup>
+                                        <ShadSelectItem value="TOUTES">Toutes les semaines</ShadSelectItem>
+                                        <ShadSelectItem value="PAIRES">Semaines paires</ShadSelectItem>
+                                        <ShadSelectItem value="IMPAIRES">Semaines impaires</ShadSelectItem>
+                                    </ShadSelectGroup>
+                                </ShadSelectContent>
+                            </ShadSelect>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                                Détermine à quelles semaines cette trame s'applique.
+                            </Typography>
+                        </Box>
+                        <Box sx={{ flex: 1 }}>
+                            <Typography variant="subtitle2" gutterBottom>
+                                Date de début d'effet
+                            </Typography>
+                            <TextField
+                                type="date"
+                                value={template.dateDebutEffet ? new Date(template.dateDebutEffet).toISOString().split('T')[0] : ''}
+                                onChange={(e) => updateTemplate(prev => ({
+                                    ...prev,
+                                    dateDebutEffet: e.target.value ? new Date(e.target.value) : new Date()
+                                }))}
+                                fullWidth
+                                variant="outlined"
+                                size="small"
+                                InputLabelProps={{ shrink: true }}
+                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                                Date à partir de laquelle cette trame est effective.
+                            </Typography>
+                        </Box>
                     </Box>
                 </Box>
 

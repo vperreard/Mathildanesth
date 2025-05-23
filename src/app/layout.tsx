@@ -17,6 +17,8 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { ClientNotificationCenter, ClientSimulationNotifications } from '@/components/notifications/ClientNotifications';
 // Import du wrapper client pour le préchargeur
 import ClientPrefetcherWrapper from '@/components/ClientPrefetcherWrapper';
+// Import du tracker de performance client
+import ClientPerformanceTracker from '@/components/ClientPerformanceTracker';
 
 // Chargement dynamique des composants non critiques avec priorité
 const Header = dynamic(() => import('@/components/Header'), {
@@ -60,10 +62,6 @@ export const metadata: Metadata = {
     ],
     authors: [{ name: 'Équipe Mathildanesth' }],
     creator: 'Mathildanesth',
-    viewport: {
-        width: 'device-width',
-        initialScale: 1,
-    },
     robots: {
         index: false,
         follow: true,
@@ -95,15 +93,6 @@ export default function RootLayout({
                 <link rel="dns-prefetch" href="https://cdn.example.com" />
                 <link rel="preconnect" href="https://cdn.example.com" />
 
-                {/* Preload des assets critiques */}
-                <link
-                    rel="preload"
-                    href="/fonts/custom-font.woff2"
-                    as="font"
-                    type="font/woff2"
-                    crossOrigin="anonymous"
-                />
-
                 {/* Préchargement des scripts critiques */}
                 <link
                     rel="modulepreload"
@@ -129,6 +118,9 @@ export default function RootLayout({
 
                             {/* Préchargeur de routes et données via un wrapper client */}
                             <ClientPrefetcherWrapper />
+
+                            {/* Tracker de performance */}
+                            <ClientPerformanceTracker />
                         </div>
                     </ThemeProvider>
                 </Providers>

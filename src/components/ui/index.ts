@@ -15,7 +15,7 @@ export { Checkbox } from './checkbox';
 export { Label } from './label';
 export { default as Textarea } from './textarea';
 export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
-export { default as Switch } from './switch';
+export { Switch } from './switch';
 export { Skeleton } from './skeleton';
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 export { ScrollArea, ScrollBar } from './scroll-area';

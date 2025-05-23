@@ -1,0 +1,107 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 1,
+    "pending": 0,
+    "failures": 0,
+    "start": "2025-05-21T17:30:22.250Z",
+    "end": "2025-05-21T17:30:22.595Z",
+    "duration": 345,
+    "testsRegistered": 1,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "cf6994bf-0514-47d8-b954-235846156664",
+      "title": "",
+      "fullFile": "cypress/e2e/performance/api-benchmark.cy.js",
+      "file": "cypress/e2e/performance/api-benchmark.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "d59ec02f-3b93-4097-865b-26aa3896f054",
+          "title": "Benchmark des API",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "Mesure les temps de réponse des principales API",
+              "fullTitle": "Benchmark des API Mesure les temps de réponse des principales API",
+              "timedOut": null,
+              "duration": 169,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Définir les API à tester\nconst apiEndpoints = ['/api/users', '/api/leaves/types', '/api/planning', '/api/skills', '/api/notifications/preferences', '/api/me', '/api/sectors', '/api/sites', '/api/activity-types', '/api/assignment-types'];\n// Tester séquentiellement chaque API\napiEndpoints.forEach(endpoint => {\n  cy.request({\n    url: endpoint,\n    failOnStatusCode: false,\n    timeout: 30000\n  }).then(response => {\n    // Enregistrer les métriques de performance\n    cy.task('logPerformance', {\n      type: 'api',\n      name: endpoint,\n      duration: response.duration,\n      status: response.status,\n      timestamp: Date.now()\n    });\n    // Afficher les résultats dans les logs\n    cy.log(`🔌 API ${endpoint}: ${response.duration}ms (${response.status})`);\n  });\n});",
+              "err": {},
+              "uuid": "c8d7c3de-550d-481b-a3e3-f6f8d0c7267b",
+              "parentUUID": "d59ec02f-3b93-4097-865b-26aa3896f054",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "c8d7c3de-550d-481b-a3e3-f6f8d0c7267b"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 169,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

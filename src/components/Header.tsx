@@ -8,7 +8,7 @@ import { memo } from 'react';
 import AdminRequestsBanner from './AdminRequestsBanner';
 import Navigation from './navigation/Navigation';
 import UserProfile from './user/UserProfile';
-import { LoginForm } from './auth/LoginForm';
+import { HeaderLoginForm } from './auth/HeaderLoginForm';
 import { navigationLinks, adminLinks } from '@/utils/navigationConfig';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { useTheme } from '@/context/ThemeContext';
@@ -118,7 +118,7 @@ const Header = memo(function Header() {
                                         <UserProfile user={user} onLogout={logout} />
                                     </>
                                 ) : (
-                                    <LoginForm idPrefix="header-" />
+                                    <HeaderLoginForm idPrefix="header-" />
                                 )}
                             </motion.div>
                         </div>

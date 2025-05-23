@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, forwardRef } from 'react';
 import axios from 'axios';
 import {
     formatDate,
@@ -16,7 +16,6 @@ import {
 import { z } from 'zod';
 import { fr } from 'date-fns/locale';
 import { Calendar as CalendarIcon, Check, Info, HelpCircle } from 'lucide-react';
-import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/themes/light.css';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -85,6 +84,39 @@ export interface LeaveFormProps {
     onSuccess: (newLeave: any) => void;
 }
 
+// Composant Tooltip personnalisé qui n'utilise pas element.ref de manière dépréciée
+const Tooltip = forwardRef<HTMLDivElement, {
+    children: React.ReactNode,
+    content: React.ReactNode,
+    placement?: string
+} & React.HTMLAttributes<HTMLDivElement>>((props, ref) => {
+    const { children, content, placement = 'top', ...otherProps } = props;
+    const [isVisible, setIsVisible] = useState(false);
+
+    return (
+        <div
+            className="relative inline-block"
+            onMouseEnter={() => setIsVisible(true)}
+            onMouseLeave={() => setIsVisible(false)}
+            ref={ref}
+            {...otherProps}
+        >
+            {children}
+            {isVisible && (
+                <div className={`absolute z-50 p-2 bg-white rounded shadow-lg border text-sm ${placement.includes('top') ? 'bottom-full mb-2' :
+                    placement.includes('bottom') ? 'top-full mt-2' :
+                        placement.includes('left') ? 'right-full mr-2' :
+                            'left-full ml-2'
+                    }`}>
+                    {content}
+                </div>
+            )}
+        </div>
+    );
+});
+
+Tooltip.displayName = 'Tooltip';
+
 export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
     // State pour les types de congés chargés depuis l'API
     const [availableLeaveTypes, setAvailableLeaveTypes] = useState<SelectableLeaveType[]>([]);
@@ -143,7 +175,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
             setLoadTypeError(null);
             try {
                 // Utilisation de l'API des types de congés settings pour avoir plus d'infos
-                const response = await fetch('/api/admin/leave-type-settings?selectable=true');
+                const response = await fetch('/api/leaves/types');
                 if (!response.ok) {
                     throw new Error(`Erreur HTTP ${response.status}`);
                 }
@@ -264,7 +296,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
         onChange: (date: Date | null) => void,
         id: string,
         label: string,
-        minDateProp?: Date | null, // Modifié pour accepter Date | null
+        minDateProp?: Date | null,
         disabled?: boolean
     ) => {
         let resolvedMinDate: Date | undefined = undefined;
@@ -320,7 +352,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
 
                     {selected && publicHolidays.some(h => h.date && formatDate(h.date, ISO_DATE_FORMAT) === formatDate(selected, ISO_DATE_FORMAT)) && (
                         <div className="absolute bottom-full left-0 mb-1 z-10">
-                            <Tippy
+                            <Tooltip
                                 content={
                                     <div className="p-2 text-sm bg-white rounded shadow-lg border">
                                         <span className="font-bold">
@@ -330,13 +362,11 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                                     </div>
                                 }
                                 placement="top-start"
-                                arrow={true}
-                                animation="shift-away"
                             >
                                 <span className="bg-purple-100 text-purple-800 text-xs font-semibold px-2 py-0.5 rounded-full">
                                     Férié
                                 </span>
-                            </Tippy>
+                            </Tooltip>
                         </div>
                     )}
                 </div>
@@ -362,9 +392,9 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                 <div className="mb-6">
                     <div className="flex items-center justify-between">
                         <label htmlFor="leaveType" className="block text-sm font-medium text-gray-700">Type de congé</label>
-                        <Tippy content={<span>Sélectionnez le type de congé approprié à votre situation</span>} theme="light" placement="top">
+                        <Tooltip content={<span>Sélectionnez le type de congé approprié à votre situation</span>} placement="top">
                             <span className="text-gray-400 hover:text-gray-600 cursor-help"><HelpCircle className="h-4 w-4" /></span>
-                        </Tippy>
+                        </Tooltip>
                     </div>
                     <div className="mt-1 relative">
                         <select
@@ -434,9 +464,9 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                             <label htmlFor="isHalfDay" className="ml-2 block text-sm font-medium text-gray-700">
                                 Demi-journée
                             </label>
-                            <Tippy content={<span>Activez cette option pour demander une demi-journée de congé (matin ou après-midi). Pour les demi-journées, la date de début et de fin doivent être identiques.</span>} theme="light" placement="top">
+                            <Tooltip content={<span>Activez cette option pour demander une demi-journée de congé (matin ou après-midi). Pour les demi-journées, la date de début et de fin doivent être identiques.</span>} placement="top">
                                 <span className="text-gray-400 hover:text-gray-600 cursor-help ml-1"><HelpCircle className="h-4 w-4" /></span>
-                            </Tippy>
+                            </Tooltip>
                         </div>
 
                         {isHalfDay && (

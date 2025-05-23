@@ -235,60 +235,105 @@ En parallèle de l'implémentation technique du système de trames et affectatio
 
 Un document détaillé des spécifications UI est disponible dans `docs-consolidated/02_Fonctionnalites/07_Gestion_Affectations/02_Refonte_UI_Trames_Affectations.md`.
 
-# Améliorations des Simulations de Planning
+# Améliorations des Modules d'Analytique et de Simulation
 
-Avec l'implémentation des templates de simulation, nous avons franchi une étape importante dans la gestion des simulations de planning. Voici les prochaines étapes d'amélioration prévues:
+Suite à l'implémentation réussie des modules d'Analytique Avancée & Prédictions (V1) et de Simulation de Planning, plusieurs axes d'amélioration sont prévus pour enrichir ces fonctionnalités et optimiser leur utilisation.
 
-## Améliorations à Court Terme
+## 1. Finalisation du module de Simulation
 
-### 1. Renforcement des Templates de Simulation
-- **Objectif :** Enrichir les fonctionnalités des templates pour maximiser leur utilité
-- **Actions Prioritaires :**
-  - [ ] Ajouter des filtres supplémentaires sur la liste des templates (récemment créés, les plus utilisés)
-  - [ ] Implémenter une fonctionnalité de clonage/duplication de templates
-  - [ ] Ajouter des indicateurs d'utilisation (combien de fois un template a été utilisé)
-  - [ ] Permettre l'importation/exportation de templates entre environnements
+### 1.1. Clonage et duplication des templates
+- **Objectif :** Permettre de créer rapidement des variantes de templates de simulation
+- **Actions prioritaires :**
+  - [x] Développer l'API de duplication `/api/simulations/scenarios/duplicate`
+  - [x] Ajouter la fonction de clonage dans l'interface utilisateur avec options de personnalisation
+  - [x] Implémenter la possibilité de modifier les paramètres clés lors du clonage
 
-### 2. Dashboard de Simulation
-- **Objectif :** Créer un tableau de bord analytique pour faciliter la comparaison des scénarios
-- **Fonctionnalités à Développer :**
-  - [ ] Vue comparative de plusieurs scénarios côte à côte
-  - [ ] Indicateurs clés de performance (KPIs) configurables
-  - [ ] Visualisation graphique des résultats (graphiques de répartition des charges de travail, etc.)
-  - [ ] Analyse d'impact des changements de paramètres
+### 1.2. Tableau de bord analytique pour comparer les scénarios
+- **Objectif :** Faciliter l'analyse comparative entre différentes simulations
+- **Actions prioritaires :**
+  - [x] Créer une interface de comparaison multi-scénarios (`/admin/simulations/compare`)
+  - [x] Développer des visualisations côte-à-côte pour les métriques clés
+  - [x] Implémenter des graphiques comparatifs (barres, lignes, radars)
 
-### 3. Amélioration des Exports
-- **Objectif :** Renforcer les options d'export pour faciliter le partage des résultats
-- **Actions :**
-  - [ ] Enrichir les exports PDF avec plus d'indicateurs visuels
-  - [ ] Améliorer la mise en page des exports Excel pour une meilleure analyse
-  - [ ] Permettre l'export sélectif de parties spécifiques des résultats
-  - [ ] Implémenter l'export automatique par email à une liste de destinataires
+### 1.3. Filtres avancés pour l'analyse des résultats
+- **Objectif :** Permettre une analyse plus fine et ciblée des résultats de simulation
+- **Actions prioritaires :**
+  - [x] Implémenter un composant `AdvancedFilters` réutilisable
+  - [x] Ajouter des filtres pour la période, les services, le personnel, et les seuils de score
+  - [x] Permettre la sauvegarde des configurations de filtres fréquemment utilisées
 
-## Évolutions à Moyen Terme
+## 2. Optimisation des performances
 
-### 1. Intégration IA Assistive
-- **Objectif :** Incorporer des fonctionnalités d'IA pour analyser et optimiser les scénarios
-- **Fonctionnalités :**
-  - [ ] Analyser automatiquement les résultats pour détecter des opportunités d'optimisation
-  - [ ] Suggérer des paramètres alternatifs pour améliorer les résultats
-  - [ ] Prédire l'impact des changements avant leur application
+### 2.1. Amélioration des temps de réponse pour les simulations
+- **Objectif :** Réduire significativement le temps d'attente pour les résultats de simulation
+- **Actions prioritaires :**
+  - [x] Développer un service optimisé (`optimizedSimulationService.ts`)
+  - [x] Implémenter différentes stratégies d'optimisation (cache, parallèle, incrémental)
+  - [x] Créer une page de démonstration pour tester et comparer les performances
 
-### 2. Mode Collaboratif
-- **Objectif :** Permettre la collaboration sur les simulations entre plusieurs utilisateurs
-- **Fonctionnalités :**
-  - [ ] Partage contrôlé de templates et scénarios avec d'autres utilisateurs
-  - [ ] Annotations et commentaires sur les résultats
-  - [ ] Historique des modifications et des versions
+### 2.2. Système de mise en cache des résultats intermédiaires
+- **Objectif :** Accélérer les calculs en réutilisant les résultats déjà calculés
+- **Actions prioritaires :**
+  - [x] Créer un service de cache (`simulationCacheService.ts`)
+  - [x] Ajouter un modèle de données pour le stockage persistent (`SimulationIntermediateResult`)
+  - [x] Implémenter des mécanismes d'invalidation intelligents pour le cache
 
-### 3. Tests Automatisés
-- **Objectif :** Vérifier automatiquement la robustesse des templates face à différentes situations
-- **Fonctionnalités :**
-  - [ ] Tests de stress (simulation avec nombre élevé d'utilisateurs/contraintes)
-  - [ ] Tests de sensibilité (analyse de l'impact des variations de paramètres)
-  - [ ] Rapports automatiques de validité des templates
+### 2.3. Traitement parallèle pour les simulations volumineuses
+- **Objectif :** Exploiter les capacités multi-cœurs pour accélérer les simulations complexes
+- **Actions prioritaires :**
+  - [x] Implémenter un système de workers avec `workerpool`
+  - [x] Développer une stratégie de découpage des données pour le traitement parallèle
+  - [x] Créer un mécanisme de fusion des résultats partiels
+
+## 3. Expérience utilisateur avancée
+
+### 3.1. Visualisations graphiques plus riches
+- **Objectif :** Offrir des visualisations plus intuitives et interactives des résultats
+- **Actions prioritaires :**
+  - [ ] Ajouter des graphiques de type heat map pour visualiser les affectations
+  - [ ] Implémenter des diagrammes de Sankey pour montrer les flux de personnel
+  - [ ] Créer des tableaux de bord personnalisables avec des métriques configurables
+
+### 3.2. Système de notifications pour les simulations longues
+- **Objectif :** Informer l'utilisateur de l'avancement et de la fin des simulations longues
+- **Actions prioritaires :**
+  - [ ] Développer un système d'événements WebSocket pour les mises à jour en temps réel
+  - [ ] Créer un composant de notification in-app pour les simulations terminées
+  - [ ] Ajouter une option d'alerte par email pour les simulations particulièrement longues
+
+### 3.3. Raccourcis pour appliquer un résultat de simulation au planning réel
+- **Objectif :** Faciliter la transition d'une simulation réussie vers le planning opérationnel
+- **Actions prioritaires :**
+  - [ ] Implémenter une fonctionnalité "Appliquer au planning" sur les résultats de simulation
+  - [ ] Créer un processus de validation avec aperçu des changements proposés
+  - [ ] Développer un mécanisme de fusion intelligent pour résoudre les conflits potentiels
+
+## 4. Intégration avec d'autres modules
+
+### 4.1. Intégration automatique des données des congés validés
+- **Objectif :** Synchroniser automatiquement les congés validés avec les simulations
+- **Actions prioritaires :**
+  - [ ] Créer un connecteur entre le module de congés et la simulation
+  - [ ] Développer une option pour inclure/exclure les congés validés, en attente ou refusés
+  - [ ] Implémenter une mise à jour automatique des simulations lors de changements de congés
+
+### 4.2. Création de liens avec le module de génération de planning
+- **Objectif :** Améliorer la cohérence entre les simulations et la génération réelle de planning
+- **Actions prioritaires :**
+  - [ ] Unifier les algorithmes de base entre simulation et génération
+  - [ ] Permettre de définir des paramètres de simulation basés sur les règles de génération
+  - [ ] Créer un flux de travail intégré entre simulation et génération
+
+### 4.3. Synchronisation des templates avec les trames de planning
+- **Objectif :** Assurer la cohérence entre les templates de simulation et les trames de planning
+- **Actions prioritaires :**
+  - [ ] Développer une fonctionnalité d'importation de trames vers les templates
+  - [ ] Créer un mécanisme de synchronisation bidirectionnelle
+  - [ ] Ajouter des alertes de divergence entre trames et templates synchronisés
 
 ---
+
+Ce plan d'amélioration sera mis en œuvre progressivement, en commençant par les fonctionnalités à plus forte valeur ajoutée pour les utilisateurs. Les priorités seront ajustées en fonction des retours utilisateurs et des besoins opérationnels.
 
 # Prochaines Étapes pour Mathildanesth
 
@@ -362,3 +407,120 @@ Suite à l'implémentation des templates de simulation, nous avons considérable
     - Permettre la comparaison visuelle des différents scénarios
 
 Ces améliorations continueront à renforcer le module de simulation, le rendant plus flexible, performant et utile pour la planification hospitalière.
+
+# Système de Notifications pour les Simulations Longues (Implémentation Terminée)
+
+Pour améliorer l'expérience utilisateur lors de l'exécution de simulations de planning qui peuvent prendre du temps, nous avons implémenté un système complet de notifications temps réel. Voici un résumé des composants développés :
+
+## 1. Architecture du système de notifications
+
+- **Service de notification de simulation** : `notificationService.ts`
+  - Gestion des événements de simulation (démarrage, progression, fin, erreur)
+  - Envoi de notifications persistantes dans la base de données
+  - Communication en temps réel via Pusher
+
+- **Intégration Pusher** : `pusher.ts`
+  - Configuration du serveur et client Pusher
+  - Fonctions utilitaires pour l'abonnement aux canaux et déclenchement d'événements
+
+- **Composant d'interface utilisateur** : `SimulationNotifications.tsx`
+  - Affichage des notifications en temps réel dans l'interface
+  - Barres de progression pour suivre l'avancement des simulations
+  - Estimation du temps restant
+
+## 2. Intégration avec le Service de Simulation
+
+- Mise à jour de `optimizedSimulationService.ts` pour envoyer des notifications à chaque étape clé
+- Ajout de fonctionnalités de suivi de progression pour chaque stratégie de simulation 
+- Estimation intelligente du temps d'exécution en fonction de la stratégie et de la taille des données
+
+## 3. Modifications API
+
+- Ajout de l'ID utilisateur dans les paramètres envoyés au service de simulation
+- Récupération de l'utilisateur connecté pour l'envoi de notifications personnalisées
+
+## Résultats et Bénéfices
+
+- Interface utilisateur réactive qui indique la progression des simulations en temps réel
+- Notifications persistantes pour les événements importants (démarrage, jalons, fin)
+- Possibilité pour les utilisateurs de continuer à travailler pendant l'exécution des simulations
+- Estimation du temps restant pour mieux planifier le travail
+
+## Prochaines étapes potentielles
+
+- Amélioration des estimations de temps en fonction des performances historiques
+- Ajout d'options de notification par email pour les simulations très longues
+- Intégration avec d'autres processus longs de l'application
+
+# Raccourcis pour Appliquer un Résultat de Simulation au Planning Réel (Implémentation Terminée)
+
+Pour permettre aux utilisateurs d'exploiter concrètement les résultats des simulations, nous avons développé une fonctionnalité permettant d'appliquer directement un résultat de simulation au planning réel. Cette fonctionnalité est maintenant terminée et entièrement opérationnelle.
+
+## 1. Service d'application de simulation
+
+- **Service principal** : `applySimulationService.ts`
+  - Conversion des résultats de simulation en affectations réelles
+  - Gestion des options d'application (suppression des affectations existantes, inclusion des congés, etc.)
+  - Traitement des conflits potentiels lors de l'application
+
+## 2. API d'application
+
+- **Endpoint API** : `/api/simulations/apply`
+  - Traitement des requêtes POST avec vérification d'authentification et de droits
+  - Validation des paramètres d'application
+  - Utilisation du service d'application pour exécuter la conversion
+
+## 3. Interface utilisateur
+
+- **Modal d'application** : `ApplySimulationModal.tsx`
+  - Interface intuitive avec options configurables pour l'application
+  - Alertes et confirmations pour éviter les applications accidentelles
+  - Gestion et affichage des conflits potentiels
+
+- **Intégration dans les résultats de simulation** : 
+  - Bouton "Appliquer au planning" sur la page de détails des résultats
+  - Workflow complet depuis la visualisation jusqu'à l'application
+
+## 4. Aspects sécurité et droits
+
+- Vérification des droits utilisateurs avant l'application
+- Journalisation des opérations d'application dans l'audit log
+- Notifications transparentes sur les résultats de l'application
+
+Cette fonctionnalité complète le module de simulation, permettant d'aller du "quoi si?" à l'application concrète, facilitant ainsi l'utilisation des résultats des simulations pour améliorer la planification réelle.
+
+# Visualisations Graphiques Avancées pour les Simulations (Implémentation Terminée)
+
+Pour améliorer l'analyse et l'interprétation des résultats de simulation, nous avons développé un ensemble de visualisations graphiques avancées. Ces outils permettent aux utilisateurs de mieux comprendre les implications des différents scénarios de planification.
+
+## 1. Composants de Visualisation
+
+- **HeatMapChart** : Visualisation sous forme de carte de chaleur
+  - Représentation intuitive des taux de couverture 
+  - Identification rapide des zones sur/sous-dotées en personnel
+  - Suivi temporel (journalier, hebdomadaire, mensuel) des indicateurs clés
+
+- ✅ **SankeyChart** : Diagrammes de flux pour l'analyse des mouvements de personnel
+  - Visualisation des échanges entre services/unités avec des options avancées (valeur/pourcentage)
+  - Analyse interactive des flux basée sur les compétences et ressources
+  - Identification des goulots d'étranglement dans la distribution du personnel
+  - Affichage des statistiques d'entrées/sorties pour chaque nœud
+
+## 2. Page de Visualisations Avancées
+
+- **Interface unifiée** : `/admin/simulations/advanced-visualizations`
+  - Accès direct depuis la page de détails d'un résultat de simulation
+  - Navigation intuitive entre les différents types de visualisation
+
+- **Filtres et options configurables**
+  - Sélection des métriques (couverture, utilisation, satisfaction)
+  - Différentes vues temporelles (jour, semaine, mois)
+  - Niveaux de détail ajustables (services, compétences, ressources individuelles)
+
+## 3. Export et Partage des Visualisations
+
+- Fonctionnalités d'export au format PNG, SVG et CSV
+- Capacité à inclure les visualisations dans les rapports générés
+- Partage facilité pour les présentations et réunions de planification
+
+Ces visualisations avancées complètent le module de simulation en transformant des données complexes en représentations visuelles facilement compréhensibles, aidant ainsi à la prise de décision et à la communication des résultats.

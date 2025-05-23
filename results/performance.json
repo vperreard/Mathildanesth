@@ -1,0 +1,333 @@
+[
+  {
+    "type": "api",
+    "name": "/api/users",
+    "duration": 11,
+    "timestamp": 1747848622316,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.319Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/leaves/types",
+    "duration": 5,
+    "timestamp": 1747848622336,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.340Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/planning",
+    "duration": 5,
+    "timestamp": 1747848622347,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.350Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/skills",
+    "duration": 4,
+    "timestamp": 1747848622357,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.359Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/notifications/preferences",
+    "duration": 5,
+    "timestamp": 1747848622367,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.369Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/me",
+    "duration": 4,
+    "timestamp": 1747848622376,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.379Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sectors",
+    "duration": 4,
+    "timestamp": 1747848622386,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.388Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sites",
+    "duration": 4,
+    "timestamp": 1747848622395,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.397Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/activity-types",
+    "duration": 5,
+    "timestamp": 1747848622404,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.406Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/assignment-types",
+    "duration": 4,
+    "timestamp": 1747848622413,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.416Z"
+  },
+  {
+    "type": "page",
+    "name": "/",
+    "duration": 1702,
+    "timestamp": 1747848665370,
+    "run": "2025-05-21T17:31:05.401Z"
+  },
+  {
+    "type": "page",
+    "name": "/login",
+    "duration": 6321,
+    "timestamp": 1747848669989,
+    "run": "2025-05-21T17:31:10.013Z"
+  },
+  {
+    "type": "page",
+    "name": "/auth/login",
+    "duration": 10321,
+    "timestamp": 1747848673990,
+    "run": "2025-05-21T17:31:14.017Z"
+  },
+  {
+    "type": "app",
+    "name": "initial-load",
+    "duration": 696,
+    "timestamp": 1747848674810,
+    "run": "2025-05-21T17:31:14.828Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/users",
+    "duration": 29,
+    "timestamp": 1747893413569,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.572Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/leaves/types",
+    "duration": 9,
+    "timestamp": 1747893413589,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.594Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/planning",
+    "duration": 8,
+    "timestamp": 1747893413606,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.612Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/skills",
+    "duration": 10,
+    "timestamp": 1747893413630,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.633Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/notifications/preferences",
+    "duration": 8,
+    "timestamp": 1747893413646,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.651Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/me",
+    "duration": 10,
+    "timestamp": 1747893413665,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.670Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sectors",
+    "duration": 11,
+    "timestamp": 1747893413685,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.688Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sites",
+    "duration": 8,
+    "timestamp": 1747893413702,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.705Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/activity-types",
+    "duration": 9,
+    "timestamp": 1747893413720,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.726Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/assignment-types",
+    "duration": 8,
+    "timestamp": 1747893413738,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.745Z"
+  },
+  {
+    "type": "page",
+    "name": "/",
+    "duration": 277,
+    "timestamp": 1747893420080,
+    "run": "2025-05-22T05:57:00.086Z"
+  },
+  {
+    "type": "page",
+    "name": "/login",
+    "duration": 1876,
+    "timestamp": 1747893421680,
+    "run": "2025-05-22T05:57:01.688Z"
+  },
+  {
+    "type": "page",
+    "name": "/auth/login",
+    "duration": 3035,
+    "timestamp": 1747893422839,
+    "run": "2025-05-22T05:57:02.846Z"
+  },
+  {
+    "type": "app",
+    "name": "initial-load",
+    "duration": 273,
+    "timestamp": 1747893423160,
+    "run": "2025-05-22T05:57:03.163Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/users",
+    "duration": 9,
+    "timestamp": 1747905541841,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.846Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/leaves/types",
+    "duration": 5,
+    "timestamp": 1747905541857,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.862Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/planning",
+    "duration": 6,
+    "timestamp": 1747905541870,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.872Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/skills",
+    "duration": 4,
+    "timestamp": 1747905541881,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.885Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/notifications/preferences",
+    "duration": 11,
+    "timestamp": 1747905541900,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.903Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/me",
+    "duration": 5,
+    "timestamp": 1747905541911,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.913Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sectors",
+    "duration": 4,
+    "timestamp": 1747905541921,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.923Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sites",
+    "duration": 4,
+    "timestamp": 1747905541936,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.939Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/activity-types",
+    "duration": 4,
+    "timestamp": 1747905541947,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.949Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/assignment-types",
+    "duration": 5,
+    "timestamp": 1747905541961,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.964Z"
+  },
+  {
+    "type": "page",
+    "name": "/",
+    "duration": 592,
+    "timestamp": 1747905558482,
+    "run": "2025-05-22T09:19:18.503Z"
+  },
+  {
+    "type": "page",
+    "name": "/login",
+    "duration": 4994,
+    "timestamp": 1747905562884,
+    "run": "2025-05-22T09:19:22.917Z"
+  },
+  {
+    "type": "page",
+    "name": "/auth/login",
+    "duration": 5671,
+    "timestamp": 1747905563561,
+    "run": "2025-05-22T09:19:23.590Z"
+  },
+  {
+    "type": "app",
+    "name": "initial-load",
+    "duration": 654,
+    "timestamp": 1747905564343,
+    "run": "2025-05-22T09:19:24.364Z"
+  },
+  {
+    "type": "interaction",
+    "name": "input-response",
+    "duration": 2298,
+    "timestamp": 1747905565988,
+    "run": "2025-05-22T09:19:25.996Z"
+  }
+]

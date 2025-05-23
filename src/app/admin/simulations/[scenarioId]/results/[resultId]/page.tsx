@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeftIcon, Loader2, AlertTriangleIcon, FileJsonIcon, BarChartIcon, AlertCircleIcon, CheckCircle2Icon, ZapIcon, HourglassIcon, UserIcon, ClockIcon, CalendarIcon, FileTextIcon, DownloadIcon, FileIcon } from 'lucide-react';
+import { ArrowLeftIcon, Loader2, AlertTriangleIcon, FileJsonIcon, BarChartIcon, AlertCircleIcon, CheckCircle2Icon, ZapIcon, HourglassIcon, UserIcon, ClockIcon, CalendarIcon, FileTextIcon, DownloadIcon, FileIcon, ClipboardCheckIcon, BarChart3Icon } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { exportSimulationResults } from '@/services/exportService';
+import { ApplySimulationModal } from '@/components/simulations/ApplySimulationModal';
+import AdvancedFilters, { FilterState } from '@/components/ui/AdvancedFilters';
 
 // Interface pour le résultat retourné par l'API
 interface SimulationResultData {
@@ -87,6 +89,45 @@ export default function SimulationResultPage() {
     const [conflicts, setConflicts] = useState<ConflictAlert[]>([]);
     const [userAssignments, setUserAssignments] = useState<UserAssignment[]>([]);
     const [periodCoverage, setPeriodCoverage] = useState<number>(0);
+
+    // Ajout du state pour le modal d'application
+    const [showApplyModal, setShowApplyModal] = useState(false);
+
+    // Ajouter la fonction handleFilterChange avant le return du composant principal
+    const [filteredData, setFilteredData] = useState(result);
+
+    const handleFilterChange = (filters: FilterState) => {
+        console.log('Nouveaux filtres appliqués:', filters);
+        // Implémenter la logique de filtrage des données
+        // Cette fonction sera appelée chaque fois que les filtres sont modifiés
+
+        // Exemple simplifié de filtrage
+        if (!result) return;
+
+        let filtered = { ...result };
+
+        // Filtrer par période
+        if (filters.dateRange?.from) {
+            // Logique de filtrage par date
+        }
+
+        // Filtrer par catégorie
+        if (filters.selectedCategories.length > 0) {
+            // Logique de filtrage par catégorie
+        }
+
+        // Filtrer par personnel
+        if (filters.selectedUsers.length > 0) {
+            // Logique de filtrage par personnel
+        }
+
+        // Appliquer le seuil
+        if (filters.threshold > 0) {
+            // Logique d'application du seuil
+        }
+
+        setFilteredData(filtered);
+    };
 
     // Fonction pour démarrer l'auto-refresh
     const startAutoRefresh = useCallback(() => {
@@ -516,6 +557,17 @@ export default function SimulationResultPage() {
                             <Button variant="outline" size="sm" onClick={handleExportExcel} className="flex items-center">
                                 <FileIcon className="w-4 h-4 mr-2" /> Export Excel
                             </Button>
+                            <Button variant="primary" size="sm" onClick={() => setShowApplyModal(true)} className="flex items-center">
+                                <ClipboardCheckIcon className="w-4 h-4 mr-2" /> Appliquer au planning
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => router.push(`/admin/simulations/advanced-visualizations?resultId=${result.id}&scenarioId=${params.scenarioId as string}`)}
+                                className="flex items-center"
+                            >
+                                <BarChart3Icon className="w-4 h-4 mr-2" /> Visualisations avancées
+                            </Button>
                         </>
                     )}
                     <Button variant="outline" size="sm" onClick={handleDownloadJson} className="flex items-center">
@@ -806,6 +858,74 @@ export default function SimulationResultPage() {
                     </CardFooter>
                 </Card>
             )}
+
+            {/* Modal d'application au planning réel */}
+            {result && showApplyModal && (
+                <ApplySimulationModal
+                    isOpen={showApplyModal}
+                    onClose={() => setShowApplyModal(false)}
+                    simulationResult={{
+                        id: result.id,
+                        scenarioId: params.scenarioId as string,
+                        scenarioName: result.scenarioName,
+                        status: result.status
+                    }}
+                    onSuccess={() => {
+                        toast.success('Application de la simulation réussie');
+                    }}
+                />
+            )}
+
+            <div className="mb-6">
+                <AdvancedFilters
+                    onFilterChange={handleFilterChange}
+                    dateRangeOptions={{
+                        label: 'Période d\'analyse',
+                        enabled: true
+                    }}
+                    categoryOptions={{
+                        label: 'Catégories d\'affectation',
+                        enabled: true,
+                        options: [
+                            { id: 'morning', label: 'Matin', value: 'morning' },
+                            { id: 'afternoon', label: 'Après-midi', value: 'afternoon' },
+                            { id: 'night', label: 'Nuit', value: 'night' },
+                            { id: 'weekend', label: 'Week-end', value: 'weekend' },
+                            { id: 'holiday', label: 'Jours fériés', value: 'holiday' }
+                        ]
+                    }}
+                    userOptions={{
+                        label: 'Personnel',
+                        enabled: result?.generatedPlanningData?.userAssignments?.length > 0,
+                        options: result?.generatedPlanningData?.userAssignments?.map(staff => ({
+                            id: staff.userId,
+                            label: staff.userName,
+                            value: staff.userId,
+                            group: staff.role
+                        })) || []
+                    }}
+                    metricsOptions={{
+                        label: 'Métriques',
+                        enabled: true,
+                        options: [
+                            { id: 'staffingRate', label: 'Taux de couverture', value: 'staffingRate' },
+                            { id: 'satisfactionRate', label: 'Satisfaction', value: 'satisfactionRate' },
+                            { id: 'costEfficiency', label: 'Efficacité coût', value: 'costEfficiency' },
+                            { id: 'conflictRate', label: 'Taux de conflits', value: 'conflictRate' },
+                            { id: 'workloadBalance', label: 'Équilibre de charge', value: 'workloadBalance' }
+                        ]
+                    }}
+                    thresholdOptions={{
+                        label: 'Seuil de conformité',
+                        enabled: true,
+                        min: 0,
+                        max: 100,
+                        step: 5,
+                        initialValue: 80
+                    }}
+                    saveFiltersEnabled={true}
+                />
+            </div>
         </div>
     );
 

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyticsService } from '@/modules/analytics/services/analyticsService';
 import { ActivityCategory, ProfessionalRole } from '@prisma/client'; // Import enums
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { getGuardDutyDistributionStats } from '@/services/analyticsService';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
@@ -31,6 +34,15 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        // Vérifier l'authentification
+        const session = await getServerSession(authOptions);
+        if (!session) {
+            return NextResponse.json(
+                { error: 'Non autorisé' },
+                { status: 401 }
+            );
+        }
+
         const stats = await analyticsService.getGuardDutyDistributionStats(
             startDate,
             endDate,
@@ -39,11 +51,13 @@ export async function GET(request: NextRequest) {
         );
         return NextResponse.json(stats);
     } catch (error) {
-        console.error('Error fetching guard duty distribution stats:', error);
-        // Linter/type error potential: error might not have a 'message' property depending on its type.
-        // Consider a more robust error handling like: 
-        // const message = error instanceof Error ? error.message : 'An unexpected error occurred';
-        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-        return NextResponse.json({ error: 'Failed to fetch statistics', details: errorMessage }, { status: 500 });
+        console.error('Erreur lors de la récupération des statistiques de distribution:', error);
+        return NextResponse.json(
+            {
+                success: false,
+                error: 'Erreur lors de la récupération des statistiques'
+            },
+            { status: 500 }
+        );
     }
 } 

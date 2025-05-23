@@ -244,8 +244,53 @@ export class BlocPlanningService {
 
     /**
      * Récupère tous les secteurs
+     * Note: Cette méthode essaie d'abord de récupérer les secteurs depuis l'API,
+     * et utilise les données en mémoire comme fallback si l'API échoue.
+     * 
+     * IMPORTANT: Cette implémentation utilise XMLHttpRequest synchrone, ce qui est déconseillé
+     * mais nécessaire pour maintenir la compatibilité avec le code existant.
+     * Dans une future version, cette méthode devrait être convertie en asynchrone.
      */
     getAllSectors(): BlocSector[] {
+        try {
+            // Essayer de récupérer les secteurs depuis l'API avec XMLHttpRequest synchrone
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/operating-sectors', false); // false = synchrone
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            const authToken = typeof localStorage !== 'undefined' ? localStorage.getItem('authToken') : null;
+            if (authToken) {
+                xhr.setRequestHeader('Authorization', `Bearer ${authToken}`);
+            }
+
+            xhr.send(null);
+
+            if (xhr.status === 200) {
+                const data = JSON.parse(xhr.responseText);
+
+                // Mapper les données de l'API vers le format BlocSector
+                const apiSectors = data.map((sector: any) => ({
+                    id: sector.id.toString(),
+                    nom: sector.name,
+                    description: sector.description || '',
+                    couleur: sector.colorCode || '#CCCCCC',
+                    estActif: sector.isActive,
+                    salles: [], // Les salles sont gérées séparément
+                    specialites: [] // Les spécialités ne sont pas gérées par l'API
+                }));
+
+                // Mettre à jour les secteurs en mémoire pour les avoir la prochaine fois
+                apiSectors.forEach((sector: BlocSector) => {
+                    this.sectors.set(sector.id, sector);
+                });
+
+                return apiSectors;
+            }
+        } catch (error) {
+            console.error('Erreur lors de la récupération des secteurs depuis l\'API:', error);
+        }
+
+        // En cas d'erreur ou si l'API ne répond pas, utiliser les données en mémoire
         return Array.from(this.sectors.values());
     }
 

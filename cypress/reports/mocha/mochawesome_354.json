@@ -1,0 +1,111 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-05-22T09:19:15.071Z",
+    "end": "2025-05-22T09:19:16.967Z",
+    "duration": 1896,
+    "testsRegistered": 1,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "d6735c4d-058e-483f-9a2d-8bc2ff67088e",
+      "title": "",
+      "fullFile": "cypress/e2e/performance/debug-auth.cy.js",
+      "file": "cypress/e2e/performance/debug-auth.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "885c8b2b-febd-4d76-ba53-799c0bef96e9",
+          "title": "Déboguer authentification",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "Vérifie la structure de la page de connexion",
+              "fullTitle": "Déboguer authentification Vérifie la structure de la page de connexion",
+              "timedOut": null,
+              "duration": 1735,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Visiter la page avec un timeout augmenté\ncy.visit('/', {\n  timeout: 60000,\n  failOnStatusCode: false\n});\n// Prendre une capture d'écran de la page\ncy.screenshot('debug/login-page');\n// Lister tous les éléments de la page\ncy.document().then(doc => {\n  // Afficher le HTML de la page pour comprendre sa structure\n  cy.log('STRUCTURE DE LA PAGE');\n  cy.log(doc.body.innerHTML.substring(0, 1000)); // Afficher les 1000 premiers caractères\n  // Chercher tous les champs de type email et password\n  cy.log('CHAMPS DE FORMULAIRE');\n  const inputFields = Array.from(doc.querySelectorAll('input'));\n  inputFields.forEach(field => {\n    cy.log(`Type: ${field.type}, ID: ${field.id}, Name: ${field.name}, Data-test: ${field.getAttribute('data-test')}`);\n  });\n  // Chercher tous les boutons\n  cy.log('BOUTONS');\n  const buttons = Array.from(doc.querySelectorAll('button'));\n  buttons.forEach(button => {\n    cy.log(`Text: ${button.textContent}, Type: ${button.type}, ID: ${button.id}, Data-test: ${button.getAttribute('data-test')}`);\n  });\n});",
+              "err": {
+                "message": "Error: Cannot commit the same tree as before. This error is likely caused by a bug in React. Please file an issue.",
+                "estack": "Error: Cannot commit the same tree as before. This error is likely caused by a bug in React. Please file an issue.\n    at commitRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15477:17)\n    at commitRootWhenReady (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14759:7)\n    at o (http://localhost:3000/:1:466)\n    at http://localhost:3000/:1:1237\n    at Array.forEach (<anonymous>)\n    at $Cypress.pause (http://localhost:3000/:1:1153)\n    at listener (http://localhost:3000/__cypress/runner/cypress_runner.js:142225:19)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at MappingPromiseArray._promiseFulfilled (http://localhost:3000/__cypress/runner/cypress_runner.js:4917:38)\n    at PromiseArray._iterate (http://localhost:3000/__cypress/runner/cypress_runner.js:2890:31)\n    at MappingPromiseArray.init (http://localhost:3000/__cypress/runner/cypress_runner.js:2854:10)\n    at MappingPromiseArray._asyncInit (http://localhost:3000/__cypress/runner/cypress_runner.js:4886:10)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2381:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)",
+                "diff": null
+              },
+              "uuid": "390cdb46-4e56-4bf3-82ac-c546db249944",
+              "parentUUID": "885c8b2b-febd-4d76-ba53-799c0bef96e9",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "390cdb46-4e56-4bf3-82ac-c546db249944"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 1735,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

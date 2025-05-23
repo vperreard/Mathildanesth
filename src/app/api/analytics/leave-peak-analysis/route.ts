@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyticsService, LeavePeakAggregationUnit } from '@/modules/analytics/services/analyticsService';
 import { LeaveType } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { getLeavePeakAnalysis } from '@/services/analyticsService';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
@@ -36,6 +39,15 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        // Vérifier l'authentification
+        const session = await getServerSession(authOptions);
+        if (!session) {
+            return NextResponse.json(
+                { error: 'Non autorisé' },
+                { status: 401 }
+            );
+        }
+
         const stats = await analyticsService.getLeavePeakAnalysis({
             startDate,
             endDate,
@@ -43,10 +55,35 @@ export async function GET(request: NextRequest) {
             leaveTypes,
             siteId,
         });
-        return NextResponse.json(stats);
+
+        // Récupérer l'analyse des pics de demandes de congés
+        const peakAnalysis = await getLeavePeakAnalysis();
+
+        // Ajouter des métadonnées à la réponse
+        const metadata = {
+            timeRange: '12 derniers mois',
+            generatedAt: new Date().toISOString(),
+            correlationFactors: [
+                'Vacances scolaires',
+                'Jours fériés',
+                'Périodes de forte activité'
+            ]
+        };
+
+        // Structurer la réponse
+        return NextResponse.json({
+            success: true,
+            data: stats,
+            metadata
+        });
     } catch (error) {
-        console.error('Error fetching leave peak analysis:', error);
-        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-        return NextResponse.json({ error: 'Failed to fetch leave peak statistics', details: errorMessage }, { status: 500 });
+        console.error('Erreur lors de l\'analyse des pics de congés:', error);
+        return NextResponse.json(
+            {
+                success: false,
+                error: 'Erreur lors de l\'analyse des pics de congés'
+            },
+            { status: 500 }
+        );
     }
 } 

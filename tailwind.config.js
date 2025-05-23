@@ -8,6 +8,10 @@ module.exports = {
     ],
     theme: {
         extend: {
+            fontFamily: {
+                sans: ['var(--font-sans)'],
+                heading: ['var(--font-heading)'],
+            },
             colors: {
                 border: 'rgb(var(--border-rgb) / <alpha-value>)',
                 background: 'rgb(var(--background-rgb) / <alpha-value>)',

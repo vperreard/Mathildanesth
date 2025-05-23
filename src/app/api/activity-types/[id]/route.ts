@@ -49,7 +49,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         return NextResponse.json({ error: authResult.error }, { status: authResult.status });
     }
 
-    const { id } = params;
+    // Résoudre les paramètres avant de les utiliser
+    const { id } = await Promise.resolve(params);
     if (!id) {
         return NextResponse.json({ error: 'ID du type d\'activité manquant.' }, { status: 400 });
     }
@@ -104,12 +105,56 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         return NextResponse.json({ error: authResult.error }, { status: authResult.status });
     }
 
-    const { id } = params;
+    // Résoudre les paramètres avant de les utiliser
+    const { id } = await Promise.resolve(params);
     if (!id) {
         return NextResponse.json({ error: 'ID du type d\'activité manquant.' }, { status: 400 });
     }
 
     try {
+        // Vérifier si le type d'activité est utilisé dans des affectationModeles avant de le supprimer
+        const affectationReferences = await prisma.affectationModele.findMany({
+            where: { activityTypeId: id },
+            select: { id: true, trameModeleId: true }
+        });
+
+        if (affectationReferences.length > 0) {
+            // Construire un message détaillé pour l'utilisateur
+            const trameIds = [...new Set(affectationReferences.map(a => a.trameModeleId))];
+            const trames = await prisma.trameModele.findMany({
+                where: { id: { in: trameIds } },
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    typeSemaine: true,  // Correspond à weekType dans le schéma
+                    createdAt: true
+                }
+            });
+
+            // Compter les affectations par trame pour plus de détails
+            const affectationsParTrame = trameIds.map(trameId => {
+                const count = affectationReferences.filter(a => a.trameModeleId === trameId).length;
+                return { trameId, affectationCount: count };
+            });
+
+            return NextResponse.json({
+                error: 'Impossible de supprimer ce type d\'activité car il est utilisé dans des trames.',
+                details: {
+                    affectationCount: affectationReferences.length,
+                    trames: trames.map(t => ({
+                        id: t.id,
+                        name: t.name,
+                        description: t.description,
+                        weekType: t.typeSemaine,
+                        affectationCount: affectationsParTrame.find(a => a.trameId === t.id)?.affectationCount || 0,
+                        createdAt: t.createdAt
+                    }))
+                }
+            }, { status: 409 }); // 409 Conflict est plus approprié que 500
+        }
+
+        // Aucune référence trouvée, on peut supprimer
         await prisma.activityType.delete({
             where: { id },
         });
@@ -120,6 +165,12 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
             if (error.code === 'P2025') {
                 // Record to delete does not exist.
                 return NextResponse.json({ error: 'Type d\'activité non trouvé.' }, { status: 404 });
+            } else if (error.code === 'P2003') {
+                // Foreign key constraint failed
+                return NextResponse.json({
+                    error: 'Impossible de supprimer ce type d\'activité car il est référencé ailleurs dans l\'application.',
+                    details: error.meta
+                }, { status: 409 });
             }
             // Gérer d\'autres erreurs Prisma spécifiques si nécessaire
         }

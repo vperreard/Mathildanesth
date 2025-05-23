@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import Input from '@/components/ui/input';
-import Switch from '@/components/ui/switch';
+import { Switch } from '@/components/ui/switch';
 import Button from '@/components/ui/button';
 import { toast } from 'react-hot-toast';
 

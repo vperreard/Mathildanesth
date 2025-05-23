@@ -62,7 +62,7 @@ export function useQueryPerformance(): QueryPerformanceHookReturn {
     const pathname = usePathname();
     const [prevPathname, setPrevPathname] = useState<string | null>(null);
     const [navigationType, setNavigationType] = useState<'initial' | 'navigation'>('initial');
-    const [navigationStartTime, setNavigationStartTime] = useState<number | null>(null);
+    const [navigationStartTime, setNavigationStartTime] = useState<number | null>(performance.now());
 
     // Surveiller les changements de page pour mesurer les performances de navigation
     useEffect(() => {
@@ -91,28 +91,25 @@ export function useQueryPerformance(): QueryPerformanceHookReturn {
 
     // Récupérer les statistiques de cache de Prisma
     useEffect(() => {
-        // Vérifier si prisma a des statistiques de cache
-        try {
-            // @ts-ignore - Accès aux statistiques internes
-            const cacheStats = (prisma as PrismaWithCache).$cacheStats?.();
-            if (cacheStats) {
-                updateCacheStats(cacheStats);
-            }
-        } catch (error) {
-            // Ignorer les erreurs - le cache n'est peut-être pas disponible
-        }
-
-        const interval = setInterval(() => {
+        const fetchCacheStats = () => {
             try {
                 // @ts-ignore - Accès aux statistiques internes
                 const cacheStats = (prisma as PrismaWithCache).$cacheStats?.();
                 if (cacheStats) {
                     updateCacheStats(cacheStats);
+                } else {
+                    console.debug('[Performance] Aucune statistique de cache disponible');
                 }
             } catch (error) {
-                // Ignorer les erreurs
+                console.debug('[Performance] Erreur lors de la récupération des statistiques de cache:', error);
             }
-        }, 5000);
+        };
+
+        // Exécuter immédiatement une première fois
+        fetchCacheStats();
+
+        // Puis configurer l'intervalle
+        const interval = setInterval(fetchCacheStats, 5000);
 
         return () => clearInterval(interval);
     }, [updateCacheStats]);

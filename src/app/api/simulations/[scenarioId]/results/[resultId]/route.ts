@@ -18,7 +18,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         return NextResponse.json({ message: 'Non autorisé' }, { status: 401 });
     }
 
-    const { scenarioId, resultId } = params;
+    const { scenarioId, resultId } = await Promise.resolve(params);
 
     if (!scenarioId || !resultId) {
         return NextResponse.json({ message: "Les IDs de scénario et de résultat sont requis" }, { status: 400 });

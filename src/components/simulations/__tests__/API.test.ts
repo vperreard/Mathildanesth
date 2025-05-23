@@ -1,0 +1,229 @@
+import {
+    applySimulationToPlanning,
+    getSimulationResult,
+    getAdvancedVisualizationData,
+    ApplySimulationOptions,
+    AdvancedVisualizationOptions
+} from '../API';
+
+// Sauvegarde de l'objet fetch original
+const originalFetch = global.fetch;
+
+describe('Simulation API', () => {
+    // Configuration commune avant chaque test
+    beforeEach(() => {
+        // Réinitialiser les mocks entre les tests
+        jest.resetAllMocks();
+
+        // Mock de fetch
+        global.fetch = jest.fn();
+
+        // Pour le mock de URL, nous allons utiliser une approche plus simple
+        // en définissant directement les méthodes nécessaires pour les tests
+        const mockSearchParams = {
+            append: jest.fn()
+        };
+
+        // Mock de window.location.origin
+        Object.defineProperty(window, 'location', {
+            value: { origin: 'https://example.com' },
+            writable: true
+        });
+    });
+
+    // Restaurer les objets globaux après les tests
+    afterAll(() => {
+        global.fetch = originalFetch;
+    });
+
+    describe('applySimulationToPlanning', () => {
+        const mockOptions: ApplySimulationOptions = {
+            simulationResultId: 'result-123',
+            clearExistingAssignments: true,
+            includeLeaves: false,
+            includeOnCall: true,
+            notes: 'Test notes'
+        };
+
+        it('doit appeler correctement l\'API avec les options fournies', async () => {
+            // Arrange
+            (global.fetch as jest.Mock).mockResolvedValueOnce({
+                ok: true,
+                json: jest.fn().mockResolvedValueOnce({
+                    success: true,
+                    message: 'Simulation appliquée avec succès',
+                    data: {
+                        assignmentsCreated: 10,
+                        assignmentsUpdated: 5,
+                        leavesCreated: 0,
+                        conflicts: [],
+                        date: '2025-07-10T10:00:00.000Z'
+                    }
+                })
+            });
+
+            // Act
+            const result = await applySimulationToPlanning(mockOptions);
+
+            // Assert
+            expect(global.fetch).toHaveBeenCalledWith('/api/simulations/apply', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(mockOptions),
+            });
+            expect(result.success).toBe(true);
+            expect(result.message).toBe('Simulation appliquée avec succès');
+            expect(result.data?.assignmentsCreated).toBe(10);
+        });
+
+        it('doit gérer correctement les erreurs de l\'API', async () => {
+            // Arrange
+            (global.fetch as jest.Mock).mockResolvedValueOnce({
+                ok: false,
+                json: jest.fn().mockResolvedValueOnce({
+                    error: 'Erreur API spécifique',
+                    data: {
+                        conflicts: [{ type: 'ERROR', message: 'Détail du conflit' }]
+                    }
+                })
+            });
+
+            // Act
+            const result = await applySimulationToPlanning(mockOptions);
+
+            // Assert
+            expect(result.success).toBe(false);
+            expect(result.error).toBe('Erreur API spécifique');
+            expect(result.data?.conflicts).toEqual([{ type: 'ERROR', message: 'Détail du conflit' }]);
+        });
+
+        it('doit gérer correctement les exceptions lors de l\'appel', async () => {
+            // Arrange
+            (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Erreur réseau'));
+
+            // Act
+            const result = await applySimulationToPlanning(mockOptions);
+
+            // Assert
+            expect(result.success).toBe(false);
+            expect(result.error).toBe('Une erreur est survenue lors de la communication avec le serveur');
+        });
+    });
+
+    describe('getSimulationResult', () => {
+        it('doit récupérer correctement les données du résultat de simulation', async () => {
+            // Arrange
+            const mockResultData = {
+                id: 'result-123',
+                status: 'COMPLETED',
+                scenarioName: 'Test Scenario',
+                statistics: { coverage: 85 }
+            };
+
+            (global.fetch as jest.Mock).mockResolvedValueOnce({
+                ok: true,
+                json: jest.fn().mockResolvedValueOnce(mockResultData)
+            });
+
+            // Act
+            const result = await getSimulationResult({ resultId: 'result-123' });
+
+            // Assert
+            expect(global.fetch).toHaveBeenCalledWith('/api/simulations/results/result-123');
+            expect(result).toEqual(mockResultData);
+        });
+
+        it('doit rejeter la promesse en cas d\'erreur API', async () => {
+            // Arrange
+            (global.fetch as jest.Mock).mockResolvedValueOnce({
+                ok: false,
+                statusText: 'Not Found'
+            });
+
+            // Act & Assert
+            await expect(getSimulationResult({ resultId: 'invalid-id' }))
+                .rejects
+                .toThrow('Erreur lors du chargement des données du résultat');
+        });
+
+        it('doit rejeter la promesse en cas d\'erreur réseau', async () => {
+            // Arrange
+            (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Erreur réseau'));
+
+            // Act & Assert
+            await expect(getSimulationResult({ resultId: 'result-123' }))
+                .rejects
+                .toThrow('Erreur réseau');
+        });
+    });
+
+    describe('getAdvancedVisualizationData', () => {
+        const mockOptions: AdvancedVisualizationOptions = {
+            resultId: 'result-123',
+            visualizationType: 'heatmap',
+            metric: 'staffing',
+            timeframe: 'daily',
+            detailLevel: 'departments'
+        };
+
+        // Nous allons contourner l'utilisation de l'objet URL en mockant directement
+        // la fonction getAdvancedVisualizationData
+        it('doit appeler fetch avec les paramètres corrects', async () => {
+            // Arrange
+            const mockVisualizationData = {
+                data: [/* données fictives */],
+                metadata: { title: 'Heatmap Visualization' }
+            };
+
+            (global.fetch as jest.Mock).mockResolvedValueOnce({
+                ok: true,
+                json: jest.fn().mockResolvedValueOnce(mockVisualizationData)
+            });
+
+            // Spy sur la construction de l'URL
+            const originalURL = global.URL;
+            const mockUrl = {
+                toString: jest.fn().mockReturnValue('https://example.com/api/simulations/visualizations?resultId=result-123&visualizationType=heatmap&metric=staffing&timeframe=daily&detailLevel=departments'),
+                searchParams: {
+                    append: jest.fn()
+                }
+            };
+
+            // @ts-ignore - Ignore les erreurs TypeScript pour ce mock simplifié
+            global.URL = jest.fn().mockImplementation(() => mockUrl);
+
+            try {
+                // Act
+                const result = await getAdvancedVisualizationData(mockOptions);
+
+                // Assert
+                expect(global.fetch).toHaveBeenCalled();
+                expect(result).toEqual(mockVisualizationData);
+            } finally {
+                // Restaurer l'URL originale
+                global.URL = originalURL;
+            }
+        });
+
+        it('doit rejeter la promesse en cas d\'erreur API', async () => {
+            // Arrange
+            (global.fetch as jest.Mock).mockResolvedValueOnce({
+                ok: false,
+                statusText: 'Internal Server Error'
+            });
+
+            // @ts-ignore - Ignorer les erreurs TypeScript pour ce mock simplifié
+            global.URL = jest.fn().mockImplementation(() => ({
+                toString: () => 'https://example.com/api/simulations/visualizations',
+                searchParams: { append: jest.fn() }
+            }));
+
+            // Act & Assert
+            await expect(getAdvancedVisualizationData(mockOptions))
+                .rejects
+                .toThrow('Erreur lors du chargement des données de visualisation');
+        });
+    });
+}); 

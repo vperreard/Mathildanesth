@@ -69,6 +69,12 @@ declare global {
              * Exemple: cy.logout()
              */
             logout(): Chainable<void>;
+
+            /**
+             * Commande pour configurer les tests d'échanges d'affectations
+             * Exemple: cy.setupAssignmentSwapTests()
+             */
+            setupAssignmentSwapTests(): Chainable<void>;
         }
     }
 }
@@ -238,4 +244,40 @@ Cypress.Commands.add('logout', () => {
     cy.clearLocalStorage();
     // Optionnel: appeler une API de déconnexion si nécessaire
     // cy.request('POST', '/api/auth/logout');
+});
+
+/**
+ * Commande pour configurer les tests d'échanges d'affectations
+ * Cette commande est utilisée dans assignment-swap-notifications.spec.ts
+ */
+Cypress.Commands.add('setupAssignmentSwapTests', () => {
+    cy.log('Configuration des tests d\'échanges d\'affectations');
+
+    // Vérifier si l'API de test est disponible
+    cy.request({
+        url: '/api/test/ping',
+        failOnStatusCode: false
+    }).then((response) => {
+        if (response.status === 200) {
+            // Charger les fixtures pour les tests
+            cy.fixture('assignment-swap-notifications.json').then((testData) => {
+                // Créer les utilisateurs de test
+                cy.log(`Préparation de l'utilisateur initiateur: ${testData.users.initiator.email}`);
+                cy.log(`Préparation de l'utilisateur cible: ${testData.users.target.email}`);
+
+                // Si l'API de test n'est pas disponible, on simule seulement
+                const testMode = Cypress.env('testMode') || 'simulation';
+                if (testMode === 'simulation') {
+                    cy.log('Mode simulation: Utilisateurs et affectations simulés');
+                    return;
+                }
+
+                // Si on est en mode réel, appeler les endpoints API de test
+                cy.log('Mode réel: Création des utilisateurs et affectations réelles');
+                // Ces opérations sont effectuées par setup-swap-notification-tests.js
+            });
+        } else {
+            cy.log('API de test non disponible, mode simulation activé');
+        }
+    });
 }); 

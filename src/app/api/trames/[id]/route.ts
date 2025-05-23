@@ -55,7 +55,7 @@ export async function GET(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
-    const { id } = params;
+    const { id } = await Promise.resolve(params);
     try {
         // Vérifier l'authentification
         const authResult = await verifyAuthToken();
@@ -108,7 +108,7 @@ export async function PUT(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
-    const { id: trameIdToUpdate } = params;
+    const { id: trameIdToUpdate } = await Promise.resolve(params);
     try {
         const authResult = await verifyAuthToken();
         if (!authResult.authenticated) {

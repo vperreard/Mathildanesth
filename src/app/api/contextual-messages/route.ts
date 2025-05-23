@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'; // Ajustez le chemin si nécessaire
 import { createNotification } from '@/lib/notifications'; // Ajouté
 import { NotificationType } from '@prisma/client'; // Ajouté
+import { emitNewContextualMessage } from '@/lib/socket'; // Ajout pour WebSockets
 
 // const prisma = new PrismaClient(); // Supprimé, on utilise l'instance importée
 
@@ -68,6 +69,9 @@ export async function POST(req: NextRequest) {
                 },
             },
         });
+
+        // Émettre un événement WebSocket pour le nouveau message
+        emitNewContextualMessage(message);
 
         const authorName = userLogin || 'Quelqu\'un';
 
@@ -162,10 +166,6 @@ export async function POST(req: NextRequest) {
             // 4. TODO: Gérer les mentions @utilisateur dans le contenu du message
         }
 
-        // TODO: Émettre un événement via WebSocket vers le(s) destinataire(s) si connecté(s)
-        //    - Exemple: global.io.to(socketRoomForUser(recipientId)).emit('new_notification', notificationDataFromDb);
-        //    Ceci devrait être géré dans la fonction createNotification elle-même ou un service dédié.
-
         return NextResponse.json(message, { status: 201 });
     } catch (error) {
         console.error('Erreur lors de la création du message contextuel:', error);
@@ -185,7 +185,10 @@ export async function GET(req: NextRequest) {
     if (!session || !session.user) {
         // Pourrait être public pour certains contextes, ou nécessiter une simple authentification
         // Pour l'instant, on exige une session
-        return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        return NextResponse.json({
+            error: 'Non autorisé: Vous devez être connecté pour accéder aux messages contextuels',
+            code: 'AUTH_REQUIRED'
+        }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -195,7 +198,10 @@ export async function GET(req: NextRequest) {
     // const parentId = searchParams.get('parentId'); // Pour charger des fils spécifiques
 
     if (!assignmentId && !contextDateStr && !requestId) {
-        return NextResponse.json({ error: 'Un paramètre de contexte (assignmentId, contextDate, ou requestId) est requis' }, { status: 400 });
+        return NextResponse.json({
+            error: 'Un paramètre de contexte (assignmentId, contextDate, ou requestId) est requis',
+            code: 'MISSING_CONTEXT'
+        }, { status: 400 });
     }
 
     let contextQuery: any = {};
@@ -204,7 +210,10 @@ export async function GET(req: NextRequest) {
     } else if (contextDateStr) {
         const parsedDate = new Date(contextDateStr);
         if (isNaN(parsedDate.getTime())) {
-            return NextResponse.json({ error: 'Format de date invalide pour contextDate. Utilisez YYYY-MM-DD.' }, { status: 400 });
+            return NextResponse.json({
+                error: 'Format de date invalide pour contextDate. Utilisez YYYY-MM-DD.',
+                code: 'INVALID_DATE_FORMAT'
+            }, { status: 400 });
         }
         // Prisma attend une date exacte pour un champ Date, ou une plage pour DateTime
         // Pour filtrer sur un jour entier avec un champ DateTime, il faut une plage :
@@ -248,17 +257,18 @@ export async function GET(req: NextRequest) {
                         // mais cela peut devenir lourd. Une requête séparée pour les fils profonds est préférable.
                     },
                     orderBy: { createdAt: 'asc' }
-                }
+                },
             },
-            orderBy: {
-                createdAt: 'asc', // ou 'desc' selon la préférence d'affichage
-            },
+            orderBy: { createdAt: 'desc' }, // Messages les plus récents en premier
         });
 
-        return NextResponse.json(messages, { status: 200 });
+        return NextResponse.json(messages);
     } catch (error) {
         console.error('Erreur lors de la récupération des messages contextuels:', error);
-        return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
+        return NextResponse.json({
+            error: 'Erreur interne du serveur',
+            code: 'SERVER_ERROR'
+        }, { status: 500 });
     }
 }
 

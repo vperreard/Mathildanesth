@@ -13,7 +13,7 @@ const updateScenarioSchema = z.object({
 
 // GET /api/simulations/{scenarioId} - Récupérer un scénario spécifique
 export async function GET(request: NextRequest, { params }: { params: { scenarioId: string } }) {
-    const { scenarioId } = params;
+    const { scenarioId } = await Promise.resolve(params);
     if (!scenarioId) {
         return NextResponse.json({ error: "ID du scénario manquant." }, { status: 400 });
     }

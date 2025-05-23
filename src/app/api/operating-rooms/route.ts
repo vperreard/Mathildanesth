@@ -48,6 +48,17 @@ export async function GET(request: NextRequest) {
             ]
         });
 
+        console.log(`GET /api/operating-rooms: Récupération de ${rooms.length} salles`);
+        if (rooms.length > 0) {
+            console.log("Première salle récupérée:", {
+                id: rooms[0].id,
+                name: rooms[0].name,
+                displayOrder: rooms[0].displayOrder,
+                operatingSectorId: rooms[0].operatingSectorId,
+                sectorDisplayOrder: rooms[0].operatingSector?.displayOrder
+            });
+        }
+
         return NextResponse.json(rooms);
     } catch (error) {
         console.error('Erreur lors de la récupération des salles d\'opération:', error);

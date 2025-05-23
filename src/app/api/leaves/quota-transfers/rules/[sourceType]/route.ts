@@ -13,7 +13,7 @@ interface Params {
  */
 export async function GET(request: NextRequest, { params }: Params) {
     try {
-        const { sourceType } = params;
+        const { sourceType } = await Promise.resolve(params);
 
         if (!sourceType || !Object.values(LeaveType).includes(sourceType)) {
             return NextResponse.json(

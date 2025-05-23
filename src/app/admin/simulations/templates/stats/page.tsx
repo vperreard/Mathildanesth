@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Button from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { fetchTemplateStats, downloadStatsAsCSV, TemplateStats } from '@/services/templateStatsService';
 
 // Composant fictif pour les graphiques (à remplacer par un vrai graphique avec Recharts)
 const Chart = ({ type, data }: { type: 'bar' | 'pie'; data: any }) => {
@@ -34,96 +35,51 @@ const Chart = ({ type, data }: { type: 'bar' | 'pie'; data: any }) => {
     );
 };
 
-// Types pour les statistiques
-interface TemplateUsageStats {
-    templateId: string;
-    templateName: string;
-    usageCount: number;
-    lastUsed: string;
-}
-
-interface CategoryUsageStats {
-    category: string;
-    count: number;
-    percentage: number;
-}
-
-interface TemplateStats {
-    totalTemplates: number;
-    totalUsage: number;
-    mostUsedTemplates: TemplateUsageStats[];
-    categoryBreakdown: CategoryUsageStats[];
-    recentlyUsed: TemplateUsageStats[];
-}
-
 export default function TemplateStatsPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [stats, setStats] = useState<TemplateStats | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    // Charger les statistiques (données fictives pour le moment)
+    // Charger les statistiques
     useEffect(() => {
-        const loadStats = async () => {
-            setIsLoading(true);
-            setError(null);
-
-            try {
-                // Simuler un appel API
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                // Données factices de statistiques
-                const mockStats: TemplateStats = {
-                    totalTemplates: 24,
-                    totalUsage: 187,
-                    mostUsedTemplates: [
-                        { templateId: '1', templateName: 'Planning vacances d\'été', usageCount: 42, lastUsed: '2023-08-15' },
-                        { templateId: '2', templateName: 'Planning Noël', usageCount: 38, lastUsed: '2023-12-10' },
-                        { templateId: '3', templateName: 'Planning vacances scolaires', usageCount: 31, lastUsed: '2023-10-22' },
-                        { templateId: '4', templateName: 'Effectif réduit weekend', usageCount: 27, lastUsed: '2023-11-05' },
-                        { templateId: '5', templateName: 'Période formation', usageCount: 21, lastUsed: '2023-09-18' },
-                    ],
-                    categoryBreakdown: [
-                        { category: 'Vacances scolaires', count: 8, percentage: 33 },
-                        { category: 'Effectif réduit', count: 6, percentage: 25 },
-                        { category: 'Planning été', count: 4, percentage: 17 },
-                        { category: 'Congés exceptionnels', count: 3, percentage: 12.5 },
-                        { category: 'Autre', count: 3, percentage: 12.5 },
-                    ],
-                    recentlyUsed: [
-                        { templateId: '7', templateName: 'Planning hiver 2024', usageCount: 12, lastUsed: '2023-12-18' },
-                        { templateId: '9', templateName: 'Effectif weekend janvier', usageCount: 8, lastUsed: '2023-12-15' },
-                        { templateId: '2', templateName: 'Planning Noël', usageCount: 38, lastUsed: '2023-12-10' },
-                    ]
-                };
-
-                setStats(mockStats);
-            } catch (err: any) {
-                console.error('Erreur lors du chargement des statistiques:', err);
-                setError(err.message || 'Erreur lors du chargement des statistiques');
-                toast.error('Erreur lors du chargement des statistiques');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         loadStats();
     }, []);
 
+    const loadStats = async () => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const statsData = await fetchTemplateStats();
+            setStats(statsData);
+        } catch (err: any) {
+            console.error('Erreur lors du chargement des statistiques:', err);
+            setError(err.message || 'Erreur lors du chargement des statistiques');
+            toast.error('Erreur lors du chargement des statistiques');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleRefreshStats = () => {
         toast.info('Actualisation des statistiques...');
-        // Rechargement des statistiques
-        // Pour l'instant, nous réutilisons le même effet
-        setIsLoading(true);
-        setTimeout(() => {
-            // Simuler un rechargement
-            setIsLoading(false);
-            toast.success('Statistiques actualisées');
-        }, 1000);
+        loadStats();
     };
 
     const handleExportStats = () => {
-        toast.info('Cette fonctionnalité sera disponible prochainement');
+        if (!stats) {
+            toast.error('Aucune statistique à exporter');
+            return;
+        }
+
+        try {
+            downloadStatsAsCSV(stats, `statistiques-templates-${new Date().toISOString().split('T')[0]}.csv`);
+            toast.success('Statistiques exportées avec succès');
+        } catch (error) {
+            console.error('Erreur lors de l\'exportation:', error);
+            toast.error('Erreur lors de l\'exportation des statistiques');
+        }
     };
 
     if (isLoading) {

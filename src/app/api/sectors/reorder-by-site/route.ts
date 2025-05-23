@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
                             where: { id: sectorId },
                             data: {
                                 siteId: targetSiteId, // Met à jour le siteId (peut être null)
-                                displayOrder: index, // Met à jour l'ordre d'affichage
+                                displayOrder: index, // Met à jour l'ordre d'affichage explicitement avec l'index
                             },
                         })
                     );

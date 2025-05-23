@@ -12,3 +12,56 @@
    - `npm test`
 
 **Astuce** : Après chaque `git pull`, relancez `npm install` pour synchroniser les dépendances.
+
+## 9. Optimisation des Performances (Mai 2025)
+
+Mathildanesth met désormais l'accent sur l'optimisation des performances pour garantir une expérience utilisateur fluide, même avec de grandes quantités de données et des fonctionnalités complexes.
+
+### Système de test de performance
+
+Un ensemble de tests automatisés avec Cypress a été mis en place pour mesurer :
+- Les temps de chargement des pages principales
+- Les temps de réponse des API
+- Les interactions utilisateur (formulaires, saisie, etc.)
+
+Les résultats sont visualisables dans le tableau de bord dédié à `/admin/performance`.
+
+### Résultats des derniers tests (mai 2025)
+
+| Élément | Temps | Évaluation |
+|---------|-------|------------|
+| Page d'authentification | 10.3s | Critique 🔴 |
+| Page de connexion | 6.3s | À améliorer 🟠 |
+| Page d'accueil | 1.7s | Acceptable 🟡 |
+| Temps de réponse API | 4-11ms | Excellent 🟢 |
+| Chargement initial app | 696ms | Bon 🟢 |
+
+### Optimisations déjà implémentées
+
+- **Middleware d'authentification** : Cache de vérification des tokens JWT avec TTL de 5 minutes
+- **Layout principal optimisé** : Chargement dynamique des composants non critiques et utilisation de Suspense
+- **Hook WebSocket amélioré** : Cache global avec TTL, limitation des messages et debounce des mises à jour
+- **Configuration Webpack optimisée** : Code splitting intelligent par catégories de packages
+- **Tableau de bord de performance** : Visualisation des métriques et recommandations automatiques
+
+### Recommandations d'optimisation à venir
+
+- Optimisation critique des pages d'authentification (objectif : réduction de 80%)
+- Migration vers la configuration Turbopack stable
+- Correction des erreurs de paramètres dans les routes API
+- Virtualisation des listes volumineuses
+- Service worker pour fonctionnalités hors ligne
+
+Pour exécuter les tests de performance :
+```bash
+# Lancer les tests de performance
+npx cypress run --spec "cypress/e2e/performance/*.cy.js"
+
+# Voir les résultats dans le tableau de bord
+# Ouvrir http://localhost:3000/admin/performance
+```
+
+Pour plus de détails, consultez :
+- `docs/technique/performance-test-results.md` - Résultats complets des tests
+- `docs/technique/performance-optimization.md` - Guide d'optimisation des performances
+- `ROADMAP.md` - Plan d'optimisation à venir
