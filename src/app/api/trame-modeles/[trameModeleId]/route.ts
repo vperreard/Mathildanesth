@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 // GET: Récupérer un modèle de trame spécifique par son ID
 export async function GET(req: NextRequest, { params }: { params: { trameModeleId: string } }) {
-    const trameModeleId = params.trameModeleId;
+    const { trameModeleId } = await params;
     console.log(`[API GET /trame-modeles/${trameModeleId}] Début du traitement.`);
 
     try {
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest, { params }: { params: { trameModeleI
 
 // PUT: Mettre à jour un modèle de trame
 export async function PUT(req: NextRequest, { params }: { params: { trameModeleId: string } }) {
-    const trameModeleId = params.trameModeleId;
+    const { trameModeleId } = await params;
     console.log(`[API PUT /trame-modeles/${trameModeleId}] Début du traitement.`);
 
     try {
@@ -191,7 +191,7 @@ export async function PUT(req: NextRequest, { params }: { params: { trameModeleI
 
 // DELETE: Supprimer un modèle de trame
 export async function DELETE(req: NextRequest, { params }: { params: { trameModeleId: string } }) {
-    const trameModeleId = params.trameModeleId;
+    const { trameModeleId } = await params;
     console.log(`[API DELETE /trame-modeles/${trameModeleId}] Début du traitement.`);
 
     try {

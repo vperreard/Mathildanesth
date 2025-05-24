@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface HeaderLoginFormProps {
@@ -8,7 +8,13 @@ interface HeaderLoginFormProps {
 export const HeaderLoginForm: React.FC<HeaderLoginFormProps> = ({ idPrefix = '' }) => {
     const [login, setLogin] = useState('');
     const [password, setPassword] = useState('');
+    const [isMounted, setIsMounted] = useState(false);
     const { login: authLogin, isLoading } = useAuth();
+
+    // Éviter les problèmes d'hydratation
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const emailId = `${idPrefix}email`;
     const passwordId = `${idPrefix}password`;
@@ -21,6 +27,13 @@ export const HeaderLoginForm: React.FC<HeaderLoginFormProps> = ({ idPrefix = '' 
             console.error('Erreur de connexion:', err);
         }
     };
+
+    // Afficher un placeholder pendant l'hydratation
+    if (!isMounted) {
+        return (
+            <div className="h-8 w-20 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" aria-label="Chargement du profil" role="status"></div>
+        );
+    }
 
     return (
         <form onSubmit={handleSubmit} className="flex">

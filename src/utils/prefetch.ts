@@ -2,10 +2,23 @@
  * Utilitaires pour précharger les données et améliorer la réactivité de l'application
  */
 
+import { getClientAuthToken } from '@/lib/auth-client-utils';
+
 // Fonction pour précharger les données depuis une API
 export async function prefetchData<T>(url: string): Promise<T> {
     try {
+        const token = getClientAuthToken();
+        const headers: HeadersInit = {
+            'Content-Type': 'application/json'
+        };
+
+        // Ajouter le token d'authentification si disponible
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+
         const response = await fetch(url, {
+            headers,
             next: { revalidate: 60 } // Revalider après 60 secondes
         });
 
@@ -22,6 +35,14 @@ export async function prefetchData<T>(url: string): Promise<T> {
 
 // Précharger les données couramment utilisées
 export function prefetchCommonData() {
+    const token = getClientAuthToken();
+
+    // Ne faire le prefetch que si l'utilisateur est authentifié
+    if (!token) {
+        console.log('Aucun token disponible, préchargement ignoré');
+        return;
+    }
+
     // On utilise Promise.allSettled pour ne pas bloquer si une requête échoue
     Promise.allSettled([
         prefetchData('/api/users'),
@@ -40,11 +61,21 @@ export function prefetchCommonData() {
 
 // Fonction pour précharger des routes (pages) spécifiques
 export function prefetchRoutes(routes: string[]) {
+    const token = getClientAuthToken();
+
     routes.forEach(route => {
-        // Précharger la route en utilisant l'API next/router
+        // Précharger la route en utilisant l'API fetch avec auth
         try {
+            const headers: HeadersInit = {};
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+
             // Utilisation de fetchApi pour éviter les erreurs de préchargement
-            fetch(route, { priority: 'low' }).catch(() => { });
+            fetch(route, {
+                headers,
+                priority: 'low'
+            }).catch(() => { });
         } catch (error) {
             // Ignorer les erreurs de préchargement
         }
@@ -65,6 +96,12 @@ export function prefetchMainRoutes() {
 // Précharger les données liées à un utilisateur spécifique
 export function prefetchUserData(userId: string) {
     if (!userId) return;
+
+    const token = getClientAuthToken();
+    if (!token) {
+        console.log('Aucun token disponible, préchargement utilisateur ignoré');
+        return;
+    }
 
     Promise.allSettled([
         prefetchData(`/api/users/${userId}`),

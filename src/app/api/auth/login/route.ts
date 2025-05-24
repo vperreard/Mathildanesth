@@ -3,116 +3,107 @@ import { generateAuthTokenServer, setAuthTokenServer } from '@/lib/auth-server-u
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
+// Cache pour éviter les reconnexions Prisma répétées
+let cachedPrisma: PrismaClient | null = null;
+
+function getPrismaClient(isCypressTest: boolean): PrismaClient {
+    if (cachedPrisma) return cachedPrisma;
+
+    const dbUrl = isCypressTest
+        ? process.env.TEST_DATABASE_URL || 'postgresql://mathildanesth_user:mathildanesth_password@localhost:5433/mathildanesth_test'
+        : process.env.DATABASE_URL;
+
+    if (!dbUrl) {
+        throw new Error('Variable d\'environnement DATABASE_URL manquante');
+    }
+
+    cachedPrisma = new PrismaClient({
+        datasources: { db: { url: dbUrl } },
+        log: process.env.NODE_ENV === 'development' ? ['error'] : [], // Logs réduits
+    });
+
+    return cachedPrisma;
+}
+
 export async function POST(req: NextRequest) {
-    let prisma: PrismaClient | null = null; // Déclarer prisma ici pour le bloc finally
+    const startTime = Date.now();
+
     try {
         const { login, password } = await req.json();
 
-        // Log initial plus détaillé
-        console.log(`API LOGIN START: Tentative avec login/email=${login}, password=${password ? '[ fourni ]' : '[ manquant ]'}`);
-
         if (!login || !password) {
-            console.error('API LOGIN ERROR: Login ou mot de passe manquant dans la requête.');
             return NextResponse.json(
                 { error: 'Login et mot de passe requis' },
                 { status: 400 }
             );
         }
 
-        // Déterminer l'environnement et la bonne URL de base de données
         const isCypressTest = req.headers.get('user-agent')?.includes('Cypress');
-        const dbUrl = isCypressTest
-            ? process.env.TEST_DATABASE_URL || 'postgresql://mathildanesth_user:mathildanesth_password@localhost:5433/mathildanesth_test'
-            : process.env.DATABASE_URL;
+        const prisma = getPrismaClient(isCypressTest);
 
-        console.log(`API LOGIN INFO: Mode ${isCypressTest ? 'TEST Cypress' : 'Normal/Production'}`);
-        if (!dbUrl) {
-            console.error('API LOGIN FATAL: Variable d\'environnement DATABASE_URL (ou TEST_DATABASE_URL pour Cypress) est manquante !');
-            return NextResponse.json({ message: 'Erreur de configuration serveur.' }, { status: 500 });
-        }
-        console.log(`API LOGIN INFO: Utilisation DB URL: ${dbUrl.substring(0, 30)}...`);
-
-        prisma = new PrismaClient({
-            datasources: {
-                db: {
-                    url: dbUrl,
-                }
+        // Requête optimisée : recherche login ET email en une seule requête
+        const user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { login },
+                    { email: login }
+                ]
+            },
+            select: {
+                id: true,
+                login: true,
+                email: true,
+                nom: true,
+                prenom: true,
+                role: true,
+                password: true, // Nécessaire pour la vérification
+                actif: true,
             }
         });
 
-        // Essayez d'abord avec login
-        console.log(`API LOGIN DB: Recherche utilisateur avec login=${login}`);
-        let user = await prisma.user.findUnique({
-            where: { login }
-        });
-
-        // Si non trouvé, essayez avec email
-        if (!user) {
-            console.log(`API LOGIN DB: Utilisateur non trouvé avec login, tentative avec email=${login}`);
-            user = await prisma.user.findUnique({
-                where: { email: login }
-            });
-        }
-
-        if (!user) {
-            console.warn(`API LOGIN WARN: Utilisateur non trouvé pour login/email=${login}`);
+        if (!user || !user.password) {
             return NextResponse.json(
                 { message: 'Login ou mot de passe incorrect' },
-                { status: 401 } // Erreur 401 standard
+                { status: 401 }
             );
         }
 
-        console.log(`API LOGIN DB: Utilisateur trouvé id=${user.id}, login=${user.login}. Vérification mot de passe...`);
-
-        // Vérification explicite que le hash existe
-        if (!user.password) {
-            console.error(`API LOGIN ERROR: L'utilisateur id=${user.id} n'a pas de hash de mot de passe en base !`);
-            return NextResponse.json({ message: 'Erreur interne du compte utilisateur.' }, { status: 500 });
-        }
-
+        // Vérification du mot de passe
         const isValidPassword = await bcrypt.compare(password, user.password);
-        console.log(`API LOGIN AUTH: Résultat bcrypt.compare: ${isValidPassword}`);
-
         if (!isValidPassword) {
-            console.warn(`API LOGIN WARN: Mot de passe incorrect pour ${user.login} (id=${user.id})`);
             return NextResponse.json(
                 { message: 'Login ou mot de passe incorrect' },
-                { status: 401 } // Erreur 401 standard
+                { status: 401 }
             );
         }
 
-        console.log(`API LOGIN SUCCESS: Authentification réussie pour ${user.login} (id=${user.id}), génération token...`);
-
+        // Génération du token
         const token = await generateAuthTokenServer({
             userId: user.id,
-            login: user.login, // Utiliser le vrai login pour le token
+            login: user.login,
             role: user.role
         });
 
-        console.log(`API LOGIN SUCCESS: Token généré, définition du cookie httpOnly...`);
-        await setAuthTokenServer(token); // Mise à jour de l'appel
-
-        // RENVOYER le token dans la réponse pour que le client puisse le stocker (localStorage)
-        console.log(`API LOGIN SUCCESS: Connexion terminée pour ${user.login}. Envoi du token et de l'utilisateur.`);
+        await setAuthTokenServer(token);
 
         // Exclure le mot de passe de la réponse
         const { password: _, ...userWithoutPassword } = user;
 
+        // Log de performance en développement
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[Auth] Login successful for ${user.login} in ${Date.now() - startTime}ms`);
+        }
+
         return NextResponse.json({
             user: userWithoutPassword,
-            token: token // Ajouter le token ici
+            token: token
         });
     } catch (error) {
-        console.error('API LOGIN FATAL ERROR:', error);
+        console.error('API LOGIN ERROR:', error);
         return NextResponse.json(
             { message: 'Erreur serveur lors de la connexion' },
             { status: 500 }
         );
-    } finally {
-        // S'assurer que la connexion Prisma est fermée
-        if (prisma) {
-            await prisma.$disconnect();
-            console.log("API LOGIN DB: Connexion Prisma fermée.");
-        }
     }
+    // Note: Pas de déconnexion Prisma car on utilise un cache
 } 

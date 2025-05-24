@@ -31,7 +31,7 @@ const ConsultationsPage: React.FC = () => {
         setLoading(true);
         try {
             // Construire les paramètres de requête pour le filtrage
-            let queryParams = new URLSearchParams();
+            const queryParams = new URLSearchParams();
 
             // Ajouter dates par défaut si non spécifiées (30 jours)
             const today = new Date();

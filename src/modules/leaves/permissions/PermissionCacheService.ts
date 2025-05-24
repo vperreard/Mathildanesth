@@ -276,7 +276,7 @@ export class PermissionCacheService {
                 timestamp: Date.now()
             };
 
-            let serializedEntry = JSON.stringify(entry);
+            const serializedEntry = JSON.stringify(entry);
 
             // Compresser si nécessaire
             if (this.config.distributedCache.compressionEnabled &&

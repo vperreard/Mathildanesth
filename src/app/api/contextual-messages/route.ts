@@ -204,7 +204,7 @@ export async function GET(req: NextRequest) {
         }, { status: 400 });
     }
 
-    let contextQuery: any = {};
+    const contextQuery: any = {};
     if (assignmentId) {
         contextQuery.assignmentId = assignmentId;
     } else if (contextDateStr) {

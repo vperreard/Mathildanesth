@@ -30,6 +30,7 @@ export default function TramesPlanningPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('vue-classique');
+    const [refreshKey, setRefreshKey] = useState(Date.now());
 
     // Synchroniser les onglets avec les paramètres d'URL
     useEffect(() => {
@@ -41,10 +42,16 @@ export default function TramesPlanningPage() {
         }
     }, [searchParams]);
 
-    // Mettre à jour l'URL lorsque l'onglet change
+    // Mettre à jour l'URL lorsque l'onglet change et forcer le rechargement
     const handleTabChange = (value: string) => {
+        console.log(`🔄 [TramesPlanningPage] Changement d'onglet: ${activeTab} → ${value}`);
         setActiveTab(value);
         router.replace(`/parametres/trames?tab=${value}`);
+
+        // Forcer le rechargement des données quand on change d'onglet
+        // pour synchroniser les vues
+        setRefreshKey(Date.now());
+        console.log(`🔄 [TramesPlanningPage] Nouveau refreshKey: ${Date.now()}`);
     };
 
     return (
@@ -64,7 +71,7 @@ export default function TramesPlanningPage() {
                             <CardTitle>Vue Classique</CardTitle>
                         </CardHeader>
                         <CardContent className="p-0">
-                            <TemplateManager {...emptyProps} />
+                            <TemplateManager key={`template-${refreshKey}`} {...emptyProps} />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -75,7 +82,7 @@ export default function TramesPlanningPage() {
                             <CardTitle>Vue Grille</CardTitle>
                         </CardHeader>
                         <CardContent className="p-0">
-                            <TrameGridEditor />
+                            <TrameGridEditor key={`grid-${refreshKey}`} />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -89,7 +96,7 @@ export default function TramesPlanningPage() {
                             <p className="text-sm text-muted-foreground px-6 py-4">
                                 Cette vue utilise des données simulées pour démontrer les fonctionnalités sans authentification.
                             </p>
-                            <TrameGridDemo />
+                            <TrameGridDemo key={`demo-${refreshKey}`} />
                         </CardContent>
                     </Card>
                 </TabsContent>

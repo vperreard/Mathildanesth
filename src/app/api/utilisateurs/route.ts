@@ -26,7 +26,7 @@ export async function GET(request: Request) {
         const includeInactive = searchParams.get('includeInactive') === 'true';
 
         // Définir la clause where en fonction du paramètre
-        let whereClause: Prisma.UserWhereInput = {};
+        const whereClause: Prisma.UserWhereInput = {};
         if (!includeInactive) {
             whereClause.actif = true; // Filtrer par actif: true si includeInactive est false
         }
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
                 { nom: 'asc' },
                 { prenom: 'asc' },
             ],
-            // Exclure le champ password des résultats par défaut
+            // Exclure le champ password des résultats par défaut et inclure les sites
             select: {
                 id: true,
                 nom: true,
@@ -54,6 +54,12 @@ export async function GET(request: Request) {
                 actif: true,
                 createdAt: true,
                 updatedAt: true,
+                sites: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
             }
         });
         return NextResponse.json(users);

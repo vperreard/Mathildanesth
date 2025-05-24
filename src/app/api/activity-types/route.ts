@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
         const active = searchParams.get('active');
         const code = searchParams.get('code');
 
-        let where: any = {};
+        const where: any = {};
 
         if (active === 'true') {
             where.isActive = true;

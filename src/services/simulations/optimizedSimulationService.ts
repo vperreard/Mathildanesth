@@ -234,7 +234,7 @@ export class OptimizedSimulationService {
 
         // Sinon, diviser en sous-périodes hebdomadaires
         const subPeriods = [];
-        let currentDate = new Date(startDate);
+        const currentDate = new Date(startDate);
 
         while (currentDate < endDate) {
             const periodEnd = new Date(currentDate);

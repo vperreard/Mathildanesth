@@ -9,8 +9,7 @@ import {
     CardActionArea,
     Grid,
     Breadcrumbs,
-    Link,
-    Icon
+    Link
 } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import WorkIcon from '@mui/icons-material/Work';

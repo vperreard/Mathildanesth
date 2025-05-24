@@ -18,7 +18,7 @@ const planningService = new BlocPlanningService();
 // Fonction utilitaire pour normaliser les noms de secteurs (identique à route.ts)
 const normalizeSectorName = (name: string): string => {
     // Enlever les espaces invisibles et normaliser les espaces multiples
-    let normalized = name.trim().replace(/\s+/g, ' ');
+    const normalized = name.trim().replace(/\s+/g, ' ');
 
     // Traitement spécial pour Endoscopie
     if (normalized.toLowerCase().includes("endoscopie")) {
@@ -78,7 +78,7 @@ const findSector = async (sectorId?: number, sectorName?: string) => {
 
 // GET : Récupérer une salle spécifique
 export async function GET(request: Request, context: Context) {
-    const { id } = context.params;
+    const { id } = await context.params;
     const roomId = parseInt(id);
 
     if (isNaN(roomId)) {
@@ -86,8 +86,14 @@ export async function GET(request: Request, context: Context) {
     }
 
     try {
-        // Utiliser le service BlocPlanningService qui trie correctement par displayOrder
-        const room = await planningService.getOperatingRoomById(roomId, true);
+        // Utiliser Prisma directement pour récupérer la salle
+        const room = await prisma.operatingRoom.findUnique({
+            where: { id: roomId },
+            include: {
+                operatingSector: true,
+                site: true
+            }
+        });
 
         if (!room) {
             return new NextResponse(JSON.stringify({ message: 'Salle non trouvée' }), { status: 404 });
@@ -117,7 +123,7 @@ export async function PUT(request: Request, context: Context) {
         }
 
         // Récupérer l'ID
-        const { id } = context.params;
+        const { id } = await context.params;
         const roomId = parseInt(id);
 
         if (isNaN(roomId)) {
@@ -127,7 +133,7 @@ export async function PUT(request: Request, context: Context) {
         // Vérifier si la salle existe
         const existingRoom = await prisma.operatingRoom.findUnique({
             where: { id: roomId },
-            include: { sector: true }
+            include: { operatingSector: true }
         });
 
         if (!existingRoom) {
@@ -188,20 +194,21 @@ export async function PUT(request: Request, context: Context) {
             data: {
                 name: name.trim(),
                 number: number.trim(),
-                sectorId: sectorEntity.id,
+                operatingSectorId: sectorEntity.id,
                 colorCode: colorCode || null,
                 isActive: isActive === undefined ? true : isActive,
                 supervisionRules: supervisionRules || existingRoom.supervisionRules,
-                type: type || 'STANDARD', // Ajout du champ type avec valeur par défaut ou valeur existante
+                roomType: type || 'STANDARD', // Utilisation du bon nom de champ
             },
-            include: { sector: true }
+            include: { operatingSector: true }
         });
 
         console.log(`Salle ${roomId} mise à jour avec succès:`, updatedRoom);
         return NextResponse.json(updatedRoom);
 
     } catch (error) {
-        console.error(`Erreur PUT /api/operating-rooms/${context.params.id}:`, error);
+        const { id } = await context.params;
+        console.error(`Erreur PUT /api/operating-rooms/${id}:`, error);
         return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
     }
 }
@@ -223,7 +230,7 @@ export async function DELETE(request: Request, context: Context) {
             console.log('[DEV MODE] Authentification par en-tête uniquement pour DELETE /api/operating-rooms');
         }
 
-        const { id } = context.params;
+        const { id } = await context.params;
         const roomId = parseInt(id);
 
         if (isNaN(roomId)) {
@@ -253,7 +260,8 @@ export async function DELETE(request: Request, context: Context) {
             return new NextResponse(JSON.stringify({ message: 'Erreur interne du serveur' }), { status: 500 });
         }
     } catch (error) {
-        console.error(`Erreur DELETE /api/operating-rooms/${context.params.id}:`, error);
+        const { id } = await context.params;
+        console.error(`Erreur DELETE /api/operating-rooms/${id}:`, error);
         return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
     }
 } 

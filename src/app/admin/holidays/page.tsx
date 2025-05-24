@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { format, parse, isValid } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DataTable } from '@/components/ui/data-table';
@@ -10,17 +9,15 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
-import { Calendar, Plus, Trash, Edit, Download, Upload, RefreshCw } from 'lucide-react';
+import { Plus, Trash, Edit, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { PublicHoliday, CreatePublicHolidayDTO, UpdatePublicHolidayDTO } from '@/modules/leaves/types/public-holiday';
 import { publicHolidayService } from '@/modules/leaves/services/publicHolidayService';
 
 export default function PublicHolidaysPage() {
-    const router = useRouter();
     const [holidays, setHolidays] = useState<PublicHoliday[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
     const [formData, setFormData] = useState<CreatePublicHolidayDTO>({
         date: new Date(),
         name: '',
@@ -53,7 +50,7 @@ export default function PublicHolidaysPage() {
 
     useEffect(() => {
         loadHolidays();
-    }, [yearFilter, regionFilter]);
+    }, [yearFilter, regionFilter, loadHolidays]);
 
     // Gérer la soumission du formulaire
     const handleSubmit = async (e: React.FormEvent) => {
@@ -150,7 +147,7 @@ export default function PublicHolidaysPage() {
         {
             header: 'Date',
             accessorKey: 'date',
-            cell: ({ row }: any) => {
+            cell: ({ row }: { row: { original: PublicHoliday } }) => {
                 const date = parse(row.original.date, 'yyyy-MM-dd', new Date());
                 return format(date, 'dd MMMM yyyy', { locale: fr });
             }
@@ -166,13 +163,13 @@ export default function PublicHolidaysPage() {
         {
             header: 'National',
             accessorKey: 'isNational',
-            cell: ({ row }: any) => (
+            cell: ({ row }: { row: { original: PublicHoliday } }) => (
                 row.original.isNational ? 'Oui' : 'Non'
             )
         },
         {
             header: 'Actions',
-            cell: ({ row }: any) => (
+            cell: ({ row }: { row: { original: PublicHoliday } }) => (
                 <div className="flex space-x-2">
                     <Button
                         variant="outline"

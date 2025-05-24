@@ -3,16 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PlusIcon, Search, FilterIcon, BookmarkIcon, Trash2Icon, PencilIcon, CopyIcon, CalendarIcon, BarChart2Icon } from 'lucide-react';
+import { PlusIcon, Search, BookmarkIcon, Trash2Icon, PencilIcon, CopyIcon, CalendarIcon, BarChart2Icon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Button from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Input from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogFooter, DialogHeader } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter, DialogHeader } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { fetchTemplates, deleteTemplate, useTemplateForScenario, duplicateTemplate, SimulationTemplate } from '@/services/simulationTemplateService';
+import { fetchTemplates, deleteTemplate, createScenarioFromTemplate, duplicateTemplate, SimulationTemplate } from '@/services/simulationTemplateService';
 import { Label } from '@/components/ui/label';
 
 export default function TemplatesPage() {
@@ -20,7 +20,7 @@ export default function TemplatesPage() {
     const [templates, setTemplates] = useState<SimulationTemplate[]>([]);
     const [filteredTemplates, setFilteredTemplates] = useState<SimulationTemplate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState<string>('');
     const [activeTab, setActiveTab] = useState<'all' | 'my' | 'public'>('all');
@@ -40,7 +40,7 @@ export default function TemplatesPage() {
 
     useEffect(() => {
         applyFilters();
-    }, [templates, searchTerm, categoryFilter, activeTab]);
+    }, [templates, searchTerm, categoryFilter, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const loadTemplates = async () => {
         setIsLoading(true);
@@ -48,8 +48,9 @@ export default function TemplatesPage() {
         try {
             const data = await fetchTemplates();
             setTemplates(data);
-        } catch (err: any) {
-            setError(err.message || 'Erreur lors du chargement des templates');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des templates';
+            setError(errorMessage);
             toast.error('Erreur lors du chargement des templates');
         } finally {
             setIsLoading(false);
@@ -93,8 +94,9 @@ export default function TemplatesPage() {
             setTemplates(prevTemplates => prevTemplates.filter(t => t.id !== templateToDelete));
             toast.success('Template supprimé avec succès');
             setDeleteDialogOpen(false);
-        } catch (err: any) {
-            toast.error('Erreur lors de la suppression du template: ' + err.message);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+            toast.error('Erreur lors de la suppression du template: ' + errorMessage);
         } finally {
             setIsDeleting(false);
             setTemplateToDelete(null);
@@ -111,8 +113,9 @@ export default function TemplatesPage() {
             toast.success('Template dupliqué avec succès');
             setDuplicateDialogOpen(false);
             setNewTemplateName('');
-        } catch (err: any) {
-            toast.error('Erreur lors de la duplication du template: ' + err.message);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+            toast.error('Erreur lors de la duplication du template: ' + errorMessage);
         } finally {
             setIsDuplicating(false);
             setTemplateToDuplicate(null);
@@ -122,11 +125,12 @@ export default function TemplatesPage() {
     const handleUseTemplate = async (templateId: string) => {
         try {
             toast.info('Création d\'un scénario à partir du template...');
-            const scenario = await useTemplateForScenario(templateId);
+            const scenario = await createScenarioFromTemplate(templateId);
             toast.success('Scénario créé avec succès');
             router.push(`/admin/simulations/${scenario.id}/edit`);
-        } catch (err: any) {
-            toast.error('Erreur lors de la création du scénario: ' + err.message);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+            toast.error('Erreur lors de la création du scénario: ' + errorMessage);
         }
     };
 

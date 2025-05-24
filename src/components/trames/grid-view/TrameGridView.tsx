@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,13 +15,15 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { CalendarIcon, UsersIcon, ClockIcon, AlertTriangle, MoreVertical, Edit, Trash, MessageSquareX, PlusIcon } from 'lucide-react';
+import { CalendarIcon, UsersIcon, ClockIcon, AlertTriangle, MoreVertical, Edit, Trash, MessageSquareX, PlusIcon, MapPinIcon } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 // Exports pour l'utilisation dans d'autres composants
 export type WeekType = 'ALL' | 'EVEN' | 'ODD';
@@ -96,7 +98,9 @@ const TrameGridView: React.FC<{
     onTrameChange?: (trame: TrameModele) => void;
     rooms?: any[];
     sectors?: any[];
-}> = ({ trame: initialTrame, readOnly = false, onTrameChange, rooms = [], sectors = [] }) => {
+    sites?: Array<{ id: string; name: string; }>;
+    selectedSiteId?: string | null;
+}> = ({ trame: initialTrame, readOnly = false, onTrameChange, rooms = [], sectors = [], sites = [], selectedSiteId }) => {
     // État du composant
     const [trame, setTrame] = useState<TrameModele>(
         initialTrame || {
@@ -113,6 +117,46 @@ const TrameGridView: React.FC<{
     const [showWeekType, setShowWeekType] = useState<WeekType | 'ALL'>('ALL');
     const [showPersonnel, setShowPersonnel] = useState(true);
     const [compactView, setCompactView] = useState(false);
+
+    // États pour le filtrage des secteurs
+    const [sectorFilter, setSectorFilter] = useState<'ALL' | 'SELECTED'>('ALL');
+    const [selectedSectorIds, setSelectedSectorIds] = useState<Set<number>>(new Set());
+    const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
+
+    // Clé unique pour le stockage des préférences de filtrage par trame
+    const filterStorageKey = `trame-filters-${trame.id}`;
+
+    // Charger les préférences de filtrage depuis localStorage au montage du composant
+    useEffect(() => {
+        const savedFilters = localStorage.getItem(filterStorageKey);
+        if (savedFilters) {
+            try {
+                const parsed = JSON.parse(savedFilters);
+                if (parsed.sectorFilter) setSectorFilter(parsed.sectorFilter);
+                if (parsed.selectedSectorIds) setSelectedSectorIds(new Set(parsed.selectedSectorIds));
+                if (parsed.categoryFilter) setCategoryFilter(parsed.categoryFilter);
+                if (parsed.showPersonnel !== undefined) setShowPersonnel(parsed.showPersonnel);
+                if (parsed.compactView !== undefined) setCompactView(parsed.compactView);
+                console.log(`Préférences de filtrage chargées pour la trame ${trame.id}:`, parsed);
+            } catch (error) {
+                console.error('Erreur lors du chargement des préférences de filtrage:', error);
+            }
+        }
+    }, [trame.id, filterStorageKey]);
+
+    // Sauvegarder les préférences de filtrage dans localStorage à chaque changement
+    useEffect(() => {
+        const filtersToSave = {
+            sectorFilter,
+            selectedSectorIds: Array.from(selectedSectorIds),
+            categoryFilter,
+            showPersonnel,
+            compactView
+        };
+
+        localStorage.setItem(filterStorageKey, JSON.stringify(filtersToSave));
+        console.log(`Préférences de filtrage sauvegardées pour la trame ${trame.id}:`, filtersToSave);
+    }, [sectorFilter, selectedSectorIds, categoryFilter, showPersonnel, compactView, trame.id, filterStorageKey]);
 
     // Utiliser les vraies salles ou les mockées si vides
     const actualRooms = useMemo(() => {
@@ -133,13 +177,67 @@ const TrameGridView: React.FC<{
         return mockSectors;
     }, [sectors]);
 
+    // Fonction pour détecter intelligemment le secteur d'une salle
+    const detectRoomSector = useCallback((room: any) => {
+        // Si la salle a déjà un operatingSectorId valide, l'utiliser
+        if (room.operatingSectorId && sectorsMap[room.operatingSectorId]) {
+            return room.operatingSectorId;
+        }
+
+        // Sinon, essayer de détecter le secteur par le nom
+        const roomNameLower = room.name.toLowerCase();
+
+        // Détection intelligente basée sur le nom de la salle
+        for (const sector of sectors) {
+            const sectorNameLower = sector.name.toLowerCase();
+
+            // Détection par type de salle (plus spécifique d'abord)
+            if (roomNameLower.includes('garde') || roomNameLower.includes('astreinte')) {
+                if (sectorNameLower.includes('garde') || sectorNameLower.includes('astreinte')) {
+                    console.log(`[SMART_DETECTION] Salle "${room.name}" assignée au secteur "${sector.name}" par type garde/astreinte`);
+                    return sector.id;
+                }
+            }
+
+            if (roomNameLower.includes('consultation') || roomNameLower.includes('cs')) {
+                if (sectorNameLower.includes('consultation') || sectorNameLower.includes('cs')) {
+                    console.log(`[SMART_DETECTION] Salle "${room.name}" assignée au secteur "${sector.name}" par type consultation`);
+                    return sector.id;
+                }
+            }
+
+            // Correspondance exacte du nom de secteur dans le nom de la salle (plus générale)
+            const normalizedSectorName = sectorNameLower.replace(/[^a-z0-9]/gi, '').toLowerCase();
+            const normalizedRoomName = roomNameLower.replace(/[^a-z0-9]/gi, '').toLowerCase();
+            if (normalizedRoomName.includes(normalizedSectorName) && normalizedSectorName.length > 3) {
+                console.log(`[SMART_DETECTION] Salle "${room.name}" assignée au secteur "${sector.name}" par correspondance de nom`);
+                return sector.id;
+            }
+        }
+
+        // Si aucune correspondance trouvée, retourner l'operatingSectorId original (peut être null)
+        console.log(`[SMART_DETECTION] Aucun secteur trouvé pour la salle "${room.name}" (operatingSectorId: ${room.operatingSectorId})`);
+        return room.operatingSectorId;
+    }, [sectorsMap, sectors]);
+
+    // Enrichir les salles avec la détection intelligente de secteur
+    const enrichedRooms = useMemo(() => {
+        return actualRooms.map(room => {
+            const detectedSectorId = detectRoomSector(room);
+            return {
+                ...room,
+                operatingSectorId: detectedSectorId
+            };
+        });
+    }, [actualRooms, detectRoomSector]);
+
     // Trier les salles par secteur et par ordre dans chaque secteur
     const sortedRooms = useMemo(() => {
-        if (!actualRooms.length) return [];
+        if (!enrichedRooms.length) return [];
 
         // Journalisation pour le débogage
         console.log("Secteurs disponibles:", sectors);
-        console.log("Salles disponibles:", actualRooms);
+        console.log("Salles enrichies:", enrichedRooms);
 
         // Créer une map des secteurs avec leur displayOrder comme clé de tri
         const sectorOrderMap = new Map();
@@ -152,8 +250,8 @@ const TrameGridView: React.FC<{
 
                 if (orderA !== orderB) return orderA - orderB;
 
-                // Si les displayOrder sont identiques, trier par ID pour un ordre stable
-                return a.id.localeCompare(b.id);
+                // Si les displayOrder sont identiques, trier par ID pour un ordre stable (IDs numériques)
+                return a.id - b.id;
             });
 
             // Journalisation pour le débogage
@@ -166,14 +264,14 @@ const TrameGridView: React.FC<{
         }
 
         // Trier les salles en utilisant l'ordre des secteurs et l'ordre des salles dans chaque secteur
-        return [...actualRooms].sort((a, b) => {
+        return [...enrichedRooms].sort((a, b) => {
             // D'abord comparer les secteurs selon l'ordre défini précédemment
             const sectorOrderA = sectorOrderMap.get(a.operatingSectorId);
             const sectorOrderB = sectorOrderMap.get(b.operatingSectorId);
 
             // Journalisation pour le débogage des salles spécifiques
-            if (a.name.includes("Consultation") || b.name.includes("Consultation")) {
-                console.log(`Comparaison salles: ${a.name} (ordre secteur: ${sectorOrderA}) vs ${b.name} (ordre secteur: ${sectorOrderB})`);
+            if (a.name.includes("Garde") || b.name.includes("Garde")) {
+                console.log(`[SORT_DEBUG] Comparaison salles: ${a.name} (secteur: ${a.operatingSectorId}, ordre: ${sectorOrderA}) vs ${b.name} (secteur: ${b.operatingSectorId}, ordre: ${sectorOrderB})`);
             }
 
             // Si les deux salles ont un secteur défini, comparer leur ordre de secteur
@@ -200,7 +298,7 @@ const TrameGridView: React.FC<{
             // Si tout le reste est égal, trier par nom
             return a.name.localeCompare(b.name);
         });
-    }, [actualRooms, sectors]);
+    }, [enrichedRooms, sectors]);
 
     // Créer des "salles virtuelles" pour les secteurs spéciaux (consultations, gardes, astreintes)
     // qui n'ont pas de salles physiques associées
@@ -239,8 +337,8 @@ const TrameGridView: React.FC<{
 
                 if (orderA !== orderB) return orderA - orderB;
 
-                // Si les displayOrder sont identiques, trier par ID pour un ordre stable
-                return a.id.localeCompare(b.id);
+                // Si les displayOrder sont identiques, trier par ID pour un ordre stable (IDs numériques)
+                return a.id - b.id;
             });
 
             // Utiliser l'index du secteur trié comme ordre de tri
@@ -280,6 +378,57 @@ const TrameGridView: React.FC<{
             return a.name.localeCompare(b.name);
         });
     }, [sortedRooms, sectors]);
+
+    // Filtrer les salles selon les critères de filtrage
+    const filteredRooms = useMemo(() => {
+        let filtered = roomsWithVirtualRooms;
+
+        // Filtrage par secteur
+        if (sectorFilter === 'SELECTED' && selectedSectorIds.size > 0) {
+            filtered = filtered.filter(room =>
+                selectedSectorIds.has(room.operatingSectorId) ||
+                selectedSectorIds.has(room.sectorId) // Support pour les deux formats d'ID
+            );
+        }
+
+        // Filtrage par catégorie de secteur
+        if (categoryFilter !== 'ALL') {
+            filtered = filtered.filter(room => {
+                const sector = sectorsMap[room.operatingSectorId] || sectorsMap[room.sectorId];
+                if (!sector) return false;
+
+                // Mappage des catégories de filtre aux catégories de secteur
+                switch (categoryFilter) {
+                    case 'BLOC':
+                        return !sector.category ||
+                            sector.category === 'STANDARD' ||
+                            sector.category === 'HYPERASEPTIQUE' ||
+                            sector.category === 'OPHTALMOLOGIE' ||
+                            sector.category === 'ENDOSCOPIE';
+                    case 'CONSULTATION':
+                        return sector.category === 'CONSULTATION' ||
+                            room.name.toLowerCase().includes('consultation') ||
+                            room.name.toLowerCase().includes('cs ');
+                    case 'GARDE_ASTREINTE':
+                        return room.name.toLowerCase().includes('garde') ||
+                            room.name.toLowerCase().includes('astreinte');
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        console.log(`Salles filtrées: ${filtered.length}/${roomsWithVirtualRooms.length} salles affichées`);
+        return filtered;
+    }, [roomsWithVirtualRooms, sectorFilter, selectedSectorIds, categoryFilter, sectorsMap]);
+
+    // Calculer si des filtres personnalisés sont actifs
+    const hasActiveFilters = useMemo(() => {
+        return categoryFilter !== 'ALL' ||
+            (sectorFilter === 'SELECTED' && selectedSectorIds.size > 0) ||
+            !showPersonnel ||
+            compactView;
+    }, [categoryFilter, sectorFilter, selectedSectorIds.size, showPersonnel, compactView]);
 
     // Jours de la semaine pour l'affichage
     const weekDays = useMemo(() => {
@@ -329,6 +478,46 @@ const TrameGridView: React.FC<{
         },
         [filteredAffectations]
     );
+
+    // Fonctions de gestion des filtres
+    const handleToggleSector = useCallback((sectorId: number) => {
+        setSelectedSectorIds(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(sectorId)) {
+                newSet.delete(sectorId);
+            } else {
+                newSet.add(sectorId);
+            }
+            return newSet;
+        });
+    }, []);
+
+    const handleSelectAllSectors = useCallback(() => {
+        const allSectorIds = new Set(sectors.map(sector => sector.id));
+        setSelectedSectorIds(allSectorIds);
+        setSectorFilter('ALL');
+    }, [sectors]);
+
+    const handleDeselectAllSectors = useCallback(() => {
+        setSelectedSectorIds(new Set());
+        setSectorFilter('SELECTED');
+    }, []);
+
+    const handleQuickFilter = useCallback((filterType: string) => {
+        setCategoryFilter(filterType);
+        setSectorFilter('ALL'); // Réinitialiser le filtre par secteur quand on utilise les filtres rapides
+    }, []);
+
+    const handleResetFilters = useCallback(() => {
+        setSectorFilter('ALL');
+        setSelectedSectorIds(new Set());
+        setCategoryFilter('ALL');
+        setShowPersonnel(true);
+        setCompactView(false);
+        // Supprimer les préférences sauvegardées
+        localStorage.removeItem(filterStorageKey);
+        console.log(`Filtres réinitialisés pour la trame ${trame.id}`);
+    }, [trame.id, filterStorageKey]);
 
     // Fonction pour éditer une affectation existante
     const handleEditAffectation = useCallback(
@@ -414,24 +603,24 @@ const TrameGridView: React.FC<{
             return (
                 <Card
                     key={`${affectation.id}-${period}`}
-                    className={`mb-1 shadow-sm ${getCardStyle()} ${compactView ? 'p-1 text-xs' : 'p-2'}`}
+                    className={`mb-1 shadow-sm ${getCardStyle()} ${compactView ? 'p-1 text-xs' : 'p-1'}`}
                 >
-                    <CardContent className="p-2">
+                    <CardContent className="p-1">
                         {/* Entête de l'affectation */}
                         <div className="flex justify-between items-center mb-1">
-                            <span className="font-medium">
-                                {mockActivityTypes.find(a => a.id === affectation.activityTypeId)?.name || "Activité"}
+                            <span className="font-medium text-xs truncate">
+                                {mockActivityTypes.find(a => a.id === affectation.activityTypeId)?.code || "ACT"}
                             </span>
-                            <div className="flex items-center">
+                            <div className="flex items-center flex-shrink-0">
                                 {!affectation.isActive && (
-                                    <Badge variant="destructive" className="text-xs mr-1">Fermé</Badge>
+                                    <Badge variant="destructive" className="text-xs mr-1">×</Badge>
                                 )}
 
                                 {!readOnly && (
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6">
-                                                <MoreVertical className="h-4 w-4" />
+                                            <Button variant="ghost" size="icon" className="h-4 w-4">
+                                                <MoreVertical className="h-3 w-3" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
@@ -456,25 +645,18 @@ const TrameGridView: React.FC<{
                             </div>
                         </div>
 
-                        {/* Personnel requis */}
-
-                        {/* Personnel requis - Version en ligne */}
-                        {showPersonnel && (
-                            <div className="mt-2">
-                                <div className="flex items-center text-xs text-gray-500 mb-1">
-                                    <UsersIcon className="h-3 w-3 mr-1" />
-                                    <span>Personnel requis ({affectation.requiredStaff.length} poste{affectation.requiredStaff.length > 1 ? 's' : ''})</span>
-                                </div>
+                        {/* Personnel requis - Version compacte */}
+                        {showPersonnel && affectation.requiredStaff.length > 0 && (
+                            <div className="mt-1">
                                 <div className="flex flex-wrap gap-1">
                                     {affectation.requiredStaff.map(staff => {
                                         const assignedUser = staff.userId
                                             ? mockUsers.find(u => u.id === staff.userId)
                                             : null;
 
-                                        // Couleurs et icônes selon le rôle
+                                        // Couleurs selon le rôle
                                         let bgColor = 'bg-gray-100';
                                         let textColor = 'text-gray-800';
-                                        let icon = null;
 
                                         switch (staff.role) {
                                             case 'MAR':
@@ -498,15 +680,11 @@ const TrameGridView: React.FC<{
                                         return (
                                             <div
                                                 key={staff.id}
-                                                className={`${bgColor} ${textColor} rounded-full px-3 py-1 text-xs font-medium flex items-center`}
+                                                className={`${bgColor} ${textColor} rounded px-1 py-0.5 text-xs font-medium flex items-center`}
                                                 title={assignedUser ? `${assignedUser.name} (${staff.role})` : `Poste ${staff.role} non assigné`}
                                             >
-                                                <UsersIcon className="h-3 w-3 mr-1" />
                                                 {staff.role}
                                                 {staff.count > 1 && <span className="ml-1">×{staff.count}</span>}
-                                                {assignedUser && (
-                                                    <span className="ml-1 font-medium">: {assignedUser.name}</span>
-                                                )}
                                             </div>
                                         );
                                     })}
@@ -599,211 +777,386 @@ const TrameGridView: React.FC<{
         [trame, readOnly, onTrameChange, roomsWithVirtualRooms, mockActivityTypes]
     );
 
+    // Fonction pour obtenir le nom du site
+    const getSiteName = useCallback(() => {
+        if (trame.siteId) {
+            // Trame liée à un site spécifique
+            const site = sites.find(s => s.id === trame.siteId);
+            return site ? site.name : `Site ${trame.siteId}`;
+        } else if (selectedSiteId) {
+            // Trame globale avec un site sélectionné
+            const site = sites.find(s => s.id === selectedSiteId);
+            return site ? `${site.name} (vue filtrée)` : `Site ${selectedSiteId} (vue filtrée)`;
+        } else {
+            // Trame globale, tous les sites
+            return 'Tous les sites (globale)';
+        }
+    }, [trame.siteId, selectedSiteId, sites]);
+
     // Rendu de la grille de trame
     const renderTrameGrid = () => {
         // Si aucune salle n'est disponible, afficher un message
-        if (roomsWithVirtualRooms.length === 0) {
-            return (
-                <div className="py-8 text-center bg-gray-50 rounded-lg">
-                    <p className="text-gray-500">Aucune salle d'opération n'a été configurée pour ce site.</p>
-                    <p className="text-sm text-gray-400 mt-2">Veuillez créer des secteurs et des salles dans la configuration.</p>
-                </div>
-            );
+        if (filteredRooms.length === 0) {
+            if (roomsWithVirtualRooms.length === 0) {
+                return (
+                    <div className="py-6 text-center bg-gray-50 rounded-lg">
+                        <p className="text-gray-500 text-sm">Aucune salle d'opération n'a été configurée pour ce site.</p>
+                        <p className="text-xs text-gray-400 mt-1">Veuillez créer des secteurs et des salles dans la configuration.</p>
+                    </div>
+                );
+            } else {
+                return (
+                    <div className="py-6 text-center bg-gray-50 rounded-lg">
+                        <p className="text-gray-500 text-sm">Aucune salle ne correspond aux filtres sélectionnés.</p>
+                        <p className="text-xs text-gray-400 mt-1">Modifiez les filtres pour voir plus de salles.</p>
+                    </div>
+                );
+            }
         }
 
         return (
             <DragDropContext onDragEnd={handleDragEnd}>
-                <div className={`mt-4 overflow-x-auto ${compactView ? 'scale-98' : ''}`}>
-                    <table className={`min-w-full border-collapse ${compactView ? 'compact-table' : ''}`}>
-                        <thead>
-                            <tr className="bg-gray-50 dark:bg-gray-800">
-                                <th className={`py-2 px-3 border border-gray-300 dark:border-gray-700 text-left ${compactView ? 'compact-cell' : ''}`}>
-                                    Salles
-                                </th>
-                                {weekDays.map(day => (
-                                    <th
-                                        key={day.code}
-                                        colSpan={2}
-                                        className={`py-2 px-3 border border-gray-300 dark:border-gray-700 text-center ${compactView ? 'compact-cell' : ''}`}
-                                    >
-                                        <div className={compactView ? 'text-xs' : ''}>{day.name}</div>
-                                    </th>
-                                ))}
-                            </tr>
-                            <tr className="bg-gray-50 dark:bg-gray-800">
-                                <th className="py-2 px-3 border border-gray-300 dark:border-gray-700"></th>
-                                {weekDays.map(day => (
-                                    <React.Fragment key={`periods-${day.code}`}>
-                                        <th className="py-2 px-3 border border-gray-300 dark:border-gray-700 text-center bg-blue-50">
-                                            Matin
-                                        </th>
-                                        <th className="py-2 px-3 border border-gray-300 dark:border-gray-700 text-center bg-amber-50">
-                                            Après-midi
-                                        </th>
-                                    </React.Fragment>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {roomsWithVirtualRooms.map(room => (
-                                <tr key={room.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                                    <td
-                                        className={`py-2 px-3 border border-gray-300 dark:border-gray-700 font-medium ${compactView ? 'compact-cell' : ''} ${room.isVirtual ? 'border-dashed bg-opacity-60' : ''}`}
+                <div className={`mt-3 ${compactView ? 'text-xs' : 'text-sm'}`}>
+                    {/* Version mobile : cartes empilées */}
+                    <div className="block lg:hidden space-y-4">
+                        {filteredRooms.map(room => (
+                            <div key={room.id} className="bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
+                                {/* En-tête de la salle */}
+                                <div
+                                    className="p-3 border-b"
+                                    style={{
+                                        backgroundColor: sectorsMap[room.operatingSectorId]?.colorCode || sectorsMap[room.sectorId]?.colorCode || '#f3f4f6'
+                                    }}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                            <span className="font-medium text-sm">{room.name}</span>
+                                            {room.isVirtual && (
+                                                <Badge variant="outline" className="text-xs">
+                                                    {room.name.toLowerCase().includes('consultation') ? 'Consult' :
+                                                        room.name.toLowerCase().includes('garde') ? 'Garde' :
+                                                            room.name.toLowerCase().includes('astreinte') ? 'Astrte' : 'Virt'}
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        {room.isVirtual && !readOnly && (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-5 w-5"
+                                                title="Créer une vraie salle"
+                                                onClick={() => {
+                                                    window.open(`/admin/bloc-operatoire/salles?sectorId=${room.operatingSectorId}`, '_blank');
+                                                }}
+                                            >
+                                                <PlusIcon className="h-3 w-3" />
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <div className="text-xs text-gray-600 mt-1">
+                                        {sectorsMap[room.operatingSectorId]?.name || sectorsMap[room.sectorId]?.name || 'Secteur non défini'}
+                                    </div>
+                                </div>
+
+                                {/* Grille des jours pour mobile */}
+                                <div className="p-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {weekDays.map(day => (
+                                            <div key={day.code} className="border rounded-lg p-2">
+                                                <div className="font-medium text-sm mb-2 text-center">{day.name}</div>
+                                                <div className="space-y-2">
+                                                    {/* Matin */}
+                                                    <div className="bg-blue-50 rounded p-2">
+                                                        <div className="text-xs font-medium mb-1 text-blue-700">Matin</div>
+                                                        <Droppable
+                                                            droppableId={`${room.id}-${day.code}-morning`}
+                                                            isDropDisabled={false}
+                                                            isCombineEnabled={false}
+                                                            ignoreContainerClipping={false}
+                                                        >
+                                                            {(provided) => (
+                                                                <div
+                                                                    ref={provided.innerRef}
+                                                                    {...provided.droppableProps}
+                                                                    className="min-h-[40px]"
+                                                                >
+                                                                    {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                        <Draggable
+                                                                            key={`${affectation.id}-morning`}
+                                                                            draggableId={`${affectation.id}-morning`}
+                                                                            index={index}
+                                                                            isDragDisabled={readOnly}
+                                                                        >
+                                                                            {(provided) => (
+                                                                                <div
+                                                                                    ref={provided.innerRef}
+                                                                                    {...provided.draggableProps}
+                                                                                    {...provided.dragHandleProps}
+                                                                                >
+                                                                                    {renderAssignment(affectation, 'MORNING')}
+                                                                                </div>
+                                                                            )}
+                                                                        </Draggable>
+                                                                    ))}
+                                                                    {provided.placeholder}
+                                                                    {!readOnly && (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            className="w-full mt-1 text-xs h-6 border border-dashed border-gray-300 text-gray-500"
+                                                                            onClick={() => handleAddAffectation(room.id.toString(), day.code, 'MORNING')}
+                                                                        >
+                                                                            + Ajouter
+                                                                        </Button>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </Droppable>
+                                                    </div>
+
+                                                    {/* Après-midi */}
+                                                    <div className="bg-amber-50 rounded p-2">
+                                                        <div className="text-xs font-medium mb-1 text-amber-700">Après-midi</div>
+                                                        <Droppable
+                                                            droppableId={`${room.id}-${day.code}-afternoon`}
+                                                            isDropDisabled={false}
+                                                            isCombineEnabled={false}
+                                                            ignoreContainerClipping={false}
+                                                        >
+                                                            {(provided) => (
+                                                                <div
+                                                                    ref={provided.innerRef}
+                                                                    {...provided.droppableProps}
+                                                                    className="min-h-[40px]"
+                                                                >
+                                                                    {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                        <Draggable
+                                                                            key={`${affectation.id}-afternoon`}
+                                                                            draggableId={`${affectation.id}-afternoon`}
+                                                                            index={index}
+                                                                            isDragDisabled={readOnly}
+                                                                        >
+                                                                            {(provided) => (
+                                                                                <div
+                                                                                    ref={provided.innerRef}
+                                                                                    {...provided.draggableProps}
+                                                                                    {...provided.dragHandleProps}
+                                                                                >
+                                                                                    {renderAssignment(affectation, 'AFTERNOON')}
+                                                                                </div>
+                                                                            )}
+                                                                        </Draggable>
+                                                                    ))}
+                                                                    {provided.placeholder}
+                                                                    {!readOnly && (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            className="w-full mt-1 text-xs h-6 border border-dashed border-gray-300 text-gray-500"
+                                                                            onClick={() => handleAddAffectation(room.id.toString(), day.code, 'AFTERNOON')}
+                                                                        >
+                                                                            + Ajouter
+                                                                        </Button>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </Droppable>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Version desktop : grille vraiment responsive */}
+                    <div className="hidden lg:block">
+                        {/* En-têtes des jours */}
+                        <div
+                            className="grid gap-1 mb-2"
+                            style={{
+                                gridTemplateColumns: `minmax(160px, 200px) repeat(${weekDays.length}, 1fr)`
+                            }}
+                        >
+                            {/* Colonne des salles */}
+                            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 rounded">
+                                <div className="font-medium text-sm">Salles ({filteredRooms.length})</div>
+                            </div>
+
+                            {/* Colonnes des jours */}
+                            {weekDays.map(day => (
+                                <div
+                                    key={day.code}
+                                    className="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 rounded text-center"
+                                >
+                                    <div className="font-medium text-sm">{compactView ? day.name.slice(0, 3) : day.name}</div>
+                                    <div className="flex justify-center mt-1 gap-1">
+                                        <span className="text-xs bg-blue-100 text-blue-700 px-1 rounded">AM</span>
+                                        <span className="text-xs bg-amber-100 text-amber-700 px-1 rounded">PM</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Corps de la grille */}
+                        <div className="space-y-1">
+                            {filteredRooms.map(room => (
+                                <div
+                                    key={room.id}
+                                    className="grid gap-1"
+                                    style={{
+                                        gridTemplateColumns: `minmax(160px, 200px) repeat(${weekDays.length}, 1fr)`
+                                    }}
+                                >
+                                    {/* Colonne salle */}
+                                    <div
+                                        className={`border border-gray-300 dark:border-gray-700 p-2 font-medium ${room.isVirtual ? 'border-dashed bg-opacity-60' : ''} rounded`}
                                         style={{
                                             backgroundColor: sectorsMap[room.operatingSectorId]?.colorCode || sectorsMap[room.sectorId]?.colorCode || '#f3f4f6'
                                         }}
                                     >
-                                        <div className="flex flex-col">
+                                        <div className="flex flex-col space-y-1">
                                             <div className="flex items-center justify-between">
-                                                <div className="flex items-center">
-                                                    <span>{room.name}</span>
+                                                <div className="flex items-center space-x-1">
+                                                    <span className={compactView ? 'text-xs font-medium truncate' : 'text-sm font-medium truncate'}>{room.name}</span>
                                                     {room.isVirtual && (
-                                                        <Badge variant="outline" className="ml-2 text-xs">
-                                                            {sectorsMap[room.operatingSectorId]?.category === 'CONSULTATION' ? 'Consultation' :
-                                                                sectorsMap[room.operatingSectorId]?.category === 'HYPERASEPTIQUE' ? 'Hyperaseptique' :
-                                                                    sectorsMap[room.operatingSectorId]?.category === 'OPHTALMOLOGIE' ? 'Ophtalmologie' :
-                                                                        sectorsMap[room.operatingSectorId]?.category === 'ENDOSCOPIE' ? 'Endoscopie' :
-                                                                            room.name.toLowerCase().includes('consultation') ? 'Consultation' :
-                                                                                room.name.toLowerCase().includes('garde') ? 'Garde' :
-                                                                                    room.name.toLowerCase().includes('astreinte') ? 'Astreinte' : 'Virtuel'}
+                                                        <Badge variant="outline" className="text-xs px-1 py-0 ml-1 flex-shrink-0">
+                                                            {room.name.toLowerCase().includes('consultation') ? 'C' :
+                                                                room.name.toLowerCase().includes('garde') ? 'G' :
+                                                                    room.name.toLowerCase().includes('astreinte') ? 'A' : 'V'}
                                                         </Badge>
                                                     )}
                                                 </div>
-                                                <div className="flex space-x-1">
-                                                    {!compactView && (
-                                                        <span className="text-xs text-gray-400" title="Ordre d'affichage">
-                                                            #{room.displayOrder !== undefined ? room.displayOrder : '?'}
-                                                        </span>
-                                                    )}
-                                                    {room.isVirtual && !readOnly && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-5 w-5"
-                                                            title="Créer une vraie salle"
-                                                            onClick={() => {
-                                                                // Ouvrir une nouvelle fenêtre/onglet vers l'interface de création de salles
-                                                                window.open(`/admin/bloc-operatoire/salles?sectorId=${room.operatingSectorId}`, '_blank');
-                                                            }}
-                                                        >
-                                                            <PlusIcon className="h-3 w-3" />
-                                                        </Button>
-                                                    )}
-                                                </div>
+                                                {room.isVirtual && !readOnly && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-4 w-4 flex-shrink-0"
+                                                        title="Créer une vraie salle"
+                                                        onClick={() => {
+                                                            window.open(`/admin/bloc-operatoire/salles?sectorId=${room.operatingSectorId}`, '_blank');
+                                                        }}
+                                                    >
+                                                        <PlusIcon className="h-2 w-2" />
+                                                    </Button>
+                                                )}
                                             </div>
                                             {!compactView && (
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs text-gray-500">
-                                                        {sectorsMap[room.operatingSectorId]?.name || sectorsMap[room.sectorId]?.name || 'Secteur non défini'}
-                                                    </span>
-                                                    {!compactView && sectorsMap[room.operatingSectorId] && (
-                                                        <span className="text-xs text-gray-400" title="Ordre du secteur">
-                                                            #{sectorsMap[room.operatingSectorId]?.displayOrder !== undefined ? sectorsMap[room.operatingSectorId]?.displayOrder : '?'}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            )}
-                                            {room.isVirtual && (
-                                                <div className="text-xs text-blue-500 mt-1">
-                                                    <span className="italic">Créez des salles dans ce secteur pour organiser les affectations</span>
+                                                <div className="text-xs text-gray-500 truncate">
+                                                    {sectorsMap[room.operatingSectorId]?.name || sectorsMap[room.sectorId]?.name || 'Secteur non défini'}
                                                 </div>
                                             )}
                                         </div>
-                                    </td>
+                                    </div>
+
+                                    {/* Colonnes des jours */}
                                     {weekDays.map(day => (
-                                        <React.Fragment key={`${room.id}-${day.code}`}>
-                                            <td className="py-2 px-3 border border-gray-300 dark:border-gray-700 align-top">
-                                                <Droppable droppableId={`${room.id}-${day.code}-morning`} isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
-                                                    {(provided) => (
-                                                        <div
-                                                            ref={provided.innerRef}
-                                                            {...provided.droppableProps}
-                                                            className="min-h-[80px]"
-                                                        >
-                                                            {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
-                                                                <Draggable
-                                                                    key={`${affectation.id}-morning`}
-                                                                    draggableId={`${affectation.id}-morning`}
-                                                                    index={index}
-                                                                    isDragDisabled={readOnly}
-                                                                >
-                                                                    {(provided) => (
-                                                                        <div
-                                                                            ref={provided.innerRef}
-                                                                            {...provided.draggableProps}
-                                                                            {...provided.dragHandleProps}
-                                                                        >
-                                                                            {renderAssignment(affectation, 'MORNING')}
-                                                                        </div>
-                                                                    )}
-                                                                </Draggable>
-                                                            ))}
-                                                            {provided.placeholder}
+                                        <div key={`${room.id}-${day.code}`} className="border border-gray-300 dark:border-gray-700 rounded overflow-hidden">
+                                            <div className="grid grid-cols-2 h-full">
+                                                {/* Matin */}
+                                                <div className="bg-blue-50 border-r border-gray-200 p-1">
+                                                    <Droppable
+                                                        droppableId={`${room.id}-${day.code}-morning`}
+                                                        isDropDisabled={false}
+                                                        isCombineEnabled={false}
+                                                        ignoreContainerClipping={false}
+                                                    >
+                                                        {(provided) => (
+                                                            <div
+                                                                ref={provided.innerRef}
+                                                                {...provided.droppableProps}
+                                                                className="min-h-[60px]"
+                                                            >
+                                                                {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                    <Draggable
+                                                                        key={`${affectation.id}-morning`}
+                                                                        draggableId={`${affectation.id}-morning`}
+                                                                        index={index}
+                                                                        isDragDisabled={readOnly}
+                                                                    >
+                                                                        {(provided) => (
+                                                                            <div
+                                                                                ref={provided.innerRef}
+                                                                                {...provided.draggableProps}
+                                                                                {...provided.dragHandleProps}
+                                                                            >
+                                                                                {renderAssignment(affectation, 'MORNING')}
+                                                                            </div>
+                                                                        )}
+                                                                    </Draggable>
+                                                                ))}
+                                                                {provided.placeholder}
+                                                                {!readOnly && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="w-full mt-1 text-xs h-5 border border-dashed border-gray-300 text-gray-500"
+                                                                        onClick={() => handleAddAffectation(room.id.toString(), day.code, 'MORNING')}
+                                                                    >
+                                                                        +
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </Droppable>
+                                                </div>
 
-                                                            {/* Bouton pour ajouter une nouvelle affectation */}
-                                                            {!readOnly && (
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    className="w-full mt-2 border border-dashed border-gray-300 text-gray-500"
-                                                                    onClick={() => handleAddAffectation(room.id.toString(), day.code, 'MORNING')}
-                                                                >
-                                                                    + Ajouter
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </Droppable>
-                                            </td>
-                                            <td className="py-2 px-3 border border-gray-300 dark:border-gray-700 align-top">
-                                                <Droppable droppableId={`${room.id}-${day.code}-afternoon`} isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
-                                                    {(provided) => (
-                                                        <div
-                                                            ref={provided.innerRef}
-                                                            {...provided.droppableProps}
-                                                            className="min-h-[80px]"
-                                                        >
-                                                            {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
-                                                                <Draggable
-                                                                    key={`${affectation.id}-afternoon`}
-                                                                    draggableId={`${affectation.id}-afternoon`}
-                                                                    index={index}
-                                                                    isDragDisabled={readOnly}
-                                                                >
-                                                                    {(provided) => (
-                                                                        <div
-                                                                            ref={provided.innerRef}
-                                                                            {...provided.draggableProps}
-                                                                            {...provided.dragHandleProps}
-                                                                        >
-                                                                            {renderAssignment(affectation, 'AFTERNOON')}
-                                                                        </div>
-                                                                    )}
-                                                                </Draggable>
-                                                            ))}
-                                                            {provided.placeholder}
-
-                                                            {/* Bouton pour ajouter une nouvelle affectation */}
-                                                            {!readOnly && (
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    className="w-full mt-2 border border-dashed border-gray-300 text-gray-500"
-                                                                    onClick={() => handleAddAffectation(room.id.toString(), day.code, 'AFTERNOON')}
-                                                                >
-                                                                    + Ajouter
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </Droppable>
-                                            </td>
-                                        </React.Fragment>
+                                                {/* Après-midi */}
+                                                <div className="bg-amber-50 p-1">
+                                                    <Droppable
+                                                        droppableId={`${room.id}-${day.code}-afternoon`}
+                                                        isDropDisabled={false}
+                                                        isCombineEnabled={false}
+                                                        ignoreContainerClipping={false}
+                                                    >
+                                                        {(provided) => (
+                                                            <div
+                                                                ref={provided.innerRef}
+                                                                {...provided.droppableProps}
+                                                                className="min-h-[60px]"
+                                                            >
+                                                                {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                    <Draggable
+                                                                        key={`${affectation.id}-afternoon`}
+                                                                        draggableId={`${affectation.id}-afternoon`}
+                                                                        index={index}
+                                                                        isDragDisabled={readOnly}
+                                                                    >
+                                                                        {(provided) => (
+                                                                            <div
+                                                                                ref={provided.innerRef}
+                                                                                {...provided.draggableProps}
+                                                                                {...provided.dragHandleProps}
+                                                                            >
+                                                                                {renderAssignment(affectation, 'AFTERNOON')}
+                                                                            </div>
+                                                                        )}
+                                                                    </Draggable>
+                                                                ))}
+                                                                {provided.placeholder}
+                                                                {!readOnly && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="w-full mt-1 text-xs h-5 border border-dashed border-gray-300 text-gray-500"
+                                                                        onClick={() => handleAddAffectation(room.id.toString(), day.code, 'AFTERNOON')}
+                                                                    >
+                                                                        +
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </Droppable>
+                                                </div>
+                                            </div>
+                                        </div>
                                     ))}
-                                </tr>
+                                </div>
                             ))}
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
                 </div>
             </DragDropContext>
         );
@@ -812,50 +1165,226 @@ const TrameGridView: React.FC<{
     // Rendu principal du composant
     return (
         <div className="space-y-4">
-            {/* En-tête avec type de trame et options */}
-            <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
-                <div className="flex items-center gap-2">
-                    <span className="font-semibold text-lg">{trame.name}</span>
-                    <Badge variant="outline" className="ml-2">
-                        {trame.weekType === 'ALL' ? 'Toutes semaines' :
-                            trame.weekType === 'EVEN' ? 'Semaines paires' : 'Semaines impaires'}
-                    </Badge>
+            {/* En-tête de la trame */}
+            <div className={`mb-3 p-3 rounded-lg border ${compactView ? 'bg-gray-50' : 'bg-white'} dark:bg-gray-800`}>
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`font-semibold ${compactView ? 'text-base' : 'text-lg'}`}>{trame.name}</span>
+                        <Badge variant="outline" className="text-xs">
+                            {trame.weekType === 'ALL' ? 'Toutes' :
+                                trame.weekType === 'EVEN' ? 'Paires' : 'Impaires'}
+                        </Badge>
+
+                        {/* Indicateur de site - Nouveau */}
+                        <div className="flex items-center gap-1 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full border border-blue-200 dark:border-blue-800">
+                            <MapPinIcon className="h-3 w-3" />
+                            <span className="text-xs font-medium">{getSiteName()}</span>
+                        </div>
+                    </div>
+
+                    {/* Informations supplémentaires sur la trame */}
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                        {trame.description && !compactView && (
+                            <span className="italic">"{trame.description}"</span>
+                        )}
+                        <div className="flex items-center gap-1">
+                            <CalendarIcon className="h-3 w-3" />
+                            <span>
+                                {trame.effectiveStartDate && !isNaN(new Date(trame.effectiveStartDate).getTime()) ? (
+                                    <>
+                                        {format(new Date(trame.effectiveStartDate), 'dd/MM/yy', { locale: fr })}
+                                        {trame.effectiveEndDate && !isNaN(new Date(trame.effectiveEndDate).getTime())
+                                            ? ` - ${format(new Date(trame.effectiveEndDate), 'dd/MM/yy', { locale: fr })}`
+                                            : ' (perm.)'
+                                        }
+                                    </>
+                                ) : (
+                                    'Dates non définies'
+                                )}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <UsersIcon className="h-3 w-3" />
+                            <span>{filteredAffectations.length} affectation{filteredAffectations.length > 1 ? 's' : ''}</span>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
-                <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                        <Label htmlFor="filter-week-type">Type de semaine:</Label>
-                        <Select
-                            value={showWeekType}
-                            onValueChange={(value) => setShowWeekType(value as WeekType | 'ALL')}
+            {/* Contrôles compacts */}
+            <div className="flex flex-col space-y-3 mb-3">
+                {/* Première ligne : contrôles principaux */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center space-x-2">
+                            <Label htmlFor="filter-week-type" className="text-xs font-medium">Type:</Label>
+                            <Select
+                                value={showWeekType}
+                                onValueChange={(value) => setShowWeekType(value as WeekType | 'ALL')}
+                            >
+                                <SelectTrigger className="w-28 h-8 text-xs">
+                                    <SelectValue placeholder="Type semaine" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="ALL">Toutes</SelectItem>
+                                    <SelectItem value="EVEN">Paires</SelectItem>
+                                    <SelectItem value="ODD">Impaires</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                            <Label htmlFor="show-personnel" className="text-xs font-medium">Personnel</Label>
+                            <Switch
+                                id="show-personnel"
+                                checked={showPersonnel}
+                                onCheckedChange={() => setShowPersonnel(!showPersonnel)}
+                            />
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                            <Label htmlFor="compact-view" className="text-xs font-medium">Compact</Label>
+                            <Switch
+                                id="compact-view"
+                                checked={compactView}
+                                onCheckedChange={() => setCompactView(!compactView)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Indicateur de compteur - responsive */}
+                    <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded sm:ml-auto">
+                        {filteredRooms.length} / {roomsWithVirtualRooms.length} salles
+                    </div>
+                </div>
+            </div>
+
+            {/* Section de filtrage des secteurs - version compacte et responsive */}
+            <div className={`rounded-lg ${compactView ? 'p-2 mb-2' : 'p-3 mb-3'} ${hasActiveFilters ? 'bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-800'}`}>
+                <div className="flex flex-col gap-2">
+                    {/* En-tête compact */}
+                    {hasActiveFilters && (
+                        <div className="flex items-center justify-between">
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300 text-xs">
+                                Filtres actifs
+                            </Badge>
+                            {!compactView && (
+                                <span className="text-xs text-gray-500 italic hidden sm:block">
+                                    Préférences sauvegardées
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Message d'aide pour la première utilisation - version compacte */}
+                    {!hasActiveFilters && !compactView && (
+                        <span className="text-xs text-gray-500 italic hidden sm:block">
+                            💡 Préférences sauvegardées automatiquement
+                        </span>
+                    )}
+
+                    {/* Filtres rapides */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <Label className="text-xs font-medium">Filtres:</Label>
+                        <div className="flex flex-wrap gap-1">
+                            <Button
+                                variant={categoryFilter === 'ALL' ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleQuickFilter('ALL')}
+                                className="h-7 px-2 text-xs"
+                            >
+                                Tous
+                            </Button>
+                            <Button
+                                variant={categoryFilter === 'BLOC' ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleQuickFilter('BLOC')}
+                                className="h-7 px-2 text-xs"
+                            >
+                                Bloc
+                            </Button>
+                            <Button
+                                variant={categoryFilter === 'CONSULTATION' ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleQuickFilter('CONSULTATION')}
+                                className="h-7 px-2 text-xs"
+                            >
+                                Consult
+                            </Button>
+                            <Button
+                                variant={categoryFilter === 'GARDE_ASTREINTE' ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleQuickFilter('GARDE_ASTREINTE')}
+                                className="h-7 px-2 text-xs"
+                            >
+                                Garde
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Sélecteur de secteurs individuels */}
+                    {sectors && sectors.length > 0 && (
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <Label className="text-xs font-medium">Secteurs:</Label>
+                            <div className="flex flex-wrap gap-1">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleSelectAllSectors}
+                                    className="h-7 px-2 text-xs"
+                                >
+                                    Tous
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleDeselectAllSectors}
+                                    className="h-7 px-2 text-xs"
+                                >
+                                    Aucun
+                                </Button>
+                                {sectors.map(sector => (
+                                    <Button
+                                        key={sector.id}
+                                        variant={
+                                            sectorFilter === 'ALL' || selectedSectorIds.has(sector.id)
+                                                ? "default"
+                                                : "outline"
+                                        }
+                                        size="sm"
+                                        onClick={() => {
+                                            handleToggleSector(sector.id);
+                                            setSectorFilter('SELECTED');
+                                        }}
+                                        className="h-7 px-2 text-xs"
+                                        style={{
+                                            backgroundColor: (sectorFilter === 'ALL' || selectedSectorIds.has(sector.id))
+                                                ? `${sector.colorCode}20`
+                                                : undefined,
+                                            borderColor: sector.colorCode,
+                                            color: (sectorFilter === 'ALL' || selectedSectorIds.has(sector.id))
+                                                ? sector.colorCode
+                                                : undefined
+                                        }}
+                                    >
+                                        {compactView ? sector.name.slice(0, 6) : sector.name.slice(0, 12)}
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Bouton de réinitialisation */}
+                    <div className="flex justify-end">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleResetFilters}
+                            className="h-7 px-2 text-xs text-red-600 hover:text-red-800 border-red-300 hover:border-red-400"
+                            title="Réinitialiser tous les filtres et préférences"
                         >
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Type de semaine" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="ALL">Toutes les semaines</SelectItem>
-                                <SelectItem value="EVEN">Semaines paires</SelectItem>
-                                <SelectItem value="ODD">Semaines impaires</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                        <Label htmlFor="show-personnel">Personnel habituel</Label>
-                        <Switch
-                            id="show-personnel"
-                            checked={showPersonnel}
-                            onCheckedChange={() => setShowPersonnel(!showPersonnel)}
-                        />
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                        <Label htmlFor="compact-view">Vue compacte</Label>
-                        <Switch
-                            id="compact-view"
-                            checked={compactView}
-                            onCheckedChange={() => setCompactView(!compactView)}
-                        />
+                            Reset
+                        </Button>
                     </div>
                 </div>
             </div>

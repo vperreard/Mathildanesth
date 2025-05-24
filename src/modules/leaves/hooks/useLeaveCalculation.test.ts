@@ -290,7 +290,7 @@ describe('useLeaveCalculation', () => {
         expectToHaveBeenCalledTimes(mockCalculateLeaveCountedDays, 1);
         expectToBe(result.current.countedDays, 5);
 
-        const newOptions = { isHalfDay: true, halfDayPeriod: 'PM' as 'PM' };
+        const newOptions = { isHalfDay: true, halfDayPeriod: 'PM' as const };
         mockCalculateLeaveCountedDays.mockResolvedValueOnce(
             completeLeaveCalculationDetailsMock({ countedDays: 1, workDays: 1, naturalDays: 1 })
         );
@@ -407,7 +407,7 @@ describe('useLeaveCalculation', () => {
         });
         await waitFor(() => expectToBe(result.current.status, 'success'));
 
-        const newOptions = { isHalfDay: true, halfDayPeriod: 'PM' as 'PM' };
+        const newOptions = { isHalfDay: true, halfDayPeriod: 'PM' as const };
         mockCalculateLeaveCountedDays.mockResolvedValueOnce(
             completeLeaveCalculationDetailsMock({ countedDays: 0.5 })
         );

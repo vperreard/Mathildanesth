@@ -253,7 +253,7 @@ describe('NotificationService', () => {
         expect(true).toBe(true); // Placeholder pour indiquer que le test s'est exécuté
     });
 
-    test('Test invalid event type', () => {
+    test('invalid event type', () => {
         const mockCallback = jest.fn();
 
         // Test invalid event type - Utiliser subscribe et non on

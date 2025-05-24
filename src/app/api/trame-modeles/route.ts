@@ -165,7 +165,7 @@ export async function GET(req: NextRequest) {
         const isActive = searchParams.get('isActive');
         const includeAffectations = searchParams.get('includeAffectations') === 'true';
 
-        let where: any = {};
+        const where: any = {};
         if (siteId) {
             where.siteId = siteId;
         }

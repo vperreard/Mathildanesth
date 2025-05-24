@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { OperatingRoom, OperatingSector } from '@/modules/planning/bloc-operatoire/types';
+import { OperatingRoom } from '@/modules/planning/bloc-operatoire/types';
 import {
     useOperatingRoomsQuery,
     useCreateRoomMutation,

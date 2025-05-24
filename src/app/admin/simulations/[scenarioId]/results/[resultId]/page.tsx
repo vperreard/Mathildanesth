@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeftIcon, Loader2, AlertTriangleIcon, FileJsonIcon, BarChartIcon, AlertCircleIcon, CheckCircle2Icon, ZapIcon, HourglassIcon, UserIcon, ClockIcon, CalendarIcon, FileTextIcon, DownloadIcon, FileIcon, ClipboardCheckIcon, BarChart3Icon } from 'lucide-react';
+import { ArrowLeftIcon, Loader2, AlertTriangleIcon, FileJsonIcon, BarChartIcon, AlertCircleIcon, CheckCircle2Icon, ZapIcon, HourglassIcon, UserIcon, CalendarIcon, FileTextIcon, DownloadIcon, FileIcon, ClipboardCheckIcon, BarChart3Icon } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,11 +24,11 @@ interface SimulationResultData {
     status: SimulationStatus;
     createdAt: string;
     updatedAt: string;
-    parametersJson?: Record<string, any> | string | null;
-    generatedPlanningData?: any | null;
-    statisticsJson?: Record<string, any> | string | null;
-    conflictAlertsJson?: any[] | string | null;
-    comparisonDataJson?: any | string | null;
+    parametersJson?: Record<string, unknown> | string | null;
+    generatedPlanningData?: unknown | null;
+    statisticsJson?: Record<string, unknown> | string | null;
+    conflictAlertsJson?: unknown[] | string | null;
+    comparisonDataJson?: unknown | string | null;
     errorMessage?: string | null;
     scenarioName?: string;
     scenarioDescription?: string;
@@ -94,17 +94,17 @@ export default function SimulationResultPage() {
     const [showApplyModal, setShowApplyModal] = useState(false);
 
     // Ajouter la fonction handleFilterChange avant le return du composant principal
-    const [filteredData, setFilteredData] = useState(result);
+    const [, setFilteredData] = useState(result);
 
     const handleFilterChange = (filters: FilterState) => {
-        console.log('Nouveaux filtres appliqués:', filters);
+        // console.log('Nouveaux filtres appliqués:', filters);
         // Implémenter la logique de filtrage des données
         // Cette fonction sera appelée chaque fois que les filtres sont modifiés
 
         // Exemple simplifié de filtrage
         if (!result) return;
 
-        let filtered = { ...result };
+        const filtered = { ...result };
 
         // Filtrer par période
         if (filters.dateRange?.from) {
@@ -142,7 +142,7 @@ export default function SimulationResultPage() {
         }, 5000);
 
         setRefreshInterval(interval);
-    }, [refreshInterval]);
+    }, [refreshInterval, fetchResultData]);
 
     // Fonction pour arrêter l'auto-refresh
     const stopAutoRefresh = useCallback(() => {
@@ -188,9 +188,10 @@ export default function SimulationResultPage() {
                     startAutoRefresh();
                 }
             }
-        } catch (err: any) {
-            setError(err.message);
-            toast.error("Erreur lors du chargement des résultats: " + err.message);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+            setError(errorMessage);
+            toast.error("Erreur lors du chargement des résultats: " + errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -301,7 +302,7 @@ export default function SimulationResultPage() {
                     // Créer un objet pour agréger les données par utilisateur
                     const userMap: Record<string, UserAssignment> = {};
 
-                    planningData.assignments.forEach((assignment: any) => {
+                    planningData.assignments.forEach((assignment: { userId: string; userName?: string; [key: string]: unknown }) => {
                         if (!userMap[assignment.userId]) {
                             userMap[assignment.userId] = {
                                 userId: assignment.userId,
@@ -347,13 +348,13 @@ export default function SimulationResultPage() {
                 clearInterval(refreshInterval);
             }
         };
-    }, [result?.status, startAutoRefresh, stopAutoRefresh, refreshInterval]);
+    }, [result, startAutoRefresh, stopAutoRefresh, refreshInterval]);
 
     useEffect(() => {
         fetchResultData();
     }, [fetchResultData]);
 
-    const renderRawJsonData = (jsonData: any, title: string) => {
+    const renderRawJsonData = (jsonData: unknown, title: string) => {
         if (!jsonData) return <p className="text-sm text-gray-500">Aucune donnée disponible.</p>;
         let dataToDisplay = jsonData;
         if (typeof jsonData === 'string') {

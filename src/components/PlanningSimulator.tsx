@@ -102,7 +102,7 @@ const simulationPresets = [
         name: 'Optimisation maximale',
         description: 'Recherche approfondie pour trouver la meilleure solution possible',
         parameterOverrides: {
-            niveauOptimisation: 'approfondi' as 'approfondi',
+            niveauOptimisation: 'approfondi' as const,
             poidsEquite: 0.6,
             poidsPreference: 0.6,
             poidsQualiteVie: 0.6

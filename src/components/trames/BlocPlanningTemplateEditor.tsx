@@ -182,7 +182,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                     // Logique de conversion initiale (sera affinée avec la modale)
                     // Ceci est une conversion basique pour faire fonctionner le typage.
                     // Le typeActivite, nomAffichage, etc. devront être déterminés plus intelligemment.
-                    let typeActivite: ActivityType = ActivityType.BLOC_SALLE; // Par défaut
+                    const typeActivite: ActivityType = ActivityType.BLOC_SALLE; // Par défaut
                     let nomAffichage = `Salle ${affDto.salleId || 'N/A'}`;
                     if (affDto.chirurgienId) nomAffichage += ` / Chir ${affDto.chirurgienId}`;
 

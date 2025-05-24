@@ -702,17 +702,35 @@ const SectorsConfigPanel: React.FC = () => {
         setError(null);
 
         try {
-            const payload = Object.entries(sectorOrder.orderedSectorIdsBySite).map(([siteId, sectorIds]) => ({
-                siteId: siteId,
-                orderedSectorIds: sectorIds
-            }));
-            console.log("Payload for /api/sectors/reorder-by-site:", payload);
+            // Filtrer les sites inexistants avant envoi
+            const validSiteIds = new Set(sites.map(site => site.id));
+            validSiteIds.add('null'); // Ajouter 'null' pour les secteurs non assignés
+
+            const payload = Object.entries(sectorOrder.orderedSectorIdsBySite)
+                .filter(([siteId, _]) => validSiteIds.has(siteId))
+                .map(([siteId, sectorIds]) => ({
+                    siteId: siteId,
+                    orderedSectorIds: sectorIds
+                }));
+
+            console.log("Sites valides:", Array.from(validSiteIds));
+            console.log("Payload filtré for /api/sectors/reorder-by-site:", payload);
 
             const response = await axios.post('/api/sectors/reorder-by-site', { sitesOrder: payload });
 
             if (response.status === 200) {
                 setSaveMessage('');
                 toast.success('Ordre des secteurs sauvegardé avec succès');
+
+                // Nettoyer l'ordre local pour supprimer les sites inexistants
+                const cleanedOrderConfig = {
+                    orderedSectorIdsBySite: Object.fromEntries(
+                        payload.map(item => [item.siteId, item.orderedSectorIds])
+                    )
+                };
+                setSectorOrder(cleanedOrderConfig);
+                saveSectorOrderToStorage(cleanedOrderConfig);
+                console.log("Ordre local nettoyé:", cleanedOrderConfig);
             } else {
                 throw new Error(response.data.error || "Erreur inconnue lors de la sauvegarde de l'ordre");
             }

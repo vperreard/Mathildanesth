@@ -2,14 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import Button from '@/components/ui/button';
+import Input from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/components/ui/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { RefreshCw, Trash, Database, Key, AlertTriangle } from 'lucide-react';
+import { getClientAuthToken } from '@/lib/auth-client-utils';
 
 // Types pour les statistiques du cache
 interface CacheStats {
@@ -62,10 +63,16 @@ export default function CacheStatsPanel() {
     const fetchStats = async () => {
         setLoading(true);
         try {
+            const token = getClientAuthToken();
+
+            if (!token) {
+                throw new Error('Authentification requise');
+            }
+
             const response = await fetch('/api/cache-stats', {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -93,6 +100,12 @@ export default function CacheStatsPanel() {
     const invalidateCache = async (action: 'invalidateAll' | 'invalidateModel' | 'invalidateKey') => {
         setLoading(true);
         try {
+            const token = getClientAuthToken();
+
+            if (!token) {
+                throw new Error('Authentification requise');
+            }
+
             const payload: Record<string, string> = { action };
 
             if (action === 'invalidateModel' && modelName) {
@@ -104,7 +117,7 @@ export default function CacheStatsPanel() {
             const response = await fetch('/api/cache-stats', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)

@@ -7,22 +7,16 @@ import { fr } from 'date-fns/locale';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/hooks/useAuth';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-    Calendar,
     Clock,
     CheckCircle,
     XCircle,
     Search,
     Filter,
     ChevronDown,
-    AlertCircle,
     FileText,
-    User,
     Calendar as CalendarIcon,
-    ChevronLeft,
-    ChevronRight,
     X as XIcon
 } from 'lucide-react';
 
@@ -49,10 +43,9 @@ interface LeaveRequest {
 export default function AdminLeavesPage() {
     const [requests, setRequests] = useState<LeaveRequest[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedFilter, setSelectedFilter] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilters, setStatusFilters] = useState<string[]>(['PENDING', 'APPROVED']);
-    const [typeFilters, setTypeFilters] = useState<string[]>([]);
+    const [typeFilters] = useState<string[]>([]);
     const [types, setTypes] = useState<string[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
@@ -77,13 +70,13 @@ export default function AdminLeavesPage() {
     useEffect(() => {
         fetchRequests();
         fetchLeaveTypes();
-    }, [statusFilters, typeFilters]);
+    }, [statusFilters, typeFilters]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const fetchRequests = async () => {
         try {
             setLoading(true);
             // Modification: utiliser un objet params au lieu de URLSearchParams
-            const params: Record<string, any> = {};
+            const params: Record<string, string | string[]> = {};
 
             // Si des statuts sont sélectionnés, les ajouter sous forme de tableau
             if (statusFilters.length > 0 && statusFilters.length < 4) {
@@ -124,15 +117,6 @@ export default function AdminLeavesPage() {
         });
     };
 
-    const handleTypeFilterChange = (type: string) => {
-        setTypeFilters(prev => {
-            if (prev.includes(type)) {
-                return prev.filter(t => t !== type);
-            } else {
-                return [...prev, type];
-            }
-        });
-    };
 
     const handleApprove = async (id: string) => {
         try {
@@ -248,11 +232,6 @@ export default function AdminLeavesPage() {
         cancelled: requests.filter(r => r.status === 'CANCELLED').length,
     };
 
-    // Animation variants
-    const fadeIn = {
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { duration: 0.4 } }
-    };
 
     if (!mounted || authLoading) {
         return (

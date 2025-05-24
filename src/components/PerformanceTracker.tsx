@@ -18,12 +18,53 @@ export function PerformanceTracker() {
     // Monitoring des erreurs
     useEffect(() => {
         const handleError = (event: ErrorEvent) => {
+            // Filtrer les erreurs de toast connues pour éviter de polluer la console
+            if (event.error &&
+                event.error.message &&
+                event.error.message.includes("Cannot set properties of undefined (setting 'removalReason')")) {
+                // Erreur connue de react-toastify, on l'ignore
+                event.preventDefault();
+                return;
+            }
+
             console.error('[Performance] Erreur détectée:', event.error);
             // On pourrait ajouter ici un enregistrement des erreurs dans le contexte de performance
         };
 
+        const handleKeydown = (event: KeyboardEvent) => {
+            // Raccourci Ctrl+Shift+X (ou Cmd+Shift+X sur Mac) pour fermer tous les toasts
+            if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'X') {
+                try {
+                    // Importer dynamiquement toast pour éviter les erreurs SSR
+                    import('react-toastify').then(({ toast }) => {
+                        toast.dismiss();
+                        console.log('[Performance] Tous les toasts fermés via raccourci clavier');
+                    });
+
+                    // Nettoyer le DOM des toasts orphelins
+                    const toastElements = document.querySelectorAll('[class*="Toastify"], [class*="toast"]');
+                    toastElements.forEach(el => {
+                        try {
+                            el.remove();
+                        } catch (e) {
+                            // Ignorer les erreurs de suppression
+                        }
+                    });
+
+                    event.preventDefault();
+                } catch (error) {
+                    console.error('[Performance] Erreur lors de la fermeture des toasts:', error);
+                }
+            }
+        };
+
         window.addEventListener('error', handleError);
-        return () => window.removeEventListener('error', handleError);
+        window.addEventListener('keydown', handleKeydown);
+
+        return () => {
+            window.removeEventListener('error', handleError);
+            window.removeEventListener('keydown', handleKeydown);
+        };
     }, []);
 
     // Monitoring des ressources lentes

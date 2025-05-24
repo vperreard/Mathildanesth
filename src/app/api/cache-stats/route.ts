@@ -31,7 +31,7 @@ async function authorizeAdminRequest(req: NextRequest) {
         }
 
         // Vérifier si l'utilisateur est administrateur
-        const isAdmin = decoded.role === 'ADMIN_TOTAL';
+        const isAdmin = decoded.role === 'ADMIN_TOTAL' || decoded.role === 'ADMIN_PARTIEL';
         if (!isAdmin) {
             return { error: 'Permissions insuffisantes. Accès réservé aux administrateurs.', status: 403, userId: String(userId), isAdmin: false };
         }

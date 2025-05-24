@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RuleList } from '@/modules/dynamicRules/components/RuleList';
 
 export default function ScheduleRulesPage() {
     const router = useRouter();
@@ -26,7 +25,6 @@ export default function ScheduleRulesPage() {
 
     const {
         rules,
-        loading,
         error,
         updateRule,
         deleteRule

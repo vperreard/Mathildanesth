@@ -465,7 +465,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         setIsSaving(true);
         try {
             const affectationIdToRemove = editingCellInfo.affectation.id;
-            let newAffectations = (selectedTrame.affectations || []).filter(
+            const newAffectations = (selectedTrame.affectations || []).filter(
                 aff => aff.id !== affectationIdToRemove
             );
 

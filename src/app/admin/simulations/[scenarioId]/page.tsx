@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeftIcon, Calendar, Clock, Loader2, Play, Eye, PencilIcon, Settings, BarChart2, Filter, Download } from 'lucide-react';
+import { ArrowLeftIcon, Calendar, Clock, Loader2, Play, Eye, PencilIcon, Filter, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -44,7 +44,7 @@ interface SimulationScenario {
         name: string;
     };
     results?: SimulationResult[];
-    parametersJson: any;
+    parametersJson: Record<string, unknown>;
 }
 
 export default function ScenarioDetailsPage({ params }: { params: { scenarioId: string } }) {
@@ -77,9 +77,10 @@ export default function ScenarioDetailsPage({ params }: { params: { scenarioId: 
                 }
                 const data = await response.json();
                 setScenario(data.data);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Erreur lors du chargement du scénario:', err);
-                setError(err.message || 'Erreur inconnue');
+                const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+                setError(errorMessage);
             } finally {
                 setIsLoading(false);
             }
@@ -123,9 +124,10 @@ export default function ScenarioDetailsPage({ params }: { params: { scenarioId: 
                     ]
                 });
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Erreur lors du démarrage de la simulation:', err);
-            toast.error(err.message || 'Erreur lors du démarrage de la simulation');
+            const errorMessage = err instanceof Error ? err.message : 'Erreur lors du démarrage de la simulation';
+            toast.error(errorMessage);
         } finally {
             setIsRunning(false);
         }

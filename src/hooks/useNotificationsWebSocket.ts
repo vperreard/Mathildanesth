@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/hooks/useAuth';
+import { getClientAuthToken } from '@/lib/auth-client-utils';
 
 // Interface pour les notifications retournées par l'API
 export interface Notification {
@@ -38,7 +39,7 @@ interface UseNotificationsOptions {
  * Hook pour gérer les WebSockets de notifications en temps réel
  */
 export function useNotificationsWebSocket(options: UseNotificationsOptions = {}) {
-    const { data: session } = useSession();
+    const { user, isAuthenticated } = useAuth();
     const [socket, setSocket] = useState<Socket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -55,7 +56,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
 
     // Chargement initial des notifications
     const fetchNotifications = useCallback(async (limit = 10) => {
-        if (!session?.user?.id) return;
+        if (!user?.id || !isAuthenticated) return;
 
         setIsLoading(true);
         try {
@@ -71,11 +72,11 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
         } finally {
             setIsLoading(false);
         }
-    }, [session?.user?.id]);
+    }, [user?.id, isAuthenticated]);
 
     // Marquer une notification comme lue
     const markAsRead = useCallback(async (notificationId: string) => {
-        if (!session?.user?.id) return;
+        if (!user?.id) return;
 
         try {
             const response = await fetch('/api/notifications/mark-as-read', {
@@ -100,11 +101,11 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
         } catch (err) {
             console.error('Erreur lors du marquage de la notification:', err);
         }
-    }, [session?.user?.id]);
+    }, [user?.id]);
 
     // Marquer toutes les notifications comme lues
     const markAllAsRead = useCallback(async () => {
-        if (!session?.user?.id) return;
+        if (!user?.id) return;
 
         try {
             const response = await fetch('/api/notifications/mark-as-read', {
@@ -123,21 +124,34 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
         } catch (err) {
             console.error('Erreur lors du marquage de toutes les notifications:', err);
         }
-    }, [session?.user?.id]);
+    }, [user?.id]);
 
     // Configuration de la connexion WebSocket
     useEffect(() => {
-        if (!session?.user?.id || !autoConnect) return;
+        if (!user?.id || !autoConnect || !isAuthenticated) return;
+
+        // Désactiver temporairement les WebSockets en développement
+        if (process.env.NODE_ENV === 'development') {
+            console.log('[WebSocket] Désactivé en développement - serveur Socket.IO non configuré');
+            // Charger quand même les notifications via API REST
+            fetchNotifications();
+            return;
+        }
+
+        const token = getClientAuthToken();
+        if (!token) {
+            console.log('Pas de token d\'authentification, WebSocket non initialisé');
+            return;
+        }
 
         // Initialiser la connexion socket
-        const socketInstance = io({
-            path: '/api/ws',
+        const socketInstance = io('/api/ws', {
             autoConnect: true,
             reconnectionAttempts,
             reconnectionDelay,
             auth: {
-                userId: session.user.id,
-                token: session.user.accessToken || '',
+                userId: user.id,
+                token: token,
             },
         });
 
@@ -147,7 +161,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
             setIsConnected(true);
 
             // Rejoindre la room spécifique à l'utilisateur
-            socketInstance.emit('join_room', `user_${session.user.id}`);
+            socketInstance.emit('join_room', `user_${user.id}`);
         });
 
         socketInstance.on('disconnect', () => {
@@ -155,7 +169,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
             setIsConnected(false);
         });
 
-        socketInstance.on('connect_error', (err) => {
+        socketInstance.on('connect_error', (err: Error) => {
             console.error('WebSocket connection error:', err);
             setError(new Error(`Erreur de connexion: ${err.message}`));
         });
@@ -195,7 +209,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
             socketInstance.off('notifications_read_update');
             socketInstance.disconnect();
         };
-    }, [session?.user?.id, autoConnect, reconnectionAttempts, reconnectionDelay, fetchNotifications]);
+    }, [user?.id, autoConnect, isAuthenticated, reconnectionAttempts, reconnectionDelay, fetchNotifications]);
 
     // Méthode pour se connecter manuellement
     const connect = useCallback(() => {

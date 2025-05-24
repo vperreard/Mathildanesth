@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
         const type = searchParams.get('type');
 
         // Construire les filtres
-        let where: any = {};
+        const where: any = {};
 
         if (active === 'true') {
             where.isActive = true;

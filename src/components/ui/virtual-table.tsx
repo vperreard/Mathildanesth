@@ -47,7 +47,7 @@ export function VirtualTable<TData, TValue>({
     searchKey,
     pagination = true,
     pageSize = 10,
-    height = 400,
+    height = 300,
     rowHeight = 40,
     estimateSize = true,
     overscan = 10,
@@ -87,9 +87,9 @@ export function VirtualTable<TData, TValue>({
     })
 
     return (
-        <div>
+        <div className="space-y-4">
             {searchKey && (
-                <div className="flex items-center py-4">
+                <div className="flex items-center">
                     <Input
                         placeholder="Rechercher..."
                         value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
@@ -100,19 +100,16 @@ export function VirtualTable<TData, TValue>({
                     />
                 </div>
             )}
-            <div className="rounded-md border">
-                <div
-                    ref={tableContainerRef}
-                    className="w-full overflow-auto"
-                    style={{ height }}
-                >
+            <div className="rounded-md border bg-white overflow-hidden">
+                {/* En-tête fixe */}
+                <div className="border-b bg-gray-50">
                     <Table>
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
                                     {headerGroup.headers.map((header) => {
                                         return (
-                                            <TableHead key={header.id}>
+                                            <TableHead key={header.id} className="bg-gray-50">
                                                 {header.isPlaceholder
                                                     ? null
                                                     : flexRender(
@@ -125,46 +122,61 @@ export function VirtualTable<TData, TValue>({
                                 </TableRow>
                             ))}
                         </TableHeader>
-                        <TableBody>
-                            {/* Placeholder pour la hauteur virtualisée */}
-                            <tr style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-                                <td style={{ padding: 0 }} colSpan={columns.length}>
-                                    {/* Container virtualisé pour les lignes visibles uniquement */}
-                                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                                        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                                            const row = rows[virtualRow.index]
-                                            return (
-                                                <TableRow
-                                                    key={row.id}
-                                                    data-state={row.getIsSelected() && "selected"}
-                                                    style={{
-                                                        position: 'absolute',
-                                                        top: 0,
-                                                        left: 0,
-                                                        width: '100%',
-                                                        transform: `translateY(${virtualRow.start}px)`,
-                                                    }}
-                                                >
+                    </Table>
+                </div>
+
+                {/* Corps scrollable */}
+                <div
+                    ref={tableContainerRef}
+                    className="overflow-auto"
+                    style={{
+                        height: data.length > 0 ? Math.min(height, Math.max(200, (rows.length * rowHeight) + 20)) : 200,
+                        maxHeight: '60vh'
+                    }}
+                >
+                    {rows.length === 0 ? (
+                        <div className="flex items-center justify-center h-32">
+                            <p className="text-gray-500">Aucun résultat.</p>
+                        </div>
+                    ) : (
+                        <div
+                            style={{
+                                height: `${rowVirtualizer.getTotalSize()}px`,
+                                position: 'relative',
+                                width: '100%'
+                            }}
+                        >
+                            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                                const row = rows[virtualRow.index]
+                                return (
+                                    <div
+                                        key={row.id}
+                                        className="flex items-center hover:bg-gray-50/50 border-b last:border-b-0"
+                                        style={{
+                                            position: 'absolute',
+                                            top: `${virtualRow.start}px`,
+                                            left: 0,
+                                            width: '100%',
+                                            height: `${virtualRow.size}px`,
+                                            display: 'flex'
+                                        }}
+                                    >
+                                        <Table>
+                                            <TableBody>
+                                                <TableRow className="hover:bg-transparent border-0">
                                                     {row.getVisibleCells().map((cell) => (
-                                                        <TableCell key={cell.id}>
+                                                        <TableCell key={cell.id} className="py-3">
                                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                         </TableCell>
                                                     ))}
                                                 </TableRow>
-                                            )
-                                        })}
+                                            </TableBody>
+                                        </Table>
                                     </div>
-                                </td>
-                            </tr>
-                            {rows.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                                        Aucun résultat.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                                )
+                            })}
+                        </div>
+                    )}
                 </div>
             </div>
             {pagination && (

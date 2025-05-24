@@ -66,7 +66,7 @@ export function calculateCountedDays(
 
     // Logique pour les jours pleins (ou si demi-journée ignorée)
     let count = 0;
-    let currentDate = new Date(sDate);
+    const currentDate = new Date(sDate);
 
     while (currentDate <= eDate) {
         const currentDateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;

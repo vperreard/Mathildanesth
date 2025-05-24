@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { memo } from 'react';
 import AdminRequestsBanner from './AdminRequestsBanner';
 import Navigation from './navigation/Navigation';
@@ -23,8 +23,14 @@ const fadeIn = {
 const Header = memo(function Header() {
     const { user, isLoading, logout } = useAuth();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
     const { theme } = useTheme();
     const { preferences } = useAppearance();
+
+    // Éviter les problèmes d'hydratation
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     // Déterminer si l'utilisateur est un admin (total ou partiel)
     const isAdmin = Boolean(user && (user.role === 'ADMIN_TOTAL' || user.role === 'ADMIN_PARTIEL'));
@@ -110,7 +116,7 @@ const Header = memo(function Header() {
                                 aria-label="Profil utilisateur et options"
                             >
                                 <ThemeSwitcher />
-                                {isLoading ? (
+                                {!isMounted || isLoading ? (
                                     <div className="h-8 w-20 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" aria-label="Chargement du profil" role="status"></div>
                                 ) : user ? (
                                     <>

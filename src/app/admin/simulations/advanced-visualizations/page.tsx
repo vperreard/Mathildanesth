@@ -2,12 +2,10 @@
 
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import { ArrowLeft, RefreshCw, DownloadIcon, BarChart4Icon, Network } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import HeatMapChart from '@/components/ui/HeatMapChart';
@@ -47,7 +45,7 @@ ErrorDisplay.displayName = 'ErrorDisplay';
 
 // Mémoïsation du composant de diagramme de chaleur
 const HeatMapTab = memo(({ data, selectedMetric, selectedView }: {
-    data: any,
+    data: unknown,
     selectedMetric: string,
     selectedView: string,
     onExport: (format: 'png' | 'svg' | 'csv') => void
@@ -60,7 +58,7 @@ const HeatMapTab = memo(({ data, selectedMetric, selectedView }: {
                     <div className="flex items-center gap-2">
                         <Select value={selectedMetric} onValueChange={value => {
                             // Cette prop sera passée par le parent
-                            (window as any).setSelectedMetric?.(value);
+                            (window as { setSelectedMetric?: (value: string) => void }).setSelectedMetric?.(value);
                         }}>
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Sélectionner une métrique" />
@@ -73,7 +71,7 @@ const HeatMapTab = memo(({ data, selectedMetric, selectedView }: {
                         </Select>
                         <Select value={selectedView} onValueChange={value => {
                             // Cette prop sera passée par le parent
-                            (window as any).setSelectedView?.(value);
+                            (window as { setSelectedView?: (value: string) => void }).setSelectedView?.(value);
                         }}>
                             <SelectTrigger className="w-[150px]">
                                 <SelectValue placeholder="Vue" />
@@ -158,7 +156,7 @@ HeatMapTab.displayName = 'HeatMapTab';
 
 // Mémoïsation du composant de diagramme Sankey
 const SankeyTab = memo(({ data, selectedDepth, onExport }: {
-    data: any,
+    data: unknown,
     selectedDepth: string,
     onExport: (format: 'png' | 'svg' | 'csv') => void
 }) => (
@@ -169,7 +167,7 @@ const SankeyTab = memo(({ data, selectedDepth, onExport }: {
                     <CardTitle>Diagramme de Flux</CardTitle>
                     <Select value={selectedDepth} onValueChange={value => {
                         // Cette prop sera passée par le parent
-                        (window as any).setSelectedDepth?.(value);
+                        (window as { setSelectedDepth?: (value: string) => void }).setSelectedDepth?.(value);
                     }}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Niveau de détail" />
@@ -220,20 +218,19 @@ export default function AdvancedVisualizationsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const resultId = searchParams?.get('resultId');
-    const scenarioId = searchParams?.get('scenarioId');
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [resultData, setResultData] = useState<any>(null);
+    const [resultData, setResultData] = useState<unknown>(null);
     const [activeTab, setActiveTab] = useState('heatmap');
     const [selectedMetric, setSelectedMetric] = useState('staffing');
     const [selectedView, setSelectedView] = useState('daily');
     const [selectedDepth, setSelectedDepth] = useState('departments');
 
     // Exposer les setters pour les composants mémoïsés
-    (window as any).setSelectedMetric = setSelectedMetric;
-    (window as any).setSelectedView = setSelectedView;
-    (window as any).setSelectedDepth = setSelectedDepth;
+    (window as { setSelectedMetric?: typeof setSelectedMetric; setSelectedView?: typeof setSelectedView; setSelectedDepth?: typeof setSelectedDepth }).setSelectedMetric = setSelectedMetric;
+    (window as { setSelectedMetric?: typeof setSelectedMetric; setSelectedView?: typeof setSelectedView; setSelectedDepth?: typeof setSelectedDepth }).setSelectedView = setSelectedView;
+    (window as { setSelectedMetric?: typeof setSelectedMetric; setSelectedView?: typeof setSelectedView; setSelectedDepth?: typeof setSelectedDepth }).setSelectedDepth = setSelectedDepth;
 
     // Mémoïsation de la fonction de génération de données de démonstration
     const generateDemoData = useCallback(() => {
@@ -264,7 +261,7 @@ export default function AdvancedVisualizationsPage() {
     }, []);
 
     // Mémoïsation du traitement des données
-    const processResultData = useCallback((data: any) => {
+    const processResultData = useCallback(() => {
         // Dans une implémentation réelle, on traiterait ici les données
         // Pour l'instant, on retourne les données de démonstration
         return generateDemoData();

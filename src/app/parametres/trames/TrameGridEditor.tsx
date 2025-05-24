@@ -8,9 +8,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Button from '@/components/ui/button';
-import { PlusIcon, RefreshCcw, AlertCircle } from 'lucide-react';
+import { PlusIcon, RefreshCcw, AlertCircle, Settings } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'react-toastify';
+import { Badge } from '@/components/ui/badge';
 
 // Import du modal de création
 const NewTrameModal = dynamic(() => import('@/components/trames/grid-view/NewTrameModal'), { ssr: false });
@@ -23,6 +25,47 @@ const TrameGridView = dynamic(
 
 // Importer uniquement les types
 import type { TrameModele, AffectationModele } from '@/components/trames/grid-view/TrameGridView';
+
+// Utilitaire pour des toasts plus sûrs
+const safeToast = {
+    success: (message: string) => {
+        try {
+            // Supprimer les toasts précédents pour éviter les conflits
+            toast.dismiss();
+            setTimeout(() => {
+                toast.success(message, {
+                    toastId: `success-${Date.now()}`, // ID unique
+                    position: "top-right",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+            }, 100);
+        } catch (error) {
+            console.error('Erreur lors de l\'affichage du toast:', error);
+        }
+    },
+    error: (message: string) => {
+        try {
+            toast.dismiss();
+            setTimeout(() => {
+                toast.error(message, {
+                    toastId: `error-${Date.now()}`,
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+            }, 100);
+        } catch (error) {
+            console.error('Erreur lors de l\'affichage du toast d\'erreur:', error);
+        }
+    }
+};
 
 // Interfaces pour les salles et secteurs
 interface OperatingRoom {
@@ -46,11 +89,15 @@ interface OperatingSector {
 
 // Fonction pour convertir les données du back-end vers le format attendu par TrameGridView
 const mapTrameFromApi = (apiTrame: any): TrameModele => {
+    console.log('[MAPPING] API Trame before mapping:', apiTrame);
+
     // Mapping du type de semaine
     let weekType: 'ALL' | 'EVEN' | 'ODD' = 'ALL';
     if (apiTrame.typeSemaine === 'PAIRES') weekType = 'EVEN';
     if (apiTrame.typeSemaine === 'IMPAIRES') weekType = 'ODD';
     if (apiTrame.typeSemaine === 'TOUTES') weekType = 'ALL';
+
+    console.log(`[MAPPING] typeSemaine "${apiTrame.typeSemaine}" mapped to weekType "${weekType}"`);
 
     // Mapping des affectations
     const affectations: AffectationModele[] = apiTrame.affectations?.map((aff: any) => {
@@ -82,18 +129,20 @@ const mapTrameFromApi = (apiTrame: any): TrameModele => {
         };
     }) || [];
 
-    // Convertir l'objet trame
-    return {
+    const mappedTrame: TrameModele = {
         id: apiTrame.id.toString(),
         name: apiTrame.name,
-        description: apiTrame.description || undefined,
-        siteId: apiTrame.siteId || 'default',
+        description: apiTrame.description,
+        siteId: apiTrame.siteId,
         weekType: weekType,
-        activeDays: apiTrame.joursSemaineActifs,
+        activeDays: apiTrame.joursSemaineActifs || [1, 2, 3, 4, 5],
         effectiveStartDate: new Date(apiTrame.dateDebutEffet),
         effectiveEndDate: apiTrame.dateFinEffet ? new Date(apiTrame.dateFinEffet) : undefined,
         affectations: affectations
     };
+
+    console.log('[MAPPING] Final mapped TrameModele:', mappedTrame);
+    return mappedTrame;
 };
 
 // Fonction pour mapper les rôles depuis l'API
@@ -117,6 +166,28 @@ const mapWeekTypeFromApi = (typeSemaine: string): 'ALL' | 'EVEN' | 'ODD' => {
     }
 };
 
+// Fonction pour mapper de TrameModele vers le format API
+const mapTrameToApi = (trame: TrameModele): any => {
+    // Mapping inverse du type de semaine
+    let typeSemaine: 'TOUTES' | 'PAIRES' | 'IMPAIRES' = 'TOUTES';
+    if (trame.weekType === 'EVEN') typeSemaine = 'PAIRES';
+    if (trame.weekType === 'ODD') typeSemaine = 'IMPAIRES';
+    if (trame.weekType === 'ALL') typeSemaine = 'TOUTES';
+
+    return {
+        name: trame.name,
+        description: trame.description,
+        siteId: trame.siteId,
+        isActive: true,
+        dateDebutEffet: trame.effectiveStartDate,
+        dateFinEffet: trame.effectiveEndDate,
+        recurrenceType: 'HEBDOMADAIRE',
+        joursSemaineActifs: trame.activeDays,
+        typeSemaine: typeSemaine,
+        roles: ['TOUS']
+    };
+};
+
 const TrameGridEditor: React.FC = () => {
     const { user } = useAuth();
     const [trames, setTrames] = useState<TrameModele[]>([]);
@@ -128,24 +199,28 @@ const TrameGridEditor: React.FC = () => {
     const [rooms, setRooms] = useState<OperatingRoom[]>([]);
     const [sectors, setSectors] = useState<OperatingSector[]>([]);
     const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [trameToEdit, setTrameToEdit] = useState<TrameModele | null>(null);
 
     const fetchTrames = async () => {
+        setIsLoading(true);
+        setError(null);
         try {
-            setIsLoading(true);
-            setError(null);
-
             const response = await axios.get('/api/trame-modeles?includeAffectations=true');
 
             if (response.status === 200) {
-                setTrames(response.data);
+                // Mapper les données de l'API au format attendu par TrameGridView
+                const mappedTrames = response.data.map(mapTrameFromApi);
+                setTrames(mappedTrames);
 
                 // Sélectionner la première trame par défaut s'il y en a
-                if (response.data.length > 0 && !selectedTrameId) {
-                    setSelectedTrameId(response.data[0].id);
+                if (mappedTrames.length > 0 && !selectedTrameId) {
+                    setSelectedTrameId(mappedTrames[0].id);
 
                     // Si la trame a un siteId, on le sélectionne pour charger les salles/secteurs
-                    if (response.data[0].siteId) {
-                        setSelectedSiteId(response.data[0].siteId);
+                    if (mappedTrames[0].siteId) {
+                        setSelectedSiteId(mappedTrames[0].siteId);
                     }
                 }
             }
@@ -173,21 +248,42 @@ const TrameGridEditor: React.FC = () => {
         }
     };
 
-    const fetchRoomsAndSectors = async (siteId: string) => {
+    const fetchRoomsAndSectors = async (siteId: string | null) => {
         try {
-            // Charger les secteurs pour ce site
-            const sectorsResponse = await axios.get(`/api/operating-sectors?siteId=${siteId}`);
-            if (sectorsResponse.status === 200) {
-                setSectors(sectorsResponse.data);
-            }
+            setIsRefreshing(true);
 
-            // Charger les salles associées à ce site
-            const roomsResponse = await axios.get(`/api/operating-rooms?siteId=${siteId}`);
-            if (roomsResponse.status === 200) {
-                setRooms(roomsResponse.data);
+            if (siteId) {
+                // Charger les secteurs pour ce site spécifique
+                const sectorsResponse = await axios.get(`/api/operating-sectors?siteId=${siteId}`);
+                if (sectorsResponse.status === 200) {
+                    setSectors(sectorsResponse.data);
+                }
+
+                // Charger les salles associées à ce site
+                const roomsResponse = await axios.get(`/api/operating-rooms?siteId=${siteId}`);
+                if (roomsResponse.status === 200) {
+                    setRooms(roomsResponse.data);
+                }
+            } else {
+                // Trame globale (siteId null) : charger tous les secteurs et salles
+                console.log("📍 Trame globale détectée - chargement de tous les secteurs et salles");
+
+                const sectorsResponse = await axios.get('/api/operating-sectors');
+                if (sectorsResponse.status === 200) {
+                    setSectors(sectorsResponse.data);
+                    console.log(`📍 Secteurs chargés: ${sectorsResponse.data.length} secteurs`);
+                }
+
+                const roomsResponse = await axios.get('/api/operating-rooms');
+                if (roomsResponse.status === 200) {
+                    setRooms(roomsResponse.data);
+                    console.log(`📍 Salles chargées: ${roomsResponse.data.length} salles`);
+                }
             }
         } catch (err) {
             console.error('Erreur lors du chargement des secteurs et salles:', err);
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
@@ -203,34 +299,57 @@ const TrameGridEditor: React.FC = () => {
 
     // Quand selectedSiteId change, charger les secteurs et salles
     useEffect(() => {
-        if (selectedSiteId) {
+        if (selectedSiteId !== undefined) {
             fetchRoomsAndSectors(selectedSiteId);
         }
     }, [selectedSiteId]);
 
-    // Quand selectedTrameId change, mettre à jour selectedSiteId si nécessaire
+    // Quand selectedTrameId change, mettre à jour selectedSiteId
     useEffect(() => {
         if (selectedTrameId) {
             const trame = trames.find(t => t.id === selectedTrameId);
-            if (trame && trame.siteId && trame.siteId !== selectedSiteId) {
-                setSelectedSiteId(trame.siteId);
+            if (trame) {
+                console.log(`📍 Sélection de la trame "${trame.name}" avec siteId: ${trame.siteId}`);
+
+                if (trame.siteId) {
+                    // Trame liée à un site spécifique : forcer ce site
+                    setSelectedSiteId(trame.siteId);
+                } else {
+                    // Trame globale : garder le site actuellement sélectionné ou mettre null (tous les sites)
+                    if (selectedSiteId === undefined) {
+                        setSelectedSiteId(null); // Par défaut : tous les sites
+                    }
+                    // Sinon on garde selectedSiteId tel qu'il est
+                }
             }
         }
     }, [selectedTrameId, trames]);
 
+    // Actualisation automatique des données quand on change de trame OU de site
+    useEffect(() => {
+        if (selectedTrameId && selectedSiteId !== undefined) {
+            console.log(`🔄 Actualisation automatique pour la trame ${selectedTrameId} (site: ${selectedSiteId || 'global'})`);
+            fetchRoomsAndSectors(selectedSiteId);
+        }
+    }, [selectedTrameId, selectedSiteId, trames, sites]);
+
     const handleTrameChange = async (updatedTrame: TrameModele) => {
         try {
-            // Mise à jour optimiste de l'UI
-            setTrames(prevTrames =>
-                prevTrames.map(trame =>
-                    trame.id === updatedTrame.id ? updatedTrame : trame
-                )
-            );
+            // Convertir au format API
+            const apiTrame = mapTrameToApi(updatedTrame);
 
             // Envoi au serveur
-            await axios.put(`/api/trame-modeles/${updatedTrame.id}`, updatedTrame);
+            const response = await axios.put(`/api/trame-modeles/${updatedTrame.id}`, apiTrame);
 
-            // Si tout va bien, on ne fait rien de plus car l'UI est déjà à jour
+            // Mapper la réponse de l'API et mettre à jour l'état
+            if (response.status === 200) {
+                const mappedUpdatedTrame = mapTrameFromApi(response.data);
+                setTrames(prevTrames =>
+                    prevTrames.map(trame =>
+                        trame.id === updatedTrame.id ? mappedUpdatedTrame : trame
+                    )
+                );
+            }
         } catch (err) {
             console.error('Erreur lors de la mise à jour de la trame:', err);
             setError("Erreur lors de la sauvegarde des modifications. Veuillez réessayer.");
@@ -241,7 +360,7 @@ const TrameGridEditor: React.FC = () => {
     };
 
     const handleCreateTrameSuccess = (newTrameId: string) => {
-        // Recharger les trames pour avoir les données complètes
+        // Recharger les trames pour avoir les données complètes avec mapping
         fetchTrames().then(() => {
             // Sélectionner la nouvelle trame
             setSelectedTrameId(newTrameId);
@@ -251,9 +370,24 @@ const TrameGridEditor: React.FC = () => {
 
     const handleRefresh = () => {
         fetchTrames();
-        if (selectedSiteId) {
+        if (selectedSiteId !== undefined) {
             fetchRoomsAndSectors(selectedSiteId);
         }
+    };
+
+    const handleEditTrame = (trame: TrameModele) => {
+        setTrameToEdit(trame);
+        setIsEditModalOpen(true);
+    };
+
+    const handleEditTrameSuccess = (updatedTrameId: string) => {
+        // Recharger les trames pour avoir les données mises à jour avec mapping
+        fetchTrames().then(() => {
+            // Garder la trame sélectionnée actuelle
+            setSelectedTrameId(updatedTrameId);
+        });
+        setIsEditModalOpen(false);
+        setTrameToEdit(null);
     };
 
     const selectedTrame = trames.find(trame => trame.id === selectedTrameId);
@@ -280,23 +414,88 @@ const TrameGridEditor: React.FC = () => {
                 <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                         <span className="text-sm font-medium">Sélectionner une trame:</span>
-                        <Select
-                            value={selectedTrameId || ''}
-                            onValueChange={(value) => setSelectedTrameId(value)}
-                            disabled={isLoading || trames.length === 0}
-                        >
-                            <SelectTrigger className="w-[240px]">
-                                <SelectValue placeholder="Sélectionner une trame" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {trames.map(trame => (
-                                    <SelectItem key={trame.id} value={trame.id}>
-                                        {trame.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="flex items-center space-x-2">
+                            <Select
+                                value={selectedTrameId || ''}
+                                onValueChange={(value) => setSelectedTrameId(value)}
+                                disabled={isLoading || trames.length === 0}
+                            >
+                                <SelectTrigger className="w-[280px]">
+                                    <SelectValue placeholder="Sélectionner une trame" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {trames.map(trame => {
+                                        const site = sites.find(s => s.id === trame.siteId);
+                                        return (
+                                            <SelectItem key={trame.id} value={trame.id}>
+                                                <div className="flex items-center gap-2">
+                                                    <span>{trame.name}</span>
+                                                    {trame.siteId ? (
+                                                        <Badge variant="secondary" className="text-xs">
+                                                            {site ? site.name : `Site ${trame.siteId}`}
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="outline" className="text-xs">Global</Badge>
+                                                    )}
+                                                </div>
+                                            </SelectItem>
+                                        );
+                                    })}
+                                </SelectContent>
+                            </Select>
+                            {isRefreshing && (
+                                <div className="flex items-center space-x-1 text-xs text-blue-600">
+                                    <RefreshCcw className="h-3 w-3 animate-spin" />
+                                    <span>Actualisation...</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
+
+                    {/* Indicateur permanent du site de la trame sélectionnée */}
+                    {selectedTrame && (
+                        <div className="flex items-center space-x-2 bg-blue-50 dark:bg-blue-950 px-3 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Site actuel:</span>
+                            {selectedTrame.siteId ? (
+                                <span className="text-xs font-semibold text-blue-800 dark:text-blue-200">
+                                    {sites.find(s => s.id === selectedTrame.siteId)?.name || `Site ${selectedTrame.siteId}`}
+                                </span>
+                            ) : (
+                                <span className="text-xs font-semibold text-blue-800 dark:text-blue-200">
+                                    Trame globale
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Sélecteur de site - affiché seulement pour les trames globales */}
+                    {selectedTrame && !selectedTrame.siteId && (
+                        <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium">Vue site:</span>
+                            <Select
+                                value={selectedSiteId || 'all'}
+                                onValueChange={(value) => setSelectedSiteId(value === 'all' ? null : value)}
+                                disabled={isLoading || sites.length === 0}
+                            >
+                                <SelectTrigger className="w-[200px]">
+                                    <SelectValue placeholder="Choisir un site" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">
+                                        <div className="flex items-center gap-2">
+                                            <span>Tous les sites</span>
+                                            <Badge variant="secondary" className="text-xs">Global</Badge>
+                                        </div>
+                                    </SelectItem>
+                                    {sites.map(site => (
+                                        <SelectItem key={site.id} value={site.id}>
+                                            {site.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
 
                     <Button
                         variant="outline"
@@ -306,6 +505,41 @@ const TrameGridEditor: React.FC = () => {
                     >
                         <RefreshCcw className="h-4 w-4 mr-2" /> Actualiser
                     </Button>
+
+                    {/* Bouton d'urgence pour fermer tous les toasts */}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                            try {
+                                // Fermer tous les toasts react-toastify
+                                toast.dismiss();
+                                // Également nettoyer le DOM des toasts orphelins
+                                const toastElements = document.querySelectorAll('[class*="Toastify"]');
+                                toastElements.forEach(el => el.remove());
+                                console.log('Tous les toasts ont été fermés');
+                            } catch (error) {
+                                console.error('Erreur lors de la fermeture des toasts:', error);
+                            }
+                        }}
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50 border-red-300"
+                        title="Fermer tous les toasts problématiques"
+                    >
+                        🚫 Fermer toasts
+                    </Button>
+
+                    {/* Bouton de modification de la trame sélectionnée */}
+                    {selectedTrame && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditTrame(selectedTrame)}
+                            disabled={isLoading}
+                            className="hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                        >
+                            <Settings className="h-4 w-4 mr-2" /> Modifier la trame
+                        </Button>
+                    )}
                 </div>
 
                 <Button
@@ -327,10 +561,13 @@ const TrameGridEditor: React.FC = () => {
                     {/* Affichage des trames */}
                     {selectedTrame ? (
                         <TrameGridView
+                            key={`${selectedTrame.id}-${rooms.length}-${sectors.length}`}
                             trame={selectedTrame}
                             onTrameChange={handleTrameChange}
                             rooms={rooms}
                             sectors={sectors}
+                            sites={sites}
+                            selectedSiteId={selectedSiteId}
                         />
                     ) : (
                         <Card>
@@ -364,8 +601,23 @@ const TrameGridEditor: React.FC = () => {
                     sites={sites}
                 />
             )}
+
+            {/* Modal de modification de trame */}
+            {isEditModalOpen && trameToEdit && (
+                <NewTrameModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => {
+                        setIsEditModalOpen(false);
+                        setTrameToEdit(null);
+                    }}
+                    onSuccess={handleEditTrameSuccess}
+                    sites={sites}
+                    initialTrame={trameToEdit}
+                    isEditMode={true}
+                />
+            )}
         </div>
     );
 };
 
-export default TrameGridEditor; 
+export default TrameGridEditor;

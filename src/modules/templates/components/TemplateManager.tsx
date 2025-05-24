@@ -23,12 +23,52 @@ import { useSession } from 'next-auth/react';
 import SimpleDropdownMenu from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
+// Importer le modal de création de trame unifié
+import dynamic from 'next/dynamic';
+
+// Import dynamique du NewTrameModal pour éviter les problèmes SSR
+const NewTrameModal = dynamic(() => import('@/components/trames/grid-view/NewTrameModal'), { ssr: false });
+
+// Import du type TrameModele pour la conversion
+import type { TrameModele } from '@/components/trames/grid-view/TrameGridView';
+
 export interface TemplateManagerProps {
     initialTemplatesParam?: PlanningTemplate[]; // Renommé pour éviter confusion avec l'état
     availableSitesParam: any[]; // Correction du type pour éviter l'erreur d'import
     availableActivityTypesParam: FullActivityType[];
     availableRolesParam: RoleType[];
 }
+
+// Fonction de conversion PlanningTemplate vers TrameModele
+const convertPlanningTemplateToTrameModele = (template: PlanningTemplate): TrameModele => {
+    return {
+        id: template.id?.toString() || '',
+        name: template.nom || '',
+        description: template.description || '',
+        siteId: template.siteId || '', // Utiliser le vrai siteId au lieu de 'default'
+        weekType: template.typeSemaine === 'PAIRES' ? 'EVEN' :
+            template.typeSemaine === 'IMPAIRES' ? 'ODD' : 'ALL',
+        activeDays: template.joursSemaineActifs || [1, 2, 3, 4, 5],
+        effectiveStartDate: template.dateDebutEffet instanceof Date ? template.dateDebutEffet :
+            template.dateDebutEffet ? new Date(template.dateDebutEffet) : new Date(),
+        effectiveEndDate: template.dateFinEffet instanceof Date ? template.dateFinEffet :
+            template.dateFinEffet ? new Date(template.dateFinEffet) : undefined,
+        affectations: [] // Pour l'instant, on ne convertit pas les affectations complexes
+    };
+};
+
+// Fonction de conversion TrameModele vers PlanningTemplate
+const convertTrameModeleToPartialPlanningTemplate = (trame: TrameModele): Partial<PlanningTemplate> => {
+    return {
+        nom: trame.name,
+        description: trame.description,
+        typeSemaine: trame.weekType === 'EVEN' ? 'PAIRES' :
+            trame.weekType === 'ODD' ? 'IMPAIRES' : 'TOUTES',
+        joursSemaineActifs: trame.activeDays,
+        dateDebutEffet: trame.effectiveStartDate,
+        dateFinEffet: trame.effectiveEndDate
+    };
+};
 
 export const TemplateManager: React.FC<TemplateManagerProps> = ({
     initialTemplatesParam = [],
@@ -47,6 +87,15 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     const [availableTypes, setAvailableTypes] = useState<FullActivityType[]>(availableActivityTypesParam);
     const [isMuiChildModalOpen, setIsMuiChildModalOpen] = useState<boolean>(false);
     const [saveProcessCompleted, setSaveProcessCompleted] = useState<boolean>(false);
+
+    // Nouveaux états pour le modal unifié
+    const [isNewTrameModalOpen, setIsNewTrameModalOpen] = useState<boolean>(false);
+    const [sites, setSites] = useState<Array<{ id: string; name: string; }>>([]);
+
+    // États pour l'édition avec le nouveau modal
+    const [isEditTrameModalOpen, setIsEditTrameModalOpen] = useState<boolean>(false);
+    const [trameToEdit, setTrameToEdit] = useState<TrameModele | null>(null);
+
     const router = useRouter();
     const pathname = usePathname();
 
@@ -140,10 +189,13 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     }, []);
 
     const loadTemplates = useCallback(async () => {
+        console.log('🚀🚀🚀 [DEBUG TemplateManager] LOAD TEMPLATES CALLED!!!');
         setIsLoading(true);
         setError(null);
         try {
+            console.log('📡📡📡 [DEBUG TemplateManager] Loading templates from templateService...');
             const fetchedTemplatesSource = await templateService.getTemplates();
+            console.log('📦📦📦 [DEBUG TemplateManager] Raw templates from service:', fetchedTemplatesSource);
 
             const sanitizedNewTemplates = fetchedTemplatesSource.map(template => ({
                 ...template,
@@ -151,11 +203,19 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 variations: Array.isArray(template.variations) ? template.variations : [],
             }));
 
+            console.log('🧹🧹🧹 [DEBUG TemplateManager] Sanitized templates:', sanitizedNewTemplates);
+
             setTemplates(prevTemplates => {
+                console.log('⚖️⚖️⚖️ [DEBUG TemplateManager] Previous templates:', prevTemplates);
+                console.log('🆕🆕🆕 [DEBUG TemplateManager] New templates:', sanitizedNewTemplates);
+
                 if (JSON.stringify(prevTemplates) !== JSON.stringify(sanitizedNewTemplates)) {
+                    console.log('🔄🔄🔄 [DEBUG TemplateManager] Templates changed, updating state');
                     return sanitizedNewTemplates;
+                } else {
+                    console.log('🔒🔒🔒 [DEBUG TemplateManager] Templates unchanged, keeping current state');
+                    return prevTemplates;
                 }
-                return prevTemplates;
             });
 
         } catch (err) {
@@ -205,17 +265,16 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     }, [editingTemplate, setIsEditorOpen, setEditingTemplate]);
 
     const handleCreateNew = useCallback(() => {
-        console.log('[DEBUG TemplateManager] handleCreateNew called');
-        setEditingTemplate(null);
-        setEditingTemplateRoles([RoleType.TOUS]);
-        setIsEditorOpen(true);
+        console.log('[DEBUG TemplateManager] handleCreateNew called - Opening unified modal');
+        setIsNewTrameModalOpen(true);
     }, []);
 
     const handleEdit = useCallback((template: PlanningTemplate) => {
         console.log('[DEBUG TemplateManager] handleEdit called for template:', template);
-        setEditingTemplate(template);
-        setEditingTemplateRoles(template.roles || [RoleType.TOUS]);
-        setIsEditorOpen(true);
+        // Convertir le PlanningTemplate en TrameModele pour le nouveau modal
+        const trameModele = convertPlanningTemplateToTrameModele(template);
+        setTrameToEdit(trameModele);
+        setIsEditTrameModalOpen(true);
     }, []);
 
     const handleDuplicate = useCallback(async (id: string) => {
@@ -336,6 +395,49 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
         loadAvailableTypes();
     }, [loadTemplates, loadAvailableTypes]);
 
+    // Charger les sites au démarrage
+    useEffect(() => {
+        loadSites();
+    }, []);
+
+    // Fonction pour charger les sites
+    const loadSites = useCallback(async () => {
+        try {
+            const response = await fetch('/api/sites');
+            if (response.ok) {
+                const sitesData = await response.json();
+                setSites(sitesData);
+            }
+        } catch (err) {
+            console.error('Erreur lors du chargement des sites:', err);
+        }
+    }, []);
+
+    // Fonction pour gérer le succès de création de trame via le modal unifié
+    const handleCreateTrameSuccess = useCallback((newTrameId: string) => {
+        console.log('[DEBUG TemplateManager] New trame created with ID:', newTrameId);
+        setIsNewTrameModalOpen(false);
+        loadTemplates(); // Recharger la liste des trames
+        toast.success('Nouvelle trame créée avec succès');
+    }, [loadTemplates]);
+
+    // Fonction pour gérer le succès d'édition de trame via le modal unifié
+    const handleEditTrameSuccess = useCallback((updatedTrameId: string) => {
+        console.log('🎯🎯🎯 [DEBUG TemplateManager] EDIT SUCCESS CALLED!!! Trame updated with ID:', updatedTrameId);
+        setIsEditTrameModalOpen(false);
+        setTrameToEdit(null);
+
+        // Forcer un rechargement complet des templates
+        console.log('🔄🔄🔄 [DEBUG TemplateManager] Forcing template reload after edit success...');
+        loadTemplates().then(() => {
+            console.log('✅✅✅ [DEBUG TemplateManager] Templates reloaded successfully after edit');
+            toast.success('Trame modifiée avec succès');
+        }).catch((error) => {
+            console.error('❌❌❌ [DEBUG TemplateManager] Error reloading templates after edit:', error);
+            toast.error('Trame modifiée mais erreur lors du rechargement');
+        });
+    }, [loadTemplates]);
+
     useEffect(() => {
         if (isEditorOpen) {
             return;
@@ -411,7 +513,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                         <Plus className="h-5 w-5 text-purple-600" />
                     </div>
                     <p className="text-gray-700">
-                        Pour créer une nouvelle trame, utilisez le bouton violet en bas à droite de l'écran.
+                        Pour créer une nouvelle trame, utilisez le bouton violet en bas à droite de l'écran. Le formulaire de création est maintenant unifié avec la vue grille.
                     </p>
                 </div>
 
@@ -551,6 +653,31 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                         </Tooltip>
                     </TooltipProvider>
                 </div>
+
+                {/* Modal de création de nouvelle trame unifié */}
+                {isNewTrameModalOpen && (
+                    <NewTrameModal
+                        isOpen={isNewTrameModalOpen}
+                        onClose={() => setIsNewTrameModalOpen(false)}
+                        onSuccess={handleCreateTrameSuccess}
+                        sites={sites}
+                    />
+                )}
+
+                {/* Modal d'édition de trame unifié */}
+                {isEditTrameModalOpen && trameToEdit && (
+                    <NewTrameModal
+                        isOpen={isEditTrameModalOpen}
+                        onClose={() => {
+                            setIsEditTrameModalOpen(false);
+                            setTrameToEdit(null);
+                        }}
+                        onSuccess={handleEditTrameSuccess}
+                        sites={sites}
+                        initialTrame={trameToEdit}
+                        isEditMode={true}
+                    />
+                )}
             </div>
         </DndProvider>
     );

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
         const siteId = searchParams.get('siteId');
         const sectorId = searchParams.get('sectorId');
 
-        let whereClause: Prisma.OperatingRoomWhereInput = {};
+        const whereClause: Prisma.OperatingRoomWhereInput = {};
 
         if (sectorId) {
             const sectorIdNum = parseInt(sectorId);

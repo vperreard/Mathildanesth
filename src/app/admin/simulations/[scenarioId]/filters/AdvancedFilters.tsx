@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { ChevronDown, Filter, Calendar, Users, Building2, RotateCw, Save } from 'lucide-react';
+import { Filter, Calendar, Users, Building2, RotateCw, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { DateRange } from 'react-day-picker';
-import { addDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
@@ -123,7 +123,6 @@ const defaultFilters: FilterOptions = {
 export default function AdvancedFilters({
     onApplyFilters,
     initialFilters = {},
-    scenarioId,
     isLoading = false
 }: AdvancedFiltersProps) {
     const [filters, setFilters] = useState<FilterOptions>({

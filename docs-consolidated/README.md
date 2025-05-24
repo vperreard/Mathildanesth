@@ -80,14 +80,16 @@ La documentation est organisée comme suit :
 - *(Fichier restant à la racine de 02_Fonctionnalites : `17_Exports_Impressions.md` - à fusionner ou supprimer).*
 
 ### 3. Considérations Techniques et Qualité
-- [`03_Considerations_Techniques_Qualite/01_Performance.md`](./03_Considerations_Techniques_Qualite/01_Performance.md) : Performance applicative.
-- [`03_Considerations_Techniques_Qualite/02_Securite.md`](./03_Considerations_Techniques_Qualite/02_Securite.md) : Sécurité applicative.
-- [`03_Considerations_Techniques_Qualite/03_Logging_Monitoring_Alerting.md`](./03_Considerations_Techniques_Qualite/03_Logging_Monitoring_Alerting.md) : Logging, monitoring et alerting.
-- [`03_Considerations_Techniques_Qualite/04_Disponibilite_Scalabilite.md`](./03_Considerations_Techniques_Qualite/04_Disponibilite_Scalabilite.md) : Disponibilité et scalabilité.
-- [`03_Considerations_Techniques_Qualite/05_Maintenabilite_Qualite_Code.md`](./03_Considerations_Techniques_Qualite/05_Maintenabilite_Qualite_Code.md) : Maintenabilité et qualité du code.
-- [`03_Considerations_Techniques_Qualite/06_Ergonomie_Accessibilite_Compatibilite.md`](./03_Considerations_Techniques_Qualite/06_Ergonomie_Accessibilite_Compatibilite.md) : Ergonomie, accessibilité et compatibilité.
-- [`03_Considerations_Techniques_Qualite/07_Adaptabilite_Configurabilite.md`](./03_Considerations_Techniques_Qualite/07_Adaptabilite_Configurabilite.md) : Adaptabilité et configurabilité.
-- [`03_Considerations_Techniques_Qualite/08_Capacite_Hors_Ligne_PWA.md`](./03_Considerations_Techniques_Qualite/08_Capacite_Hors_Ligne_PWA.md) : Capacité hors-ligne (PWA).
+- [`03_Guides_Developpement_et_Qualite/01_Performance.md`](./03_Guides_Developpement_et_Qualite/01_Performance.md) : Performance applicative.
+- [`03_Guides_Developpement_et_Qualite/02_Securite.md`](./03_Guides_Developpement_et_Qualite/02_Securite.md) : Sécurité applicative.
+- [`03_Guides_Developpement_et_Qualite/03_Logging_Monitoring_Alerting.md`](./03_Guides_Developpement_et_Qualite/03_Logging_Monitoring_Alerting.md) : Logging, monitoring et alerting.
+- [`03_Guides_Developpement_et_Qualite/04_Disponibilite_Scalabilite.md`](./03_Guides_Developpement_et_Qualite/04_Disponibilite_Scalabilite.md) : Disponibilité et scalabilité.
+- [`03_Guides_Developpement_et_Qualite/05_Maintenabilite_Qualite_Code.md`](./03_Guides_Developpement_et_Qualite/05_Maintenabilite_Qualite_Code.md) : Maintenabilité et qualité du code.
+- [`03_Guides_Developpement_et_Qualite/06_Ergonomie_Accessibilite_Compatibilite.md`](./03_Guides_Developpement_et_Qualite/06_Ergonomie_Accessibilite_Compatibilite.md) : Ergonomie, accessibilité et compatibilité.
+- [`03_Guides_Developpement_et_Qualite/07_Adaptabilite_Configurabilite.md`](./03_Guides_Developpement_et_Qualite/07_Adaptabilite_Configurabilite.md) : Adaptabilité et configurabilité.
+- [`03_Guides_Developpement_et_Qualite/08_Capacite_Hors_Ligne_PWA.md`](./03_Guides_Developpement_et_Qualite/08_Capacite_Hors_Ligne_PWA.md) : Capacité hors-ligne (PWA).
+- **[`03_Guides_Developpement_et_Qualite/09_Plan_Refactoring_Technique.md`](./03_Guides_Developpement_et_Qualite/09_Plan_Refactoring_Technique.md) : Plan méthodique de refactoring technique** 🆕
+- **[`03_Guides_Developpement_et_Qualite/10_Scripts_Outils_Refactoring.md`](./03_Guides_Developpement_et_Qualite/10_Scripts_Outils_Refactoring.md) : Scripts et outils pour le refactoring** 🆕
 
 ### 4. Roadmap
 - [`04_Roadmap/01_Phases_Priorites.md`](./04_Roadmap/01_Phases_Priorites.md) : Phases et priorités de développement.

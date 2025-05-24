@@ -19,6 +19,9 @@ import { ClientNotificationCenter, ClientSimulationNotifications } from '@/compo
 import ClientPrefetcherWrapper from '@/components/ClientPrefetcherWrapper';
 // Import du tracker de performance client
 import ClientPerformanceTracker from '@/components/ClientPerformanceTracker';
+import { Inter } from 'next/font/google';
+import { AuthProvider } from '@/context/AuthContext';
+import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 
 // Chargement dynamique des composants non critiques avec priorité
 const Header = dynamic(() => import('@/components/Header'), {
@@ -34,11 +37,7 @@ const Footer = dynamic(() => import('@/components/Footer'), {
 // Suppression du préchargeur chargé dynamiquement (déplacé dans le composant client)
 
 // Suppression des configurations de polices Next.js
-// const inter = Inter({
-//     subsets: ['latin'],
-//     display: 'swap',
-//     variable: '--font-inter',
-// });
+const inter = Inter({ subsets: ['latin'] });
 
 // const montserrat = Montserrat({
 //     subsets: ['latin'],
@@ -49,35 +48,52 @@ const Footer = dynamic(() => import('@/components/Footer'), {
 
 export const metadata: Metadata = {
     title: {
-        default: 'Mathildanesth',
-        template: '%s | Mathildanesth',
+        default: 'MATHILDA',
+        template: '%s | MATHILDA'
     },
-    description: 'Gestion optimisée du personnel médical',
-    keywords: [
-        'Planning médical',
-        'Gestion personnel hospitalier',
-        'Planification anesthésistes',
-        'Optimisation planning médical',
-        'Gestion congés personnel médical',
-    ],
-    authors: [{ name: 'Équipe Mathildanesth' }],
-    creator: 'Mathildanesth',
+    description: 'Système de gestion des plannings et congés pour établissements de santé',
+    keywords: ['planning', 'santé', 'hôpital', 'congés', 'médecin'],
+    authors: [{ name: 'MATHILDA Team' }],
+    creator: 'MATHILDA',
+    publisher: 'MATHILDA',
+    formatDetection: {
+        email: false,
+        address: false,
+        telephone: false,
+    },
+    metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
+    openGraph: {
+        type: 'website',
+        locale: 'fr_FR',
+        url: '/',
+        title: 'MATHILDA',
+        description: 'Système de gestion des plannings et congés pour établissements de santé',
+        siteName: 'MATHILDA',
+    },
     robots: {
         index: false,
-        follow: true,
+        follow: false,
+        googleBot: {
+            index: false,
+            follow: false,
+        },
     },
     icons: {
         icon: '/favicon.ico',
-        apple: '/apple-icon.png',
+        shortcut: '/favicon-16x16.png',
+        apple: '/apple-touch-icon.png',
     },
+    manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
     width: 'device-width',
     initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
     themeColor: [
         { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-        { media: '(prefers-color-scheme: dark)', color: '#1f2937' }
+        { media: '(prefers-color-scheme: dark)', color: '#000000' }
     ]
 };
 
@@ -87,43 +103,51 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="fr" className="font-sans">
+        <html lang="fr" className={inter.className}>
             <head>
-                {/* DNS Prefetch pour les API externes */}
-                <link rel="dns-prefetch" href="https://cdn.example.com" />
-                <link rel="preconnect" href="https://cdn.example.com" />
+                {/* Preconnect aux domaines externes pour améliorer les performances */}
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
 
-                {/* Préchargement des scripts critiques */}
-                <link
-                    rel="modulepreload"
-                    href="/_next/static/chunks/main.js"
-                />
+                {/* Préchargement des ressources critiques */}
+                <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="" />
+
+                {/* DNS prefetch pour les domaines potentiels */}
+                <link rel="dns-prefetch" href="//api.mathilda.com" />
+
+                {/* Resource hints pour les performances */}
+                <link rel="prefetch" href="/api/auth/me" />
+                <link rel="prefetch" href="/auth/login" />
             </head>
             <body className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-                <Providers>
-                    <ThemeProvider>
-                        <div className="flex flex-col min-h-screen">
-                            <Header />
-                            <main className="flex-grow container mx-auto px-4 py-8">
-                                <ErrorBoundary
-                                    fallbackComponent={LayoutErrorFallback}
-                                >
-                                    {children}
-                                </ErrorBoundary>
-                                <NotificationToast />
-                                <ClientNotificationCenter />
-                                <ClientSimulationNotifications />
-                            </main>
-                            <Footer />
+                <AuthProvider>
+                    <Providers>
+                        <ThemeProvider>
+                            <div className="flex flex-col min-h-screen">
+                                <Header />
+                                <main className="flex-grow container mx-auto px-4 py-8">
+                                    <ErrorBoundary
+                                        fallbackComponent={LayoutErrorFallback}
+                                    >
+                                        {children}
+                                    </ErrorBoundary>
+                                    <NotificationToast />
+                                    <ClientNotificationCenter />
+                                    <ClientSimulationNotifications />
+                                </main>
+                                <Footer />
 
-                            {/* Préchargeur de routes et données via un wrapper client */}
-                            <ClientPrefetcherWrapper />
+                                {/* Préchargeur de routes et données via un wrapper client */}
+                                <ClientPrefetcherWrapper />
 
-                            {/* Tracker de performance */}
-                            <ClientPerformanceTracker />
-                        </div>
-                    </ThemeProvider>
-                </Providers>
+                                {/* Tracker de performance */}
+                                <ClientPerformanceTracker />
+
+                                <ServiceWorkerRegistration />
+                            </div>
+                        </ThemeProvider>
+                    </Providers>
+                </AuthProvider>
             </body>
         </html>
     );

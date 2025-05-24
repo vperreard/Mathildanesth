@@ -1,22 +1,19 @@
 // Service pour la gestion des templates de simulation
-interface SimulationTemplateBase {
+import axios from 'axios';
+
+export interface SimulationTemplate {
+    id: string;
     name: string;
     description?: string;
-    isPublic?: boolean;
-    parametersJson: any;
     category?: string;
-}
-
-export interface SimulationTemplate extends SimulationTemplateBase {
-    id: string;
+    isPublic: boolean;
     createdAt: string;
     updatedAt: string;
-    createdById: number;
     createdBy?: {
         id: number;
-        firstName: string;
-        lastName: string;
+        name: string;
     };
+    parametersJson: any;
 }
 
 // Type pour la personnalisation du template
@@ -32,157 +29,89 @@ export interface TemplateCustomization {
         surgeonIds: number[];
     };
     options?: {
-        ignoreLeaves: boolean;
-        prioritizeExistingAssignments: boolean;
-        balanceWorkload: boolean;
+        ignoreLeaves?: boolean;
+        prioritizeExistingAssignments?: boolean;
+        balanceWorkload?: boolean;
     };
 }
 
 /**
- * Récupère la liste des templates de simulation
+ * Récupère tous les templates de simulation
  */
-export async function fetchTemplates(params: { category?: string; publicOnly?: boolean } = {}) {
+export async function fetchTemplates(): Promise<SimulationTemplate[]> {
     try {
-        const queryParams = new URLSearchParams();
-
-        if (params.category) {
-            queryParams.append('category', params.category);
-        }
-
-        if (params.publicOnly) {
-            queryParams.append('publicOnly', 'true');
-        }
-
-        const url = `/api/simulations/templates${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur lors de la récupération des templates');
-        }
-
-        return await response.json() as SimulationTemplate[];
+        const response = await axios.get('/api/simulations/templates');
+        return response.data.data || [];
     } catch (error) {
         console.error('Erreur lors de la récupération des templates:', error);
-        throw error;
+        throw new Error('Impossible de récupérer les templates');
     }
 }
 
 /**
- * Récupère un template spécifique
+ * Récupère un template spécifique par son ID
  */
-export async function fetchTemplate(templateId: string) {
+export async function fetchTemplate(id: string): Promise<SimulationTemplate> {
     try {
-        const response = await fetch(`/api/simulations/templates/${templateId}`);
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur lors de la récupération du template');
-        }
-
-        return await response.json() as SimulationTemplate;
+        const response = await axios.get(`/api/simulations/templates/${id}`);
+        return response.data.data;
     } catch (error) {
-        console.error(`Erreur lors de la récupération du template ${templateId}:`, error);
-        throw error;
+        console.error(`Erreur lors de la récupération du template ${id}:`, error);
+        throw new Error('Template non trouvé');
     }
 }
 
 /**
  * Crée un nouveau template
  */
-export async function createTemplate(template: SimulationTemplateBase) {
+export async function createTemplate(templateData: Partial<SimulationTemplate>): Promise<SimulationTemplate> {
     try {
-        const response = await fetch('/api/simulations/templates', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(template),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur lors de la création du template');
-        }
-
-        return await response.json() as SimulationTemplate;
+        const response = await axios.post('/api/simulations/templates', templateData);
+        return response.data.data;
     } catch (error) {
         console.error('Erreur lors de la création du template:', error);
-        throw error;
+        throw new Error('Impossible de créer le template');
     }
 }
 
 /**
  * Met à jour un template existant
  */
-export async function updateTemplate(templateId: string, updates: Partial<SimulationTemplateBase>) {
+export async function updateTemplate(id: string, updates: Partial<SimulationTemplate>): Promise<SimulationTemplate> {
     try {
-        const response = await fetch(`/api/simulations/templates/${templateId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updates),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur lors de la mise à jour du template');
-        }
-
-        return await response.json() as SimulationTemplate;
+        const response = await axios.put(`/api/simulations/templates/${id}`, updates);
+        return response.data.data;
     } catch (error) {
-        console.error(`Erreur lors de la mise à jour du template ${templateId}:`, error);
-        throw error;
+        console.error(`Erreur lors de la mise à jour du template ${id}:`, error);
+        throw new Error('Impossible de mettre à jour le template');
     }
 }
 
 /**
  * Supprime un template
  */
-export async function deleteTemplate(templateId: string) {
+export async function deleteTemplate(id: string): Promise<void> {
     try {
-        const response = await fetch(`/api/simulations/templates/${templateId}`, {
-            method: 'DELETE',
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur lors de la suppression du template');
-        }
-
-        return await response.json();
+        await axios.delete(`/api/simulations/templates/${id}`);
     } catch (error) {
-        console.error(`Erreur lors de la suppression du template ${templateId}:`, error);
-        throw error;
+        console.error(`Erreur lors de la suppression du template ${id}:`, error);
+        throw new Error('Impossible de supprimer le template');
     }
 }
 
 /**
  * Duplique un template existant
  */
-export async function duplicateTemplate(sourceTemplateId: string, newName: string) {
+export async function duplicateTemplate(id: string, newName: string): Promise<SimulationTemplate> {
     try {
-        const response = await fetch('/api/simulations/templates/duplicate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                sourceTemplateId,
-                name: newName,
-            }),
+        const response = await axios.post('/api/simulations/templates/duplicate', {
+            sourceTemplateId: id,
+            name: newName
         });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur lors de la duplication du template');
-        }
-
-        return await response.json() as SimulationTemplate;
+        return response.data.data;
     } catch (error) {
-        console.error(`Erreur lors de la duplication du template ${sourceTemplateId}:`, error);
-        throw error;
+        console.error(`Erreur lors de la duplication du template ${id}:`, error);
+        throw new Error('Impossible de dupliquer le template');
     }
 }
 
@@ -228,17 +157,34 @@ export async function prepareTemplateForScenario(templateId: string) {
 /**
  * Crée un scénario personnalisé à partir d'un template
  */
-export async function createScenarioFromTemplate(templateId: string, customization: TemplateCustomization) {
+export async function createScenarioFromTemplate(templateId: string, customization?: TemplateCustomization | any): Promise<any> {
     try {
         const template = await fetchTemplate(templateId);
+
+        // Si pas de customization fournie, utiliser les valeurs par défaut
+        if (!customization) {
+            customization = {
+                name: `${template.name} - ${new Date().toLocaleDateString()}`,
+                description: template.description,
+                dates: {
+                    startDate: template.parametersJson.startDate || new Date().toISOString().split('T')[0],
+                    endDate: template.parametersJson.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                },
+                absences: {
+                    userIds: template.parametersJson.absentUserIds || [],
+                    surgeonIds: template.parametersJson.absentSurgeonIds || []
+                },
+                options: template.parametersJson.options || {}
+            };
+        }
 
         // Construire les paramètres pour le scénario
         const parametersJson = {
             ...template.parametersJson,
-            startDate: customization.dates.startDate,
-            endDate: customization.dates.endDate,
-            absentUserIds: customization.absences?.userIds || [],
-            absentSurgeonIds: customization.absences?.surgeonIds || [],
+            startDate: customization.dates?.startDate || customization.startDate,
+            endDate: customization.dates?.endDate || customization.endDate,
+            absentUserIds: customization.absences?.userIds || customization.absentUserIds || [],
+            absentSurgeonIds: customization.absences?.surgeonIds || customization.absentSurgeonIds || [],
             options: {
                 ...template.parametersJson.options,
                 ...customization.options
@@ -267,43 +213,6 @@ export async function createScenarioFromTemplate(templateId: string, customizati
         return await response.json();
     } catch (error) {
         console.error(`Erreur lors de la création du scénario à partir du template ${templateId}:`, error);
-        throw error;
-    }
-}
-
-/**
- * Utilise un template pour créer un nouveau scénario
- */
-export async function useTemplateForScenario(templateId: string, customizations: any = {}) {
-    try {
-        // Récupérer d'abord les détails du template
-        const template = await fetchTemplate(templateId);
-
-        // Créer un nouveau scénario basé sur le template
-        const response = await fetch('/api/simulations', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: `${template.name} - ${new Date().toLocaleDateString()}`,
-                description: template.description,
-                parametersJson: {
-                    ...template.parametersJson,
-                    ...customizations
-                },
-                templateId: template.id // Référencer le template utilisé
-            }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur lors de la création du scénario à partir du template');
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error(`Erreur lors de l'utilisation du template ${templateId}:`, error);
         throw error;
     }
 } 

@@ -92,7 +92,7 @@ export async function POST(request: NextRequest, { params }: { params: { scenari
                 const startDate = new Date(simParams.period.startDate);
                 const endDate = new Date(simParams.period.endDate);
 
-                let userQueryWhere: Prisma.UserWhereInput = { actif: true };
+                const userQueryWhere: Prisma.UserWhereInput = { actif: true };
                 if (simParams.siteId) {
                     // TODO: Logique de filtrage par siteId à implémenter si nécessaire
                     // userQueryWhere.sites = { some: { siteId: simParams.siteId } };

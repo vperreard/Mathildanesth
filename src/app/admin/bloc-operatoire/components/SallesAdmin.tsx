@@ -15,8 +15,7 @@ import {
     DialogDescription,
     DialogFooter,
     DialogHeader,
-    DialogTitle,
-    DialogTrigger
+    DialogTitle
 } from '@/components/ui/dialog';
 import {
     Form,
@@ -44,7 +43,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { blocPlanningService } from '@/services/blocPlanningService';
 import { OperatingRoom, BlocSector } from '@/types/bloc-planning-types';
-import { cn } from '@/lib/utils';
 
 // Schéma de validation pour le formulaire de salle
 const salleFormSchema = z.object({
@@ -79,7 +77,7 @@ export default function SallesAdmin() {
     // Charger les données initiales
     useEffect(() => {
         loadData();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const loadData = () => {
         try {

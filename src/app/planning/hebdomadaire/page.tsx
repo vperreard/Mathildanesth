@@ -283,7 +283,7 @@ export default function WeeklyPlanningPage() {
             // Normaliser les données des salles
             const orderedRooms = fetchedRooms.map((apiRoomData: any) => {
                 let sectorName = 'Sans secteur'; // Valeur par défaut
-                let roomColor = apiRoomData.colorCode || '#E5E7EB'; // Couleur de la salle elle-même
+                const roomColor = apiRoomData.colorCode || '#E5E7EB'; // Couleur de la salle elle-même
                 let sectorColor = '#F3F4F6'; // Couleur de fond par défaut pour l'en-tête de secteur (gris très clair)
                 let sectorOrder = Infinity; // Ordre par défaut pour le secteur
 
@@ -1055,7 +1055,7 @@ export default function WeeklyPlanningPage() {
         const newPeriod = destParts[5] as 'MORNING' | 'AFTERNOON';
         const newDate = new Date(newDateStr + 'T12:00:00Z');
 
-        let updatedAssignments = [...tempAssignments];
+        const updatedAssignments = [...tempAssignments];
 
         updatedAssignments[movedAssignmentIndex] = {
             ...movedAssignment,

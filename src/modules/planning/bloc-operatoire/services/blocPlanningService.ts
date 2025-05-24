@@ -90,7 +90,7 @@ export class BlocPlanningService {
         });
 
         // Itérer sur chaque jour de la période demandée
-        let currentDate = new Date(startDate);
+        const currentDate = new Date(startDate);
         while (currentDate <= endDate) {
             const dayOfWeek = this.mapDateToDayOfWeek(currentDate);
             const weekType = this.getWeekType(currentDate);

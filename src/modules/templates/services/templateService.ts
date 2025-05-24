@@ -222,7 +222,9 @@ export const templateService = {
         console.log("[Template Service] Appel de getTemplates via API /api/trame-modeles?includeAffectations=true...");
         try {
             const token = await getClientAuthToken();
-            const response = await fetch(`${API_BASE_URL}?includeAffectations=true`, {
+            // Ajouter un timestamp pour éviter le cache
+            const timestamp = Date.now();
+            const response = await fetch(`${API_BASE_URL}?includeAffectations=true&_t=${timestamp}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'

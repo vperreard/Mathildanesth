@@ -1,27 +1,32 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
     reactStrictMode: false,
-    // Configuration expérimentale pour forcer SWC même avec un fichier Babel
+
+    // Configuration expérimentale
     experimental: {
         forceSwcTransforms: true,
-        optimizeCss: true, // Optimisation CSS activée
-        optimisticClientCache: true, // Mise en cache optimiste côté client
+        optimizeCss: true,
+        optimisticClientCache: true,
     },
 
-    // Utiliser Turbopack pour la génération (option déplacée hors de experimental)
-    turbopack: true,
+    // Configuration des packages externes côté serveur
+    serverExternalPackages: ['bcrypt', '@prisma/client'],
 
-    poweredByHeader: false, // Supprime l'en-tête X-Powered-By pour la sécurité
+    poweredByHeader: false,
 
-    // Configuration du compilateur pour des optimisations supplémentaires
+    // Configuration du compilateur
     compiler: {
         removeConsole: process.env.NODE_ENV === 'production' ? {
             exclude: ['error', 'warn'],
         } : false,
+        styledComponents: true,
     },
 
+    // Optimisations Webpack simplifiées
     webpack: (config, { isServer, webpack, dev }) => {
-        // Ignorer les modules Node.js côté client
+        // Résolution des modules côté client
         if (!isServer) {
             config.resolve.fallback = {
                 ...(config.resolve.fallback || {}),
@@ -36,7 +41,7 @@ const nextConfig = {
             };
         }
 
-        // Ignorer les imports de fichiers HTML depuis node_modules
+        // Ignorer les imports HTML depuis node_modules
         config.plugins.push(
             new webpack.IgnorePlugin({
                 resourceRegExp: /\.html$/,
@@ -44,63 +49,19 @@ const nextConfig = {
             })
         );
 
-        // Optimisation pour la production uniquement
+        // Optimisations pour la production uniquement
         if (!dev) {
-            // Activer l'optimisation de taille des modules
             config.optimization.moduleIds = 'deterministic';
 
-            // Cache pour le développement
+            // Cache simplifié
             config.cache = {
                 type: 'filesystem',
-                buildDependencies: {
-                    config: [__filename],
-                },
-                name: isServer ? 'server' : 'client',
+                cacheDirectory: path.resolve(process.cwd(), '.next/cache/webpack'),
             };
 
-            // Réduction de la taille du bundle
-            config.optimization.splitChunks = {
-                ...config.optimization.splitChunks,
-                chunks: 'all',
-                cacheGroups: {
-                    ...config.optimization.splitChunks.cacheGroups,
-                    // Séparation des gros modules en chunks séparés
-                    vendors: {
-                        test: /[\\/]node_modules[\\/]/,
-                        name(module) {
-                            // Extraction des packages tiers dans des chunks séparés
-                            const packageName = module.context.match(
-                                /[\\/]node_modules[\\/](.*?)([\\/]|$)/
-                            )[1];
-
-                            // Regrouper les petits packages React pour éviter trop de chunks
-                            if (packageName.includes('react') || packageName.includes('next')) {
-                                return 'react-packages';
-                            }
-
-                            // Regrouper les packages MUI
-                            if (packageName.includes('@mui')) {
-                                return 'mui-packages';
-                            }
-
-                            // Regrouper les packages d'UI
-                            if (packageName.includes('@radix-ui') ||
-                                packageName.includes('antd') ||
-                                packageName.includes('@headlessui')) {
-                                return 'ui-packages';
-                            }
-
-                            // npm package names are URL-safe, but some servers don't like @ symbols
-                            return `vendor-${packageName.replace('@', 'at-')}`;
-                        },
-                        priority: 20,
-                    },
-                    common: {
-                        minChunks: 2,
-                        priority: 10,
-                        reuseExistingChunk: true,
-                    },
-                },
+            // Optimisation runtime
+            config.optimization.runtimeChunk = {
+                name: 'runtime',
             };
         }
 
@@ -118,6 +79,56 @@ const nextConfig = {
         formats: ['image/avif', 'image/webp'],
         deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
         imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+        dangerouslyAllowSVG: true,
+        contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    },
+
+    // Headers de performance
+    async headers() {
+        return [
+            {
+                source: '/api/(.*)',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, max-age=0, must-revalidate',
+                    },
+                ],
+            },
+            {
+                source: '/auth/(.*)',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'no-store, no-cache, must-revalidate',
+                    },
+                ],
+            },
+            {
+                source: '/sw.js',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, max-age=0, must-revalidate',
+                    },
+                    {
+                        key: 'Service-Worker-Allowed',
+                        value: '/',
+                    },
+                ],
+            },
+        ];
+    },
+
+    // Redirections optimisées
+    async redirects() {
+        return [
+            {
+                source: '/login',
+                destination: '/auth/login',
+                permanent: true,
+            },
+        ];
     },
 };
 

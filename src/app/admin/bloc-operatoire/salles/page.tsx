@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { PageTitle } from '@/components/ui/page-title';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OperatingRoomList } from '@/modules/planning/bloc-operatoire/components/OperatingRoomList';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 

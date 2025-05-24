@@ -120,10 +120,10 @@ const normalizeSectorName = (name?: string): string => {
     if (normalized.includes('europe')) {
         prefix = 'europe ';
         // Nettoyer "europe" du nom pour éviter les doublons de préfixe comme "europe europe bloc"
-        normalized = normalized.replace(/\\beurope\\b/gi, '').trim(); // Correction: \\beurope\\b au lieu de \\bseurope\\b
+        normalized = normalized.replace(/\beurope\b/gi, '').trim(); // CORRECTION: Suppression des \\ erronés
     } else {
         // Nettoyer "secteur" du nom pour éviter les doublons de préfixe comme "secteur secteur x"
-        normalized = normalized.replace(/\\bsecteur\\b/gi, '').trim(); // \\b pour mot entier
+        normalized = normalized.replace(/\bsecteur\b/gi, '').trim(); // CORRECTION: Suppression des \\ erronés
     }
 
     // Cas spécifiques basés sur des mots-clés
@@ -150,6 +150,9 @@ const normalizeSectorName = (name?: string): string => {
     if (normalized.includes('intermediaire') || normalized.includes('intermédiaire')) {
         return prefix + 'intermédiaire';
     }
+
+    // Nettoyer les espaces multiples et retrimmer
+    normalized = normalized.replace(/\s+/g, ' ').trim();
 
     // Si le nom normalisé après nettoyage des mots-clés et préfixes est vide,
     // cela peut signifier que le nom original était juste "Europe" ou "Secteur"
@@ -190,7 +193,10 @@ const normalizeOperatingSectors = (sectors: any[]): OperatingSector[] => {
     return sectors.map(sector => ({
         ...sector,
         originalName: sector.name,
-        name: normalizeSectorName(sector.name)
+        // CORRECTION: Ne plus normaliser automatiquement les noms venant de la BDD
+        // car ils sont déjà corrects. La normalisation doit être utilisée uniquement 
+        // pour la comparaison et la détection, pas pour modifier les données.
+        name: sector.name // Garder le nom original de la base de données
     }));
 };
 
@@ -199,10 +205,8 @@ const normalizeOperatingRooms = (rooms: any[]): OperatingRoom[] => {
         ...room,
         name: room.name || '',
         number: room.number || '',
-        // Utiliser room.operatingSector.name si disponible, sinon le room.sector existant (improbable), sinon vide.
-        sector: room.operatingSector?.name
-            ? normalizeSectorName(room.operatingSector.name)
-            : (room.sector ? normalizeSectorName(room.sector) : ''),
+        // CORRECTION: utiliser le nom original du secteur au lieu de le normaliser
+        sector: room.operatingSector?.name || room.sector || '',
         roomType: room.roomType || room.type || 'STANDARD',
         isActive: room.isActive !== false,
         displayOrder: room.displayOrder || 0
@@ -364,15 +368,14 @@ const associateSitesToRooms = (rooms: OperatingRoom[], sites: OperatingSite[]): 
 const getSectorRooms = (sectorName: string, allRooms: OperatingRoom[], sectorsData: OperatingSector[], sitesData: OperatingSite[]): OperatingRoom[] => {
     if (!allRooms || !sectorName) return [];
 
-    const normalizedTargetSectorName = normalizeSectorName(sectorName);
-    if (DEBUG_MODE) console.log(`[ORCP_DEBUG] getSectorRooms: Traitement du secteur "${sectorName}" (normalisé: "${normalizedTargetSectorName}")`);
+    if (DEBUG_MODE) console.log(`[ORCP_DEBUG] getSectorRooms: Traitement du secteur "${sectorName}"`);
 
-    // Trouver l'ID du secteur cible
-    const targetSectorObject = sectorsData.find(s => normalizeSectorName(s.name) === normalizedTargetSectorName);
+    // Trouver l'ID du secteur cible en cherchant directement par nom
+    const targetSectorObject = sectorsData.find(s => s.name === sectorName);
     const targetSectorId = targetSectorObject?.id;
 
     if (DEBUG_MODE && targetSectorId) {
-        console.log(`[ORCP_DEBUG] getSectorRooms: ID du secteur cible "${normalizedTargetSectorName}" est ${targetSectorId}`);
+        console.log(`[ORCP_DEBUG] getSectorRooms: ID du secteur cible "${sectorName}" est ${targetSectorId}`);
     }
 
     // Filtrer les salles pour ce secteur
@@ -381,39 +384,31 @@ const getSectorRooms = (sectorName: string, allRooms: OperatingRoom[], sectorsDa
 
         // 1. Correspondance prioritaire par sectorId (si le secteur cible a un ID)
         if (targetSectorId && room.sectorId === targetSectorId) {
-            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}, sectorId: ${room.sectorId}) assignée au secteur "${normalizedTargetSectorName}" (ID: ${targetSectorId}) car: correspondance de sectorId.`);
+            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}, sectorId: ${room.sectorId}) assignée au secteur "${sectorName}" (ID: ${targetSectorId}) car: correspondance de sectorId.`);
             return true;
         }
 
-        // 2. Si pas de correspondance par sectorId ou si le secteur cible n'a pas d'ID (ex: secteur "virtuel" ou mal configuré)
-        //    alors on utilise les logiques de fallback basées sur le nom textuel du secteur ou la détection de type.
-        //    Cette partie est importante pour les salles qui n'ont pas encore de sectorId mais un nom de secteur textuel.
-
-        const roomSectorNormalized = normalizeSectorName(room.sector || '');
-
-        // 2a. Correspondance exacte du nom de secteur textuel
-        if (roomSectorNormalized === normalizedTargetSectorName) {
-            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}, room.sector: "${room.sector}") assignée au secteur "${normalizedTargetSectorName}" car: correspondance exacte du nom de secteur textuel.`);
+        // 2. Correspondance exacte du nom de secteur textuel
+        if (room.sector === sectorName) {
+            if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}, room.sector: "${room.sector}") assignée au secteur "${sectorName}" car: correspondance exacte du nom de secteur textuel.`);
             return true;
         }
 
-        // 2b. Détection intelligente du type de salle (si pas déjà assignée par sectorId ou nom exact)
-        //     On vérifie que la salle n'a pas déjà un sectorId qui la lierait ailleurs de manière prioritaire.
-        //     Si elle a un sectorId, elle ne devrait pas être réassignée par detectRoomType, sauf si son sectorId ne correspond à AUCUN secteur existant.
-        let canBeDetectedByType = !room.sectorId; // Par défaut, si pas de sectorId, on peut tenter la détection.
+        // 3. Détection intelligente du type de salle (utilisation de la normalisation pour la comparaison)
+        let canBeDetectedByType = !room.sectorId;
         if (room.sectorId) {
             const existingSectorForRoomId = sectorsData.find(s => s.id === room.sectorId);
             if (!existingSectorForRoomId) {
-                // Le sectorId de la salle ne correspond à aucun secteur connu, donc on peut essayer de détecter.
                 canBeDetectedByType = true;
                 if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) a un sectorId (${room.sectorId}) qui ne correspond à aucun secteur connu. Détection par type autorisée.`);
             }
         }
 
         if (canBeDetectedByType) {
-            const suggestedSectorByDetection = detectRoomType(room, sectorsData, sitesData, normalizedTargetSectorName);
-            if (suggestedSectorByDetection && normalizeSectorName(suggestedSectorByDetection) === normalizedTargetSectorName) {
-                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) assignée au secteur "${normalizedTargetSectorName}" car: détection intelligente de type.`);
+            const suggestedSectorByDetection = detectRoomType(room, sectorsData, sitesData, sectorName);
+            // Comparer les noms normalisés pour la détection
+            if (suggestedSectorByDetection && normalizeSectorName(suggestedSectorByDetection) === normalizeSectorName(sectorName)) {
+                if (DEBUG_MODE) console.log(`[ORCP_DEBUG_FILTER] Salle "${room.name}" (id: ${room.id}) assignée au secteur "${sectorName}" car: détection intelligente de type.`);
                 return true;
             }
         }
@@ -525,7 +520,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
     const assignedRoomsToVisibleSectorsMap = useMemo(() => {
         const map = new Map<string, OperatingRoom[]>();
         const currentSectorNamesToDisplay = sectorNames.filter(name => {
-            const sectorObject = sectors.find(s => normalizeSectorName(s.name) === normalizeSectorName(name));
+            const sectorObject = sectors.find(s => s.name === name); // CORRECTION: comparaison directe
             if (!sectorObject) return false;
             if (selectedSiteId === null) return true;
             return sectorObject.siteId === selectedSiteId || !sectorObject.siteId;
@@ -618,9 +613,8 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                     if (room.sectorId) {
                         const foundSector = normalizedSectors.find(s => s.id === room.sectorId);
                         if (foundSector) {
-                            // Utiliser le nom normalisé du secteur trouvé pour le champ room.sector
-                            // Cela assure la cohérence avec la logique de getSectorRooms qui s'attend à des noms normalisés.
-                            return { ...room, sector: normalizeSectorName(foundSector.name) };
+                            // CORRECTION: utiliser le nom original du secteur
+                            return { ...room, sector: foundSector.name };
                         }
                         else {
                             // Si sectorId ne correspond à aucun secteur connu, garder room.sector tel quel (probablement vide)
@@ -639,7 +633,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
 
             // Extraire les noms de secteurs uniques
             const uniqueSectorNames = Array.from(new Set(
-                normalizedSectors.map(sector => normalizeSectorName(sector.name))
+                normalizedSectors.map(sector => sector.name) // CORRECTION: utiliser les vrais noms des secteurs
             ));
             console.log("[ORCP_LOG] Noms de secteurs uniques:", uniqueSectorNames);
 
@@ -703,7 +697,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
         setFilteredSectors(filtered);
 
         // Mettre à jour les noms de secteurs filtrés
-        const filteredNames = Array.from(new Set(filtered.map(s => normalizeSectorName(s.name))));
+        const filteredNames = Array.from(new Set(filtered.map(s => s.name))); // CORRECTION: utiliser les vrais noms
         setSectorNames(filteredNames);
     }, [sectors, selectedSiteId]);
 

@@ -77,7 +77,7 @@ const RulesList: React.FC<RulesListProps> = ({
     // Application des filtres et du tri
     const filteredAndSortedRules = useMemo(() => {
         // Filtrer par terme de recherche, type et statut d'activité
-        let filtered = rules.filter(rule => {
+        const filtered = rules.filter(rule => {
             const matchesSearch = !searchTerm ||
                 rule.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (rule.description?.toLowerCase().includes(searchTerm.toLowerCase())) ||

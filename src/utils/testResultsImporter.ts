@@ -59,7 +59,7 @@ function storeTestResultsInMetrics(results: TestResult[]): void {
     try {
         // Récupérer les métriques existantes
         const existingMetricsStr = localStorage.getItem('performanceMetrics');
-        let metrics = existingMetricsStr ? JSON.parse(existingMetricsStr) : {};
+        const metrics = existingMetricsStr ? JSON.parse(existingMetricsStr) : {};
 
         // Ajouter les résultats des tests
         metrics.testResults = results;

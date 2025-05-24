@@ -305,10 +305,10 @@ function UsersPageContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
-            className="container mx-auto px-4 py-8 max-w-6xl"
+            className="container mx-auto px-4 py-4 max-w-7xl min-h-screen"
         >
             {/* Titre et bouton de création */}
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
                 <button
                     onClick={openCreateForm}
@@ -321,7 +321,7 @@ function UsersPageContent() {
 
             {/* Gestion des erreurs et messages de succès */}
             {successMessage && (
-                <div className="mb-6 p-4 bg-green-100 border border-green-300 text-green-700 rounded flex items-start">
+                <div className="mb-4 p-4 bg-green-100 border border-green-300 text-green-700 rounded flex items-start">
                     <div className="flex-1">
                         <p className="font-medium">Succès !</p>
                         <p>{successMessage}</p>
@@ -336,7 +336,7 @@ function UsersPageContent() {
 
             {/* Formulaire d'édition/création */}
             {(isCreating || editingUser) && (
-                <div className="mb-8">
+                <div className="mb-6">
                     <UserForm
                         ref={formRef}
                         initialData={editingUser || undefined}
@@ -352,14 +352,25 @@ function UsersPageContent() {
             )}
 
             {/* Liste des utilisateurs */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-100">
-                {loading && <p className="text-center text-gray-600 py-4">Chargement des utilisateurs...</p>}
-                {error && <p className="text-center text-red-600 font-medium py-4">{error}</p>}
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+                {loading && (
+                    <div className="p-8 text-center">
+                        <p className="text-gray-600">Chargement des utilisateurs...</p>
+                    </div>
+                )}
+
+                {error && (
+                    <div className="p-8 text-center">
+                        <p className="text-red-600 font-medium">{error}</p>
+                    </div>
+                )}
 
                 {!loading && !error && (
                     <>
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-gray-900">Liste des utilisateurs ({users.length})</h2>
+                        <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50/50">
+                            <h2 className="text-lg font-semibold text-gray-900">
+                                Liste des utilisateurs ({users.length})
+                            </h2>
                             <div className="flex items-center space-x-2">
                                 <Checkbox
                                     id="showInactiveUsers"
@@ -374,16 +385,20 @@ function UsersPageContent() {
                         </div>
 
                         {users.length === 0 ? (
-                            <p className="text-center text-gray-500 py-4">Aucun utilisateur trouvé.</p>
+                            <div className="p-8 text-center">
+                                <p className="text-gray-500">Aucun utilisateur trouvé.</p>
+                            </div>
                         ) : (
-                            <UserTable
-                                users={users}
-                                onEditUser={openEditForm}
-                                onDeleteUser={handleDeleteUser}
-                                onResetPassword={handleResetPassword}
-                                currentUserRole={currentUser?.role}
-                                currentUserId={currentUser?.id}
-                            />
+                            <div className="p-4">
+                                <UserTable
+                                    users={users}
+                                    onEditUser={openEditForm}
+                                    onDeleteUser={handleDeleteUser}
+                                    onResetPassword={handleResetPassword}
+                                    currentUserRole={currentUser?.role}
+                                    currentUserId={currentUser?.id}
+                                />
+                            </div>
                         )}
                     </>
                 )}
