@@ -1,0 +1,19 @@
+{
+    "name": "guides-developpement",
+    "description": "Charge les guides de développement pour les questions techniques et de workflow (commandes, tests, déploiement, refactoring).",
+    "pattern": "(?i)(guide|command|test|deploy|refactor|workflow|étape|puppeteer|cypress|performance)",
+    "actions": [
+        {
+            "type": "readFiles",
+            "files": [
+                "docs/03_Guides_Developpement/README.md",
+                "docs/03_Guides_Developpement/COMMANDES_RAPIDES.md",
+                "docs/03_Guides_Developpement/GUIDE_POINTS_ETAPE.md",
+                "docs/03_Guides_Developpement/guide-tests-e2e.md",
+                "docs/03_Guides_Developpement/01_Deployment_Guide.md",
+                "docs/user-guides/guide-demarrage-rapide.md",
+                "docs/user-guides/guide-debutant-points-etape.md"
+            ]
+        }
+    ]
+}

@@ -6,6 +6,11 @@
             "path": ".cursor/rules/documentation-essentielles-lite.json"
         },
         {
+            "name": "guides-developpement",
+            "enabled": true,
+            "path": ".cursor/rules/guides-developpement.json"
+        },
+        {
             "name": "standards-developpement",
             "enabled": true,
             "path": ".cursor/rules/standards-developpement.json"
