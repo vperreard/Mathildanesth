@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Utilisateur non authentifié." }, { status: 401 });
         }
 
-        // Convertir l'ID utilisateur en nombre
+        // Récupérer l'ID utilisateur
         const userId = session.user.id;
 
         const body = await request.json();
@@ -35,17 +35,12 @@ export async function POST(request: NextRequest) {
 
         const { name, description, parametersJson } = validationResult.data;
 
-        // Approche alternative: utilisation manuelle du client Prisma
-        // Utiliser executeRaw n'est pas idéal mais contournerait le problème de typage
-        // Pour des raisons de sécurité, nous continuons à utiliser l'API Prisma avec un type forcé
-
-        // @ts-ignore - Ignorer l'erreur de typage pour createdById
         const newScenario = await prisma.simulationScenario.create({
             data: {
                 name,
                 description,
-                parametersJson: parametersJson as Prisma.InputJsonValue,
-                createdById: Number(userId),
+                parameters: parametersJson as Prisma.InputJsonValue,
+                createdById: userId,
             },
         });
 

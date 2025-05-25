@@ -1,6 +1,4 @@
-// @ts-nocheck
 /* 
- * Ce fichier utilise @ts-nocheck pour contourner temporairement les problèmes de typage
  * liés aux assertions Jest comme toBeInTheDocument, toHaveBeenCalled, etc.
  * Une meilleure solution serait d'étendre correctement les types de Jest.
  */

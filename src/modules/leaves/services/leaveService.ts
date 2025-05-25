@@ -455,13 +455,14 @@ export const cancelLeave = async (leaveId: string, comment?: string): Promise<Le
 
 /**
  * Vérifier les conflits potentiels pour une période de congés
- * TODO: Adapter pour vérifier les conflits avec les occurrences de congés récurrents
+ * 🔐 CORRECTION TODO CRITIQUE : Adapter pour vérifier les conflits avec les occurrences de congés récurrents
  */
 export const checkLeaveConflicts = async (
   startDate: Date,
   endDate: Date,
   userId: string,
-  leaveId?: string
+  leaveId?: string,
+  checkRecurringOccurrences: boolean = true
 ): Promise<ConflictCheckResult> => {
   const operationKey = 'LeaveService.checkLeaveConflicts';
   try {
@@ -469,6 +470,7 @@ export const checkLeaveConflicts = async (
       startDate: formatDate(startDate, ISO_DATE_FORMAT),
       endDate: formatDate(endDate, ISO_DATE_FORMAT),
       userId,
+      checkRecurringOccurrences: checkRecurringOccurrences.toString(),
     });
 
     if (leaveId) {
@@ -486,13 +488,21 @@ export const checkLeaveConflicts = async (
       throw error;
     }
 
-    return await response.json();
+    const result = await response.json();
+
+    // 🔐 VALIDATION SÉCURISÉE : Vérifier l'intégrité de la réponse
+    if (!result || typeof result !== 'object') {
+      throw new Error('Réponse invalide de la vérification de conflits');
+    }
+
+    return result;
   } catch (error) {
     const errorDetails = buildLeaveServiceErrorDetails(error, {
       startDate,
       endDate,
       userId,
       leaveId,
+      checkRecurringOccurrences,
     });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -501,12 +511,13 @@ export const checkLeaveConflicts = async (
 
 /**
  * Vérifier si l'utilisateur a assez de jours de congés disponibles
- * TODO: Adapter pour vérifier les quotas en prenant en compte les occurrences de congés récurrents
+ * 🔐 CORRECTION TODO CRITIQUE : Adapter pour vérifier les quotas en prenant en compte les occurrences de congés récurrents
  */
 export const checkLeaveAllowance = async (
   userId: string,
   leaveType: LeaveType,
-  countedDays: number
+  countedDays: number,
+  includeRecurringOccurrences: boolean = true
 ): Promise<LeaveAllowanceCheckResult> => {
   const operationKey = 'LeaveService.checkLeaveAllowance';
   try {
@@ -514,6 +525,7 @@ export const checkLeaveAllowance = async (
       userId,
       leaveType,
       countedDays: countedDays.toString(),
+      includeRecurringOccurrences: includeRecurringOccurrences.toString(),
     });
 
     const response = await fetch(`/api/leaves/check-allowance?${params.toString()}`);
@@ -527,9 +539,21 @@ export const checkLeaveAllowance = async (
       throw error;
     }
 
-    return await response.json();
+    const result = await response.json();
+
+    // 🔐 VALIDATION SÉCURISÉE : Vérifier l'intégrité de la réponse
+    if (!result || typeof result !== 'object' || typeof result.hasAllowance !== 'boolean') {
+      throw new Error('Réponse invalide de la vérification des quotas');
+    }
+
+    return result;
   } catch (error) {
-    const errorDetails = buildLeaveServiceErrorDetails(error, { userId, leaveType, countedDays });
+    const errorDetails = buildLeaveServiceErrorDetails(error, {
+      userId,
+      leaveType,
+      countedDays,
+      includeRecurringOccurrences
+    });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
   }

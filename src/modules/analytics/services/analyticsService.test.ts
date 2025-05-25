@@ -125,4 +125,4 @@ describe('AnalyticsService', () => {
 
     // TODO: Testez la fonction `getPeriodDurationInHours` séparément si sa logique devient complexe
     // describe('getPeriodDurationInHours', () => { ... });
-}); 
+});

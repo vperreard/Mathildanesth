@@ -1,5 +1,4 @@
-import { createMocks } from 'node-mocks-http';
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest } from 'next/server';
 import {
     expectToBeUndefined,
     expectToBe,
@@ -7,6 +6,18 @@ import {
     expectToBeDefined,
     expectArrayContaining
 } from '@/tests/utils/assertions';
+
+// Mock NextResponse pour éviter les problèmes de polyfill
+jest.mock('next/server', () => ({
+    NextRequest: jest.requireActual('next/server').NextRequest,
+    NextResponse: {
+        json: jest.fn((data: any, options?: any) => ({
+            json: jest.fn().mockResolvedValue(data),
+            status: options?.status || 200,
+            headers: new Map([['content-type', 'application/json']])
+        }))
+    }
+}));
 
 // Définir les valeurs enum manuellement pour les tests
 const LeaveType = {
@@ -94,8 +105,8 @@ jest.mock('@/lib/logger', () => ({
     }
 }));
 
-// Importer le handler après avoir configuré les mocks
-import handler from '../../../../pages/api/leaves/balance';
+// Importer la route App Router après avoir configuré les mocks
+import { GET } from '@/app/api/leaves/balance/route';
 
 describe('GET /api/leaves/balance', () => {
     const currentYear = new Date().getFullYear();
@@ -117,21 +128,19 @@ describe('GET /api/leaves/balance', () => {
         mockFindManyQuotaTransfer.mockResolvedValue([]);
 
         mockQueryRawUnsafe.mockResolvedValue([
-            { typeCode: 'ANNUAL', status: LeaveStatus.APPROVED, totalDays: 5 },
-            { typeCode: 'ANNUAL', status: LeaveStatus.PENDING, totalDays: 2 }
+            { typeCode: 'ANNUAL', status: 'APPROVED', totalDays: 5 },
+            { typeCode: 'ANNUAL', status: 'PENDING', totalDays: 2 }
         ]);
     });
 
     it('should return correct leave balances', async () => {
-        const { req, res } = createMocks({
-            method: 'GET',
-            query: { userId: '101', year: currentYear.toString() },
+        // Créer une requête NextRequest pour App Router
+        const request = new NextRequest(`http://localhost:3000/api/leaves/balance?userId=101&year=${currentYear}`, {
+            method: 'GET'
         });
 
-        await handler(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
-
-        expectToBe(res.statusCode, 200);
-        const data = JSON.parse(res._getData());
+        const response = await GET(request);
+        const data = await response.json();
 
         // Valider le format de la réponse selon l'API
         expectToBeDefined(data.balances);
@@ -160,15 +169,15 @@ describe('GET /api/leaves/balance', () => {
     });
 
     it('should return 400 if userId is missing', async () => {
-        const { req, res } = createMocks({
-            method: 'GET',
-            query: { year: currentYear.toString() },
+        // Créer une requête sans userId
+        const request = new NextRequest(`http://localhost:3000/api/leaves/balance?year=${currentYear}`, {
+            method: 'GET'
         });
 
-        await handler(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
+        const response = await GET(request);
+        const data = await response.json();
 
-        expectToBe(res.statusCode, 400);
-        const data = JSON.parse(res._getData());
+        expectToBe(response.status, 400);
         expectToBeDefined(data.error);
         expectToBe(data.error, 'userId and year parameters are required');
     });
@@ -186,18 +195,17 @@ describe('GET /api/leaves/balance', () => {
         ]);
 
         mockQueryRawUnsafe.mockResolvedValue([
-            { typeCode: 'ANNUAL', status: LeaveStatus.APPROVED, totalDays: 15 }
+            { typeCode: 'ANNUAL', status: 'APPROVED', totalDays: 15 }
         ]);
 
-        const { req, res } = createMocks({
-            method: 'GET',
-            query: { userId: '101', year: testYear.toString() },
+        const request = new NextRequest(`http://localhost:3000/api/leaves/balance?userId=101&year=${testYear}`, {
+            method: 'GET'
         });
 
-        await handler(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
+        const response = await GET(request);
+        const data = await response.json();
 
-        expectToBe(res.statusCode, 200);
-        const data = JSON.parse(res._getData());
+        expectToBe(response.status, 200);
         const annualBalance = data.balances.ANNUAL;
         expectToBeDefined(annualBalance);
         if (annualBalance) {
@@ -213,15 +221,14 @@ describe('GET /api/leaves/balance', () => {
         // Mock un cas où aucun type de congé n'est défini
         mockFindManyLeaveTypeSetting.mockResolvedValue([]);
 
-        const { req, res } = createMocks({
-            method: 'GET',
-            query: { userId: '999', year: currentYear.toString() },
+        const request = new NextRequest(`http://localhost:3000/api/leaves/balance?userId=999&year=${currentYear}`, {
+            method: 'GET'
         });
 
-        await handler(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
+        const response = await GET(request);
+        const data = await response.json();
 
-        expectToBe(res.statusCode, 200);
-        const data = JSON.parse(res._getData());
+        expectToBe(response.status, 200);
         expectToBeDefined(data.balances);
         expectToEqual(Object.keys(data.balances).length, 0);
     });

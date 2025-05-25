@@ -1,39 +1,42 @@
 #!/bin/bash
 # scripts/daily-metrics.sh
 
-DATE=$(date +"%Y-%m-%d")
-METRICS_FILE="metrics/daily-$DATE.json"
+echo "=== Métriques quotidiennes Mathildanesth ==="
+echo "Date: $(date)"
+echo ""
 
-echo "📈 Métriques du $DATE"
+# Structure du projet
+echo "=== Structure du projet ==="
+echo "Composants React: $(find src/components -name "*.tsx" | wc -l)"
+echo "Pages App Router: $(find src/app -name "page.tsx" | wc -l)"
+echo "Routes API App Router: $(find src/app/api -name "route.ts" | wc -l)"
+echo "Modules métier: $(find src/modules -type d -maxdepth 1 | grep -v "^src/modules$" | wc -l)"
+echo "Services: $(find src/services -name "*.ts" | wc -l)"
+echo "Tests: $(find src -name "*.test.ts" -o -name "*.test.tsx" | wc -l)"
+echo ""
 
-# Créer le dossier metrics s'il n'existe pas
-mkdir -p metrics
+# Qualité du code
+echo "=== Qualité du code ==="
+echo "Fichiers TypeScript: $(find src -name "*.ts" -o -name "*.tsx" | wc -l)"
+echo "Fichiers avec @ts-ignore: $(grep -r "@ts-ignore" src --include="*.ts" --include="*.tsx" | wc -l)"
+echo ""
 
-# Générer les métriques en JSON
-cat > $METRICS_FILE << EOF
+# Métriques JSON pour les outils de monitoring
+cat > daily-metrics.json << EOF
 {
-  "date": "$DATE",
-  "technicalDebt": {
-    "todoCount": $(grep -r "TODO\|FIXME" src --include="*.ts" --include="*.tsx" | wc -l),
-    "tsIgnoreCount": $(grep -r "@ts-ignore" src --include="*.ts" --include="*.tsx" | wc -l),
-    "anyTypeCount": $(grep -r ": any\|as any" src --include="*.ts" --include="*.tsx" | wc -l)
-  },
-  "architecture": {
-    "pagesRouterFiles": $(find src/pages/api -name "*.ts" 2>/dev/null | wc -l),
-    "appRouterFiles": $(find src/app/api -name "route.ts" 2>/dev/null | wc -l)
-  },
-  "tests": {
-    "testFiles": $(find src -name "*.test.ts" -o -name "*.test.tsx" | wc -l),
-    "totalFiles": $(find src -name "*.ts" -o -name "*.tsx" | wc -l)
+  "date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "metrics": {
+    "components": $(find src/components -name "*.tsx" | wc -l),
+    "appRouterPages": $(find src/app -name "page.tsx" | wc -l),
+    "appRouterApiRoutes": $(find src/app/api -name "route.ts" | wc -l),
+    "modules": $(find src/modules -type d -maxdepth 1 | grep -v "^src/modules$" | wc -l),
+    "services": $(find src/services -name "*.ts" | wc -l),
+    "tests": $(find src -name "*.test.ts" -o -name "*.test.tsx" | wc -l),
+    "typescriptFiles": $(find src -name "*.ts" -o -name "*.tsx" | wc -l),
+    "tsIgnoreCount": $(grep -r "@ts-ignore" src --include="*.ts" --include="*.tsx" 2>/dev/null | wc -l),
+    "migrationComplete": true
   }
 }
 EOF
 
-echo "Métriques sauvegardées dans $METRICS_FILE"
-
-# Afficher un résumé
-echo ""
-echo "📊 Résumé:"
-echo "- Dette technique: $(grep -r "TODO\|FIXME" src --include="*.ts" --include="*.tsx" | wc -l) occurrences"
-echo "- @ts-ignore: $(grep -r "@ts-ignore" src --include="*.ts" --include="*.tsx" | wc -l) occurrences"
-echo "- Couverture tests: $(echo "scale=1; $(find src -name "*.test.ts" -o -name "*.test.tsx" | wc -l) * 100 / $(find src -name "*.ts" -o -name "*.tsx" | wc -l)" | bc)%"
+echo "Métriques sauvegardées dans daily-metrics.json"

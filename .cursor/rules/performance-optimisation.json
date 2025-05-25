@@ -1,0 +1,17 @@
+{
+    "name": "performance-optimisation",
+    "description": "Charge la documentation de performance et optimisations pour les questions relatives aux performances.",
+    "pattern": "(?i)(performance|optimisation|lent|lenteur|cache|speed|bundle|lighthouse|audit)",
+    "actions": [
+        {
+            "type": "readFiles",
+            "files": [
+                "docs/03_performance/PERFORMANCE_AUDIT_REPORT.md",
+                "docs/03_performance/OPTIMISATIONS_REALISEES.md",
+                "docs/03_performance/SIMULATION_OPTIMIZATIONS.md",
+                "docs/technique/performance-optimization.md",
+                "docs/technique/performance-test-results.md"
+            ]
+        }
+    ]
+}

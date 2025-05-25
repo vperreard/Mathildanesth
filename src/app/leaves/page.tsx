@@ -29,7 +29,7 @@ import ConfirmationModal from '@/components/ConfirmationModal';
 import { LeaveWithUser, LeaveStatus, LeaveType } from '@/modules/leaves/types/leave';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
-// Importer LeaveForm avec React.lazy
+// Importer LeaveForm avec React.lazy (export nommé)
 const LeaveForm = lazy(() => import('@/modules/leaves/components/LeaveForm').then(module => ({ default: module.LeaveForm })));
 
 // Animation variants

@@ -464,7 +464,7 @@ export default function SimulationResultPage() {
             };
 
             const blob = await exportSimulationResults(exportData, {
-                format: 'excel',
+                format: 'csv',
                 fileName: `simulation_${result.scenarioName?.replace(/\s+/g, '_') || 'scenario'}_${result.id.slice(0, 8)}.xlsx`
             });
 

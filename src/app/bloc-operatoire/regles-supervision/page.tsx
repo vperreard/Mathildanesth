@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Button from '@/components/ui/button';
 import { BadgeInfo, FileCode, ListFilter, Settings } from 'lucide-react';
-import Separator from '@/components/ui/separator';
+import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
 
 /**

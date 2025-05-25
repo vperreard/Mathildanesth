@@ -35,7 +35,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         }
 
         // Vérifier que l'utilisateur est le créateur du scénario ou a des droits administratifs
-        // @ts-ignore - Ignorer l'incompatibilité de type entre number et string
+        // @ts-expect-error - Ignorer l'incompatibilité de type entre number et string
         const isCreator = scenario.createdById == session.user.id;
         // Vérifier si l'utilisateur a un rôle d'administrateur
         const userRole = session.user.role as string;

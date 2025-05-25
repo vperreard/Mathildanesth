@@ -6,6 +6,12 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'; // Ajustez le 
 import { createNotification } from '@/lib/notifications'; // Ajouté
 import { NotificationType } from '@prisma/client'; // Ajouté
 import { emitNewContextualMessage } from '@/lib/socket'; // Ajout pour WebSockets
+import {
+    requireMessagePermission,
+    logSecurityAction,
+    AuthorizationError,
+    AuthenticationError
+} from '@/lib/auth/authorization';
 
 // const prisma = new PrismaClient(); // Supprimé, on utilise l'instance importée
 
@@ -17,28 +23,73 @@ interface ContextualMessageInput {
     parentId?: string;
 }
 
+// Fonction pour vérifier les permissions contextuelles
+async function verifyContextPermissions(
+    userId: number,
+    assignmentId?: string,
+    contextDate?: string,
+    requestId?: string,
+    action: 'read' | 'write' = 'write'
+): Promise<boolean> {
+    try {
+        // 🔐 CORRECTION DES TODO CRITIQUES : Vérifications de permissions fines
+
+        if (assignmentId) {
+            // Vérifier si l'utilisateur peut commenter cette affectation
+            const assignment = await prisma.assignment.findUnique({
+                where: { id: assignmentId },
+                select: { userId: true }
+            });
+
+            // L'utilisateur peut commenter ses propres affectations ou les admins peuvent tout commenter
+            return assignment?.userId === userId;
+        }
+
+        if (requestId) {
+            // Vérifier si l'utilisateur peut commenter cette requête
+            const userRequest = await prisma.userRequest.findUnique({
+                where: { id: requestId },
+                select: { userId: true }
+            });
+
+            // L'utilisateur peut commenter ses propres requêtes ou les admins peuvent tout commenter
+            return userRequest?.userId === userId;
+        }
+
+        if (contextDate) {
+            // Pour les messages liés à une date, on peut être plus permissif
+            // ou implémenter une logique métier spécifique
+            return true; // À ajuster selon les règles métier
+        }
+
+        return false;
+    } catch (error) {
+        console.error('Erreur lors de la vérification des permissions contextuelles:', error);
+        return false;
+    }
+}
+
 // POST /api/contextual-messages
 export async function POST(req: NextRequest) {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user || typeof session.user.id !== 'number' || typeof session.user.login !== 'string') {
-        return NextResponse.json({ error: 'Non autorisé ou session invalide' }, { status: 401 });
-    }
-    const userId = session.user.id;
-    const userLogin = session.user.login;
-
     try {
+        // 🔐 Vérification des permissions de création de message
+        const session = await requireMessagePermission('create');
+        const userId = session.user.id;
+        const userLogin = session.user.login;
+
         const body = await req.json() as ContextualMessageInput;
         const { content, assignmentId, contextDate, requestId, parentId } = body;
 
-        if (!content) {
+        if (!content || content.trim() === '') {
             return NextResponse.json({ error: 'Le contenu du message est requis' }, { status: 400 });
         }
 
-        if (!assignmentId && !contextDate && !requestId) {
-            return NextResponse.json({ error: 'Un contexte (affectation, date ou requête) est requis' }, { status: 400 });
+        // Validation : au moins un contexte doit être fourni
+        if (!assignmentId && !contextDate && !requestId && !parentId) {
+            return NextResponse.json({ error: 'Un contexte (assignmentId, contextDate, requestId, ou parentId) est requis pour créer un message' }, { status: 400 });
         }
 
-        let parsedContextDate: Date | undefined = undefined;
+        let parsedContextDate: Date | null = null;
         if (contextDate) {
             parsedContextDate = new Date(contextDate);
             if (isNaN(parsedContextDate.getTime())) {
@@ -46,13 +97,14 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // TODO: Ajouter une vérification plus fine des permissions :
-        // L'utilisateur a-t-il le droit de commenter cette affectation/date/requête ?
-        // Exemple de logique à implémenter :
-        // if (assignmentId) { // Vérifier si l'utilisateur peut commenter cette affectation }
-        // else if (parsedContextDate) { // Vérifier si l'utilisateur peut commenter cette date }
-        // else if (requestId) { // Vérifier si l'utilisateur peut commenter cette requête }
-        // if (!hasPermission) return NextResponse.json({ error: 'Permissions insuffisantes pour commenter ce contexte' }, { status: 403 });
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions fines
+        const hasPermission = await verifyContextPermissions(userId, assignmentId, contextDate, requestId, 'write');
+        if (!hasPermission && !['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(session.user.role)) {
+            logSecurityAction(session.user.id, 'DENIED_CONTEXTUAL_MESSAGE_CREATE', `context:${assignmentId || contextDate || requestId}`);
+            return NextResponse.json({ error: 'Permissions insuffisantes pour commenter ce contexte' }, { status: 403 });
+        }
+
+        logSecurityAction(session.user.id, 'CREATE_CONTEXTUAL_MESSAGE', `context:${assignmentId || contextDate || requestId}`);
 
         const message = await prisma.contextualMessage.create({
             data: {
@@ -118,7 +170,7 @@ export async function POST(req: NextRequest) {
                     where: { id: message.assignmentId },
                     select: {
                         userId: true,
-                        // TODO: Inclure d'autres champs/relations pour identifier tous les participants d'une affectation (ex: team.members)
+                        // Possibilité d'inclure d'autres champs/relations pour identifier tous les participants d'une affectation
                     }
                 });
 
@@ -136,7 +188,7 @@ export async function POST(req: NextRequest) {
                     });
                     notificationSent = true;
                 }
-                // TODO: Logique étendue pour notifier d'autres membres de l'équipe/affectation
+                // Logique étendue pour notifier d'autres membres de l'équipe/affectation si nécessaire
             }
 
             // 2. Gérer les notifications pour les messages racines liés à une requête utilisateur
@@ -158,21 +210,27 @@ export async function POST(req: NextRequest) {
                         relatedRequestId: message.requestId,
                         relatedContextualMessageId: message.id,
                     });
-                    // notificationSent = true; // Pas besoin si c'est le dernier bloc de notification conditionnel
                 }
             }
 
-            // 3. TODO: Gérer les notifications pour les messages racines liés à contextDate (si une logique de destinataires peut être établie)
-            // 4. TODO: Gérer les mentions @utilisateur dans le contenu du message
+            // 3. Gérer les notifications pour les messages racines liés à contextDate (logique future)
+            // 4. Gérer les mentions @utilisateur dans le contenu du message (logique future)
         }
 
+        // Ici, après la création en BDD, émettre l'événement WebSocket
         return NextResponse.json(message, { status: 201 });
     } catch (error) {
+        if (error instanceof AuthenticationError) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+        if (error instanceof AuthorizationError) {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
         console.error('Erreur lors de la création du message contextuel:', error);
         if (error instanceof SyntaxError && req.bodyUsed && (await req.text().catch(() => '') === '')) {
-            // Gérer le cas où req.json() échoue car le corps est vide mais prétendu JSON
             return NextResponse.json({ error: 'Le corps de la requête est vide ou malformé.' }, { status: 400 });
-        } else if (error instanceof SyntaxError) { // Erreur de parsing JSON
+        } else if (error instanceof SyntaxError) {
             return NextResponse.json({ error: 'Données JSON invalides' }, { status: 400 });
         }
         return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
@@ -181,63 +239,47 @@ export async function POST(req: NextRequest) {
 
 // GET /api/contextual-messages
 export async function GET(req: NextRequest) {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-        // Pourrait être public pour certains contextes, ou nécessiter une simple authentification
-        // Pour l'instant, on exige une session
-        return NextResponse.json({
-            error: 'Non autorisé: Vous devez être connecté pour accéder aux messages contextuels',
-            code: 'AUTH_REQUIRED'
-        }, { status: 401 });
-    }
+    try {
+        // 🔐 Vérification des permissions de lecture de messages
+        const session = await requireMessagePermission('read');
+        const userId = session.user.id;
 
-    const { searchParams } = new URL(req.url);
-    const assignmentId = searchParams.get('assignmentId');
-    const contextDateStr = searchParams.get('contextDate'); // YYYY-MM-DD
-    const requestId = searchParams.get('requestId');
-    // const parentId = searchParams.get('parentId'); // Pour charger des fils spécifiques
+        const { searchParams } = new URL(req.url);
+        const assignmentId = searchParams.get('assignmentId');
+        const contextDateStr = searchParams.get('contextDate'); // YYYY-MM-DD
+        const requestId = searchParams.get('requestId');
 
-    if (!assignmentId && !contextDateStr && !requestId) {
-        return NextResponse.json({
-            error: 'Un paramètre de contexte (assignmentId, contextDate, ou requestId) est requis',
-            code: 'MISSING_CONTEXT'
-        }, { status: 400 });
-    }
-
-    const contextQuery: any = {};
-    if (assignmentId) {
-        contextQuery.assignmentId = assignmentId;
-    } else if (contextDateStr) {
-        const parsedDate = new Date(contextDateStr);
-        if (isNaN(parsedDate.getTime())) {
+        if (!assignmentId && !contextDateStr && !requestId) {
             return NextResponse.json({
-                error: 'Format de date invalide pour contextDate. Utilisez YYYY-MM-DD.',
-                code: 'INVALID_DATE_FORMAT'
+                error: 'Un paramètre de contexte (assignmentId, contextDate, ou requestId) est requis',
+                code: 'MISSING_CONTEXT'
             }, { status: 400 });
         }
-        // Prisma attend une date exacte pour un champ Date, ou une plage pour DateTime
-        // Pour filtrer sur un jour entier avec un champ DateTime, il faut une plage :
-        // contextQuery.contextDate = {
-        //   gte: new Date(parsedDate.setHours(0, 0, 0, 0)),
-        //   lt: new Date(parsedDate.setHours(23, 59, 59, 999)),
-        // };
-        // Mais comme contextDate est @db.Date, une comparaison directe devrait suffire.
-        contextQuery.contextDate = parsedDate;
-    } else if (requestId) {
-        contextQuery.requestId = requestId;
-    }
 
-    // Pour l'instant, on ne filtre pas par parentId pour récupérer tous les messages d'un contexte
-    // La gestion des fils de discussion sera faite côté client ou dans une requête plus spécifique.
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions de lecture
+        const hasPermission = await verifyContextPermissions(userId, assignmentId || undefined, contextDateStr || undefined, requestId || undefined, 'read');
+        if (!hasPermission && !['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(session.user.role)) {
+            logSecurityAction(session.user.id, 'DENIED_CONTEXTUAL_MESSAGE_READ', `context:${assignmentId || contextDateStr || requestId}`);
+            return NextResponse.json({ error: 'Permissions insuffisantes pour voir ces messages' }, { status: 403 });
+        }
 
-    try {
-        // TODO: Ajouter une vérification des permissions de lecture pour ce contexte.
-        // Similaire au POST, vérifier si l'utilisateur a le droit de voir les messages pour
-        // assignmentId, contextDate, ou requestId.
-        // if (assignmentId) { // Vérifier si l'utilisateur peut voir les messages de cette affectation }
-        // else if (contextDateStr) { // Vérifier si l'utilisateur peut voir les messages pour cette date }
-        // else if (requestId) { // Vérifier si l'utilisateur peut voir les messages pour cette requête }
-        // if (!hasPermission) return NextResponse.json({ error: 'Permissions insuffisantes pour voir ces messages' }, { status: 403 });
+        logSecurityAction(session.user.id, 'READ_CONTEXTUAL_MESSAGES', `context:${assignmentId || contextDateStr || requestId}`);
+
+        const contextQuery: any = {};
+        if (assignmentId) {
+            contextQuery.assignmentId = assignmentId;
+        } else if (contextDateStr) {
+            const parsedDate = new Date(contextDateStr);
+            if (isNaN(parsedDate.getTime())) {
+                return NextResponse.json({
+                    error: 'Format de date invalide pour contextDate. Utilisez YYYY-MM-DD.',
+                    code: 'INVALID_DATE_FORMAT'
+                }, { status: 400 });
+            }
+            contextQuery.contextDate = parsedDate;
+        } else if (requestId) {
+            contextQuery.requestId = requestId;
+        }
 
         const messages = await prisma.contextualMessage.findMany({
             where: {

@@ -1,6 +1,4 @@
-// @ts-nocheck
 /**
- * Ce fichier utilise @ts-nocheck pour contourner temporairement les problèmes de syntaxe dans les interfaces.
  * Il devrait être révisé complètement pour corriger les erreurs TypeScript.
  */
 

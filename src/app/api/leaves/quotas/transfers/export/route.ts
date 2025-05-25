@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const format = searchParams.get('format') || 'pdf';
 
-        if (!['pdf', 'csv', 'excel'].includes(format)) {
+        if (!['pdf', 'csv', 'csv'].includes(format)) {
             return NextResponse.json(
                 { error: 'Format non supporté. Utilisez pdf, csv ou excel.' },
                 { status: 400 }
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
             } ${options.endDate ? formatDate(new Date(options.endDate)) : ''}`.trim();
 
         // Générer le rapport selon le format demandé
-        if (format === 'excel') {
+        if (format === 'csv') {
             return await generateExcelReport(transfers, reportTitle);
         } else if (format === 'csv') {
             return await generateCsvReport(transfers, reportTitle);

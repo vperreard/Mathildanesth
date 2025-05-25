@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, PrismaClientKnownRequestError } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { z } from 'zod';
+import {
+    requireSimulationPermission,
+    logSecurityAction,
+    AuthorizationError,
+    AuthenticationError
+} from '@/lib/auth/authorization';
 
 const prisma = new PrismaClient();
 
@@ -13,12 +19,16 @@ const updateScenarioSchema = z.object({
 
 // GET /api/simulations/{scenarioId} - Récupérer un scénario spécifique
 export async function GET(request: NextRequest, { params }: { params: { scenarioId: string } }) {
-    const { scenarioId } = await Promise.resolve(params);
-    if (!scenarioId) {
-        return NextResponse.json({ error: "ID du scénario manquant." }, { status: 400 });
-    }
-
     try {
+        const { scenarioId } = await Promise.resolve(params);
+        if (!scenarioId) {
+            return NextResponse.json({ error: "ID du scénario manquant." }, { status: 400 });
+        }
+
+        // 🔐 Vérification des permissions de lecture de simulation
+        const session = await requireSimulationPermission('read');
+        logSecurityAction(session.user.id, 'READ_SIMULATION', `scenario:${scenarioId}`);
+
         const scenario = await prisma.simulationScenario.findUnique({
             where: { id: scenarioId },
             include: {
@@ -33,9 +43,22 @@ export async function GET(request: NextRequest, { params }: { params: { scenario
         if (!scenario) {
             return NextResponse.json({ error: "Scénario non trouvé." }, { status: 404 });
         }
+
+        // Vérifier si l'utilisateur peut accéder à ce scénario spécifique
+        if (!scenario.createdBy || (scenario.createdBy.id !== session.user.id && !['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(session.user.role))) {
+            return NextResponse.json({ error: "Vous n'êtes pas autorisé à accéder à ce scénario." }, { status: 403 });
+        }
+
         return NextResponse.json(scenario);
     } catch (error) {
-        console.error(`Erreur lors de la récupération du scénario ${scenarioId}:`, error);
+        if (error instanceof AuthenticationError) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+        if (error instanceof AuthorizationError) {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
+        console.error(`Erreur lors de la récupération du scénario ${params.scenarioId}:`, error);
         const errorMessage = error instanceof Error ? error.message : 'Erreur interne du serveur';
         return NextResponse.json({ error: "Impossible de récupérer le scénario.", details: errorMessage }, { status: 500 });
     }
@@ -43,12 +66,12 @@ export async function GET(request: NextRequest, { params }: { params: { scenario
 
 // PUT /api/simulations/{scenarioId} - Mettre à jour un scénario spécifique
 export async function PUT(request: NextRequest, { params }: { params: { scenarioId: string } }) {
-    const { scenarioId } = params;
-    if (!scenarioId) {
-        return NextResponse.json({ error: "ID du scénario manquant." }, { status: 400 });
-    }
-
     try {
+        const { scenarioId } = params;
+        if (!scenarioId) {
+            return NextResponse.json({ error: "ID du scénario manquant." }, { status: 400 });
+        }
+
         const body = await request.json();
         const validationResult = updateScenarioSchema.safeParse(body);
 
@@ -57,12 +80,20 @@ export async function PUT(request: NextRequest, { params }: { params: { scenario
         }
 
         // Vérifier si le scénario existe avant de tenter la mise à jour
-        const existingScenario = await prisma.simulationScenario.findUnique({ where: { id: scenarioId } });
+        const existingScenario = await prisma.simulationScenario.findUnique({
+            where: { id: scenarioId },
+            select: { id: true, createdBy: { select: { id: true } } }
+        });
         if (!existingScenario) {
             return NextResponse.json({ error: "Scénario non trouvé pour la mise à jour." }, { status: 404 });
         }
 
-        // TODO: Vérifier les permissions de l'utilisateur (peut-il modifier ce scénario ?)
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur
+        if (!existingScenario.createdBy) {
+            return NextResponse.json({ error: "Scénario invalide." }, { status: 400 });
+        }
+        const session = await requireSimulationPermission('update', existingScenario.createdBy.id);
+        logSecurityAction(session.user.id, 'UPDATE_SIMULATION', `scenario:${scenarioId}`);
 
         const updatedScenario = await prisma.simulationScenario.update({
             where: { id: scenarioId },
@@ -71,7 +102,14 @@ export async function PUT(request: NextRequest, { params }: { params: { scenario
 
         return NextResponse.json(updatedScenario);
     } catch (error) {
-        console.error(`Erreur lors de la mise à jour du scénario ${scenarioId}:`, error);
+        if (error instanceof AuthenticationError) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+        if (error instanceof AuthorizationError) {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
+        console.error(`Erreur lors de la mise à jour du scénario ${params.scenarioId}:`, error);
         const errorMessage = error instanceof Error ? error.message : 'Erreur interne du serveur';
         return NextResponse.json({ error: "Impossible de mettre à jour le scénario.", details: errorMessage }, { status: 500 });
     }
@@ -79,19 +117,27 @@ export async function PUT(request: NextRequest, { params }: { params: { scenario
 
 // DELETE /api/simulations/{scenarioId} - Supprimer un scénario spécifique
 export async function DELETE(request: NextRequest, { params }: { params: { scenarioId: string } }) {
-    const { scenarioId } = params;
-    if (!scenarioId) {
-        return NextResponse.json({ error: "ID du scénario manquant." }, { status: 400 });
-    }
-
     try {
+        const { scenarioId } = params;
+        if (!scenarioId) {
+            return NextResponse.json({ error: "ID du scénario manquant." }, { status: 400 });
+        }
+
         // Vérifier si le scénario existe avant de tenter la suppression
-        const existingScenario = await prisma.simulationScenario.findUnique({ where: { id: scenarioId } });
+        const existingScenario = await prisma.simulationScenario.findUnique({
+            where: { id: scenarioId },
+            select: { id: true, createdBy: { select: { id: true } } }
+        });
         if (!existingScenario) {
             return NextResponse.json({ error: "Scénario non trouvé pour la suppression." }, { status: 404 });
         }
 
-        // TODO: Vérifier les permissions de l'utilisateur
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur
+        if (!existingScenario.createdBy) {
+            return NextResponse.json({ error: "Scénario invalide." }, { status: 400 });
+        }
+        const session = await requireSimulationPermission('delete', existingScenario.createdBy.id);
+        logSecurityAction(session.user.id, 'DELETE_SIMULATION', `scenario:${scenarioId}`);
 
         // La suppression en cascade des SimulationResult est gérée par Prisma grâce à onDelete: Cascade
         await prisma.simulationScenario.delete({
@@ -100,10 +146,17 @@ export async function DELETE(request: NextRequest, { params }: { params: { scena
 
         return NextResponse.json({ message: "Scénario supprimé avec succès." }, { status: 200 }); // ou 204 No Content
     } catch (error) {
-        if (error instanceof PrismaClientKnownRequestError && error.code === 'P2003') {
+        if (error instanceof AuthenticationError) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+        if (error instanceof AuthorizationError) {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
             return NextResponse.json({ error: "Impossible de supprimer le scénario car il est référencé par des résultats de simulation. Supprimez d'abord les résultats associés.", details: error.message }, { status: 409 });
         }
-        console.error(`Erreur lors de la suppression du scénario ${scenarioId}:`, error);
+        console.error(`Erreur lors de la suppression du scénario ${params.scenarioId}:`, error);
         const errorMessage = error instanceof Error ? error.message : 'Erreur interne du serveur';
         return NextResponse.json({ error: "Impossible de supprimer le scénario.", details: errorMessage }, { status: 500 });
     }

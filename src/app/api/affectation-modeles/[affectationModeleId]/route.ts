@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
+import {
+    requirePlanningPermission,
+    logSecurityAction,
+    AuthorizationError,
+    AuthenticationError
+} from '@/lib/auth/authorization';
 
 const prisma = new PrismaClient();
 
@@ -9,27 +15,20 @@ export async function PUT(
     request: NextRequest,
     { params }: { params: { affectationModeleId: string } }
 ) {
-    console.log("\n--- PUT /api/affectation-modeles/[affectationModeleId] START ---");
-    const token = request.cookies.get('token')?.value;
-    if (!token) {
-        console.error("PUT /api/affectation-modeles/[id]: Unauthorized (token missing)");
-        return NextResponse.json({ error: 'Non autorisé, token manquant' }, { status: 401 });
-    }
-    const authResult = await verifyAuthToken(token);
-    if (!authResult.authenticated) {
-        console.error("PUT /api/affectation-modeles/[id]: Unauthorized (token invalid)");
-        return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
-    }
-    // TODO: Ajouter vérification de rôle si nécessaire
-
-    const { affectationModeleId } = await Promise.resolve(params);
-    if (!affectationModeleId || isNaN(parseInt(affectationModeleId))) {
-        console.warn("PUT /api/affectation-modeles/[id]: Invalid affectationModeleId");
-        return NextResponse.json({ error: 'ID de l\'affectation modèle invalide' }, { status: 400 });
-    }
-    const idToUpdate = parseInt(affectationModeleId);
-
     try {
+        console.log("\n--- PUT /api/affectation-modeles/[affectationModeleId] START ---");
+
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications
+        const session = await requirePlanningPermission('update');
+        logSecurityAction(session.user.id, 'UPDATE_AFFECTATION_MODELE', `affectation:${params.affectationModeleId}`);
+
+        const { affectationModeleId } = await Promise.resolve(params);
+        if (!affectationModeleId || isNaN(parseInt(affectationModeleId))) {
+            console.warn("PUT /api/affectation-modeles/[id]: Invalid affectationModeleId");
+            return NextResponse.json({ error: 'ID de l\'affectation modèle invalide' }, { status: 400 });
+        }
+        const idToUpdate = parseInt(affectationModeleId);
+
         const body = await request.json();
         console.log(`PUT /api/affectation-modeles/${idToUpdate} - Received data:`, body);
 
@@ -122,7 +121,14 @@ export async function PUT(
         return NextResponse.json(updatedAffectationModele);
 
     } catch (error) {
-        console.error(`Error during PUT /api/affectation-modeles/${affectationModeleId}:`, error);
+        if (error instanceof AuthenticationError) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+        if (error instanceof AuthorizationError) {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
+        console.error(`Error during PUT /api/affectation-modeles/${params.affectationModeleId}:`, error);
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 console.error("Prisma Error P2025 (update): Record to update not found or related record not found.", error.meta);
@@ -139,38 +145,21 @@ export async function DELETE(
     request: NextRequest,
     { params }: { params: { affectationModeleId: string } }
 ) {
-    const { affectationModeleId } = params;
-    console.log(`[API DELETE /affectation-modeles/${affectationModeleId}] Début du traitement.`);
-
-    console.log("\n--- DELETE /api/affectation-modeles/[affectationModeleId] START ---");
-    let token = request.cookies.get('token')?.value;
-
-    if (!token) {
-        const authHeader = request.headers.get('Authorization');
-        if (authHeader?.startsWith('Bearer ')) {
-            token = authHeader.substring(7);
-        }
-    }
-
-    if (!token) {
-        console.error("DELETE /api/affectation-modeles/[id]: Unauthorized (token missing from cookie and Authorization header)");
-        return NextResponse.json({ error: 'Non autorisé, token manquant' }, { status: 401 });
-    }
-
-    const authResult = await verifyAuthToken(token);
-    if (!authResult.authenticated) {
-        console.error("DELETE /api/affectation-modeles/[id]: Unauthorized (token invalid)");
-        return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
-    }
-    // TODO: Ajouter vérification de rôle si nécessaire
-
-    if (!affectationModeleId || isNaN(parseInt(affectationModeleId))) {
-        console.warn("DELETE /api/affectation-modeles/[id]: Invalid affectationModeleId");
-        return NextResponse.json({ error: 'ID de l\'affectation modèle invalide' }, { status: 400 });
-    }
-    const idToDelete = parseInt(affectationModeleId);
-
     try {
+        const { affectationModeleId } = params;
+        console.log(`[API DELETE /affectation-modeles/${affectationModeleId}] Début du traitement.`);
+        console.log("\n--- DELETE /api/affectation-modeles/[affectationModeleId] START ---");
+
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour suppression
+        const session = await requirePlanningPermission('delete');
+        logSecurityAction(session.user.id, 'DELETE_AFFECTATION_MODELE', `affectation:${affectationModeleId}`);
+
+        if (!affectationModeleId || isNaN(parseInt(affectationModeleId))) {
+            console.warn("DELETE /api/affectation-modeles/[id]: Invalid affectationModeleId");
+            return NextResponse.json({ error: 'ID de l\'affectation modèle invalide' }, { status: 400 });
+        }
+        const idToDelete = parseInt(affectationModeleId);
+
         console.log(`DELETE /api/affectation-modeles/${idToDelete}: Attempting to delete...`);
 
         // La suppression en cascade devrait s'occuper des PersonnelRequisModele grâce à onDelete: Cascade dans le schéma
@@ -183,7 +172,14 @@ export async function DELETE(
         return NextResponse.json({ message: "Affectation modèle supprimée avec succès" }, { status: 200 }); // ou 204 No Content
 
     } catch (error: any) {
-        console.error(`DELETE /api/affectation-modeles/${affectationModeleId}: Error - ${error.message}`, { stack: error.stack });
+        if (error instanceof AuthenticationError) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+        if (error instanceof AuthorizationError) {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
+        console.error(`DELETE /api/affectation-modeles/${params.affectationModeleId}: Error - ${error.message}`, { stack: error.stack });
         console.log("--- DELETE /api/affectation-modeles/[affectationModeleId] END (with error) ---\n");
         return NextResponse.json({ error: 'Erreur lors de la suppression de l\'affectation modèle', details: error.message }, { status: 500 });
     }

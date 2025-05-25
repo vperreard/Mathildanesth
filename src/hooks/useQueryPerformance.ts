@@ -93,12 +93,17 @@ export function useQueryPerformance(): QueryPerformanceHookReturn {
     useEffect(() => {
         const fetchCacheStats = () => {
             try {
-                // @ts-ignore - Accès aux statistiques internes
-                const cacheStats = (prisma as PrismaWithCache).$cacheStats?.();
-                if (cacheStats) {
-                    updateCacheStats(cacheStats);
+                // 🔧 CORRECTION @TS-IGNORE : Vérification typée de l'existence de la méthode
+                const prismaWithCache = prisma as PrismaWithCache;
+                if (typeof prismaWithCache.$cacheStats === 'function') {
+                    const cacheStats = prismaWithCache.$cacheStats();
+                    if (cacheStats) {
+                        updateCacheStats(cacheStats);
+                    } else {
+                        console.debug('[Performance] Aucune statistique de cache disponible');
+                    }
                 } else {
-                    console.debug('[Performance] Aucune statistique de cache disponible');
+                    console.debug('[Performance] Méthode $cacheStats non disponible sur cette instance Prisma');
                 }
             } catch (error) {
                 console.debug('[Performance] Erreur lors de la récupération des statistiques de cache:', error);

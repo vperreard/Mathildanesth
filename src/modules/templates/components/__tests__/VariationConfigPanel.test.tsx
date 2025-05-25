@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import VariationConfigPanel from '../VariationConfigPanel';
@@ -6,24 +5,26 @@ import { ConfigurationVariation } from '../../types/template';
 
 // Mock pour les Date Pickers
 jest.mock('@mui/x-date-pickers/DatePicker', () => {
-    const React = require('react');
+    const React = jest.requireActual('react');
     return {
-        DatePicker: ({ label, onChange }) => React.createElement('input', {
-            'data-testid': `datepicker-${label}`,
-            onChange: (e) => onChange(new Date(e.target.value))
-        })
+        DatePicker: ({ label, onChange }: { label: string; onChange: (date: Date) => void }) =>
+            React.createElement('input', {
+                'data-testid': `datepicker-${label}`,
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) => onChange(new Date(e.target.value))
+            })
     };
 });
 
 jest.mock('@mui/x-date-pickers/LocalizationProvider', () => {
-    const React = require('react');
+    const React = jest.requireActual('react');
     return {
-        LocalizationProvider: ({ children }) => React.createElement('div', null, children)
+        LocalizationProvider: ({ children }: { children: React.ReactNode }) =>
+            React.createElement('div', null, children)
     };
 });
 
 jest.mock('../AssignmentConfigPanel', () => {
-    const React = require('react');
+    const React = jest.requireActual('react');
     return {
         __esModule: true,
         default: () => React.createElement('div', { 'data-testid': 'mock-assignment-config' }, "Configuration d'affectation mockée")

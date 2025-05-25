@@ -1,12 +1,43 @@
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'react-toastify';
 
+// 🔧 CORRECTION TYPE ANY : Types spécifiques pour les données de notification
+type NotificationData =
+    | LeaveNotificationData
+    | AssignmentNotificationData
+    | SystemNotificationData
+    | Record<string, unknown>; // Fallback pour les cas non typés
+
+interface LeaveNotificationData {
+    leaveId: string;
+    userId: string;
+    leaveType: string;
+    status: string;
+    startDate: string;
+    endDate: string;
+}
+
+interface AssignmentNotificationData {
+    assignmentId: string;
+    userId: string;
+    date: string;
+    shiftType: string;
+    location?: string;
+}
+
+interface SystemNotificationData {
+    component: string;
+    action: string;
+    timestamp: string;
+    metadata?: Record<string, unknown>;
+}
+
 export interface Notification {
     id: string;
     type: 'info' | 'success' | 'warning' | 'error';
     title: string;
     message: string;
-    data?: any;
+    data?: NotificationData; // 🔧 PLUS DE TYPE ANY
     createdAt: Date;
 }
 

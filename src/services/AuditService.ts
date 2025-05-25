@@ -28,6 +28,64 @@ export enum AuditAction {
     SYSTEM_UPDATED = 'system:updated'
 }
 
+// 🔧 CORRECTION TYPE ANY : Types spécifiques pour les détails d'audit
+type AuditDetails =
+    | UserAuditDetails
+    | LeaveAuditDetails
+    | QuotaAuditDetails
+    | PermissionAuditDetails
+    | SettingAuditDetails
+    | ReportAuditDetails
+    | SystemAuditDetails
+    | Record<string, unknown>; // Fallback pour les cas non typés
+
+interface UserAuditDetails {
+    previousRole?: string;
+    newRole?: string;
+    changedFields?: string[];
+    resetPassword?: boolean;
+}
+
+interface LeaveAuditDetails {
+    leaveType?: string;
+    startDate?: string;
+    endDate?: string;
+    previousStatus?: string;
+    newStatus?: string;
+    reason?: string;
+}
+
+interface QuotaAuditDetails {
+    previousQuota?: number;
+    newQuota?: number;
+    transferAmount?: number;
+    targetUserId?: string;
+}
+
+interface PermissionAuditDetails {
+    permission?: string;
+    granted?: boolean;
+    scope?: string;
+}
+
+interface SettingAuditDetails {
+    settingKey?: string;
+    previousValue?: unknown;
+    newValue?: unknown;
+}
+
+interface ReportAuditDetails {
+    reportType?: string;
+    filters?: Record<string, unknown>;
+    exportFormat?: string;
+}
+
+interface SystemAuditDetails {
+    component?: string;
+    version?: string;
+    configChanges?: Record<string, unknown>;
+}
+
 /**
  * Interface pour les entrées d'audit
  */
@@ -38,7 +96,7 @@ export interface AuditEntry {
     userId?: string;
     entityId: string;
     entityType: string;
-    details?: any;
+    details?: AuditDetails; // 🔧 PLUS DE TYPE ANY
     ip?: string;
     userAgent?: string;
 }

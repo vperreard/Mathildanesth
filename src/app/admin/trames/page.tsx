@@ -1,12 +1,15 @@
+'use client';
+
 import React from 'react';
-import { TrameAffectation } from '@/components/trames/TrameAffectation';
+import { TrameAffectation, Affectation } from '@/components/trames/TrameAffectation';
 import { toast } from 'sonner';
-import { TrameAffectationService } from '@/services/trameAffectationService';
-import { Affectation } from '@/components/trames/TrameAffectation';
 
 export default function TramesPage() {
     const handleSaveTrame = async (trames: Affectation[]) => {
         try {
+            // Import dynamique pour éviter les problèmes de build avec Sequelize
+            const { TrameAffectationService } = await import('@/services/trameAffectationService');
+
             for (const trame of trames) {
                 await TrameAffectationService.create({
                     userId: trame.userId,

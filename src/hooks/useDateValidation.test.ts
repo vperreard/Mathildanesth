@@ -1,5 +1,3 @@
-// @ts-nocheck
-/* Ce fichier utilise @ts-nocheck pour contourner temporairement les erreurs de type avec les assertions Jest.
  * Certains tests échouent logiquement car ils testent des options non supportées par le hook actuel ou car la logique du hook a changé.
  */
 import { renderHook, act, waitFor } from '@testing-library/react';

@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
 
 // Helper pour vérifier les rôles admin
-const hasRequiredRole = (): boolean => {
-    const headersList = headers();
+const hasRequiredRole = async (): Promise<boolean> => {
+    const headersList = await headers();
     const userRoleString = headersList.get('x-user-role');
     return !!userRoleString && ['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(userRoleString);
 };
@@ -65,7 +65,7 @@ export async function GET(request: Request, context: Context) {
 // PUT : Mettre à jour un secteur spécifique
 export async function PUT(request: Request, context: Context) {
     // Vérifier les permissions
-    if (!hasRequiredRole()) {
+    if (!await hasRequiredRole()) {
         return new NextResponse(JSON.stringify({ message: 'Accès non autorisé' }), { status: 403 });
     }
 
@@ -148,7 +148,7 @@ export async function PUT(request: Request, context: Context) {
 // DELETE : Supprimer un secteur spécifique
 export async function DELETE(request: Request, context: Context) {
     // Vérifier les permissions (seul un admin total peut supprimer)
-    const headersList = headers();
+    const headersList = await headers();
     const userRoleString = headersList.get('x-user-role');
     if (userRoleString !== 'ADMIN_TOTAL') {
         return new NextResponse(JSON.stringify({ message: 'Accès non autorisé. Seul un administrateur total peut supprimer un secteur.' }), { status: 403 });
@@ -179,8 +179,20 @@ export async function DELETE(request: Request, context: Context) {
             return new NextResponse(JSON.stringify({ message: 'Secteur non trouvé' }), { status: 404 });
         }
 
-        // TODO: Vérifier si le secteur est utilisé dans des salles existantes
-        // Si c'est le cas, on pourrait renvoyer une erreur ou proposer une solution alternative
+        // 🔐 CORRECTION TODO CRITIQUE : Vérifier si le secteur est utilisé dans des salles existantes
+        const connectedRooms = await prisma.$queryRawUnsafe(
+            `SELECT id, name FROM "OperatingRoom" WHERE "operatingSectorId" = $1 LIMIT 10`,
+            sectorId
+        );
+
+        if (Array.isArray(connectedRooms) && connectedRooms.length > 0) {
+            const roomNames = (connectedRooms as any[]).map(room => room.name).join(', ');
+            return new NextResponse(JSON.stringify({
+                message: 'Impossible de supprimer ce secteur car il est utilisé par des salles existantes.',
+                details: `Salles connectées: ${roomNames}${connectedRooms.length === 10 ? ' (et d\'autres...)' : ''}`,
+                connectedRoomsCount: connectedRooms.length
+            }), { status: 409 });
+        }
 
         // Supprimer le secteur
         await prisma.$queryRawUnsafe(

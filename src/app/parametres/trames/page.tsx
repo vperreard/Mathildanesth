@@ -9,13 +9,21 @@ import { useSearchParams, useRouter } from 'next/navigation';
 
 // Chargement dynamique de l'éditeur de trames en grille
 const TrameGridEditor = dynamic(
-    () => import('./TrameGridEditor').catch(() => () => <div>Erreur de chargement</div>),
+    () => import('./TrameGridEditor').catch(() => {
+        const ErrorComponent = () => <div>Erreur de chargement</div>;
+        ErrorComponent.displayName = 'TrameGridEditorError';
+        return ErrorComponent;
+    }),
     { ssr: false }
 );
 
 // Charger dynamiquement le composant de démo pour éviter les problèmes de SSR
 const TrameGridDemo = dynamic(
-    () => import('@/components/trames/grid-view/TrameGridDemo').catch(() => () => <div>Erreur de chargement</div>),
+    () => import('@/components/trames/grid-view/TrameGridDemo').catch(() => {
+        const ErrorComponent = () => <div>Erreur de chargement</div>;
+        ErrorComponent.displayName = 'TrameGridDemoError';
+        return ErrorComponent;
+    }),
     { ssr: false }
 );
 

@@ -46,9 +46,9 @@ describe('NotificationService', () => {
         (io as jest.Mock).mockReturnValue(socketMock);
 
         // Réinitialiser l'état de l'objet notificationService (trick pour réinitialiser un singleton)
-        // @ts-ignore - Accès à une propriété privée pour les tests
+        // @ts-expect-error - Accès intentionnel à une propriété privée pour les tests
         notificationService.socket = socketMock;
-        // @ts-ignore - Accès à une propriété privée pour les tests
+        // @ts-expect-error - Accès intentionnel à une propriété privée pour les tests
         notificationService.listeners = new Map();
 
         // Déclencher l'initialisation qui va enregistrer les listeners

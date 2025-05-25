@@ -320,7 +320,14 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                     <DatePicker
                         id={id}
                         selected={selected}
-                        onChange={onChange}
+                        onChange={(date) => {
+                            // S'assurer que la date est bien définie avant de l'assigner
+                            if (date instanceof Date && !isNaN(date.getTime())) {
+                                onChange(date);
+                            } else {
+                                onChange(null);
+                            }
+                        }}
                         selectsStart={id === "startDate"}
                         selectsEnd={id === "endDate"}
                         startDate={startDate} // DatePicker s'attend à Date | null
@@ -345,6 +352,10 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
                             return "";
                         }}
                         disabled={disabled}
+                        strictParsing={true}
+                        showYearDropdown={true}
+                        showMonthDropdown={true}
+                        dropdownMode="select"
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <CalendarIcon className="h-5 w-5 text-gray-400" />

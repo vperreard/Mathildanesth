@@ -4,6 +4,12 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'; // Ajustez le chemin si nécessaire
 import { Role } from '@prisma/client'; // Ajouté pour référence au type Role
 import { emitUpdatedContextualMessage, emitDeletedContextualMessage } from '@/lib/socket'; // Ajout pour WebSockets
+import {
+    requireMessagePermission,
+    logSecurityAction,
+    AuthorizationError,
+    AuthenticationError
+} from '@/lib/auth/authorization';
 
 interface ContextualMessageUpdateInput {
     content: string;
@@ -11,18 +17,16 @@ interface ContextualMessageUpdateInput {
 
 // PUT /api/contextual-messages/[messageId]
 export async function PUT(req: NextRequest, { params }: { params: { messageId: string } }) {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user || typeof session.user.id !== 'number') {
-        return NextResponse.json({ error: 'Non autorisé ou session invalide' }, { status: 401 });
-    }
-    const userId = session.user.id;
-    const { messageId } = await Promise.resolve(params);
-
-    if (!messageId) {
-        return NextResponse.json({ error: 'ID du message manquant' }, { status: 400 });
-    }
-
     try {
+        // 🔐 Vérification des permissions de modification de message
+        const session = await requireMessagePermission('update');
+        const userId = session.user.id;
+        const { messageId } = await Promise.resolve(params);
+
+        if (!messageId) {
+            return NextResponse.json({ error: 'ID du message manquant' }, { status: 400 });
+        }
+
         const body = await req.json() as ContextualMessageUpdateInput;
         const { content } = body;
 
@@ -39,16 +43,17 @@ export async function PUT(req: NextRequest, { params }: { params: { messageId: s
         }
 
         // Vérifier si l'utilisateur est l'auteur OU un administrateur
-        // session.user.role est défini dans authOptions et provient du modèle User Prisma
-        if (messageToUpdate.authorId !== userId && session.user.role !== Role.ADMIN_TOTAL) {
+        if (messageToUpdate.authorId !== userId && !['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Vous n\'êtes pas autorisé à modifier ce message' }, { status: 403 });
         }
+
+        logSecurityAction(session.user.id, 'UPDATE_CONTEXTUAL_MESSAGE', `message:${messageId}`);
 
         const updatedMessage = await prisma.contextualMessage.update({
             where: { id: messageId },
             data: {
                 content,
-                updatedAt: new Date(), // Mettre à jour explicitement la date de modification
+                updatedAt: new Date(),
             },
             include: {
                 author: {
@@ -57,11 +62,17 @@ export async function PUT(req: NextRequest, { params }: { params: { messageId: s
             },
         });
 
-        // Émettre un événement WebSocket pour la mise à jour du message
         emitUpdatedContextualMessage(updatedMessage);
 
         return NextResponse.json(updatedMessage, { status: 200 });
     } catch (error) {
+        if (error instanceof AuthenticationError) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+        if (error instanceof AuthorizationError) {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
         console.error('Erreur lors de la mise à jour du message contextuel:', error);
         if (error instanceof SyntaxError) {
             return NextResponse.json({ error: 'Données JSON invalides' }, { status: 400 });
@@ -72,21 +83,17 @@ export async function PUT(req: NextRequest, { params }: { params: { messageId: s
 
 // DELETE /api/contextual-messages/[messageId]
 export async function DELETE(req: NextRequest, { params }: { params: { messageId: string } }) {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user || typeof session.user.id !== 'number') {
-        return NextResponse.json({ error: 'Non autorisé ou session invalide' }, { status: 401 });
-    }
-    const userId = session.user.id;
-    // TODO: Ajouter la vérification du rôle administrateur ici
-    // const userRoles = session.user.roles; // Supposant que les rôles sont dans la session
-
-    const { messageId } = params;
-
-    if (!messageId) {
-        return NextResponse.json({ error: 'ID du message manquant' }, { status: 400 });
-    }
-
     try {
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérification du rôle administrateur
+        const session = await requireMessagePermission('delete');
+        const userId = session.user.id;
+
+        const { messageId } = params;
+
+        if (!messageId) {
+            return NextResponse.json({ error: 'ID du message manquant' }, { status: 400 });
+        }
+
         const messageToDelete = await prisma.contextualMessage.findUnique({
             where: { id: messageId },
         });
@@ -96,10 +103,11 @@ export async function DELETE(req: NextRequest, { params }: { params: { messageId
         }
 
         // Vérifier si l'utilisateur est l'auteur OU un administrateur
-        // session.user.role est défini dans authOptions et provient du modèle User Prisma
-        if (messageToDelete.authorId !== userId && session.user.role !== Role.ADMIN_TOTAL) {
+        if (messageToDelete.authorId !== userId && !['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Vous n\'êtes pas autorisé à supprimer ce message' }, { status: 403 });
         }
+
+        logSecurityAction(session.user.id, 'DELETE_CONTEXTUAL_MESSAGE', `message:${messageId}`);
 
         // Collecter les informations de contexte avant suppression pour l'événement WebSocket
         const contextInfo = {
@@ -108,28 +116,22 @@ export async function DELETE(req: NextRequest, { params }: { params: { messageId
             requestId: messageToDelete.requestId || undefined
         };
 
-        // Gérer la suppression des réponses : Pour l'instant, suppression simple.
-        // Si les réponses doivent être conservées, il faudrait les ré-attacher ou les marquer.
-        // Exemple: marquer les réponses comme orphelines ou les supprimer en cascade (configurer dans le schéma Prisma)
-        // await prisma.contextualMessage.updateMany({
-        //     where: { parentId: messageId },
-        //     data: { parentId: null }, // ou une autre logique
-        // });
-
         await prisma.contextualMessage.delete({
             where: { id: messageId },
         });
 
-        // Émettre un événement WebSocket pour la suppression du message
         emitDeletedContextualMessage(messageId, contextInfo);
 
-        return NextResponse.json({ message: 'Message supprimé avec succès' }, { status: 200 }); // Ou 204 No Content
+        return NextResponse.json({ message: 'Message supprimé avec succès' }, { status: 200 });
     } catch (error) {
+        if (error instanceof AuthenticationError) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+        if (error instanceof AuthorizationError) {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
         console.error('Erreur lors de la suppression du message contextuel:', error);
-        // Gérer les erreurs spécifiques de Prisma (ex: contrainte de clé étrangère si la suppression en cascade n'est pas configurée)
-        // if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') { 
-        //     return NextResponse.json({ error: 'Impossible de supprimer le message car il a des réponses. Supprimez d\'abord les réponses.' }, { status: 409 });
-        // }
         return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
     }
 } 

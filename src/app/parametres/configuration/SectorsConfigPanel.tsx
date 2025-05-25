@@ -270,7 +270,7 @@ const SectorsConfigPanel: React.FC = () => {
         setSectorsError(null);
         try {
             const response = await axios.get<Sector[]>('/api/sectors');
-            let fetchedSectors = response.data || [];
+            const fetchedSectors = response.data || [];
 
             // Le backend devrait maintenant renvoyer siteId comme string ou null
             // Pas besoin de mapper ici si l'API est correcte

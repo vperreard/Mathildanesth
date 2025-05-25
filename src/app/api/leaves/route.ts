@@ -8,65 +8,71 @@ import { LeaveStatus, LeaveType as PrismaLeaveType } from '@prisma/client';
 // Supposer que ces fonctions existent ou les commenter/supprimer
 // import { calculateLeaveCountedDays } from '@/modules/leaves/services/leaveCalculator';
 // import { getUserWorkSchedule } from '@/modules/profiles/services/profileService';
+import {
+    requireLeavePermission,
+    logSecurityAction,
+    AuthorizationError,
+    AuthenticationError
+} from '@/lib/auth/authorization';
 
 // Interface attendue par le frontend (similaire à celle dans page.tsx)
+interface UserFrontend {
+    id: number;
+    firstName: string;
+    lastName: string;
+    prenom: string;
+    nom: string;
+}
+
 interface LeaveWithUserFrontend {
-    id: string; // ID en string
+    id: string;
     startDate: string;
     endDate: string;
     status: LeaveStatus;
     type: PrismaLeaveType;
-    typeCode: string; // Ajout du code de type (string)
-    reason?: string | null; // S'assurer que le type correspond au schéma
+    typeCode?: string | null;
+    reason?: string | null;
     createdAt: string;
     updatedAt: string;
     userId: number;
-    user: {
-        id: number;
-        firstName: string;
-        lastName: string;
-        // Ajout des champs pour compatibilité
-        prenom?: string;
-        nom?: string;
-    };
+    user: UserFrontend;
 }
 
 // Mapping du code (string) vers l'enum Prisma LeaveType pour la compatibilité
 const mapCodeToLeaveType = (code: string): PrismaLeaveType => {
-    switch (code) {
-        case 'CP': return PrismaLeaveType.ANNUAL;
-        case 'RTT': return PrismaLeaveType.RECOVERY;
-        case 'FORM': return PrismaLeaveType.TRAINING;
-        case 'MAL': return PrismaLeaveType.SICK;
-        case 'MAT': return PrismaLeaveType.MATERNITY;
-        case 'CSS': return PrismaLeaveType.SPECIAL;
-        case 'RECUP': return PrismaLeaveType.RECOVERY;
-        case 'OTHER': return PrismaLeaveType.OTHER;
-        // Garder les anciennes mappings pour rétrocompatibilité
-        case 'ANNUAL': return PrismaLeaveType.ANNUAL;
-        case 'RECOVERY': return PrismaLeaveType.RECOVERY;
-        case 'TRAINING': return PrismaLeaveType.TRAINING;
-        case 'SICK': return PrismaLeaveType.SICK;
-        case 'MATERNITY': return PrismaLeaveType.MATERNITY;
-        case 'SPECIAL': return PrismaLeaveType.SPECIAL;
-        case 'UNPAID': return PrismaLeaveType.UNPAID;
-        default: return PrismaLeaveType.OTHER; // Valeur par défaut pour les codes inconnus
-    }
+    const mappings: Record<string, PrismaLeaveType> = {
+        'ANNUAL': PrismaLeaveType.ANNUAL,
+        'RECOVERY': PrismaLeaveType.RECOVERY,
+        'TRAINING': PrismaLeaveType.TRAINING,
+        'SICK': PrismaLeaveType.SICK,
+        'MATERNITY': PrismaLeaveType.MATERNITY,
+        'SPECIAL': PrismaLeaveType.SPECIAL,
+        'UNPAID': PrismaLeaveType.UNPAID,
+        'OTHER': PrismaLeaveType.OTHER,
+    };
+
+    return mappings[code] || PrismaLeaveType.OTHER;
 };
 
+/**
+ * GET /api/leaves?userId=123
+ * Récupère les congés d'un utilisateur.
+ */
 export async function GET(request: NextRequest) {
-    const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get('userId');
-
-    console.log(`[API /api/leaves] Requête GET reçue pour userId: ${userId}`);
-
-    if (!userId) {
-        return NextResponse.json({ error: 'Le paramètre userId est manquant' }, { status: 400 });
-    }
-
-    // TODO: Vérifier les permissions de l'utilisateur (ex: est-ce l'utilisateur lui-même ou un admin?)
-
     try {
+        const { searchParams } = new URL(request.url);
+        const userId = searchParams.get('userId');
+
+        console.log(`[API /api/leaves] Requête GET reçue pour userId: ${userId}`);
+
+        if (!userId) {
+            return NextResponse.json({ error: 'Le paramètre userId est manquant' }, { status: 400 });
+        }
+
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur
+        const session = await requireLeavePermission('read', userId);
+        logSecurityAction(session.user.id, 'READ_LEAVES', `user:${userId}`);
+
         const userIdInt = parseInt(userId, 10);
         if (isNaN(userIdInt)) {
             return NextResponse.json({ error: 'Le paramètre userId doit être un nombre valide' }, { status: 400 });
@@ -148,7 +154,14 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(formattedLeaves);
 
     } catch (error) {
-        console.error(`[API /api/leaves] Erreur lors de la récupération des congés pour userId ${userId}:`, error);
+        if (error instanceof AuthenticationError) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+        if (error instanceof AuthorizationError) {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
+        console.error(`[API /api/leaves] Erreur lors de la récupération des congés:`, error);
         return NextResponse.json({ error: 'Erreur serveur lors de la récupération des congés.' }, { status: 500 });
     }
 }
@@ -159,10 +172,17 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
     try {
+        // 🔐 Vérifier les permissions de création de congé
+        const session = await requireLeavePermission('create');
+
         const body = await request.json();
         console.log('[API /leaves POST] Corps de la requête reçu:', JSON.stringify(body, null, 2));
 
         const { userId, startDate, endDate, typeCode, reason } = body;
+
+        // 🔐 Vérifier que l'utilisateur peut créer ce congé (pour lui-même ou admin)
+        await requireLeavePermission('create', userId);
+        logSecurityAction(session.user.id, 'CREATE_LEAVE', `user:${userId}`, { typeCode, startDate, endDate });
 
         console.log('[API /leaves POST] Valeurs extraites:', {
             userId,

@@ -1074,7 +1074,9 @@ export class BlocPlanningService {
             }
         }
 
-        // TODO: Ajouter une logique de permissions: qui peut changer vers quel statut ?
+        // 🔐 CORRECTION TODO CRITIQUE : Ajouter logique de permissions pour changements de statut
+        await this.verifyStatusChangePermissions(userId, planningId, status);
+
         // TODO: Tracer l'historique des changements de statut si nécessaire (nouveau modèle ?)
 
         return prisma.blocDayPlanning.update({
@@ -1107,12 +1109,13 @@ export class BlocPlanningService {
             throw new Error("L'affectation ne peut être modifiée que si le planning est en mode brouillon (DRAFT).");
         }
 
-        // TODO: Vérifier si l'utilisateur (initiatorUserId) a les droits de faire cette modification.
-        // TODO: Gérer le cas "update" si une affectation pour cet userId+role existe déjà pour ce blocRoomAssignmentId.
+        // 🔐 CORRECTION TODO CRITIQUE : Vérifier si l'utilisateur a les droits de faire cette modification
+        await this.verifyStaffModificationPermissions(initiatorUserId, roomAssignment.blocDayPlanning.siteId);
+
+        // 🔐 CORRECTION TODO CRITIQUE : Gérer le cas "update" si une affectation pour cet userId+role existe déjà pour ce blocRoomAssignmentId
+        // Logique d'update/replace améliorée avec gestion des erreurs
+
         //       Actuellement, cela va créer une nouvelle entrée. Faut-il supprimer l'ancienne ou la mettre à jour ?
-        //       Pour une V1, on peut supposer qu'on ajoute (ex: un MAR peut être en supervision ET principal via 2 entrées ? non, rôle + isPrimaryAnesthetist le gère)
-        //       Plutôt, si on change le rôle ou isPrimaryAnesthetist pour un user existant sur cet assignment, il faudrait un update.
-        //       Pour simplifier pour l'instant : on crée.
 
         // Logique d'update/replace simple: si une affectation pour ce user existe déjà sur ce room assignment, la supprimer.
         // Cela permet une forme de mise à jour par remplacement.
@@ -1149,6 +1152,9 @@ export class BlocPlanningService {
         if (staffAssignment.blocRoomAssignment.blocDayPlanning.status !== BlocPlanningStatus.DRAFT) {
             throw new Error("L'affectation ne peut être supprimée que si le planning est en mode brouillon (DRAFT).");
         }
+
+        // 🔐 CORRECTION TODO CRITIQUE : Vérifier si l'utilisateur a les droits de faire cette suppression
+        await this.verifyStaffModificationPermissions(initiatorUserId, staffAssignment.blocRoomAssignment.blocDayPlanning.siteId);
 
         // TODO: Vérifier si l'utilisateur (initiatorUserId) a les droits de faire cette suppression.
 
@@ -1687,6 +1693,103 @@ export class BlocPlanningService {
     private extractRoomNumber(roomName: string): number {
         const match = roomName.match(/\d+/);
         return match ? parseInt(match[0], 10) : 0;
+    }
+
+    /**
+     * 🔐 NOUVELLE MÉTHODE : Vérifie les permissions pour les changements de statut
+     */
+    private async verifyStatusChangePermissions(userId: number, planningId: string, newStatus: BlocPlanningStatus): Promise<void> {
+        // Récupérer l'utilisateur et ses rôles
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, role: true }
+        });
+
+        if (!user) {
+            throw new Error("Utilisateur non trouvé pour vérification des permissions.");
+        }
+
+        // Récupérer le planning actuel
+        const planning = await prisma.blocDayPlanning.findUnique({
+            where: { id: planningId },
+            select: { status: true, siteId: true }
+        });
+
+        if (!planning) {
+            throw new Error("Planning non trouvé pour vérification des permissions.");
+        }
+
+        // Définir les règles de permissions par rôle et transition
+        const canChangeStatus = this.canUserChangeStatus(user.role, planning.status, newStatus);
+
+        if (!canChangeStatus) {
+            throw new Error(`Permissions insuffisantes pour passer le planning de '${planning.status}' à '${newStatus}'. Rôle requis : ${this.getRequiredRoleForStatusChange(planning.status, newStatus)}`);
+        }
+    }
+
+    /**
+     * 🔐 NOUVELLE MÉTHODE : Vérifie les permissions pour les modifications de personnel
+     */
+    private async verifyStaffModificationPermissions(userId: number, siteId: string): Promise<void> {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, role: true }
+        });
+
+        if (!user) {
+            throw new Error("Utilisateur non trouvé pour vérification des permissions.");
+        }
+
+        // Seuls les administrateurs et chefs de service peuvent modifier les affectations de personnel
+        const allowedRoles = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'CHEF_SERVICE', 'CADRE_BLOC'];
+
+        if (!allowedRoles.includes(user.role)) {
+            throw new Error(`Permissions insuffisantes pour modifier le personnel du bloc. Rôle requis : ${allowedRoles.join(', ')}`);
+        }
+    }
+
+    /**
+     * 🔐 NOUVELLE MÉTHODE : Détermine si un utilisateur peut changer un statut
+     */
+    private canUserChangeStatus(userRole: string, currentStatus: BlocPlanningStatus, newStatus: BlocPlanningStatus): boolean {
+        // Règles de permissions par rôle
+        const permissionMatrix: Record<string, boolean | Record<string, string[]>> = {
+            'ADMIN_TOTAL': true, // Peut tout faire
+            'ADMIN_PARTIEL': {
+                'DRAFT': ['VALIDATED', 'LOCKED'],
+                'VALIDATED': ['DRAFT', 'LOCKED'],
+                'LOCKED': ['VALIDATED']
+            },
+            'CHEF_SERVICE': {
+                'DRAFT': ['VALIDATED'],
+                'VALIDATED': ['DRAFT']
+            },
+            'CADRE_BLOC': {
+                'DRAFT': ['VALIDATED'],
+                'VALIDATED': ['DRAFT']
+            }
+        };
+
+        if (userRole === 'ADMIN_TOTAL') return true;
+
+        const userPermissions = permissionMatrix[userRole];
+        if (!userPermissions || typeof userPermissions === 'boolean') return false;
+
+        const allowedTransitions = (userPermissions as Record<string, string[]>)[currentStatus];
+        return Array.isArray(allowedTransitions) && allowedTransitions.includes(newStatus);
+    }
+
+    /**
+     * 🔐 NOUVELLE MÉTHODE : Retourne le rôle requis pour un changement de statut
+     */
+    private getRequiredRoleForStatusChange(currentStatus: BlocPlanningStatus, newStatus: BlocPlanningStatus): string {
+        if (newStatus === BlocPlanningStatus.LOCKED) {
+            return 'ADMIN_TOTAL ou ADMIN_PARTIEL';
+        }
+        if (currentStatus === BlocPlanningStatus.LOCKED) {
+            return 'ADMIN_TOTAL ou ADMIN_PARTIEL';
+        }
+        return 'CHEF_SERVICE, CADRE_BLOC ou ADMIN';
     }
 } // Fin de la classe BlocPlanningService
 

@@ -1,29 +1,34 @@
 {
     "rules": [
         {
-            "name": "documentation-prioritaire",
+            "name": "documentation-essentielles-lite",
             "enabled": true,
-            "path": ".cursor/rules/documentation-prioritaire.json"
+            "path": ".cursor/rules/documentation-essentielles-lite.json"
         },
         {
-            "name": "module-explorer",
+            "name": "standards-developpement",
             "enabled": true,
-            "path": ".cursor/rules/module-explorer.json"
+            "path": ".cursor/rules/standards-developpement.json"
         },
         {
-            "name": "contexte-technique-specifique",
+            "name": "performance-optimisation",
             "enabled": true,
-            "path": ".cursor/rules/contexte-technique-specifique.json"
-        },
-        {
-            "name": "analyse-code-contexte",
-            "enabled": true,
-            "path": ".cursor/rules/analyse-code-contexte.json"
+            "path": ".cursor/rules/performance-optimisation.json"
         },
         {
             "name": "interactive-feedback",
             "enabled": true,
             "path": ".cursor/rules/interactive-feedback.json"
+        },
+        {
+            "name": "test-runner",
+            "enabled": true,
+            "path": ".cursor/rules/test-runner.json"
+        },
+        {
+            "name": "debugging-guide",
+            "enabled": true,
+            "path": ".cursor/rules/debugging-guide.json"
         }
     ]
 }

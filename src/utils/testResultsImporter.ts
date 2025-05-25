@@ -24,13 +24,17 @@ export async function importTestResults(
 
     try {
         if (source === 'file' && typeof window === 'undefined') {
-            // Côté serveur: lire le fichier directement
-            const fs = require('fs');
-            const filePath = require('path').resolve(process.cwd(), 'cypress/results/performance.json');
+            // Côté serveur: lire le fichier directement avec imports dynamiques
+            const { promises: fs } = await import('fs');
+            const pathModule = await import('path');
+            const filePath = pathModule.resolve(process.cwd(), 'cypress/results/performance.json');
 
-            if (fs.existsSync(filePath)) {
-                const fileContent = fs.readFileSync(filePath, 'utf8');
+            try {
+                const fileContent = await fs.readFile(filePath, 'utf8');
                 results = JSON.parse(fileContent);
+            } catch (fileError) {
+                // Fichier n'existe pas ou erreur de lecture, on continue avec un tableau vide
+                console.debug('Fichier de résultats de performance non trouvé:', filePath);
             }
         } else {
             // Côté client: récupérer via API

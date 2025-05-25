@@ -11,6 +11,13 @@ if (!global.fetch) {
   global.Headers = nodeFetch.Headers;
 }
 
+// Polyfill pour structuredClone (nécessaire pour jose JWT library)
+if (typeof structuredClone === 'undefined') {
+  global.structuredClone = function (obj) {
+    return JSON.parse(JSON.stringify(obj));
+  };
+}
+
 // Mock pour BroadcastChannel (non disponible dans Node.js/JSDOM)
 class MockBroadcastChannel {
   constructor(channel) {
@@ -53,7 +60,7 @@ Object.defineProperties(global, {
   TextEncoder: {
     value: class TextEncoder {
       encode(input) {
-        return Buffer.from(input, 'utf-8');
+        return new Uint8Array(Buffer.from(input, 'utf-8'));
       }
     },
     writable: true,
@@ -134,9 +141,20 @@ if (typeof window !== 'undefined') {
 }
 
 // Polyfill for TextEncoder and TextDecoder (needed by some libraries in Node)
-import { TextEncoder, TextDecoder } from 'util';
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
+import { TextEncoder as NodeTextEncoder, TextDecoder as NodeTextDecoder } from 'util';
+
+// Create custom TextEncoder that returns Uint8Array
+global.TextEncoder = class TextEncoder {
+  encode(input) {
+    return new Uint8Array(Buffer.from(input, 'utf-8'));
+  }
+};
+
+global.TextDecoder = class TextDecoder {
+  decode(input) {
+    return Buffer.from(input).toString('utf-8');
+  }
+};
 
 // Polyfill for TransformStream (needed by MSW interceptors in Node >= 16 / JSDOM)
 // Vérifier si les Streams API sont disponibles (Node >= 16) et ajouter si nécessaire
@@ -159,19 +177,19 @@ if (typeof TransformStream === 'undefined') {
       'Polyfill pour TransformStream non disponible (node:stream/web). MSW pourrait ne pas fonctionner correctement.'
     );
     // Fallback simple pour éviter l'erreur, mais les fonctionnalités pourraient être limitées
-    global.TransformStream = class TransformStream {};
+    global.TransformStream = class TransformStream { };
   }
 }
 
 // Polyfill pour BroadcastChannel
 if (typeof BroadcastChannel === 'undefined') {
   global.BroadcastChannel = class {
-    constructor(name) {}
-    postMessage(message) {}
-    close() {}
-    addEventListener(type, listener) {}
-    removeEventListener(type, listener) {}
-    dispatchEvent(event) {}
+    constructor(name) { }
+    postMessage(message) { }
+    close() { }
+    addEventListener(type, listener) { }
+    removeEventListener(type, listener) { }
+    dispatchEvent(event) { }
     onmessage = null;
     onmessageerror = null;
   };
@@ -181,8 +199,8 @@ if (typeof BroadcastChannel === 'undefined') {
 if (typeof MessageChannel === 'undefined') {
   global.MessageChannel = class {
     constructor() {
-      this.port1 = { onmessage: null, postMessage: () => {} };
-      this.port2 = { onmessage: null, postMessage: () => {} };
+      this.port1 = { onmessage: null, postMessage: () => { } };
+      this.port2 = { onmessage: null, postMessage: () => { } };
     }
   };
 }
@@ -190,24 +208,24 @@ if (typeof MessageChannel === 'undefined') {
 // Polyfill pour ResizeObserver
 if (typeof ResizeObserver === 'undefined') {
   global.ResizeObserver = class {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
+    observe() { }
+    unobserve() { }
+    disconnect() { }
   };
 }
 
 // Polyfill pour IntersectionObserver
 if (typeof IntersectionObserver === 'undefined') {
   global.IntersectionObserver = class {
-    constructor(callback, options) {}
-    observe() {}
-    unobserve() {}
-    disconnect() {}
+    constructor(callback, options) { }
+    observe() { }
+    unobserve() { }
+    disconnect() { }
     takeRecords() {
       return [];
     }
   };
-  global.IntersectionObserverEntry = class {};
+  global.IntersectionObserverEntry = class { };
 }
 
 // Note : Le polyfill suspect HTMLElement a été commenté précédemment.

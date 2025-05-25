@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import { exportSimulationResults, exportLeaveData, exportPlanningData } from '@/services/exportServiceV2';
 import { format as dateFormat } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -16,7 +16,7 @@ declare module 'jspdf' {
 
 // Types pour les données à exporter
 interface SimulationResultExportOptions {
-    format: 'pdf' | 'excel';
+    format: 'pdf' | 'csv';
     includeRawData?: boolean;
     fileName?: string;
 }
@@ -55,7 +55,7 @@ export async function exportSimulationResults(
         case 'pdf':
             blob = await exportToPDF(data, finalFileName);
             break;
-        case 'excel':
+        case 'csv':
             blob = await exportToExcel(data, finalFileName);
             break;
         default:

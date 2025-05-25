@@ -27,8 +27,8 @@ enum AuditPriority {
  */
 interface AuditChange {
     field: string;
-    oldValue: any;
-    newValue: any;
+    oldValue: unknown;
+    newValue: unknown;
 }
 
 /**

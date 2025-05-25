@@ -15,12 +15,75 @@ import { notifyProgressUpdate } from '@/services/notifications/notificationServi
 
 const prisma = new PrismaClient();
 
-// Configuration du pool de workers
-const MAX_WORKERS = process.env.SIMULATION_MAX_WORKERS ? parseInt(process.env.SIMULATION_MAX_WORKERS) : 2;
+// Configuration
+const MAX_WORKERS = Math.min(4, require('os').cpus().length);
 const WORKER_TIMEOUT = 120000; // 2 minutes de timeout pour les workers
 
-// Créer un pool de workers pour les calculs intensifs
-let pool: any = null;
+// 🔧 CORRECTION TYPES ANY : Définition des types pour les résultats de simulation
+interface SimulationResult {
+    assignments: Assignment[];
+    shiftDistribution: UserShiftDistribution[];
+    dailyStaffingCoverage: DailyStaffingCoverage[];
+    conflicts: ConflictAlert[];
+    metrics: SimulationMetrics;
+    metadata: SimulationMetadata;
+}
+
+interface Assignment {
+    id: string;
+    userId: string;
+    date: string;
+    shiftType: string;
+    siteId?: string;
+    roomId?: string;
+}
+
+interface UserShiftDistribution {
+    userId: string;
+    shifts: {
+        [shiftType: string]: number;
+    };
+    totalShifts: number;
+    workload: number;
+}
+
+interface DailyStaffingCoverage {
+    date: string;
+    coverage: {
+        [shiftType: string]: {
+            required: number;
+            assigned: number;
+            coverage: number;
+        };
+    };
+}
+
+interface ConflictAlert {
+    type: string;
+    severity: 'warning' | 'error';
+    message: string;
+    affectedUsers: string[];
+    date?: string;
+}
+
+interface SimulationMetrics {
+    totalAssignments: number;
+    coverageRate: number;
+    equityScore: number;
+    conflictCount: number;
+    executionTime: number;
+}
+
+interface SimulationMetadata {
+    scenarioId: string;
+    startDate: string;
+    endDate: string;
+    strategy: string;
+    timestamp: string;
+}
+
+// 🔧 CORRECTION TYPE ANY : Pool de workers typé
+let pool: workerpool.WorkerPool | null = null;
 
 // Initialiser le pool de workers à la demande
 function getWorkerPool() {

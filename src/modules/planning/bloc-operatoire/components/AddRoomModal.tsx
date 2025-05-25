@@ -1,6 +1,4 @@
-// @ts-nocheck
 /*
- * Ce fichier utilise @ts-nocheck pour contourner temporairement les problèmes complexes
  * d'incompatibilité de types entre Zod et React Hook Form.
  * 
  * PROBLÈME DÉTECTÉ:

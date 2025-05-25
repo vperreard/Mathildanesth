@@ -114,13 +114,12 @@ const mockAPIRawTypesResponse = [
 ];
 
 const mockUser: User = {
-    id: 'user-1',
+    id: '1',
     email: 'test@example.com',
     nom: 'User',
     prenom: 'Test',
     role: UserRole.UTILISATEUR,
-    // avatarUrl: '' // avatarUrl n'est pas dans le type User de src/types/user.ts, remplacé par profilePictureUrl?
-    profilePictureUrl: '' // Supposant que c'est la bonne propriété
+    profilePictureUrl: ''
 };
 
 const mockWorkSchedule: WorkSchedule = { // Ce mock n'est pas utilisé directement par LeaveForm mais peut l'être par des hooks indirects
@@ -178,13 +177,20 @@ describe('LeaveForm', () => {
         mockUseLeaveCalculation.mockReturnValue(defaultMockUseLeaveCalculationResult);
         mockUseRouter.mockReturnValue({ push: jest.fn() });
 
-        // Mock fetch plus explicite
+        // Mock fetch plus explicite avec vraie simulation asynchrone
         (global.fetch as jest.Mock).mockImplementation(async (url: string | Request | URL) => {
-            if (url === '/api/admin/leave-type-settings?selectable=true') {
-                return Promise.resolve({
-                    ok: true,
-                    status: 200,
-                    json: async () => mockAPIRawTypesResponse, // mockAPIRawTypesResponse est un tableau
+            if (url === '/api/leaves/types') {
+                // Simuler un vrai délai réseau court
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve({
+                            ok: true,
+                            status: 200,
+                            json: async () => {
+                                return Promise.resolve(mockAPIRawTypesResponse);
+                            },
+                        });
+                    }, 10); // 10ms de délai pour simuler le réseau
                 });
             }
             // Gérer d'autres appels fetch si nécessaire, ou rejeter
@@ -202,7 +208,7 @@ describe('LeaveForm', () => {
     // Pour l'instant, on caste.
     const renderTheForm = (props?: Partial<LeaveFormProps>) => {
         const defaultTestProps: LeaveFormProps = {
-            userId: parseInt(mockUser.id, 10), // Cast pour correspondre à number
+            userId: 1,
             onSuccess: mockOnSuccess,
         };
         return render(<LeaveForm {...defaultTestProps} {...props} />);
@@ -210,7 +216,13 @@ describe('LeaveForm', () => {
 
 
     it('should render initial form elements correctly', async () => {
-        renderTheForm();
+        let rendered;
+
+        // Wrapper dans act pour s'assurer que tous les effets se déclenchent
+        await act(async () => {
+            rendered = renderTheForm();
+        });
+
         expectToBeInDocument(screen.getByText('Nouvelle demande de congé'));
         expectToBeInDocument(screen.getByLabelText('Type de congé'));
         expectToBeInDocument(screen.getByLabelText('Date de début'));
@@ -218,10 +230,22 @@ describe('LeaveForm', () => {
         expectToBeInDocument(screen.getByLabelText('Demi-journée'));
         expectToBeInDocument(screen.getByText('Soumettre la demande'));
 
-        await waitFor(() => {
-            // Le composant traduit 'ANNUAL' en 'Congé annuel' via leaveTypeTranslations
-            expectToBeInDocument(screen.getByDisplayValue('Congé annuel'));
+        // Attendre que le fetch se termine et que le composant se mette à jour
+        await act(async () => {
+            // Flush toutes les promesses en attente
+            await new Promise(resolve => setTimeout(resolve, 100));
         });
+
+        // Attendre que le select ne soit plus disabled
+        await waitFor(() => {
+            const selectElement = screen.getByLabelText('Type de congé') as HTMLSelectElement;
+            expect(selectElement).not.toBeDisabled();
+        }, { timeout: 5000 });
+
+        // Vérifier que les options sont bien chargées avec les traductions
+        await waitFor(() => {
+            expectToBeInDocument(screen.getByDisplayValue('Congé annuel'));
+        }, { timeout: 1000 });
     });
 
     it('should display loading state for leave types', () => {
@@ -439,12 +463,20 @@ describe('LeaveForm', () => {
             // S'assurer que le hook retournera 'success' une fois les dates valides settées.
             // Le simulateDateSelection dans beforeEach fait déjà cela.
 
-            renderTheForm();
-            await act(async () => { await Promise.resolve(); }); // Pour le chargement initial des types de congé
+            let rendered;
+            await act(async () => {
+                rendered = renderTheForm();
+            });
+
+            // Attendre que le fetch se termine
+            await act(async () => {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            });
+
             const user = userEvent.setup();
 
             const leaveTypeSelectField = screen.getByLabelText('Type de congé');
-            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 3000 });
+            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 5000 });
             await user.selectOptions(leaveTypeSelectField, 'ANNUAL');
 
             await fillDatesInForm(user, '02/09/2024', '03/09/2024');
@@ -501,12 +533,20 @@ describe('LeaveForm', () => {
         it('should handle API error from /api/leaves/batch on submit', async () => {
             simulateDateSelection(validStartDate, validEndDate, 'success');
 
-            renderTheForm();
-            await act(async () => { await Promise.resolve(); });
+            let rendered;
+            await act(async () => {
+                rendered = renderTheForm();
+            });
+
+            // Attendre que le fetch se termine
+            await act(async () => {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            });
+
             const user = userEvent.setup();
 
             const leaveTypeSelectField = screen.getByLabelText('Type de congé');
-            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 3000 });
+            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 5000 });
             await user.selectOptions(leaveTypeSelectField, 'ANNUAL');
 
             await fillDatesInForm(user, '02/09/2024', '03/09/2024');
@@ -540,12 +580,20 @@ describe('LeaveForm', () => {
         it('should handle general network error on submit', async () => {
             simulateDateSelection(validStartDate, validEndDate, 'success');
 
-            renderTheForm();
-            await act(async () => { await Promise.resolve(); });
+            let rendered;
+            await act(async () => {
+                rendered = renderTheForm();
+            });
+
+            // Attendre que le fetch se termine
+            await act(async () => {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            });
+
             const user = userEvent.setup();
 
             const leaveTypeSelectField = screen.getByLabelText('Type de congé');
-            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 3000 });
+            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 5000 });
             await user.selectOptions(leaveTypeSelectField, 'ANNUAL');
 
             await fillDatesInForm(user, '02/09/2024', '03/09/2024');
@@ -586,12 +634,20 @@ describe('LeaveForm', () => {
                 return defaultMockUseLeaveCalculationResult;
             });
 
-            renderTheForm();
-            await act(async () => { await Promise.resolve(); });
+            let rendered;
+            await act(async () => {
+                rendered = renderTheForm();
+            });
+
+            // Attendre que le fetch se termine
+            await act(async () => {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            });
+
             const user = userEvent.setup();
 
             const leaveTypeSelectField = screen.getByLabelText('Type de congé');
-            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 3000 });
+            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 5000 });
             await user.selectOptions(leaveTypeSelectField, 'ANNUAL');
 
             await fillDatesInForm(user, '02/09/2024', '03/09/2024');

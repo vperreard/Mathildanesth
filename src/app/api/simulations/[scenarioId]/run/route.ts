@@ -58,8 +58,9 @@ export async function POST(request: NextRequest, { params }: { params: { scenari
         }
 
         // Vérifier que l'utilisateur est le créateur du scénario ou a des droits administratifs
-        // @ts-ignore - Ignorer l'incompatibilité de type entre number et string
-        const isCreator = scenario.createdById == session.user.id;
+        // 🔧 CORRECTION @TS-IGNORE : Conversion explicite pour la comparaison d'IDs
+        const sessionUserId = parseInt(session.user.id, 10);
+        const isCreator = scenario.createdById === sessionUserId;
         // Vérifier si l'utilisateur a un rôle d'administrateur
         const userRole = session.user.role as string;
         const isAdmin = userRole === 'ADMIN';
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest, { params }: { params: { scenari
             data: {
                 scenarioId: scenario.id,
                 status: SimulationStatus.PENDING,
-                generatedPlanningData: Prisma.JsonNull,
+                resultData: Prisma.JsonNull,
                 statisticsJson: Prisma.JsonNull,
                 conflictAlertsJson: Prisma.JsonNull,
             },
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest, { params }: { params: { scenari
 
         (async () => {
             try {
-                const paramsParseResult = simulationParametersSchema.safeParse(scenario.parametersJson);
+                const paramsParseResult = simulationParametersSchema.safeParse(scenario.parameters);
                 if (!paramsParseResult.success) {
                     const errorMessage = `Paramètres de simulation invalides: ${paramsParseResult.error.format()}`;
                     console.error(`Validation error for scenario ${scenarioId}:`, paramsParseResult.error.format());
@@ -149,7 +150,7 @@ export async function POST(request: NextRequest, { params }: { params: { scenari
                     where: { id: simulationResult.id },
                     data: {
                         status: SimulationStatus.COMPLETED,
-                        generatedPlanningData: optimizationResult.validAssignments as unknown as Prisma.InputJsonValue ?? Prisma.JsonNull,
+                        resultData: optimizationResult.validAssignments as unknown as Prisma.InputJsonValue ?? Prisma.JsonNull,
                         statisticsJson: optimizationResult.score !== undefined && optimizationResult.metrics !== undefined
                             ? { score: optimizationResult.score, metrics: optimizationResult.metrics } as unknown as Prisma.InputJsonValue
                             : Prisma.JsonNull,
@@ -166,7 +167,7 @@ export async function POST(request: NextRequest, { params }: { params: { scenari
                     data: {
                         status: SimulationStatus.FAILED,
                         errorMessage: simErrorMessage,
-                        generatedPlanningData: Prisma.JsonNull,
+                        resultData: Prisma.JsonNull,
                         statisticsJson: Prisma.JsonNull,
                         conflictAlertsJson: Prisma.JsonNull,
                     },

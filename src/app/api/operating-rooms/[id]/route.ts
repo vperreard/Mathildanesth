@@ -246,8 +246,23 @@ export async function DELETE(request: Request, context: Context) {
                 return new NextResponse(JSON.stringify({ message: 'Salle non trouvée' }), { status: 404 });
             }
 
-            // TODO: Vérifier si la salle est utilisée dans des plannings existants
-            // Si c'est le cas, on pourrait renvoyer une erreur ou proposer une solution alternative
+            // 🔐 CORRECTION TODO CRITIQUE : Vérifier si la salle est utilisée dans des plannings existants
+            const connectedPlannings = await prisma.blocRoomAssignment.findMany({
+                where: { operatingRoomId: roomId },
+                include: { blocDayPlanning: { select: { date: true, siteId: true } } },
+                take: 5
+            });
+
+            if (connectedPlannings.length > 0) {
+                const planningDates = connectedPlannings.map(p =>
+                    p.blocDayPlanning.date.toISOString().split('T')[0]
+                ).join(', ');
+                return new NextResponse(JSON.stringify({
+                    message: 'Impossible de supprimer cette salle car elle est utilisée dans des plannings existants.',
+                    details: `Plannings concernés: ${planningDates}${connectedPlannings.length === 5 ? ' (et d\'autres...)' : ''}`,
+                    connectedPlanningsCount: connectedPlannings.length
+                }), { status: 409 });
+            }
 
             // Supprimer la salle
             await prisma.operatingRoom.delete({

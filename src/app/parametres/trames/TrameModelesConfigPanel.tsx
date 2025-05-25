@@ -380,8 +380,6 @@ const TrameModelesConfigPanel: React.FC = () => {
         setCurrentAffectation(null);
         // Initialiser affectationFormData avec les valeurs par défaut
         setAffectationFormData({
-            // TODO: Définir les valeurs par défaut pour une nouvelle affectation
-            // Exemple:
             jourSemaine: DayOfWeek.MONDAY,
             periode: PeriodeJournee.MATIN,
             typeSemaine: TypeSemaineTrame.TOUTES, // ou une enum spécifique pour affectation si différente
@@ -404,7 +402,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             toast.error("Non authentifié ou aucun modèle de trame sélectionné.");
             return;
         }
-        // TODO: Validation du formulaire d'affectation
+        // ✅ Validation du formulaire d'affectation avec Zod (TODO complété)
         setAffectationFormErrors(null); // Réinitialiser les erreurs
         const validationResult = affectationModeleSchema.safeParse(affectationFormData);
 

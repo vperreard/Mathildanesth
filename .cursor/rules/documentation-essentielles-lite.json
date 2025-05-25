@@ -6,10 +6,11 @@
     {
       "type": "readFiles",
       "files": [
-        "ROADMAP.md",
-        "NEXT_STEPS.md",
-        "documentation/roadmap-dev-updated.md",
-        "docs/technical/codebase-overview.md"
+        "docs/04_roadmap/ROADMAP.md",
+        "docs/02_implementation/NEXT_STEPS.md",
+        "docs/04_roadmap/URGENT_TODO_ACTION_PLAN.md",
+        "docs/technical/codebase-overview.md",
+        "docs/README.md"
       ]
     }
   ]

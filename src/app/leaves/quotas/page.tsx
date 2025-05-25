@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/ban-ts-comment */
 'use client';
 
 import React from 'react';
-import { Tabs, Card, Typography, Button, Row, Col, Divider } from 'antd';
+import { Tabs, Typography, Button, Row, Col, Divider } from 'antd';
 import { SwapOutlined, CalendarOutlined, HistoryOutlined, SettingOutlined } from '@ant-design/icons';
 import { useAuth } from '@/context/AuthContext';
 import { QuotaTransferForm } from '@/modules/leaves/quotas/transfer/QuotaTransferForm';
@@ -9,17 +10,18 @@ import { QuotaCarryOverForm } from '@/modules/leaves/quotas/carryOver/QuotaCarry
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { PageTitle } from '@/components/ui/page-title';
-import { ChartBar, Exchange, FileText, BarChart2 } from 'lucide-react';
+import { ChartBar, ArrowLeftRight, FileText, BarChart2 } from 'lucide-react';
+import { Card as ShadcnCard, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 // Import dynamique des composants pour éviter les erreurs de compilation
 const LeaveQuotaOverview = dynamic(() => import('@/components/absences/LeaveQuotaOverview').then(mod => mod.LeaveQuotaOverview), {
     ssr: false,
-    loading: () => <Card><Typography.Paragraph>Chargement...</Typography.Paragraph></Card>
+    loading: () => <ShadcnCard><Typography.Paragraph>Chargement...</Typography.Paragraph></ShadcnCard>
 });
 
 const LeaveHistoryTable = dynamic(() => import('@/components/absences/LeaveHistoryTable').then(mod => mod.LeaveHistoryTable), {
     ssr: false,
-    loading: () => <Card><Typography.Paragraph>Chargement...</Typography.Paragraph></Card>
+    loading: () => <ShadcnCard><Typography.Paragraph>Chargement...</Typography.Paragraph></ShadcnCard>
 });
 
 const { Title, Paragraph } = Typography;
@@ -51,10 +53,10 @@ export default function QuotasPage() {
 
     if (!userId) {
         return (
-            <Card>
+            <ShadcnCard>
                 <Title level={4}>Gestion des quotas de congés</Title>
                 <Paragraph>Veuillez vous connecter pour accéder à cette page.</Paragraph>
-            </Card>
+            </ShadcnCard>
         );
     }
 
@@ -70,7 +72,7 @@ export default function QuotasPage() {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Card>
+                <ShadcnCard>
                     <CardHeader>
                         <CardTitle className="flex items-center space-x-2">
                             <ChartBar className="h-5 w-5" />
@@ -92,12 +94,12 @@ export default function QuotasPage() {
                             </Link>
                         </Button>
                     </CardFooter>
-                </Card>
+                </ShadcnCard>
 
-                <Card>
+                <ShadcnCard>
                     <CardHeader>
                         <CardTitle className="flex items-center space-x-2">
-                            <Exchange className="h-5 w-5" />
+                            <ArrowLeftRight className="h-5 w-5" />
                             <span>Transferts et Reports</span>
                         </CardTitle>
                         <CardDescription>
@@ -116,9 +118,9 @@ export default function QuotasPage() {
                             </Link>
                         </Button>
                     </CardFooter>
-                </Card>
+                </ShadcnCard>
 
-                <Card>
+                <ShadcnCard>
                     <CardHeader>
                         <CardTitle className="flex items-center space-x-2">
                             <FileText className="h-5 w-5" />
@@ -140,10 +142,10 @@ export default function QuotasPage() {
                             </Link>
                         </Button>
                     </CardFooter>
-                </Card>
+                </ShadcnCard>
 
                 {/* Nouvelle carte pour la gestion avancée */}
-                <Card className="md:col-span-2 lg:col-span-3 bg-slate-50">
+                <ShadcnCard className="md:col-span-2 lg:col-span-3 bg-slate-50">
                     <CardHeader>
                         <CardTitle className="flex items-center space-x-2">
                             <BarChart2 className="h-5 w-5" />
@@ -166,7 +168,7 @@ export default function QuotasPage() {
                             </Link>
                         </Button>
                     </CardFooter>
-                </Card>
+                </ShadcnCard>
             </div>
 
             <Tabs activeKey={activeTab} onChange={setActiveTab}>
@@ -183,7 +185,7 @@ export default function QuotasPage() {
 
                     <Row gutter={[16, 16]}>
                         <Col xs={24} sm={12}>
-                            <Card
+                            <ShadcnCard
                                 title="Transfert de quotas"
                                 extra={<Button type="primary" onClick={() => setActiveTab('transfer')}><SwapOutlined /> Transférer</Button>}
                             >
@@ -191,10 +193,10 @@ export default function QuotasPage() {
                                     Transférez des jours entre différents types de congés selon les règles en vigueur.
                                     Chaque type de congé a ses propres règles de conversion.
                                 </Paragraph>
-                            </Card>
+                            </ShadcnCard>
                         </Col>
                         <Col xs={24} sm={12}>
-                            <Card
+                            <ShadcnCard
                                 title="Report de quotas"
                                 extra={<Button type="primary" onClick={() => setActiveTab('carryover')}><CalendarOutlined /> Reporter</Button>}
                             >
@@ -202,18 +204,18 @@ export default function QuotasPage() {
                                     Reportez des jours de congés non utilisés de l'année {currentYear} vers l'année {nextYear}.
                                     Les règles de report varient selon le type de congés.
                                 </Paragraph>
-                            </Card>
+                            </ShadcnCard>
                         </Col>
                     </Row>
 
                     <Divider />
 
-                    <Card title="Historique des transactions">
+                    <ShadcnCard title="Historique des transactions">
                         <LeaveHistoryTable
                             userId={userId}
                             refreshKey={refreshCounter}
                         />
-                    </Card>
+                    </ShadcnCard>
                 </TabPane>
 
                 <TabPane
@@ -245,7 +247,7 @@ export default function QuotasPage() {
                         tab={<span><SettingOutlined /> Administration</span>}
                         key="admin"
                     >
-                        <Card title="Administration des quotas">
+                        <ShadcnCard title="Administration des quotas">
                             <Paragraph>
                                 Cette section est réservée aux administrateurs et permet de configurer les règles de transfert et de report de quotas.
                             </Paragraph>
@@ -257,7 +259,7 @@ export default function QuotasPage() {
                             >
                                 <BarChart2 style={{ marginRight: 8 }} /> Accéder à la gestion avancée des quotas
                             </Button>
-                        </Card>
+                        </ShadcnCard>
                     </TabPane>
                 )}
             </Tabs>

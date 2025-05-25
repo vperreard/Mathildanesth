@@ -1,5 +1,3 @@
-// @ts-nocheck
-/* Ce fichier utilise @ts-nocheck pour contourner temporairement les erreurs de type avec les assertions Jest.
  * Une meilleure solution serait de configurer correctement les types Jest dans le projet.
  */
 

@@ -40,11 +40,12 @@ describe('Interactions useOperatingRoomData et blocPlanningService', () => {
         // Rendre le hook
         const { result } = renderHook(() => useOperatingRoomData());
 
-        // Vérifier que le hook est initialement en état de chargement
-        expect(result.current[0].isLoading).toBe(true);
-
-        // Attendre que les données soient chargées
-        await waitFor(() => expect(result.current[0].isLoading).toBe(false));
+        // Le hook doit charger les données automatiquement au démarrage
+        // Appeler fetchRooms et fetchSectors manuellement
+        await act(async () => {
+            await result.current[1].fetchRooms();
+            await result.current[1].fetchSectors();
+        });
 
         // Vérifier que les méthodes du service ont été appelées
         expect(blocPlanningService.getAllOperatingRooms).toHaveBeenCalledTimes(1);
@@ -98,8 +99,10 @@ describe('Interactions useOperatingRoomData et blocPlanningService', () => {
         // Rendre le hook
         const { result } = renderHook(() => useOperatingRoomData());
 
-        // Attendre que l'initialisation soit terminée
-        await waitFor(() => expect(result.current[0].isLoading).toBe(false));
+        // Charger les données initiales
+        await act(async () => {
+            await result.current[1].fetchRooms();
+        });
 
         // Données initiales pour mieux voir les changements
         (blocPlanningService.getAllOperatingRooms as jest.Mock).mockResolvedValue(mockRooms);

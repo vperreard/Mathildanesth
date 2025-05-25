@@ -1,7 +1,6 @@
 // Empêcher le client browser d'exécuter ce code (pour Next.js App Router)
 // Ce code s'exécute uniquement côté serveur
-// @ts-ignore
-const isServer = typeof window === 'undefined';
+const isServer: boolean = typeof window === 'undefined';
 
 import { PrismaClient } from '@prisma/client';
 import NodeCache from 'node-cache';
