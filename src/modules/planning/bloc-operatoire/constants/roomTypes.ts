@@ -4,7 +4,10 @@
  */
 export const ROOM_TYPES = {
     STANDARD: 'STANDARD',
-    FIV: 'FIV',
+    ASEPTIQUE: 'ASEPTIQUE',
+    ENDOSCOPIE: 'ENDOSCOPIE',
+    GARDE: 'GARDE',
+    ASTREINTE: 'ASTREINTE',
     CONSULTATION: 'CONSULTATION'
 };
 
@@ -13,7 +16,10 @@ export const ROOM_TYPES = {
  */
 export const ROOM_TYPE_LABELS = {
     STANDARD: 'Standard',
-    FIV: 'FIV',
+    ASEPTIQUE: 'Aseptique',
+    ENDOSCOPIE: 'Endoscopie',
+    GARDE: 'Garde',
+    ASTREINTE: 'Astreinte',
     CONSULTATION: 'Consultation'
 };
 

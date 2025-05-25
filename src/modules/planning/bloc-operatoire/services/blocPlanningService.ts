@@ -408,25 +408,26 @@ export class BlocPlanningService {
 
                     // Début Solution Palliative pour isFivOrConsultation (R2)
                     // TODO: Remplacer par une méthode fiable (champ dédié sur OperatingRoom ou via allowedSpecialties/supervisionRules)
-                    let isFivOrConsultation = false;
+                    let isSpecialOrConsultation = false;
                     if (user && assignmentsForUser.some(a => {
                         const roomType = a.room && 'type' in a.room ? a.room.type : undefined;
                         if (roomType) {
-                            return roomType === 'FIV' || roomType === 'CONSULTATION';
+                            return roomType === 'CONSULTATION' || roomType === 'GARDE' || roomType === 'ASTREINTE';
                         }
                         const roomName = a.room?.name || '';
                         return typeof roomName === 'string' && (
-                            roomName.toLowerCase().includes('fiv') ||
                             roomName.toLowerCase().includes('consultation') ||
-                            roomName.toLowerCase().includes('consult')
+                            roomName.toLowerCase().includes('consult') ||
+                            roomName.toLowerCase().includes('garde') ||
+                            roomName.toLowerCase().includes('astreinte')
                         );
                     })) {
-                        isFivOrConsultation = true;
+                        isSpecialOrConsultation = true;
                     }
                     // Fin Solution Palliative
 
-                    const severity = isFivOrConsultation ? ConflictSeverity.WARNING : ConflictSeverity.ERROR;
-                    const message = `L'utilisateur ${user?.prenom || ''} ${user?.nom || `ID ${userId}`} est affecté à plusieurs salles (${roomNames}) sur la période ${period} le ${date.toISOString().split('T')[0]}. ${isFivOrConsultation ? 'Une des salles est de type FIV/Consultation, générant un avertissement.' : 'Cela constitue une double affectation bloquante.'}`;
+                    const severity = isSpecialOrConsultation ? ConflictSeverity.WARNING : ConflictSeverity.ERROR;
+                    const message = `L'utilisateur ${user?.prenom || ''} ${user?.nom || `ID ${userId}`} est affecté à plusieurs salles (${roomNames}) sur la période ${period} le ${date.toISOString().split('T')[0]}. ${isSpecialOrConsultation ? 'Une des salles est de type spécial (Consultation/Garde/Astreinte), générant un avertissement.' : 'Cela constitue une double affectation bloquante.'}`;
 
                     conflictsToCreate.push({
                         blocDayPlanningId: planning.id,

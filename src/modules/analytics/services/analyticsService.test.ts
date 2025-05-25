@@ -67,7 +67,7 @@ describe('AnalyticsService', () => {
         it('devrait calculer correctement les statistiques pour un ensemble simple', async () => {
             const mockActiveRooms: any[] = [
                 { id: 1, name: 'Salle 1', isActive: true, type: 'STANDARD', sectorId: 1, sector: { id: 1, name: 'Secteur A', category: 'CHIRURGIE', isActive: true, siteId: siteId } },
-                { id: 2, name: 'Salle 2', isActive: true, type: 'FIV', sectorId: 1, sector: { id: 1, name: 'Secteur A', category: 'CHIRURGIE', isActive: true, siteId: siteId } },
+                { id: 2, name: 'Salle 2', isActive: true, type: 'ASEPTIQUE', sectorId: 1, sector: { id: 1, name: 'Secteur A', category: 'CHIRURGIE', isActive: true, siteId: siteId } },
                 { id: 3, name: 'Salle 3', isActive: true, type: 'STANDARD', sectorId: 2, sector: { id: 2, name: 'Secteur B', category: 'OPHTALMO', isActive: true, siteId: siteId } },
             ];
             (prismaMock.operatingRoom.findMany as jest.Mock).mockResolvedValue(mockActiveRooms);
@@ -109,14 +109,14 @@ describe('AnalyticsService', () => {
             expect(standardRoomStats?.occupancyRate).toBe(1);
             expect(standardRoomStats?.averageProcedureDurationMinutes).toBe(400);
 
-            const fivRoomStats = result.byRoomType.find(r => r.type === 'FIV');
-            expect(fivRoomStats).toBeDefined();
-            expect(fivRoomStats?.numberOfRooms).toBe(1);
-            expect(fivRoomStats?.totalPlannedHours).toBe(5);
-            expect(fivRoomStats?.numberOfProcedures).toBe(1);
-            expect(fivRoomStats?.totalAvailableHours).toBe(10);
-            expect(fivRoomStats?.occupancyRate).toBe(0.5);
-            expect(fivRoomStats?.averageProcedureDurationMinutes).toBe(300);
+            const aseptiqueRoomStats = result.byRoomType.find(r => r.type === 'ASEPTIQUE');
+            expect(aseptiqueRoomStats).toBeDefined();
+            expect(aseptiqueRoomStats?.numberOfRooms).toBe(1);
+            expect(aseptiqueRoomStats?.totalPlannedHours).toBe(5);
+            expect(aseptiqueRoomStats?.numberOfProcedures).toBe(1);
+            expect(aseptiqueRoomStats?.totalAvailableHours).toBe(10);
+            expect(aseptiqueRoomStats?.occupancyRate).toBe(0.5);
+            expect(aseptiqueRoomStats?.averageProcedureDurationMinutes).toBe(300);
         });
 
         // TODO: Ajouter d'autres cas de test importants (voir commentaires dans la version précédente du fichier)

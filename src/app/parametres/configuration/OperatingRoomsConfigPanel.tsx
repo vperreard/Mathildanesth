@@ -102,12 +102,11 @@ interface RoomOrderConfig {
 // Options de types de salles
 const ROOM_TYPE_OPTIONS = [
     { value: 'STANDARD', label: 'Standard' },
-    { value: 'SEPTIQUE', label: 'Septique' },
     { value: 'ASEPTIQUE', label: 'Aseptique' },
     { value: 'ENDOSCOPIE', label: 'Endoscopie' },
-    { value: 'AMBULATOIRE', label: 'Ambulatoire' },
-    { value: 'URGENCE', label: 'Urgence' },
-    { value: 'SPECIALISEE', label: 'Spécialisée' }
+    { value: 'GARDE', label: 'Garde' },
+    { value: 'ASTREINTE', label: 'Astreinte' },
+    { value: 'CONSULTATION', label: 'Consultation' }
 ];
 
 // Fonction pour normaliser les noms de secteurs

@@ -36,14 +36,14 @@ export const SECTOR_CATEGORY_RULES: Record<string, SectorTypeRules> = {
         maxRoomsPerSupervisor: 2,
         requiresSpecialistSupervision: false,
         requiresContiguousRooms: true,
-        allowedRoomTypes: [ROOM_TYPES.STANDARD, ROOM_TYPES.CONSULTATION],
+        allowedRoomTypes: [ROOM_TYPES.STANDARD, ROOM_TYPES.CONSULTATION, ROOM_TYPES.GARDE, ROOM_TYPES.ASTREINTE],
         requiredCompetences: []
     },
     [SECTOR_CATEGORY_TYPES.HYPERASEPTIQUE]: {
         maxRoomsPerSupervisor: 1,
         requiresSpecialistSupervision: true,
         requiresContiguousRooms: true,
-        allowedRoomTypes: [ROOM_TYPES.STANDARD],
+        allowedRoomTypes: [ROOM_TYPES.STANDARD, ROOM_TYPES.ASEPTIQUE],
         requiredCompetences: ['Asepsie avancée']
     },
     [SECTOR_CATEGORY_TYPES.OPHTALMOLOGIE]: {
@@ -57,7 +57,7 @@ export const SECTOR_CATEGORY_RULES: Record<string, SectorTypeRules> = {
         maxRoomsPerSupervisor: 4,
         requiresSpecialistSupervision: true,
         requiresContiguousRooms: false,
-        allowedRoomTypes: [ROOM_TYPES.STANDARD, ROOM_TYPES.CONSULTATION],
+        allowedRoomTypes: [ROOM_TYPES.STANDARD, ROOM_TYPES.ENDOSCOPIE, ROOM_TYPES.CONSULTATION],
         requiredCompetences: ['Endoscopie']
     }
 };
@@ -73,12 +73,33 @@ export const ROOM_TYPE_RULES: Record<string, RoomTypeRules> = {
         allowedSpecialties: ['*'], // Toutes les spécialités
         requiredEquipment: []
     },
-    [ROOM_TYPES.FIV]: {
+    [ROOM_TYPES.ASEPTIQUE]: {
+        requiresDedicatedSupervision: true,
+        maxPatientsPerDay: 6,
+        averageProcedureDuration: 75,
+        allowedSpecialties: ['*'], // Toutes les spécialités avec conditions d'asepsie
+        requiredEquipment: ['Équipement stérilisation avancée', 'Système ventilation aseptique']
+    },
+    [ROOM_TYPES.ENDOSCOPIE]: {
+        requiresDedicatedSupervision: true,
+        maxPatientsPerDay: 10,
+        averageProcedureDuration: 45,
+        allowedSpecialties: ['Gastroentérologie', 'Pneumologie', 'Urologie'],
+        requiredEquipment: ['Endoscope', 'Système d\'imagerie', 'Désinfection spécialisée']
+    },
+    [ROOM_TYPES.GARDE]: {
         requiresDedicatedSupervision: true,
         maxPatientsPerDay: 6,
         averageProcedureDuration: 90,
-        allowedSpecialties: ['Gynécologie', 'Obstétrique', 'PMA'],
-        requiredEquipment: ['Équipement FIV', 'Microscope']
+        allowedSpecialties: ['*'], // Toutes spécialités en mode garde
+        requiredEquipment: ['Équipement urgence', 'Monitoring continu']
+    },
+    [ROOM_TYPES.ASTREINTE]: {
+        requiresDedicatedSupervision: false,
+        maxPatientsPerDay: 4,
+        averageProcedureDuration: 120,
+        allowedSpecialties: ['*'], // Support pour toutes spécialités
+        requiredEquipment: ['Équipement de base', 'Communication d\'urgence']
     },
     [ROOM_TYPES.CONSULTATION]: {
         requiresDedicatedSupervision: false,
