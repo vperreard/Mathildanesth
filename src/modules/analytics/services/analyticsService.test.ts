@@ -121,7 +121,6 @@ describe('AnalyticsService', () => {
 
         // TODO: Ajouter d'autres cas de test importants (voir commentaires dans la version précédente du fichier)
     });
-});
 
     // TODO: Testez la fonction `getPeriodDurationInHours` séparément si sa logique devient complexe
     // describe('getPeriodDurationInHours', () => { ... });

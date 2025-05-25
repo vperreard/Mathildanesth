@@ -1,3 +1,4 @@
+/**
  * Une meilleure solution serait de configurer correctement les types Jest dans le projet.
  */
 

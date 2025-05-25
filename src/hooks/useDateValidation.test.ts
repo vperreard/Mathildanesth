@@ -1,3 +1,4 @@
+/**
  * Certains tests échouent logiquement car ils testent des options non supportées par le hook actuel ou car la logique du hook a changé.
  */
 import { renderHook, act, waitFor } from '@testing-library/react';

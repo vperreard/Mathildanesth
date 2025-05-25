@@ -1,7 +1,7 @@
 const puppeteerConfig = {
     // Configuration du navigateur
     browser: {
-        headless: process.env.CI ? true : false, // Mode visible en développement
+        headless: process.env.CI ? true : true, // Mode headless par défaut
         slowMo: process.env.CI ? 0 : 50, // Ralentir les actions pour debug
         devtools: !process.env.CI, // DevTools ouvertes en développement
         args: [
