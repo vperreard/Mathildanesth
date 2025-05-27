@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { ActivityCategory } from '@prisma/client'; // Rétablir l'import direct, Prisma generate a été lancé
 
+jest.mock('@/lib/prisma');
+
+
 // Schéma de validation pour la création d'un ActivityType
 const activityTypeCreateSchema = z.object({
     name: z.string().min(1, "Le nom est requis."),

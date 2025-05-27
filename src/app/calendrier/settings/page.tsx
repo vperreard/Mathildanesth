@@ -44,7 +44,7 @@ export default function CalendarSettingsPage() {
     useEffect(() => {
         const loadSettings = async () => {
             try {
-                const response = await axios.get(`/api/utilisateurs/${user?.id}/calendrier-settings`);
+                const response = await axios.get(`http://localhost:3000/api/utilisateurs/${user?.id}/calendrier-settings`);
                 if (response.data) {
                     setSettings(response.data);
                 }
@@ -65,7 +65,7 @@ export default function CalendarSettingsPage() {
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            await axios.put(`/api/utilisateurs/${user?.id}/calendrier-settings`, settings);
+            await axios.put(`http://localhost:3000/api/utilisateurs/${user?.id}/calendrier-settings`, settings);
             toast.success('Paramètres sauvegardés avec succès');
         } catch (error) {
             console.error('Erreur lors de la sauvegarde des paramètres:', error);

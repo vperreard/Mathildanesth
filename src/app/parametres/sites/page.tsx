@@ -42,7 +42,7 @@ export default function SitesPage() {
         setError(null);
 
         try {
-            const response = await fetch('/api/sites');
+            const response = await fetch('http://localhost:3000/api/sites');
 
             if (!response.ok) {
                 throw new Error(`Erreur lors de la récupération des sites: ${response.status}`);
@@ -78,7 +78,7 @@ export default function SitesPage() {
         }
 
         try {
-            const response = await fetch('/api/sites', {
+            const response = await fetch('http://localhost:3000/api/sites', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -122,7 +122,7 @@ export default function SitesPage() {
         }
 
         try {
-            const response = await fetch(`/api/sites/${currentSite.id}`, {
+            const response = await fetch(`http://localhost:3000/api/sites/${currentSite.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -168,7 +168,7 @@ export default function SitesPage() {
         if (!currentSite) return;
 
         try {
-            const response = await fetch(`/api/sites/${currentSite.id}`, {
+            const response = await fetch(`http://localhost:3000/api/sites/${currentSite.id}`, {
                 method: 'DELETE',
             });
 
@@ -220,7 +220,7 @@ export default function SitesPage() {
 
         // Envoyer la nouvelle ordre au serveur
         try {
-            const response = await fetch('/api/sites/reorder', {
+            const response = await fetch('http://localhost:3000/api/sites/reorder', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

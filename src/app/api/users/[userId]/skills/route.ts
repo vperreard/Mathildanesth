@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { userIdSchema, assignSkillSchema } from '@/lib/schemas/skillSchemas';
 import { getCurrentUser, isAdmin, handleApiError } from '@/lib/apiUtils';
 
+jest.mock('@/lib/prisma');
+
+
 interface UserSkillsParams {
     params: {
         userId: string;

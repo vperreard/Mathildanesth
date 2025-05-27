@@ -85,14 +85,14 @@ export default function NewSimulationPage() {
             setIsLoading(true);
             try {
                 // Charger les templates de simulation
-                const templatesResponse = await fetch('/api/simulations/templates');
+                const templatesResponse = await fetch('http://localhost:3000/api/simulations/templates');
                 if (templatesResponse.ok) {
                     const templatesData = await templatesResponse.json();
                     setTemplates(templatesData.data);
                 }
 
                 // Charger les sites
-                const sitesResponse = await fetch('/api/sites');
+                const sitesResponse = await fetch('http://localhost:3000/api/sites');
                 if (sitesResponse.ok) {
                     const sitesData = await sitesResponse.json();
                     setSites(sitesData.data);
@@ -159,7 +159,7 @@ export default function NewSimulationPage() {
             };
 
             // Envoyer les données
-            const response = await fetch('/api/simulations/scenarios', {
+            const response = await fetch('http://localhost:3000/api/simulations/scenarios', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

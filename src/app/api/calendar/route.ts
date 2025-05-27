@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { CalendarEventType, CalendarEvent } from '@/modules/calendrier/types/event';
 import { formatISO } from 'date-fns';
 
+jest.mock('@/lib/prisma');
+
+
 // Helper function to parse and convert IDs to numbers
 const parseIds = (ids: string | string[] | undefined): number[] | number | undefined => {
     if (!ids) return undefined;

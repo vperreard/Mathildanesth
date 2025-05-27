@@ -134,7 +134,7 @@ const SurgeonsListPanel: React.FC = () => {
         setIsLoadingSubmit(true);
         setError(null);
         try {
-            await axios.delete(`/api/chirurgiens/${deleteConfirmation.surgeonId}`);
+            await axios.delete(`http://localhost:3000/api/chirurgiens/${deleteConfirmation.surgeonId}`);
             toast.success('Chirurgien supprimé avec succès.');
             setSurgeons(prev => prev.filter(s => s.id !== deleteConfirmation.surgeonId));
             closeDeleteConfirmation();

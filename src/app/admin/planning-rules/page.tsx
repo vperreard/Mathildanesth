@@ -24,7 +24,7 @@ export default function PlanningRulesPage() {
   const { data: rulesData } = useQuery({
     queryKey: ['rules'],
     queryFn: async () => {
-      const response = await fetch('/api/admin/rules/v2');
+      const response = await fetch('http://localhost:3000/api/admin/rules/v2');
       if (!response.ok) throw new Error('Failed to fetch rules');
       return response.json();
     }

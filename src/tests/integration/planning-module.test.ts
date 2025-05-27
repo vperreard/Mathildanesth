@@ -345,6 +345,7 @@ describe('PlanningGenerator - Tests unitaires', () => {
   let generator: PlanningGenerator;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     const params = {
       startDate: '2024-01-01',
       endDate: '2024-01-07',

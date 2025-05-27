@@ -128,7 +128,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
         }
         setError(null);
         try {
-            await axios.delete(`/api/specialties/${id}`);
+            await axios.delete(`http://localhost:3000/api/specialties/${id}`);
             setSpecialties(prev => prev.filter(s => s.id !== id));
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);

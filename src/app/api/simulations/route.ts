@@ -4,7 +4,10 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 // Schéma de validation pour la création d'un scénario
 const createScenarioSchema = z.object({

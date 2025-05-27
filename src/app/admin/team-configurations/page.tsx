@@ -18,7 +18,7 @@ export default function TeamConfigurationsPage() {
         const fetchConfigurations = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('/api/admin/team-configurations');
+                const response = await fetch('http://localhost:3000/api/admin/team-configurations');
 
                 if (!response.ok) {
                     throw new Error('Erreur lors de la récupération des configurations');
@@ -44,7 +44,7 @@ export default function TeamConfigurationsPage() {
         }
 
         try {
-            const response = await fetch(`/api/admin/team-configurations?id=${id}`, {
+            const response = await fetch(`http://localhost:3000/api/admin/team-configurations?id=${id}`, {
                 method: 'DELETE',
             });
 
@@ -64,7 +64,7 @@ export default function TeamConfigurationsPage() {
     // Gérer l'activation/désactivation d'une configuration
     const handleToggleActive = async (id: string, isActive: boolean) => {
         try {
-            const response = await fetch(`/api/admin/team-configurations?id=${id}`, {
+            const response = await fetch(`http://localhost:3000/api/admin/team-configurations?id=${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ export default function TeamConfigurationsPage() {
     // Gérer la définition de la configuration par défaut
     const handleSetDefault = async (id: string) => {
         try {
-            const response = await fetch(`/api/admin/team-configurations?id=${id}`, {
+            const response = await fetch(`http://localhost:3000/api/admin/team-configurations?id=${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

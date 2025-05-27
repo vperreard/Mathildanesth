@@ -6,16 +6,19 @@ import { motion } from 'framer-motion';
 import { useState, useMemo, useEffect } from 'react';
 import { memo } from 'react';
 import AdminRequestsBanner from './AdminRequestsBanner';
-import Navigation from './navigation/Navigation';
+import MedicalNavigation from './navigation/MedicalNavigation';
 import UserProfile from './user/UserProfile';
 import { HeaderLoginForm } from './auth/HeaderLoginForm';
-import { navigationLinks, adminLinks } from '@/utils/navigationConfig';
+import { getNavigationByRole, hasAccess } from '@/utils/navigationConfig';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppearance } from '@/hooks/useAppearance';
 import { NotificationBell } from './notifications/NotificationBell';
 import { RuleNotificationBell } from './rules/RuleNotificationBell';
 import { UniversalSearch } from './UniversalSearch';
+import { MedicalBreadcrumbs } from './navigation/MedicalBreadcrumbs';
+import { QuickActions } from './navigation/QuickActions';
+import { Activity, Stethoscope } from 'lucide-react';
 
 const fadeIn = {
     hidden: { opacity: 0, y: -10 },
@@ -36,33 +39,27 @@ const Header = memo(function Header() {
 
     // Déterminer si l'utilisateur est un admin (total ou partiel)
     const isAdmin = Boolean(user && (user.role === 'ADMIN_TOTAL' || user.role === 'ADMIN_PARTIEL'));
+    const userRole = user?.role || 'GUEST';
 
-    // Filtrer les liens de navigation en fonction des droits d'administrateur
+    // Navigation adaptée au rôle médical
     const navLinks = useMemo(() => {
-        return navigationLinks.filter(link => {
-            // Si c'est un lien admin, vérifier les droits
-            if (adminLinks.includes(link.href)) {
-                return isAdmin;
-            }
-            return true;
-        });
-    }, [isAdmin]);
+        if (!user) return [];
+        return getNavigationByRole(userRole);
+    }, [user, userRole]);
 
     const toggleMobileMenu = useMemo(() => () => setMobileMenuOpen(!mobileMenuOpen), [mobileMenuOpen]);
 
-    // Définir le style du fond pastel en fonction du thème et des préférences
+    // Style médical adaptatif
     const headerStyle = {
         background: theme === 'dark'
-            ? 'linear-gradient(to right, rgba(30, 41, 59, 1), rgba(36, 47, 67, 0.95), rgba(30, 41, 59, 1))'
-            : 'linear-gradient(to right, rgba(246, 249, 255, 1), rgba(232, 240, 254, 0.92), rgba(245, 225, 255, 0.92), rgba(255, 235, 246, 1))'
+            ? 'linear-gradient(to right, rgba(15, 23, 42, 1), rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 1))'
+            : 'linear-gradient(to right, rgba(248, 250, 252, 1), rgba(241, 245, 249, 0.92), rgba(248, 250, 252, 1))'
     };
 
-    // Déterminer la classe CSS pour le style d'en-tête
     const headerClass = preferences?.header?.style
         ? `header-${preferences.header.style}`
         : '';
 
-    // Déterminer si l'en-tête doit être sticky
     const stickyClass = preferences?.header?.sticky === false
         ? ''
         : 'sticky';
@@ -70,13 +67,13 @@ const Header = memo(function Header() {
     return (
         <>
             <header
-                className={`${stickyClass} top-0 z-50 border-b border-gray-100 dark:border-slate-700 shadow-sm transition-colors duration-300 ${headerClass}`}
+                className={`${stickyClass} top-0 z-50 border-b border-slate-200 dark:border-slate-700 shadow-sm transition-colors duration-300 ${headerClass} bg-white/95 dark:bg-slate-900/95 backdrop-blur-md`}
                 role="banner"
                 style={preferences?.header?.style === 'gradient' ? headerStyle : undefined}
             >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        {/* Logo */}
+                        {/* Logo médical */}
                         <motion.div
                             initial="hidden"
                             animate="visible"
@@ -85,72 +82,87 @@ const Header = memo(function Header() {
                         >
                             <Link
                                 href="/"
-                                className="flex items-center space-x-2 group"
-                                aria-label="Accueil Mathildanesth"
+                                className="flex items-center space-x-3 group"
+                                aria-label="Accueil Mathildanesth - Gestion planning médical"
                             >
-                                <div className="w-9 h-9 bg-gradient-to-r from-primary-600 via-secondary-600 to-tertiary-600 rounded-lg flex items-center justify-center shadow-sm transition-all duration-300 transform group-hover:scale-105" aria-hidden="true">
-                                    <span className="text-white font-bold text-lg">M</span>
+                                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 via-teal-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg transition-all duration-300 transform group-hover:scale-105 group-hover:shadow-xl">
+                                    <Stethoscope className="w-5 h-5 text-white" />
                                 </div>
-                                <h1 className="text-xl font-display font-bold bg-gradient-to-r from-primary-600 via-secondary-600 to-tertiary-600 bg-clip-text text-transparent transition-all duration-300 dark:text-gray-100 dark:bg-clip-text dark:bg-gradient-to-r dark:from-primary-500 dark:via-primary-400 dark:to-primary-300">
-                                    Mathildanesth
-                                </h1>
+                                <div className="hidden sm:block">
+                                    <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                                        Mathildanesth
+                                    </h1>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                        Planning Médical
+                                    </p>
+                                </div>
                             </Link>
                         </motion.div>
 
-                        <div className="flex items-center justify-end flex-1 space-x-4">
-                            {/* Navigation */}
+                        {/* Barre de navigation centrale */}
+                        <div className="flex-1 flex items-center justify-center px-4">
                             {!isLoading && user && (
-                                <Navigation
-                                    links={navLinks}
-                                    isAdmin={isAdmin}
+                                <MedicalNavigation
+                                    navigation={navLinks}
+                                    userRole={userRole}
                                     mobileMenuOpen={mobileMenuOpen}
                                     onMobileMenuToggle={toggleMobileMenu}
                                 />
                             )}
-
-                            {/* User section */}
-                            <motion.div
-                                className="hidden md:flex items-center space-x-2"
-                                initial="hidden"
-                                animate="visible"
-                                variants={fadeIn}
-                                role="region"
-                                aria-label="Profil utilisateur et options"
-                            >
-                                {/* Universal Search */}
-                                {user && (
-                                    <UniversalSearch />
-                                )}
-                                
-                                <ThemeSwitcher />
-                                
-                                {/* Notification de règles pour les admins */}
-                                {isAdmin && (
-                                    <RuleNotificationBell />
-                                )}
-                                
-                                {/* Notifications générales */}
-                                {user && (
-                                    <NotificationBell />
-                                )}
-                                
-                                {!isMounted || isLoading ? (
-                                    <div className="h-8 w-20 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" aria-label="Chargement du profil" role="status"></div>
-                                ) : user ? (
-                                    <>
-                                        <UserProfile user={user} onLogout={logout} />
-                                    </>
-                                ) : (
-                                    <HeaderLoginForm idPrefix="header-" />
-                                )}
-                            </motion.div>
                         </div>
+
+                        {/* Actions utilisateur */}
+                        <motion.div
+                            className="flex items-center space-x-2"
+                            initial="hidden"
+                            animate="visible"
+                            variants={fadeIn}
+                            role="region"
+                            aria-label="Actions utilisateur"
+                        >
+                            {/* Recherche universelle */}
+                            {user && (
+                                <UniversalSearch />
+                            )}
+
+                            {/* Actions rapides pour les rôles médicaux */}
+                            {user && (
+                                <QuickActions userRole={userRole} />
+                            )}
+                            
+                            <ThemeSwitcher />
+                            
+                            {/* Notifications règles pour les admins */}
+                            {isAdmin && (
+                                <RuleNotificationBell />
+                            )}
+                            
+                            {/* Notifications générales */}
+                            {user && (
+                                <NotificationBell />
+                            )}
+                            
+                            {!isMounted || isLoading ? (
+                                <div className="h-8 w-20 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" aria-label="Chargement du profil" role="status"></div>
+                            ) : user ? (
+                                <>
+                                    <UserProfile user={user} onLogout={logout} />
+                                </>
+                            ) : (
+                                <HeaderLoginForm idPrefix="header-" />
+                            )}
+                        </motion.div>
                     </div>
                 </div>
+
+                {/* Breadcrumbs médicaux contextuels */}
+                {user && (
+                    <MedicalBreadcrumbs userRole={userRole} />
+                )}
             </header>
             <AdminRequestsBanner />
         </>
     );
 });
 
-export default Header; 
+export default Header;

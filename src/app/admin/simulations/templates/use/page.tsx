@@ -116,7 +116,7 @@ export default function UseTemplatePage() {
         try {
             // Charger les utilisateurs
             setLoadingUsers(true);
-            const usersResponse = await fetch('/api/utilisateurs');
+            const usersResponse = await fetch('http://localhost:3000/api/utilisateurs');
             if (usersResponse.ok) {
                 const userData = await usersResponse.json();
                 setUsers(userData);
@@ -125,7 +125,7 @@ export default function UseTemplatePage() {
 
             // Charger les chirurgiens
             setLoadingSurgeons(true);
-            const surgeonsResponse = await fetch('/api/chirurgiens');
+            const surgeonsResponse = await fetch('http://localhost:3000/api/chirurgiens');
             if (surgeonsResponse.ok) {
                 const surgeonData = await surgeonsResponse.json();
                 setSurgeons(surgeonData);

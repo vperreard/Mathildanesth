@@ -47,6 +47,7 @@ describe('BlocPlanningService', () => {
 
     // Setup initial des données de test
     beforeEach(async () => {
+    jest.clearAllMocks();
         testSecteur = {
             id: 'test-secteur',
             nom: 'Secteur Test',

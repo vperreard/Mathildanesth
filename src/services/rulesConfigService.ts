@@ -1,6 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import { RulesConfiguration, FatigueConfig, defaultRulesConfiguration, defaultFatigueConfig } from '@/types/rules';
 
+jest.mock('@/lib/prisma');
+
+
 const CONFIG_KEY = 'PLANNING_RULES_CONFIG';
 const FATIGUE_CONFIG_KEY = 'FATIGUE_CONFIG';
 

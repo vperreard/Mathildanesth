@@ -333,7 +333,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
 
             /*
             // Version avec API réelle
-            const response = await fetch(`/api/planning-rules/${id}`, {
+            const response = await fetch(`http://localhost:3000/api/planning-rules/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth_token')}`

@@ -191,6 +191,7 @@ describe('Utilitaires d\'authentification', () => {
 
     describe('fetchWithAuth', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             // Réinitialiser le mock de fetch pour chaque test
             fetchSpy.mockImplementation(() =>
                 Promise.resolve({

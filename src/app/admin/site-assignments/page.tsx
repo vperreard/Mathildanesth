@@ -53,9 +53,9 @@ const SiteAssignmentsPage = () => {
             setLoading(true);
 
             const [usersRes, surgeonsRes, sitesRes] = await Promise.all([
-                fetch('/api/utilisateurs?limit=50'),
-                fetch('/api/chirurgiens?limit=100'),
-                fetch('/api/sites')
+                fetch('http://localhost:3000/api/utilisateurs?limit=50'),
+                fetch('http://localhost:3000/api/chirurgiens?limit=100'),
+                fetch('http://localhost:3000/api/sites')
             ]);
 
             if (usersRes.ok) {

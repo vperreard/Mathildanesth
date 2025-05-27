@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import UserForm from '@/components/UserForm';
 // Importer les TYPES depuis le fichier centralisé
-import { User, UserFormData, Role, ProfessionalRole, UserRole } from '@/types/user';
+import { User, UserFormData, Role, UserRole } from '@/types/user';
 import { Skill } from '@/types/skill'; // Assumant que vous créerez ce type
 import { UserSkill } from '@/types/userSkill'; // Assumant que vous créerez ce type
 import { useAuth } from '@/hooks/useAuth'; // Importer useAuth
@@ -153,7 +153,7 @@ function UsersPageContent() {
                 try {
                     // Assigner chaque compétence sélectionnée
                     for (const skillId of selectedSkills) {
-                        await axios.post(`/api/utilisateurs/${newUser.id}/skills`, { skillId });
+                        await axios.post(`http://localhost:3000/api/utilisateurs/${newUser.id}/skills`, { skillId });
                     }
                     toast({ title: "Succès", description: `${selectedSkills.length} compétence(s) assignée(s) à l'utilisateur.` });
                 } catch (err) {
@@ -199,12 +199,12 @@ function UsersPageContent() {
 
                 // Ajouter les nouvelles compétences
                 for (const skillId of skillsToAdd) {
-                    await axios.post(`/api/utilisateurs/${userId}/skills`, { skillId });
+                    await axios.post(`http://localhost:3000/api/utilisateurs/${userId}/skills`, { skillId });
                 }
 
                 // Supprimer les compétences non sélectionnées
                 for (const skillId of skillsToRemove) {
-                    await axios.delete(`/api/utilisateurs/${userId}/skills/${skillId}`);
+                    await axios.delete(`http://localhost:3000/api/utilisateurs/${userId}/skills/${skillId}`);
                 }
 
                 if (skillsToAdd.length > 0 || skillsToRemove.length > 0) {
@@ -239,7 +239,7 @@ function UsersPageContent() {
         setActionLoading(userId);
         setError(null);
         try {
-            await axios.delete(`/api/utilisateurs/${userId}`);
+            await axios.delete(`http://localhost:3000/api/utilisateurs/${userId}`);
             handleApiResponse({ id: userId }, true);
         } catch (err: any) {
             console.error("Erreur handleDeleteUser:", err);
@@ -257,7 +257,7 @@ function UsersPageContent() {
         setSuccessMessage(null);
         try {
             // Utilisation de la nouvelle route spécifique
-            await axios.put(`/api/utilisateurs/${userId}/reset-password`);
+            await axios.put(`http://localhost:3000/api/utilisateurs/${userId}/reset-password`);
             setSuccessMessage(`Mot de passe de l'utilisateur ${userId} réinitialisé avec succès (nouveau mot de passe = login).`);
             // Optionnel: rafraîchir les données ou juste retirer le message après un délai
             setTimeout(() => setSuccessMessage(null), 7000);
@@ -282,22 +282,6 @@ function UsersPageContent() {
     const handleCancelForm = () => {
         setEditingUser(null);
         setIsCreating(false);
-    };
-    const showForm = isCreating || editingUser !== null;
-
-    const getRoleBadgeColor = (role: UserRole | string) => {
-        // Convertir UserRole (enum) en string si nécessaire
-        const roleString = Object.values(UserRole).includes(role as UserRole) ? role as string : role;
-
-        switch (roleString) {
-            case 'ADMIN_TOTAL': return 'bg-red-100 text-red-800';
-            case 'ADMIN_PARTIEL': return 'bg-yellow-100 text-yellow-800';
-            case 'USER': return 'bg-blue-100 text-blue-800';
-            // Gérer les autres cas de UserRole si nécessaire ou retourner une couleur par défaut
-            case UserRole.ADMIN: return 'bg-red-200 text-red-900'; // Exemple pour UserRole.ADMIN
-            case UserRole.MANAGER: return 'bg-yellow-200 text-yellow-900'; // Exemple pour UserRole.MANAGER
-            default: return 'bg-gray-100 text-gray-800';
-        }
     };
 
     return (

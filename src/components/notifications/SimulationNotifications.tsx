@@ -40,7 +40,7 @@ export function SimulationNotifications() {
             const session = await getSession();
             if (session && session.user && session.user.email) {
                 try {
-                    const response = await fetch(`/api/utilisateurs/me`);
+                    const response = await fetch(`http://localhost:3000/api/utilisateurs/me`);
                     const data = await response.json();
                     if (data.id) {
                         setUserId(data.id.toString());

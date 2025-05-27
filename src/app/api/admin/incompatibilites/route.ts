@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server';
 import { PrismaClient, PersonnelIncompatibility, User, Surgeon, IncompatibilityType } from '@prisma/client';
 import { z } from 'zod';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 // Schéma de validation pour la création (sera utilisé pour le POST plus tard)
 const createIncompatibilitySchema = z.object({

@@ -41,7 +41,7 @@ export function usePerformanceMetrics(): UsePerformanceMetricsReturn {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['performance-metrics'],
     queryFn: async () => {
-      const response = await fetch('/api/monitoring/metrics');
+      const response = await fetch('http://localhost:3000/api/monitoring/metrics');
       if (!response.ok) {
         throw new Error('Failed to fetch performance metrics');
       }

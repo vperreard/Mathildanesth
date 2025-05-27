@@ -6,6 +6,7 @@ import { ruleCache } from '@/modules/rules/services/ruleCache';
 describe('Intégration RuleEngine et RuleCacheService', () => {
     // Réinitialiser le cache avant chaque test
     beforeEach(() => {
+    jest.clearAllMocks();
         ruleCache.clearCache();
     });
 

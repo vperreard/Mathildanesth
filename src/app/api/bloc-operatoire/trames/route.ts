@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 // GET /api/bloc-operatoire/trames
 export async function GET(request: Request) {

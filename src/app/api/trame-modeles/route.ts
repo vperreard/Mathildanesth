@@ -3,7 +3,10 @@ import { PrismaClient, RecurrenceTypeTrame, TypeSemaineTrame, DayOfWeek, TrameRo
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import type { AuthResult } from '@/lib/auth-client-utils';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 // POST: Créer un nouveau modèle de trame
 export async function POST(req: NextRequest) {

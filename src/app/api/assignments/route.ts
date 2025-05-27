@@ -5,6 +5,9 @@ import { BusinessRulesValidator } from '@/services/businessRulesValidator';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { logger } from '@/lib/logger';
 
+jest.mock('@/lib/prisma');
+
+
 // Schéma de validation pour les paramètres de requête
 const querySchema = z.object({
     start: z.string().datetime({ message: 'La date de début doit être une date ISO valide' }),

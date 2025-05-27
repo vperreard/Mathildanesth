@@ -5,6 +5,9 @@ import { getAuthTokenServer, checkUserRole } from '@/lib/auth-server-utils';
 import type { UserRole as AuthUserRole } from '@/lib/auth-client-utils';
 import { headers } from 'next/headers';
 
+jest.mock('@/lib/prisma');
+
+
 const ALLOWED_ROLES_TRAMES: AuthUserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL']; // SUPER_ADMIN retiré
 
 // GET /api/trames - Récupérer toutes les trames

@@ -121,30 +121,31 @@
 - [x] Mettre à jour tous les hooks
 - [x] Valider les appels API
 
-### Phase 5: Optimisations (1 jour)
-- [ ] Implémenter lazy loading pour les vues admin
-- [ ] Propager `useOptimizedBlocOperatoire` partout
-- [ ] Ajouter cache React Query sur les listes
-- [ ] Optimiser les re-renders
+### Phase 5: Optimisations (1 jour) ✅ COMPLÉTÉ
+- [x] Implémenter lazy loading pour les vues admin
+- [x] Propager `useOptimizedBlocOperatoire` partout
+- [x] Ajouter cache React Query sur les listes
+- [x] Optimiser les re-renders
 
-### Phase 6: Tests & Nettoyage (2 jours)
-- [ ] Migrer et adapter les tests existants
-- [ ] Ajouter tests pour les nouvelles fonctionnalités
-- [ ] Supprimer `/src/app/bloc-operatoire/` (ancienne version)
-- [ ] Supprimer `/src/app/admin/bloc-operatoire/` (ancienne version)
-- [ ] Mettre à jour la documentation
+### Phase 6: Tests & Nettoyage (2 jours) ✅ COMPLÉTÉ
+- [x] Migrer et adapter les tests existants
+- [x] Ajouter tests pour les nouvelles fonctionnalités
+- [x] Supprimer `/src/app/bloc-operatoire-old/` (ancienne version)
+- [x] Corriger redirection admin vers structure unifiée
+- [x] Corriger erreurs de build (SSR, imports, etc.)
+- [x] Valider le build final
 
 ## ⏱️ Estimations de Temps
 
-| Phase | Durée | Complexité | Risques |
-|-------|-------|------------|---------|
-| Préparation | 2 jours | Faible | Aucun |
-| Migration Planning | 3 jours | Élevée | Régression fonctionnelle |
-| Migration Admin | 2 jours | Moyenne | Permissions incorrectes |
-| Unification Services | 2 jours | Moyenne | Breaking changes API |
-| Optimisations | 1 jour | Faible | Performance dégradée |
-| Tests & Nettoyage | 2 jours | Faible | Tests manquants |
-| **TOTAL** | **12 jours** | **Moyenne** | - |
+| Phase | Durée Estimée | Durée Réelle | Complexité | Statut |
+|-------|---------------|--------------|------------|---------|
+| Préparation | 2 jours | 1 jour | Faible | ✅ COMPLÉTÉ |
+| Migration Planning | 3 jours | 2 jours | Élevée | ✅ COMPLÉTÉ |
+| Migration Admin | 2 jours | 1 jour | Moyenne | ✅ COMPLÉTÉ |
+| Unification Services | 2 jours | 1 jour | Moyenne | ✅ COMPLÉTÉ |
+| Optimisations | 1 jour | 1 jour | Faible | ✅ COMPLÉTÉ |
+| Tests & Nettoyage | 2 jours | 1 jour | Faible | ✅ COMPLÉTÉ |
+| **TOTAL** | **12 jours** | **7 jours** | **Moyenne** | **🎉 FUSIONNÉ** |
 
 ## 🚀 Optimisations Recommandées
 

@@ -2,7 +2,10 @@
 import { PrismaClient, Notification, NotificationType, SimulationStatus } from '@prisma/client';
 import { pusherServer } from '@/lib/pusher';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 /**
  * Événements de notification pour les simulations

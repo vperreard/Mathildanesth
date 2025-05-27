@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { QuotaTransferReportOptions, QuotaTransferReportResult } from '@/modules/leaves/types/quota';
@@ -7,7 +7,10 @@ import { formatDate } from '@/utils/dateUtils';
 import { format, parse, parseISO, isWithinInterval, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 /**
  * POST /api/conges/quotas/transfers/report

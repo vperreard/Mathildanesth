@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
 
+jest.mock('@/lib/prisma');
+
+
 export async function GET(req: Request) {
     try {
         const session = await getServerSession(authOptions);

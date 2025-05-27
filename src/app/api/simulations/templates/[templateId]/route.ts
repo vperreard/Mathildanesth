@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
 
+jest.mock('@/lib/prisma');
+
+
 // Récupérer un template spécifique
 export async function GET(
     req: Request,

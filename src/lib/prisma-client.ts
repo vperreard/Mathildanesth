@@ -1,5 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import NodeCache from 'node-cache';
+
+jest.mock('@/lib/prisma');
+
 
 // Configuration du cache
 const CACHE_TTL = 5 * 60; // 5 minutes en secondes
@@ -13,7 +16,7 @@ const cache = new NodeCache({
 });
 
 // Créer une instance de PrismaClient
-const prisma = new PrismaClient();
+const prisma = prisma;
 
 // Intercepter les requêtes Prisma pour mettre en cache les résultats
 prisma.$use(async (params, next) => {

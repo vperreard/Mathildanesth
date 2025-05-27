@@ -188,7 +188,7 @@ export class AuditService {
         }
 
         try {
-            const response = await fetch(`/api/audit?${queryParams.toString()}`);
+            const response = await fetch(`http://localhost:3000/api/audit?${queryParams.toString()}`);
             if (!response.ok) {
                 throw new Error(`Erreur lors de la récupération de l'audit: ${response.statusText}`);
             }
@@ -237,7 +237,7 @@ export class AuditService {
         }
 
         try {
-            const response = await fetch(`/api/audit/user?${queryParams.toString()}`);
+            const response = await fetch(`http://localhost:3000/api/audit/user?${queryParams.toString()}`);
             if (!response.ok) {
                 throw new Error(`Erreur lors de la récupération de l'audit: ${response.statusText}`);
             }
@@ -260,7 +260,7 @@ export class AuditService {
      */
     private async sendToAuditAPI(entry: AuditEntry): Promise<void> {
         try {
-            const response = await fetch('/api/audit', {
+            const response = await fetch('http://localhost:3000/api/audit', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -327,7 +327,7 @@ export class AuditService {
                 const batch = pendingEntries.slice(i, i + batchSize);
 
                 try {
-                    const response = await fetch('/api/audit/batch', {
+                    const response = await fetch('http://localhost:3000/api/audit/batch', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'

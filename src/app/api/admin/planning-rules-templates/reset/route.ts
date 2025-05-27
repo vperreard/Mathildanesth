@@ -4,6 +4,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDefaultTemplates } from '@/lib/default-rule-templates';
 
+jest.mock('@/lib/prisma');
+
+
 export async function POST(request: Request) {
     try {
         const session = await getServerSession(authOptions);

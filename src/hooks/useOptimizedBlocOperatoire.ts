@@ -66,7 +66,7 @@ export const useOptimizedBlocOperatoire = (options: OptimizedBlocOperatoireOptio
             queryClient.prefetchQuery({
                 queryKey: queryKeys.operatingRooms,
                 queryFn: async () => {
-                    const response = await axios.get('/api/bloc-operatoire/operating-rooms', {
+                    const response = await axios.get('http://localhost:3000/api/bloc-operatoire/operating-rooms', {
                         params: { siteId, includeInactive: false }
                     });
                     return response.data;
@@ -76,7 +76,7 @@ export const useOptimizedBlocOperatoire = (options: OptimizedBlocOperatoireOptio
             queryClient.prefetchQuery({
                 queryKey: queryKeys.operatingSectors,
                 queryFn: async () => {
-                    const response = await axios.get('/api/bloc-operatoire/operating-sectors', {
+                    const response = await axios.get('http://localhost:3000/api/bloc-operatoire/operating-sectors', {
                         params: { siteId, includeRooms: true }
                     });
                     return response.data;
@@ -86,7 +86,7 @@ export const useOptimizedBlocOperatoire = (options: OptimizedBlocOperatoireOptio
             queryClient.prefetchQuery({
                 queryKey: queryKeys.activityTypes,
                 queryFn: async () => {
-                    const response = await axios.get('/api/activity-types');
+                    const response = await axios.get('http://localhost:3000/api/activity-types');
                     return response.data;
                 },
                 staleTime: CACHE_CONFIG.static.staleTime,
@@ -99,7 +99,7 @@ export const useOptimizedBlocOperatoire = (options: OptimizedBlocOperatoireOptio
         return useQuery({
             queryKey: queryKeys.operatingRooms,
             queryFn: async () => {
-                const response = await axios.get('/api/bloc-operatoire/operating-rooms', {
+                const response = await axios.get('http://localhost:3000/api/bloc-operatoire/operating-rooms', {
                     params: { siteId, includeInactive: false }
                 });
                 return response.data;
@@ -116,7 +116,7 @@ export const useOptimizedBlocOperatoire = (options: OptimizedBlocOperatoireOptio
         return useQuery({
             queryKey: queryKeys.operatingSectors,
             queryFn: async () => {
-                const response = await axios.get('/api/bloc-operatoire/operating-sectors', {
+                const response = await axios.get('http://localhost:3000/api/bloc-operatoire/operating-sectors', {
                     params: { siteId, includeRooms: true }
                 });
                 return response.data;
@@ -143,7 +143,7 @@ export const useOptimizedBlocOperatoire = (options: OptimizedBlocOperatoireOptio
             queryClient.prefetchQuery({
                 queryKey: queryKeys.blocPlanning(prevDay),
                 queryFn: async () => {
-                    const response = await axios.get('/api/bloc-operatoire/planning', {
+                    const response = await axios.get('http://localhost:3000/api/bloc-operatoire/planning', {
                         params: { date: prevDay.toISOString(), siteId }
                     });
                     return response.data;
@@ -154,7 +154,7 @@ export const useOptimizedBlocOperatoire = (options: OptimizedBlocOperatoireOptio
             queryClient.prefetchQuery({
                 queryKey: queryKeys.blocPlanning(nextDay),
                 queryFn: async () => {
-                    const response = await axios.get('/api/bloc-operatoire/planning', {
+                    const response = await axios.get('http://localhost:3000/api/bloc-operatoire/planning', {
                         params: { date: nextDay.toISOString(), siteId }
                     });
                     return response.data;
@@ -166,7 +166,7 @@ export const useOptimizedBlocOperatoire = (options: OptimizedBlocOperatoireOptio
         return useQuery({
             queryKey: queryKeys.blocPlanning(date),
             queryFn: async () => {
-                const response = await axios.get('/api/bloc-operatoire/planning', {
+                const response = await axios.get('http://localhost:3000/api/bloc-operatoire/planning', {
                     params: { date: date.toISOString(), siteId }
                 });
                 return response.data;
@@ -182,7 +182,7 @@ export const useOptimizedBlocOperatoire = (options: OptimizedBlocOperatoireOptio
         return useQuery({
             queryKey: [...queryKeys.supervisors, date.toISOString(), period],
             queryFn: async () => {
-                const response = await axios.get('/api/utilisateurs', {
+                const response = await axios.get('http://localhost:3000/api/utilisateurs', {
                     params: {
                         role: 'SUPERVISOR',
                         available: true,
@@ -232,7 +232,7 @@ export const useOptimizedBlocOperatoire = (options: OptimizedBlocOperatoireOptio
             queryClient.fetchQuery({
                 queryKey: queryKeys.blocPlanning(date),
                 queryFn: async () => {
-                    const response = await axios.get('/api/bloc-operatoire/planning', {
+                    const response = await axios.get('http://localhost:3000/api/bloc-operatoire/planning', {
                         params: { date: date.toISOString(), siteId }
                     });
                     return response.data;

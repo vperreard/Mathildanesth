@@ -5,6 +5,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import type { LeaveStatus } from '@prisma/client';
 
+jest.mock('@/lib/prisma');
+
+
 // Interface pour le format de réponse attendu
 interface PendingLeaveWithUser {
     id: string;

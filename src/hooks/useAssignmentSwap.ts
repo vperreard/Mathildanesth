@@ -170,7 +170,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch(`/api/affectations/echange/${id}`);
+            const response = await fetch(`http://localhost:3000/api/affectations/echange/${id}`);
 
             if (!response.ok) {
                 const errorData = await response.json();
@@ -220,7 +220,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch('/api/affectations/echange', {
+            const response = await fetch('http://localhost:3000/api/affectations/echange', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -264,7 +264,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch(`/api/affectations/echange/${id}`, {
+            const response = await fetch(`http://localhost:3000/api/affectations/echange/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -325,7 +325,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch(`/api/affectations/echange/${id}`, {
+            const response = await fetch(`http://localhost:3000/api/affectations/echange/${id}`, {
                 method: 'DELETE'
             });
 
@@ -367,7 +367,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch(`/api/affectations/echange/${id}/admin`, {
+            const response = await fetch(`http://localhost:3000/api/affectations/echange/${id}/admin`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

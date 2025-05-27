@@ -70,7 +70,7 @@ export const SallesOperatoireManager: React.FC = () => {
     const { data: rooms = [], isLoading: roomsLoading } = useQuery({
         queryKey: ['operating-rooms'],
         queryFn: async () => {
-            const response = await axios.get('/api/bloc-operatoire/operating-rooms');
+            const response = await axios.get('http://localhost:3000/api/bloc-operatoire/operating-rooms');
             return response.data;
         }
     });
@@ -79,7 +79,7 @@ export const SallesOperatoireManager: React.FC = () => {
     const { data: sectors = [] } = useQuery({
         queryKey: ['operating-sectors'],
         queryFn: async () => {
-            const response = await axios.get('/api/bloc-operatoire/operating-sectors');
+            const response = await axios.get('http://localhost:3000/api/bloc-operatoire/operating-sectors');
             return response.data;
         }
     });
@@ -87,7 +87,7 @@ export const SallesOperatoireManager: React.FC = () => {
     // Mutation pour créer une salle
     const createRoom = useMutation({
         mutationFn: async (data: RoomFormData) => {
-            const response = await axios.post('/api/bloc-operatoire/operating-rooms', data);
+            const response = await axios.post('http://localhost:3000/api/bloc-operatoire/operating-rooms', data);
             return response.data;
         },
         onSuccess: () => {
@@ -104,7 +104,7 @@ export const SallesOperatoireManager: React.FC = () => {
     // Mutation pour mettre à jour une salle
     const updateRoom = useMutation({
         mutationFn: async ({ id, data }: { id: number; data: Partial<RoomFormData> }) => {
-            const response = await axios.patch(`/api/bloc-operatoire/operating-rooms/${id}`, data);
+            const response = await axios.patch(`http://localhost:3000/api/bloc-operatoire/operating-rooms/${id}`, data);
             return response.data;
         },
         onSuccess: () => {
@@ -120,7 +120,7 @@ export const SallesOperatoireManager: React.FC = () => {
     // Mutation pour supprimer une salle
     const deleteRoom = useMutation({
         mutationFn: async (id: number) => {
-            await axios.delete(`/api/bloc-operatoire/operating-rooms/${id}`);
+            await axios.delete(`http://localhost:3000/api/bloc-operatoire/operating-rooms/${id}`);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['operating-rooms'] });

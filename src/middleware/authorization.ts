@@ -5,6 +5,9 @@ import { logger } from '@/lib/logger';
 import { Role } from '@prisma/client';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
+jest.mock('@/lib/prisma');
+
+
 export interface AuthContext {
     userId: number;
     role: Role;

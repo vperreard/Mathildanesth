@@ -20,6 +20,7 @@ const DefaultChildren = <div data-testid="default-children">Contenu réussi</div
 
 describe('ErrorRetry Component', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         jest.useFakeTimers();
     });
 

@@ -19,6 +19,7 @@ describe('Workflow Bloc Opératoire E2E', () => {
     });
 
     beforeEach(async () => {
+    jest.clearAllMocks();
         page = await browser.newPage();
         await page.setViewport(config.page.viewport);
         page.setDefaultTimeout(config.page.defaultTimeout);

@@ -19,6 +19,7 @@ describe('Workflow Congés E2E', () => {
     });
 
     beforeEach(async () => {
+    jest.clearAllMocks();
         page = await browser.newPage();
         await page.setViewport(config.page.viewport);
 
@@ -99,6 +100,7 @@ describe('Workflow Congés E2E', () => {
 
     describe('📝 Création de Demande de Congé', () => {
         beforeEach(async () => {
+    jest.clearAllMocks();
             // Setup : connexion et navigation
             await PuppeteerHelpers.login(page);
             await PuppeteerHelpers.navigateToSection(page, 'leaves');
@@ -207,6 +209,7 @@ describe('Workflow Congés E2E', () => {
 
     describe('📊 Interface et Navigation', () => {
         beforeEach(async () => {
+    jest.clearAllMocks();
             await PuppeteerHelpers.login(page);
             await PuppeteerHelpers.navigateToSection(page, 'leaves');
         });
@@ -259,6 +262,7 @@ describe('Workflow Congés E2E', () => {
 
     describe('🐛 Gestion d\'Erreurs', () => {
         beforeEach(async () => {
+    jest.clearAllMocks();
             await PuppeteerHelpers.login(page);
             await PuppeteerHelpers.navigateToSection(page, 'leaves');
         });

@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma';
 import { RuleSimulator } from '@/modules/dynamicRules/v2/services/RuleSimulator';
 import { z } from 'zod';
 
+jest.mock('@/lib/prisma');
+
+
 const simulationSchema = z.object({
   startDate: z.string().transform(str => new Date(str)),
   endDate: z.string().transform(str => new Date(str)),

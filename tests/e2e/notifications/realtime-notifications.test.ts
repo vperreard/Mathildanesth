@@ -44,6 +44,7 @@ describe('Real-time Notifications E2E Tests', () => {
   });
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     const context = await browser.createIncognitoBrowserContext();
     senderPage = await context.newPage();
     receiverPage = await context.newPage();

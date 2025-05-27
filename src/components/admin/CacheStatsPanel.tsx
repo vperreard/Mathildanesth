@@ -69,7 +69,7 @@ export default function CacheStatsPanel() {
                 throw new Error('Authentification requise');
             }
 
-            const response = await fetch('/api/cache-stats', {
+            const response = await fetch('http://localhost:3000/api/cache-stats', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -114,7 +114,7 @@ export default function CacheStatsPanel() {
                 payload.key = cacheKey;
             }
 
-            const response = await fetch('/api/cache-stats', {
+            const response = await fetch('http://localhost:3000/api/cache-stats', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

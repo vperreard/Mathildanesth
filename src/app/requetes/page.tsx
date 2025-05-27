@@ -80,7 +80,7 @@ export default function UserRequestsPage() {
 
             try {
                 // Fetch requests
-                const requestsPromise = fetch('/api/demandes').then(async res => {
+                const requestsPromise = fetch('http://localhost:3000/api/demandes').then(async res => {
                     if (!res.ok) {
                         let errorMsg = `Erreur ${res.status} lors de la récupération des requêtes.`;
                         try {
@@ -93,7 +93,7 @@ export default function UserRequestsPage() {
                 });
 
                 // Fetch request types
-                const requestTypesPromise = fetch('/api/request-types').then(async res => {
+                const requestTypesPromise = fetch('http://localhost:3000/api/request-types').then(async res => {
                     if (!res.ok) {
                         let errorMsg = `Erreur ${res.status} lors de la récupération des types de requêtes.`;
                         try {
@@ -161,7 +161,7 @@ export default function UserRequestsPage() {
         setError(null);
 
         try {
-            const response = await fetch('/api/demandes', {
+            const response = await fetch('http://localhost:3000/api/demandes', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -207,7 +207,7 @@ export default function UserRequestsPage() {
         setError(null); // Clear previous errors before attempting cancel
 
         try {
-            const response = await fetch('/api/demandes', {
+            const response = await fetch('http://localhost:3000/api/demandes', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

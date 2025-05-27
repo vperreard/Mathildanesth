@@ -34,7 +34,7 @@ const HeaderConfigPanel: React.FC = () => {
         const fetchConfig = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('/api/admin/configuration');
+                const response = await fetch('http://localhost:3000/api/admin/configuration');
                 if (!response.ok) {
                     throw new Error('Erreur lors de la récupération de la configuration');
                 }
@@ -59,7 +59,7 @@ const HeaderConfigPanel: React.FC = () => {
             setError(null);
 
             // Récupérer d'abord la configuration complète
-            const fullConfigResponse = await fetch('/api/admin/configuration');
+            const fullConfigResponse = await fetch('http://localhost:3000/api/admin/configuration');
             if (!fullConfigResponse.ok) {
                 throw new Error('Erreur lors de la récupération de la configuration complète');
             }
@@ -71,7 +71,7 @@ const HeaderConfigPanel: React.FC = () => {
                 header: config
             };
 
-            const response = await fetch('/api/admin/configuration', {
+            const response = await fetch('http://localhost:3000/api/admin/configuration', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ const HeaderConfigPanel: React.FC = () => {
     const handleReset = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/admin/configuration');
+            const response = await fetch('http://localhost:3000/api/admin/configuration');
             if (!response.ok) {
                 throw new Error('Erreur lors de la récupération de la configuration');
             }

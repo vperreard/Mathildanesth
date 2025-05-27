@@ -4,6 +4,9 @@ import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { canViewRules } from '@/modules/dynamicRules/permissions';
 import { subHours, subDays, startOfHour, endOfHour } from 'date-fns';
 
+jest.mock('@/lib/prisma');
+
+
 /**
  * GET /api/admin/planning-rules/v2/stats
  * Récupère les statistiques des règles pour le dashboard

@@ -2,6 +2,7 @@
 
 describe('Gestion des Templates de Planning', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         cy.login('admin@mathildanesth.fr', 'AdminSecure123!');
         cy.visit('/admin/templates');
     });
@@ -39,6 +40,7 @@ describe('Gestion des Templates de Planning', () => {
 
     describe('Création de template', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             cy.get('[data-testid="create-template-btn"]').click();
         });
 

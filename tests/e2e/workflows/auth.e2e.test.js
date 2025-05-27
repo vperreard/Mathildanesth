@@ -17,6 +17,7 @@ describe('Workflow Authentification E2E', () => {
     });
 
     beforeEach(async () => {
+    jest.clearAllMocks();
         page = await browser.newPage();
         await page.setViewport(config.page.viewport);
         page.setDefaultTimeout(config.page.defaultTimeout);
@@ -81,6 +82,7 @@ describe('Workflow Authentification E2E', () => {
 
     describe('🚪 Déconnexion et Sécurité', () => {
         beforeEach(async () => {
+    jest.clearAllMocks();
             await PuppeteerHelpers.login(page);
         });
 

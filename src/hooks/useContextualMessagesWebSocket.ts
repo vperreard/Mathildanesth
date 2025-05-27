@@ -144,7 +144,7 @@ export function useContextualMessagesWebSocket(options: UseContextualMessagesOpt
             // Timeout pour les requêtes qui prennent trop de temps
             const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-            const response = await fetch(`/api/contextual-messages?${contextParams}`, {
+            const response = await fetch(`http://localhost:3000/api/contextual-messages?${contextParams}`, {
                 headers,
                 credentials: 'include',
                 signal
@@ -232,7 +232,7 @@ export function useContextualMessagesWebSocket(options: UseContextualMessagesOpt
 
             const headers = createAuthHeaders(session);
 
-            const response = await fetch('/api/contextual-messages', {
+            const response = await fetch('http://localhost:3000/api/contextual-messages', {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(payload),

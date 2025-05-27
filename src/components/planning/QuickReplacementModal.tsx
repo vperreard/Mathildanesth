@@ -94,7 +94,7 @@ export function QuickReplacementModal({
     const findReplacementCandidates = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch('/api/planning/quick-replacement', {
+            const response = await fetch('http://localhost:3000/api/planning/quick-replacement', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

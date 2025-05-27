@@ -45,7 +45,7 @@ const ConsultationsPage: React.FC = () => {
                 queryParams.append('period', selectedPeriod);
             }
 
-            const response = await fetch(`/api/consultations?${queryParams.toString()}`);
+            const response = await fetch(`http://localhost:3000/api/consultations?${queryParams.toString()}`);
             if (!response.ok) {
                 throw new Error('Erreur lors du chargement des consultations');
             }
@@ -67,21 +67,21 @@ const ConsultationsPage: React.FC = () => {
     const fetchData = async () => {
         try {
             // Charger les utilisateurs (médecins)
-            const usersResponse = await fetch('/api/utilisateurs');
+            const usersResponse = await fetch('http://localhost:3000/api/utilisateurs');
             if (usersResponse.ok) {
                 const usersData = await usersResponse.json();
                 setUsers(usersData.users);
             }
 
             // Charger les spécialités
-            const specialtiesResponse = await fetch('/api/specialties');
+            const specialtiesResponse = await fetch('http://localhost:3000/api/specialties');
             if (specialtiesResponse.ok) {
                 const specialtiesData = await specialtiesResponse.json();
                 setSpecialties(specialtiesData.specialties);
             }
 
             // Charger les sites
-            const sitesResponse = await fetch('/api/sites');
+            const sitesResponse = await fetch('http://localhost:3000/api/sites');
             if (sitesResponse.ok) {
                 const sitesData = await sitesResponse.json();
                 setSites(sitesData.sites);
@@ -133,7 +133,7 @@ const ConsultationsPage: React.FC = () => {
     const confirmDelete = async () => {
         if (consultationToDelete) {
             try {
-                const response = await fetch(`/api/consultations?id=${consultationToDelete}`, {
+                const response = await fetch(`http://localhost:3000/api/consultations?id=${consultationToDelete}`, {
                     method: 'DELETE',
                 });
 
@@ -159,7 +159,7 @@ const ConsultationsPage: React.FC = () => {
         try {
             // Si en mode édition, envoyer une requête PATCH
             if (isEditing && selectedConsultation) {
-                const response = await fetch('/api/consultations', {
+                const response = await fetch('http://localhost:3000/api/consultations', {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
@@ -179,7 +179,7 @@ const ConsultationsPage: React.FC = () => {
                 toast.success('Consultation mise à jour');
             } else {
                 // Sinon, envoyer une requête POST pour créer
-                const response = await fetch('/api/consultations', {
+                const response = await fetch('http://localhost:3000/api/consultations', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

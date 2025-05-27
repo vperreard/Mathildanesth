@@ -43,7 +43,7 @@ const AdminRequestsBanner: React.FC = () => {
             setIsLoading(true);
             setError(null);
             try {
-                const response = await axios.get('/api/admin/conges/pending', {
+                const response = await axios.get('http://localhost:3000/api/admin/conges/pending', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -73,12 +73,12 @@ const AdminRequestsBanner: React.FC = () => {
     const handleApprove = async (leaveId: string) => {
         setProcessingId(leaveId);
         try {
-            await axios.post(`/api/admin/conges/${leaveId}/approve`);
+            await axios.post(`http://localhost:3000/api/admin/conges/${leaveId}/approve`);
             // Mettre à jour la liste des demandes en attente
             setPendingLeaves(pendingLeaves.filter(leave => leave.id !== leaveId));
             // Si on n'a plus que 0 ou 1 demande, recharger pour avoir 2 demandes
             if (pendingLeaves.length <= 2) {
-                const response = await axios.get('/api/admin/conges/pending');
+                const response = await axios.get('http://localhost:3000/api/admin/conges/pending');
                 setPendingLeaves(response.data);
             }
         } catch (err: any) {
@@ -93,12 +93,12 @@ const AdminRequestsBanner: React.FC = () => {
     const handleReject = async (leaveId: string) => {
         setProcessingId(leaveId);
         try {
-            await axios.post(`/api/admin/conges/${leaveId}/reject`);
+            await axios.post(`http://localhost:3000/api/admin/conges/${leaveId}/reject`);
             // Mettre à jour la liste des demandes en attente
             setPendingLeaves(pendingLeaves.filter(leave => leave.id !== leaveId));
             // Si on n'a plus que 0 ou 1 demande, recharger pour avoir 2 demandes
             if (pendingLeaves.length <= 2) {
-                const response = await axios.get('/api/admin/conges/pending');
+                const response = await axios.get('http://localhost:3000/api/admin/conges/pending');
                 setPendingLeaves(response.data);
             }
         } catch (err: any) {

@@ -148,6 +148,7 @@ describe('useConflictDetection', () => {
 
     describe('checkConflicts', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             mockDateValidation.validateDate.mockReturnValue(true);
             mockDateValidation.validateDateRange.mockReturnValue(true);
             mockDateValidation.hasError.mockReturnValue(false);

@@ -1,6 +1,8 @@
 /**
  * Factory simple pour générer des données de test
  */
+import { TestFactory } from '@/tests/factories/testFactorySimple';
+
 
 import { 
     BlocPlanningStatus,

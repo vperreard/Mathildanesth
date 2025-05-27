@@ -9,6 +9,9 @@ import { BusinessRulesValidator } from '@/services/businessRulesValidator';
 import { withSensitiveRateLimit } from '@/lib/rateLimit';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
+jest.mock('@/lib/prisma');
+
+
 // Interface attendue par le frontend (similaire à celle dans page.tsx)
 interface UserFrontend {
     id: number;

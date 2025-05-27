@@ -559,6 +559,7 @@ describe('AuditService', () => {
 
     describe('méthodes de journalisation spécifiques', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             jest.spyOn(auditService, 'createAuditEntry').mockResolvedValue({} as AuditEntry);
         });
 

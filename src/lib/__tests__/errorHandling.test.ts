@@ -81,6 +81,7 @@ describe('Système de gestion d\'erreurs', () => {
         let consoleErrorSpy: jest.SpyInstance;
 
         beforeEach(() => {
+    jest.clearAllMocks();
             consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         });
 
@@ -132,6 +133,7 @@ describe('Système de gestion d\'erreurs', () => {
         let onErrorMock: jest.Mock;
 
         beforeEach(() => {
+    jest.clearAllMocks();
             logErrorSpy = jest.spyOn(console, 'error').mockImplementation();
             onErrorMock = jest.fn();
         });

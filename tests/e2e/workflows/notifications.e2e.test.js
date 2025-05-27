@@ -19,6 +19,7 @@ describe('Workflow Notifications E2E', () => {
     });
 
     beforeEach(async () => {
+    jest.clearAllMocks();
         page = await browser.newPage();
         await page.setViewport(config.page.viewport);
         page.setDefaultTimeout(config.page.defaultTimeout);

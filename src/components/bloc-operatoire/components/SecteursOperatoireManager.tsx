@@ -94,7 +94,7 @@ export const SecteursOperatoireManager: React.FC = () => {
     const { data: sectors = [], isLoading } = useQuery({
         queryKey: ['operating-sectors'],
         queryFn: async () => {
-            const response = await axios.get('/api/bloc-operatoire/operating-sectors');
+            const response = await axios.get('http://localhost:3000/api/bloc-operatoire/operating-sectors');
             return response.data;
         }
     });
@@ -114,7 +114,7 @@ export const SecteursOperatoireManager: React.FC = () => {
                 },
                 isActive: data.isActive
             };
-            const response = await axios.post('/api/bloc-operatoire/operating-sectors', payload);
+            const response = await axios.post('http://localhost:3000/api/bloc-operatoire/operating-sectors', payload);
             return response.data;
         },
         onSuccess: () => {
@@ -143,7 +143,7 @@ export const SecteursOperatoireManager: React.FC = () => {
                 },
                 isActive: data.isActive
             };
-            const response = await axios.patch(`/api/bloc-operatoire/operating-sectors/${id}`, payload);
+            const response = await axios.patch(`http://localhost:3000/api/bloc-operatoire/operating-sectors/${id}`, payload);
             return response.data;
         },
         onSuccess: () => {
@@ -159,7 +159,7 @@ export const SecteursOperatoireManager: React.FC = () => {
     // Mutation pour supprimer un secteur
     const deleteSector = useMutation({
         mutationFn: async (id: number) => {
-            await axios.delete(`/api/bloc-operatoire/operating-sectors/${id}`);
+            await axios.delete(`http://localhost:3000/api/bloc-operatoire/operating-sectors/${id}`);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['operating-sectors'] });

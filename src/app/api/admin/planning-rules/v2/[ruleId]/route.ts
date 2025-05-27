@@ -11,6 +11,9 @@ import {
 } from '@/modules/dynamicRules/permissions';
 import { getRuleNotificationService } from '@/modules/dynamicRules/services/RuleNotificationService';
 
+jest.mock('@/lib/prisma');
+
+
 const UpdateRuleSchema = z.object({
     name: z.string().min(3).max(100).optional(),
     description: z.string().optional(),

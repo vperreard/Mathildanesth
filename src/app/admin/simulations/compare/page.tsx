@@ -97,7 +97,7 @@ export default function CompareSimulationsPage() {
                 }
 
                 // Appeler l'API
-                const response = await fetch(`/api/simulations/compare?${params.toString()}`);
+                const response = await fetch(`http://localhost:3000/api/simulations/compare?${params.toString()}`);
 
                 if (!response.ok) {
                     throw new Error(`Erreur lors de la récupération des données de comparaison: ${response.statusText}`);

@@ -1,5 +1,8 @@
 // Système d'alerte pour monitoring en temps réel
 
+jest.mock('@/lib/prisma');
+
+
 interface Alert {
     id: string;
     type: 'error' | 'warning' | 'info';

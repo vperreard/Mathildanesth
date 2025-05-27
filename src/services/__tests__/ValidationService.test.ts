@@ -181,6 +181,7 @@ describe('ValidationService', () => {
     let validationService: ValidationService;
 
     beforeEach(() => {
+    jest.clearAllMocks();
         validationService = new ValidationService(testRulesConfig);
     });
 

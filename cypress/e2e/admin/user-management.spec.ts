@@ -2,6 +2,7 @@
 
 describe('Admin - Gestion des Utilisateurs', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         // Login comme admin
         cy.login('admin@mathildanesth.fr', 'AdminSecure123!');
         cy.visit('/admin/utilisateurs');
@@ -54,6 +55,7 @@ describe('Admin - Gestion des Utilisateurs', () => {
 
     describe('Création d\'utilisateur', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             cy.get('[data-testid="create-user-btn"]').click();
         });
 
@@ -104,6 +106,7 @@ describe('Admin - Gestion des Utilisateurs', () => {
 
     describe('Modification d\'utilisateur', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             cy.get('[data-testid="user-row"]').first().find('[data-testid="edit-btn"]').click();
         });
 

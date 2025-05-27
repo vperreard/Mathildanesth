@@ -7,6 +7,9 @@ import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import bcrypt from 'bcrypt';
 
+jest.mock('@/lib/prisma');
+
+
 // Créer un paginateur optimisé pour les utilisateurs avec cache de 10 minutes
 const userPaginator = createPaginator<User>(prisma, 'user', 10 * 60 * 1000);
 

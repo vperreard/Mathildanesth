@@ -54,7 +54,7 @@ export function getMockRooms(): Room[] {
 // Nouvelle fonction qui récupère les salles depuis l'API
 export async function fetchRooms(): Promise<Room[]> {
     try {
-        const response = await fetch('/api/operating-rooms');
+        const response = await fetch('http://localhost:3000/api/operating-rooms');
 
         if (!response.ok) {
             console.error('Erreur lors de la récupération des salles depuis l\'API:', response.statusText);

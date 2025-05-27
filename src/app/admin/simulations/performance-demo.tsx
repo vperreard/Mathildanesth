@@ -39,7 +39,7 @@ export default function PerformanceDemoPage() {
     React.useEffect(() => {
         const fetchScenarios = async () => {
             try {
-                const response = await fetch('/api/simulations/scenarios');
+                const response = await fetch('http://localhost:3000/api/simulations/scenarios');
                 const data = await response.json();
                 setScenarios(data.data || []);
             } catch (error) {
@@ -66,7 +66,7 @@ export default function PerformanceDemoPage() {
         try {
             const startTime = Date.now();
 
-            const response = await fetch('/api/simulations/run', {
+            const response = await fetch('http://localhost:3000/api/simulations/run', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

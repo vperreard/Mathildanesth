@@ -88,7 +88,7 @@ export default function AdminLeavesPage() {
             }
 
             // Passer l'objet params directement à axios
-            const response = await axios.get('/api/conges', { params });
+            const response = await axios.get('http://localhost:3000/api/conges', { params });
             setRequests(response.data);
             setLoading(false);
         } catch (error) {
@@ -100,7 +100,7 @@ export default function AdminLeavesPage() {
 
     const fetchLeaveTypes = async () => {
         try {
-            const response = await axios.get('/api/conges/types');
+            const response = await axios.get('http://localhost:3000/api/conges/types');
             setTypes(response.data);
         } catch (error) {
             console.error('Erreur lors du chargement des types de congés:', error);
@@ -121,7 +121,7 @@ export default function AdminLeavesPage() {
     const handleApprove = async (id: string) => {
         try {
             setProcessingId(id);
-            await axios.put(`/api/conges/${id}/approve`);
+            await axios.put(`http://localhost:3000/api/conges/${id}/approve`);
             toast.success('Demande approuvée avec succès');
 
             // Mettre à jour localement
@@ -145,7 +145,7 @@ export default function AdminLeavesPage() {
     const handleReject = async (id: string) => {
         try {
             setProcessingId(id);
-            await axios.put(`/api/conges/${id}/reject`);
+            await axios.put(`http://localhost:3000/api/conges/${id}/reject`);
             toast.success('Demande refusée avec succès');
 
             // Mettre à jour localement

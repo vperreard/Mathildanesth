@@ -22,7 +22,7 @@ export function DocumentationViewer({ path = 'index.md', onClose }: Documentatio
     const fetchDocumentation = async (docPath: string) => {
         try {
             setLoading(true);
-            const response = await fetch(`/api/documentation/${docPath}`);
+            const response = await fetch(`http://localhost:3000/api/documentation/${docPath}`);
 
             if (!response.ok) {
                 throw new Error(`Erreur lors du chargement de la documentation: ${response.status}`);

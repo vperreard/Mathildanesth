@@ -454,6 +454,7 @@ describe('LeaveCalculator', () => {
 
     describe('calculateWorkingDays', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             // Mock pour isBusinessDay
             mockedPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue([]);
         });

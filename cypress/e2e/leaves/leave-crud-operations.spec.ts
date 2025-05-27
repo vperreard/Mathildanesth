@@ -7,6 +7,7 @@ describe('Gestion complète des congés - CRUD', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Réinitialiser la base de données et charger les fixtures
         cy.task('resetTestDatabase');
         cy.task('seedTestData', {

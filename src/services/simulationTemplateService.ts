@@ -40,7 +40,7 @@ export interface TemplateCustomization {
  */
 export async function fetchTemplates(): Promise<SimulationTemplate[]> {
     try {
-        const response = await axios.get('/api/simulations/templates');
+        const response = await axios.get('http://localhost:3000/api/simulations/templates');
         return response.data.data || [];
     } catch (error) {
         console.error('Erreur lors de la récupération des templates:', error);
@@ -53,7 +53,7 @@ export async function fetchTemplates(): Promise<SimulationTemplate[]> {
  */
 export async function fetchTemplate(id: string): Promise<SimulationTemplate> {
     try {
-        const response = await axios.get(`/api/simulations/templates/${id}`);
+        const response = await axios.get(`http://localhost:3000/api/simulations/templates/${id}`);
         return response.data.data;
     } catch (error) {
         console.error(`Erreur lors de la récupération du template ${id}:`, error);
@@ -66,7 +66,7 @@ export async function fetchTemplate(id: string): Promise<SimulationTemplate> {
  */
 export async function createTemplate(templateData: Partial<SimulationTemplate>): Promise<SimulationTemplate> {
     try {
-        const response = await axios.post('/api/simulations/templates', templateData);
+        const response = await axios.post('http://localhost:3000/api/simulations/templates', templateData);
         return response.data.data;
     } catch (error) {
         console.error('Erreur lors de la création du template:', error);
@@ -79,7 +79,7 @@ export async function createTemplate(templateData: Partial<SimulationTemplate>):
  */
 export async function updateTemplate(id: string, updates: Partial<SimulationTemplate>): Promise<SimulationTemplate> {
     try {
-        const response = await axios.put(`/api/simulations/templates/${id}`, updates);
+        const response = await axios.put(`http://localhost:3000/api/simulations/templates/${id}`, updates);
         return response.data.data;
     } catch (error) {
         console.error(`Erreur lors de la mise à jour du template ${id}:`, error);
@@ -92,7 +92,7 @@ export async function updateTemplate(id: string, updates: Partial<SimulationTemp
  */
 export async function deleteTemplate(id: string): Promise<void> {
     try {
-        await axios.delete(`/api/simulations/templates/${id}`);
+        await axios.delete(`http://localhost:3000/api/simulations/templates/${id}`);
     } catch (error) {
         console.error(`Erreur lors de la suppression du template ${id}:`, error);
         throw new Error('Impossible de supprimer le template');
@@ -104,7 +104,7 @@ export async function deleteTemplate(id: string): Promise<void> {
  */
 export async function duplicateTemplate(id: string, newName: string): Promise<SimulationTemplate> {
     try {
-        const response = await axios.post('/api/simulations/templates/duplicate', {
+        const response = await axios.post('http://localhost:3000/api/simulations/templates/duplicate', {
             sourceTemplateId: id,
             name: newName
         });
@@ -192,7 +192,7 @@ export async function createScenarioFromTemplate(templateId: string, customizati
         };
 
         // Créer le scénario
-        const response = await fetch('/api/simulations', {
+        const response = await fetch('http://localhost:3000/api/simulations', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

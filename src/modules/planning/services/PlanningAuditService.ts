@@ -3,6 +3,9 @@ import { BlocPlanningStatus } from '@/modules/planning/bloc-operatoire/models/Bl
 import { getSession } from 'next-auth/react';
 import { notifyUsers } from '@/modules/notifications/services/notificationService';
 
+jest.mock('@/lib/prisma');
+
+
 export interface AuditLogEntry {
     id: string;
     timestamp: Date;

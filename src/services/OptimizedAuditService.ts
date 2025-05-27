@@ -281,7 +281,7 @@ export class OptimizedAuditService {
             }
 
             // Envoyer à l'API
-            const response = await fetch('/api/audit/batch', {
+            const response = await fetch('http://localhost:3000/api/audit/batch', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

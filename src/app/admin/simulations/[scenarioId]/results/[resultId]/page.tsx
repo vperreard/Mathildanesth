@@ -161,7 +161,7 @@ export default function SimulationResultPage() {
         setIsLoading(true);
         setError(null);
         try {
-            const res = await fetch(`/api/simulations/${scenarioId}/results/${resultId}`);
+            const res = await fetch(`http://localhost:3000/api/simulations/${scenarioId}/results/${resultId}`);
             if (!res.ok) {
                 let errorMessage = "Échec de la récupération des résultats de la simulation";
                 if (res.status === 404) errorMessage = "Résultat de simulation non trouvé.";
@@ -932,7 +932,7 @@ export default function SimulationResultPage() {
 
     function handleRunSimulation(scenarioId: string) {
         toast.info("Lancement d'une nouvelle simulation...");
-        fetch(`/api/simulations/${scenarioId}/run`, { method: 'POST' })
+        fetch(`http://localhost:3000/api/simulations/${scenarioId}/run`, { method: 'POST' })
             .then(res => {
                 if (!res.ok) throw new Error("Échec du lancement de la simulation");
                 return res.json();

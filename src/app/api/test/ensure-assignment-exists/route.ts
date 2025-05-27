@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 // Vérifier si nous sommes en environnement de test
 const isTestEnv = process.env.NODE_ENV === 'test' || process.env.CYPRESS === 'true';

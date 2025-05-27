@@ -67,7 +67,7 @@ function ProfilePageContent() {
 
         setIsLoading(true);
         try {
-            await axios.put('/api/auth/change-password', {
+            await axios.put('http://localhost:3000/api/auth/change-password', {
                 currentPassword,
                 newPassword
             });

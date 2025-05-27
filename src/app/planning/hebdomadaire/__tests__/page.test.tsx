@@ -188,6 +188,7 @@ describe('Planning Hebdomadaire Page - Tests DND', () => {
     });
 
     beforeEach(() => {
+    jest.clearAllMocks();
         fetchMock.mockClear();
 
         // Configure global.fetch avec notre mock

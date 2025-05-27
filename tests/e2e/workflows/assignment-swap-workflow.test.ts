@@ -36,6 +36,7 @@ describe('Assignment Swap Workflow - Multi-User E2E', () => {
   });
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     const context = await browser.createIncognitoBrowserContext();
     requestorPage = await context.newPage();
     targetPage = await context.newPage();

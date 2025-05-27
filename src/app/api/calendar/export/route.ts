@@ -10,7 +10,7 @@ import 'jspdf-autotable';
 import ical from 'ical-generator';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
-import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 
 // Fonction pour obtenir un chemin de fichier temporaire
 const getTempFilePath = (extension: string): string => {
@@ -202,13 +202,23 @@ async function exportToExcel(events: any[], options: any): Promise<string> {
         'Description': event.description || ''
     }));
 
-    // Créer un workbook
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Calendrier');
+    // Créer un workbook avec ExcelJS
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Calendrier');
+
+    // Ajouter les headers
+    if (rows.length > 0) {
+        const headers = Object.keys(rows[0]);
+        worksheet.addRow(headers);
+        
+        // Ajouter les données
+        rows.forEach(row => {
+            worksheet.addRow(Object.values(row));
+        });
+    }
 
     // Écrire le fichier
-    XLSX.writeFile(workbook, filePath);
+    await workbook.xlsx.writeFile(filePath);
 
     return filePath;
 }

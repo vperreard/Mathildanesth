@@ -38,6 +38,7 @@ jest.mock('lucide-react', () => {
 
 describe('TrameModelesConfigPanel', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     // Réinitialiser les mocks avant chaque test
     mockedAxios.get.mockReset();
     mockedUseAuth.mockReset();
@@ -160,6 +161,7 @@ const mockTrameModele = (id: number, name: string, siteName?: string): any => ({
 
 describe('TrameModelesConfigPanel - Affichage des données', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockedAxios.get.mockReset();
     mockedUseAuth.mockReturnValue({
       user: {
@@ -223,6 +225,7 @@ describe('TrameModelesConfigPanel - Affichage des données', () => {
 
 describe('TrameModelesConfigPanel - Modale TrameModele', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     // Réinitialisation et configuration des mocks comme dans les describe précédents
     mockedAxios.get.mockReset();
     mockedAxios.post.mockReset(); // Aussi pour les créations

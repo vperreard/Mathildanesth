@@ -1,5 +1,8 @@
 // Service de monitoring et health check pour l'application
 
+jest.mock('@/lib/prisma');
+
+
 import { prisma } from '@/lib/prisma';
 import { redis } from '@/lib/redis';
 

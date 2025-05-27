@@ -447,7 +447,7 @@ export class LeavePermissionService {
         if (this.permissionsLoaded) return;
 
         try {
-            const response = await fetch('/api/conges/permissions');
+            const response = await fetch('http://localhost:3000/api/conges/permissions');
             if (!response.ok) {
                 throw new Error(`Erreur lors du chargement des permissions: ${response.statusText}`);
             }
@@ -643,7 +643,7 @@ export class LeavePermissionService {
      */
     private async isUserInTeam(userId: string, managerId: string): Promise<boolean> {
         try {
-            const response = await fetch(`/api/utilisateurs/${userId}/manager`);
+            const response = await fetch(`http://localhost:3000/api/utilisateurs/${userId}/manager`);
             if (!response.ok) {
                 return false;
             }
@@ -661,8 +661,8 @@ export class LeavePermissionService {
      */
     private async isUserInSameDepartment(userId1: string, userId2: string): Promise<boolean> {
         try {
-            const response1 = await fetch(`/api/utilisateurs/${userId1}`);
-            const response2 = await fetch(`/api/utilisateurs/${userId2}`);
+            const response1 = await fetch(`http://localhost:3000/api/utilisateurs/${userId1}`);
+            const response2 = await fetch(`http://localhost:3000/api/utilisateurs/${userId2}`);
 
             if (!response1.ok || !response2.ok) {
                 return false;
@@ -867,7 +867,7 @@ export class LeavePermissionService {
             console.warn("Tentative de sauvegarde des permissions personnalisées avant leur chargement complet.");
         }
         try {
-            const response = await fetch(`/api/conges/permissions/${userId}/custom`, {
+            const response = await fetch(`http://localhost:3000/api/conges/permissions/${userId}/custom`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -911,7 +911,7 @@ export class LeavePermissionService {
             }
 
             // Récupérer l'utilisateur
-            const response = await fetch(`/api/utilisateurs/${userId}`);
+            const response = await fetch(`http://localhost:3000/api/utilisateurs/${userId}`);
             if (!response.ok) {
                 throw new Error(`Erreur lors de la récupération de l'utilisateur: ${response.statusText}`);
             }
@@ -970,7 +970,7 @@ export class LeavePermissionService {
             this.customPermissions.delete(userId);
 
             // Persister les changements
-            const response = await fetch(`/api/conges/permissions/${userId}`, {
+            const response = await fetch(`http://localhost:3000/api/conges/permissions/${userId}`, {
                 method: 'DELETE'
             });
 

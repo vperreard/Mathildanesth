@@ -6,6 +6,9 @@ import { RuleVersioningService } from '@/modules/dynamicRules/v2/services/RuleVe
 import { RuleValidator } from '@/modules/dynamicRules/v2/services/RuleValidator';
 import { prisma } from '@/lib/prisma';
 
+jest.mock('@/lib/prisma');
+
+
 export class RuleConfigServiceV2 {
   private static instance: RuleConfigServiceV2;
   private ruleEngine: RuleEngineV2;

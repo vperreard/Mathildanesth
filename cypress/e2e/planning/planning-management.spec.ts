@@ -14,6 +14,7 @@ describe('Gestion des plannings', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Réinitialiser la base de données de test
         cy.task('resetTestDatabase');
 

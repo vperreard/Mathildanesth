@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient, Prisma, Role } from '@prisma/client';
 import { verifyAuthToken, getAuthToken, UserJWTPayload } from '@/lib/auth-utils';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 // Définir les statuts de requête utilisateur puisque l'importation ne fonctionne pas
 enum UserRequestStatus {

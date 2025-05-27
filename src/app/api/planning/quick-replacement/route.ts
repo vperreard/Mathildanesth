@@ -5,6 +5,9 @@ import { authOptions } from '@/lib/auth';
 import { ShiftType } from '@/types/common';
 import { differenceInDays, isWithinInterval, parseISO } from 'date-fns';
 
+jest.mock('@/lib/prisma');
+
+
 interface ReplacementCandidate {
     id: string;
     name: string;

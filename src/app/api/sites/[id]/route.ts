@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { headers } from 'next/headers';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 // Fonction utilitaire pour l'authentification (similaire à celle des autres routes)
 function checkAuth(requestHeaders: Headers): { userId: string; userRole: string } | null {

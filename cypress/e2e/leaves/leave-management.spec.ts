@@ -14,6 +14,7 @@ describe('Gestion des congés', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Réinitialiser la base de données de test
         cy.task('resetTestDatabase');
 

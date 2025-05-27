@@ -36,7 +36,7 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/calendar" className="text-gray-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-500 transition-colors">
+                                <Link href="/calendrier" className="text-gray-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-500 transition-colors">
                                     Calendrier
                                 </Link>
                             </li>

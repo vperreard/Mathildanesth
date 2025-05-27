@@ -403,7 +403,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     // Fonction pour charger les sites
     const loadSites = useCallback(async () => {
         try {
-            const response = await fetch('/api/sites');
+            const response = await fetch('http://localhost:3000/api/sites');
             if (response.ok) {
                 const sitesData = await response.json();
                 setSites(sitesData);

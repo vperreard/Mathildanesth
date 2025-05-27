@@ -1,8 +1,11 @@
 // Service de cache pour optimiser les performances des simulations
 import { createHash } from 'crypto';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 interface CacheEntry {
     key: string;

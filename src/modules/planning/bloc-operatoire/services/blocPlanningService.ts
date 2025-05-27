@@ -20,11 +20,14 @@ import { getSectorRules, areRoomsContiguous as areRoomsContiguousLib } from '../
 // Importer le service de règles de secteur/salle
 import { sectorTypeRulesService } from './sectorTypeRules';
 
+jest.mock('@/lib/prisma');
+
+
 // Type pour les objets vides
 interface EmptyObject extends Record<string, never> { }
 
 // Instance Prisma
-const prisma = new PrismaClient();
+const prisma = prisma;
 
 // Nouveaux types / interfaces pour la logique de planning V2 (si non générés par Prisma)
 export interface CreateOrUpdatePlanningsParams {

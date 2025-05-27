@@ -2,6 +2,7 @@
 
 describe('Visualisations Avancées de Simulation', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         cy.login('admin@mathildanesth.fr', 'AdminSecure123!');
         cy.visit('/admin/simulations/avances-visualizations');
     });

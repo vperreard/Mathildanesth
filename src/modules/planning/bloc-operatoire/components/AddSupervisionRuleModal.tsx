@@ -60,7 +60,7 @@ export default function AddSupervisionRuleModal({ isOpen, onClose, onAdd, sector
 
     async function fetchRooms() {
         try {
-            const response = await fetch('/api/operating-rooms');
+            const response = await fetch('http://localhost:3000/api/operating-rooms');
             if (!response.ok) {
                 throw new Error('Erreur lors de la récupération des salles');
             }
@@ -101,7 +101,7 @@ export default function AddSupervisionRuleModal({ isOpen, onClose, onAdd, sector
         }
 
         try {
-            const response = await fetch('/api/planning-rules/bloc', {
+            const response = await fetch('http://localhost:3000/api/planning-rules/bloc', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

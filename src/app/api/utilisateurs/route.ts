@@ -8,6 +8,9 @@ import { Role as PrismaRole, ProfessionalRole, Prisma } from '@prisma/client';
 // Importer les types d'erreurs spécifiques
 import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/library';
 
+jest.mock('@/lib/prisma');
+
+
 // Définir les enums localement pour éviter les problèmes d'import
 enum Role {
     ADMIN_TOTAL = 'ADMIN_TOTAL',
@@ -15,7 +18,7 @@ enum Role {
     USER = 'USER'
 }
 
-// const prisma = new PrismaClient(); // Supprimé
+// const prisma = prisma; // Supprimé
 
 // --- Fonction GET ---
 export async function GET(request: Request) {
@@ -31,7 +34,7 @@ export async function GET(request: Request) {
             whereClause.actif = true; // Filtrer par actif: true si includeInactive est false
         }
 
-        // prismaInstance = new PrismaClient(); // Supprimé
+        // prismaInstance = prisma; // Supprimé
         const users = await prisma.user.findMany({ // Utilise l'instance importée
             where: whereClause, // Appliquer la clause where
             orderBy: [

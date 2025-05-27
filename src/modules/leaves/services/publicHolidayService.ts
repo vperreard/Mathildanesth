@@ -10,9 +10,12 @@ import {
 } from '../types/public-holiday';
 import { calculateEaster } from '@/utils/dateUtils';
 import { isWithinInterval } from 'date-fns';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 /**
  * Service pour la gestion des jours fériés

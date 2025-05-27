@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
+jest.mock('@/lib/prisma');
+
+
 // Schéma de validation pour la duplication d'un template
 const duplicateTemplateSchema = z.object({
     sourceTemplateId: z.string().min(1, { message: "ID du template source requis" }),

@@ -4,6 +4,9 @@ import { LeaveStatus, NotificationType } from '@prisma/client';
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { createNotification } from '@/lib/notifications';
 
+jest.mock('@/lib/prisma');
+
+
 /**
  * POST /api/admin/conges/[id]/approve
  * Approuve une demande de congé

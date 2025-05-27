@@ -72,6 +72,7 @@ describe('useOptimizedPlanning', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
         queryClient = new QueryClient({
             defaultOptions: {
                 queries: { retry: false },
@@ -161,6 +162,7 @@ describe('useOptimizedPlanning', () => {
 
     describe('prefetching', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             jest.useFakeTimers();
         });
 

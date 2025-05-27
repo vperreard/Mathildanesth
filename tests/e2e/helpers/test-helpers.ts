@@ -1,6 +1,9 @@
 import { prisma } from '../../../src/lib/prisma';
 import bcrypt from 'bcryptjs';
 
+jest.mock('@/lib/prisma');
+
+
 export interface TestUser {
   email: string;
   password: string;

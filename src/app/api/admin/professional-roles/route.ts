@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { checkUserRole, UserRole } from '@/lib/auth-utils';
 import { ProfessionalRole } from '@prisma/client';
 
+jest.mock('@/lib/prisma');
+
+
 // GET /api/admin/professional-roles
 export async function GET() {
     const authCheck = await checkUserRole(['ADMIN_TOTAL', 'ADMIN_PARTIEL'] as UserRole[]);

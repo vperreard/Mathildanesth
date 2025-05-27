@@ -2,6 +2,9 @@ import { DefaultSession, User as DefaultUser } from 'next-auth';
 import { Role } from '@prisma/client';
 import { JWT as DefaultJWT } from 'next-auth/jwt';
 
+jest.mock('@/lib/prisma');
+
+
 declare module 'next-auth' {
     /**
      * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context

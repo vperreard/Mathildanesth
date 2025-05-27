@@ -107,11 +107,11 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
             let response;
             if (isEditMode && initialTrame) {
                 // Mode modification - PUT
-                response = await axios.put(`/api/trame-modeles/${initialTrame.id}`, apiData);
+                response = await axios.put(`http://localhost:3000/api/trame-modeles/${initialTrame.id}`, apiData);
                 console.log('Trame modifiée avec succès:', response.data);
             } else {
                 // Mode création - POST
-                response = await axios.post('/api/trame-modeles', apiData);
+                response = await axios.post('http://localhost:3000/api/trame-modeles', apiData);
                 console.log('Trame créée avec succès:', response.data);
             }
             form.reset();

@@ -5,6 +5,9 @@ import bcrypt from 'bcrypt';
 import { withAuthRateLimit } from '@/lib/rateLimit';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
+jest.mock('@/lib/prisma');
+
+
 async function loginHandler(req: NextRequest) {
     const startTime = Date.now();
 

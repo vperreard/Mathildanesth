@@ -1,10 +1,13 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { PlanningGenerator } from './planningGenerator';
 import TrameApplicationService from './TrameApplicationService';
 import { performanceMonitor } from './PerformanceMonitoringService';
 import { format, startOfWeek, endOfWeek, addWeeks } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { AssignmentType } from '@/types/assignment';
+
+jest.mock('@/lib/prisma');
+
 
 interface IntegrationResult {
   success: boolean;
@@ -25,7 +28,7 @@ export class TrameIntegrationService {
   private planningGenerator: PlanningGenerator | null = null;
 
   constructor() {
-    this.prisma = new PrismaClient();
+    this.prisma = prisma;
     this.trameService = new TrameApplicationService();
   }
 

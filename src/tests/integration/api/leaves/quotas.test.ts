@@ -36,6 +36,7 @@ describe('/api/conges/quotas/*', () => {
         let handler: any;
 
         beforeEach(async () => {
+    jest.clearAllMocks();
             const route = await import('@/app/api/conges/quotas/dashboard/route');
             handler = route.GET;
         });
@@ -145,6 +146,7 @@ describe('/api/conges/quotas/*', () => {
         let handler: any;
 
         beforeEach(async () => {
+    jest.clearAllMocks();
             const route = await import('@/app/api/conges/quotas/transfers/route');
             handler = route.POST;
         });
@@ -249,6 +251,7 @@ describe('/api/conges/quotas/*', () => {
         let handler: any;
 
         beforeEach(async () => {
+    jest.clearAllMocks();
             const route = await import('@/app/api/conges/quotas/carry-over-rules/route');
             handler = route.GET;
         });

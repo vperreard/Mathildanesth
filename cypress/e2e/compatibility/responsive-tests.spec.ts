@@ -7,6 +7,7 @@ describe('Tests de compatibilité responsive', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Réinitialiser la base de données de test
         cy.task('resetTestDatabase');
 
@@ -21,6 +22,7 @@ describe('Tests de compatibilité responsive', () => {
 
     describe('Tests sur mobile', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             cy.viewportDevice('mobile');
         });
 
@@ -57,6 +59,7 @@ describe('Tests de compatibilité responsive', () => {
 
     describe('Tests sur tablette', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             cy.viewportDevice('tablet');
         });
 
@@ -77,6 +80,7 @@ describe('Tests de compatibilité responsive', () => {
 
     describe('Tests sur desktop', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             cy.viewportDevice('desktop');
         });
 
@@ -97,6 +101,7 @@ describe('Tests de compatibilité responsive', () => {
 
     describe('Tests sur grand écran', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             cy.viewportDevice('widescreen');
         });
 

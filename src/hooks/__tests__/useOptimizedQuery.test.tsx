@@ -39,6 +39,7 @@ const createWrapper = () => {
 
 describe('useOptimizedQuery', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         mockFetchData.mockClear();
         jest.clearAllTimers();
         clearQueryCache();

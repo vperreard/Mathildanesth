@@ -1,6 +1,9 @@
 import { PrismaClient, OperatingRoom, OperatingSector, BlocRoomAssignment, Period, Site, Prisma, Leave, SchoolHolidayPeriod, PublicHoliday, LeaveType, ActivityCategory, ProfessionalRole, LeaveStatus } from '@prisma/client';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 // Définition des types pour les rapports
 interface UtilizationDataBase {

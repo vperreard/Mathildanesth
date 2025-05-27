@@ -55,7 +55,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
     const fetchSites = async () => {
         try {
             setLoadingSites(true);
-            const response = await fetch('/api/sites');
+            const response = await fetch('http://localhost:3000/api/sites');
             if (response.ok) {
                 const data = await response.json();
                 setSites(data.sites || []);

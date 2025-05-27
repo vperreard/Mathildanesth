@@ -2,7 +2,7 @@ import { PlannedAbsence, AbsenceCreateInput, AbsenceUpdateInput } from '@/types/
 
 export const absenceService = {
     async getAllAbsences(): Promise<PlannedAbsence[]> {
-        const response = await fetch('/api/absences');
+        const response = await fetch('http://localhost:3000/api/absences');
         if (!response.ok) {
             throw new Error('Failed to fetch absences');
         }
@@ -10,7 +10,7 @@ export const absenceService = {
     },
 
     async getAbsenceById(id: number): Promise<PlannedAbsence> {
-        const response = await fetch(`/api/absences/${id}`);
+        const response = await fetch(`http://localhost:3000/api/absences/${id}`);
         if (!response.ok) {
             throw new Error('Failed to fetch absence');
         }
@@ -18,7 +18,7 @@ export const absenceService = {
     },
 
     async createAbsence(data: AbsenceCreateInput): Promise<PlannedAbsence> {
-        const response = await fetch('/api/absences', {
+        const response = await fetch('http://localhost:3000/api/absences', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ export const absenceService = {
     },
 
     async updateAbsence(id: number, data: AbsenceUpdateInput): Promise<PlannedAbsence> {
-        const response = await fetch(`/api/absences/${id}`, {
+        const response = await fetch(`http://localhost:3000/api/absences/${id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ export const absenceService = {
     },
 
     async deleteAbsence(id: number): Promise<void> {
-        const response = await fetch(`/api/absences/${id}`, {
+        const response = await fetch(`http://localhost:3000/api/absences/${id}`, {
             method: 'DELETE',
         });
         if (!response.ok) {
@@ -60,7 +60,7 @@ export const absenceService = {
     },
 
     async checkOverlap(userId: number, startDate: Date, endDate: Date): Promise<boolean> {
-        const response = await fetch('/api/absences/check-overlap', {
+        const response = await fetch('http://localhost:3000/api/absences/check-overlap', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

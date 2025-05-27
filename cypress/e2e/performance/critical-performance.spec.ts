@@ -2,6 +2,7 @@
 
 describe('Tests de Performance Critiques', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         cy.login('admin@mathildanesth.fr', 'AdminSecure123!');
     });
 

@@ -22,7 +22,7 @@ export const useRuleConflicts = () => {
     setLastCheckedRule(ruleSignature);
 
     try {
-      const response = await fetch('/api/admin/rules/v2/conflicts', {
+      const response = await fetch('http://localhost:3000/api/admin/rules/v2/conflicts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -51,7 +51,7 @@ export const useRuleConflicts = () => {
     resolution?: Partial<RuleV2>
   ) => {
     try {
-      const response = await fetch('/api/admin/rules/v2/conflicts/resolve', {
+      const response = await fetch('http://localhost:3000/api/admin/rules/v2/conflicts/resolve', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

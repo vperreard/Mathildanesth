@@ -140,7 +140,7 @@ export default function SpecialtyManager() {
         }
         setError(null); // Clear previous main errors
         try {
-            await axios.delete(`/api/specialties/${id}`);
+            await axios.delete(`http://localhost:3000/api/specialties/${id}`);
             setSpecialties(prev => prev.filter(s => s.id !== id)); // Optimistic update
         } catch (err: any) {
             console.error("Delete specialty error:", err);

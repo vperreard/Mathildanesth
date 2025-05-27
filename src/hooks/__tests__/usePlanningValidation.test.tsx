@@ -45,6 +45,7 @@ describe('usePlanningValidation', () => {
     ];
 
     beforeEach(() => {
+    jest.clearAllMocks();
         queryClient = new QueryClient({
             defaultOptions: {
                 queries: { retry: false },
@@ -336,6 +337,7 @@ describe('usePlanningValidation', () => {
 
     describe('validateWithDebounce', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             jest.useFakeTimers();
         });
 

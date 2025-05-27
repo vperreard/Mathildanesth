@@ -5,6 +5,9 @@
  * les performances des simulations, particulièrement pour les jeux de données volumineux.
  */
 
+jest.mock('@/lib/prisma');
+
+
 import { PrismaClient, SimulationStatus } from '@prisma/client';
 import { simulationCache } from './simulationCacheService';
 import { simulationNotificationService } from './notificationService';
@@ -13,7 +16,7 @@ import path from 'path';
 import { createSimulationHash } from '@/utils/simulationUtils';
 import { notifyProgressUpdate } from '@/services/notifications/notificationService';
 
-const prisma = new PrismaClient();
+const prisma = prisma;
 
 // Configuration
 const MAX_WORKERS = Math.min(4, require('os').cpus().length);

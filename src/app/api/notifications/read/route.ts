@@ -3,7 +3,10 @@ import { PrismaClient, NotificationType } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 /**
  * Interface pour les paramètres de requête

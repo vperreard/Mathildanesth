@@ -99,6 +99,7 @@ const mockAvailableSurgeons = [
 
 describe("Tests d'intégration des formulaires complexes du bloc opératoire", () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         vi.mocked(blocPlanningService.getAvailableSupervisors).mockResolvedValue(mockSupervisors);
         vi.mocked(blocPlanningService.validateDayPlanning).mockResolvedValue({
             isValid: true,

@@ -716,7 +716,7 @@ const SectorsConfigPanel: React.FC = () => {
             console.log("Sites valides:", Array.from(validSiteIds));
             console.log("Payload filtré for /api/sectors/reorder-by-site:", payload);
 
-            const response = await axios.post('/api/sectors/reorder-by-site', { sitesOrder: payload });
+            const response = await axios.post('http://localhost:3000/api/sectors/reorder-by-site', { sitesOrder: payload });
 
             if (response.status === 200) {
                 setSaveMessage('');
@@ -854,7 +854,7 @@ const SectorsConfigPanel: React.FC = () => {
         }
         setError(null); // Utiliser l'erreur générale
         try {
-            await axios.delete(`/api/sectors/${id}`);
+            await axios.delete(`http://localhost:3000/api/sectors/${id}`);
             toast.success('Secteur supprimé avec succès');
             // Retirer de l'état local
             const deletedSector = sectors.find(s => s.id === id);
@@ -973,7 +973,7 @@ const SectorsConfigPanel: React.FC = () => {
         }
         setError(null); // Utiliser l'erreur générale
         try {
-            await axios.delete(`/api/sites/${id}`);
+            await axios.delete(`http://localhost:3000/api/sites/${id}`);
             toast.success('Site supprimé avec succès');
             fetchSites(); // Recharger les sites
             // Recharger aussi les secteurs car leur siteId a pu changer en null
@@ -1020,7 +1020,7 @@ const SectorsConfigPanel: React.FC = () => {
             };
 
             // Envoyer à l'API
-            const response = await fetch('/api/sectors/reorder-by-site', {
+            const response = await fetch('http://localhost:3000/api/sectors/reorder-by-site', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

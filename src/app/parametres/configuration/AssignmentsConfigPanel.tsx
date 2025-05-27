@@ -254,7 +254,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
         console.log('[AssignmentsConfigPanel] User confirmed deletion for ID:', activityTypeId);
         try {
             console.log('[AssignmentsConfigPanel] Calling axios.delete for', `/api/activity-types/${activityTypeId}`);
-            const response = await axios.delete(`/api/activity-types/${activityTypeId}`);
+            const response = await axios.delete(`http://localhost:3000/api/activity-types/${activityTypeId}`);
             console.log('[AssignmentsConfigPanel] axios.delete response:', response);
 
             // Mettre à jour la liste après la suppression

@@ -20,7 +20,7 @@ export default function PredictiveInsightsWidget() {
             setError(null);
 
             try {
-                const response = await fetch('/api/analytics/predictive-insights');
+                const response = await fetch('http://localhost:3000/api/analytics/predictive-insights');
 
                 if (!response.ok) {
                     throw new Error('Erreur lors de la récupération des données');

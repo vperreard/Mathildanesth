@@ -76,7 +76,7 @@ export default function HopitauxPage() {
         /*
         const fetchHospitals = async () => {
             try {
-                const response = await fetch('/api/hospitals');
+                const response = await fetch('http://localhost:3000/api/hospitals');
                 if (!response.ok) throw new Error('Erreur lors du chargement des hôpitaux');
                 const data = await response.json();
                 setHospitals(data);
@@ -172,7 +172,7 @@ export default function HopitauxPage() {
 
             // Pour une implémentation API réelle:
             /*
-            const response = await fetch(`/api/hospitals/${hospitalToDelete.id}`, {
+            const response = await fetch(`http://localhost:3000/api/hospitals/${hospitalToDelete.id}`, {
                 method: 'DELETE'
             });
             

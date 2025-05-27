@@ -32,7 +32,7 @@ export const ConflictResolutionPanel: React.FC<ConflictResolutionPanelProps> = (
 
   const resolveMutation = useMutation({
     mutationFn: async ({ conflictId, strategy }: { conflictId: string; strategy: string }) => {
-      const response = await fetch('/api/admin/rules/v2/conflicts', {
+      const response = await fetch('http://localhost:3000/api/admin/rules/v2/conflicts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

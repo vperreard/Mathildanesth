@@ -4,6 +4,9 @@ import { Prisma, Role } from '@prisma/client';
 import { z } from 'zod';
 import { headers } from 'next/headers';
 
+jest.mock('@/lib/prisma');
+
+
 // Schéma de validation pour les données entrantes
 const reorderPayloadSchema = z.object({
     sitesOrder: z.array(z.object({

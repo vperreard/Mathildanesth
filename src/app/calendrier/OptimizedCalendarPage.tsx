@@ -149,7 +149,7 @@ export default function OptimizedCalendarPage() {
 
     const handleSave = async (updatedAssignments: Assignment[]) => {
         try {
-            const response = await fetch('/api/affectations', {
+            const response = await fetch('http://localhost:3000/api/affectations', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ assignments: updatedAssignments })

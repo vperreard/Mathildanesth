@@ -28,6 +28,7 @@ describe('Regression Tests - Critical Bugs', () => {
   });
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 720 });
     await loginAs(page, testUser);

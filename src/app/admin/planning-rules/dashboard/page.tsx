@@ -68,7 +68,7 @@ export default function RuleDashboardPage() {
     const { data: stats, refetch: refetchStats } = useQuery({
         queryKey: ['rule-dashboard-stats', timeRange],
         queryFn: async () => {
-            const response = await fetch(`/api/admin/planning-rules/v2/stats?range=${timeRange}`);
+            const response = await fetch(`http://localhost:3000/api/admin/planning-rules/v2/stats?range=${timeRange}`);
             if (!response.ok) throw new Error('Failed to fetch stats');
             return response.json();
         },

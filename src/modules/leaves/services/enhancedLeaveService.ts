@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import {
     LeaveRequest as Leave,
     LeaveFilters,
@@ -11,7 +11,10 @@ import { logger } from '@/lib/logger';
 import { LeaveEvent } from '../types/cache';
 import { formatDate, ISO_DATE_FORMAT } from '@/utils/dateUtils';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 const cacheService = LeaveQueryCacheService.getInstance();
 
 /**

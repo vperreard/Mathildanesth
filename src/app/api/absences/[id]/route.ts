@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma';
 import { LeaveType, LeaveStatus } from '@prisma/client';
 import { z } from 'zod';
 
+jest.mock('@/lib/prisma');
+
+
 const updateAbsenceSchema = z.object({
     status: z.nativeEnum(LeaveStatus).optional(),
     typeDetail: z.string().optional(),

@@ -71,7 +71,7 @@ export default function ScenarioDetailsPage({ params }: { params: { scenarioId: 
         const fetchScenario = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`/api/simulations/scenarios/${scenarioId}`);
+                const response = await fetch(`http://localhost:3000/api/simulations/scenarios/${scenarioId}`);
                 if (!response.ok) {
                     throw new Error('Erreur lors de la récupération du scénario');
                 }
@@ -93,7 +93,7 @@ export default function ScenarioDetailsPage({ params }: { params: { scenarioId: 
     const runSimulation = async () => {
         setIsRunning(true);
         try {
-            const response = await fetch('/api/simulations/run', {
+            const response = await fetch('http://localhost:3000/api/simulations/run', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

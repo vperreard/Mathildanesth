@@ -138,6 +138,7 @@ describe('PlanningGenerator', () => {
         // let findLastAssignmentSpy: jest.SpyInstance;
 
         beforeEach(async () => {
+    jest.clearAllMocks();
             await generator.initialize(mockUsers, []);
             accessHelper(generator).initializeUserCounters();
             // COMMENTÉ: Espionnage de méthodes privées
@@ -208,6 +209,7 @@ describe('PlanningGenerator', () => {
         // let calcScoreSpy: jest.SpyInstance;
 
         beforeEach(async () => {
+    jest.clearAllMocks();
             // Initialiser le générateur et les compteurs pour ces utilisateurs
             await generator.initialize(eligibleUsers, []);
             accessHelper(generator).personnel = eligibleUsers;

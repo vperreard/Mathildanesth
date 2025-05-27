@@ -19,7 +19,7 @@ export class PlanningService {
     static async saveAssignments(assignments: Assignment[]): Promise<boolean> {
         try {
             // Appel à l'API pour sauvegarder
-            const response = await fetch('/api/affectations', { // Supposons une route PATCH ou POST pour la sauvegarde
+            const response = await fetch('http://localhost:3000/api/affectations', { // Supposons une route PATCH ou POST pour la sauvegarde
                 method: 'PATCH', // ou 'POST'
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ assignments })
@@ -45,7 +45,7 @@ export class PlanningService {
     static async validateAssignments(assignments: Assignment[]): Promise<RuleViolation[]> {
         try {
             // Appel à l'API pour valider
-            const response = await fetch('/api/affectations/validate', { // Supposons une route POST pour la validation
+            const response = await fetch('http://localhost:3000/api/affectations/validate', { // Supposons une route POST pour la validation
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ assignments })
@@ -71,7 +71,7 @@ export class PlanningService {
     static async getAssignments(startDate: Date, endDate: Date): Promise<Assignment[]> {
         try {
             // Appel à l'API GET créée précédemment
-            const response = await fetch(`/api/affectations?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
+            const response = await fetch(`http://localhost:3000/api/affectations?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
 
             if (!response.ok) {
                 const errorData = await response.json();

@@ -298,7 +298,7 @@ export default function AdvancedVisualizationsPage() {
 
             try {
                 // Appel API pour charger les données du résultat
-                const response = await fetch(`/api/simulations/results/${resultId}`);
+                const response = await fetch(`http://localhost:3000/api/simulations/results/${resultId}`);
 
                 if (!response.ok) {
                     throw new Error('Erreur lors du chargement des données du résultat');

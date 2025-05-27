@@ -5,6 +5,9 @@ import { logger } from '@/lib/logger';
 import bcrypt from 'bcrypt';
 import { withUserRateLimit, withSensitiveRateLimit } from '@/lib/rateLimit';
 
+jest.mock('@/lib/prisma');
+
+
 /**
  * GET /api/utilisateurs/[userId]
  * Récupérer les informations d'un utilisateur

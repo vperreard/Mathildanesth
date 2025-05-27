@@ -7,6 +7,7 @@ describe('Authentification et gestion des sessions', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Réinitialiser la base de données de test
         cy.task('resetTestDatabase');
 

@@ -19,6 +19,7 @@ describe('Workflow Profil Utilisateur E2E', () => {
     });
 
     beforeEach(async () => {
+    jest.clearAllMocks();
         page = await browser.newPage();
         await page.setViewport(config.page.viewport);
         page.setDefaultTimeout(config.page.defaultTimeout);

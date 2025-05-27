@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/middleware/authorization';
 import { logger } from '@/lib/logger';
 
+jest.mock('@/lib/prisma');
+
+
 /**
  * POST /api/trame-modeles/[trameModeleId]/apply
  * Appliquer une trame modèle - ADMIN uniquement

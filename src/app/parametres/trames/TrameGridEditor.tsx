@@ -207,7 +207,7 @@ const TrameGridEditor: React.FC = () => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await axios.get('/api/trame-modeles?includeAffectations=true');
+            const response = await axios.get('http://localhost:3000/api/trame-modeles?includeAffectations=true');
 
             if (response.status === 200) {
                 // Mapper les données de l'API au format attendu par TrameGridView
@@ -239,7 +239,7 @@ const TrameGridEditor: React.FC = () => {
 
     const fetchSites = async () => {
         try {
-            const response = await axios.get('/api/sites');
+            const response = await axios.get('http://localhost:3000/api/sites');
             if (response.status === 200) {
                 setSites(response.data);
             }
@@ -254,13 +254,13 @@ const TrameGridEditor: React.FC = () => {
 
             if (siteId) {
                 // Charger les secteurs pour ce site spécifique
-                const sectorsResponse = await axios.get(`/api/operating-sectors?siteId=${siteId}`);
+                const sectorsResponse = await axios.get(`http://localhost:3000/api/operating-sectors?siteId=${siteId}`);
                 if (sectorsResponse.status === 200) {
                     setSectors(sectorsResponse.data);
                 }
 
                 // Charger les salles associées à ce site
-                const roomsResponse = await axios.get(`/api/operating-rooms?siteId=${siteId}`);
+                const roomsResponse = await axios.get(`http://localhost:3000/api/operating-rooms?siteId=${siteId}`);
                 if (roomsResponse.status === 200) {
                     setRooms(roomsResponse.data);
                 }
@@ -268,13 +268,13 @@ const TrameGridEditor: React.FC = () => {
                 // Trame globale (siteId null) : charger tous les secteurs et salles
                 console.log("📍 Trame globale détectée - chargement de tous les secteurs et salles");
 
-                const sectorsResponse = await axios.get('/api/operating-sectors');
+                const sectorsResponse = await axios.get('http://localhost:3000/api/operating-sectors');
                 if (sectorsResponse.status === 200) {
                     setSectors(sectorsResponse.data);
                     console.log(`📍 Secteurs chargés: ${sectorsResponse.data.length} secteurs`);
                 }
 
-                const roomsResponse = await axios.get('/api/operating-rooms');
+                const roomsResponse = await axios.get('http://localhost:3000/api/operating-rooms');
                 if (roomsResponse.status === 200) {
                     setRooms(roomsResponse.data);
                     console.log(`📍 Salles chargées: ${roomsResponse.data.length} salles`);
@@ -339,7 +339,7 @@ const TrameGridEditor: React.FC = () => {
             const apiTrame = mapTrameToApi(updatedTrame);
 
             // Envoi au serveur
-            const response = await axios.put(`/api/trame-modeles/${updatedTrame.id}`, apiTrame);
+            const response = await axios.put(`http://localhost:3000/api/trame-modeles/${updatedTrame.id}`, apiTrame);
 
             // Mapper la réponse de l'API et mettre à jour l'état
             if (response.status === 200) {

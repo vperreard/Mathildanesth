@@ -2,6 +2,7 @@
 
 describe('Admin - Gestion des Sites et Salles', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         cy.login('admin@mathildanesth.fr', 'AdminSecure123!');
         cy.visit('/admin/sites');
     });
@@ -84,6 +85,7 @@ describe('Admin - Gestion des Sites et Salles', () => {
 
     describe('Gestion des Secteurs', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             cy.get('[data-testid="site-card"]').first().click();
             cy.get('[data-testid="sectors-tab"]').click();
         });
@@ -122,6 +124,7 @@ describe('Admin - Gestion des Sites et Salles', () => {
 
     describe('Gestion des Salles', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             cy.get('[data-testid="site-card"]').first().click();
             cy.get('[data-testid="rooms-tab"]').click();
         });

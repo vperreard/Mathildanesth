@@ -36,7 +36,7 @@ export const useNotifications = (type?: string) => {
 
         try {
             const headers = createAuthHeaders(session);
-            const response = await fetch('/api/notifications/mark-as-read', {
+            const response = await fetch('http://localhost:3000/api/notifications/mark-as-read', {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(params),
@@ -72,7 +72,7 @@ export const useNotifications = (type?: string) => {
             if (page) queryParams.append('page', page.toString());
 
             const headers = createAuthHeaders(session);
-            const response = await fetch(`/api/notifications?${queryParams.toString()}`, {
+            const response = await fetch(`http://localhost:3000/api/notifications?${queryParams.toString()}`, {
                 headers
             });
 

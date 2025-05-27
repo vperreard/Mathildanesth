@@ -132,7 +132,7 @@ const LeaveManagementPanel: React.FC = () => {
         try {
             // Simuler la récupération des données depuis une API
             // À remplacer par votre appel API réel
-            // const response = await axios.get('/api/leave-rules');
+            // const response = await axios.get('http://localhost:3000/api/leave-rules');
             // setLeaveRules(response.data);
 
             // Données simulées pour l'exemple
@@ -183,7 +183,7 @@ const LeaveManagementPanel: React.FC = () => {
         try {
             // Simuler la récupération des données depuis une API
             // À remplacer par votre appel API réel
-            // const response = await axios.get('/api/user-leaves');
+            // const response = await axios.get('http://localhost:3000/api/user-leaves');
             // setUserLeaves(response.data);
 
             // Données simulées pour l'exemple

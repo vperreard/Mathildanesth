@@ -78,6 +78,7 @@ describe("Tests d'intégration de la structure et navigation du bloc opératoire
     let formattedToday: string;
 
     beforeEach(() => {
+    jest.clearAllMocks();
         today = new Date();
         formattedToday = format(today, 'yyyy-MM-dd');
 

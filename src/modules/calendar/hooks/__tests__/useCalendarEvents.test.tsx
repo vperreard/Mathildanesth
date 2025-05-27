@@ -48,6 +48,7 @@ describe('useCalendarEvents Hook', () => {
     const defaultFilters: CalendarFilters = { eventTypes: [CalendarEventType.ASSIGNMENT, CalendarEventType.DUTY] };
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Récupérer les instances mockées de calendarService
         const mockedCalendarService = require('../../services/calendrierService').calendarService;
         mockGetEvents = mockedCalendarService.getEvents as jest.MockedFunction<typeof calendarService.getEvents>;

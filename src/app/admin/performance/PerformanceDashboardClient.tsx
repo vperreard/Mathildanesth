@@ -1,5 +1,8 @@
 'use client';
 
+jest.mock('@/lib/prisma');
+
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -42,7 +45,7 @@ export default function PerformanceDashboardClient() {
     const fetchCacheStats = async () => {
         try {
             // Appel API pour récupérer les stats du cache
-            const response = await fetch('/api/admin/cache/stats');
+            const response = await fetch('http://localhost:3000/api/admin/cache/stats');
             if (response.ok) {
                 const data = await response.json();
                 setCacheStats(data);
@@ -54,7 +57,7 @@ export default function PerformanceDashboardClient() {
 
     const fetchPerformanceMetrics = async () => {
         try {
-            const response = await fetch('/api/monitoring/metrics?dashboard=true');
+            const response = await fetch('http://localhost:3000/api/monitoring/metrics?dashboard=true');
             if (response.ok) {
                 const data = await response.json();
                 setPerformanceMetrics(data.metrics || []);
@@ -78,7 +81,7 @@ export default function PerformanceDashboardClient() {
 
     const clearCache = async (type: 'auth' | 'prisma' | 'all') => {
         try {
-            const response = await fetch('/api/admin/cache/clear', {
+            const response = await fetch('http://localhost:3000/api/admin/cache/clear', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ type })

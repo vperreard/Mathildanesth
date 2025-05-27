@@ -5,6 +5,9 @@ import { authOptions } from '@/lib/auth';
 import { startOfWeek, endOfWeek, parseISO } from 'date-fns';
 import { unstable_cache } from 'next/cache';
 
+jest.mock('@/lib/prisma');
+
+
 // Cache configuration
 const CACHE_TAGS = ['planning', 'assignments', 'rooms', 'users'];
 const CACHE_REVALIDATE = 300; // 5 minutes

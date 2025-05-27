@@ -215,6 +215,7 @@ describe('Module d\'Authentification JWT', () => {
             let authorizeFunction: any;
 
             beforeEach(() => {
+    jest.clearAllMocks();
                 const credentialsProvider = authModule.authOptions.providers[0] as any;
                 authorizeFunction = credentialsProvider.authorize;
             });

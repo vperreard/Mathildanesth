@@ -9,6 +9,7 @@ import { performanceMonitor } from '@/services/PerformanceMonitoringService';
 describe('Tests de régression - Workflows critiques', () => {
   
   beforeEach(() => {
+    jest.clearAllMocks();
     // Nettoyer les métriques avant chaque test
     performanceMonitor.cleanup(0);
   });
@@ -132,6 +133,7 @@ describe('Tests de régression - Authentification', () => {
   global.fetch = mockFetch as any;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     mockFetch.mockClear();
   });
 

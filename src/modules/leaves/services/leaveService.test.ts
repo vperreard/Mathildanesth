@@ -218,6 +218,7 @@ describe('leaveService', () => {
   });
 
   beforeEach(() => {
+    jest.clearAllMocks();
     mockReset(prismaMock);
     MockedPrismaClient = MockedPrismaClientConstructorAliased as jest.MockedClass<
       typeof RealPrismaClient

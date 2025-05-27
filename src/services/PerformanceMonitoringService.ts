@@ -201,7 +201,7 @@ class PerformanceMonitoringService {
    */
   private async sendAlert(name: string, duration: number, baseline: number): Promise<void> {
     try {
-      await fetch('/api/monitoring/metrics', {
+      await fetch('http://localhost:3000/api/monitoring/metrics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

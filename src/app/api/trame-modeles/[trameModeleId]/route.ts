@@ -3,7 +3,10 @@ import { PrismaClient, RecurrenceTypeTrame, TypeSemaineTrame, TrameRoleType as P
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import type { AuthResult } from '@/lib/auth-client-utils';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 // GET: Récupérer un modèle de trame spécifique par son ID
 export async function GET(req: NextRequest, { params }: { params: { trameModeleId: string } }) {

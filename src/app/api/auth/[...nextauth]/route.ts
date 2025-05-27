@@ -6,7 +6,10 @@ import { compare } from "bcryptjs";
 import { JWT } from "next-auth/jwt";
 import crypto from 'crypto';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 // Ajouter les types pour la session
 declare module "next-auth" {

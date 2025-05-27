@@ -293,7 +293,7 @@ export class LeaveAnalyticsService {
         }
 
         try {
-            const response = await fetch('/api/analytics/conges/departments', {
+            const response = await fetch('http://localhost:3000/api/analytics/conges/departments', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -325,7 +325,7 @@ export class LeaveAnalyticsService {
         endDate: Date
     ): Promise<Record<string, number>> {
         try {
-            const response = await fetch('/api/analytics/conges/predict-availability', {
+            const response = await fetch('http://localhost:3000/api/analytics/conges/predict-availability', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -365,7 +365,7 @@ export class LeaveAnalyticsService {
         }
 
         try {
-            const response = await fetch(`/api/analytics/conges/periods?aggregation=${aggregation}`, {
+            const response = await fetch(`http://localhost:3000/api/analytics/conges/periods?aggregation=${aggregation}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -402,7 +402,7 @@ export class LeaveAnalyticsService {
         }
 
         try {
-            const response = await fetch('/api/analytics/conges/teams/absence-rates', {
+            const response = await fetch('http://localhost:3000/api/analytics/conges/teams/absence-rates', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -442,7 +442,7 @@ export class LeaveAnalyticsService {
         }
 
         try {
-            const response = await fetch('/api/analytics/conges/utilisateurs', {
+            const response = await fetch('http://localhost:3000/api/analytics/conges/utilisateurs', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -492,7 +492,7 @@ export class LeaveAnalyticsService {
         }
 
         try {
-            const response = await fetch(`/api/analytics/conges/trends?aggregation=${aggregation}`, {
+            const response = await fetch(`http://localhost:3000/api/analytics/conges/trends?aggregation=${aggregation}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -529,7 +529,7 @@ export class LeaveAnalyticsService {
         }
 
         try {
-            const response = await fetch('/api/analytics/conges/predictions/peak-periods', {
+            const response = await fetch('http://localhost:3000/api/analytics/conges/predictions/peak-periods', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -560,7 +560,7 @@ export class LeaveAnalyticsService {
         filter: LeaveAnalyticsFilter
     ): Promise<string> {
         try {
-            const response = await fetch(`/api/analytics/conges/export?type=${dataType}`, {
+            const response = await fetch(`http://localhost:3000/api/analytics/conges/export?type=${dataType}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

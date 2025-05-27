@@ -27,6 +27,7 @@ describe('NotificationSettingsForm', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
         mockOnSave.mockClear();
     });
 

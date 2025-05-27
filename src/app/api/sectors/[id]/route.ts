@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { headers } from 'next/headers';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 // Fonction utilitaire partagée (identique à l'autre fichier)
 function parseRules(rulesJson: Prisma.JsonValue): { maxRoomsPerSupervisor: number } {

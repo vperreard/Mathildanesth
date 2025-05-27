@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { OperatingRoomSchema } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 import { BlocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
+
+jest.mock('@/lib/prisma');
+
 
 // Contexte pour les paramètres d'URL
 interface Context {
@@ -12,7 +15,7 @@ interface Context {
     };
 }
 
-const prisma = new PrismaClient();
+const prisma = prisma;
 const planningService = new BlocPlanningService();
 
 // Fonction utilitaire pour normaliser les noms de secteurs (identique à route.ts)

@@ -60,7 +60,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
 
         setIsLoading(true);
         try {
-            const response = await fetch(`/api/notifications?limit=${limit}&filter=all`);
+            const response = await fetch(`http://localhost:3000/api/notifications?limit=${limit}&filter=all`);
             if (!response.ok) throw new Error('Erreur lors du chargement des notifications');
 
             const data = await response.json();
@@ -79,7 +79,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
         if (!user?.id) return;
 
         try {
-            const response = await fetch('/api/notifications/mark-as-read', {
+            const response = await fetch('http://localhost:3000/api/notifications/mark-as-read', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ notificationIds: [notificationId] }),
@@ -108,7 +108,7 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
         if (!user?.id) return;
 
         try {
-            const response = await fetch('/api/notifications/mark-as-read', {
+            const response = await fetch('http://localhost:3000/api/notifications/mark-as-read', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ all: true }),

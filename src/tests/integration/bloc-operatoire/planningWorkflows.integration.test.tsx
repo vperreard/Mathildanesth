@@ -83,6 +83,7 @@ const mockSupervisors = [
 
 describe('Workflows du planning du bloc opératoire', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         // Configuration des mocks par défaut avec les signatures correctes
 
         vi.mocked(blocPlanningService.getAllOperatingRooms).mockReturnValue(mockSalles);

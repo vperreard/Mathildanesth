@@ -15,6 +15,9 @@ import {
     Prisma
 } from '@prisma/client';
 
+jest.mock('@/lib/prisma');
+
+
 interface CreateOrUpdatePlanningsParams {
     siteId: string;
     startDate: Date;

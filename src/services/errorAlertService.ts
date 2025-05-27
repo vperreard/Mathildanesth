@@ -60,7 +60,7 @@ const sendEmailAlert = async (errors: Array<{ key: string, error: ErrorDetails }
             return false;
         }
 
-        const response = await fetch('/api/alerts/email', {
+        const response = await fetch('http://localhost:3000/api/alerts/email', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ const sendSlackAlert = async (errors: Array<{ key: string, error: ErrorDetails }
  */
 const sendPushNotification = async (errors: Array<{ key: string, error: ErrorDetails }>): Promise<boolean> => {
     try {
-        const response = await fetch('/api/alerts/push', {
+        const response = await fetch('http://localhost:3000/api/alerts/push', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

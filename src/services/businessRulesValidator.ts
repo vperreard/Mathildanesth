@@ -3,6 +3,9 @@ import { LeaveRequest } from '@/types/leave';
 import { Assignment } from '@/types/assignment';
 import { startOfDay, endOfDay, differenceInDays, addDays, subDays } from 'date-fns';
 
+jest.mock('@/lib/prisma');
+
+
 interface ValidationResult {
   valid: boolean;
   errors: string[];

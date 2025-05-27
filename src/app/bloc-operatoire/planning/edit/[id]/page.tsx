@@ -1,12 +1,12 @@
-import { Metadata } from 'next';
+'use client';
+
 import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { notFound } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 // Import dynamique du composant d'édition
 const BlocPlanningEditor = dynamic(
-  () => import('@/app/bloc-operatoire/components/BlocPlanningEditor').catch(() => {
+  () => import('../../components/BlocPlanningEditor').catch(() => {
     return { 
       default: () => (
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
@@ -16,41 +16,19 @@ const BlocPlanningEditor = dynamic(
     };
   }),
   {
-    loading: () => <EditorLoadingSkeleton />,
+    loading: () => <LoadingSpinner size="lg" />,
     ssr: false
   }
 );
 
-export const metadata: Metadata = {
-  title: 'Modifier le Planning | Mathildanesth',
-  description: 'Modifier un planning existant du bloc opératoire',
-};
+export default function EditPlanningPage() {
+  const params = useParams();
+  const id = params.id as string;
 
-function EditorLoadingSkeleton() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-10 w-full max-w-md" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Skeleton className="h-96 w-full" />
-        <Skeleton className="h-96 w-full" />
-      </div>
-      <div className="flex justify-end gap-2">
-        <Skeleton className="h-10 w-24" />
-        <Skeleton className="h-10 w-24" />
-      </div>
-    </div>
-  );
-}
-
-interface EditPlanningPageProps {
-  params: { id: string };
-}
-
-export default function EditPlanningPage({ params }: EditPlanningPageProps) {
   // Valider que l'ID est un nombre ou un UUID valide
-  const isValidId = /^[0-9a-fA-F-]+$/.test(params.id);
+  const isValidId = /^[0-9a-fA-F-]+$/.test(id);
   if (!isValidId) {
-    notFound();
+    return <div>ID invalide</div>;
   }
 
   return (
@@ -64,9 +42,7 @@ export default function EditPlanningPage({ params }: EditPlanningPageProps) {
         </p>
       </div>
 
-      <Suspense fallback={<EditorLoadingSkeleton />}>
-        <BlocPlanningEditor planningId={params.id} mode="edit" />
-      </Suspense>
+      <BlocPlanningEditor planningId={id} mode="edit" />
     </div>
   );
 }

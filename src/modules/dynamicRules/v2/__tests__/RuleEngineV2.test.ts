@@ -71,6 +71,7 @@ describe('RuleEngineV2', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
       (prisma.planningRule.findMany as jest.Mock).mockResolvedValue([mockRule]);
     });
 
@@ -223,6 +224,7 @@ describe('RuleEngineV2', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
       (prisma.planningRule.findMany as jest.Mock).mockResolvedValue([rule1, rule2]);
     });
 

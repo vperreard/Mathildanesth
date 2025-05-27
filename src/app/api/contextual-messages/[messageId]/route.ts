@@ -8,6 +8,9 @@ import {
 } from '@/lib/auth/authorization';
 import { auditService } from '@/services/auditService';
 
+jest.mock('@/lib/prisma');
+
+
 interface ContextualMessageUpdateInput {
     content: string;
 }

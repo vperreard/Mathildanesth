@@ -89,6 +89,7 @@ describe('WebSocket Server', () => {
         let authMiddleware: Function;
 
         beforeEach(() => {
+    jest.clearAllMocks();
             // Récupérer le middleware d'authentification
             initSocket(mockResponse);
             authMiddleware = (mockIoInstance.use as jest.Mock).mock.calls[0][0];
@@ -171,6 +172,7 @@ describe('WebSocket Server', () => {
         let connectionHandler: Function;
 
         beforeEach(() => {
+    jest.clearAllMocks();
             // Récupérer le gestionnaire de connexion
             initSocket(mockResponse);
             connectionHandler = (mockIoInstance.on as jest.Mock).mock.calls[0][1];

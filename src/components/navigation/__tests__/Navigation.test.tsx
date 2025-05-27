@@ -61,6 +61,7 @@ describe('Navigation', () => {
     ];
 
     beforeEach(() => {
+    jest.clearAllMocks();
         (usePathname as jest.Mock).mockReturnValue('/');
     });
 

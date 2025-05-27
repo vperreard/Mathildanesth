@@ -65,7 +65,7 @@ export function useOptimizedPlanning({
                 fields: 'id,userId,startDate,endDate,type,status,roomId,sectorId'
             });
 
-            const response = await fetch(`/api/planning/optimized?${params}`, {
+            const response = await fetch(`http://localhost:3000/api/planning/optimized?${params}`, {
                 headers: {
                     'Cache-Control': 'max-age=300', // 5 min browser cache
                 }
@@ -98,7 +98,7 @@ export function useOptimizedPlanning({
                             viewType: 'week',
                             fields: 'id,userId,startDate,endDate,type,status,roomId,sectorId'
                         });
-                        const response = await fetch(`/api/planning/optimized?${params}`);
+                        const response = await fetch(`http://localhost:3000/api/planning/optimized?${params}`);
                         return response.json();
                     },
                     staleTime: 5 * 60 * 1000,
@@ -114,7 +114,7 @@ export function useOptimizedPlanning({
                             viewType: 'week',
                             fields: 'id,userId,startDate,endDate,type,status,roomId,sectorId'
                         });
-                        const response = await fetch(`/api/planning/optimized?${params}`);
+                        const response = await fetch(`http://localhost:3000/api/planning/optimized?${params}`);
                         return response.json();
                     },
                     staleTime: 5 * 60 * 1000,
@@ -129,7 +129,7 @@ export function useOptimizedPlanning({
     // Mutation pour sauvegarder les changements
     const saveMutation = useMutation({
         mutationFn: async (updates: PlanningUpdate[]) => {
-            const response = await fetch('/api/planning/batch-update', {
+            const response = await fetch('http://localhost:3000/api/planning/batch-update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ updates })

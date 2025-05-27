@@ -38,7 +38,7 @@ export default function AdminRequestsHeader({
     useEffect(() => {
         const fetchConfig = async () => {
             try {
-                const response = await fetch('/api/admin/configuration');
+                const response = await fetch('http://localhost:3000/api/admin/configuration');
                 if (response.ok) {
                     const data = await response.json();
                     if (data.header) {

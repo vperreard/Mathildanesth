@@ -35,7 +35,7 @@ class ReportService {
 
     public async generateReport(config: ReportConfig): Promise<Blob> {
         try {
-            const response = await axios.post('/api/reports/generate', config, {
+            const response = await axios.post('http://localhost:3000/api/reports/generate', config, {
                 responseType: 'blob',
             });
 
@@ -65,7 +65,7 @@ class ReportService {
 
     public async getReportTemplates(): Promise<any[]> {
         try {
-            const response = await axios.get('/api/reports/templates');
+            const response = await axios.get('http://localhost:3000/api/reports/templates');
             return response.data;
         } catch (error) {
             console.error('Erreur lors de la récupération des modèles de rapport:', error);
@@ -75,7 +75,7 @@ class ReportService {
 
     public async saveReportTemplate(template: any): Promise<void> {
         try {
-            await axios.post('/api/reports/templates', template);
+            await axios.post('http://localhost:3000/api/reports/templates', template);
         } catch (error) {
             console.error('Erreur lors de la sauvegarde du modèle de rapport:', error);
             throw error;

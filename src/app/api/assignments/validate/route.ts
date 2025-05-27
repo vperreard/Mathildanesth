@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RuleEngine } from '@/modules/rules/engine/rule-engine';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { RuleEvaluationContext } from '@/modules/rules/types/rule';
 import { Assignment as AppAssignment } from '@/types/assignment'; // Renommer pour clarté
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 const ruleEngine = new RuleEngine();
 
 // Type interne pour la validation, s'assurer qu'il a les champs nécessaires

@@ -82,7 +82,7 @@ export default function RequestDashboard() {
             setError(null);
 
             try {
-                const requestsPromise = fetch('/api/demandes').then(async res => {
+                const requestsPromise = fetch('http://localhost:3000/api/demandes').then(async res => {
                     if (!res.ok) {
                         let errorMsg = `Erreur ${res.status} lors du chargement des requêtes.`;
                         try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e) { /*ignore*/ }
@@ -91,7 +91,7 @@ export default function RequestDashboard() {
                     return res.json();
                 });
 
-                const typesPromise = fetch('/api/request-types?includeInactive=true').then(async res => {
+                const typesPromise = fetch('http://localhost:3000/api/request-types?includeInactive=true').then(async res => {
                     if (!res.ok) {
                         let errorMsg = `Erreur ${res.status} lors du chargement des types de requêtes.`;
                         try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e) { /*ignore*/ }
@@ -100,7 +100,7 @@ export default function RequestDashboard() {
                     return res.json();
                 });
 
-                const usersPromise = fetch('/api/utilisateurs').then(async res => {
+                const usersPromise = fetch('http://localhost:3000/api/utilisateurs').then(async res => {
                     if (!res.ok) {
                         let errorMsg = `Erreur ${res.status} lors du chargement des utilisateurs.`;
                         try { const errorData = await res.json(); errorMsg = errorData.error || errorMsg; } catch (e) { /*ignore*/ }
@@ -237,7 +237,7 @@ export default function RequestDashboard() {
         }
 
         try {
-            const response = await fetch('/api/demandes', {
+            const response = await fetch('http://localhost:3000/api/demandes', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateData),
@@ -274,7 +274,7 @@ export default function RequestDashboard() {
         setIsLoading(true);
         setError(null); // Clear previous errors
         try {
-            const response = await fetch('/api/demandes');
+            const response = await fetch('http://localhost:3000/api/demandes');
             if (!response.ok) {
                 let errorMessage = 'Erreur lors du rafraîchissement des données.';
                 try {

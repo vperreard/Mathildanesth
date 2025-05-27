@@ -7,6 +7,7 @@ describe('Tests de performance', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Réinitialiser la base de données et se connecter en tant qu'admin
         cy.task('resetTestDatabase');
         cy.task('seedTestData');

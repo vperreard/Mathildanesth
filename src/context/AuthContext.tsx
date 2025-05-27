@@ -105,7 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return cachedEntry.user;
       }
 
-      const response = await axios.get('/api/auth/me');
+      const response = await axios.get('http://localhost:3000/api/auth/me');
       const userData = response.data.user;
 
       // Mettre en cache
@@ -133,7 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         timeout: 10000, // 10s timeout
       };
 
-      const response = await axios.post('/api/auth/login', credentials, config);
+      const response = await axios.post('http://localhost:3000/api/auth/login', credentials, config);
 
       if (response.data.token) {
         setClientAuthToken(response.data.token);
@@ -155,7 +155,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post('/api/auth/deconnexion');
+      await axios.post('http://localhost:3000/api/auth/deconnexion');
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
     } finally {

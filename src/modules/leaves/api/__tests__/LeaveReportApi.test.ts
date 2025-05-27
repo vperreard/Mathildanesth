@@ -129,6 +129,7 @@ describe('LeaveReportApi', () => {
 
     describe('méthodes de rapport spécifiques', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             jest.spyOn(reportApi, 'getReportData').mockResolvedValue(mockReportData);
         });
 

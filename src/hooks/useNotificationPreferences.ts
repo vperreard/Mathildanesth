@@ -65,7 +65,7 @@ export function useNotificationPreferences() {
 
         try {
             const headers = createAuthHeaders(session);
-            const response = await fetch('/api/notifications/preferences', { headers });
+            const response = await fetch('http://localhost:3000/api/notifications/preferences', { headers });
 
             if (!response.ok) {
                 if (response.status === 401) {
@@ -104,7 +104,7 @@ export function useNotificationPreferences() {
 
         try {
             const headers = createAuthHeaders(session);
-            const response = await fetch('/api/notifications/preferences', {
+            const response = await fetch('http://localhost:3000/api/notifications/preferences', {
                 method: 'PUT',
                 headers,
                 body: JSON.stringify(updatedPreferences),

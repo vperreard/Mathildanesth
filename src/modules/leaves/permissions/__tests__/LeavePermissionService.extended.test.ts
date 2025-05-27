@@ -384,6 +384,7 @@ describe('LeavePermissionService (Tests avancés)', () => {
 
     describe('Méthodes de gestion de permissions', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             // Mocker le getCurrentUser pour renvoyer un administrateur (pour accès aux permissions)
             jest.spyOn(permissionService as any, 'getCurrentUser').mockResolvedValue({
                 id: 'admin-123',

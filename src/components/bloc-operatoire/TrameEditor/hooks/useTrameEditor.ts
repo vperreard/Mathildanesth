@@ -154,7 +154,7 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
         queryFn: async () => {
             if (!trameModeleId) return null;
             const token = getClientAuthToken();
-            const response = await fetch(`/api/trame-modeles/${trameModeleId}`, {
+            const response = await fetch(`http://localhost:3000/api/trame-modeles/${trameModeleId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Erreur lors du chargement de la trame');
@@ -167,7 +167,7 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
         queryKey: ['operating-rooms'],
         queryFn: async () => {
             const token = getClientAuthToken();
-            const response = await fetch('/api/operating-rooms', {
+            const response = await fetch('http://localhost:3000/api/operating-rooms', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Erreur lors du chargement des salles');
@@ -179,7 +179,7 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
         queryKey: ['activity-types'],
         queryFn: async () => {
             const token = getClientAuthToken();
-            const response = await fetch('/api/activity-types', {
+            const response = await fetch('http://localhost:3000/api/activity-types', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Erreur lors du chargement des types d\'activité');
@@ -219,7 +219,7 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
     const deleteAffectationMutation = useMutation({
         mutationFn: async (affectationId: number) => {
             const token = getClientAuthToken();
-            const response = await fetch(`/api/affectation-modeles/${affectationId}`, {
+            const response = await fetch(`http://localhost:3000/api/affectation-modeles/${affectationId}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });

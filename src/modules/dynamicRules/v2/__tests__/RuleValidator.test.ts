@@ -5,6 +5,7 @@ describe('RuleValidator', () => {
   let validator: RuleValidator;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     validator = RuleValidator.getInstance();
   });
 

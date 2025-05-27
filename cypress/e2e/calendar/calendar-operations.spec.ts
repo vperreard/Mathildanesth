@@ -7,6 +7,7 @@ describe('Opérations du calendrier', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Réinitialiser la base de données de test
         cy.task('resetTestDatabase');
 

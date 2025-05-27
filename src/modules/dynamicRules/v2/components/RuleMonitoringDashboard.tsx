@@ -41,7 +41,7 @@ export const RuleMonitoringDashboard: React.FC = () => {
   const { data: monitoringData, isLoading } = useQuery({
     queryKey: ['rule-monitoring', timeRange],
     queryFn: async () => {
-      const response = await fetch(`/api/admin/rules/v2/monitoring?range=${timeRange}`);
+      const response = await fetch(`http://localhost:3000/api/admin/rules/v2/monitoring?range=${timeRange}`);
       if (!response.ok) throw new Error('Failed to fetch monitoring data');
       return response.json();
     },

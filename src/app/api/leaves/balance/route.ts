@@ -4,6 +4,9 @@ import { LeaveQueryCacheService } from '@/modules/leaves/services/LeaveQueryCach
 import { logger } from '@/lib/logger';
 import { Prisma, LeaveType as PrismaLeaveType, LeaveStatus as PrismaLeaveStatus } from '@prisma/client';
 
+jest.mock('@/lib/prisma');
+
+
 /**
  * Route GET /api/conges/balance
  * Récupère le solde de congés d'un utilisateur pour une année donnée.

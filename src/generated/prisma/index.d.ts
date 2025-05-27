@@ -3,6 +3,9 @@
  * Client
 **/
 
+jest.mock('@/lib/prisma');
+
+
 import * as runtime from './runtime/library.js';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
@@ -56,7 +59,7 @@ export const ProfessionalRole: typeof $Enums.ProfessionalRole
  * Type-safe database client for TypeScript & Node.js
  * @example
  * ```
- * const prisma = new PrismaClient()
+ * const prisma = prisma
  * // Fetch zero or more Users
  * const users = await prisma.user.findMany()
  * ```
@@ -77,7 +80,7 @@ export class PrismaClient<
    * Type-safe database client for TypeScript & Node.js
    * @example
    * ```
-   * const prisma = new PrismaClient()
+   * const prisma = prisma
    * // Fetch zero or more Users
    * const users = await prisma.user.findMany()
    * ```

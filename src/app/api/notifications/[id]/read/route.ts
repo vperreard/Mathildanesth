@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth-utils';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
+
+jest.mock('@/lib/prisma');
+
 
 export async function POST(
     req: NextRequest,
@@ -23,7 +26,7 @@ export async function POST(
             );
         }
 
-        const prisma = new PrismaClient();
+        const prisma = prisma;
         const notification = await prisma.notification.update({
             where: {
                 id: parseInt(params.id),

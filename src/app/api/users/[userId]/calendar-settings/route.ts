@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
+jest.mock('@/lib/prisma');
+
+
 // GET /api/utilisateurs/[userId]/calendrier-settings
 export async function GET(
     request: Request,

@@ -86,6 +86,7 @@ describe('Header Component', () => {
     let mockSetSidebarOpen: jest.Mock;
 
     beforeEach(() => {
+    jest.clearAllMocks();
         mockSetSidebarOpen = jest.fn();
         mockUseAuth = useAuth as jest.Mock;
         mockUseSidebar = useSidebar as jest.Mock;

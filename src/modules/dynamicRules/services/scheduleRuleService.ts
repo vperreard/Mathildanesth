@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import {
     ScheduleRule,
     ScheduleRuleSchema,
@@ -8,7 +8,10 @@ import {
     ScheduleRuleAction
 } from '../models/ScheduleRule';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 export interface ScheduleContext {
     userId?: number;

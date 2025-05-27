@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-// import { PrismaClient } from '@prisma/client'; // Utiliser l'instance partagée
+// import { prisma } from '@/lib/prisma'; // Utiliser l'instance partagée
 import { prisma } from '@/lib/prisma'; // Importation nommée
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'; // Ajustez le chemin si nécessaire
@@ -13,7 +13,10 @@ import {
     AuthenticationError
 } from '@/lib/auth/authorization';
 
-// const prisma = new PrismaClient(); // Supprimé, on utilise l'instance importée
+jest.mock('@/lib/prisma');
+
+
+// const prisma = prisma; // Supprimé, on utilise l'instance importée
 
 interface ContextualMessageInput {
     content: string;

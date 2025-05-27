@@ -33,7 +33,7 @@ export const useConflictRules = (): UseConflictRulesReturn => {
         setError(null);
 
         try {
-            const response = await fetch('/api/admin/conflict-rules');
+            const response = await fetch('http://localhost:3000/api/admin/conflict-rules');
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => response.statusText);
@@ -64,7 +64,7 @@ export const useConflictRules = (): UseConflictRulesReturn => {
                 throw new Error(`Validation des règles échouée: ${validation.errors.join(', ')}`);
             }
 
-            const response = await fetch('/api/admin/conflict-rules', {
+            const response = await fetch('http://localhost:3000/api/admin/conflict-rules', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -140,7 +140,7 @@ export const useConflictRules = (): UseConflictRulesReturn => {
         setError(null);
 
         try {
-            const response = await fetch('/api/admin/conflict-rules/reset', {
+            const response = await fetch('http://localhost:3000/api/admin/conflict-rules/reset', {
                 method: 'POST',
             });
 

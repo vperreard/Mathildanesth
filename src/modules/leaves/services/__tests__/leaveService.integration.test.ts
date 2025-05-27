@@ -11,6 +11,7 @@ describe('Leave Workflow Integration Tests', () => {
     let testBalance: any;
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Créer un environnement de test
         testUser = TestFactory.User.create();
         testBalance = TestFactory.LeaveBalance.createForUser(testUser.id, 2024, {

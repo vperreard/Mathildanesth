@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth-utils';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
+
+jest.mock('@/lib/prisma');
+
 
 export async function POST(req: NextRequest) {
     try {
@@ -20,7 +23,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const prisma = new PrismaClient();
+        const prisma = prisma;
         await prisma.notification.deleteMany({
             where: {
                 userId: payload.userId

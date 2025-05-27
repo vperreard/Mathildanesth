@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { defaultDisplayConfig } from '@/app/planning/hebdomadaire/defaultConfig';
 import { DisplayConfig } from '@/app/planning/hebdomadaire/types';
 import { verifyAuthToken, getAuthTokenServer } from '@/lib/auth-server-utils';
 import type { AuthResult } from '@/lib/auth-client-utils';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 async function updateUserPreferences(userId: number, preferences: any) {
     // ... (implémentation existante)

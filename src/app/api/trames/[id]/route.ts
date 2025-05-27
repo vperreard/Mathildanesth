@@ -6,6 +6,9 @@ import { headers } from 'next/headers';
 import { v4 as uuidv4 } from 'uuid';
 import { TrameAffectation, TramePeriod, TrameAssignment, TramePost } from '@prisma/client';
 
+jest.mock('@/lib/prisma');
+
+
 // Interface type pour le corps de la requête PUT, reflétant la structure imbriquée attendue.
 // Ceci est une supposition, à ajuster en fonction de ce que le client envoie réellement.
 interface TramePutRequestBody {

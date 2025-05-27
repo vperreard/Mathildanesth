@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { performanceMonitor } from '@/lib/monitoring';
 import { performanceMonitor as serviceMonitor } from '@/services/PerformanceMonitoringService';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 // Stockage en mémoire des métriques (à remplacer par Redis en production)
 const metricsStore: any[] = [];

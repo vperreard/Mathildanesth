@@ -49,6 +49,7 @@ describe('PlanningGeneratorService', () => {
     let currentTestUsers: User[]; // Variable pour stocker les utilisateurs du test courant
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // --- Initialisation pour chaque test --- 
 
         // 1. Définition des utilisateurs DANS le beforeEach pour garantir fraîcheur

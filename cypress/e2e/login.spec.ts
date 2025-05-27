@@ -1,6 +1,7 @@
 // Test pour la page de connexion
 describe('Page de connexion', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         // Visiter la page de connexion avant chaque test
         cy.visit('/auth/connexion');
     });

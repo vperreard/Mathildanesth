@@ -1,7 +1,7 @@
 import * as jose from 'jose';
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 
 // Configuration JWT existante
@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'jwt-dev-secret-change-me-in-produc
 
 // Utilisez Prisma uniquement si nous ne sommes pas en mode développement sans base de données
 const IS_DEV_MODE = process.env.NODE_ENV === 'development' && process.env.USE_MOCK_AUTH === 'true';
-const prisma = IS_DEV_MODE ? null : new PrismaClient();
+const prisma = IS_DEV_MODE ? null : prisma;
 
 const secretKey = new TextEncoder().encode(JWT_SECRET);
 

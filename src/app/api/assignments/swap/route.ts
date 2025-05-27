@@ -4,7 +4,10 @@ import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { AssignmentSwapEventType, sendAssignmentSwapNotification } from '@/lib/assignment-notification-utils';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 /**
  * GET /api/affectations/echange

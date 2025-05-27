@@ -29,6 +29,7 @@ jest.mock('@/lib/prisma');
 
 describe('Test du tri des secteurs opératoires', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         mockReset(prisma);
     });
 

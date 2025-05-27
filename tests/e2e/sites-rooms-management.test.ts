@@ -40,6 +40,7 @@ describe('Gestion des Sites, Secteurs et Salles', () => {
     });
 
     beforeEach(async () => {
+    jest.clearAllMocks();
         page = await browser.newPage();
         await page.setViewport({ width: 1920, height: 1080 });
         

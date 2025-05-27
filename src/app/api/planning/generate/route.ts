@@ -9,6 +9,9 @@ import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 import { withSensitiveRateLimit } from '@/lib/rateLimit';
 
+jest.mock('@/lib/prisma');
+
+
 async function postHandler(request: Request) {
     try {
         // 🔐 Vérifier l'authentification

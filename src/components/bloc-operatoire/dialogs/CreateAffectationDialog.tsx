@@ -77,7 +77,7 @@ export const CreateAffectationDialog: React.FC<CreateAffectationDialogProps> = (
     const { data: supervisors } = useQuery({
         queryKey: ['supervisors', formData.jourSemaine, formData.periode],
         queryFn: async () => {
-            const response = await axios.get('/api/utilisateurs', {
+            const response = await axios.get('http://localhost:3000/api/utilisateurs', {
                 params: {
                     role: 'SUPERVISOR',
                     available: true,
@@ -94,7 +94,7 @@ export const CreateAffectationDialog: React.FC<CreateAffectationDialogProps> = (
     const { data: rooms } = useQuery({
         queryKey: ['operating-rooms', formData.jourSemaine, formData.periode],
         queryFn: async () => {
-            const response = await axios.get('/api/bloc-operatoire/operating-rooms', {
+            const response = await axios.get('http://localhost:3000/api/bloc-operatoire/operating-rooms', {
                 params: {
                     available: true,
                     day: formData.jourSemaine,
@@ -110,7 +110,7 @@ export const CreateAffectationDialog: React.FC<CreateAffectationDialogProps> = (
     const { data: activityTypes } = useQuery({
         queryKey: ['activity-types'],
         queryFn: async () => {
-            const response = await axios.get('/api/activity-types');
+            const response = await axios.get('http://localhost:3000/api/activity-types');
             return response.data;
         }
     });

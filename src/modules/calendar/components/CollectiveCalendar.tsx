@@ -128,7 +128,7 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
         if (!isAdmin || !leaveId) return;
 
         try {
-            await axios.put(`/api/conges/${leaveId}/approve`);
+            await axios.put(`http://localhost:3000/api/conges/${leaveId}/approve`);
             toast.success('Congé approuvé avec succès');
             updateFilters({}); // Rafraîchir le calendrier
             handleCloseModal();
@@ -143,7 +143,7 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
         if (!isAdmin || !leaveId) return;
 
         try {
-            await axios.put(`/api/conges/${leaveId}/reject`);
+            await axios.put(`http://localhost:3000/api/conges/${leaveId}/reject`);
             toast.success('Congé refusé avec succès');
             updateFilters({}); // Rafraîchir le calendrier
             handleCloseModal();

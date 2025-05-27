@@ -71,7 +71,7 @@ const DocsViewer: React.FC<DocsViewerProps> = ({ defaultDoc = 'performance.md' }
     const loadDocument = async (path: string) => {
         try {
             setLoading(true);
-            const response = await fetch(`/api/docs/${path}`);
+            const response = await fetch(`http://localhost:3000/api/docs/${path}`);
 
             if (response.ok) {
                 const content = await response.text();
@@ -119,7 +119,7 @@ const DocsViewer: React.FC<DocsViewerProps> = ({ defaultDoc = 'performance.md' }
             // Charger et chercher dans chaque document
             for (const doc of docsStructure) {
                 try {
-                    const response = await fetch(`/api/docs/${doc.path}`);
+                    const response = await fetch(`http://localhost:3000/api/docs/${doc.path}`);
                     if (response.ok) {
                         const content = await response.text();
                         const searchRegex = new RegExp(`(.{0,50}${searchQuery}.{0,50})`, 'gi');

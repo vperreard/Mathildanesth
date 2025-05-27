@@ -5,6 +5,9 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { createNotification } from '@/lib/notifications';
 
+jest.mock('@/lib/prisma');
+
+
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || typeof session.user.id !== 'number') {

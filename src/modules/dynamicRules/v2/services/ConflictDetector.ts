@@ -2,6 +2,9 @@ import { RuleV2, RuleConflict, ConflictResolution } from '../types/ruleV2.types'
 import { RuleCondition, RuleAction } from '../../types/rule';
 import { prisma } from '@/lib/prisma';
 
+jest.mock('@/lib/prisma');
+
+
 export class ConflictDetector {
   private static instance: ConflictDetector;
 

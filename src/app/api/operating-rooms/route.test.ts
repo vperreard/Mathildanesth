@@ -48,6 +48,7 @@ describe('GET /api/operating-rooms', () => {
     let request: Request;
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Réinitialiser la requête avant chaque test
         request = new Request('http://localhost:3000/api/operating-rooms?siteId=site1');
     });
@@ -66,6 +67,7 @@ describe('POST /api/operating-rooms', () => {
     let request: Request;
 
     beforeEach(() => {
+    jest.clearAllMocks();
         const body = JSON.stringify({
             name: 'Nouvelle Salle',
             number: 'NS1',

@@ -4,6 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { createSkillSchema } from '@/lib/schemas/skillSchemas';
 import { getCurrentUser, isAdmin, handleApiError } from '@/lib/apiUtils';
 
+jest.mock('@/lib/prisma');
+
+
 // GET /api/skills - Liste toutes les compétences
 export async function GET(request: NextRequest) {
     try {

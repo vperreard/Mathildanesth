@@ -61,6 +61,7 @@ describe('LeaveRequestForm Component', () => {
     const mockGetQuotaForType = jest.fn().mockReturnValue({ total: 10, used: 2, pending: 1, available: 7 });
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Configuration des mocks pour useLeave
         (useLeave as jest.Mock).mockReturnValue({
             leave: {

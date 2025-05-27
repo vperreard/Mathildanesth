@@ -1,6 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import { User, Site, Surgeon } from '@prisma/client';
 
+jest.mock('@/lib/prisma');
+
+
 export interface TeamMember {
   id: string;
   name: string;

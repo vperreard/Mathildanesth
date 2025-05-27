@@ -26,7 +26,7 @@ export interface TemplateStats {
  */
 export async function fetchTemplateStats(): Promise<TemplateStats> {
     try {
-        const response = await fetch('/api/simulations/templates/stats');
+        const response = await fetch('http://localhost:3000/api/simulations/templates/stats');
 
         if (!response.ok) {
             throw new Error('Erreur lors de la récupération des statistiques');

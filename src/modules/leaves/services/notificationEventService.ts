@@ -109,7 +109,7 @@ export class NotificationEventService {
      */
     private async getApproverIds(userId: string): Promise<string[]> {
         try {
-            const response = await fetch(`/api/utilisateurs/${userId}/approvers`);
+            const response = await fetch(`http://localhost:3000/api/utilisateurs/${userId}/approvers`);
             const data = await response.json();
             return data.map((user: User) => user.id);
         } catch (error) {

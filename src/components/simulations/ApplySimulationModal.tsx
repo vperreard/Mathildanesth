@@ -60,7 +60,7 @@ export function ApplySimulationModal({
             setConflicts([]);
 
             // Appeler l'API pour appliquer la simulation
-            const response = await fetch('/api/simulations/apply', {
+            const response = await fetch('http://localhost:3000/api/simulations/apply', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

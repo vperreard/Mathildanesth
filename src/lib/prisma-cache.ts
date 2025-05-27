@@ -2,7 +2,7 @@
 // Ce code s'exécute uniquement côté serveur
 const isServer: boolean = typeof window === 'undefined';
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import NodeCache from 'node-cache';
 
 // Configuration du cache
@@ -169,7 +169,7 @@ export function createCachedPrismaClient() {
         return null;
     }
 
-    const prisma = new PrismaClient();
+    const prisma = prisma;
     const cache = prismaCacheClient;
 
     if (!cache) {

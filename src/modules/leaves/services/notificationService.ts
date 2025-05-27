@@ -90,7 +90,7 @@ export class NotificationService {
     private async loadConfig(): Promise<void> {
         try {
             // Essayer de charger depuis le serveur
-            const response = await axios.get('/api/notifications/config');
+            const response = await axios.get('http://localhost:3000/api/notifications/config');
             this.config = { ...DEFAULT_NOTIFICATION_CONFIG, ...response.data };
         } catch (error) {
             // Fallback: utiliser localStorage
@@ -114,7 +114,7 @@ export class NotificationService {
 
         try {
             // Enregistrer côté serveur
-            await axios.post('/api/notifications/config', this.config);
+            await axios.post('http://localhost:3000/api/notifications/config', this.config);
 
             // Sauvegarder dans localStorage comme fallback
             localStorage.setItem('notificationConfig', JSON.stringify(this.config));
@@ -194,7 +194,7 @@ export class NotificationService {
 
         try {
             // Envoyer à l'API
-            const response = await axios.post('/api/notifications', completeNotification);
+            const response = await axios.post('http://localhost:3000/api/notifications', completeNotification);
             const savedNotification = response.data;
 
             // Émettre l'événement
@@ -247,7 +247,7 @@ export class NotificationService {
             }
 
             console.debug(`Chargement des notifications avec params: ${params.toString()}`);
-            const response = await axios.get(`/api/utilisateurs/${userId}/notifications?${params.toString()}`);
+            const response = await axios.get(`http://localhost:3000/api/utilisateurs/${userId}/notifications?${params.toString()}`);
 
             const { notifications, totalCount, unreadCount } = response.data;
 
@@ -308,7 +308,7 @@ export class NotificationService {
      */
     public async markAsRead(notificationId: string): Promise<void> {
         try {
-            await axios.post(`/api/notifications/${notificationId}/read`);
+            await axios.post(`http://localhost:3000/api/notifications/${notificationId}/read`);
 
             // Trouver et mettre à jour la notification dans le cache
             for (const [cacheKey, cachedValue] of this.notificationsCache.entries()) {
@@ -343,7 +343,7 @@ export class NotificationService {
      */
     public async markAllAsRead(userId: string): Promise<void> {
         try {
-            await axios.post(`/api/utilisateurs/${userId}/notifications/read-all`);
+            await axios.post(`http://localhost:3000/api/utilisateurs/${userId}/notifications/read-all`);
 
             // Invalider le cache pour cet utilisateur
             this.invalidateUserNotificationsCache(userId);
@@ -357,7 +357,7 @@ export class NotificationService {
      */
     public async deleteNotification(notificationId: string): Promise<void> {
         try {
-            await axios.delete(`/api/notifications/${notificationId}`);
+            await axios.delete(`http://localhost:3000/api/notifications/${notificationId}`);
 
             // Trouver et mettre à jour le cache
             for (const [cacheKey, cachedValue] of this.notificationsCache.entries()) {
@@ -391,7 +391,7 @@ export class NotificationService {
      */
     public async deleteAllNotifications(userId: string): Promise<void> {
         try {
-            await axios.delete(`/api/utilisateurs/${userId}/notifications`);
+            await axios.delete(`http://localhost:3000/api/utilisateurs/${userId}/notifications`);
 
             // Invalider le cache pour cet utilisateur
             this.invalidateUserNotificationsCache(userId);
@@ -562,7 +562,7 @@ export class NotificationService {
      */
     private async getApproverIds(userId: string): Promise<string[]> {
         try {
-            const response = await axios.get(`/api/utilisateurs/${userId}/approvers`);
+            const response = await axios.get(`http://localhost:3000/api/utilisateurs/${userId}/approvers`);
             return response.data.map((user: User) => user.id);
         } catch (error) {
             console.error('Erreur lors de la récupération des approbateurs:', error);
@@ -572,7 +572,7 @@ export class NotificationService {
 
     private async getSchedulerManagerIds(): Promise<string[]> {
         try {
-            const response = await axios.get('/api/utilisateurs/roles/SCHEDULER_MANAGER');
+            const response = await axios.get('http://localhost:3000/api/utilisateurs/roles/SCHEDULER_MANAGER');
             return response.data.map((user: User) => user.id);
         } catch (error) {
             console.error('Erreur lors de la récupération des gestionnaires de planning:', error);

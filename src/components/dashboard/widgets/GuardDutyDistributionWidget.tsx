@@ -23,7 +23,7 @@ export default function GuardDutyDistributionWidget() {
             setError(null);
 
             try {
-                const response = await fetch('/api/analytics/duty-distribution');
+                const response = await fetch('http://localhost:3000/api/analytics/duty-distribution');
 
                 if (!response.ok) {
                     throw new Error('Erreur lors de la récupération des données');

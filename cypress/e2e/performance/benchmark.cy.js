@@ -4,6 +4,7 @@
  */
 describe('Benchmark de performances', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         // Désactiver les animations pour des mesures plus précises
         cy.visit('/', {
             onBeforeLoad: (win) => {

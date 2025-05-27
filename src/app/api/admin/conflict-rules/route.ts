@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server';
 import { PrismaClient, User } from '@prisma/client';
 import { getServerSession } from "next-auth";
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 // Règles par défaut
 const DEFAULT_CONFLICT_RULES = {

@@ -1,12 +1,12 @@
-import { Metadata } from 'next';
+'use client';
+
 import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { notFound } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 // Import dynamique du composant d'édition
 const BlocPlanningEditor = dynamic(
-  () => import('@/app/bloc-operatoire/components/BlocPlanningEditor').catch(() => {
+  () => import('../../components/BlocPlanningEditor').catch(() => {
     return { 
       default: () => (
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
@@ -16,46 +16,24 @@ const BlocPlanningEditor = dynamic(
     };
   }),
   {
-    loading: () => <EditorLoadingSkeleton />,
+    loading: () => <LoadingSpinner size="lg" />,
     ssr: false
   }
 );
 
-export const metadata: Metadata = {
-  title: 'Créer un Planning | Mathildanesth',
-  description: 'Créer un nouveau planning pour le bloc opératoire',
-};
+export default function CreatePlanningPage() {
+  const params = useParams();
+  const date = params.date as string;
 
-function EditorLoadingSkeleton() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-10 w-full max-w-md" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Skeleton className="h-96 w-full" />
-        <Skeleton className="h-96 w-full" />
-      </div>
-      <div className="flex justify-end gap-2">
-        <Skeleton className="h-10 w-24" />
-        <Skeleton className="h-10 w-24" />
-      </div>
-    </div>
-  );
-}
-
-interface CreatePlanningPageProps {
-  params: { date: string };
-}
-
-export default function CreatePlanningPage({ params }: CreatePlanningPageProps) {
   // Valider le format de la date
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  if (!dateRegex.test(params.date)) {
-    notFound();
+  if (!dateRegex.test(date)) {
+    return <div>Date invalide</div>;
   }
 
-  const selectedDate = new Date(params.date);
+  const selectedDate = new Date(date);
   if (isNaN(selectedDate.getTime())) {
-    notFound();
+    return <div>Date invalide</div>;
   }
 
   return (
@@ -74,9 +52,7 @@ export default function CreatePlanningPage({ params }: CreatePlanningPageProps) 
         </p>
       </div>
 
-      <Suspense fallback={<EditorLoadingSkeleton />}>
-        <BlocPlanningEditor date={params.date} mode="create" />
-      </Suspense>
+      <BlocPlanningEditor date={date} mode="create" />
     </div>
   );
 }

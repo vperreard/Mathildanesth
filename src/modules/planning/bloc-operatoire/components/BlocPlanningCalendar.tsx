@@ -24,13 +24,13 @@ export default function BlocPlanningCalendar({ date, period, onAssignmentChange 
             setIsLoading(true);
             try {
                 // Fetch rooms
-                const roomsResponse = await fetch('/api/operating-rooms');
+                const roomsResponse = await fetch('http://localhost:3000/api/operating-rooms');
                 if (!roomsResponse.ok) throw new Error('Erreur lors de la récupération des salles');
                 const roomsData = await roomsResponse.json();
                 setRooms(roomsData);
 
                 // Fetch surgeons (à remplacer par la vraie API)
-                const surgeonsResponse = await fetch('/api/chirurgiens');
+                const surgeonsResponse = await fetch('http://localhost:3000/api/chirurgiens');
                 if (surgeonsResponse.ok) {
                     const surgeonsData = await surgeonsResponse.json();
                     setSurgeons(surgeonsData);
@@ -38,7 +38,7 @@ export default function BlocPlanningCalendar({ date, period, onAssignmentChange 
 
                 // Fetch existing planning
                 const dateString = date.toISOString().split('T')[0];
-                const planningResponse = await fetch(`/api/planning/bloc?date=${dateString}&period=${period}`);
+                const planningResponse = await fetch(`http://localhost:3000/api/planning/bloc?date=${dateString}&period=${period}`);
                 if (planningResponse.ok) {
                     const planningData = await planningResponse.json();
                     if (planningData) {

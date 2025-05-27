@@ -200,7 +200,7 @@ export const calculateWeeklyWorkingDays = (schedule: WorkSchedule): WeeklyWorkin
  */
 export const fetchUserWorkSchedules = async (userId: string): Promise<WorkSchedule[]> => {
     try {
-        const response = await fetch(`/api/profils/work-schedules?userId=${userId}`);
+        const response = await fetch(`http://localhost:3000/api/profils/work-schedules?userId=${userId}`);
 
         if (!response.ok) {
             throw new Error(`Erreur lors de la récupération des plannings de travail: ${response.statusText}`);
@@ -251,7 +251,7 @@ export const saveWorkSchedule = async (schedule: Partial<WorkSchedule>): Promise
  */
 export const deleteWorkSchedule = async (scheduleId: string): Promise<void> => {
     try {
-        const response = await fetch(`/api/profils/work-schedules/${scheduleId}`, {
+        const response = await fetch(`http://localhost:3000/api/profils/work-schedules/${scheduleId}`, {
             method: 'DELETE',
         });
 

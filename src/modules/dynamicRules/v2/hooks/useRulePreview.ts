@@ -11,7 +11,7 @@ export const useRulePreview = () => {
     setError(undefined);
 
     try {
-      const response = await fetch('/api/admin/rules/v2/preview', {
+      const response = await fetch('http://localhost:3000/api/admin/rules/v2/preview', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

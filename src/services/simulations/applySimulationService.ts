@@ -1,7 +1,10 @@
 import { PrismaClient, SimulationStatus, Assignment, Leave } from '@prisma/client';
 import { simulationNotificationService } from './notificationService';
 
-const prisma = new PrismaClient();
+jest.mock('@/lib/prisma');
+
+
+const prisma = prisma;
 
 /**
  * Options pour l'application d'une simulation au planning réel

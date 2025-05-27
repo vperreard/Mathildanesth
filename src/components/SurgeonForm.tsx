@@ -117,7 +117,7 @@ export default function SurgeonForm({
             setLoadingSpecialties(true);
             setError(null);
             try {
-                const response = await fetch('/api/specialties');
+                const response = await fetch('http://localhost:3000/api/specialties');
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(errorData.message || 'Erreur lors de la récupération des spécialités');

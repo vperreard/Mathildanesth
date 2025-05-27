@@ -62,7 +62,7 @@ export default function SimulationsPage() {
 
             try {
                 // Charger les scénarios
-                const scenariosResponse = await fetch('/api/simulations/scenarios');
+                const scenariosResponse = await fetch('http://localhost:3000/api/simulations/scenarios');
 
                 if (!scenariosResponse.ok) {
                     throw new Error('Erreur lors de la récupération des scénarios');
@@ -72,7 +72,7 @@ export default function SimulationsPage() {
                 setScenarios(scenariosData.data);
 
                 // Charger les templates
-                const templatesResponse = await fetch('/api/simulations/templates');
+                const templatesResponse = await fetch('http://localhost:3000/api/simulations/templates');
 
                 if (!templatesResponse.ok) {
                     throw new Error('Erreur lors de la récupération des templates');
@@ -97,7 +97,7 @@ export default function SimulationsPage() {
 
         setIsDeleting(true);
         try {
-            const response = await fetch(`/api/simulations/scenarios/${selectedScenarioId}`, {
+            const response = await fetch(`http://localhost:3000/api/simulations/scenarios/${selectedScenarioId}`, {
                 method: 'DELETE'
             });
 
@@ -122,7 +122,7 @@ export default function SimulationsPage() {
     const runSimulation = async (scenarioId: string) => {
         try {
             // Appeler l'API pour exécuter la simulation
-            const response = await fetch('/api/simulations/run', {
+            const response = await fetch('http://localhost:3000/api/simulations/run', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -168,7 +168,7 @@ export default function SimulationsPage() {
         setIsDuplicating(true);
         try {
             // Appeler l'API pour dupliquer le scénario
-            const response = await fetch('/api/simulations/scenarios/duplicate', {
+            const response = await fetch('http://localhost:3000/api/simulations/scenarios/duplicate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

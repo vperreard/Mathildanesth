@@ -5,6 +5,9 @@ import { cache } from 'react';
 import { getRuleNotificationService } from '../../services/RuleNotificationService';
 import { RuleSeverity } from '@/types/rules';
 
+jest.mock('@/lib/prisma');
+
+
 export class RuleEngineV2 {
   private static instance: RuleEngineV2;
   private rulesCache: Map<string, { rule: RuleV2; timestamp: number }> = new Map();

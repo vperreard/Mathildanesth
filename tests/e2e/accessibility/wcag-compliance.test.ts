@@ -70,6 +70,7 @@ describe('WCAG 2.1 Accessibility Compliance Tests', () => {
   });
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     page = await browser.newPage();
     await page.setViewport({ width: 1920, height: 1080 });
   });

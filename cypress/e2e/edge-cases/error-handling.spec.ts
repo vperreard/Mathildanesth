@@ -14,6 +14,7 @@ describe('Gestion des erreurs et cas limites', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Réinitialiser la base de données de test
         cy.task('resetTestDatabase');
 

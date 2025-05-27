@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateRecurringDates } from '@/modules/leaves/utils/recurringLeavesUtils';
-import { getPublicHolidays } from '@/modules/calendar/services/calendarService';
+import { getPublicHolidays } from '@/modules/leaves/services/publicHolidayService';
 
 /**
  * POST /api/conges/recurrents/preview

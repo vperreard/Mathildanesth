@@ -7,6 +7,7 @@ describe('Validation des règles métier', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Réinitialiser et préparer les données
         cy.task('resetTestDatabase');
         cy.task('seedTestData', {
@@ -19,6 +20,7 @@ describe('Validation des règles métier', () => {
 
     describe('Règles de gestion des congés', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             cy.visitAsAuthenticatedUser('/conges');
         });
 
@@ -119,6 +121,7 @@ describe('Validation des règles métier', () => {
 
     describe('Règles de planification bloc opératoire', () => {
         beforeEach(() => {
+    jest.clearAllMocks();
             cy.visitAsAuthenticatedUser('/bloc-operatoire');
         });
 

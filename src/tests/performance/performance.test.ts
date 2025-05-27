@@ -8,6 +8,7 @@ import { performanceMonitor } from '../../lib/monitoring';
 
 describe('Performance Tests - Modules Critiques', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         performanceMonitor.reset();
     });
 

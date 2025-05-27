@@ -5,6 +5,9 @@ import { withAuth } from '@/middleware/authorization';
 import { logger } from '@/lib/logger';
 import { auditService } from '@/services/auditService';
 
+jest.mock('@/lib/prisma');
+
+
 export const POST = withAuth({
     requireAuth: true,
     allowedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],

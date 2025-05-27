@@ -4,13 +4,16 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
 
+jest.mock('@/lib/prisma');
+
+
 // Importer les types et services nécessaires
 import { Rule } from '@/modules/dynamicRules/types/rule';
 import { User } from '@/types/user';
 import { RuleEngineService } from '@/modules/dynamicRules/services/ruleEngineService';
 import { RuleBasedPlanningGeneratorService, OptimizationResult } from '@/modules/rules/services/RuleBasedPlanningGeneratorService';
 
-const prisma = new PrismaClient();
+const prisma = prisma;
 
 interface SimulationParameters {
     period: {

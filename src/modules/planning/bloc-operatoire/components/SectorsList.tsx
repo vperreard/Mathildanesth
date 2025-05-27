@@ -23,7 +23,7 @@ export default function SectorsList({ onSelect, selectable = false }: SectorsLis
         async function fetchSectors() {
             try {
                 setIsLoading(true);
-                const response = await fetch('/api/operating-sectors');
+                const response = await fetch('http://localhost:3000/api/operating-sectors');
 
                 if (!response.ok) {
                     throw new Error('Erreur lors de la récupération des secteurs');

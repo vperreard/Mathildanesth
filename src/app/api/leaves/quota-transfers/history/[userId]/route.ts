@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+jest.mock('@/lib/prisma');
+
+
 interface Params {
     params: {
         userId: string;

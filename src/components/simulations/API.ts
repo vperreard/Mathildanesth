@@ -40,7 +40,7 @@ export interface ApplySimulationResult {
  */
 export async function applySimulationToPlanning(options: ApplySimulationOptions): Promise<ApplySimulationResult> {
     try {
-        const response = await fetch('/api/simulations/apply', {
+        const response = await fetch('http://localhost:3000/api/simulations/apply', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export interface GetSimulationResultOptions {
  */
 export async function getSimulationResult({ resultId }: GetSimulationResultOptions) {
     try {
-        const response = await fetch(`/api/simulations/results/${resultId}`);
+        const response = await fetch(`http://localhost:3000/api/simulations/results/${resultId}`);
 
         if (!response.ok) {
             throw new Error('Erreur lors du chargement des données du résultat');

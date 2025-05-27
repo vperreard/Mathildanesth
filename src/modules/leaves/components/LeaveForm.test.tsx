@@ -454,6 +454,7 @@ describe('LeaveForm', () => {
         };
 
         beforeEach(() => {
+    jest.clearAllMocks();
             // Par défaut, pour les tests de soumission, on simule que le calcul est réussi après sélection des dates.
             // Le composant lui-même va passer par 'loading' etc.
             simulateDateSelection(validStartDate, validEndDate, 'success');

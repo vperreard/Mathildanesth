@@ -36,7 +36,7 @@ export const RuleTemplates: React.FC<RuleTemplatesProps> = ({ onSelectTemplate }
       const params = new URLSearchParams();
       if (selectedCategory) params.append('category', selectedCategory);
       
-      const response = await fetch(`/api/admin/rules/v2/templates?${params}`);
+      const response = await fetch(`http://localhost:3000/api/admin/rules/v2/templates?${params}`);
       if (!response.ok) throw new Error('Failed to fetch templates');
       return response.json();
     }

@@ -2,6 +2,9 @@ import { PrismaClient, TrameModele, AffectationModele, PersonnelRequisModele, Ac
 import { startOfWeek, addWeeks, addDays, format, getISOWeek, getISODay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
+jest.mock('@/lib/prisma');
+
+
 interface TrameModeleWithRelations extends TrameModele {
   affectations: (AffectationModele & {
     activityType: ActivityType;
@@ -33,7 +36,7 @@ export class TrameApplicationService {
   private prisma: PrismaClient;
 
   constructor() {
-    this.prisma = new PrismaClient();
+    this.prisma = prisma;
   }
 
   /**

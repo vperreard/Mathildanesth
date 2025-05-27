@@ -221,7 +221,7 @@ class PerformanceMonitor {
     private async sendAlertToService(alertData: any) {
         try {
             // Exemple d'envoi vers une API de monitoring
-            // await fetch('/api/monitoring/alerts', {
+            // await fetch('http://localhost:3000/api/monitoring/alerts', {
             //   method: 'POST',
             //   headers: { 'Content-Type': 'application/json' },
             //   body: JSON.stringify(alertData)

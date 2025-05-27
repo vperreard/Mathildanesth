@@ -59,7 +59,7 @@ export default function PlanningValidationPage() {
         try {
             setIsLoading(true);
             // TODO: Charger depuis l'API
-            const response = await fetch('/api/planning/current');
+            const response = await fetch('http://localhost:3000/api/planning/current');
             const data = await response.json();
             
             setAssignments(data.assignments || []);
@@ -106,7 +106,7 @@ export default function PlanningValidationPage() {
     // Valider le planning
     const validatePlanning = async (planningData: Assignment[] = assignments) => {
         try {
-            const response = await fetch('/api/planning/validate', {
+            const response = await fetch('http://localhost:3000/api/planning/validate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ assignments: planningData })
@@ -132,7 +132,7 @@ export default function PlanningValidationPage() {
     const handleApprove = async () => {
         setIsSaving(true);
         try {
-            const response = await fetch('/api/planning/approve', {
+            const response = await fetch('http://localhost:3000/api/planning/approve', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -167,7 +167,7 @@ export default function PlanningValidationPage() {
     // Exporter en PDF
     const handleExportPDF = async () => {
         try {
-            const response = await fetch('/api/planning/export/pdf', {
+            const response = await fetch('http://localhost:3000/api/planning/export/pdf', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ assignments, month: format(selectedMonth, 'yyyy-MM') })

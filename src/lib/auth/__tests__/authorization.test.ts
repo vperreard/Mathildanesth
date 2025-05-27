@@ -447,6 +447,7 @@ describe('Authorization Module', () => {
         const mockHandler = jest.fn();
         
         beforeEach(() => {
+    jest.clearAllMocks();
             mockHandler.mockResolvedValue(new Response('OK'));
         });
 

@@ -65,7 +65,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
         setIsLoadingSpecialties(true);
         setErrorSpecialties(null);
         try {
-            const response = await fetch('/api/specialties', { credentials: 'include' });
+            const response = await fetch('http://localhost:3000/api/specialties', { credentials: 'include' });
             if (!response.ok) {
                 let errorMsg = `Erreur API (${response.status})`;
                 try { const errorData = await response.json(); errorMsg = errorData.message || errorMsg; } catch (e) { /* no json */ }

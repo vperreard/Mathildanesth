@@ -4,6 +4,9 @@ import { prisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken'; // AJOUT
 import { ActivityType, Prisma } from '@prisma/client';
 
+jest.mock('@/lib/prisma');
+
+
 // Helper pour vérifier l'authentification et les permissions (simplifié)
 async function authorizeRequest(req: NextRequest) {
     const authorizationHeader = req.headers.get('authorization');

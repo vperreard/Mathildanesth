@@ -6,6 +6,9 @@ import { logger } from '@/lib/logger';
 import { requirePlanningPermission, AuthenticationError, AuthorizationError, logSecurityAction } from '@/lib/auth/authorization';
 import { auditService, AuditAction } from '@/services/auditService';
 
+jest.mock('@/lib/prisma');
+
+
 // PUT /api/affectation-modeles/{affectationModeleId} - Mettre à jour une AffectationModele
 export const PUT = withAuth({
     requireAuth: true,

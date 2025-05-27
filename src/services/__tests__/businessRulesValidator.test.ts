@@ -166,6 +166,7 @@ describe('BusinessRulesValidator', () => {
     const tomorrow = addDays(today, 1);
 
     beforeEach(() => {
+    jest.clearAllMocks();
       // Reset all mocks
       (prisma.assignment.findMany as jest.Mock).mockResolvedValue([]);
       (prisma.assignment.findFirst as jest.Mock).mockResolvedValue(null);
@@ -327,6 +328,7 @@ describe('BusinessRulesValidator', () => {
     const nextWeek = addDays(today, 7);
 
     beforeEach(() => {
+    jest.clearAllMocks();
       // Mock site par défaut
       (prisma.site.findUnique as jest.Mock).mockResolvedValue({
         id: mockSiteId,

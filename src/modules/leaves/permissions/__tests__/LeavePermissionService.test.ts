@@ -500,6 +500,7 @@ describe('LeavePermissionService', () => {
         let hasPermissionSpy: jest.SpyInstance;
 
         beforeEach(() => {
+    jest.clearAllMocks();
             // Configurer le mock getCurrentUser pour renvoyer l'utilisateur manager
             getCurrentUserSpy = jest.spyOn(permissionService as any, 'getCurrentUser')
                 .mockResolvedValue(mockManagerUser);

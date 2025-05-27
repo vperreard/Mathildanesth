@@ -58,6 +58,7 @@ describe('useDateValidation', () => {
     const holiday = new Date('2023-01-01');
 
     beforeEach(() => {
+    jest.clearAllMocks();
         // Nettoyer les mocks
         mockSetError.mockClear();
         mockClearError.mockClear();

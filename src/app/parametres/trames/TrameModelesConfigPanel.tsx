@@ -331,11 +331,11 @@ const TrameModelesConfigPanel: React.FC = () => {
             let response;
             if (currentTrame && currentTrame.id) {
                 // Logique de mise à jour (PUT)
-                response = await axios.put(`/api/trame-modeles/${currentTrame.id}`, dataToSubmit);
+                response = await axios.put(`http://localhost:3000/api/trame-modeles/${currentTrame.id}`, dataToSubmit);
                 toast.success('Modèle de trame mis à jour avec succès!');
             } else {
                 // Logique de création (POST)
-                response = await axios.post('/api/trame-modeles', dataToSubmit);
+                response = await axios.post('http://localhost:3000/api/trame-modeles', dataToSubmit);
                 toast.success('Modèle de trame créé avec succès!');
             }
 
@@ -361,7 +361,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             setIsLoading(true); // Indiquer une opération en cours
             setError(null);
             try {
-                await axios.delete(`/api/trame-modeles/${trameId}`);
+                await axios.delete(`http://localhost:3000/api/trame-modeles/${trameId}`);
                 toast.success("Modèle de trame supprimé avec succès!");
                 fetchTrameModeles(); // Recharger la liste
             } catch (err: any) {
@@ -472,7 +472,7 @@ const TrameModelesConfigPanel: React.FC = () => {
         if (window.confirm("Supprimer cette affectation ?")) {
             setIsLoading(true);
             try {
-                await axios.delete(`/api/affectation-modeles/${affectationId}`);
+                await axios.delete(`http://localhost:3000/api/affectation-modeles/${affectationId}`);
                 toast.success("Affectation supprimée.");
                 // Mettre à jour l'état local
                 if (currentTrame && currentTrame.affectations) {

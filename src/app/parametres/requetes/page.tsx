@@ -19,7 +19,7 @@ const RequestsPage: React.FC = () => {
     const fetchRequests = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch('/api/admin/demandes');
+            const res = await fetch('http://localhost:3000/api/admin/demandes');
             if (!res.ok) throw new Error('Erreur lors de la récupération des requêtes');
             const data = await res.json();
             setRequests(data);
@@ -36,7 +36,7 @@ const RequestsPage: React.FC = () => {
 
     const handleValidate = async (id: number) => {
         try {
-            const res = await fetch(`/api/admin/demandes/${id}`, {
+            const res = await fetch(`http://localhost:3000/api/admin/demandes/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'validated' })

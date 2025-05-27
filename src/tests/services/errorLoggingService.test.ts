@@ -156,6 +156,7 @@ const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {
 
 describe('Error Logging Service', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
         consoleErrorMock.mockClear();
     });
 

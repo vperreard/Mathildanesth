@@ -63,24 +63,24 @@ export default function Prefetcher() {
             switch (mainSection) {
                 case 'utilisateurs':
                     // Dans la section utilisateurs, précharger les compétences
-                    fetch('/api/skills', { headers }).catch(() => { });
+                    fetch('http://localhost:3000/api/skills', { headers }).catch(() => { });
                     break;
 
                 case 'calendar':
                 case 'planning':
                     // Pour la planification, précharger les congés et utilisateurs
-                    fetch('/api/leaves', { headers }).catch(() => { });
-                    fetch('/api/utilisateurs', { headers }).catch(() => { });
+                    fetch('http://localhost:3000/api/leaves', { headers }).catch(() => { });
+                    fetch('http://localhost:3000/api/utilisateurs', { headers }).catch(() => { });
                     break;
 
                 case 'leaves':
                     // Pour les congés, précharger les types de congés
-                    fetch('/api/leaves/types', { headers }).catch(() => { });
+                    fetch('http://localhost:3000/api/leaves/types', { headers }).catch(() => { });
                     break;
 
                 case 'parametres':
                     // Pour les paramètres, précharger les configurations
-                    fetch('/api/admin/configuration', { headers }).catch(() => { });
+                    fetch('http://localhost:3000/api/admin/configuration', { headers }).catch(() => { });
                     break;
 
                 case '':

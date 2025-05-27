@@ -5,6 +5,9 @@ import { authOptions } from '@/lib/auth';
 import { RulesConfiguration, FatigueConfig } from '@/types/rules';
 import { getDefaultTemplates } from '@/lib/default-rule-templates';
 
+jest.mock('@/lib/prisma');
+
+
 export async function GET(request: Request) {
     try {
         const session = await getServerSession(authOptions);
