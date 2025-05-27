@@ -170,16 +170,26 @@ export async function verifyToken(token: string): Promise<TokenPayload & jose.JW
 
         // Vérifier si le payload a la structure attendue (TokenPayload)
         if (typeof payload.userId !== 'number' || typeof payload.login !== 'string' || typeof payload.role !== 'string') {
-            throw new Error('Payload du token invalide');
+            throw new Error('Token invalide ou malformé');
         }
 
         return payload as TokenPayload & jose.JWTVerifyResult['payload'];
     } catch (error: any) {
         // Gérer les erreurs spécifiques de jose (ex: JWTExpired, JWTInvalid)
-        console.error("Erreur de vérification du token:", error.code || error.message);
+        // Ne pas logger en mode test pour éviter la pollution des logs
+        if (process.env.NODE_ENV !== 'test') {
+            console.error("Erreur de vérification du token:", error.code || error.message);
+        }
+        
         if (error instanceof jose.errors.JWTExpired) {
             throw new Error('Token expiré');
         }
+        
+        // Si c'est déjà notre propre erreur, la propager
+        if (error.message === 'Token invalide ou malformé') {
+            throw error;
+        }
+        
         throw new Error('Token invalide ou malformé');
     }
 } 

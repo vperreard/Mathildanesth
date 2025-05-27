@@ -1,0 +1,205 @@
+import { NextRequest } from 'next/server';
+import { getUserFromCookie } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { Role } from '@prisma/client';
+
+// Mock dependencies
+jest.mock('@/lib/auth');
+jest.mock('@/lib/prisma');
+jest.mock('@/services/planningGenerator');
+
+const mockedGetUserFromCookie = getUserFromCookie as jest.MockedFunction<typeof getUserFromCookie>;
+const mockedPrisma = prisma as jest.Mocked<typeof prisma>;
+
+// Mock NextResponse
+jest.mock('next/server', () => ({
+    NextRequest: jest.requireActual('next/server').NextRequest,
+    NextResponse: {
+        json: (data: any, init?: ResponseInit) => {
+            const response = new Response(JSON.stringify(data), {
+                ...init,
+                headers: {
+                    'content-type': 'application/json',
+                    ...(init?.headers || {})
+                }
+            });
+            return response;
+        }
+    }
+}));
+
+describe('POST /api/planning/generate', () => {
+    let handler: any;
+    let mockPlanningGenerator: any;
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        
+        // Mock planning generator
+        jest.doMock('@/services/planningGenerator', () => ({
+            generatePlanning: jest.fn(),
+        }));
+        
+        const route = await import('@/app/api/planning/generate/route');
+        handler = route.POST;
+        
+        const planningGeneratorModule = await import('@/services/planningGenerator');
+        mockPlanningGenerator = planningGeneratorModule.generatePlanning as jest.MockedFunction<any>;
+    });
+
+    const createRequest = (body: any) => {
+        return new NextRequest('http://localhost:3000/api/planning/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'cookie': 'auth-token=valid_token',
+            },
+            body: JSON.stringify(body),
+        });
+    };
+
+    it('should generate planning for admin user', async () => {
+        const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
+        const generateData = {
+            startDate: '2024-01-01',
+            endDate: '2024-01-31',
+            siteId: 1,
+            roomIds: [1, 2, 3],
+            options: {
+                useTemplate: true,
+                validateRules: true,
+            },
+        };
+
+        const mockGeneratedPlanning = {
+            assignments: [
+                {
+                    id: 1,
+                    date: '2024-01-01',
+                    roomId: 1,
+                    userId: 2,
+                    period: 'AM',
+                },
+            ],
+            conflicts: [],
+            statistics: {
+                totalAssignments: 1,
+                conflicts: 0,
+            },
+        };
+
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+        mockPlanningGenerator.mockResolvedValue(mockGeneratedPlanning);
+
+        const request = createRequest(generateData);
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(200);
+        expect(data).toEqual(mockGeneratedPlanning);
+        expect(mockPlanningGenerator).toHaveBeenCalledWith(
+            expect.objectContaining({
+                startDate: expect.any(Date),
+                endDate: expect.any(Date),
+                siteId: 1,
+                roomIds: [1, 2, 3],
+            })
+        );
+    });
+
+    it('should return 403 for non-admin user', async () => {
+        const mockUser = { id: 1, role: Role.USER };
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+        const request = createRequest({
+            startDate: '2024-01-01',
+            endDate: '2024-01-31',
+        });
+
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(403);
+        expect(data.error).toBe('Accès refusé');
+    });
+
+    it('should return 400 for missing required fields', async () => {
+        const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+        const testCases = [
+            { endDate: '2024-01-31' }, // Missing startDate
+            { startDate: '2024-01-01' }, // Missing endDate
+            {}, // Missing both
+        ];
+
+        for (const testCase of testCases) {
+            const request = createRequest(testCase);
+            const response = await handler(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(400);
+            expect(data.error).toContain('requis');
+        }
+    });
+
+    it('should return 400 for invalid date range', async () => {
+        const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+        const request = createRequest({
+            startDate: '2024-01-31',
+            endDate: '2024-01-01', // End before start
+        });
+
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(400);
+        expect(data.error).toContain('date');
+    });
+
+    it('should handle planning generation errors', async () => {
+        const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+        mockPlanningGenerator.mockRejectedValue(new Error('Generation failed'));
+
+        const request = createRequest({
+            startDate: '2024-01-01',
+            endDate: '2024-01-31',
+        });
+
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(500);
+        expect(data.error).toBe('Erreur lors de la génération du planning');
+    });
+
+    it('should validate room access', async () => {
+        const mockUser = { id: 1, role: Role.ADMIN_PARTIEL, siteIds: [1] };
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+        // Mock room validation
+        mockedPrisma.operatingRoom = {
+            findMany: jest.fn().mockResolvedValue([
+                { id: 1, siteId: 1 },
+                { id: 2, siteId: 1 },
+            ]),
+        } as any;
+
+        mockPlanningGenerator.mockResolvedValue({ assignments: [] });
+
+        const request = createRequest({
+            startDate: '2024-01-01',
+            endDate: '2024-01-31',
+            roomIds: [1, 2, 3], // Room 3 not found
+        });
+
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(403);
+        expect(data.error).toContain('accès');
+    });
+});

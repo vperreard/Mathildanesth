@@ -18,15 +18,13 @@ describe('Authentification et gestion des sessions', () => {
 
     it('permet la connexion avec des identifiants valides', () => {
         cy.visit('/auth/login');
-        cy.get('[data-cy=email-input]').type(testUser.email);
-        cy.get('[data-cy=password-input]').type(testUser.password);
-        cy.get('[data-cy=login-button]').click();
+        cy.get('[data-testid=login-email-input]').type(testUser.email);
+        cy.get('[data-testid=login-password-input]').type(testUser.password);
+        cy.get('[data-testid=login-submit-button]').click();
 
         // Vérifier la redirection après connexion
-        cy.url().should(url => {
-            expect(url).to.satisfy((url: string) => {
-                return url.includes('/dashboard') || url.includes('/planning');
-            });
+        cy.url().should('satisfy', (url: string) => {
+            return url.includes('/dashboard') || url.includes('/planning');
         });
 
         // Vérifier que le nom de l'utilisateur est affiché
@@ -35,14 +33,14 @@ describe('Authentification et gestion des sessions', () => {
 
     it('affiche un message d\'erreur pour des identifiants invalides', () => {
         cy.visit('/auth/login');
-        cy.get('[data-cy=email-input]').type('utilisateur.invalide@example.com');
-        cy.get('[data-cy=password-input]').type('mot_de_passe_incorrect');
-        cy.get('[data-cy=login-button]').click();
+        cy.get('[data-testid=login-email-input]').type('utilisateur.invalide@example.com');
+        cy.get('[data-testid=login-password-input]').type('mot_de_passe_incorrect');
+        cy.get('[data-testid=login-submit-button]').click();
 
         // Vérifier le message d'erreur
-        cy.get('[data-cy=notification-error]')
+        cy.get('[data-testid=login-error-message]')
             .should('be.visible')
-            .and('contain', 'Identifiants invalides');
+            .and('contain.text', 'Identifiants invalides');
     });
 
     it('maintient la session utilisateur après rafraîchissement de la page', () => {
@@ -89,9 +87,9 @@ describe('Authentification et gestion des sessions', () => {
         cy.url().should('include', '/auth/login');
 
         // Se connecter
-        cy.get('[data-cy=email-input]').type(testUser.email);
-        cy.get('[data-cy=password-input]').type(testUser.password);
-        cy.get('[data-cy=login-button]').click();
+        cy.get('[data-testid=login-email-input]').type(testUser.email);
+        cy.get('[data-testid=login-password-input]').type(testUser.password);
+        cy.get('[data-testid=login-submit-button]').click();
 
         // Vérifier qu'on est redirigé vers la page initialement demandée
         cy.url().should('include', '/planning');

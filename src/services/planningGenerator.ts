@@ -11,6 +11,7 @@ import { ShiftType } from '../types/common';
 import { User, WeekType, Leave } from '../types/user';
 import { RulesConfiguration, FatigueConfig, defaultRulesConfiguration, defaultFatigueConfig, RuleSeverity } from '../types/rules';
 import { PlanningOptimizer } from './planningOptimizer';
+import { rulesConfigService } from './rulesConfigService';
 import {
     parseDate,
     addDaysToDate,
@@ -22,6 +23,8 @@ import {
 } from '@/utils/dateUtils';
 import { differenceInDays } from 'date-fns';
 // import { fetchFatigueConfig } from '@/app/parametres/configuration/fatigue/page'; // !! Temporairement commenté !!
+import { RuleEngineV2 } from '@/modules/dynamicRules/v2/services/RuleEngineV2';
+import { RuleContext } from '@/modules/dynamicRules/v2/types/ruleV2.types';
 
 // Simulation Logger
 const logger = {
@@ -42,6 +45,7 @@ export class PlanningGenerator {
     private existingAssignments: Assignment[] = [];
     private userCounters: Map<string, UserCounter> = new Map();
     private isInitialized: boolean = false;
+    private ruleEngine: RuleEngineV2;
     private results: {
         gardes: Assignment[];
         astreintes: Assignment[];
@@ -57,6 +61,7 @@ export class PlanningGenerator {
         this.parameters = parameters;
         this.rulesConfig = rulesConfig;
         this.fatigueConfig = fatigueConfig;
+        this.ruleEngine = new RuleEngineV2();
         this.results = {
             gardes: [],
             astreintes: [],
@@ -72,9 +77,17 @@ export class PlanningGenerator {
     async initialize(personnel: User[], existingAssignments: Assignment[] = []): Promise<void> {
         this.personnel = personnel;
         this.existingAssignments = existingAssignments;
+        
+        // Charger la configuration dynamique depuis la base de données
+        this.rulesConfig = await rulesConfigService.getRulesConfiguration();
+        this.fatigueConfig = await rulesConfigService.getFatigueConfiguration();
+        
+        // Initialiser le moteur de règles V2
+        await this.ruleEngine.initialize();
+        
         this.initializeUserCounters();
         this.isInitialized = true;
-        logger.log("PlanningGenerator initialized.");
+        logger.log("PlanningGenerator initialized with dynamic configuration and RuleEngineV2.");
     }
 
     private initializeUserCounters(): void {
@@ -141,6 +154,94 @@ export class PlanningGenerator {
         }
     }
 
+    private createRuleContext(date: Date, user?: User, assignment?: Partial<Assignment>): RuleContext {
+        return {
+            date,
+            user: user ? {
+                id: String(user.id),
+                name: user.name,
+                email: user.email,
+                weekType: user.weekType,
+                specialty: user.specialty,
+                yearsOfExperience: user.yearsOfExperience || 0
+            } : undefined,
+            assignment: assignment ? {
+                type: assignment.shiftType,
+                startDate: assignment.startDate,
+                endDate: assignment.endDate,
+                userId: assignment.userId,
+                location: assignment.notes
+            } : undefined,
+            planning: {
+                existingAssignments: this.existingAssignments,
+                proposedAssignments: [
+                    ...this.results.gardes,
+                    ...this.results.astreintes,
+                    ...this.results.consultations,
+                    ...this.results.blocs
+                ]
+            },
+            metrics: user && this.userCounters.get(String(user.id)) ? {
+                fatigueScore: this.userCounters.get(String(user.id))!.fatigue.score,
+                totalAssignments: this.userCounters.get(String(user.id))!.gardes.total + 
+                                this.userCounters.get(String(user.id))!.astreintes.total,
+                weekendAssignments: this.userCounters.get(String(user.id))!.gardes.weekends
+            } : undefined
+        };
+    }
+
+    private async applyGenerationRules(context: RuleContext): Promise<Assignment[]> {
+        const ruleResults = await this.ruleEngine.evaluate(context, 'generation');
+        const generatedAssignments: Assignment[] = [];
+
+        for (const result of ruleResults) {
+            if (result.actions) {
+                for (const action of result.actions) {
+                    if (action.type === 'assign' && action.parameters.userId && action.parameters.shiftType) {
+                        const user = this.personnel.find(u => String(u.id) === action.parameters.userId);
+                        if (user) {
+                            const assignment = this.createAssignment(
+                                user,
+                                context.date,
+                                action.parameters.shiftType as ShiftType,
+                                action.parameters.assignmentType as AssignmentType,
+                                action.parameters.notes
+                            );
+                            generatedAssignments.push(assignment);
+                        }
+                    }
+                }
+            }
+        }
+
+        return generatedAssignments;
+    }
+
+    private async applyValidationRules(assignment: Assignment): Promise<RuleViolation[]> {
+        const user = this.personnel.find(u => String(u.id) === assignment.userId);
+        const context = this.createRuleContext(assignment.startDate, user, assignment);
+        const ruleResults = await this.ruleEngine.evaluate(context, 'validation');
+        const violations: RuleViolation[] = [];
+
+        for (const result of ruleResults) {
+            if (!result.passed && result.actions) {
+                for (const action of result.actions) {
+                    if (action.type === 'validate' && action.parameters.severity) {
+                        violations.push({
+                            id: `rule-${result.ruleId}-${Date.now()}`,
+                            type: action.parameters.violationType || 'RULE_VIOLATION',
+                            severity: action.parameters.severity as RuleSeverity,
+                            message: action.parameters.message || `Règle ${result.ruleName} non respectée`,
+                            affectedAssignments: [assignment.id]
+                        });
+                    }
+                }
+            }
+        }
+
+        return violations;
+    }
+
     private isUserAvailable(user: User, date: Date, shiftType: ShiftType): boolean {
         const userIdStr = String(user.id);
         const logPrefix = `[Availability Check] User: ${userIdStr}, Date: ${date.toISOString().slice(0, 10)}, Shift: ${shiftType}:`;
@@ -199,12 +300,340 @@ export class PlanningGenerator {
         return true;
     }
 
-    public async generate(): Promise<any> {
+    public async generate(): Promise<{
+        assignments: Assignment[];
+        validation: ValidationResult;
+        metrics: {
+            totalAssignments: number;
+            coveragePercentage: number;
+            equityScore: number;
+            conflictsDetected: number;
+        };
+    }> {
         if (!this.isInitialized) {
             throw new Error("Generator not initialized. Call initialize() first.");
         }
         logger.log("Starting planning generation...");
-        return this.results;
+
+        // Réinitialiser les résultats
+        this.results = {
+            gardes: [],
+            astreintes: [],
+            consultations: [],
+            blocs: []
+        };
+
+        // Générer le planning pour chaque jour de la période
+        const startDate = parseDate(this.parameters.dateDebut);
+        const endDate = parseDate(this.parameters.dateFin);
+        
+        if (!startDate || !endDate) {
+            throw new Error("Invalid date parameters");
+        }
+
+        let currentDate = new Date(startDate);
+        const totalDays = getDifferenceInDays(endDate, startDate) || 1;
+        let daysProcessed = 0;
+
+        while (currentDate <= endDate) {
+            logger.log(`Processing date: ${formatDate(currentDate, ISO_DATE_FORMAT)}`);
+            
+            // Déterminer si c'est un weekend ou un jour férié
+            const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+            const isHoliday = this.isHoliday(currentDate);
+
+            // Générer les affectations pour chaque type d'activité activé
+            if (this.parameters.etapesActives.includes(AssignmentType.GARDE)) {
+                await this.generateGardes(currentDate, isWeekend || isHoliday);
+            }
+
+            if (this.parameters.etapesActives.includes(AssignmentType.ASTREINTE)) {
+                await this.generateAstreintes(currentDate, isWeekend || isHoliday);
+            }
+
+            if (this.parameters.etapesActives.includes(AssignmentType.CONSULTATION) && !isWeekend && !isHoliday) {
+                await this.generateConsultations(currentDate);
+            }
+
+            if (this.parameters.etapesActives.includes(AssignmentType.BLOC)) {
+                await this.generateBlocAssignments(currentDate, isWeekend);
+            }
+
+            // Avancer à la journée suivante
+            currentDate = addDaysToDate(currentDate, 1)!;
+            daysProcessed++;
+
+            // Log de progression
+            if (daysProcessed % 7 === 0) {
+                logger.log(`Progress: ${Math.round((daysProcessed / totalDays) * 100)}%`);
+            }
+        }
+
+        // Optimiser le planning si demandé
+        if (this.parameters.niveauOptimisation !== 'rapide') {
+            await this.optimizePlanning();
+        }
+
+        // Valider le planning généré
+        const validationResult = await this.validatePlanning();
+
+        // Calculer les métriques
+        const allAssignments = [
+            ...this.results.gardes,
+            ...this.results.astreintes,
+            ...this.results.consultations,
+            ...this.results.blocs
+        ];
+
+        const metrics = {
+            totalAssignments: allAssignments.length,
+            coveragePercentage: this.calculateCoveragePercentage(),
+            equityScore: validationResult.metrics.equiteScore,
+            conflictsDetected: validationResult.violations.length
+        };
+
+        logger.log(`Planning generation completed: ${metrics.totalAssignments} assignments, ${metrics.conflictsDetected} conflicts`);
+
+        return {
+            assignments: allAssignments,
+            validation: validationResult,
+            metrics
+        };
+    }
+
+    private async generateGardes(date: Date, isWeekendOrHoliday: boolean): Promise<void> {
+        // D'abord essayer d'appliquer les règles de génération
+        const context = this.createRuleContext(date);
+        const generatedByRules = await this.applyGenerationRules(context);
+        
+        // Ajouter les affectations générées par les règles
+        for (const assignment of generatedByRules) {
+            if (assignment.shiftType === ShiftType.GARDE_24H) {
+                // Valider l'affectation avec les règles
+                const violations = await this.applyValidationRules(assignment);
+                
+                if (violations.length === 0) {
+                    this.results.gardes.push(assignment);
+                    this.updateCounterForAssignment(
+                        this.userCounters.get(String(assignment.userId))!, 
+                        assignment
+                    );
+                } else {
+                    logger.warn(`Rule violations for garde assignment: ${violations.map(v => v.message).join(', ')}`);
+                }
+            }
+        }
+        
+        // Si pas assez de gardes générées par les règles, utiliser la logique classique
+        const requiredGuards = isWeekendOrHoliday ? 2 : 1;
+        const currentGuards = this.results.gardes.filter(g => 
+            areDatesSameDay(g.startDate, date)
+        ).length;
+        
+        for (let i = currentGuards; i < requiredGuards; i++) {
+            const eligibleUsers = this.findEligibleUsersForGarde(date);
+            
+            if (eligibleUsers.length === 0) {
+                logger.warn(`No eligible users for garde on ${formatDate(date, ISO_DATE_FORMAT)}`);
+                continue;
+            }
+
+            const selectedUser = this.selectBestCandidateForGarde(eligibleUsers, date);
+            const assignment = this.createAssignment(
+                selectedUser,
+                date,
+                ShiftType.GARDE_24H,
+                AssignmentType.GARDE
+            );
+            
+            // Valider avec les règles V2
+            const violations = await this.applyValidationRules(assignment);
+            
+            if (violations.length === 0) {
+                this.results.gardes.push(assignment);
+                this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, assignment);
+            } else {
+                logger.warn(`Cannot assign garde due to rule violations: ${violations.map(v => v.message).join(', ')}`);
+            }
+        }
+    }
+
+    private async generateAstreintes(date: Date, isWeekendOrHoliday: boolean): Promise<void> {
+        const shiftType = isWeekendOrHoliday ? ShiftType.ASTREINTE_WEEKEND : ShiftType.ASTREINTE_SEMAINE;
+        const eligibleUsers = this.findEligibleUsersForAstreinte(date);
+
+        if (eligibleUsers.length === 0) {
+            logger.warn(`No eligible users for astreinte on ${formatDate(date, ISO_DATE_FORMAT)}`);
+            return;
+        }
+
+        const selectedUser = this.selectBestCandidateForAstreinte(eligibleUsers, date);
+        const assignment = this.createAssignment(
+            selectedUser,
+            date,
+            shiftType,
+            AssignmentType.ASTREINTE
+        );
+
+        this.results.astreintes.push(assignment);
+        this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, assignment);
+    }
+
+    private async generateConsultations(date: Date): Promise<void> {
+        // Générer les consultations du matin
+        const morningSlots = this.rulesConfig.consultations.creneauxMatin || 2;
+        for (let i = 0; i < morningSlots; i++) {
+            const eligibleUsers = this.findEligibleUsersForConsultation(date, ShiftType.MATIN);
+            if (eligibleUsers.length > 0) {
+                const selectedUser = this.selectBestCandidateForConsultation(eligibleUsers, date, ShiftType.MATIN);
+                const assignment = this.createAssignment(
+                    selectedUser,
+                    date,
+                    ShiftType.MATIN,
+                    AssignmentType.CONSULTATION
+                );
+                this.results.consultations.push(assignment);
+                this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, assignment);
+            }
+        }
+
+        // Générer les consultations de l'après-midi
+        const afternoonSlots = this.rulesConfig.consultations.creneauxApresMidi || 2;
+        for (let i = 0; i < afternoonSlots; i++) {
+            const eligibleUsers = this.findEligibleUsersForConsultation(date, ShiftType.APRES_MIDI);
+            if (eligibleUsers.length > 0) {
+                const selectedUser = this.selectBestCandidateForConsultation(eligibleUsers, date, ShiftType.APRES_MIDI);
+                const assignment = this.createAssignment(
+                    selectedUser,
+                    date,
+                    ShiftType.APRES_MIDI,
+                    AssignmentType.CONSULTATION
+                );
+                this.results.consultations.push(assignment);
+                this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, assignment);
+            }
+        }
+    }
+
+    private async generateBlocAssignments(date: Date, isWeekend: boolean): Promise<void> {
+        // Nombre de salles à superviser (réduit le weekend)
+        const roomsToSupervise = isWeekend ? 2 : 4;
+
+        for (let i = 0; i < roomsToSupervise; i++) {
+            const eligibleUsers = this.findEligibleUsersForBloc(date, isWeekend);
+            if (eligibleUsers.length > 0) {
+                const selectedUser = this.selectBestCandidateForBloc(eligibleUsers, date, isWeekend);
+                const assignment = this.createAssignment(
+                    selectedUser,
+                    date,
+                    ShiftType.JOURNEE,
+                    AssignmentType.BLOC,
+                    `Salle ${i + 1}`
+                );
+                this.results.blocs.push(assignment);
+                this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, assignment);
+            }
+        }
+    }
+
+    private createAssignment(
+        user: User,
+        date: Date,
+        shiftType: ShiftType,
+        assignmentType: AssignmentType,
+        notes?: string
+    ): Assignment {
+        const startDate = new Date(date);
+        const endDate = new Date(date);
+
+        // Définir les heures de début et fin selon le type de shift
+        switch (shiftType) {
+            case ShiftType.GARDE_24H:
+                startDate.setHours(8, 0, 0, 0);
+                endDate.setDate(endDate.getDate() + 1);
+                endDate.setHours(8, 0, 0, 0);
+                break;
+            case ShiftType.MATIN:
+                startDate.setHours(8, 0, 0, 0);
+                endDate.setHours(12, 30, 0, 0);
+                break;
+            case ShiftType.APRES_MIDI:
+                startDate.setHours(13, 30, 0, 0);
+                endDate.setHours(18, 0, 0, 0);
+                break;
+            case ShiftType.JOURNEE:
+                startDate.setHours(8, 0, 0, 0);
+                endDate.setHours(18, 0, 0, 0);
+                break;
+            case ShiftType.ASTREINTE:
+            case ShiftType.ASTREINTE_SEMAINE:
+            case ShiftType.ASTREINTE_WEEKEND:
+                startDate.setHours(18, 0, 0, 0);
+                endDate.setDate(endDate.getDate() + 1);
+                endDate.setHours(8, 0, 0, 0);
+                break;
+        }
+
+        return {
+            id: `assignment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            userId: String(user.id),
+            shiftType,
+            startDate,
+            endDate,
+            status: AssignmentStatus.PENDING,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            notes
+        };
+    }
+
+    private async optimizePlanning(): Promise<void> {
+        logger.log("Optimizing planning...");
+
+        const optimizer = new PlanningOptimizer(
+            this.rulesConfig,
+            this.fatigueConfig,
+            this.userCounters
+        );
+
+        // Optimiser chaque type d'affectation
+        this.results.gardes = optimizer.optimizePlanning(this.results.gardes);
+        this.results.astreintes = optimizer.optimizePlanning(this.results.astreintes);
+        this.results.consultations = optimizer.optimizePlanning(this.results.consultations);
+        this.results.blocs = optimizer.optimizePlanning(this.results.blocs);
+    }
+
+    private calculateCoveragePercentage(): number {
+        const startDate = parseDate(this.parameters.dateDebut)!;
+        const endDate = parseDate(this.parameters.dateFin)!;
+        const totalDays = getDifferenceInDays(endDate, startDate) || 1;
+
+        let coveredDays = 0;
+        let currentDate = new Date(startDate);
+
+        while (currentDate <= endDate) {
+            const dateStr = formatDate(currentDate, ISO_DATE_FORMAT);
+            const hasGarde = this.results.gardes.some(a => 
+                formatDate(a.startDate, ISO_DATE_FORMAT) === dateStr
+            );
+            const hasAstreinte = this.results.astreintes.some(a => 
+                formatDate(a.startDate, ISO_DATE_FORMAT) === dateStr
+            );
+
+            if (hasGarde && hasAstreinte) {
+                coveredDays++;
+            }
+
+            currentDate = addDaysToDate(currentDate, 1)!;
+        }
+
+        return Math.round((coveredDays / totalDays) * 100);
+    }
+
+    private isHoliday(date: Date): boolean {
+        // TODO: Implémenter la détection des jours fériés
+        // Pour l'instant, retourner false
+        return false;
     }
 
     private findEligibleUsersForGarde(date: Date): User[] {
@@ -295,16 +724,49 @@ export class PlanningGenerator {
     }
 
     private calculateAssignmentScore(user: User, counter: UserCounter, date: Date): number {
-        let score = 0;
+        let score = 100; // Score de base
 
-        score += 100 - counter.fatigue.score;
+        // 1. Pénalité pour la fatigue (0-40 points)
+        const fatigueRatio = counter.fatigue.score / this.fatigueConfig.seuils.critique;
+        score -= fatigueRatio * 40;
 
+        // 2. Bonus pour équité dans la répartition (0-30 points)
         const avgGardes = this.getAverageGardesPerUser();
         if (avgGardes > 0) {
-            score += 50 * (1 - (counter.gardes.total / avgGardes));
+            const deviationRatio = Math.abs(counter.gardes.total - avgGardes) / avgGardes;
+            // Plus l'utilisateur est en dessous de la moyenne, plus le score est élevé
+            if (counter.gardes.total < avgGardes) {
+                score += (1 - deviationRatio) * 30;
+            } else {
+                score -= deviationRatio * 20;
+            }
         }
 
-        return score;
+        // 3. Pénalité pour affectations consécutives récentes (0-20 points)
+        const recentAssignments = this.findUserAssignments(String(user.id))
+            .filter(a => {
+                const assignmentDate = parseDate(a.startDate);
+                if (!assignmentDate) return false;
+                const daysDiff = getDifferenceInDays(date, assignmentDate);
+                return daysDiff !== null && daysDiff >= 0 && daysDiff <= 7;
+            });
+        score -= recentAssignments.length * 5;
+
+        // 4. Bonus pour temps partiel (0-10 points)
+        if (user.weekType === WeekType.SEMAINE_PARTIELLE) {
+            const workRatio = user.workedWeeks ? user.workedWeeks / 52 : 0.5;
+            score += (1 - workRatio) * 10;
+        }
+
+        // 5. Considération des préférences (si activé)
+        if (this.parameters.appliquerPreferencesPersonnelles) {
+            // TODO: Implémenter la gestion des préférences
+            // Pour l'instant, bonus aléatoire pour simulation
+            score += Math.random() * 10;
+        }
+
+        // Assurer que le score reste dans la plage 0-100
+        return Math.max(0, Math.min(100, score));
     }
 
     private getAverageGardesPerUser(): number {
@@ -313,10 +775,10 @@ export class PlanningGenerator {
         return totalGardes / this.userCounters.size;
     }
 
-    private validatePlanning(): ValidationResult {
+    private async validatePlanning(): Promise<ValidationResult> {
         const violations: RuleViolation[] = [];
 
-        this.checkForViolations(violations);
+        await this.checkForViolations(violations);
 
         const metrics = {
             equiteScore: this.calculateEquityScore(),
@@ -331,11 +793,25 @@ export class PlanningGenerator {
         };
     }
 
-    private checkForViolations(violations: RuleViolation[]): void {
+    private async checkForViolations(violations: RuleViolation[]): Promise<void> {
+        // Vérifications classiques
         this.checkMinimumGardeIntervals(violations);
         this.checkMaxGardesPerMonth(violations);
         this.checkConsecutiveAssignments(violations);
         this.checkFatigueScores(violations);
+        
+        // Vérifications avec les règles V2
+        const allAssignments = [
+            ...this.results.gardes,
+            ...this.results.astreintes,
+            ...this.results.consultations,
+            ...this.results.blocs
+        ];
+        
+        for (const assignment of allAssignments) {
+            const ruleViolations = await this.applyValidationRules(assignment);
+            violations.push(...ruleViolations);
+        }
     }
 
     private checkMinimumGardeIntervals(violations: RuleViolation[]): void {

@@ -1,0 +1,167 @@
+import { NextRequest } from 'next/server';
+import { getUserFromCookie } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { Role, UserStatus } from '@prisma/client';
+
+// Mock dependencies
+jest.mock('@/lib/auth');
+jest.mock('@/lib/prisma');
+
+const mockedGetUserFromCookie = getUserFromCookie as jest.MockedFunction<typeof getUserFromCookie>;
+const mockedPrisma = prisma as jest.Mocked<typeof prisma>;
+
+// Mock NextResponse
+jest.mock('next/server', () => ({
+    NextRequest: jest.requireActual('next/server').NextRequest,
+    NextResponse: {
+        json: (data: any, init?: ResponseInit) => {
+            const response = new Response(JSON.stringify(data), {
+                ...init,
+                headers: {
+                    'content-type': 'application/json',
+                    ...(init?.headers || {})
+                }
+            });
+            return response;
+        }
+    }
+}));
+
+describe('GET /api/auth/me', () => {
+    let handler: any;
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        const route = await import('@/app/api/auth/me/route');
+        handler = route.GET;
+    });
+
+    const createRequest = (cookie?: string) => {
+        return new NextRequest('http://localhost:3000/api/auth/me', {
+            method: 'GET',
+            headers: {
+                ...(cookie ? { cookie } : {}),
+            },
+        });
+    };
+
+    it('should return user data for authenticated user', async () => {
+        const mockUser = {
+            id: 1,
+            email: 'test@example.com',
+            nom: 'Doe',
+            prenom: 'John',
+            role: Role.USER,
+            userStatus: UserStatus.ACTIF,
+            professionalRole: 'MAR',
+            sites: [{ id: 1, name: 'Site A' }],
+        };
+
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+        mockedPrisma.user = {
+            findUnique: jest.fn().mockResolvedValue({
+                ...mockUser,
+                sites: mockUser.sites,
+            }),
+        } as any;
+
+        const request = createRequest('auth-token=valid_token');
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(200);
+        expect(data).toMatchObject({
+            id: mockUser.id,
+            email: mockUser.email,
+            nom: mockUser.nom,
+            prenom: mockUser.prenom,
+            role: mockUser.role,
+            professionalRole: mockUser.professionalRole,
+            sites: mockUser.sites,
+        });
+    });
+
+    it('should return 401 for unauthenticated user', async () => {
+        mockedGetUserFromCookie.mockResolvedValue(null);
+
+        const request = createRequest();
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+        expect(data.error).toBe('Non autorisé');
+    });
+
+    it('should handle getUserFromCookie errors', async () => {
+        mockedGetUserFromCookie.mockRejectedValue(new Error('Token invalid'));
+
+        const request = createRequest('auth-token=invalid_token');
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+        expect(data.error).toBe('Non autorisé');
+    });
+
+    it('should handle user not found in database', async () => {
+        const mockUser = {
+            id: 999,
+            email: 'deleted@example.com',
+        };
+
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+        mockedPrisma.user = {
+            findUnique: jest.fn().mockResolvedValue(null),
+        } as any;
+
+        const request = createRequest('auth-token=valid_token');
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+        expect(data.error).toBe('Non autorisé');
+    });
+
+    it('should handle database errors gracefully', async () => {
+        const mockUser = {
+            id: 1,
+            email: 'test@example.com',
+        };
+
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+        mockedPrisma.user = {
+            findUnique: jest.fn().mockRejectedValue(new Error('Database error')),
+        } as any;
+
+        const request = createRequest('auth-token=valid_token');
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(500);
+        expect(data.error).toBe('Erreur serveur');
+    });
+
+    it('should exclude sensitive fields from response', async () => {
+        const mockUser = {
+            id: 1,
+            email: 'test@example.com',
+            password: 'hashed_password', // Should not be included
+            nom: 'Doe',
+            prenom: 'John',
+            role: Role.USER,
+        };
+
+        mockedGetUserFromCookie.mockResolvedValue({ id: mockUser.id } as any);
+        mockedPrisma.user = {
+            findUnique: jest.fn().mockResolvedValue(mockUser),
+        } as any;
+
+        const request = createRequest('auth-token=valid_token');
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(200);
+        expect(data).not.toHaveProperty('password');
+    });
+});

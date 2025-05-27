@@ -1,19 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-// Importer Prisma Client (adapter le chemin si nécessaire)
 import { prisma } from '@/lib/prisma';
-// Importer les types Prisma directement
 import { LeaveStatus, LeaveType as PrismaLeaveType } from '@prisma/client';
-// Importer l'enum locale si elle est encore utilisée ailleurs, mais pas pour l'interaction DB
-// import { LeaveType } from '@/modules/leaves/types/leave';
-// Supposer que ces fonctions existent ou les commenter/supprimer
-// import { calculateLeaveCountedDays } from '@/modules/leaves/services/leaveCalculator';
-// import { getUserWorkSchedule } from '@/modules/profiles/services/profileService';
-import {
-    requireLeavePermission,
-    logSecurityAction,
-    AuthorizationError,
-    AuthenticationError
-} from '@/lib/auth/authorization';
+import { withAuth, SecurityChecks } from '@/middleware/authorization';
+import { logger } from '@/lib/logger';
+import { auth } from '@/lib/auth';
+import { verifyAuthToken } from '@/lib/auth-server-utils';
 
 // Interface attendue par le frontend (similaire à celle dans page.tsx)
 interface UserFrontend {
@@ -70,8 +61,50 @@ export async function GET(request: NextRequest) {
         }
 
         // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur
-        const session = await requireLeavePermission('read', userId);
-        logSecurityAction(session.user.id, 'READ_LEAVES', `user:${userId}`);
+        const authHeader = request.headers.get('authorization');
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        
+        if (!token) {
+            logger.warn('Tentative d\'accès sans token', { path: '/api/leaves', userId });
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+
+        const authResult = await verifyAuthToken(token);
+        if (!authResult.authenticated) {
+            logger.warn('Token invalide', { path: '/api/leaves', userId });
+            return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+        }
+
+        // Récupérer l'utilisateur authentifié
+        const authenticatedUser = await prisma.user.findUnique({
+            where: { id: authResult.userId },
+            select: { id: true, role: true }
+        });
+
+        if (!authenticatedUser) {
+            return NextResponse.json({ error: 'User not found' }, { status: 403 });
+        }
+
+        // Vérifier les permissions : l'utilisateur peut voir ses propres congés ou être admin
+        const targetUserId = parseInt(userId, 10);
+        if (authenticatedUser.id !== targetUserId && 
+            authenticatedUser.role !== 'ADMIN_TOTAL' && 
+            authenticatedUser.role !== 'ADMIN_PARTIEL') {
+            logger.warn('Accès non autorisé aux congés', { 
+                authenticatedUserId: authenticatedUser.id, 
+                targetUserId,
+                role: authenticatedUser.role 
+            });
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        // Logger l'action
+        logger.info('Consultation des congés', {
+            action: 'READ_LEAVES',
+            authenticatedUserId: authenticatedUser.id,
+            targetUserId,
+            role: authenticatedUser.role
+        });
 
         const userIdInt = parseInt(userId, 10);
         if (isNaN(userIdInt)) {
@@ -154,13 +187,6 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(formattedLeaves);
 
     } catch (error) {
-        if (error instanceof AuthenticationError) {
-            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-        }
-        if (error instanceof AuthorizationError) {
-            return NextResponse.json({ error: error.message }, { status: 403 });
-        }
-
         console.error(`[API /api/leaves] Erreur lors de la récupération des congés:`, error);
         return NextResponse.json({ error: 'Erreur serveur lors de la récupération des congés.' }, { status: 500 });
     }
@@ -173,16 +199,56 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         // 🔐 Vérifier les permissions de création de congé
-        const session = await requireLeavePermission('create');
+        const authHeader = request.headers.get('authorization');
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        
+        if (!token) {
+            logger.warn('Tentative de création de congé sans token', { path: '/api/leaves' });
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+
+        const authResult = await verifyAuthToken(token);
+        if (!authResult.authenticated) {
+            logger.warn('Token invalide pour création de congé', { path: '/api/leaves' });
+            return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+        }
 
         const body = await request.json();
         console.log('[API /leaves POST] Corps de la requête reçu:', JSON.stringify(body, null, 2));
 
         const { userId, startDate, endDate, typeCode, reason } = body;
 
+        // Récupérer l'utilisateur authentifié
+        const authenticatedUser = await prisma.user.findUnique({
+            where: { id: authResult.userId },
+            select: { id: true, role: true }
+        });
+
+        if (!authenticatedUser) {
+            return NextResponse.json({ error: 'User not found' }, { status: 403 });
+        }
+
         // 🔐 Vérifier que l'utilisateur peut créer ce congé (pour lui-même ou admin)
-        await requireLeavePermission('create', userId);
-        logSecurityAction(session.user.id, 'CREATE_LEAVE', `user:${userId}`, { typeCode, startDate, endDate });
+        const targetUserId = parseInt(String(userId), 10);
+        if (authenticatedUser.id !== targetUserId && 
+            authenticatedUser.role !== 'ADMIN_TOTAL' && 
+            authenticatedUser.role !== 'ADMIN_PARTIEL') {
+            logger.warn('Tentative non autorisée de création de congé', { 
+                authenticatedUserId: authenticatedUser.id, 
+                targetUserId,
+                role: authenticatedUser.role 
+            });
+            return NextResponse.json({ error: 'Forbidden - Vous ne pouvez créer des congés que pour vous-même' }, { status: 403 });
+        }
+
+        // Logger l'action
+        logger.info('Création de congé', {
+            action: 'CREATE_LEAVE',
+            authenticatedUserId: authenticatedUser.id,
+            targetUserId,
+            role: authenticatedUser.role,
+            details: { typeCode, startDate, endDate }
+        });
 
         console.log('[API /leaves POST] Valeurs extraites:', {
             userId,

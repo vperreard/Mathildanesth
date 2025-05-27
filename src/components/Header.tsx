@@ -14,6 +14,7 @@ import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppearance } from '@/hooks/useAppearance';
 import { NotificationBell } from './notifications/NotificationBell';
+import { RuleNotificationBell } from './rules/RuleNotificationBell';
 
 const fadeIn = {
     hidden: { opacity: 0, y: -10 },
@@ -116,11 +117,21 @@ const Header = memo(function Header() {
                                 aria-label="Profil utilisateur et options"
                             >
                                 <ThemeSwitcher />
+                                
+                                {/* Notification de règles pour les admins */}
+                                {isAdmin && (
+                                    <RuleNotificationBell />
+                                )}
+                                
+                                {/* Notifications générales */}
+                                {user && (
+                                    <NotificationBell />
+                                )}
+                                
                                 {!isMounted || isLoading ? (
                                     <div className="h-8 w-20 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" aria-label="Chargement du profil" role="status"></div>
                                 ) : user ? (
                                     <>
-                                        <NotificationBell />
                                         <UserProfile user={user} onLogout={logout} />
                                     </>
                                 ) : (

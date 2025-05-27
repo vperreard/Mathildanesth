@@ -7,6 +7,52 @@ jest.mock('next/navigation', () => ({
     usePathname: jest.fn()
 }));
 
+// Mock useTheme
+jest.mock('@/context/ThemeContext', () => ({
+    useTheme: jest.fn(() => ({ theme: 'light' }))
+}));
+
+// Mock navigationConfig
+jest.mock('@/utils/navigationConfig', () => ({
+    navigationGroups: [
+        {
+            name: 'Planning',
+            links: [
+                { href: '/planning', label: 'Planning' },
+            ]
+        },
+        {
+            name: 'Administration',
+            links: [
+                { href: '/parametres', label: 'Paramètres' },
+            ]
+        }
+    ],
+    isAdminGroup: (groupName: string) => groupName === 'Administration'
+}));
+
+// Mock framer-motion - déjà fait dans jest.setup.js mais on peut le remock localement si besoin
+jest.mock('framer-motion', () => {
+    const React = require('react');
+    return {
+        motion: {
+            nav: React.forwardRef((props: any, ref: any) => {
+                const { children, ...rest } = props;
+                return React.createElement('nav', { ...rest, ref }, children);
+            }),
+            div: React.forwardRef((props: any, ref: any) => {
+                const { children, ...rest } = props;
+                return React.createElement('div', { ...rest, ref }, children);
+            }),
+            button: React.forwardRef((props: any, ref: any) => {
+                const { children, ...rest } = props;
+                return React.createElement('button', { ...rest, ref }, children);
+            }),
+        },
+        AnimatePresence: ({ children }: any) => children,
+    };
+});
+
 describe('Navigation', () => {
     const mockLinks = [
         { href: '/', label: 'Accueil' },
@@ -28,12 +74,11 @@ describe('Navigation', () => {
             />
         );
 
-        const desktopNav = screen.getByRole('navigation', { hidden: true });
-        expect(desktopNav).toHaveClass('hidden md:flex');
-        expect(desktopNav).toBeInTheDocument();
-        expect(screen.getAllByText('Accueil')).toHaveLength(1);
-        expect(screen.getAllByText('Planning')).toHaveLength(1);
-        expect(screen.queryByText('Paramètres')).not.toBeInTheDocument();
+        // Le composant Navigation utilise des groupes, pas des liens directs
+        // On devrait voir les groupes rendus
+        expect(screen.getByText('Planning')).toBeInTheDocument();
+        // Les liens d'admin ne devraient pas être visibles
+        expect(screen.queryByText('Administration')).not.toBeInTheDocument();
     });
 
     it('renders all links for admin users', () => {
@@ -46,11 +91,9 @@ describe('Navigation', () => {
             />
         );
 
-        const desktopNav = screen.getByRole('navigation', { hidden: true });
-        expect(desktopNav).toBeInTheDocument();
-        expect(screen.getAllByText('Accueil')).toHaveLength(1);
-        expect(screen.getAllByText('Planning')).toHaveLength(1);
-        expect(screen.getAllByText('Paramètres')).toHaveLength(1);
+        // Pour les admins, on devrait voir tous les groupes
+        expect(screen.getByText('Planning')).toBeInTheDocument();
+        expect(screen.getByText('Administration')).toBeInTheDocument();
     });
 
     it('toggles mobile menu when button is clicked', () => {

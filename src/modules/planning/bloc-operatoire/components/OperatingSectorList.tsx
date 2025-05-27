@@ -15,11 +15,11 @@ import {
 } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import Button from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import Input from '@/components/ui/input';
-import Textarea from '@/components/ui/textarea';
-import Switch from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Layers, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -311,8 +311,7 @@ export function OperatingSectorList() {
                                 <div className="flex items-center col-span-3">
                                     <Switch
                                         checked={form.watch('estActif')}
-                                        onChange={() => form.setValue('estActif', !form.watch('estActif'))}
-                                        ariaLabel="Secteur actif"
+                                        onCheckedChange={(checked) => form.setValue('estActif', checked)}
                                     />
                                 </div>
                             </div>

@@ -18,7 +18,7 @@ import {
 import Input from '@/components/ui/input';
 import { Label } from '@/components/ui/label'; // Import nommé
 import Textarea from '@/components/ui/textarea';
-import Switch from '@/components/ui/switch';
+import { Switch } from '@/components/ui/switch';
 import { cn } from "@/lib/utils";
 
 // Redéfinir le FormSchema explicitement pour éviter les problèmes avec pick et les types optionnels

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { LeaveConflictDashboard } from '@/modules/leaves/components/LeaveConflictDashboard';
+import LeaveConflictDashboard from '@/modules/leaves/components/LeaveConflictDashboard';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { Card, CardBody } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata: Metadata = {
     title: 'Analyse des Conflits de Congés | Administration',
@@ -37,9 +37,9 @@ export default function LeaveConflictAnalyticsPage() {
             />
 
             <Card className="mt-4">
-                <CardBody>
+                <CardContent>
                     <LeaveConflictDashboard />
-                </CardBody>
+                </CardContent>
             </Card>
         </div>
     );

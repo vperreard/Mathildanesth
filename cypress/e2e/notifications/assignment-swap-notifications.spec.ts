@@ -24,7 +24,7 @@ describe('Notifications d\'échanges d\'affectations', () => {
     });
 
     // Helpers pour la simulation
-    const simulateCreateSwapRequest = (testData) => {
+    const simulateCreateSwapRequest = (testData: any) => {
         cy.log('Simulation: Création d\'une demande d\'échange');
         cy.log(`De: ${testData.users.initiator.firstName} ${testData.users.initiator.lastName}`);
         cy.log(`À: ${testData.users.target.firstName} ${testData.users.target.lastName}`);
@@ -39,7 +39,7 @@ describe('Notifications d\'échanges d\'affectations', () => {
         cy.log('Simulation: Demande acceptée avec succès');
     };
 
-    const simulateRejectSwapRequest = (testData) => {
+    const simulateRejectSwapRequest = (testData: any) => {
         cy.log('Simulation: Refus d\'une demande d\'échange');
         cy.log(`Raison: ${testData.swapRequests.rejected.responseMessage}`);
         cy.log('Simulation: Demande refusée avec succès');

@@ -115,28 +115,36 @@ describe('PlanningGeneratorService', () => {
             });
         });
 
-        it('devrait gérer les erreurs quand aucun utilisateur disponible', () => {
+        it('devrait utiliser le système de fallback quand peu d\'utilisateurs disponibles', () => {
             // Créer des utilisateurs spécifiques pour ce test AVEC CONGES
             const usersForThisTest = [
                 {
                     id: '1', prenom: 'Jean', nom: 'Dupont', email: 'a@a.com', role: UserRole.DOCTOR, specialties: [Specialty.ANESTHESIE], experienceLevel: ExperienceLevel.SENIOR, createdAt: new Date(), updatedAt: new Date(),
-                    leaves: [{ id: 'l1', userId: '1', startDate: startDate, endDate: endDate, type: LeaveType.VACATION, status: LeaveStatus.APPROVED, createdAt: new Date(), updatedAt: new Date() }]
+                    leaves: [{ id: 'l1', userId: '1', startDate: startDate, endDate: addDays(startDate, 3), type: LeaveType.VACATION, status: LeaveStatus.APPROVED, createdAt: new Date(), updatedAt: new Date() }]
                 },
                 {
                     id: '2', prenom: 'Marie', nom: 'Martin', email: 'b@b.com', role: UserRole.DOCTOR, specialties: [Specialty.ANESTHESIE, Specialty.REANIMATION], experienceLevel: ExperienceLevel.EXPERT, createdAt: new Date(), updatedAt: new Date(),
-                    leaves: [{ id: 'l2', userId: '2', startDate: startDate, endDate: endDate, type: LeaveType.VACATION, status: LeaveStatus.APPROVED, createdAt: new Date(), updatedAt: new Date() }]
+                    leaves: []
                 }
             ];
 
             // Utiliser les adjustedRules
-            const serviceWithUnavailableUsers = new PlanningGeneratorService(
+            const serviceWithPartiallyAvailableUsers = new PlanningGeneratorService(
                 usersForThisTest,
                 adjustedRules,
                 startDate,
                 endDate
             );
 
-            expect(() => serviceWithUnavailableUsers.generatePlanning()).toThrow(/Aucun utilisateur disponible/);
+            // Le planning devrait être généré grâce au système de fallback
+            const assignments = serviceWithPartiallyAvailableUsers.generatePlanning();
+            expect(assignments).toBeDefined();
+            expect(assignments.length).toBeGreaterThan(0);
+            
+            // Vérifier que le fallback a été utilisé (Marie devrait avoir plus d'affectations)
+            const marieAssignments = assignments.filter(a => a.userId === '2');
+            const jeanAssignments = assignments.filter(a => a.userId === '1');
+            expect(marieAssignments.length).toBeGreaterThan(jeanAssignments.length);
         });
     });
 

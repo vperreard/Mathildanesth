@@ -200,6 +200,23 @@ const TableFooter = forwardRef<HTMLTableSectionElement, TableFooterProps>(
 
 TableFooter.displayName = 'TableFooter';
 
+// Composant TableCaption
+interface TableCaptionProps extends HTMLAttributes<HTMLTableCaptionElement> { }
+
+const TableCaption = forwardRef<HTMLTableCaptionElement, TableCaptionProps>(
+    ({ className, ...props }, ref) => {
+        return (
+            <caption
+                ref={ref}
+                className={cn("mt-4 text-sm text-muted-foreground", className)}
+                {...props}
+            />
+        );
+    }
+);
+
+TableCaption.displayName = 'TableCaption';
+
 export {
     Table,
     TableHeader,
@@ -208,4 +225,5 @@ export {
     TableHead,
     TableRow,
     TableCell,
+    TableCaption,
 }; 

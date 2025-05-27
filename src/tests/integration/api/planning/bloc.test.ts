@@ -1,0 +1,332 @@
+import { NextRequest } from 'next/server';
+import { getUserFromCookie } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { Role } from '@prisma/client';
+
+// Mock dependencies
+jest.mock('@/lib/auth');
+jest.mock('@/lib/prisma');
+
+const mockedGetUserFromCookie = getUserFromCookie as jest.MockedFunction<typeof getUserFromCookie>;
+const mockedPrisma = prisma as jest.Mocked<typeof prisma>;
+
+// Mock NextResponse
+jest.mock('next/server', () => ({
+    NextRequest: jest.requireActual('next/server').NextRequest,
+    NextResponse: {
+        json: (data: any, init?: ResponseInit) => {
+            const response = new Response(JSON.stringify(data), {
+                ...init,
+                headers: {
+                    'content-type': 'application/json',
+                    ...(init?.headers || {})
+                }
+            });
+            return response;
+        }
+    }
+}));
+
+describe('/api/planning/bloc', () => {
+    let handlers: any;
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        const route = await import('@/app/api/planning/bloc/route');
+        handlers = route;
+    });
+
+    const createRequest = (method: string, body?: any, params?: URLSearchParams) => {
+        const url = new URL('http://localhost:3000/api/planning/bloc');
+        if (params) {
+            url.search = params.toString();
+        }
+        
+        return new NextRequest(url.toString(), {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'cookie': 'auth-token=valid_token',
+            },
+            ...(body ? { body: JSON.stringify(body) } : {}),
+        });
+    };
+
+    describe('GET /api/planning/bloc', () => {
+        it('should return bloc planning for date range', async () => {
+            const mockUser = { id: 1, role: Role.USER };
+            const mockAssignments = [
+                {
+                    id: 1,
+                    date: new Date('2024-01-01'),
+                    operatingRoomId: 1,
+                    surgeonId: 10,
+                    period: 'AM',
+                    operatingRoom: {
+                        id: 1,
+                        name: 'Salle 1',
+                        sector: { name: 'Bloc A' },
+                    },
+                    surgeon: {
+                        id: 10,
+                        nom: 'Dr. Smith',
+                        prenom: 'John',
+                    },
+                },
+            ];
+
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+            mockedPrisma.blocPlanningAssignment = {
+                findMany: jest.fn().mockResolvedValue(mockAssignments),
+            } as any;
+
+            const params = new URLSearchParams({
+                startDate: '2024-01-01',
+                endDate: '2024-01-07',
+            });
+            const request = createRequest('GET', undefined, params);
+            const response = await handlers.GET(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(200);
+            expect(data).toEqual(mockAssignments);
+            expect(mockedPrisma.blocPlanningAssignment.findMany).toHaveBeenCalledWith({
+                where: {
+                    date: {
+                        gte: expect.any(Date),
+                        lte: expect.any(Date),
+                    },
+                },
+                include: {
+                    operatingRoom: {
+                        include: { sector: true },
+                    },
+                    surgeon: true,
+                },
+                orderBy: [
+                    { date: 'asc' },
+                    { operatingRoomId: 'asc' },
+                    { period: 'asc' },
+                ],
+            });
+        });
+
+        it('should filter by roomId when provided', async () => {
+            const mockUser = { id: 1, role: Role.USER };
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+            mockedPrisma.blocPlanningAssignment = {
+                findMany: jest.fn().mockResolvedValue([]),
+            } as any;
+
+            const params = new URLSearchParams({
+                startDate: '2024-01-01',
+                endDate: '2024-01-07',
+                roomId: '5',
+            });
+            const request = createRequest('GET', undefined, params);
+            await handlers.GET(request);
+
+            expect(mockedPrisma.blocPlanningAssignment.findMany).toHaveBeenCalledWith({
+                where: {
+                    date: expect.any(Object),
+                    operatingRoomId: 5,
+                },
+                include: expect.any(Object),
+                orderBy: expect.any(Array),
+            });
+        });
+
+        it('should return 400 for missing date parameters', async () => {
+            const mockUser = { id: 1, role: Role.USER };
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+            const request = createRequest('GET');
+            const response = await handlers.GET(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(400);
+            expect(data.error).toContain('Date');
+        });
+    });
+
+    describe('POST /api/planning/bloc', () => {
+        it('should create bloc assignment for admin', async () => {
+            const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
+            const assignmentData = {
+                date: '2024-01-01',
+                operatingRoomId: 1,
+                surgeonId: 10,
+                period: 'AM',
+            };
+
+            const mockCreatedAssignment = {
+                id: 1,
+                ...assignmentData,
+                date: new Date(assignmentData.date),
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+            
+            // Mock conflict check
+            mockedPrisma.blocPlanningAssignment = {
+                findFirst: jest.fn().mockResolvedValue(null),
+                create: jest.fn().mockResolvedValue(mockCreatedAssignment),
+            } as any;
+
+            const request = createRequest('POST', assignmentData);
+            const response = await handlers.POST(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(201);
+            expect(data).toMatchObject(mockCreatedAssignment);
+            expect(mockedPrisma.blocPlanningAssignment.create).toHaveBeenCalledWith({
+                data: expect.objectContaining({
+                    date: expect.any(Date),
+                    operatingRoomId: 1,
+                    surgeonId: 10,
+                    period: 'AM',
+                }),
+            });
+        });
+
+        it('should return 403 for non-admin user', async () => {
+            const mockUser = { id: 1, role: Role.USER };
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+            const request = createRequest('POST', {
+                date: '2024-01-01',
+                operatingRoomId: 1,
+                surgeonId: 10,
+                period: 'AM',
+            });
+
+            const response = await handlers.POST(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(403);
+            expect(data.error).toBe('Accès refusé');
+        });
+
+        it('should return 409 for conflicting assignment', async () => {
+            const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+            const assignmentData = {
+                date: '2024-01-01',
+                operatingRoomId: 1,
+                surgeonId: 10,
+                period: 'AM',
+            };
+
+            // Mock existing assignment
+            mockedPrisma.blocPlanningAssignment = {
+                findFirst: jest.fn().mockResolvedValue({
+                    id: 999,
+                    surgeonId: 20,
+                }),
+            } as any;
+
+            const request = createRequest('POST', assignmentData);
+            const response = await handlers.POST(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(409);
+            expect(data.error).toContain('déjà assignée');
+        });
+
+        it('should validate required fields', async () => {
+            const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+            const invalidData = [
+                { operatingRoomId: 1, surgeonId: 10, period: 'AM' }, // Missing date
+                { date: '2024-01-01', surgeonId: 10, period: 'AM' }, // Missing roomId
+                { date: '2024-01-01', operatingRoomId: 1, period: 'AM' }, // Missing surgeonId
+                { date: '2024-01-01', operatingRoomId: 1, surgeonId: 10 }, // Missing period
+            ];
+
+            for (const data of invalidData) {
+                const request = createRequest('POST', data);
+                const response = await handlers.POST(request);
+                const responseData = await response.json();
+
+                expect(response.status).toBe(400);
+                expect(responseData.error).toContain('requis');
+            }
+        });
+    });
+
+    describe('PUT /api/planning/bloc', () => {
+        it('should update bloc assignment for admin', async () => {
+            const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
+            const updateData = {
+                id: 1,
+                surgeonId: 20,
+                period: 'PM',
+            };
+
+            const mockUpdatedAssignment = {
+                id: 1,
+                date: new Date('2024-01-01'),
+                operatingRoomId: 1,
+                surgeonId: 20,
+                period: 'PM',
+                updatedAt: new Date(),
+            };
+
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+            mockedPrisma.blocPlanningAssignment = {
+                update: jest.fn().mockResolvedValue(mockUpdatedAssignment),
+            } as any;
+
+            const request = createRequest('PUT', updateData);
+            const response = await handlers.PUT(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(200);
+            expect(data).toMatchObject(mockUpdatedAssignment);
+            expect(mockedPrisma.blocPlanningAssignment.update).toHaveBeenCalledWith({
+                where: { id: 1 },
+                data: {
+                    surgeonId: 20,
+                    period: 'PM',
+                },
+            });
+        });
+    });
+
+    describe('DELETE /api/planning/bloc', () => {
+        it('should delete bloc assignment for admin', async () => {
+            const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+            
+            mockedPrisma.blocPlanningAssignment = {
+                delete: jest.fn().mockResolvedValue({ id: 1 }),
+            } as any;
+
+            const request = createRequest('DELETE', { id: 1 });
+            const response = await handlers.DELETE(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(200);
+            expect(data.success).toBe(true);
+            expect(mockedPrisma.blocPlanningAssignment.delete).toHaveBeenCalledWith({
+                where: { id: 1 },
+            });
+        });
+
+        it('should return 400 for missing id', async () => {
+            const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+            const request = createRequest('DELETE', {});
+            const response = await handlers.DELETE(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(400);
+            expect(data.error).toContain('ID');
+        });
+    });
+});

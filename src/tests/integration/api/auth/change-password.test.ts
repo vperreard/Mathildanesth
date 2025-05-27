@@ -1,0 +1,194 @@
+import { NextRequest } from 'next/server';
+import { getUserFromCookie } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
+import { Role, UserStatus } from '@prisma/client';
+
+// Mock dependencies
+jest.mock('@/lib/auth');
+jest.mock('@/lib/prisma');
+jest.mock('bcryptjs');
+
+const mockedGetUserFromCookie = getUserFromCookie as jest.MockedFunction<typeof getUserFromCookie>;
+const mockedPrisma = prisma as jest.Mocked<typeof prisma>;
+const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
+
+// Mock NextResponse
+jest.mock('next/server', () => ({
+    NextRequest: jest.requireActual('next/server').NextRequest,
+    NextResponse: {
+        json: (data: any, init?: ResponseInit) => {
+            const response = new Response(JSON.stringify(data), {
+                ...init,
+                headers: {
+                    'content-type': 'application/json',
+                    ...(init?.headers || {})
+                }
+            });
+            return response;
+        }
+    }
+}));
+
+describe('POST /api/auth/change-password', () => {
+    let handler: any;
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        const route = await import('@/app/api/auth/change-password/route');
+        handler = route.POST;
+    });
+
+    const createRequest = (body: any, cookie?: string) => {
+        return new NextRequest('http://localhost:3000/api/auth/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(cookie ? { cookie } : {}),
+            },
+            body: JSON.stringify(body),
+        });
+    };
+
+    it('should successfully change password', async () => {
+        const mockUser = {
+            id: 1,
+            email: 'test@example.com',
+            password: 'old_hashed_password',
+        };
+
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+        mockedPrisma.user = {
+            findUnique: jest.fn().mockResolvedValue(mockUser),
+            update: jest.fn().mockResolvedValue({ ...mockUser, password: 'new_hashed_password' }),
+        } as any;
+
+        mockedBcrypt.compare.mockResolvedValue(true as never);
+        mockedBcrypt.hash.mockResolvedValue('new_hashed_password' as never);
+
+        const request = createRequest({
+            currentPassword: 'old_password',
+            newPassword: 'New!Password123',
+        }, 'auth-token=valid_token');
+
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(200);
+        expect(data.success).toBe(true);
+        expect(data.message).toBe('Mot de passe modifié avec succès');
+
+        expect(mockedBcrypt.compare).toHaveBeenCalledWith('old_password', 'old_hashed_password');
+        expect(mockedBcrypt.hash).toHaveBeenCalledWith('New!Password123', 10);
+        expect(mockedPrisma.user.update).toHaveBeenCalledWith({
+            where: { id: 1 },
+            data: { password: 'new_hashed_password' },
+        });
+    });
+
+    it('should return 401 for unauthenticated user', async () => {
+        mockedGetUserFromCookie.mockResolvedValue(null);
+
+        const request = createRequest({
+            currentPassword: 'password',
+            newPassword: 'newpassword',
+        });
+
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+        expect(data.error).toBe('Non autorisé');
+    });
+
+    it('should return 400 for missing fields', async () => {
+        const mockUser = { id: 1 };
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+        const testCases = [
+            { currentPassword: 'password' },
+            { newPassword: 'newpassword' },
+            {},
+        ];
+
+        for (const testCase of testCases) {
+            const request = createRequest(testCase, 'auth-token=valid_token');
+            const response = await handler(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(400);
+            expect(data.error).toBe('Mot de passe actuel et nouveau mot de passe requis');
+        }
+    });
+
+    it('should return 400 for weak password', async () => {
+        const mockUser = { id: 1 };
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+        const weakPasswords = [
+            'short',
+            'no-uppercase123!',
+            'NO-LOWERCASE123!',
+            'NoNumbers!',
+            'NoSpecialChar123',
+        ];
+
+        for (const weakPassword of weakPasswords) {
+            const request = createRequest({
+                currentPassword: 'oldpassword',
+                newPassword: weakPassword,
+            }, 'auth-token=valid_token');
+
+            const response = await handler(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(400);
+            expect(data.error).toContain('Le mot de passe doit');
+        }
+    });
+
+    it('should return 401 for incorrect current password', async () => {
+        const mockUser = {
+            id: 1,
+            email: 'test@example.com',
+            password: 'hashed_password',
+        };
+
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+        mockedPrisma.user = {
+            findUnique: jest.fn().mockResolvedValue(mockUser),
+        } as any;
+
+        mockedBcrypt.compare.mockResolvedValue(false as never);
+
+        const request = createRequest({
+            currentPassword: 'wrong_password',
+            newPassword: 'New!Password123',
+        }, 'auth-token=valid_token');
+
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+        expect(data.error).toBe('Mot de passe actuel incorrect');
+    });
+
+    it('should handle database errors gracefully', async () => {
+        const mockUser = { id: 1 };
+        mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+        mockedPrisma.user = {
+            findUnique: jest.fn().mockRejectedValue(new Error('Database error')),
+        } as any;
+
+        const request = createRequest({
+            currentPassword: 'password',
+            newPassword: 'New!Password123',
+        }, 'auth-token=valid_token');
+
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(500);
+        expect(data.error).toBe('Erreur lors du changement de mot de passe');
+    });
+});

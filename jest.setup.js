@@ -1,17 +1,97 @@
 // jest.setup.js
 // import '@testing-library/jest-dom'; // Ancienne méthode
 import '@testing-library/jest-dom/jest-globals'; // Nouvelle tentative
-import 'whatwg-fetch'; // Polyfill fetch
 import { TextEncoder, TextDecoder } from 'util';
-import { fetch, Headers, Request, Response } from 'cross-fetch';
 
-// Polyfills globaux
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
-global.fetch = fetch;
-global.Headers = Headers;
-global.Request = Request;
-global.Response = Response;
+// Polyfills globaux - NE PAS redéfinir fetch ici car c'est fait dans jest.polyfills.js
+global.TextEncoder = global.TextEncoder || TextEncoder;
+global.TextDecoder = global.TextDecoder || TextDecoder;
+
+// Mock performance API for tests
+if (!global.performance) {
+  global.performance = {
+    now: () => Date.now(),
+    mark: jest.fn(),
+    measure: jest.fn(),
+    clearMarks: jest.fn(),
+    clearMeasures: jest.fn(),
+    getEntriesByName: jest.fn(() => []),
+    getEntriesByType: jest.fn(() => []),
+  };
+} else if (!global.performance.mark) {
+  // If performance exists but mark doesn't, add it
+  global.performance.mark = jest.fn();
+  global.performance.measure = jest.fn();
+  global.performance.clearMarks = jest.fn();
+  global.performance.clearMeasures = jest.fn();
+  global.performance.getEntriesByName = jest.fn(() => []);
+  global.performance.getEntriesByType = jest.fn(() => []);
+}
+
+// Mock PerformanceObserver for Web Vitals
+global.PerformanceObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  disconnect: jest.fn(),
+  takeRecords: jest.fn(() => []),
+}));
+
+// Mock PerformanceObserverEntryList
+global.PerformanceObserverEntryList = jest.fn().mockImplementation(() => ({
+  getEntries: jest.fn(() => []),
+  getEntriesByName: jest.fn(() => []),
+  getEntriesByType: jest.fn(() => []),
+}));
+
+// Mock NextResponse to ensure json() method exists
+jest.mock('next/server', () => {
+  const NextResponse = {
+    json: jest.fn((data, init) => ({
+      ok: true,
+      status: init?.status || 200,
+      statusText: 'OK',
+      headers: new Map(Object.entries(init?.headers || {})),
+      json: async () => data,
+      text: async () => JSON.stringify(data),
+      clone: function() { return this; },
+      body: data,
+      bodyUsed: false,
+      url: '',
+      type: 'basic',
+      redirected: false,
+    })),
+    redirect: jest.fn((url, status = 302) => ({
+      ok: false,
+      status,
+      statusText: 'Found',
+      headers: new Map([['Location', url.toString()]]),
+      json: async () => ({}),
+      text: async () => '',
+      clone: function() { return this; },
+    })),
+    next: jest.fn(() => ({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Map(),
+      json: async () => ({}),
+      text: async () => '',
+      clone: function() { return this; },
+    })),
+    error: jest.fn((message, init) => {
+      throw new Error(message);
+    }),
+  };
+  
+  return {
+    NextRequest: jest.fn().mockImplementation((url, init) => ({
+      url,
+      method: init?.method || 'GET',
+      headers: new Map(Object.entries(init?.headers || {})),
+      nextUrl: new URL(url),
+    })),
+    NextResponse,
+  };
+});
 
 // Mocks de Next.js
 jest.mock('next/font/google', () => ({
@@ -30,6 +110,22 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn(), refresh: jest.fn() })),
   useSearchParams: jest.fn(() => new URLSearchParams()),
   usePathname: jest.fn(() => ''),
+}));
+
+// Mock next/headers to prevent "headers was called outside a request scope" error
+jest.mock('next/headers', () => ({
+  headers: jest.fn(() => ({
+    get: jest.fn((key) => {
+      if (key === 'x-user-id') return '1';
+      if (key === 'authorization') return 'Bearer mock-token';
+      return null;
+    }),
+  })),
+  cookies: jest.fn(() => ({
+    get: jest.fn(),
+    set: jest.fn(),
+    delete: jest.fn(),
+  })),
 }));
 
 jest.mock('next/router', () => ({
@@ -60,6 +156,16 @@ if (typeof window !== 'undefined') {
       dispatchEvent: jest.fn(),
     })),
   });
+  
+  // Mock IntersectionObserver
+  global.IntersectionObserver = jest.fn().mockImplementation(() => ({
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+    root: null,
+    rootMargin: '',
+    thresholds: [],
+  }));
 }
 
 // Configuration pour MSW (Mock Service Worker)
@@ -120,6 +226,37 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
   disconnect: jest.fn(),
 }));
 
+// Mock Canvas for chart components
+if (typeof window !== 'undefined') {
+  HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
+    fillRect: jest.fn(),
+    clearRect: jest.fn(),
+    getImageData: jest.fn(() => ({
+      data: new Array(4),
+    })),
+    putImageData: jest.fn(),
+    createImageData: jest.fn(() => []),
+    setTransform: jest.fn(),
+    drawImage: jest.fn(),
+    save: jest.fn(),
+    restore: jest.fn(),
+    beginPath: jest.fn(),
+    moveTo: jest.fn(),
+    lineTo: jest.fn(),
+    closePath: jest.fn(),
+    stroke: jest.fn(),
+    translate: jest.fn(),
+    scale: jest.fn(),
+    rotate: jest.fn(),
+    arc: jest.fn(),
+    fill: jest.fn(),
+    measureText: jest.fn(() => ({ width: 0 })),
+    transform: jest.fn(),
+    rect: jest.fn(),
+    clip: jest.fn(),
+  }));
+}
+
 // Configuration pour les tests de composants
 jest.setTimeout(10000);
 
@@ -144,5 +281,31 @@ jest.mock('@/modules/leaves/services/publicHolidayService', () => {
       // Conserver les constantes/enums exportés par le module s'il y en a
       ...(actualPublicHolidayService.publicHolidayService ? {} : actualPublicHolidayService) // Pour conserver les exports non-objets
     },
+  };
+});
+
+// Mock framer-motion pour éviter les erreurs __rest
+jest.mock('framer-motion', () => {
+  const React = require('react');
+  return {
+    motion: {
+      div: React.forwardRef((props, ref) => {
+        const { children, ...rest } = props;
+        return React.createElement('div', { ...rest, ref }, children);
+      }),
+      button: React.forwardRef((props, ref) => {
+        const { children, ...rest } = props;
+        return React.createElement('button', { ...rest, ref }, children);
+      }),
+      nav: React.forwardRef((props, ref) => {
+        const { children, ...rest } = props;
+        return React.createElement('nav', { ...rest, ref }, children);
+      }),
+      span: React.forwardRef((props, ref) => {
+        const { children, ...rest } = props;
+        return React.createElement('span', { ...rest, ref }, children);
+      }),
+    },
+    AnimatePresence: ({ children }) => children,
   };
 });

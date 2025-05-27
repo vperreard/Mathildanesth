@@ -14,13 +14,23 @@ const nextConfig = {
         optimizeCss: true,
         optimisticClientCache: true,
         typedRoutes: true,
-        serverComponentsExternalPackages: ['@prisma/client'],
+        optimizePackageImports: [
+            '@radix-ui/react-*',
+            'lucide-react',
+            'date-fns',
+            '@tanstack/react-query',
+            'react-hook-form',
+            'zod'
+        ],
     },
 
     // Configuration des packages externes côté serveur
-    serverExternalPackages: ['bcrypt', '@prisma/client'],
+    serverExternalPackages: ['bcrypt', '@prisma/client', 'ioredis', 'redis-errors'],
 
     poweredByHeader: false,
+
+    // Compression Gzip/Brotli
+    compress: true,
 
     // Configuration du compilateur
     compiler: {
@@ -41,10 +51,25 @@ const nextConfig = {
                 child_process: false,
                 net: false,
                 tls: false,
+                dns: false,
                 "aws-sdk": false,
                 "mock-aws-s3": false,
                 nock: false,
+                crypto: false,
+                stream: false,
+                os: false,
+                util: false,
             };
+            
+            // Exclure les modules serveur du bundle client
+            config.externals = [
+                ...(config.externals || []),
+                'bcrypt',
+                'bcryptjs',
+                '@mapbox/node-pre-gyp',
+                'node-gyp',
+                'npm'
+            ];
         }
 
         // Ignorer les imports HTML depuis node_modules
@@ -94,12 +119,42 @@ const nextConfig = {
                             test: /[\\/]src[\\/]modules[\\/]leaves[\\/]/,
                             name: 'leaves',
                             chunks: 'all',
+                            priority: 20,
                         },
                         // Bundle pour l'authentification
                         auth: {
                             test: /[\\/]src[\\/](lib[\\/]auth|components[\\/]auth)[\\/]/,
                             name: 'auth',
                             chunks: 'all',
+                            priority: 20,
+                        },
+                        // Bundle pour bloc operatoire
+                        blocOperatoire: {
+                            test: /[\\/]src[\\/]modules[\\/]planning[\\/]bloc-operatoire[\\/]/,
+                            name: 'bloc-operatoire',
+                            chunks: 'all',
+                            priority: 20,
+                        },
+                        // Bundle pour calendrier
+                        calendar: {
+                            test: /[\\/]src[\\/]modules[\\/]calendar[\\/]/,
+                            name: 'calendar',
+                            chunks: 'all',
+                            priority: 20,
+                        },
+                        // Bundle pour les composants UI lourds
+                        uiComponents: {
+                            test: /[\\/]node_modules[\\/](@radix-ui|react-window|react-virtualized)[\\/]/,
+                            name: 'ui-components',
+                            chunks: 'all',
+                            priority: 15,
+                        },
+                        // Bundle pour les librairies de formulaires
+                        forms: {
+                            test: /[\\/]node_modules[\\/](react-hook-form|zod|@hookform)[\\/]/,
+                            name: 'forms',
+                            chunks: 'all',
+                            priority: 15,
                         },
                     },
                 },
@@ -141,6 +196,37 @@ const nextConfig = {
     async headers() {
         return [
             {
+                // Assets statiques (immutable)
+                source: '/_next/static/:path*',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, max-age=31536000, immutable',
+                    },
+                ],
+            },
+            {
+                // Images optimisées
+                source: '/_next/image/:path*',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, max-age=31536000, immutable',
+                    },
+                ],
+            },
+            {
+                // API routes (no cache by default)
+                source: '/api/:path*',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'no-cache, no-store, must-revalidate',
+                    },
+                ],
+            },
+            {
+                // Pages HTML (stale-while-revalidate)
                 source: '/(.*)',
                 headers: [
                     {
@@ -155,10 +241,9 @@ const nextConfig = {
                         key: 'Referrer-Policy',
                         value: 'strict-origin-when-cross-origin',
                     },
-                    // Cache statique pour les assets
                     {
                         key: 'Cache-Control',
-                        value: 'public, max-age=31536000, immutable',
+                        value: 'public, max-age=0, must-revalidate',
                     },
                 ],
             },

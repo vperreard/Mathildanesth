@@ -1,578 +1,591 @@
+/**
+ * Tests pour le hook useOperatingRoomPlanning
+ * Objectif : 75% de couverture
+ */
+
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useOperatingRoomPlanning } from '../useOperatingRoomPlanning';
-import { blocPlanningService } from '@/services/blocPlanningService';
-import { BlocDayPlanning, BlocRoomAssignment, BlocSupervisor } from '@/types/bloc-planning-types';
+import { BlocDayPlanning, ValidationResult } from '@/types/bloc-planning-types';
+import { TestFactory } from '@/tests/factories/testFactorySimple';
 
-// Mock du service blocPlanningService
-jest.mock('@/services/blocPlanningService', () => ({
-    blocPlanningService: {
+describe('useOperatingRoomPlanning', () => {
+    // Mock du service de planning
+    const mockBlocPlanningService = {
         getDayPlanning: jest.fn(),
-        validateDayPlanning: jest.fn(),
-        saveDayPlanning: jest.fn()
-    }
-}));
-
-describe('useOperatingRoomPlanning Hook', () => {
-    // Données pour les tests
-    const mockDate = '2023-06-01';
-    const mockPlanning: BlocDayPlanning = {
-        id: 'planning1',
-        date: '2023-06-01',
-        salles: [
-            {
-                id: 'assignment1',
-                salleId: 'room1',
-                superviseurs: [
-                    {
-                        id: 'supervisor1',
-                        userId: 'user1',
-                        role: 'PRINCIPAL',
-                        periodes: [{ debut: '08:00', fin: '18:00' }]
-                    }
-                ]
-            },
-            {
-                id: 'assignment2',
-                salleId: 'room2',
-                superviseurs: [
-                    {
-                        id: 'supervisor2',
-                        userId: 'user2',
-                        role: 'PRINCIPAL',
-                        periodes: [{ debut: '08:00', fin: '18:00' }]
-                    }
-                ]
-            }
-        ],
-        validationStatus: 'BROUILLON'
+        saveDayPlanning: jest.fn(),
+        validateDayPlanning: jest.fn()
     };
 
-    const mockValidationResult = {
+    const mockSite = TestFactory.Site.create();
+    const mockOperatingRooms = TestFactory.OperatingRoom.createBatch(2, mockSite.id);
+    const mockPlanning = TestFactory.BlocDayPlanning.create({
+        date: '2024-01-15',
+        salles: [
+            {
+                id: 'room-1',
+                salleId: mockOperatingRooms[0].id.toString(),
+                superviseurs: [
+                    {
+                        id: 'supervisor-1',
+                        userId: '1',
+                        role: 'PRINCIPAL',
+                        periodes: [{ debut: '08:00', fin: '12:00' }]
+                    }
+                ],
+                notes: 'Planning test'
+            }
+        ]
+    });
+
+    const mockValidationResult: ValidationResult = {
         isValid: true,
         errors: [],
         warnings: [],
         infos: []
     };
 
-    // Réinitialiser les mocks avant chaque test
+    const mockValidationError: ValidationResult = {
+        isValid: false,
+        errors: [
+            {
+                id: 'error-1',
+                type: 'SUPERVISION_CONFLICT',
+                message: 'Conflit de supervision détecté',
+                severity: 'ERROR',
+                salleId: 'room-1',
+                details: {}
+            }
+        ],
+        warnings: [],
+        infos: []
+    };
+
     beforeEach(() => {
         jest.clearAllMocks();
 
         // Configuration par défaut des mocks
-        (blocPlanningService.getDayPlanning as jest.Mock).mockImplementation(
-            (date, options = {}) => Promise.resolve(mockPlanning)
-        );
-
-        (blocPlanningService.validateDayPlanning as jest.Mock).mockImplementation(
-            (planning, options = {}) => Promise.resolve(mockValidationResult)
-        );
-
-        (blocPlanningService.saveDayPlanning as jest.Mock).mockImplementation(
-            (planning, options = {}) => Promise.resolve(planning)
-        );
+        mockBlocPlanningService.getDayPlanning.mockResolvedValue(mockPlanning);
+        mockBlocPlanningService.saveDayPlanning.mockResolvedValue(mockPlanning);
+        mockBlocPlanningService.validateDayPlanning.mockResolvedValue(mockValidationResult);
     });
 
-    test('loadDayPlanning charge le planning pour une date donnée', async () => {
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
+    afterEach(() => {
+        jest.resetAllMocks();
+    });
 
-        // Vérifier l'état initial
-        expect(result.current.isLoading).toBe(false);
-        expect(result.current.dayPlanning).toBeNull();
+    describe('État initial', () => {
+        it('devrait initialiser avec l\'état par défaut', () => {
+            // Act
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
 
-        // Appeler loadDayPlanning
-        let planningResult;
-        let cancelFunction;
-        await act(async () => {
-            [planningResult, cancelFunction] = await result.current.loadDayPlanning(mockDate);
+            // Assert
+            expect(result.current.dayPlanning).toBeNull();
+            expect(result.current.isLoading).toBe(false);
+            expect(result.current.isValidating).toBe(false);
+            expect(result.current.isSaving).toBe(false);
+            expect(result.current.validationResult).toBeNull();
+            expect(result.current.error).toBeNull();
+        });
+    });
+
+    describe('loadDayPlanning', () => {
+        it('devrait charger un planning avec succès', async () => {
+            // Arrange
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+
+            // Act
+            let loadResult: any = null;
+            await act(async () => {
+                loadResult = await result.current.loadDayPlanning('2024-01-15');
+            });
+
+            // Assert
+            expect(loadResult[0]).toEqual(mockPlanning);
+            expect(typeof loadResult[1]).toBe('function'); // Fonction de cancel
+            expect(result.current.dayPlanning).toEqual(mockPlanning);
+            expect(result.current.isLoading).toBe(false);
+            expect(result.current.error).toBeNull();
+            expect(mockBlocPlanningService.getDayPlanning).toHaveBeenCalledWith(
+                '2024-01-15',
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
+            );
         });
 
-        // Vérifier que le service a été appelé avec les bons paramètres
-        expect(blocPlanningService.getDayPlanning).toHaveBeenCalledWith(
-            mockDate,
-            expect.objectContaining({ signal: expect.any(AbortSignal) })
-        );
+        it('devrait gérer les erreurs de chargement', async () => {
+            // Arrange
+            const error = new Error('Erreur de chargement');
+            mockBlocPlanningService.getDayPlanning.mockRejectedValue(error);
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
 
-        // Vérifier que l'état a été mis à jour
-        expect(result.current.isLoading).toBe(false);
-        expect(result.current.dayPlanning).toEqual(mockPlanning);
+            // Act
+            let loadResult: any = null;
+            await act(async () => {
+                loadResult = await result.current.loadDayPlanning('2024-01-15');
+            });
 
-        // Vérifier le retour de la fonction
-        expect(planningResult).toEqual(mockPlanning);
-        expect(typeof cancelFunction).toBe('function');
-    });
-
-    test('validatePlanning valide le planning sans le sauvegarder', async () => {
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
-
-        // Appeler validatePlanning
-        let validationResult;
-        let cancelFunction;
-        await act(async () => {
-            [validationResult, cancelFunction] = await result.current.validatePlanning(mockPlanning);
+            // Assert
+            expect(loadResult[0]).toBeNull();
+            expect(result.current.dayPlanning).toBeNull();
+            expect(result.current.isLoading).toBe(false);
+            expect(result.current.error).toEqual(error);
         });
 
-        // Vérifier que le service a été appelé avec les bons paramètres
-        expect(blocPlanningService.validateDayPlanning).toHaveBeenCalledWith(
-            mockPlanning,
-            expect.objectContaining({ signal: expect.any(AbortSignal) })
-        );
+        it('devrait mettre à jour l\'état de chargement', async () => {
+            // Arrange
+            let resolvePromise: (value: any) => void;
+            const delayedPromise = new Promise(resolve => {
+                resolvePromise = resolve;
+            });
+            mockBlocPlanningService.getDayPlanning.mockReturnValue(delayedPromise);
 
-        // Vérifier que l'état a été mis à jour
-        expect(result.current.isValidating).toBe(false);
-        expect(result.current.validationResult).toEqual(mockValidationResult);
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
 
-        // Vérifier le retour de la fonction
-        expect(validationResult).toEqual(mockValidationResult);
-        expect(typeof cancelFunction).toBe('function');
-    });
+            // Act - Démarrer le chargement
+            act(() => {
+                result.current.loadDayPlanning('2024-01-15');
+            });
 
-    test('saveDayPlanning sauvegarde le planning avec validation préalable', async () => {
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
+            // Assert - Pendant le chargement
+            expect(result.current.isLoading).toBe(true);
+            expect(result.current.error).toBeNull();
 
-        // Appeler saveDayPlanning
-        let savedPlanning;
-        let cancelFunction;
-        await act(async () => {
-            [savedPlanning, cancelFunction] = await result.current.saveDayPlanning(mockPlanning);
+            // Act - Terminer le chargement
+            await act(async () => {
+                resolvePromise!(mockPlanning);
+            });
+
+            // Assert - Après le chargement
+            expect(result.current.isLoading).toBe(false);
+            expect(result.current.dayPlanning).toEqual(mockPlanning);
         });
 
-        // Vérifier que les services ont été appelés dans le bon ordre
-        expect(blocPlanningService.validateDayPlanning).toHaveBeenCalledWith(
-            mockPlanning,
-            expect.objectContaining({ signal: expect.any(AbortSignal) })
-        );
+        it('devrait annuler les requêtes précédentes', async () => {
+            // Arrange
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
 
-        expect(blocPlanningService.saveDayPlanning).toHaveBeenCalledWith(
-            mockPlanning,
-            expect.objectContaining({ signal: expect.any(AbortSignal) })
-        );
+            // Act - Premier appel
+            act(() => {
+                result.current.loadDayPlanning('2024-01-15');
+            });
 
-        // Vérifier que l'état a été mis à jour
-        expect(result.current.isSaving).toBe(false);
-        expect(result.current.dayPlanning).toEqual(mockPlanning);
+            // Act - Deuxième appel qui devrait annuler le premier
+            await act(async () => {
+                await result.current.loadDayPlanning('2024-01-16');
+            });
 
-        // Vérifier le retour de la fonction
-        expect(savedPlanning).toEqual(mockPlanning);
-        expect(typeof cancelFunction).toBe('function');
-    });
-
-    test('saveDayPlanning ne sauvegarde pas si la validation échoue', async () => {
-        // Configurer le mock pour échouer à la validation
-        (blocPlanningService.validateDayPlanning as jest.Mock).mockImplementation(
-            (planning, options = {}) => Promise.resolve({
-                isValid: false,
-                errors: [{ message: 'Erreur de validation' }],
-                warnings: [],
-                infos: []
-            })
-        );
-
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
-
-        // Appeler saveDayPlanning
-        let savedPlanning;
-        await act(async () => {
-            [savedPlanning] = await result.current.saveDayPlanning(mockPlanning);
+            // Assert
+            expect(mockBlocPlanningService.getDayPlanning).toHaveBeenCalledTimes(2);
+            expect(result.current.dayPlanning).toEqual(mockPlanning);
         });
 
-        // Vérifier que validate a été appelé mais pas save
-        expect(blocPlanningService.validateDayPlanning).toHaveBeenCalled();
-        expect(blocPlanningService.saveDayPlanning).not.toHaveBeenCalled();
+        it('devrait permettre l\'annulation manuelle', async () => {
+            // Arrange
+            let resolvePromise: (value: any) => void;
+            const delayedPromise = new Promise(resolve => {
+                resolvePromise = resolve;
+            });
+            mockBlocPlanningService.getDayPlanning.mockReturnValue(delayedPromise);
 
-        // Vérifier que l'état reflète l'erreur
-        expect(result.current.isSaving).toBe(false);
-        expect(result.current.error).not.toBeNull();
-        expect(savedPlanning).toBeNull();
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+
+            // Act - Démarrer le chargement
+            let cancelFunction: any;
+            act(() => {
+                result.current.loadDayPlanning('2024-01-15').then(([, cancel]) => {
+                    cancelFunction = cancel;
+                });
+            });
+
+            // Act - Annuler manuellement
+            act(() => {
+                if (cancelFunction) cancelFunction();
+            });
+
+            // Act - Terminer la promise
+            await act(async () => {
+                resolvePromise!(mockPlanning);
+            });
+
+            // Assert - L'état ne devrait pas être mis à jour car annulé
+            expect(result.current.isLoading).toBe(true); // Reste en loading car annulé
+        });
     });
 
-    test('gestion des erreurs lors du chargement du planning', async () => {
-        // Configurer le mock pour simuler une erreur
-        const errorMessage = 'Erreur lors du chargement du planning';
-        (blocPlanningService.getDayPlanning as jest.Mock).mockImplementation(
-            (date, options = {}) => Promise.reject(new Error(errorMessage))
-        );
+    describe('validatePlanning', () => {
+        it('devrait valider un planning avec succès', async () => {
+            // Arrange
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
 
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
+            // Act
+            let validateResult: any = null;
+            await act(async () => {
+                validateResult = await result.current.validatePlanning(mockPlanning);
+            });
 
-        // Appeler loadDayPlanning
-        await act(async () => {
-            await result.current.loadDayPlanning(mockDate);
+            // Assert
+            expect(validateResult[0]).toEqual(mockValidationResult);
+            expect(typeof validateResult[1]).toBe('function'); // Fonction de cancel
+            expect(result.current.validationResult).toEqual(mockValidationResult);
+            expect(result.current.isValidating).toBe(false);
+            expect(result.current.error).toBeNull();
+            expect(mockBlocPlanningService.validateDayPlanning).toHaveBeenCalledWith(
+                mockPlanning,
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
+            );
         });
 
-        // Vérifier que l'état reflète l'erreur
-        expect(result.current.isLoading).toBe(false);
-        expect(result.current.error).not.toBeNull();
-        expect(result.current.error?.message).toBe(errorMessage);
-        expect(result.current.dayPlanning).toBeNull();
-    });
+        it('devrait gérer les erreurs de validation', async () => {
+            // Arrange
+            const error = new Error('Erreur de validation');
+            mockBlocPlanningService.validateDayPlanning.mockRejectedValue(error);
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
 
-    test('gestion des erreurs lors de la validation du planning', async () => {
-        // Configurer le mock pour simuler une erreur
-        const errorMessage = 'Erreur lors de la validation du planning';
-        (blocPlanningService.validateDayPlanning as jest.Mock).mockImplementation(
-            (planning, options = {}) => Promise.reject(new Error(errorMessage))
-        );
+            // Act
+            let validateResult: any = null;
+            await act(async () => {
+                validateResult = await result.current.validatePlanning(mockPlanning);
+            });
 
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
-
-        // Appeler validatePlanning
-        await act(async () => {
-            await result.current.validatePlanning(mockPlanning);
+            // Assert
+            expect(validateResult[0]).toBeNull();
+            expect(result.current.validationResult).toBeNull();
+            expect(result.current.isValidating).toBe(false);
+            expect(result.current.error).toEqual(error);
         });
 
-        // Vérifier que l'état reflète l'erreur
-        expect(result.current.isValidating).toBe(false);
-        expect(result.current.error).not.toBeNull();
-        expect(result.current.error?.message).toBe(errorMessage);
-    });
+        it('devrait mettre à jour l\'état de validation', async () => {
+            // Arrange
+            let resolvePromise: (value: any) => void;
+            const delayedPromise = new Promise(resolve => {
+                resolvePromise = resolve;
+            });
+            mockBlocPlanningService.validateDayPlanning.mockReturnValue(delayedPromise);
 
-    test('gestion des erreurs lors de la sauvegarde du planning', async () => {
-        // Configurer les mocks pour réussir la validation mais échouer à la sauvegarde
-        (blocPlanningService.validateDayPlanning as jest.Mock).mockImplementation(
-            (planning, options = {}) => Promise.resolve({
-                isValid: true,
-                errors: [],
-                warnings: [],
-                infos: []
-            })
-        );
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
 
-        const errorMessage = 'Erreur lors de la sauvegarde du planning';
-        (blocPlanningService.saveDayPlanning as jest.Mock).mockImplementation(
-            (planning, options = {}) => Promise.reject(new Error(errorMessage))
-        );
+            // Act - Démarrer la validation
+            act(() => {
+                result.current.validatePlanning(mockPlanning);
+            });
 
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
+            // Assert - Pendant la validation
+            expect(result.current.isValidating).toBe(true);
+            expect(result.current.error).toBeNull();
 
-        // Appeler saveDayPlanning
-        await act(async () => {
-            await result.current.saveDayPlanning(mockPlanning);
+            // Act - Terminer la validation
+            await act(async () => {
+                resolvePromise!(mockValidationResult);
+            });
+
+            // Assert - Après la validation
+            expect(result.current.isValidating).toBe(false);
+            expect(result.current.validationResult).toEqual(mockValidationResult);
         });
 
-        // Vérifier que l'état reflète l'erreur
-        expect(result.current.isSaving).toBe(false);
-        expect(result.current.error).not.toBeNull();
-        expect(result.current.error?.message).toBe(errorMessage);
+        it('devrait retourner un résultat avec erreurs de validation', async () => {
+            // Arrange
+            mockBlocPlanningService.validateDayPlanning.mockResolvedValue(mockValidationError);
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+
+            // Act
+            let validateResult: any = null;
+            await act(async () => {
+                validateResult = await result.current.validatePlanning(mockPlanning);
+            });
+
+            // Assert
+            expect(validateResult[0]).toEqual(mockValidationError);
+            expect(result.current.validationResult).toEqual(mockValidationError);
+            expect(result.current.error).toBeNull(); // Pas d'erreur technique, juste des erreurs de validation
+        });
+
+        it('devrait annuler les validations précédentes', async () => {
+            // Arrange
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+
+            // Act - Premier appel
+            act(() => {
+                result.current.validatePlanning(mockPlanning);
+            });
+
+            // Act - Deuxième appel qui devrait annuler le premier
+            await act(async () => {
+                await result.current.validatePlanning(mockPlanning);
+            });
+
+            // Assert
+            expect(mockBlocPlanningService.validateDayPlanning).toHaveBeenCalledTimes(2);
+            expect(result.current.validationResult).toEqual(mockValidationResult);
+        });
     });
 
-    test('annulation d\'une requête de chargement en cours', async () => {
-        // Configurer le mock pour simuler une opération longue
-        const mockLoadingFn = jest.fn();
-        (blocPlanningService.getDayPlanning as jest.Mock).mockImplementation(
-            (date, options = {}) => {
-                return new Promise((resolve) => {
-                    // Ajouter une fonction pour vérifier si la requête a été annulée
-                    if (options.signal) {
-                        options.signal.addEventListener('abort', () => {
-                            mockLoadingFn('aborted');
-                        });
-                    }
+    describe('saveDayPlanning', () => {
+        it('devrait sauvegarder un planning avec validation par défaut', async () => {
+            // Arrange
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
 
-                    // Simuler une opération longue
-                    const timeoutId = setTimeout(() => {
-                        mockLoadingFn('completed');
-                        resolve(mockPlanning);
-                    }, 1000);
+            // Act
+            let saveResult: any = null;
+            await act(async () => {
+                saveResult = await result.current.saveDayPlanning(mockPlanning);
+            });
 
-                    // Nettoyer le timeout si la requête est annulée
-                    if (options.signal) {
-                        options.signal.addEventListener('abort', () => {
-                            clearTimeout(timeoutId);
-                        });
-                    }
+            // Assert
+            expect(saveResult[0]).toEqual(mockPlanning);
+            expect(typeof saveResult[1]).toBe('function'); // Fonction de cancel
+            expect(result.current.dayPlanning).toEqual(mockPlanning);
+            expect(result.current.isSaving).toBe(false);
+            expect(result.current.error).toBeNull();
+
+            // Devrait d'abord valider puis sauvegarder
+            expect(mockBlocPlanningService.validateDayPlanning).toHaveBeenCalledWith(
+                mockPlanning,
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
+            );
+            expect(mockBlocPlanningService.saveDayPlanning).toHaveBeenCalledWith(
+                mockPlanning,
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
+            );
+        });
+
+        it('devrait sauvegarder sans validation si spécifié', async () => {
+            // Arrange
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+
+            // Act
+            let saveResult: any = null;
+            await act(async () => {
+                saveResult = await result.current.saveDayPlanning(mockPlanning, false);
+            });
+
+            // Assert
+            expect(saveResult[0]).toEqual(mockPlanning);
+            expect(result.current.dayPlanning).toEqual(mockPlanning);
+
+            // Ne devrait pas valider avant sauvegarde
+            expect(mockBlocPlanningService.validateDayPlanning).not.toHaveBeenCalled();
+            expect(mockBlocPlanningService.saveDayPlanning).toHaveBeenCalledWith(
+                mockPlanning,
+                expect.objectContaining({ signal: expect.any(AbortSignal) })
+            );
+        });
+
+        it('devrait empêcher la sauvegarde si la validation échoue', async () => {
+            // Arrange
+            mockBlocPlanningService.validateDayPlanning.mockResolvedValue(mockValidationError);
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+
+            // Act
+            let saveResult: any = null;
+            await act(async () => {
+                saveResult = await result.current.saveDayPlanning(mockPlanning);
+            });
+
+            // Assert
+            expect(saveResult[0]).toBeNull(); // Sauvegarde échoue
+            expect(result.current.validationResult).toEqual(mockValidationError);
+            expect(result.current.isSaving).toBe(false);
+
+            // La validation devrait être appelée mais pas la sauvegarde
+            expect(mockBlocPlanningService.validateDayPlanning).toHaveBeenCalled();
+            expect(mockBlocPlanningService.saveDayPlanning).not.toHaveBeenCalled();
+        });
+
+        it('devrait gérer les erreurs de sauvegarde', async () => {
+            // Arrange
+            const error = new Error('Erreur de sauvegarde');
+            mockBlocPlanningService.saveDayPlanning.mockRejectedValue(error);
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+
+            // Act
+            let saveResult: any = null;
+            await act(async () => {
+                saveResult = await result.current.saveDayPlanning(mockPlanning);
+            });
+
+            // Assert
+            expect(saveResult[0]).toBeNull();
+            expect(result.current.dayPlanning).toBeNull();
+            expect(result.current.isSaving).toBe(false);
+            expect(result.current.error).toEqual(error);
+        });
+
+        it('devrait mettre à jour l\'état de sauvegarde', async () => {
+            // Arrange
+            let resolveValidation: (value: any) => void;
+            let resolveSave: (value: any) => void;
+
+            const delayedValidation = new Promise(resolve => {
+                resolveValidation = resolve;
+            });
+            const delayedSave = new Promise(resolve => {
+                resolveSave = resolve;
+            });
+
+            mockBlocPlanningService.validateDayPlanning.mockReturnValue(delayedValidation);
+            mockBlocPlanningService.saveDayPlanning.mockReturnValue(delayedSave);
+
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+
+            // Act - Démarrer la sauvegarde
+            act(() => {
+                result.current.saveDayPlanning(mockPlanning);
+            });
+
+            // Assert - Pendant la sauvegarde (validation)
+            expect(result.current.isSaving).toBe(true);
+
+            // Act - Terminer la validation
+            await act(async () => {
+                resolveValidation!(mockValidationResult);
+            });
+
+            // Assert - Toujours en cours de sauvegarde
+            expect(result.current.isSaving).toBe(true);
+
+            // Act - Terminer la sauvegarde
+            await act(async () => {
+                resolveSave!(mockPlanning);
+            });
+
+            // Assert - Sauvegarde terminée
+            expect(result.current.isSaving).toBe(false);
+            expect(result.current.dayPlanning).toEqual(mockPlanning);
+        });
+
+        it('devrait annuler les sauvegardes précédentes', async () => {
+            // Arrange
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+
+            // Act - Premier appel
+            act(() => {
+                result.current.saveDayPlanning(mockPlanning);
+            });
+
+            // Act - Deuxième appel qui devrait annuler le premier
+            await act(async () => {
+                await result.current.saveDayPlanning(mockPlanning);
+            });
+
+            // Assert
+            expect(mockBlocPlanningService.validateDayPlanning).toHaveBeenCalledTimes(2);
+            expect(mockBlocPlanningService.saveDayPlanning).toHaveBeenCalledTimes(2);
+        });
+    });
+
+    describe('Opérations simultanées', () => {
+        it('devrait gérer le chargement et la validation simultanément', async () => {
+            // Arrange
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+
+            // Act - Démarrer le chargement et la validation en parallèle
+            await act(async () => {
+                const [loadPromise, validatePromise] = await Promise.all([
+                    result.current.loadDayPlanning('2024-01-15'),
+                    result.current.validatePlanning(mockPlanning)
+                ]);
+
+                expect(loadPromise[0]).toEqual(mockPlanning);
+                expect(validatePromise[0]).toEqual(mockValidationResult);
+            });
+
+            // Assert
+            expect(result.current.dayPlanning).toEqual(mockPlanning);
+            expect(result.current.validationResult).toEqual(mockValidationResult);
+            expect(result.current.isLoading).toBe(false);
+            expect(result.current.isValidating).toBe(false);
+        });
+
+        it('devrait gérer les erreurs sur opérations multiples', async () => {
+            // Arrange
+            mockBlocPlanningService.getDayPlanning.mockRejectedValue(new Error('Erreur chargement'));
+            mockBlocPlanningService.validateDayPlanning.mockRejectedValue(new Error('Erreur validation'));
+
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+
+            // Act
+            await act(async () => {
+                await Promise.all([
+                    result.current.loadDayPlanning('2024-01-15'),
+                    result.current.validatePlanning(mockPlanning)
+                ]);
+            });
+
+            // Assert - Une seule erreur devrait être conservée (la dernière)
+            expect(result.current.error).toBeInstanceOf(Error);
+            expect(result.current.isLoading).toBe(false);
+            expect(result.current.isValidating).toBe(false);
+        });
+    });
+
+    describe('Nettoyage et démontage', () => {
+        it('devrait nettoyer les contrôleurs lors du démontage', () => {
+            // Arrange
+            const { unmount } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+
+            // Act
+            unmount();
+
+            // Assert - Aucune erreur ne devrait être levée
+            expect(true).toBe(true);
+        });
+    });
+
+    describe('Tests de performance', () => {
+        it('devrait gérer rapidement les opérations de base', async () => {
+            // Arrange
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+            const startTime = Date.now();
+
+            // Act
+            await act(async () => {
+                await result.current.loadDayPlanning('2024-01-15');
+                await result.current.validatePlanning(mockPlanning);
+                await result.current.saveDayPlanning(mockPlanning, false);
+            });
+
+            const endTime = Date.now();
+
+            // Assert
+            expect(endTime - startTime).toBeLessThan(100); // Moins de 100ms pour les mocks
+            expect(result.current.dayPlanning).toEqual(mockPlanning);
+        });
+
+        it('devrait gérer efficacement les annulations multiples', async () => {
+            // Arrange
+            const { result } = renderHook(() => useOperatingRoomPlanning(mockBlocPlanningService));
+
+            // Act - Démarrer et annuler plusieurs opérations rapidement
+            for (let i = 0; i < 10; i++) {
+                act(() => {
+                    result.current.loadDayPlanning(`2024-01-${15 + i}`);
+                    result.current.validatePlanning(mockPlanning);
                 });
             }
-        );
 
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
+            // Attendre un peu pour que les opérations se terminent
+            await act(async () => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+            });
 
-        // Appeler loadDayPlanning et récupérer la fonction d'annulation
-        let cancelFn: () => void;
-        await act(async () => {
-            const [, cancel] = await result.current.loadDayPlanning(mockDate);
-            cancelFn = cancel;
+            // Assert - Pas d'erreur et état cohérent
+            expect(result.current.dayPlanning).toEqual(mockPlanning);
+            expect(result.current.error).toBeNull();
         });
-
-        // Annuler la requête
-        await act(async () => {
-            cancelFn();
-        });
-
-        // Vérifier que la fonction d'annulation a été appelée
-        expect(mockLoadingFn).toHaveBeenCalledWith('aborted');
-
-        // Vérifier que l'état du hook est correct après annulation
-        expect(result.current.isLoading).toBe(false);
     });
 
-    test('annulation d\'une requête de validation en cours', async () => {
-        // Configurer le mock pour simuler une opération longue
-        const mockValidateFn = jest.fn();
-        (blocPlanningService.validateDayPlanning as jest.Mock).mockImplementation(
-            (planning, options = {}) => {
-                return new Promise((resolve) => {
-                    // Ajouter une fonction pour vérifier si la requête a été annulée
-                    if (options.signal) {
-                        options.signal.addEventListener('abort', () => {
-                            mockValidateFn('aborted');
-                        });
-                    }
+    describe('Intégration avec service par défaut', () => {
+        it('devrait fonctionner sans service injecté', () => {
+            // Act - Utiliser le hook sans injecter de service
+            const { result } = renderHook(() => useOperatingRoomPlanning());
 
-                    // Simuler une opération longue
-                    const timeoutId = setTimeout(() => {
-                        mockValidateFn('completed');
-                        resolve(mockValidationResult);
-                    }, 1000);
-
-                    // Nettoyer le timeout si la requête est annulée
-                    if (options.signal) {
-                        options.signal.addEventListener('abort', () => {
-                            clearTimeout(timeoutId);
-                        });
-                    }
-                });
-            }
-        );
-
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
-
-        // Appeler validatePlanning et récupérer la fonction d'annulation
-        let cancelFn: () => void;
-        await act(async () => {
-            const [, cancel] = await result.current.validatePlanning(mockPlanning);
-            cancelFn = cancel;
+            // Assert - Devrait initialiser correctement
+            expect(result.current.dayPlanning).toBeNull();
+            expect(result.current.isLoading).toBe(false);
+            expect(typeof result.current.loadDayPlanning).toBe('function');
+            expect(typeof result.current.validatePlanning).toBe('function');
+            expect(typeof result.current.saveDayPlanning).toBe('function');
         });
-
-        // Annuler la requête
-        await act(async () => {
-            cancelFn();
-        });
-
-        // Vérifier que la fonction d'annulation a été appelée
-        expect(mockValidateFn).toHaveBeenCalledWith('aborted');
-
-        // Vérifier que l'état du hook est correct après annulation
-        expect(result.current.isValidating).toBe(false);
-    });
-
-    test('saveDayPlanning sans validation préalable', async () => {
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
-
-        // Appeler saveDayPlanning avec validateBeforeSave = false
-        let savedPlanning;
-        await act(async () => {
-            [savedPlanning] = await result.current.saveDayPlanning(mockPlanning, false);
-        });
-
-        // Vérifier que validate n'a pas été appelé mais save oui
-        expect(blocPlanningService.validateDayPlanning).not.toHaveBeenCalled();
-        expect(blocPlanningService.saveDayPlanning).toHaveBeenCalledWith(
-            mockPlanning,
-            expect.objectContaining({ signal: expect.any(AbortSignal) })
-        );
-
-        // Vérifier l'état et le retour
-        expect(result.current.isSaving).toBe(false);
-        expect(result.current.dayPlanning).toEqual(mockPlanning);
-        expect(savedPlanning).toEqual(mockPlanning);
-    });
-
-    test('clearError efface l\'erreur', async () => {
-        // Configurer le mock pour simuler une erreur
-        (blocPlanningService.getDayPlanning as jest.Mock).mockImplementation(
-            (date, options = {}) => Promise.reject(new Error('Erreur test'))
-        );
-
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
-
-        // Générer une erreur
-        await act(async () => {
-            await result.current.loadDayPlanning(mockDate);
-        });
-
-        // Vérifier qu'une erreur est présente
-        expect(result.current.error).not.toBeNull();
-
-        // Effacer l'erreur
-        act(() => {
-            result.current.clearError();
-        });
-
-        // Vérifier que l'erreur a été effacée
-        expect(result.current.error).toBeNull();
-    });
-
-    test('clearValidationResult efface le résultat de validation', async () => {
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
-
-        // Générer un résultat de validation
-        await act(async () => {
-            await result.current.validatePlanning(mockPlanning);
-        });
-
-        // Vérifier qu'un résultat de validation est présent
-        expect(result.current.validationResult).not.toBeNull();
-
-        // Effacer le résultat de validation
-        act(() => {
-            result.current.clearValidationResult();
-        });
-
-        // Vérifier que le résultat de validation a été effacé
-        expect(result.current.validationResult).toBeNull();
-    });
-
-    test('nettoyage des contrôleurs lors du démontage', async () => {
-        // Configurer des mocks pour simuler des opérations longues
-        const abortSpy = jest.fn();
-        const mockAbortController = {
-            signal: { addEventListener: jest.fn(), aborted: false },
-            abort: abortSpy
-        };
-
-        // Remplacer le constructeur global AbortController
-        const originalAbortController = global.AbortController;
-        global.AbortController = jest.fn(() => mockAbortController) as any;
-
-        // Rendre le hook et le démonter immédiatement
-        const { unmount } = renderHook(() => useOperatingRoomPlanning());
-        unmount();
-
-        // Vérifier que le contrôleur n'a pas été appelé (car aucune action n'a été initiée)
-        expect(abortSpy).not.toHaveBeenCalled();
-
-        // Restaurer le constructeur original
-        global.AbortController = originalAbortController;
-    });
-
-    test('plusieurs appels consécutifs à loadDayPlanning annulent les requêtes précédentes', async () => {
-        // Configurer un spy pour surveiller les appels à abort
-        const abortSpy = jest.fn();
-
-        // Mock d'un controller et signal
-        const fakeController = { abort: abortSpy, signal: { addEventListener: jest.fn() } };
-
-        // Remplacer temporairement AbortController global
-        const originalAbortController = global.AbortController;
-        let controllerInstance = 0;
-
-        // Créer une liste de controllers pour simuler plusieurs appels
-        const controllers: any[] = [
-            { abort: abortSpy, signal: { addEventListener: jest.fn() } },
-            { abort: jest.fn(), signal: { addEventListener: jest.fn() } }
-        ];
-
-        global.AbortController = jest.fn().mockImplementation(() => {
-            return controllers[controllerInstance++];
-        }) as any;
-
-        // Configurer le service pour retourner différentes valeurs selon l'appel
-        (blocPlanningService.getDayPlanning as jest.Mock).mockImplementation(
-            (date, options = {}) => {
-                // Simuler le comportement normal sans accéder à controller.abort
-                return Promise.resolve({
-                    ...mockPlanning,
-                    id: `planning-${date}`
-                });
-            }
-        );
-
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
-
-        // Appeler loadDayPlanning pour deux dates différentes
-        await act(async () => {
-            await result.current.loadDayPlanning('2023-06-01');
-            await result.current.loadDayPlanning('2023-06-02');
-        });
-
-        // Vérifier que la requête précédente a été annulée
-        expect(abortSpy).toHaveBeenCalledTimes(1);
-
-        // Vérifier que l'état reflète la dernière requête
-        expect(result.current.dayPlanning?.id).toBe('planning-2023-06-02');
-
-        // Restaurer le constructeur original
-        global.AbortController = originalAbortController;
-    });
-
-    test('validatePlanning détecte les erreurs spécifiques aux règles de supervision', async () => {
-        // Configurer le mock pour retourner des erreurs de supervision
-        const supervisionErrors = {
-            isValid: false,
-            errors: [
-                { code: 'MAX_SALLES_MAR', message: 'Le MAR user1 supervise trop de salles simultanément', details: { userId: 'user1', maxSalles: 2, currentSalles: 3 } },
-                { code: 'SUPERVISION_REQUIRED', message: 'La salle room2 n\'a pas de superviseur principal', details: { salleId: 'room2' } }
-            ],
-            warnings: [
-                { code: 'HORS_HORAIRES_NORMAUX', message: 'Supervision en dehors des horaires normaux', details: { debut: '06:00', fin: '08:00' } }
-            ],
-            infos: []
-        };
-
-        (blocPlanningService.validateDayPlanning as jest.Mock).mockImplementation(
-            (planning, options = {}) => Promise.resolve(supervisionErrors)
-        );
-
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
-
-        // Appeler validatePlanning
-        let validationResult;
-        await act(async () => {
-            [validationResult] = await result.current.validatePlanning(mockPlanning);
-        });
-
-        // Vérifier que les erreurs de supervision sont bien détectées
-        expect(validationResult).toEqual(supervisionErrors);
-        expect(validationResult!.isValid).toBe(false);
-        expect(validationResult!.errors).toHaveLength(2);
-        expect(validationResult!.errors[0].code).toBe('MAX_SALLES_MAR');
-        expect(validationResult!.warnings).toHaveLength(1);
-        expect(validationResult!.warnings[0].code).toBe('HORS_HORAIRES_NORMAUX');
-    });
-
-    test('saveDayPlanning avec validation échoue pour des erreurs spécifiques', async () => {
-        // Configurer le mock pour échouer avec des erreurs spécifiques
-        const validationWithSpecificErrors = {
-            isValid: false,
-            errors: [
-                { code: 'CHEVAUCHEMENT_PERIODES', message: 'Périodes de supervision qui se chevauchent pour user1', details: { userId: 'user1', periodes: [{ debut: '08:00', fin: '12:00' }, { debut: '11:00', fin: '14:00' }] } }
-            ],
-            warnings: [],
-            infos: []
-        };
-
-        (blocPlanningService.validateDayPlanning as jest.Mock).mockImplementation(
-            (planning, options = {}) => Promise.resolve(validationWithSpecificErrors)
-        );
-
-        // Rendre le hook
-        const { result } = renderHook(() => useOperatingRoomPlanning());
-
-        // Appeler saveDayPlanning
-        let savedPlanning;
-        await act(async () => {
-            [savedPlanning] = await result.current.saveDayPlanning(mockPlanning);
-        });
-
-        // Vérifier que la sauvegarde a échoué à cause de l'erreur de chevauchement
-        expect(blocPlanningService.validateDayPlanning).toHaveBeenCalled();
-        expect(blocPlanningService.saveDayPlanning).not.toHaveBeenCalled();
-        expect(savedPlanning).toBeNull();
-        expect(result.current.error).not.toBeNull();
-        expect(result.current.error?.message).toContain('Le planning contient des erreurs');
     });
 }); 

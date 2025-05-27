@@ -1,381 +1,675 @@
+/**
+ * Tests complets pour le service leaveCalculator
+ * Objectif : 85% de couverture avec focus sur la logique métier critique
+ */
+
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import {
     calculateLeaveCountedDays,
     calculateWorkingDays,
     isBusinessDay,
     clearLeaveCalculationCache
 } from '../leaveCalculator';
+import { TestFactory } from '@/tests/factories/testFactorySimple';
 import { publicHolidayService } from '../publicHolidayService';
-import { WorkSchedule, WorkFrequency, WeekType } from '../../../profiles/types/workSchedule';
+import { isWorkingDay } from '@/modules/profiles/services/workScheduleService';
+import { WorkSchedule, WorkFrequency } from '@/modules/profiles/types/workSchedule';
+import { getLogger } from '@/utils/logger';
 
-// Mock du service des jours fériés
-jest.mock('../publicHolidayService', () => ({
-    publicHolidayService: {
-        getPublicHolidaysInRange: jest.fn(),
-        isPublicHoliday: jest.fn(),
-    }
-}));
+// Mock des dépendances
+jest.mock('../publicHolidayService');
+jest.mock('@/modules/profiles/services/workScheduleService');
+jest.mock('@/utils/logger');
 
-const mockPublicHolidayService = publicHolidayService as jest.Mocked<typeof publicHolidayService>;
+const mockedPublicHolidayService = publicHolidayService as jest.Mocked<typeof publicHolidayService>;
+const mockedIsWorkingDay = isWorkingDay as jest.MockedFunction<typeof isWorkingDay>;
+const mockedGetLogger = getLogger as jest.MockedFunction<typeof getLogger>;
 
-describe('LeaveCalculator - Tests Complets', () => {
-    // Mock d'un planning de travail standard
-    const standardSchedule: WorkSchedule = {
+describe('LeaveCalculator', () => {
+    const mockLogger = {
+        info: jest.fn(),
+        warn: jest.fn(),
+        error: jest.fn(),
+        debug: jest.fn()
+    };
+
+    const mockScheduleFullTime: WorkSchedule = {
         id: 1,
         userId: 1,
-        frequency: WorkFrequency.FULL_TIME,
-        weekType: WeekType.BOTH,
-        workingDays: [1, 2, 3, 4, 5], // Lundi à Vendredi (1-5)
-        workingTimePercentage: 100,
-        annualLeaveAllowance: 50,
+        frequency: 'FULLTIME' as WorkFrequency,
+        workDaysPerWeek: 5,
+        hoursPerWeek: 40,
         isActive: true,
-        validFrom: new Date('2024-01-01'),
-        validTo: new Date('2024-12-31'),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        startDate: '2024-01-01',
+        endDate: null,
+        patterns: [
+            { dayOfWeek: 1, isWorking: true, startTime: '08:00', endTime: '17:00' }, // Lundi
+            { dayOfWeek: 2, isWorking: true, startTime: '08:00', endTime: '17:00' }, // Mardi
+            { dayOfWeek: 3, isWorking: true, startTime: '08:00', endTime: '17:00' }, // Mercredi
+            { dayOfWeek: 4, isWorking: true, startTime: '08:00', endTime: '17:00' }, // Jeudi
+            { dayOfWeek: 5, isWorking: true, startTime: '08:00', endTime: '17:00' }, // Vendredi
+            { dayOfWeek: 6, isWorking: false, startTime: null, endTime: null },     // Samedi
+            { dayOfWeek: 0, isWorking: false, startTime: null, endTime: null }      // Dimanche
+        ]
     };
+
+    const mockSchedulePartTime: WorkSchedule = {
+        id: 2,
+        userId: 2,
+        frequency: 'PARTTIME' as WorkFrequency,
+        workDaysPerWeek: 3,
+        hoursPerWeek: 24,
+        isActive: true,
+        startDate: '2024-01-01',
+        endDate: null,
+        patterns: [
+            { dayOfWeek: 1, isWorking: true, startTime: '08:00', endTime: '16:00' }, // Lundi
+            { dayOfWeek: 2, isWorking: false, startTime: null, endTime: null },     // Mardi
+            { dayOfWeek: 3, isWorking: true, startTime: '08:00', endTime: '16:00' }, // Mercredi
+            { dayOfWeek: 4, isWorking: false, startTime: null, endTime: null },     // Jeudi
+            { dayOfWeek: 5, isWorking: true, startTime: '08:00', endTime: '16:00' }, // Vendredi
+            { dayOfWeek: 6, isWorking: false, startTime: null, endTime: null },     // Samedi
+            { dayOfWeek: 0, isWorking: false, startTime: null, endTime: null }      // Dimanche
+        ]
+    };
+
+    const mockPublicHolidays = [
+        {
+            id: 1,
+            name: 'Jour de l\'An',
+            date: '2024-01-01',
+            type: 'NATIONAL',
+            region: null,
+            isRecurring: true
+        },
+        {
+            id: 2,
+            name: 'Fête du Travail',
+            date: '2024-05-01',
+            type: 'NATIONAL',
+            region: null,
+            isRecurring: true
+        },
+        {
+            id: 3,
+            name: 'Noël',
+            date: '2024-12-25',
+            type: 'NATIONAL',
+            region: null,
+            isRecurring: true
+        }
+    ];
 
     beforeEach(() => {
         jest.clearAllMocks();
         clearLeaveCalculationCache();
-        // Mock par défaut : pas de jours fériés
-        mockPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue([]);
-        mockPublicHolidayService.isPublicHoliday.mockResolvedValue(false);
-    });
 
-    describe('Calculs de base - Jours ouvrés', () => {
-        it('should calculate working days for a full week (Monday to Friday)', async () => {
-            const startDate = new Date('2024-08-05'); // Lundi
-            const endDate = new Date('2024-08-09');   // Vendredi
+        // Mock logger
+        mockedGetLogger.mockResolvedValue(mockLogger as any);
 
-            const result = await calculateLeaveCountedDays(startDate, endDate, standardSchedule);
+        // Mock publicHolidayService par défaut
+        mockedPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue([]);
 
-            expect(result).not.toBeNull();
-            expect(result!.countedDays).toBe(5);
-            expect(result!.naturalDays).toBe(5);
-        });
-
-        it('should exclude weekends from working days calculation', async () => {
-            const startDate = new Date('2024-08-05'); // Lundi
-            const endDate = new Date('2024-08-11');   // Dimanche (semaine complète)
-
-            const result = await calculateLeaveCountedDays(startDate, endDate, standardSchedule);
-
-            expect(result).not.toBeNull();
-            expect(result!.countedDays).toBe(5); // Lundi à Vendredi seulement
-            expect(result!.naturalDays).toBe(7);
-        });
-
-        it('should handle single day leave requests', async () => {
-            const singleDay = new Date('2024-08-05'); // Lundi
-
-            const result = await calculateLeaveCountedDays(singleDay, singleDay, standardSchedule);
-
-            expect(result).not.toBeNull();
-            expect(result!.countedDays).toBe(1);
-            expect(result!.naturalDays).toBe(1);
-        });
-
-        it('should handle weekend-only leave requests', async () => {
-            const startDate = new Date('2024-08-10'); // Samedi
-            const endDate = new Date('2024-08-11');   // Dimanche
-
-            const result = await calculateLeaveCountedDays(startDate, endDate, standardSchedule);
-
-            expect(result).not.toBeNull();
-            expect(result!.countedDays).toBe(0);
-            expect(result!.naturalDays).toBe(2);
-        });
-
-        it('should return null for invalid date range (end before start)', async () => {
-            const startDate = new Date('2024-08-10');
-            const endDate = new Date('2024-08-05');
-
-            const result = await calculateLeaveCountedDays(startDate, endDate, standardSchedule);
-
-            expect(result).toBeNull();
+        // Mock isWorkingDay par défaut (basé sur les patterns)
+        mockedIsWorkingDay.mockImplementation((date: Date, schedule: WorkSchedule) => {
+            const dayOfWeek = date.getDay();
+            const pattern = schedule.patterns.find(p => p.dayOfWeek === dayOfWeek);
+            return pattern ? pattern.isWorking : false;
         });
     });
 
-    describe('Gestion des jours fériés', () => {
-        it('should exclude public holidays from working days', async () => {
-            const startDate = new Date('2024-08-05'); // Lundi
-            const endDate = new Date('2024-08-09');   // Vendredi
+    afterEach(() => {
+        jest.resetAllMocks();
+    });
 
-            // Mock un jour férié le mercredi
-            const publicHolidays = [
+    describe('calculateLeaveCountedDays', () => {
+        describe('Validation des entrées', () => {
+            it('devrait retourner null pour des dates invalides', async () => {
+                // Act & Assert
+                expect(await calculateLeaveCountedDays(null, null, mockScheduleFullTime)).toBeNull();
+                expect(await calculateLeaveCountedDays('invalid', '2024-01-15', mockScheduleFullTime)).toBeNull();
+                expect(await calculateLeaveCountedDays('2024-01-15', null, mockScheduleFullTime)).toBeNull();
+            });
+
+            it('devrait retourner null si la date de fin est avant la date de début', async () => {
+                // Act
+                const result = await calculateLeaveCountedDays(
+                    '2024-01-15',
+                    '2024-01-10',
+                    mockScheduleFullTime
+                );
+
+                // Assert
+                expect(result).toBeNull();
+                expect(mockLogger.warn).toHaveBeenCalled();
+            });
+
+            it('devrait accepter différents formats de dates', async () => {
+                // Arrange
+                const dateString = '2024-01-15';
+                const dateObject = new Date('2024-01-15');
+                const dateNumber = dateObject.getTime();
+
+                // Act
+                const resultString = await calculateLeaveCountedDays(dateString, dateString, mockScheduleFullTime);
+                const resultObject = await calculateLeaveCountedDays(dateObject, dateObject, mockScheduleFullTime);
+                const resultNumber = await calculateLeaveCountedDays(dateNumber, dateNumber, mockScheduleFullTime);
+
+                // Assert
+                expect(resultString).not.toBeNull();
+                expect(resultObject).not.toBeNull();
+                expect(resultNumber).not.toBeNull();
+                expect(resultString?.countedDays).toBe(resultObject?.countedDays);
+                expect(resultObject?.countedDays).toBe(resultNumber?.countedDays);
+            });
+        });
+
+        describe('Calculs pour planning temps plein', () => {
+            it('devrait calculer correctement une semaine de travail complète', async () => {
+                // Arrange - Lundi au Vendredi (5 jours ouvrés)
+                const startDate = '2024-01-15'; // Lundi
+                const endDate = '2024-01-19';   // Vendredi
+
+                // Act
+                const result = await calculateLeaveCountedDays(startDate, endDate, mockScheduleFullTime);
+
+                // Assert
+                expect(result).not.toBeNull();
+                expect(result!.naturalDays).toBe(5);
+                expect(result!.countedDays).toBe(5);
+                expect(result!.halfDays).toBe(0);
+                expect(result!.weeklyBreakdown).toHaveLength(1);
+            });
+
+            it('devrait exclure les weekends du décompte', async () => {
+                // Arrange - Vendredi au Lundi (incluant weekend)
+                const startDate = '2024-01-12'; // Vendredi
+                const endDate = '2024-01-15';   // Lundi
+
+                // Act
+                const result = await calculateLeaveCountedDays(startDate, endDate, mockScheduleFullTime);
+
+                // Assert
+                expect(result).not.toBeNull();
+                expect(result!.naturalDays).toBe(4); // 4 jours naturels
+                expect(result!.countedDays).toBe(2); // Seulement vendredi et lundi
+            });
+
+            it('devrait exclure les jours fériés par défaut', async () => {
+                // Arrange
+                mockedPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue([
+                    mockPublicHolidays[1] // 1er mai 2024
+                ]);
+
+                const startDate = '2024-04-30'; // Mardi
+                const endDate = '2024-05-02';   // Jeudi (inclut le 1er mai)
+
+                // Act
+                const result = await calculateLeaveCountedDays(startDate, endDate, mockScheduleFullTime);
+
+                // Assert
+                expect(result).not.toBeNull();
+                expect(result!.naturalDays).toBe(3);
+                expect(result!.countedDays).toBe(2); // Exclut le 1er mai
+                expect(result!.publicHolidays).toHaveLength(1);
+            });
+
+            it('devrait inclure les jours fériés si skipHolidays=false', async () => {
+                // Arrange
+                mockedPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue([
+                    mockPublicHolidays[1] // 1er mai 2024
+                ]);
+
+                const startDate = '2024-04-30';
+                const endDate = '2024-05-02';
+
+                // Act
+                const result = await calculateLeaveCountedDays(
+                    startDate,
+                    endDate,
+                    mockScheduleFullTime,
+                    { skipHolidays: false }
+                );
+
+                // Assert
+                expect(result).not.toBeNull();
+                expect(result!.countedDays).toBe(3); // Inclut le 1er mai
+            });
+        });
+
+        describe('Calculs pour planning temps partiel', () => {
+            it('devrait calculer correctement pour un planning 3j/semaine', async () => {
+                // Arrange - Lundi au Vendredi (mais seulement L-M-V travaillés)
+                const startDate = '2024-01-15'; // Lundi
+                const endDate = '2024-01-19';   // Vendredi
+
+                // Act
+                const result = await calculateLeaveCountedDays(startDate, endDate, mockSchedulePartTime);
+
+                // Assert
+                expect(result).not.toBeNull();
+                expect(result!.naturalDays).toBe(5);
+                expect(result!.countedDays).toBe(3); // Seulement lundi, mercredi, vendredi
+            });
+
+            it('devrait ignorer les jours non travaillés du planning', async () => {
+                // Arrange - Mardi et Jeudi (jours non travaillés)
+                const startDate = '2024-01-16'; // Mardi
+                const endDate = '2024-01-18';   // Jeudi
+
+                // Act
+                const result = await calculateLeaveCountedDays(startDate, endDate, mockSchedulePartTime);
+
+                // Assert
+                expect(result).not.toBeNull();
+                expect(result!.naturalDays).toBe(3);
+                expect(result!.countedDays).toBe(1); // Seulement mercredi
+            });
+        });
+
+        describe('Gestion des demi-journées', () => {
+            it('devrait calculer correctement une demi-journée matin', async () => {
+                // Arrange
+                const startDate = '2024-01-15'; // Lundi
+                const endDate = '2024-01-15';   // Même jour
+
+                // Act
+                const result = await calculateLeaveCountedDays(
+                    startDate,
+                    endDate,
+                    mockScheduleFullTime,
+                    { isHalfDay: true, halfDayPeriod: 'AM' }
+                );
+
+                // Assert
+                expect(result).not.toBeNull();
+                expect(result!.countedDays).toBe(0.5);
+                expect(result!.halfDays).toBe(1);
+            });
+
+            it('devrait calculer correctement une demi-journée après-midi', async () => {
+                // Arrange
+                const startDate = '2024-01-15';
+                const endDate = '2024-01-15';
+
+                // Act
+                const result = await calculateLeaveCountedDays(
+                    startDate,
+                    endDate,
+                    mockScheduleFullTime,
+                    { isHalfDay: true, halfDayPeriod: 'PM' }
+                );
+
+                // Assert
+                expect(result).not.toBeNull();
+                expect(result!.countedDays).toBe(0.5);
+                expect(result!.halfDays).toBe(1);
+            });
+
+            it('devrait utiliser AM par défaut pour les demi-journées', async () => {
+                // Arrange
+                const startDate = '2024-01-15';
+                const endDate = '2024-01-15';
+
+                // Act
+                const result = await calculateLeaveCountedDays(
+                    startDate,
+                    endDate,
+                    mockScheduleFullTime,
+                    { isHalfDay: true }
+                );
+
+                // Assert
+                expect(result).not.toBeNull();
+                expect(result!.countedDays).toBe(0.5);
+            });
+        });
+
+        describe('Cache de calculs', () => {
+            it('devrait utiliser le cache pour des calculs identiques', async () => {
+                // Arrange
+                const startDate = '2024-01-15';
+                const endDate = '2024-01-19';
+
+                // Act - Premier calcul
+                const result1 = await calculateLeaveCountedDays(startDate, endDate, mockScheduleFullTime);
+
+                // Act - Deuxième calcul identique
+                const result2 = await calculateLeaveCountedDays(startDate, endDate, mockScheduleFullTime);
+
+                // Assert
+                expect(result1).toEqual(result2);
+                expect(mockedPublicHolidayService.getPublicHolidaysInRange).toHaveBeenCalledTimes(1); // Une seule fois grâce au cache
+            });
+
+            it('devrait ignorer le cache avec forceCacheRefresh=true', async () => {
+                // Arrange
+                const startDate = '2024-01-15';
+                const endDate = '2024-01-19';
+
+                // Act - Premier calcul
+                await calculateLeaveCountedDays(startDate, endDate, mockScheduleFullTime);
+
+                // Act - Deuxième calcul avec refresh forcé
+                await calculateLeaveCountedDays(
+                    startDate,
+                    endDate,
+                    mockScheduleFullTime,
+                    { forceCacheRefresh: true }
+                );
+
+                // Assert
+                expect(mockedPublicHolidayService.getPublicHolidaysInRange).toHaveBeenCalledTimes(2);
+            });
+
+            it('devrait vider le cache avec clearLeaveCalculationCache', async () => {
+                // Arrange
+                const startDate = '2024-01-15';
+                const endDate = '2024-01-19';
+
+                // Act - Premier calcul
+                await calculateLeaveCountedDays(startDate, endDate, mockScheduleFullTime);
+
+                // Vider le cache
+                clearLeaveCalculationCache();
+
+                // Deuxième calcul après vidage du cache
+                await calculateLeaveCountedDays(startDate, endDate, mockScheduleFullTime);
+
+                // Assert
+                expect(mockedPublicHolidayService.getPublicHolidaysInRange).toHaveBeenCalledTimes(2);
+            });
+        });
+
+        describe('Breakdown hebdomadaire', () => {
+            it('devrait fournir un breakdown correct pour une période multi-semaines', async () => {
+                // Arrange - 2 semaines complètes
+                const startDate = '2024-01-15'; // Lundi semaine 3
+                const endDate = '2024-01-26';   // Vendredi semaine 4
+
+                // Act
+                const result = await calculateLeaveCountedDays(startDate, endDate, mockScheduleFullTime);
+
+                // Assert
+                expect(result).not.toBeNull();
+                expect(result!.weeklyBreakdown).toHaveLength(2);
+                expect(result!.countedDays).toBe(10); // 2 semaines × 5 jours
+            });
+
+            it('devrait calculer correctement les détails par jour', async () => {
+                // Arrange
+                const startDate = '2024-01-15'; // Lundi
+                const endDate = '2024-01-17';   // Mercredi
+
+                // Act
+                const result = await calculateLeaveCountedDays(startDate, endDate, mockScheduleFullTime);
+
+                // Assert
+                expect(result).not.toBeNull();
+                expect(result!.dayDetails).toHaveLength(3);
+
+                // Vérifier que tous les jours sont des jours ouvrés
+                result!.dayDetails.forEach(day => {
+                    expect(day.isCounted).toBe(true);
+                    expect(day.type).toBe('WORKING_DAY');
+                });
+            });
+        });
+
+        describe('Gestion des erreurs', () => {
+            it('devrait gérer les erreurs de service public holidays', async () => {
+                // Arrange
+                mockedPublicHolidayService.getPublicHolidaysInRange.mockRejectedValue(
+                    new Error('Service indisponible')
+                );
+
+                // Act
+                const result = await calculateLeaveCountedDays(
+                    '2024-01-15',
+                    '2024-01-19',
+                    mockScheduleFullTime
+                );
+
+                // Assert - Le calcul devrait continuer sans les jours fériés
+                expect(result).not.toBeNull();
+                expect(result!.publicHolidays).toEqual([]);
+            });
+
+            it('devrait logger les opérations importantes', async () => {
+                // Act
+                await calculateLeaveCountedDays('2024-01-15', '2024-01-19', mockScheduleFullTime);
+
+                // Assert
+                expect(mockLogger.info).toHaveBeenCalledWith(
+                    'Starting leave counted days calculation...',
+                    expect.objectContaining({
+                        startDate: expect.any(String),
+                        endDate: expect.any(String),
+                        scheduleId: mockScheduleFullTime.id
+                    })
+                );
+            });
+        });
+    });
+
+    describe('calculateWorkingDays', () => {
+        beforeEach(() => {
+            // Mock pour isBusinessDay
+            mockedPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue([]);
+        });
+
+        it('devrait calculer le nombre de jours ouvrés standard', async () => {
+            // Arrange - Lundi au Vendredi (5 jours ouvrés)
+            const startDate = '2024-01-15';
+            const endDate = '2024-01-19';
+
+            // Act
+            const result = await calculateWorkingDays(startDate, endDate);
+
+            // Assert
+            expect(result).toBe(5);
+        });
+
+        it('devrait exclure les weekends', async () => {
+            // Arrange - Vendredi au Lundi suivant (2 jours ouvrés)
+            const startDate = '2024-01-12'; // Vendredi
+            const endDate = '2024-01-15';   // Lundi
+
+            // Act
+            const result = await calculateWorkingDays(startDate, endDate);
+
+            // Assert
+            expect(result).toBe(2); // Vendredi + Lundi
+        });
+
+        it('devrait exclure les jours fériés', async () => {
+            // Arrange
+            mockedPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue([
+                mockPublicHolidays[1] // 1er mai
+            ]);
+
+            const startDate = '2024-04-30';
+            const endDate = '2024-05-02';
+
+            // Act
+            const result = await calculateWorkingDays(startDate, endDate);
+
+            // Assert
+            expect(result).toBe(2); // Exclut le 1er mai
+        });
+
+        it('devrait inclure les jours fériés tombant en weekend si demandé', async () => {
+            // Arrange - Jour férié un samedi
+            mockedPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue([
                 {
-                    id: '1',
-                    name: 'Assomption',
-                    date: new Date('2024-08-07'), // Mercredi
-                    isNational: true,
-                    country: 'FR',
+                    id: 4,
+                    name: 'Férié weekend',
+                    date: '2024-01-13', // Samedi
+                    type: 'NATIONAL',
+                    region: null,
+                    isRecurring: false
                 }
-            ];
-            mockPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue(publicHolidays);
+            ]);
 
-            const result = await calculateLeaveCountedDays(startDate, endDate, standardSchedule);
+            const startDate = '2024-01-12'; // Vendredi
+            const endDate = '2024-01-15';   // Lundi
 
-            expect(result).not.toBeNull();
-            expect(result!.countedDays).toBe(4); // 5 jours - 1 férié
-            expect(result!.naturalDays).toBe(5);
+            // Act
+            const result = await calculateWorkingDays(
+                startDate,
+                endDate,
+                { countHolidaysOnWeekends: true }
+            );
+
+            // Assert
+            expect(result).toBe(2); // Pas d'impact car le samedi n'est déjà pas compté
         });
 
-        it('should handle multiple public holidays in range', async () => {
-            const startDate = new Date('2024-12-23'); // Lundi
-            const endDate = new Date('2024-12-27');   // Vendredi
+        it('devrait retourner null pour des dates invalides', async () => {
+            // Act & Assert
+            expect(await calculateWorkingDays(null, '2024-01-15')).toBeNull();
+            expect(await calculateWorkingDays('2024-01-15', null)).toBeNull();
+            expect(await calculateWorkingDays('invalid', '2024-01-15')).toBeNull();
+        });
+    });
 
-            // Période de Noël avec plusieurs jours fériés
-            const publicHolidays = [
+    describe('isBusinessDay', () => {
+        it('devrait identifier correctement un jour ouvré', async () => {
+            // Arrange - Lundi (jour ouvré)
+            const date = '2024-01-15';
+
+            // Act
+            const result = await isBusinessDay(date);
+
+            // Assert
+            expect(result).toBe(true);
+        });
+
+        it('devrait identifier correctement un weekend', async () => {
+            // Arrange - Samedi
+            const date = '2024-01-13';
+
+            // Act
+            const result = await isBusinessDay(date);
+
+            // Assert
+            expect(result).toBe(false);
+        });
+
+        it('devrait identifier correctement un jour férié', async () => {
+            // Arrange
+            mockedPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue([
+                mockPublicHolidays[1] // 1er mai
+            ]);
+
+            const date = '2024-05-01'; // Mercredi férié
+
+            // Act
+            const result = await isBusinessDay(date);
+
+            // Assert
+            expect(result).toBe(false);
+        });
+
+        it('devrait retourner false pour une date invalide', async () => {
+            // Act
+            const result = await isBusinessDay(null);
+
+            // Assert
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('Tests de performance', () => {
+        it('devrait calculer rapidement une période longue', async () => {
+            // Arrange - 1 an de congés
+            const startDate = '2024-01-01';
+            const endDate = '2024-12-31';
+            const startTime = Date.now();
+
+            // Act
+            const result = await calculateLeaveCountedDays(startDate, endDate, mockScheduleFullTime);
+            const endTime = Date.now();
+
+            // Assert
+            expect(result).not.toBeNull();
+            expect(endTime - startTime).toBeLessThan(1000); // Moins d'1 seconde
+        });
+
+        it('devrait utiliser efficacement le cache pour des calculs répétés', async () => {
+            // Arrange
+            const startDate = '2024-01-15';
+            const endDate = '2024-01-19';
+            const iterations = 10;
+
+            const startTime = Date.now();
+
+            // Act - Calculs répétés
+            for (let i = 0; i < iterations; i++) {
+                await calculateLeaveCountedDays(startDate, endDate, mockScheduleFullTime);
+            }
+
+            const endTime = Date.now();
+
+            // Assert
+            expect(endTime - startTime).toBeLessThan(200); // Le cache devrait accélérer
+            expect(mockedPublicHolidayService.getPublicHolidaysInRange).toHaveBeenCalledTimes(1); // Une seule fois
+        });
+    });
+
+    describe('Scénarios métier complexes', () => {
+        it('devrait gérer un congé sur plusieurs mois avec jours fériés', async () => {
+            // Arrange - Congé de mai à juin avec plusieurs jours fériés
+            mockedPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue([
+                mockPublicHolidays[1], // 1er mai
                 {
-                    id: '1',
-                    name: 'Noël',
-                    date: new Date('2024-12-25'), // Mercredi
-                    isNational: true,
-                    country: 'FR',
+                    id: 5,
+                    name: 'Ascension',
+                    date: '2024-05-09',
+                    type: 'NATIONAL',
+                    region: null,
+                    isRecurring: true
                 },
                 {
-                    id: '2',
-                    name: 'Boxing Day',
-                    date: new Date('2024-12-26'), // Jeudi
-                    isNational: false,
-                    country: 'FR',
+                    id: 6,
+                    name: 'Lundi de Pentecôte',
+                    date: '2024-05-20',
+                    type: 'NATIONAL',
+                    region: null,
+                    isRecurring: true
                 }
-            ];
-            mockPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue(publicHolidays);
+            ]);
 
-            const result = await calculateLeaveCountedDays(startDate, endDate, standardSchedule);
+            const startDate = '2024-05-01';
+            const endDate = '2024-05-31';
 
+            // Act
+            const result = await calculateLeaveCountedDays(startDate, endDate, mockScheduleFullTime);
+
+            // Assert
             expect(result).not.toBeNull();
-            expect(result!.countedDays).toBe(3); // 5 jours - 2 fériés
+            expect(result!.publicHolidays).toHaveLength(3);
+            expect(result!.countedDays).toBeLessThan(result!.naturalDays); // Moins à cause des fériés et weekends
         });
 
-        it('should not double-count holidays that fall on weekends', async () => {
-            const startDate = new Date('2024-08-05'); // Lundi
-            const endDate = new Date('2024-08-11');   // Dimanche
-
-            // Jour férié qui tombe un weekend
-            const publicHolidays = [
-                {
-                    id: '1',
-                    name: 'Férié Weekend',
-                    date: new Date('2024-08-10'), // Samedi
-                    isNational: true,
-                    country: 'FR',
-                }
-            ];
-            mockPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue(publicHolidays);
-
-            const result = await calculateLeaveCountedDays(startDate, endDate, standardSchedule);
-
-            expect(result).not.toBeNull();
-            expect(result!.countedDays).toBe(5); // Pas affecté par le férié weekend
-        });
-    });
-
-    describe('Calculs demi-journées', () => {
-        it('should calculate half-day leave correctly', async () => {
-            const singleDay = new Date('2024-08-05'); // Lundi
-
-            const result = await calculateLeaveCountedDays(
-                singleDay,
-                singleDay,
-                standardSchedule,
-                { isHalfDay: true }
-            );
-
-            expect(result).not.toBeNull();
-            expect(result!.countedDays).toBe(0.5);
-            expect(result!.naturalDays).toBe(1);
-        });
-
-        it('should handle half-day periods correctly', async () => {
-            const singleDay = new Date('2024-08-05'); // Lundi
-
-            // Test demi-journée matin
-            const resultAM = await calculateLeaveCountedDays(
-                singleDay,
-                singleDay,
-                standardSchedule,
-                { isHalfDay: true, halfDayPeriod: 'AM' }
-            );
-
-            // Test demi-journée après-midi
-            const resultPM = await calculateLeaveCountedDays(
-                singleDay,
-                singleDay,
-                standardSchedule,
-                { isHalfDay: true, halfDayPeriod: 'PM' }
-            );
-
-            expect(resultAM).not.toBeNull();
-            expect(resultPM).not.toBeNull();
-            expect(resultAM!.countedDays).toBe(0.5);
-            expect(resultPM!.countedDays).toBe(0.5);
-        });
-    });
-
-    describe('Plannings spéciaux', () => {
-        it('should handle part-time schedule correctly', async () => {
-            const partTimeSchedule = {
-                ...standardSchedule,
-                frequency: WorkFrequency.PART_TIME,
-                workingDays: [1, 2, 3, 4], // Lundi à Jeudi (1-4)
+        it('devrait calculer correctement pour un planning alternant semaines paires/impaires', async () => {
+            // Arrange - Planning alternant (simulation)
+            const mockScheduleAlternating: WorkSchedule = {
+                ...mockScheduleFullTime,
+                id: 3,
+                frequency: 'ALTERNATING' as WorkFrequency,
+                workDaysPerWeek: 2.5 // Moyenne sur 2 semaines
             };
 
-            const startDate = new Date('2024-08-05'); // Lundi
-            const endDate = new Date('2024-08-09');   // Vendredi
+            const startDate = '2024-01-15'; // Semaine 3 (impaire)
+            const endDate = '2024-01-26';   // Semaine 4 (paire)
 
-            const result = await calculateLeaveCountedDays(startDate, endDate, partTimeSchedule);
+            // Act
+            const result = await calculateLeaveCountedDays(startDate, endDate, mockScheduleAlternating);
 
+            // Assert
             expect(result).not.toBeNull();
-            expect(result!.countedDays).toBe(4); // Lundi à Jeudi seulement
-        });
-
-        it('should handle alternating week schedule', async () => {
-            const alternatingSchedule = {
-                ...standardSchedule,
-                weekType: WeekType.EVEN, // Semaines paires seulement
-            };
-
-            const startDate = new Date('2024-08-05'); // Lundi semaine paire
-            const endDate = new Date('2024-08-09');   // Vendredi semaine paire
-
-            const result = await calculateLeaveCountedDays(startDate, endDate, alternatingSchedule);
-
-            expect(result).not.toBeNull();
-            // Le résultat dépend de la logique d'implémentation pour les semaines alternées
-            expect(result!.countedDays).toBeGreaterThanOrEqual(0);
-        });
-    });
-
-    describe('Performance et optimisation', () => {
-        it('should calculate working days quickly for normal ranges', async () => {
-            const startDate = new Date('2024-08-01');
-            const endDate = new Date('2024-08-31');
-
-            const startTime = Date.now();
-            const result = await calculateLeaveCountedDays(startDate, endDate, standardSchedule);
-            const duration = Date.now() - startTime;
-
-            expect(duration).toBeLessThan(200); // Moins de 200ms
-            expect(result).not.toBeNull();
-            expect(result!.countedDays).toBeGreaterThan(0);
-        });
-
-        it('should handle concurrent calculations efficiently', async () => {
-            const calculations = Array.from({ length: 5 }, (_, i) => {
-                const start = new Date('2024-08-01');
-                start.setDate(start.getDate() + i);
-                const end = new Date(start);
-                end.setDate(end.getDate() + 5);
-
-                return calculateLeaveCountedDays(start, end, standardSchedule);
-            });
-
-            const startTime = Date.now();
-            const results = await Promise.all(calculations);
-            const duration = Date.now() - startTime;
-
-            expect(results).toHaveLength(5);
-            expect(duration).toBeLessThan(500); // Toutes les calculs en moins de 500ms
-            results.forEach((result) => {
-                expect(result).not.toBeNull();
-                expect(result!.countedDays).toBeGreaterThanOrEqual(0);
-            });
-        });
-    });
-
-    describe('Gestion des erreurs', () => {
-        it('should handle PublicHolidayService errors gracefully', async () => {
-            const startDate = new Date('2024-08-05');
-            const endDate = new Date('2024-08-09');
-
-            mockPublicHolidayService.getPublicHolidaysInRange.mockRejectedValue(
-                new Error('Service indisponible')
-            );
-
-            // Should still calculate without crashing
-            const result = await calculateLeaveCountedDays(startDate, endDate, standardSchedule);
-
-            expect(result).not.toBeNull();
-            expect(result!.countedDays).toBe(5); // Fallback sans jours fériés
-        });
-
-        it('should handle invalid dates gracefully', async () => {
-            const invalidDate = new Date('invalid');
-            const validDate = new Date('2024-08-05');
-
-            const result1 = await calculateLeaveCountedDays(invalidDate, validDate, standardSchedule);
-            const result2 = await calculateLeaveCountedDays(validDate, invalidDate, standardSchedule);
-
-            expect(result1).toBeNull();
-            expect(result2).toBeNull();
-        });
-    });
-
-    describe('Fonctions utilitaires', () => {
-        it('should calculate working days without schedule', async () => {
-            const startDate = new Date('2024-08-05'); // Lundi
-            const endDate = new Date('2024-08-09');   // Vendredi
-
-            const workingDays = await calculateWorkingDays(startDate, endDate);
-
-            expect(workingDays).toBe(5);
-        });
-
-        it('should identify business days correctly', async () => {
-            const monday = new Date('2024-08-05');    // Lundi
-            const saturday = new Date('2024-08-10');  // Samedi
-
-            const isMondayBusiness = await isBusinessDay(monday);
-            const isSaturdayBusiness = await isBusinessDay(saturday);
-
-            expect(isMondayBusiness).toBe(true);
-            expect(isSaturdayBusiness).toBe(false);
-        });
-
-        it('should handle business day check with holidays', async () => {
-            const holiday = new Date('2024-08-15'); // Assomption (jeudi)
-
-            mockPublicHolidayService.isPublicHoliday.mockResolvedValue(true);
-
-            const isHolidayBusiness = await isBusinessDay(holiday);
-
-            expect(isHolidayBusiness).toBe(false);
-        });
-    });
-
-    describe('Cache management', () => {
-        it('should use cache for repeated calculations', async () => {
-            const startDate = new Date('2024-08-05');
-            const endDate = new Date('2024-08-09');
-
-            // Premier calcul
-            const result1 = await calculateLeaveCountedDays(startDate, endDate, standardSchedule);
-
-            // Deuxième calcul identique
-            const result2 = await calculateLeaveCountedDays(startDate, endDate, standardSchedule);
-
-            expect(result1).toEqual(result2);
-            // Le service de jours fériés ne devrait être appelé qu'une fois grâce au cache
-            expect(mockPublicHolidayService.getPublicHolidaysInRange).toHaveBeenCalledTimes(1);
-        });
-
-        it('should clear cache properly', async () => {
-            const startDate = new Date('2024-08-05');
-            const endDate = new Date('2024-08-09');
-
-            // Premier calcul
-            await calculateLeaveCountedDays(startDate, endDate, standardSchedule);
-
-            // Clear cache
-            clearLeaveCalculationCache();
-
-            // Deuxième calcul après clear
-            await calculateLeaveCountedDays(startDate, endDate, standardSchedule);
-
-            // Le service devrait être appelé deux fois (pas de cache)
-            expect(mockPublicHolidayService.getPublicHolidaysInRange).toHaveBeenCalledTimes(2);
+            expect(result!.weeklyBreakdown).toHaveLength(2);
         });
     });
 }); 

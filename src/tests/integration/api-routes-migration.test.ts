@@ -1,5 +1,23 @@
 import { NextRequest } from 'next/server';
 
+// Mock NextResponse
+jest.mock('next/server', () => ({
+    NextRequest: jest.requireActual('next/server').NextRequest,
+    NextResponse: {
+        json: (data: any, init?: ResponseInit) => {
+            const response = new Response(JSON.stringify(data), {
+                ...init,
+                headers: {
+                    'content-type': 'application/json',
+                    ...(init?.headers || {})
+                }
+            });
+            response.status = init?.status || 200;
+            return response;
+        }
+    }
+}));
+
 /**
  * Tests d'intégration pour vérifier que toutes les routes API migrées
  * de Pages Router vers App Router fonctionnent correctement

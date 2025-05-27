@@ -75,6 +75,48 @@ declare global {
              * Exemple: cy.setupAssignmentSwapTests()
              */
             setupAssignmentSwapTests(): Chainable<void>;
+
+            /**
+             * Commande pour créer une affectation dans le planning
+             * Exemple: cy.createAffectation({ surgeon: 'Dr Dupont', room: 'Salle 1', slot: 'monday-morning' })
+             */
+            createAffectation(options: {
+                surgeon: string;
+                room: string;
+                slot: string;
+                type?: string;
+                notes?: string;
+            }): Chainable<void>;
+
+            /**
+             * Commande pour glisser-déposer un élément
+             * Exemple: cy.dragAndDrop('[data-testid=source]', '[data-testid=target]')
+             */
+            dragAndDrop(sourceSelector: string, targetSelector: string): Chainable<void>;
+
+            /**
+             * Commande pour vérifier une violation de règle
+             * Exemple: cy.checkRuleViolation('Temps de repos insuffisant')
+             */
+            checkRuleViolation(violationText: string): Chainable<void>;
+
+            /**
+             * Commande pour créer un congé
+             * Exemple: cy.createLeave({ type: 'Congé annuel', startDate: '2025-06-01', endDate: '2025-06-07' })
+             */
+            createLeave(options: {
+                type: string;
+                startDate: string;
+                endDate: string;
+                user?: string;
+                reason?: string;
+            }): Chainable<void>;
+
+            /**
+             * Commande pour vérifier le quota de congés
+             * Exemple: cy.checkLeaveQuota('Congé annuel', 20)
+             */
+            checkLeaveQuota(leaveType: string, expectedRemaining: number): Chainable<void>;
         }
     }
 }
@@ -82,15 +124,15 @@ declare global {
 // Commande pour se connecter via l'interface utilisateur
 Cypress.Commands.add('login', (email: string, password: string) => {
     cy.visit('/auth/login');
-    cy.get('[data-cy=email-input]').type(email);
-    cy.get('[data-cy=password-input]').type(password);
-    cy.get('[data-cy=login-button]').click();
+    cy.get('[data-testid=login-email-input]').type(email);
+    cy.get('[data-testid=login-password-input]').type(password);
+    cy.get('[data-testid=login-submit-button]').click();
 
     // Vérification d'authentification réussie
     cy.url().should('not.include', '/auth/login');
 
     // Attendre que la page se charge complètement
-    cy.get('[data-cy=main-content]').should('exist');
+    cy.get('main').should('exist');
 });
 
 // Commande pour se connecter directement via l'API
@@ -223,7 +265,7 @@ Cypress.Commands.add('loadFixtures', (fixtures: string[]) => {
 // Commande pour vérifier les notifications
 Cypress.Commands.add('checkNotification', (text: string, type: 'success' | 'error' | 'info' | 'warning' = 'success') => {
     // Attendre l'apparition de la notification avec un timeout raisonnable
-    cy.get(`[data-cy=notification-${type}]`, { timeout: 10000 })
+    cy.get(`[data-testid=notification-${type}]`, { timeout: 10000 })
         .should('be.visible')
         .and('contain', text);
 });
@@ -279,5 +321,160 @@ Cypress.Commands.add('setupAssignmentSwapTests', () => {
         } else {
             cy.log('API de test non disponible, mode simulation activé');
         }
+    });
+});
+
+/**
+ * Commande pour créer une affectation dans le planning
+ */
+Cypress.Commands.add('createAffectation', (options: {
+    surgeon: string;
+    room: string;
+    slot: string;
+    type?: string;
+    notes?: string;
+}) => {
+    // Naviguer vers le planning si nécessaire
+    cy.url().then((url) => {
+        if (!url.includes('/bloc-operatoire')) {
+            cy.visit('/bloc-operatoire');
+        }
+    });
+
+    // Trouver et glisser le chirurgien vers le créneau
+    const slotSelector = `[data-testid=slot-${options.slot}-${options.room.toLowerCase().replace(/\s+/g, '')}]`;
+    
+    cy.get('[data-testid=surgeons-list]')
+        .contains(options.surgeon)
+        .drag(slotSelector);
+
+    // Si des options supplémentaires sont fournies, remplir le formulaire
+    if (options.type || options.notes) {
+        cy.get('[data-testid=assignment-modal]').within(() => {
+            if (options.type) {
+                cy.get('[data-testid=assignment-type]').select(options.type);
+            }
+            if (options.notes) {
+                cy.get('[data-testid=notes-input]').type(options.notes);
+            }
+            cy.get('[data-testid=submit-assignment]').click();
+        });
+    }
+
+    // Vérifier que l'affectation est créée
+    cy.get(slotSelector).should('contain', options.surgeon);
+});
+
+/**
+ * Commande pour glisser-déposer un élément
+ * Implémentation améliorée du drag and drop
+ */
+Cypress.Commands.add('dragAndDrop', (sourceSelector: string, targetSelector: string) => {
+    cy.get(sourceSelector).then(($source) => {
+        cy.get(targetSelector).then(($target) => {
+            const dataTransfer = new DataTransfer();
+            
+            // Déclencher l'event dragstart
+            cy.wrap($source).trigger('dragstart', { dataTransfer });
+            
+            // Déclencher les events sur la cible
+            cy.wrap($target).trigger('dragenter', { dataTransfer });
+            cy.wrap($target).trigger('dragover', { dataTransfer });
+            cy.wrap($target).trigger('drop', { dataTransfer });
+            
+            // Terminer le drag
+            cy.wrap($source).trigger('dragend', { dataTransfer });
+        });
+    });
+});
+
+/**
+ * Commande pour vérifier une violation de règle
+ */
+Cypress.Commands.add('checkRuleViolation', (violationText: string) => {
+    // Vérifier dans plusieurs emplacements possibles
+    cy.get('body').then(($body) => {
+        const selectors = [
+            '[data-testid=rule-violation-alert]',
+            '[data-testid=rule-warning]',
+            '[data-testid=validation-error]',
+            '.rule-violation',
+            '.alert-danger'
+        ];
+        
+        let found = false;
+        
+        for (const selector of selectors) {
+            if ($body.find(selector).length > 0) {
+                cy.get(selector)
+                    .should('be.visible')
+                    .and('contain', violationText);
+                found = true;
+                break;
+            }
+        }
+        
+        if (!found) {
+            throw new Error(`Aucune violation de règle trouvée contenant: ${violationText}`);
+        }
+    });
+});
+
+/**
+ * Commande pour créer un congé
+ */
+Cypress.Commands.add('createLeave', (options: {
+    type: string;
+    startDate: string;
+    endDate: string;
+    user?: string;
+    reason?: string;
+}) => {
+    // Naviguer vers la page des congés si nécessaire
+    cy.url().then((url) => {
+        if (!url.includes('/leaves')) {
+            cy.visit('/leaves');
+        }
+    });
+
+    // Ouvrir le formulaire de création
+    cy.get('[data-testid=create-leave-button]').click();
+
+    // Remplir le formulaire
+    cy.get('[data-testid=leave-modal]').within(() => {
+        if (options.user) {
+            cy.get('[data-testid=user-select]').select(options.user);
+        }
+        
+        cy.get('[data-testid=leave-type-select]').select(options.type);
+        cy.get('[data-testid=leave-start-date]').clear().type(options.startDate);
+        cy.get('[data-testid=leave-end-date]').clear().type(options.endDate);
+        
+        if (options.reason) {
+            cy.get('[data-testid=leave-reason]').type(options.reason);
+        }
+        
+        cy.get('[data-testid=submit-leave-button]').click();
+    });
+
+    // Vérifier la notification de succès
+    cy.get('[data-testid=notification-success]')
+        .should('be.visible')
+        .and('contain', 'Demande de congé');
+});
+
+/**
+ * Commande pour vérifier le quota de congés
+ */
+Cypress.Commands.add('checkLeaveQuota', (leaveType: string, expectedRemaining: number) => {
+    // Naviguer vers la page de gestion des quotas
+    cy.visit('/quota-management');
+    
+    // Trouver la ligne du type de congé
+    cy.get('[data-testid=quota-table]').within(() => {
+        cy.contains('tr', leaveType).within(() => {
+            cy.get('[data-testid=quota-remaining]')
+                .should('contain', expectedRemaining.toString());
+        });
     });
 }); 

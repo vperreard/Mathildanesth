@@ -217,10 +217,23 @@ const detectRoomType = (room: OperatingRoom, sectors: OperatingSector[], sites: 
     if (!room) return null;
     const roomName = room.name.toLowerCase();
     const roomNumber = room.number?.toLowerCase() || '';
+    const roomType = room.roomType?.toLowerCase() || '';
 
     // Si la salle a déjà un secteur explicitement défini et qu'il existe
     if (room.sector && sectors.some(s => normalizeSectorName(s.name) === normalizeSectorName(room.sector || ''))) {
         return room.sector;
+    }
+
+    // IMPORTANT: Si la salle a un sectorId valide, ne pas appliquer la détection intelligente
+    // Cela évite que les salles avec un secteur défini soient réassignées
+    if (room.sectorId && sectors.some(s => s.id === room.sectorId)) {
+        return null; // Pas de détection, utiliser le sectorId existant
+    }
+
+    // Détection basée sur le type de salle (prioritaire sur le nom)
+    if (roomType === 'consultation') {
+        // Ne pas réassigner les salles de consultation automatiquement
+        return null;
     }
 
     // Vérifier si c'est une salle d'endoscopie
@@ -845,9 +858,17 @@ const OperatingRoomsConfigPanel: React.FC = () => {
         try {
             const apiBaseUrl = window.location.origin;
 
+            // Préparer les données pour l'API
+            const selectedSector = formData.sector ? sectors.find(s => s.id === parseInt(formData.sector) || s.name === formData.sector) : null;
             const submitData = {
-                ...formData,
-                sectorId: sectors.find(s => s.name === formData.sector)?.id
+                name: formData.name,
+                number: formData.number,
+                operatingSectorId: selectedSector?.id, // L'API attend operatingSectorId, pas sectorId
+                siteId: formData.siteId,
+                roomType: formData.roomType,
+                colorCode: formData.colorCode,
+                isActive: formData.isActive,
+                supervisionRules: formData.supervisionRules
             };
 
             if (isEditing) {
@@ -882,7 +903,7 @@ const OperatingRoomsConfigPanel: React.FC = () => {
         setFormData({
             name: '',
             number: '',
-            sector: '',
+            sector: '', // Laisser vide pour permettre à l'utilisateur de choisir
             roomType: 'STANDARD',
             colorCode: '#CCCCCC',
             isActive: true,
@@ -1588,9 +1609,9 @@ const OperatingRoomsConfigPanel: React.FC = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="">Non défini</option>
-                                        {sectorNames.map((name, index) => (
-                                            <option key={index} value={name}>
-                                                {name}
+                                        {sectors.map((sector) => (
+                                            <option key={sector.id} value={sector.id.toString()}>
+                                                {sector.name}
                                             </option>
                                         ))}
                                     </select>

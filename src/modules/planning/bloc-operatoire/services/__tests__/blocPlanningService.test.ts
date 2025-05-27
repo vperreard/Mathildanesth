@@ -1,0 +1,872 @@
+/**
+ * Tests pour le service de planning du bloc opératoire
+ * Objectif : 70% de couverture
+ */
+
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+
+// Mock Prisma first before any imports
+jest.mock('@prisma/client', () => {
+    const { mockPrismaClient } = require('@/tests/mocks/serviceMocks');
+    return {
+        PrismaClient: jest.fn(() => mockPrismaClient),
+    BlocPlanningStatus: {
+        DRAFT: 'DRAFT',
+        VALIDATED: 'VALIDATED',
+        PUBLISHED: 'PUBLISHED',
+        ARCHIVED: 'ARCHIVED'
+    },
+    ConflictSeverity: {
+        LOW: 'LOW',
+        MEDIUM: 'MEDIUM',
+        HIGH: 'HIGH',
+        CRITICAL: 'CRITICAL',
+        WARNING: 'WARNING'
+    },
+    BlocStaffRole: {
+        MAR: 'MAR',
+        IADE: 'IADE',
+        ANESTHETISTE_PRINCIPAL_MAR: 'ANESTHETISTE_PRINCIPAL_MAR',
+        ANESTHETISTE_PRINCIPAL_IADE: 'ANESTHETISTE_PRINCIPAL_IADE'
+    },
+    Period: {
+        MATIN: 'MATIN',
+        APRES_MIDI: 'APRES_MIDI',
+        JOURNEE_COMPLETE: 'JOURNEE_COMPLETE'
+    },
+    DayOfWeek: {
+        MONDAY: 'MONDAY',
+        TUESDAY: 'TUESDAY',
+        WEDNESDAY: 'WEDNESDAY',
+        THURSDAY: 'THURSDAY',
+        FRIDAY: 'FRIDAY',
+        SATURDAY: 'SATURDAY',
+        SUNDAY: 'SUNDAY'
+    },
+    WeekType: {
+        ALL: 'ALL',
+        EVEN: 'EVEN',
+        ODD: 'ODD'
+    },
+    LeaveStatus: {
+        PENDING: 'PENDING',
+        APPROVED: 'APPROVED',
+        REJECTED: 'REJECTED',
+        CANCELLED: 'CANCELLED'
+    },
+    IncompatibilityType: {
+        PROFESSIONAL: 'PROFESSIONAL',
+        PERSONAL: 'PERSONAL',
+        MEDICAL: 'MEDICAL'
+    }
+    };
+});
+
+// Now import after mocks are set up
+import { BlocPlanningService } from '../blocPlanningService';
+import { TestFactory } from '@/tests/factories/testFactorySimple';
+import { mockPrismaClient, resetAllMocks } from '@/tests/mocks/serviceMocks';
+import {
+    BlocPlanningStatus,
+    ConflictSeverity,
+    BlocStaffRole,
+    Period,
+    DayOfWeek,
+    WeekType,
+    LeaveStatus,
+    IncompatibilityType
+} from '@prisma/client';
+
+// Mock des utilitaires
+jest.mock('@/modules/planning/bloc-operatoire/utils/sectorRulesParser');
+jest.mock('../sectorTypeRules');
+
+describe('BlocPlanningService', () => {
+    let service: BlocPlanningService;
+    let mockSite: any;
+    let mockOperatingRoom: any;
+    let mockOperatingSector: any;
+    let mockUser: any;
+    let mockSurgeon: any;
+    let mockBlocDayPlanning: any;
+
+    beforeEach(() => {
+        resetAllMocks();
+        service = new BlocPlanningService();
+
+        // Données de test
+        mockSite = TestFactory.Site.create();
+        mockOperatingRoom = TestFactory.OperatingRoom.create();
+        mockOperatingSector = {
+            id: 'sector-1',
+            nom: 'Secteur A',
+            couleur: '#FF0000',
+            siteId: mockSite.id,
+            site: mockSite,
+            rooms: [mockOperatingRoom]
+        };
+        mockUser = TestFactory.User.create();
+        mockSurgeon = {
+            id: 1,
+            nom: 'Dr. Smith',
+            prenom: 'John',
+            specialite: 'Cardiologie'
+        };
+        mockBlocDayPlanning = {
+            id: 'planning-1',
+            siteId: mockSite.id,
+            date: new Date('2024-01-15'),
+            status: BlocPlanningStatus.DRAFT,
+            assignments: [],
+            conflicts: []
+        };
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe('createOrUpdateBlocDayPlanningsFromTrames', () => {
+        it('devrait créer des plannings à partir de trames actives', async () => {
+            // Arrange
+            const params = {
+                siteId: mockSite.id,
+                startDate: new Date('2024-01-15'),
+                endDate: new Date('2024-01-15'),
+                trameIds: [1],
+                initiatorUserId: mockUser.id
+            };
+
+            const mockTrame = {
+                id: 1,
+                isActive: true,
+                affectations: [{
+                    id: 1,
+                    userId: mockUser.id,
+                    chirurgienId: mockSurgeon.id,
+                    operatingRoomId: mockOperatingRoom.id,
+                    jourSemaine: DayOfWeek.MONDAY,
+                    typeSemaine: WeekType.ALL,
+                    periode: Period.MATIN,
+                    typeAffectation: 'BLOC_OPERATION',
+                    roleInAffectation: BlocStaffRole.MAR,
+                    specialiteChir: 'Cardiologie',
+                    user: mockUser,
+                    surgeon: mockSurgeon
+                }]
+            };
+
+            mockPrismaClient.blocTramePlanning.findMany.mockResolvedValue([mockTrame]);
+            mockPrismaClient.absence.findMany.mockResolvedValue([]);
+            mockPrismaClient.blocDayPlanning.findUnique.mockResolvedValue(null);
+            mockPrismaClient.blocDayPlanning.create.mockResolvedValue(mockBlocDayPlanning);
+            mockPrismaClient.blocRoomAssignment.findFirst.mockResolvedValue(null);
+            mockPrismaClient.blocRoomAssignment.create.mockResolvedValue({
+                id: 'assignment-1',
+                blocDayPlanningId: mockBlocDayPlanning.id,
+                operatingRoomId: mockOperatingRoom.id,
+                period: Period.MATIN
+            });
+            mockPrismaClient.blocStaffAssignment.create.mockResolvedValue({
+                id: 'staff-1',
+                userId: mockUser.id,
+                role: BlocStaffRole.MAR
+            });
+
+            // Act
+            const result = await service.createOrUpdateBlocDayPlanningsFromTrames(params);
+
+            // Assert
+            expect(result).toHaveLength(1);
+            expect(mockPrismaClient.blocTramePlanning.findMany).toHaveBeenCalledWith({
+                where: { id: { in: [1] }, isActive: true },
+                include: { affectations: { include: { user: true, surgeon: true } } }
+            });
+            expect(mockPrismaClient.blocDayPlanning.create).toHaveBeenCalled();
+            expect(mockPrismaClient.blocRoomAssignment.create).toHaveBeenCalled();
+            expect(mockPrismaClient.blocStaffAssignment.create).toHaveBeenCalled();
+        });
+
+        it('devrait retourner un tableau vide si aucune trame active', async () => {
+            // Arrange
+            const params = {
+                siteId: mockSite.id,
+                startDate: new Date('2024-01-15'),
+                endDate: new Date('2024-01-15'),
+                trameIds: [999],
+                initiatorUserId: mockUser.id
+            };
+
+            mockPrismaClient.blocTramePlanning.findMany.mockResolvedValue([]);
+
+            // Act
+            const result = await service.createOrUpdateBlocDayPlanningsFromTrames(params);
+
+            // Assert
+            expect(result).toHaveLength(0);
+        });
+
+        it('devrait gérer les conflits de trames pour la même salle', async () => {
+            // Arrange
+            const params = {
+                siteId: mockSite.id,
+                startDate: new Date('2024-01-15'),
+                endDate: new Date('2024-01-15'),
+                trameIds: [1],
+                initiatorUserId: mockUser.id
+            };
+
+            const mockTrame = {
+                id: 1,
+                isActive: true,
+                affectations: [{
+                    id: 1,
+                    userId: mockUser.id,
+                    operatingRoomId: mockOperatingRoom.id,
+                    jourSemaine: DayOfWeek.MONDAY,
+                    typeSemaine: WeekType.ALL,
+                    periode: Period.MATIN,
+                    typeAffectation: 'BLOC_OPERATION',
+                    user: mockUser,
+                    surgeon: null
+                }]
+            };
+
+            const existingAssignment = {
+                id: 'existing-assignment',
+                sourceBlocTrameAffectationId: 999
+            };
+
+            mockPrismaClient.blocTramePlanning.findMany.mockResolvedValue([mockTrame]);
+            mockPrismaClient.absence.findMany.mockResolvedValue([]);
+            mockPrismaClient.blocDayPlanning.findUnique.mockResolvedValue(mockBlocDayPlanning);
+            mockPrismaClient.blocPlanningConflict.deleteMany.mockResolvedValue({ count: 0 });
+            mockPrismaClient.blocStaffAssignment.deleteMany.mockResolvedValue({ count: 0 });
+            mockPrismaClient.blocRoomAssignment.deleteMany.mockResolvedValue({ count: 0 });
+            mockPrismaClient.blocRoomAssignment.findFirst.mockResolvedValue(existingAssignment);
+            mockPrismaClient.blocPlanningConflict.create.mockResolvedValue({
+                id: 'conflict-1',
+                type: 'TRAME_OVERLAP_WARNING',
+                severity: ConflictSeverity.WARNING
+            });
+
+            // Act
+            const result = await service.createOrUpdateBlocDayPlanningsFromTrames(params);
+
+            // Assert
+            expect(mockPrismaClient.blocPlanningConflict.create).toHaveBeenCalledWith({
+                data: expect.objectContaining({
+                    type: 'TRAME_OVERLAP_WARNING',
+                    severity: ConflictSeverity.WARNING
+                })
+            });
+        });
+
+        it('devrait ignorer le personnel absent', async () => {
+            // Arrange
+            const params = {
+                siteId: mockSite.id,
+                startDate: new Date('2024-01-15'),
+                endDate: new Date('2024-01-15'),
+                trameIds: [1],
+                initiatorUserId: mockUser.id
+            };
+
+            const mockTrame = {
+                id: 1,
+                isActive: true,
+                affectations: [{
+                    id: 1,
+                    userId: mockUser.id,
+                    operatingRoomId: mockOperatingRoom.id,
+                    jourSemaine: DayOfWeek.MONDAY,
+                    typeSemaine: WeekType.ALL,
+                    periode: Period.MATIN,
+                    typeAffectation: 'BLOC_OPERATION',
+                    user: mockUser,
+                    surgeon: null
+                }]
+            };
+
+            const mockAbsence = {
+                userId: mockUser.id,
+                startDate: new Date('2024-01-15'),
+                endDate: new Date('2024-01-15'),
+                status: LeaveStatus.APPROVED
+            };
+
+            mockPrismaClient.blocTramePlanning.findMany.mockResolvedValue([mockTrame]);
+            mockPrismaClient.absence.findMany.mockResolvedValue([mockAbsence]);
+            mockPrismaClient.blocDayPlanning.findUnique.mockResolvedValue(null);
+            mockPrismaClient.blocDayPlanning.create.mockResolvedValue(mockBlocDayPlanning);
+
+            // Act
+            const result = await service.createOrUpdateBlocDayPlanningsFromTrames(params);
+
+            // Assert
+            expect(mockPrismaClient.blocRoomAssignment.create).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('getBlocDayPlanningById', () => {
+        it('devrait récupérer un planning par ID avec toutes les relations', async () => {
+            // Arrange
+            const planningId = 'planning-1';
+            const mockPlanningWithRelations = {
+                ...mockBlocDayPlanning,
+                site: mockSite,
+                assignments: [{
+                    id: 'assignment-1',
+                    operatingRoom: {
+                        ...mockOperatingRoom,
+                        operatingSector: mockOperatingSector
+                    },
+                    surgeon: mockSurgeon,
+                    staffAssignments: [{
+                        id: 'staff-1',
+                        user: mockUser
+                    }]
+                }],
+                conflicts: []
+            };
+
+            mockPrismaClient.blocDayPlanning.findUnique.mockResolvedValue(mockPlanningWithRelations);
+
+            // Act
+            const result = await service.getBlocDayPlanningById(planningId);
+
+            // Assert
+            expect(result).toEqual(mockPlanningWithRelations);
+            expect(mockPrismaClient.blocDayPlanning.findUnique).toHaveBeenCalledWith({
+                where: { id: planningId },
+                include: expect.objectContaining({
+                    site: true,
+                    assignments: expect.objectContaining({
+                        include: expect.objectContaining({
+                            operatingRoom: expect.objectContaining({
+                                include: { operatingSector: true }
+                            }),
+                            surgeon: true,
+                            staffAssignments: expect.objectContaining({
+                                include: { user: true }
+                            })
+                        })
+                    }),
+                    conflicts: true
+                })
+            });
+        });
+
+        it('devrait retourner null si le planning n\'existe pas', async () => {
+            // Arrange
+            const planningId = 'non-existent';
+            mockPrismaClient.blocDayPlanning.findUnique.mockResolvedValue(null);
+
+            // Act
+            const result = await service.getBlocDayPlanningById(planningId);
+
+            // Assert
+            expect(result).toBeNull();
+        });
+    });
+
+    describe('getBlocDayPlanningsBySiteAndDateRange', () => {
+        it('devrait récupérer les plannings pour un site et une plage de dates', async () => {
+            // Arrange
+            const siteId = mockSite.id;
+            const startDate = new Date('2024-01-15');
+            const endDate = new Date('2024-01-17');
+            const mockPlannings = [
+                { ...mockBlocDayPlanning, date: new Date('2024-01-15') },
+                { ...mockBlocDayPlanning, date: new Date('2024-01-16') }
+            ];
+
+            mockPrismaClient.blocDayPlanning.findMany.mockResolvedValue(mockPlannings);
+
+            // Act
+            const result = await service.getBlocDayPlanningsBySiteAndDateRange(siteId, startDate, endDate);
+
+            // Assert
+            expect(result).toEqual(mockPlannings);
+            expect(mockPrismaClient.blocDayPlanning.findMany).toHaveBeenCalledWith({
+                where: {
+                    siteId,
+                    date: { gte: startDate, lte: endDate }
+                },
+                orderBy: { date: 'asc' }
+            });
+        });
+    });
+
+    describe('validateEntireBlocDayPlanning', () => {
+        it('devrait valider un planning et retourner les conflits', async () => {
+            // Arrange
+            const planningId = 'planning-1';
+            const mockPlanningWithData = {
+                ...mockBlocDayPlanning,
+                assignments: [{
+                    id: 'assignment-1',
+                    operatingRoomId: mockOperatingRoom.id,
+                    period: Period.MATIN,
+                    staffAssignments: [{
+                        id: 'staff-1',
+                        userId: mockUser.id,
+                        role: BlocStaffRole.MAR
+                    }]
+                }]
+            };
+
+            mockPrismaClient.blocDayPlanning.findUnique.mockResolvedValue(mockPlanningWithData);
+            mockPrismaClient.blocPlanningConflict.deleteMany.mockResolvedValue({ count: 0 });
+
+            // Act
+            const result = await service.validateEntireBlocDayPlanning(planningId);
+
+            // Assert
+            expect(result.isValid).toBe(true);
+            expect(result.conflicts).toHaveLength(0);
+        });
+
+        it('devrait détecter les conflits de personnel', async () => {
+            // Arrange
+            const planningId = 'planning-1';
+            const mockPlanningWithConflicts = {
+                ...mockBlocDayPlanning,
+                assignments: [
+                    {
+                        id: 'assignment-1',
+                        operatingRoomId: 'room-1',
+                        period: Period.MATIN,
+                        staffAssignments: [{
+                            id: 'staff-1',
+                            userId: mockUser.id,
+                            role: BlocStaffRole.MAR
+                        }]
+                    },
+                    {
+                        id: 'assignment-2',
+                        operatingRoomId: 'room-2',
+                        period: Period.MATIN,
+                        staffAssignments: [{
+                            id: 'staff-2',
+                            userId: mockUser.id, // Même utilisateur dans deux salles
+                            role: BlocStaffRole.MAR
+                        }]
+                    }
+                ]
+            };
+
+            mockPrismaClient.blocDayPlanning.findUnique.mockResolvedValue(mockPlanningWithConflicts);
+            mockPrismaClient.blocPlanningConflict.deleteMany.mockResolvedValue({ count: 0 });
+            mockPrismaClient.blocPlanningConflict.create.mockResolvedValue({
+                id: 'conflict-1',
+                type: 'STAFF_DOUBLE_BOOKING',
+                severity: ConflictSeverity.HIGH
+            });
+
+            // Act
+            const result = await service.validateEntireBlocDayPlanning(planningId);
+
+            // Assert
+            expect(result.isValid).toBe(false);
+            expect(mockPrismaClient.blocPlanningConflict.create).toHaveBeenCalled();
+        });
+    });
+
+    describe('updateBlocDayPlanningStatus', () => {
+        it('devrait mettre à jour le statut d\'un planning', async () => {
+            // Arrange
+            const planningId = 'planning-1';
+            const newStatus = BlocPlanningStatus.VALIDATED;
+            const userId = mockUser.id;
+
+            const updatedPlanning = {
+                ...mockBlocDayPlanning,
+                status: newStatus
+            };
+
+            mockPrismaClient.user.findUnique.mockResolvedValue(mockUser);
+            mockPrismaClient.blocDayPlanning.findUnique.mockResolvedValue(mockBlocDayPlanning);
+            mockPrismaClient.blocDayPlanning.update.mockResolvedValue(updatedPlanning);
+
+            // Act
+            const result = await service.updateBlocDayPlanningStatus(planningId, newStatus, userId);
+
+            // Assert
+            expect(result.status).toBe(newStatus);
+            expect(mockPrismaClient.blocDayPlanning.update).toHaveBeenCalledWith({
+                where: { id: planningId },
+                data: { status: newStatus }
+            });
+        });
+
+        it('devrait lever une erreur si l\'utilisateur n\'a pas les permissions', async () => {
+            // Arrange
+            const planningId = 'planning-1';
+            const newStatus = BlocPlanningStatus.PUBLISHED;
+            const userId = mockUser.id;
+
+            const unauthorizedUser = {
+                ...mockUser,
+                role: 'USER' // Rôle insuffisant
+            };
+
+            mockPrismaClient.user.findUnique.mockResolvedValue(unauthorizedUser);
+            mockPrismaClient.blocDayPlanning.findUnique.mockResolvedValue(mockBlocDayPlanning);
+
+            // Act & Assert
+            await expect(
+                service.updateBlocDayPlanningStatus(planningId, newStatus, userId)
+            ).rejects.toThrow();
+        });
+    });
+
+    describe('addOrUpdateStaffAssignment', () => {
+        it('devrait ajouter une nouvelle affectation de personnel', async () => {
+            // Arrange
+            const blocRoomAssignmentId = 'assignment-1';
+            const userId = mockUser.id;
+            const role = BlocStaffRole.MAR;
+            const isPrimaryAnesthetist = false;
+            const initiatorUserId = mockUser.id;
+
+            const mockRoomAssignment = {
+                id: blocRoomAssignmentId,
+                blocDayPlanningId: mockBlocDayPlanning.id,
+                operatingRoomId: mockOperatingRoom.id
+            };
+
+            const newStaffAssignment = {
+                id: 'staff-1',
+                blocRoomAssignmentId,
+                userId,
+                role,
+                isPrimaryAnesthetist
+            };
+
+            mockPrismaClient.blocRoomAssignment.findUnique.mockResolvedValue(mockRoomAssignment);
+            mockPrismaClient.blocStaffAssignment.findFirst.mockResolvedValue(null);
+            mockPrismaClient.blocStaffAssignment.create.mockResolvedValue(newStaffAssignment);
+
+            // Act
+            const result = await service.addOrUpdateStaffAssignment(
+                blocRoomAssignmentId,
+                userId,
+                role,
+                isPrimaryAnesthetist,
+                initiatorUserId
+            );
+
+            // Assert
+            expect(result).toEqual(newStaffAssignment);
+            expect(mockPrismaClient.blocStaffAssignment.create).toHaveBeenCalledWith({
+                data: {
+                    blocRoomAssignmentId,
+                    userId,
+                    role,
+                    isPrimaryAnesthetist
+                }
+            });
+        });
+
+        it('devrait mettre à jour une affectation existante', async () => {
+            // Arrange
+            const blocRoomAssignmentId = 'assignment-1';
+            const userId = mockUser.id;
+            const role = BlocStaffRole.IADE;
+            const isPrimaryAnesthetist = true;
+            const initiatorUserId = mockUser.id;
+
+            const mockRoomAssignment = {
+                id: blocRoomAssignmentId,
+                blocDayPlanningId: mockBlocDayPlanning.id
+            };
+
+            const existingStaffAssignment = {
+                id: 'staff-1',
+                blocRoomAssignmentId,
+                userId,
+                role: BlocStaffRole.MAR,
+                isPrimaryAnesthetist: false
+            };
+
+            const updatedStaffAssignment = {
+                ...existingStaffAssignment,
+                role,
+                isPrimaryAnesthetist
+            };
+
+            mockPrismaClient.blocRoomAssignment.findUnique.mockResolvedValue(mockRoomAssignment);
+            mockPrismaClient.blocStaffAssignment.findFirst.mockResolvedValue(existingStaffAssignment);
+            mockPrismaClient.blocStaffAssignment.update.mockResolvedValue(updatedStaffAssignment);
+
+            // Act
+            const result = await service.addOrUpdateStaffAssignment(
+                blocRoomAssignmentId,
+                userId,
+                role,
+                isPrimaryAnesthetist,
+                initiatorUserId
+            );
+
+            // Assert
+            expect(result).toEqual(updatedStaffAssignment);
+            expect(mockPrismaClient.blocStaffAssignment.update).toHaveBeenCalledWith({
+                where: { id: existingStaffAssignment.id },
+                data: { role, isPrimaryAnesthetist }
+            });
+        });
+    });
+
+    describe('removeStaffAssignment', () => {
+        it('devrait supprimer une affectation de personnel', async () => {
+            // Arrange
+            const staffAssignmentId = 'staff-1';
+            const initiatorUserId = mockUser.id;
+
+            const mockStaffAssignment = {
+                id: staffAssignmentId,
+                blocRoomAssignment: {
+                    blocDayPlanningId: mockBlocDayPlanning.id
+                }
+            };
+
+            mockPrismaClient.blocStaffAssignment.findUnique.mockResolvedValue(mockStaffAssignment);
+            mockPrismaClient.blocStaffAssignment.delete.mockResolvedValue(mockStaffAssignment);
+
+            // Act
+            await service.removeStaffAssignment(staffAssignmentId, initiatorUserId);
+
+            // Assert
+            expect(mockPrismaClient.blocStaffAssignment.delete).toHaveBeenCalledWith({
+                where: { id: staffAssignmentId }
+            });
+        });
+
+        it('devrait lever une erreur si l\'affectation n\'existe pas', async () => {
+            // Arrange
+            const staffAssignmentId = 'non-existent';
+            const initiatorUserId = mockUser.id;
+
+            mockPrismaClient.blocStaffAssignment.findUnique.mockResolvedValue(null);
+
+            // Act & Assert
+            await expect(
+                service.removeStaffAssignment(staffAssignmentId, initiatorUserId)
+            ).rejects.toThrow('Affectation de personnel non trouvée');
+        });
+    });
+
+    describe('resolveConflict', () => {
+        it('devrait résoudre un conflit', async () => {
+            // Arrange
+            const conflictId = 'conflict-1';
+            const resolutionNotes = 'Conflit résolu manuellement';
+            const userId = mockUser.id;
+
+            const mockConflict = {
+                id: conflictId,
+                isResolved: false,
+                blocDayPlanningId: mockBlocDayPlanning.id
+            };
+
+            const resolvedConflict = {
+                ...mockConflict,
+                isResolved: true,
+                resolvedAt: new Date(),
+                resolvedByUserId: userId,
+                resolutionNotes
+            };
+
+            mockPrismaClient.blocPlanningConflict.findUnique.mockResolvedValue(mockConflict);
+            mockPrismaClient.blocPlanningConflict.update.mockResolvedValue(resolvedConflict);
+
+            // Act
+            const result = await service.resolveConflict(conflictId, resolutionNotes, userId);
+
+            // Assert
+            expect(result.isResolved).toBe(true);
+            expect(result.resolutionNotes).toBe(resolutionNotes);
+            expect(mockPrismaClient.blocPlanningConflict.update).toHaveBeenCalledWith({
+                where: { id: conflictId },
+                data: {
+                    isResolved: true,
+                    resolvedAt: expect.any(Date),
+                    resolvedByUserId: userId,
+                    resolutionNotes
+                }
+            });
+        });
+    });
+
+    describe('forceResolveConflict', () => {
+        it('devrait forcer la résolution d\'un conflit', async () => {
+            // Arrange
+            const conflictId = 'conflict-1';
+            const forceResolutionNotes = 'Résolution forcée par admin';
+            const userId = mockUser.id;
+
+            const mockConflict = {
+                id: conflictId,
+                isForceResolved: false,
+                blocDayPlanningId: mockBlocDayPlanning.id
+            };
+
+            const forceResolvedConflict = {
+                ...mockConflict,
+                isForceResolved: true,
+                forceResolvedAt: new Date(),
+                forceResolvedByUserId: userId,
+                forceResolutionNotes
+            };
+
+            mockPrismaClient.blocPlanningConflict.findUnique.mockResolvedValue(mockConflict);
+            mockPrismaClient.blocPlanningConflict.update.mockResolvedValue(forceResolvedConflict);
+
+            // Act
+            const result = await service.forceResolveConflict(conflictId, forceResolutionNotes, userId);
+
+            // Assert
+            expect(result.isForceResolved).toBe(true);
+            expect(result.forceResolutionNotes).toBe(forceResolutionNotes);
+        });
+    });
+
+    describe('getAllOperatingRooms', () => {
+        it('devrait récupérer toutes les salles d\'opération', async () => {
+            // Arrange
+            const mockRooms = [
+                {
+                    ...mockOperatingRoom,
+                    operatingSector: mockOperatingSector
+                }
+            ];
+
+            mockPrismaClient.operatingRoom.findMany.mockResolvedValue(mockRooms);
+
+            // Act
+            const result = await service.getAllOperatingRooms(true);
+
+            // Assert
+            expect(result).toHaveLength(1);
+            expect(mockPrismaClient.operatingRoom.findMany).toHaveBeenCalledWith({
+                include: {
+                    operatingSector: {
+                        include: { site: true }
+                    }
+                }
+            });
+        });
+
+        it('devrait récupérer les salles sans relations', async () => {
+            // Arrange
+            const mockRooms = [mockOperatingRoom];
+            mockPrismaClient.operatingRoom.findMany.mockResolvedValue(mockRooms);
+
+            // Act
+            const result = await service.getAllOperatingRooms(false);
+
+            // Assert
+            expect(result).toHaveLength(1);
+            expect(mockPrismaClient.operatingRoom.findMany).toHaveBeenCalledWith({});
+        });
+    });
+
+    describe('getActiveOperatingRooms', () => {
+        it('devrait récupérer uniquement les salles actives', async () => {
+            // Arrange
+            const mockActiveRooms = [
+                {
+                    ...mockOperatingRoom,
+                    isActive: true,
+                    operatingSector: mockOperatingSector
+                }
+            ];
+
+            mockPrismaClient.operatingRoom.findMany.mockResolvedValue(mockActiveRooms);
+
+            // Act
+            const result = await service.getActiveOperatingRooms(true);
+
+            // Assert
+            expect(result).toHaveLength(1);
+            expect(mockPrismaClient.operatingRoom.findMany).toHaveBeenCalledWith({
+                where: { isActive: true },
+                include: {
+                    operatingSector: {
+                        include: { site: true }
+                    }
+                }
+            });
+        });
+    });
+
+    describe('getAllOperatingSectors', () => {
+        it('devrait récupérer tous les secteurs opératoires', async () => {
+            // Arrange
+            const mockSectors = [
+                {
+                    ...mockOperatingSector,
+                    site: mockSite,
+                    rooms: [mockOperatingRoom]
+                }
+            ];
+
+            mockPrismaClient.operatingSector.findMany.mockResolvedValue(mockSectors);
+
+            // Act
+            const result = await service.getAllOperatingSectors(true);
+
+            // Assert
+            expect(result).toHaveLength(1);
+            expect(mockPrismaClient.operatingSector.findMany).toHaveBeenCalledWith({
+                include: {
+                    site: true,
+                    rooms: true
+                }
+            });
+        });
+    });
+
+    describe('Performance Tests', () => {
+        it('devrait créer des plannings en moins de 200ms', async () => {
+            // Arrange
+            const startTime = Date.now();
+            const params = {
+                siteId: mockSite.id,
+                startDate: new Date('2024-01-15'),
+                endDate: new Date('2024-01-15'),
+                trameIds: [1],
+                initiatorUserId: mockUser.id
+            };
+
+            mockPrismaClient.blocTramePlanning.findMany.mockResolvedValue([]);
+
+            // Act
+            await service.createOrUpdateBlocDayPlanningsFromTrames(params);
+            const endTime = Date.now();
+
+            // Assert
+            expect(endTime - startTime).toBeLessThan(200);
+        });
+
+        it('devrait valider un planning en moins de 100ms', async () => {
+            // Arrange
+            const startTime = Date.now();
+            const planningId = 'planning-1';
+
+            mockPrismaClient.blocDayPlanning.findUnique.mockResolvedValue({
+                ...mockBlocDayPlanning,
+                assignments: []
+            });
+            mockPrismaClient.blocPlanningConflict.deleteMany.mockResolvedValue({ count: 0 });
+
+            // Act
+            await service.validateEntireBlocDayPlanning(planningId);
+            const endTime = Date.now();
+
+            // Assert
+            expect(endTime - startTime).toBeLessThan(100);
+        });
+    });
+}); 

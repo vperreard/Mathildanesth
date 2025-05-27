@@ -13,12 +13,12 @@ import {
     RuleMetadata,
     ConditionGroup
 } from '../types/rule';
-import Input from '@/components/ui/input';
-import Button from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import Textarea from '@/components/ui/textarea';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 
 function validateSingleRule(rule: Partial<Rule>): string[] {
@@ -379,4 +379,5 @@ const RuleForm: React.FC<RuleFormProps> = ({ rule, allRules = [], onSave, onCanc
     );
 };
 
+export { RuleForm };
 export default RuleForm;

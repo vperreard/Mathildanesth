@@ -1,27 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, Prisma } from '@prisma/client';
-import { verifyAuthToken } from '@/lib/auth-server-utils'; // Assurez-vous que le chemin est correct
-import {
-    requirePlanningPermission,
-    logSecurityAction,
-    AuthorizationError,
-    AuthenticationError
-} from '@/lib/auth/authorization';
+import { Prisma } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/middleware/authorization';
+import { logger } from '@/lib/logger';
+import { auditService } from '@/services/auditService';
 
-const prisma = new PrismaClient();
-
-export async function POST(
+export const POST = withAuth({
+    requireAuth: true,
+    allowedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
+    resourceType: 'trame_affectation',
+    action: 'create'
+})(async (
     request: NextRequest,
     { params }: { params: { trameModeleId: string } }
-) {
+) => {
     try {
+        const userId = parseInt(request.headers.get('x-user-id') || '0');
+        const userRole = request.headers.get('x-user-role') || '';
+        
         const { trameModeleId } = params;
         console.log(`[API POST /trame-modeles/${trameModeleId}/affectations] Début du traitement.`);
         console.log("\n--- POST /api/trame-modeles/[trameModeleId]/affectations START ---");
 
-        // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de trames
-        const session = await requirePlanningPermission('create');
-        logSecurityAction(session.user.id, 'CREATE_TRAME_AFFECTATION', `trame:${trameModeleId}`);
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de trames (déjà fait via withAuth)
+        // Logger l'action de création
+        await auditService.logAction({
+            action: 'CREATE_TRAME_AFFECTATION' as any,
+            userId: userId.toString(),
+            entityId: trameModeleId,
+            entityType: 'trame_affectation',
+            details: {
+                userRole,
+                method: 'POST'
+            }
+        });
 
         if (!trameModeleId || isNaN(parseInt(trameModeleId))) {
             console.warn("POST /api/trame-modeles/[trameModeleId]/affectations: Invalid trameModeleId");
@@ -108,13 +120,6 @@ export async function POST(
         }
 
     } catch (error) {
-        if (error instanceof AuthenticationError) {
-            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-        }
-        if (error instanceof AuthorizationError) {
-            return NextResponse.json({ error: error.message }, { status: 403 });
-        }
-
         console.error("Error during POST /api/trame-modeles/[trameModeleId]/affectations:", error);
 
         // Afficher plus d'informations sur l'erreur
@@ -143,34 +148,21 @@ export async function POST(
         console.log("--- POST /api/trame-modeles/[trameModeleId]/affectations END (with error) ---\n");
         return NextResponse.json({ error: 'Erreur lors de la création de l\'affectation modèle', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
     }
-}
+});
 
-export async function GET(
+export const GET = withAuth({
+    requireAuth: true,
+    resourceType: 'trame_affectation',
+    action: 'read'
+})(async (
     request: NextRequest,
     { params }: { params: { trameModeleId: string } }
-) {
+) => {
+    const userId = parseInt(request.headers.get('x-user-id') || '0');
     const { trameModeleId } = params;
     console.log(`[API GET /trame-modeles/${trameModeleId}/affectations] Début du traitement.`);
 
     console.log("\n--- GET /api/trame-modeles/[trameModeleId]/affectations START ---");
-    let token = request.cookies.get('token')?.value;
-    if (!token) {
-        const authHeader = request.headers.get('Authorization');
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            token = authHeader.substring(7);
-        }
-    }
-
-    if (!token) {
-        console.error("GET /api/trame-modeles/[trameModeleId]/affectations: Unauthorized (token missing from cookie and Authorization header)");
-        return NextResponse.json({ error: 'Non autorisé, token manquant' }, { status: 401 });
-    }
-    const authResult = await verifyAuthToken(token);
-
-    if (!authResult.authenticated) {
-        console.error("GET /api/trame-modeles/[trameModeleId]/affectations: Unauthorized (token invalid)");
-        return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
-    }
 
     if (!trameModeleId || isNaN(parseInt(trameModeleId))) {
         console.warn("GET /api/trame-modeles/[trameModeleId]/affectations: Invalid trameModeleId");
@@ -217,4 +209,4 @@ export async function GET(
         console.error(`Erreur lors de la récupération des affectations pour la trame ${trameModeleId}:`, error);
         return NextResponse.json({ error: 'Erreur interne du serveur.', details: error.message }, { status: 500 });
     }
-}
+});

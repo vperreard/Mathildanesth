@@ -1,0 +1,285 @@
+import { NextRequest } from 'next/server';
+import { getUserFromCookie } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { Role } from '@prisma/client';
+
+// Mock dependencies
+jest.mock('@/lib/auth');
+jest.mock('@/lib/prisma');
+
+const mockedGetUserFromCookie = getUserFromCookie as jest.MockedFunction<typeof getUserFromCookie>;
+const mockedPrisma = prisma as jest.Mocked<typeof prisma>;
+
+// Mock NextResponse
+jest.mock('next/server', () => ({
+    NextRequest: jest.requireActual('next/server').NextRequest,
+    NextResponse: {
+        json: (data: any, init?: ResponseInit) => {
+            const response = new Response(JSON.stringify(data), {
+                ...init,
+                headers: {
+                    'content-type': 'application/json',
+                    ...(init?.headers || {})
+                }
+            });
+            return response;
+        }
+    }
+}));
+
+describe('/api/leaves/quotas/*', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe('GET /api/leaves/quotas/dashboard', () => {
+        let handler: any;
+
+        beforeEach(async () => {
+            const route = await import('@/app/api/leaves/quotas/dashboard/route');
+            handler = route.GET;
+        });
+
+        const createRequest = (params?: URLSearchParams) => {
+            const url = new URL('http://localhost:3000/api/leaves/quotas/dashboard');
+            if (params) {
+                url.search = params.toString();
+            }
+            
+            return new NextRequest(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'cookie': 'auth-token=valid_token',
+                },
+            });
+        };
+
+        it('should return quota dashboard for user', async () => {
+            const mockUser = { id: 1, role: Role.USER };
+            const year = new Date().getFullYear();
+            
+            const mockBalances = [
+                {
+                    id: 1,
+                    userId: 1,
+                    leaveTypeCode: 'CP',
+                    year,
+                    initialAllowance: 25,
+                    used: 10,
+                    carriedOver: 2,
+                    manualAdjustment: 0,
+                    transferredIn: 0,
+                    transferredOut: 0,
+                    leaveType: {
+                        code: 'CP',
+                        label: 'Congés Payés',
+                    },
+                },
+            ];
+
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+            mockedPrisma.leaveBalance = {
+                findMany: jest.fn().mockResolvedValue(mockBalances),
+            } as any;
+
+            const request = createRequest();
+            const response = await handler(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(200);
+            expect(data).toHaveProperty('balances');
+            expect(data.balances).toEqual(mockBalances);
+            expect(mockedPrisma.leaveBalance.findMany).toHaveBeenCalledWith({
+                where: {
+                    userId: 1,
+                    year,
+                },
+                include: {
+                    leaveType: true,
+                },
+            });
+        });
+
+        it('should filter by year when provided', async () => {
+            const mockUser = { id: 1, role: Role.USER };
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+            mockedPrisma.leaveBalance = {
+                findMany: jest.fn().mockResolvedValue([]),
+            } as any;
+
+            const params = new URLSearchParams({ year: '2023' });
+            const request = createRequest(params);
+            await handler(request);
+
+            expect(mockedPrisma.leaveBalance.findMany).toHaveBeenCalledWith({
+                where: {
+                    userId: 1,
+                    year: 2023,
+                },
+                include: expect.any(Object),
+            });
+        });
+
+        it('should return all users balances for admin', async () => {
+            const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+            mockedPrisma.leaveBalance = {
+                findMany: jest.fn().mockResolvedValue([]),
+            } as any;
+
+            const request = createRequest();
+            await handler(request);
+
+            expect(mockedPrisma.leaveBalance.findMany).toHaveBeenCalledWith({
+                where: {
+                    year: expect.any(Number),
+                },
+                include: expect.objectContaining({
+                    user: true,
+                }),
+            });
+        });
+    });
+
+    describe('POST /api/leaves/quotas/transfers', () => {
+        let handler: any;
+
+        beforeEach(async () => {
+            const route = await import('@/app/api/leaves/quotas/transfers/route');
+            handler = route.POST;
+        });
+
+        const createRequest = (body: any) => {
+            return new NextRequest('http://localhost:3000/api/leaves/quotas/transfers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'cookie': 'auth-token=valid_token',
+                },
+                body: JSON.stringify(body),
+            });
+        };
+
+        it('should create a quota transfer for admin', async () => {
+            const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
+            const transferData = {
+                userId: 2,
+                sourceType: 'CP',
+                targetType: 'RTT',
+                amount: 5,
+                reason: 'Transfer test',
+            };
+
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+            // Mock source balance check
+            mockedPrisma.leaveBalance = {
+                findFirst: jest.fn().mockResolvedValue({
+                    initialAllowance: 25,
+                    used: 5,
+                    transferredOut: 0,
+                }),
+            } as any;
+
+            // Mock transfer creation
+            mockedPrisma.quotaTransfer = {
+                create: jest.fn().mockResolvedValue({
+                    id: 1,
+                    ...transferData,
+                    status: 'APPROVED',
+                    createdAt: new Date(),
+                }),
+            } as any;
+
+            const request = createRequest(transferData);
+            const response = await handler(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(201);
+            expect(data).toHaveProperty('id');
+            expect(mockedPrisma.quotaTransfer.create).toHaveBeenCalled();
+        });
+
+        it('should return 403 for non-admin user', async () => {
+            const mockUser = { id: 1, role: Role.USER };
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+            const request = createRequest({
+                userId: 2,
+                sourceType: 'CP',
+                targetType: 'RTT',
+                amount: 5,
+            });
+
+            const response = await handler(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(403);
+            expect(data.error).toBe('Accès refusé');
+        });
+
+        it('should return 400 for insufficient balance', async () => {
+            const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+
+            mockedPrisma.leaveBalance = {
+                findFirst: jest.fn().mockResolvedValue({
+                    initialAllowance: 10,
+                    used: 8,
+                    transferredOut: 0,
+                }),
+            } as any;
+
+            const request = createRequest({
+                userId: 2,
+                sourceType: 'CP',
+                targetType: 'RTT',
+                amount: 5, // More than available (10 - 8 = 2)
+            });
+
+            const response = await handler(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(400);
+            expect(data.error).toContain('Solde insuffisant');
+        });
+    });
+
+    describe('GET /api/leaves/quotas/carry-over-rules', () => {
+        let handler: any;
+
+        beforeEach(async () => {
+            const route = await import('@/app/api/leaves/quotas/carry-over-rules/route');
+            handler = route.GET;
+        });
+
+        it('should return carry-over rules', async () => {
+            const mockUser = { id: 1, role: Role.USER };
+            const mockRules = [
+                {
+                    id: 1,
+                    leaveTypeCode: 'CP',
+                    maxDays: 5,
+                    expirationMonths: 6,
+                    isActive: true,
+                },
+            ];
+
+            mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
+            mockedPrisma.quotaCarryOverRule = {
+                findMany: jest.fn().mockResolvedValue(mockRules),
+            } as any;
+
+            const request = new NextRequest('http://localhost:3000/api/leaves/quotas/carry-over-rules', {
+                method: 'GET',
+                headers: { 'cookie': 'auth-token=valid_token' },
+            });
+
+            const response = await handler(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(200);
+            expect(data).toEqual(mockRules);
+        });
+    });
+});

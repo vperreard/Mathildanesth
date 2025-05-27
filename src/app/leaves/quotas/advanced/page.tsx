@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { QuotaAdvancedManagement } from '@/modules/leaves/components/QuotaAdvancedManagement';
+import QuotaAdvancedManagement from '@/modules/leaves/components/QuotaAdvancedManagement';
 import { useSearchParams } from 'next/navigation';
 import { PageTitle } from '@/components/ui/page-title';
 

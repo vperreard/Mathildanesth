@@ -105,6 +105,10 @@ async function handleRequest(request) {
     try {
         // API utilisateur (données dynamiques)
         if (URL_PATTERNS.API_USER.test(pathname)) {
+            // Exclusion des routes d'authentification du cache
+            if (pathname.includes('/auth/')) {
+                return await fetch(request);
+            }
             return await networkFirstStrategy(request, CACHE_NAMES.API_USER, CACHE_STRATEGIES.API_USER);
         }
 

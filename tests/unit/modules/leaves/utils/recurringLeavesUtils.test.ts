@@ -28,6 +28,7 @@ describe('recurringLeavesUtils', () => {
             requestDate: new Date(),
             createdAt: new Date(),
             updatedAt: new Date(),
+            countedDays: 2,
             isRecurring: true,
             recurrencePattern: {
                 frequency: RecurrenceFrequency.WEEKLY,
@@ -110,6 +111,7 @@ describe('recurringLeavesUtils', () => {
         test('devrait générer des occurrences quotidiennes', () => {
             const request = {
                 ...baseRequest,
+                countedDays: 2,
                 recurrencePattern: {
                     frequency: RecurrenceFrequency.DAILY,
                     interval: 2, // tous les 2 jours
@@ -139,6 +141,7 @@ describe('recurringLeavesUtils', () => {
                 patternEndDate: new Date('2023-09-16'),
                 startDate: new Date('2023-09-15'),
                 endDate: new Date('2023-09-16'),
+                countedDays: 2,
                 recurrencePattern: {
                     frequency: RecurrenceFrequency.MONTHLY,
                     interval: 1,
@@ -167,6 +170,7 @@ describe('recurringLeavesUtils', () => {
                 patternEndDate: new Date('2023-09-16'),
                 startDate: new Date('2023-09-15'),
                 endDate: new Date('2023-09-16'),
+                countedDays: 2,
                 recurrencePattern: {
                     frequency: RecurrenceFrequency.YEARLY,
                     interval: 1,
@@ -189,6 +193,7 @@ describe('recurringLeavesUtils', () => {
         test('devrait respecter le nombre maximum d\'occurrences', () => {
             const request = {
                 ...baseRequest,
+                countedDays: 2,
                 recurrencePattern: {
                     frequency: RecurrenceFrequency.WEEKLY,
                     interval: 1,

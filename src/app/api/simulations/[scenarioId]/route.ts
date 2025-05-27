@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import {
     requireSimulationPermission,
-    logSecurityAction,
     AuthorizationError,
     AuthenticationError
 } from '@/lib/auth/authorization';
-
-const prisma = new PrismaClient();
+import { auditService } from '@/services/auditService';
 
 // Schéma de validation pour la mise à jour d'un scénario
 const updateScenarioSchema = z.object({
@@ -27,7 +26,14 @@ export async function GET(request: NextRequest, { params }: { params: { scenario
 
         // 🔐 Vérification des permissions de lecture de simulation
         const session = await requireSimulationPermission('read');
-        logSecurityAction(session.user.id, 'READ_SIMULATION', `scenario:${scenarioId}`);
+        
+        // Logger l'action
+        await auditService.logAction({
+            action: 'READ_SIMULATION' as any,
+            userId: session.user.id.toString(),
+            entityId: scenarioId,
+            entityType: 'simulation_scenario'
+        });
 
         const scenario = await prisma.simulationScenario.findUnique({
             where: { id: scenarioId },
@@ -93,7 +99,15 @@ export async function PUT(request: NextRequest, { params }: { params: { scenario
             return NextResponse.json({ error: "Scénario invalide." }, { status: 400 });
         }
         const session = await requireSimulationPermission('update', existingScenario.createdBy.id);
-        logSecurityAction(session.user.id, 'UPDATE_SIMULATION', `scenario:${scenarioId}`);
+        
+        // Logger l'action
+        await auditService.logAction({
+            action: 'UPDATE_SIMULATION' as any,
+            userId: session.user.id.toString(),
+            entityId: scenarioId,
+            entityType: 'simulation_scenario',
+            details: { ownerId: existingScenario.createdBy.id }
+        });
 
         const updatedScenario = await prisma.simulationScenario.update({
             where: { id: scenarioId },
@@ -137,7 +151,15 @@ export async function DELETE(request: NextRequest, { params }: { params: { scena
             return NextResponse.json({ error: "Scénario invalide." }, { status: 400 });
         }
         const session = await requireSimulationPermission('delete', existingScenario.createdBy.id);
-        logSecurityAction(session.user.id, 'DELETE_SIMULATION', `scenario:${scenarioId}`);
+        
+        // Logger l'action
+        await auditService.logAction({
+            action: 'DELETE_SIMULATION' as any,
+            userId: session.user.id.toString(),
+            entityId: scenarioId,
+            entityType: 'simulation_scenario',
+            details: { ownerId: existingScenario.createdBy.id }
+        });
 
         // La suppression en cascade des SimulationResult est gérée par Prisma grâce à onDelete: Cascade
         await prisma.simulationScenario.delete({

@@ -3,18 +3,33 @@ import { BlocDayPlanning, BlocRoomAssignment, BlocSupervisor } from '@/types/blo
 import { DragItem, DropTarget, DragDropResult, SupervisorDragItem, PeriodDragItem } from '@/types/bloc-planning-drag-drop';
 import { blocPlanningService } from './blocPlanningService';
 import { logError } from '@/lib/logger';
+import { RuleEngineV2 } from '@/modules/dynamicRules/v2/services/RuleEngineV2';
+import { RuleContext } from '@/modules/dynamicRules/v2/types/ruleV2.types';
+import { ShiftType } from '@/types/common';
 
 /**
  * Service pour gérer les opérations de glisser-déposer dans le planning du bloc
  */
 class BlocPlanningDragDropService {
+    private ruleEngine: RuleEngineV2;
+
+    constructor() {
+        this.ruleEngine = new RuleEngineV2();
+        // Initialiser le moteur de règles de manière asynchrone
+        this.ruleEngine.initialize().catch(err => {
+            logError({
+                message: 'Erreur lors de l\'initialisation du moteur de règles',
+                context: { error: err }
+            });
+        });
+    }
     /**
      * Traite une opération de drop d'un élément sur une cible
      */
     async handleDrop(item: DragItem, target: DropTarget, planning: BlocDayPlanning): Promise<DragDropResult> {
         try {
             // Vérifier si le drop est valide
-            const validationResult = this.validateDrop(item, target, planning);
+            const validationResult = await this.validateDrop(item, target, planning);
             if (!validationResult.success) {
                 return validationResult;
             }
@@ -53,7 +68,7 @@ class BlocPlanningDragDropService {
     /**
      * Valide si un drop est possible
      */
-    validateDrop(item: DragItem, target: DropTarget, planning: BlocDayPlanning): DragDropResult {
+    async validateDrop(item: DragItem, target: DropTarget, planning: BlocDayPlanning): Promise<DragDropResult> {
         // Vérification de base
         if (!planning) {
             return {
@@ -88,6 +103,36 @@ class BlocPlanningDragDropService {
                     error: 'Le superviseur n\'est pas disponible pour cette date'
                 };
             }
+
+            // Validation avec les règles V2
+            if (target.type === 'SALLE' && target.salleId && target.periodeId) {
+                const context = this.createRuleContext(supervisorItem, target, planning);
+                const ruleResults = await this.ruleEngine.evaluate(context, 'validation');
+                
+                for (const result of ruleResults) {
+                    if (!result.passed && result.actions) {
+                        const criticalViolation = result.actions.find(
+                            action => action.type === 'validate' && 
+                                     action.parameters.severity === 'error'
+                        );
+                        
+                        if (criticalViolation) {
+                            return {
+                                success: false,
+                                item,
+                                target,
+                                error: criticalViolation.parameters.message || 
+                                      `Violation de la règle: ${result.ruleName}`,
+                                violations: [{
+                                    ruleId: result.ruleId,
+                                    ruleName: result.ruleName,
+                                    message: criticalViolation.parameters.message
+                                }]
+                            };
+                        }
+                    }
+                }
+            }
         }
 
         // Par défaut, on considère le drop comme valide
@@ -95,6 +140,46 @@ class BlocPlanningDragDropService {
             success: true,
             item,
             target
+        };
+    }
+
+    /**
+     * Crée un contexte de règle pour la validation
+     */
+    private createRuleContext(
+        item: SupervisorDragItem, 
+        target: DropTarget, 
+        planning: BlocDayPlanning
+    ): RuleContext {
+        const salle = planning.salles.find(s => s.salleId === target.salleId);
+        
+        return {
+            date: planning.date,
+            user: {
+                id: item.superviseurId,
+                name: item.nom,
+                specialty: item.specialite,
+                yearsOfExperience: item.experience || 0
+            },
+            assignment: {
+                type: ShiftType.JOURNEE,
+                location: salle?.nomSalle,
+                startDate: planning.date,
+                endDate: planning.date,
+                userId: item.superviseurId
+            },
+            planning: {
+                existingAssignments: planning.salles.flatMap(s => 
+                    s.affectations.map(a => ({
+                        userId: a.superviseurId,
+                        shiftType: ShiftType.JOURNEE,
+                        startDate: planning.date,
+                        endDate: planning.date,
+                        location: s.nomSalle
+                    }))
+                ),
+                proposedAssignments: []
+            }
         };
     }
 

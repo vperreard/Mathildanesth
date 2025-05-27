@@ -1,24 +1,12 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient, User } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import {
     requireAdmin,
     logSecurityAction,
     AuthorizationError,
     AuthenticationError
 } from '@/lib/auth/authorization';
-// Importer votre logique d'authentification/session pour obtenir l'utilisateur
-// import { getServerSession } from 'next-auth/next'; // Ancien import
-import { getServerSession } from "next-auth"; // Nouvel import
-// import { authOptions } from '@/lib/auth'; // <--- Chemin potentiellement incorrect, commenté temporairement
-
-const prisma = new PrismaClient();
-
-// Fonction pour vérifier si l'utilisateur est admin
-const isAdmin = (user: User | null): boolean => {
-    // Adaptez cette logique à votre modèle User et aux rôles admin
-    // Vérifier si user n'est pas null avant d'accéder à user.role
-    return !!user && (user.role === 'ADMIN_TOTAL' || user.role === 'ADMIN_PARTIEL');
-};
+import { auditService } from '@/services/auditService';
 
 /**
  * GET /api/admin/leave-types
@@ -29,7 +17,14 @@ export async function GET(request: Request) {
     try {
         // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications admin requises
         const session = await requireAdmin();
-        logSecurityAction(session.user.id, 'READ_LEAVE_TYPES', 'admin');
+        
+        // Logger l'action
+        await auditService.logAction({
+            action: 'READ_LEAVE_TYPES' as any,
+            userId: session.user.id.toString(),
+            entityId: 'all',
+            entityType: 'leave_type_setting'
+        });
 
         const leaveTypeSettings = await prisma.leaveTypeSetting.findMany({
             orderBy: { label: 'asc' },
@@ -62,7 +57,14 @@ export async function POST(request: Request) {
 
         const body = await request.json();
 
-        logSecurityAction(session.user.id, 'CREATE_LEAVE_TYPE', 'admin', { code: body.code, label: body.label });
+        // Logger l'action
+        await auditService.logAction({
+            action: 'CREATE_LEAVE_TYPE' as any,
+            userId: session.user.id.toString(),
+            entityId: body.code || 'new',
+            entityType: 'leave_type_setting',
+            details: { code: body.code, label: body.label }
+        });
 
         if (!body.code || !body.label) {
             return NextResponse.json({ error: 'Les champs code et label sont requis.' }, { status: 400 });
@@ -114,7 +116,14 @@ export async function PUT(request: Request) {
         const body = await request.json();
         const { id, ...updateData } = body;
 
-        logSecurityAction(session.user.id, 'UPDATE_LEAVE_TYPE', 'admin', { id: String(id), updateData });
+        // Logger l'action
+        await auditService.logAction({
+            action: 'UPDATE_LEAVE_TYPE' as any,
+            userId: session.user.id.toString(),
+            entityId: String(id),
+            entityType: 'leave_type_setting',
+            details: { updateData }
+        });
 
         if (!id) {
             return NextResponse.json({ error: 'L\'ID est requis pour la mise à jour.' }, { status: 400 });
@@ -156,7 +165,13 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ error: 'L\'ID est requis pour la suppression.' }, { status: 400 });
         }
 
-        logSecurityAction(session.user.id, 'DELETE_LEAVE_TYPE', 'admin', { id });
+        // Logger l'action
+        await auditService.logAction({
+            action: 'DELETE_LEAVE_TYPE' as any,
+            userId: session.user.id.toString(),
+            entityId: id,
+            entityType: 'leave_type_setting'
+        });
 
         await prisma.leaveTypeSetting.delete({
             where: { id: parseInt(id) },

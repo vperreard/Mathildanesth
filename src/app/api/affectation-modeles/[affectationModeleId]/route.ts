@@ -1,26 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, Prisma } from '@prisma/client';
-import { verifyAuthToken } from '@/lib/auth-server-utils';
-import {
-    requirePlanningPermission,
-    logSecurityAction,
-    AuthorizationError,
-    AuthenticationError
-} from '@/lib/auth/authorization';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
+import { withAuth } from '@/middleware/authorization';
+import { logger } from '@/lib/logger';
+import { requirePlanningPermission, AuthenticationError, AuthorizationError, logSecurityAction } from '@/lib/auth/authorization';
+import { auditService, AuditAction } from '@/services/auditService';
 
 // PUT /api/affectation-modeles/{affectationModeleId} - Mettre à jour une AffectationModele
-export async function PUT(
+export const PUT = withAuth({
+    requireAuth: true,
+    allowedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
+    resourceType: 'affectation_modele',
+    action: 'update'
+})(async (
     request: NextRequest,
     { params }: { params: { affectationModeleId: string } }
-) {
+) => {
     try {
-        console.log("\n--- PUT /api/affectation-modeles/[affectationModeleId] START ---");
-
-        // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications
-        const session = await requirePlanningPermission('update');
-        logSecurityAction(session.user.id, 'UPDATE_AFFECTATION_MODELE', `affectation:${params.affectationModeleId}`);
+        const userId = parseInt(request.headers.get('x-user-id') || '0');
 
         const { affectationModeleId } = await Promise.resolve(params);
         if (!affectationModeleId || isNaN(parseInt(affectationModeleId))) {
@@ -128,7 +125,7 @@ export async function PUT(
             return NextResponse.json({ error: error.message }, { status: 403 });
         }
 
-        console.error(`Error during PUT /api/affectation-modeles/${params.affectationModeleId}:`, error);
+        console.error(`Error during PUT /api/affectation-modeles/${affectationModeleId}:`, error);
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 console.error("Prisma Error P2025 (update): Record to update not found or related record not found.", error.meta);
@@ -138,21 +135,38 @@ export async function PUT(
         console.log("--- PUT /api/affectation-modeles/[affectationModeleId] END (with error) ---\n");
         return NextResponse.json({ error: 'Erreur lors de la mise à jour de l\'affectation modèle' }, { status: 500 });
     }
-}
+});
 
 // DELETE /api/affectation-modeles/{affectationModeleId} - Supprimer une AffectationModele
-export async function DELETE(
+export const DELETE = withAuth({
+    requireAuth: true,
+    allowedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
+    resourceType: 'affectation_modele',
+    action: 'delete'
+})(async (
     request: NextRequest,
     { params }: { params: { affectationModeleId: string } }
-) {
+) => {
     try {
+        const userId = parseInt(request.headers.get('x-user-id') || '0');
+        const userRole = request.headers.get('x-user-role') || '';
+        
         const { affectationModeleId } = params;
         console.log(`[API DELETE /affectation-modeles/${affectationModeleId}] Début du traitement.`);
         console.log("\n--- DELETE /api/affectation-modeles/[affectationModeleId] START ---");
 
-        // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour suppression
-        const session = await requirePlanningPermission('delete');
-        logSecurityAction(session.user.id, 'DELETE_AFFECTATION_MODELE', `affectation:${affectationModeleId}`);
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour suppression (déjà fait via withAuth)
+        // Logger l'action de suppression
+        await auditService.logAction({
+            action: 'DELETE_AFFECTATION_MODELE' as any,
+            userId: userId.toString(),
+            entityId: affectationModeleId,
+            entityType: 'affectation_modele',
+            details: {
+                userRole,
+                method: 'DELETE'
+            }
+        });
 
         if (!affectationModeleId || isNaN(parseInt(affectationModeleId))) {
             console.warn("DELETE /api/affectation-modeles/[id]: Invalid affectationModeleId");
@@ -172,15 +186,8 @@ export async function DELETE(
         return NextResponse.json({ message: "Affectation modèle supprimée avec succès" }, { status: 200 }); // ou 204 No Content
 
     } catch (error: any) {
-        if (error instanceof AuthenticationError) {
-            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-        }
-        if (error instanceof AuthorizationError) {
-            return NextResponse.json({ error: error.message }, { status: 403 });
-        }
-
         console.error(`DELETE /api/affectation-modeles/${params.affectationModeleId}: Error - ${error.message}`, { stack: error.stack });
         console.log("--- DELETE /api/affectation-modeles/[affectationModeleId] END (with error) ---\n");
         return NextResponse.json({ error: 'Erreur lors de la suppression de l\'affectation modèle', details: error.message }, { status: 500 });
     }
-} 
+}); 

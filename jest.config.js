@@ -26,6 +26,7 @@ module.exports = {
         '^@/tests/(.*)$': '<rootDir>/src/tests/$1',
         '^@/app/(.*)$': '<rootDir>/src/app/$1',
         '^@/context/(.*)$': '<rootDir>/src/context/$1',
+        '^@/middleware/(.*)$': '<rootDir>/src/middleware/$1',
         '^@/config$': '<rootDir>/src/config/index.ts',
         '^@/config/(.*)$': '<rootDir>/src/config/$1',
         '^@/styles/(.*)$': '<rootDir>/src/styles/$1',
@@ -46,10 +47,9 @@ module.exports = {
         '<rootDir>/.next/',
         '<rootDir>/node_modules/',
         '<rootDir>/cypress/',
-        // Ignorer les répertoires __mocks__ pour éviter qu'ils ne soient exécutés comme des suites de tests
-        // Simplification du pattern pour __mocks__
-        '__mocks__' 
+        '__mocks__'
     ],
+    testTimeout: 30000,
     reporters: [
         'default',
         ['jest-html-reporters', {
@@ -61,22 +61,87 @@ module.exports = {
     collectCoverage: true,
     coverageReporters: ['json', 'lcov', 'text', 'clover', 'html'],
     coverageDirectory: './coverage',
+
+    // Configuration avancée de la couverture
+    collectCoverageFrom: [
+        'src/**/*.{ts,tsx}',
+        '!src/**/*.d.ts',
+        '!src/**/*.stories.{ts,tsx}',
+        '!src/**/__tests__/**',
+        '!src/**/*.test.{ts,tsx}',
+        '!src/**/*.spec.{ts,tsx}',
+        '!src/tests/**',
+        '!src/**/node_modules/**',
+        '!src/generated/**',
+        '!src/migrations/**',
+        '!src/scripts/**',
+    ],
+
+    // Seuils de couverture globaux et par module
     coverageThreshold: {
         global: {
-            branches: 15,
-            functions: 15,
-            lines: 15,
-            statements: 15,
+            branches: 70,
+            functions: 70,
+            lines: 75,
+            statements: 75,
+        },
+        // Module leaves - Objectif 85%
+        'src/modules/leaves/services/leaveService.ts': {
+            branches: 85,
+            functions: 85,
+            lines: 85,
+            statements: 85,
+        },
+        'src/modules/leaves/services/leaveCalculator.ts': {
+            branches: 85,
+            functions: 85,
+            lines: 85,
+            statements: 85,
+        },
+        'src/modules/leaves/services/quotaService.ts': {
+            branches: 80,
+            functions: 80,
+            lines: 80,
+            statements: 80,
+        },
+        // Module auth - Objectif 80%
+        'src/lib/auth/**/*.ts': {
+            branches: 80,
+            functions: 80,
+            lines: 80,
+            statements: 80,
+        },
+        'src/middleware/auth.ts': {
+            branches: 80,
+            functions: 80,
+            lines: 80,
+            statements: 80,
+        },
+        'src/hooks/**/useAuth*.ts': {
+            branches: 75,
+            functions: 75,
+            lines: 75,
+            statements: 75,
+        },
+        // Module bloc-operatoire - Objectif 70%
+        'src/modules/planning/bloc-operatoire/services/blocPlanningService.ts': {
+            branches: 70,
+            functions: 70,
+            lines: 70,
+            statements: 70,
+        },
+        'src/modules/planning/bloc-operatoire/components/**/*.tsx': {
+            branches: 65,
+            functions: 65,
+            lines: 65,
+            statements: 65,
         },
     },
-    // Indicates whether the coverage information should be collected while executing the test
-    // collectCoverage: true,
 
-    // An array of glob patterns indicating a set of files for which coverage information should be collected
-    // collectCoverageFrom: undefined,
-
-    // The directory where Jest should output its coverage files
-    // coverageDirectory: undefined,
+    // Surveillance des performances des tests
+    slowTestThreshold: 5,
+    verbose: true,
+    errorOnDeprecated: true,
 };
 
 // module.exports = async () => { // Supprimer cette section

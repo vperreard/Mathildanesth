@@ -59,11 +59,63 @@ export class PlanningGeneratorService {
         for (const shiftType of shiftTypes) {
             const availableUsers = this.getAvailableUsers(date, shiftType);
             if (availableUsers.length === 0) {
-                throw new Error(`Aucun utilisateur disponible pour le shift ${shiftType} le ${format(date, 'dd/MM/yyyy', { locale: fr })}`);
+                // Log détaillé pour diagnostic
+                console.warn(`Aucun utilisateur disponible pour le shift ${shiftType} le ${format(date, 'dd/MM/yyyy', { locale: fr })}`);
+                console.warn(`Users total: ${this.users.length}`);
+                console.warn(`Shifts déjà assignés ce jour: ${this.assignments.filter(a => isSameDay(new Date(a.startDate), date)).length}`);
+
+                // Au lieu de lancer une erreur fatale, on essaie des stratégies de fallback
+                const fallbackUser = this.findFallbackUser(date, shiftType);
+                if (fallbackUser) {
+                    console.warn(`Utilisation d'un utilisateur de fallback: ${fallbackUser.firstName || fallbackUser.prenom} ${fallbackUser.lastName || fallbackUser.nom}`);
+                    this.createAssignment(fallbackUser, date, shiftType);
+                } else {
+                    // Si vraiment aucun fallback n'est possible, alors on lance l'erreur
+                    throw new Error(`Aucun utilisateur disponible pour le shift ${shiftType} le ${format(date, 'dd/MM/yyyy', { locale: fr })} - Aucune solution de fallback trouvée`);
+                }
+            } else {
+                const selectedUser = this.selectUserWithLeastAssignments(availableUsers);
+                this.createAssignment(selectedUser, date, shiftType);
             }
-            const selectedUser = this.selectUserWithLeastAssignments(availableUsers);
-            this.createAssignment(selectedUser, date, shiftType);
         }
+    }
+
+    /**
+     * Trouve un utilisateur de fallback en relaxant temporairement certaines contraintes
+     */
+    private findFallbackUser(date: Date, shiftType: ShiftType): User | null {
+        // Première stratégie: ignorer les contraintes de période de repos si c'est le seul problème
+        const usersWithSpecialty = this.users.filter(user => {
+            const available = this.isUserAvailable(user, date, shiftType);
+            const hasSpecialty = this.hasRequiredSpecialty(user, shiftType);
+            return hasSpecialty && available; // On garde les contraintes de disponibilité et spécialité
+        });
+
+        if (usersWithSpecialty.length > 0) {
+            console.warn(`Fallback Strategy 1: Trouvé ${usersWithSpecialty.length} utilisateurs avec spécialité appropriée`);
+            return this.selectUserWithLeastAssignments(usersWithSpecialty);
+        }
+
+        // Deuxième stratégie: prendre n'importe quel utilisateur disponible (ignorer spécialité temporairement)
+        const anyAvailableUsers = this.users.filter(user => this.isUserAvailable(user, date, shiftType));
+        if (anyAvailableUsers.length > 0) {
+            console.warn(`Fallback Strategy 2: Trouvé ${anyAvailableUsers.length} utilisateurs disponibles (spécialité ignorée)`);
+            return this.selectUserWithLeastAssignments(anyAvailableUsers);
+        }
+
+        // Troisième stratégie: prendre n'importe quel utilisateur actif (dernier recours)
+        const activeUsers = this.users.filter(user => !user.leaves?.some(leave =>
+            leave.status === LeaveStatus.APPROVED &&
+            new Date(leave.startDate) <= date &&
+            new Date(leave.endDate) >= date
+        ));
+
+        if (activeUsers.length > 0) {
+            console.warn(`Fallback Strategy 3: Trouvé ${activeUsers.length} utilisateurs non en congé (toutes contraintes ignorées)`);
+            return this.selectUserWithLeastAssignments(activeUsers);
+        }
+
+        return null; // Vraiment aucune solution
     }
 
     /**

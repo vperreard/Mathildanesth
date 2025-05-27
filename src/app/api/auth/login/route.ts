@@ -1,29 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAuthTokenServer, setAuthTokenServer } from '@/lib/auth-server-utils';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
-
-// Cache pour éviter les reconnexions Prisma répétées
-let cachedPrisma: PrismaClient | null = null;
-
-function getPrismaClient(isCypressTest: boolean): PrismaClient {
-    if (cachedPrisma) return cachedPrisma;
-
-    const dbUrl = isCypressTest
-        ? process.env.TEST_DATABASE_URL || 'postgresql://mathildanesth_user:mathildanesth_password@localhost:5433/mathildanesth_test'
-        : process.env.DATABASE_URL;
-
-    if (!dbUrl) {
-        throw new Error('Variable d\'environnement DATABASE_URL manquante');
-    }
-
-    cachedPrisma = new PrismaClient({
-        datasources: { db: { url: dbUrl } },
-        log: process.env.NODE_ENV === 'development' ? ['error'] : [], // Logs réduits
-    });
-
-    return cachedPrisma;
-}
 
 export async function POST(req: NextRequest) {
     const startTime = Date.now();
@@ -38,8 +16,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const isCypressTest = req.headers.get('user-agent')?.includes('Cypress');
-        const prisma = getPrismaClient(isCypressTest);
+        // Utilisation du client Prisma importé
 
         // Requête optimisée : recherche login ET email en une seule requête
         const user = await prisma.user.findFirst({

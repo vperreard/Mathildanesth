@@ -451,9 +451,9 @@ export default function SecteursAdmin() {
                             <div className="flex gap-2">
                                 <Input
                                     value={specialiteInput}
-                                    onChange={(e) => setSpecialiteInput(e.target.value)}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSpecialiteInput(e.target.value)}
                                     placeholder="Ajouter une spécialité"
-                                    onKeyDown={(e) => {
+                                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                                         if (e.key === 'Enter') {
                                             e.preventDefault();
                                             handleAddSpecialite();

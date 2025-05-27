@@ -6,7 +6,7 @@ import { Plus, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { Hospital, HospitalFormData } from '@/components/HospitalForm';
 import HospitalForm from '@/components/HospitalForm';
 import Modal from '@/components/Modal';
-import Switch from '@/components/ui/switch';
+import { Switch } from '@/components/ui/switch';
 import Button from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 

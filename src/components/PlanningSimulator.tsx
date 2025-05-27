@@ -16,7 +16,7 @@ import { Select } from './ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import Switch from './ui/switch';
+import { Switch } from './ui/switch';
 import Link from 'next/link';
 import { HelpCircle } from 'lucide-react';
 

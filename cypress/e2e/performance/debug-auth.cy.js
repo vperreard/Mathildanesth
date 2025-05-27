@@ -16,14 +16,14 @@ describe('Déboguer authentification', () => {
             cy.log('CHAMPS DE FORMULAIRE');
             const inputFields = Array.from(doc.querySelectorAll('input'));
             inputFields.forEach(field => {
-                cy.log(`Type: ${field.type}, ID: ${field.id}, Name: ${field.name}, Data-test: ${field.getAttribute('data-test')}`);
+                cy.log(`Type: ${field.type}, ID: ${field.id}, Name: ${field.name}, Data-testid: ${field.getAttribute('data-testid')}`);
             });
 
             // Chercher tous les boutons
             cy.log('BOUTONS');
             const buttons = Array.from(doc.querySelectorAll('button'));
             buttons.forEach(button => {
-                cy.log(`Text: ${button.textContent}, Type: ${button.type}, ID: ${button.id}, Data-test: ${button.getAttribute('data-test')}`);
+                cy.log(`Text: ${button.textContent}, Type: ${button.type}, ID: ${button.id}, Data-testid: ${button.getAttribute('data-testid')}`);
             });
         });
     });

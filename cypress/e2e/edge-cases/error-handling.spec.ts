@@ -141,8 +141,8 @@ describe('Gestion des erreurs et cas limites', () => {
         cy.get('[data-cy=leave-type-option-conges]').click();
 
         // Utiliser les dates du congé déjà existant (d'après les fixtures)
-        const existingLeaveStart = new Date('2024-06-01T00:00:00.000Z');
-        const existingLeaveEnd = new Date('2024-06-14T23:59:59.999Z');
+        // const existingLeaveStart = new Date('2024-06-01T00:00:00.000Z');
+        // const existingLeaveEnd = new Date('2024-06-14T23:59:59.999Z');
 
         // Choisir des dates qui chevauchent
         const overlapStart = new Date('2024-06-10T00:00:00.000Z');

@@ -10,18 +10,25 @@ Mathildanesth is a medical planning application for anesthesia teams (MARs and I
 
 **Primary Documentation Location**: `/docs/` (consolidated from 4 previous folders)
 
+### 🚨 IMPORTANT: Documentation Consolidation Rules
+- **Only 2 main project planning files are maintained**:
+  - `docs/04_roadmap/ROADMAP.md` - Consolidated roadmap, todos, and next steps
+  - `docs/04_roadmap/KNOWN_ISSUES.md` - Current bugs and issues tracking
+- **DO NOT create new TODO, NEXT_STEPS, or similar files** - Add to ROADMAP.md instead
+- **Obsolete files to be deleted**: All other roadmap files in docs/04_roadmap/
+
 ### Key Documentation Files
+- **🎯 [ROADMAP](docs/04_roadmap/ROADMAP.md)** - **CONSOLIDATED PROJECT PLANNING** (replaces all todo/next_steps files)
 - **[Main Documentation Index](docs/README.md)** - Central navigation hub
 - **[TypeScript Standards](docs/01_architecture/TYPESCRIPT_GUIDELINES.md)** - Required for all development
 - **[Testing Guidelines](docs/01_architecture/TESTING_GUIDELINES.md)** - Critical modules need 80% coverage
 - **[Development Guides](docs/03_Guides_Developpement/README.md)** - Practical developer guides
-- **[Roadmap & Priorities](docs/04_roadmap/01_Phases_Priorites.md)** - Current project status and planning
 - **[Technical Debt Report](docs/01_architecture/TECHNICAL_DEBT_REDUCTION_REPORT.md)** - Security and quality improvements
 - **[Performance Audit](docs/03_performance/PERFORMANCE_AUDIT_REPORT.md)** - Critical optimizations needed
 
 ### Quick Reference Documentation
-- **Security**: [Urgent TODO Plan](docs/04_roadmap/URGENT_TODO_ACTION_PLAN.md) - 19 critical security TODOs
-- **Implementation**: [Next Steps](docs/02_implementation/NEXT_STEPS.md) - Detailed implementation plans
+- **Planning**: [Consolidated ROADMAP](docs/04_roadmap/ROADMAP.md) - All project planning in one place
+- **Issues**: [Known Issues](docs/04_roadmap/KNOWN_ISSUES.md) - Current bugs and problems
 - **User Guides**: [User Guides](docs/user-guides/) - End-user documentation
 - **Technical Details**: [Technical Docs](docs/technical/) - Algorithms, architecture, API design
 
@@ -151,8 +158,11 @@ npm run test:critical                    # Test all critical modules
 2. **For migrations**: Always test locally with `npx prisma migrate dev`
 3. **For API changes**: Update TypeScript types in `/src/types/`
 4. **For UI changes**: Check responsive design and accessibility
-5. **Documentation**: Update relevant docs in `/docs/` structure
-6. **Security**: Check [Security TODO List](docs/04_roadmap/URGENT_TODO_ACTION_PLAN.md)
+5. **Documentation**: 
+   - Update relevant docs in `/docs/` structure
+   - **Add new TODOs or tasks to [ROADMAP.md](docs/04_roadmap/ROADMAP.md)** - DO NOT create new todo files
+   - **Log bugs in [KNOWN_ISSUES.md](docs/04_roadmap/KNOWN_ISSUES.md)**
+6. **Planning**: Check [Consolidated ROADMAP](docs/04_roadmap/ROADMAP.md) for current priorities
 7. **Standards**: Follow [TypeScript Guidelines](docs/01_architecture/TYPESCRIPT_GUIDELINES.md)
 
 ### Debugging
@@ -174,10 +184,18 @@ npm run test:critical                    # Test all critical modules
 
 ### Current Priorities (January 2025)
 
-1. **Critical Security**: Address remaining 1/19 security TODOs
-2. **Testing**: Achieve 80% coverage for critical modules (leaves, auth)
-3. **Performance**: Optimize authentication page performance
-4. **Documentation**: All major restructuring completed
+See **[CONSOLIDATED ROADMAP](docs/04_roadmap/ROADMAP.md)** for detailed planning.
+
+**Phase 1 - Architecture Refactoring** (In Progress):
+1. **Cleanup**: Remove `/demo`, `/diagnostic`, duplicate pages
+2. **Harmonization**: Migrate all UI to French
+3. **Unification**: Single planning system with multiple views
+4. **Simplification**: 3-step template management
+
+**Ongoing Priorities**:
+1. **Testing**: Achieve 80% coverage for critical modules
+2. **Performance**: Optimize authentication and planning pages
+3. **Documentation**: Consolidation completed - maintain only ROADMAP.md and KNOWN_ISSUES.md
 
 ### Resources for Development
 
@@ -186,4 +204,7 @@ npm run test:critical                    # Test all critical modules
 - **CI/CD Setup**: [Deployment Guide](docs/03_Guides_Developpement/01_Deployment_Guide.md)
 - **Performance Analysis**: [Performance Tools](docs/03_performance/)
 
-**Last Updated**: January 2025 - Documentation restructuring completed
+**Last Updated**: January 2025 - Documentation consolidation completed
+- All TODO/NEXT_STEPS files consolidated into single ROADMAP.md
+- Established rule: Only maintain ROADMAP.md and KNOWN_ISSUES.md for project planning
+- Obsolete roadmap files marked for deletion

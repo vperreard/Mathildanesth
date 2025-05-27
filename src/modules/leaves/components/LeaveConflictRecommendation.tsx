@@ -15,7 +15,7 @@ import {
     Badge,
     Button,
     Card,
-    CardBody,
+    CardContent,
     Collapse,
     Tooltip,
     ListGroup,
@@ -211,7 +211,7 @@ export const LeaveConflictRecommendation: React.FC<LeaveConflictRecommendationPr
 
     return (
         <Card className={`mb-3 conflict-recommendation ${className}`}>
-            <CardBody>
+            <CardContent>
                 {/* En-tête du conflit avec description et bouton d'expansion */}
                 <div className="d-flex justify-content-between align-items-center mb-2">
                     <div className="d-flex align-items-center">
@@ -497,7 +497,7 @@ export const LeaveConflictRecommendation: React.FC<LeaveConflictRecommendationPr
                             </Button>
                         </div>
                     )}
-            </CardBody>
+            </CardContent>
         </Card>
     );
 }; 

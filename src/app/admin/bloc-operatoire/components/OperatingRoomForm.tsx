@@ -19,7 +19,7 @@ import {
 import Input from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Textarea from '@/components/ui/textarea'; // Export par défaut
-import Switch from '@/components/ui/switch'; // Export par défaut
+import { Switch } from '@/components/ui/switch'; // Export par défaut
 import {
     Select,
     SelectContent,

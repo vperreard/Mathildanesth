@@ -206,7 +206,7 @@ export default function PublicHolidaysPage() {
                         <Input
                             type="number"
                             value={yearFilter}
-                            onChange={(e) => setYearFilter(Number(e.target.value))}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setYearFilter(Number(e.target.value))}
                             className="w-24"
                         />
                     </div>

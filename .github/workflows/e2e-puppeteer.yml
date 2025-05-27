@@ -1,0 +1,184 @@
+name: E2E Tests Puppeteer
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  e2e-puppeteer:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: mathildanesth_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Setup test database
+      env:
+        DATABASE_URL: postgresql://test:test@localhost:5432/mathildanesth_test
+      run: |
+        npx prisma generate
+        npx prisma migrate deploy
+        npx prisma db seed
+    
+    - name: Build application
+      run: npm run build
+    
+    - name: Run E2E Puppeteer tests
+      env:
+        DATABASE_URL: postgresql://test:test@localhost:5432/mathildanesth_test
+        REDIS_URL: redis://localhost:6379
+        NEXTAUTH_URL: http://localhost:3000
+        NEXTAUTH_SECRET: test-secret
+        JWT_SECRET: test-jwt-secret
+        TEST_BASE_URL: http://localhost:3000
+        HEADLESS: true
+      run: |
+        # Start the application in the background
+        npm start &
+        
+        # Wait for the server to be ready
+        npx wait-on http://localhost:3000 -t 60000
+        
+        # Run tests
+        npm run test:e2e:puppeteer
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: e2e-puppeteer-results
+        path: |
+          test-reports/
+          performance-metrics-results.json
+          accessibility-reports.json
+          tests/e2e/screenshots/
+    
+    - name: Upload coverage
+      if: success()
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage/lcov.info
+        flags: e2e-puppeteer
+
+  performance-tests:
+    runs-on: ubuntu-latest
+    needs: e2e-puppeteer
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Download previous performance results
+      uses: actions/download-artifact@v4
+      with:
+        name: performance-baseline
+        path: ./performance-baseline
+      continue-on-error: true
+    
+    - name: Run performance tests
+      env:
+        DATABASE_URL: postgresql://test:test@localhost:5432/mathildanesth_test
+        HEADLESS: true
+      run: npm run test:e2e:performance
+    
+    - name: Compare performance results
+      if: success()
+      run: |
+        if [ -f "./performance-baseline/performance-metrics-results.json" ]; then
+          node scripts/compare-performance.js
+        fi
+    
+    - name: Save performance baseline
+      if: github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-baseline
+        path: performance-metrics-results.json
+        retention-days: 30
+
+  accessibility-tests:
+    runs-on: ubuntu-latest
+    needs: e2e-puppeteer
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run accessibility tests
+      env:
+        DATABASE_URL: postgresql://test:test@localhost:5432/mathildanesth_test
+        HEADLESS: true
+      run: npm run test:e2e:accessibility
+    
+    - name: Generate accessibility report
+      if: always()
+      run: |
+        node scripts/generate-a11y-report.js
+    
+    - name: Comment PR with results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('./accessibility-summary.md', 'utf8');
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: report
+          });

@@ -38,7 +38,7 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/components/ui/select';
-import Switch from '@/components/ui/switch';
+import { Switch } from '@/components/ui/switch';
 
 // Type modifié pour le formulaire
 type OperatingRoomFormData = {

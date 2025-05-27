@@ -25,7 +25,7 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/components/ui/select';
-import Switch from '@/components/ui/switch';
+import { Switch } from '@/components/ui/switch';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

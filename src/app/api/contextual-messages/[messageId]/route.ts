@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'; // Ajustez le chemin si nécessaire
-import { Role } from '@prisma/client'; // Ajouté pour référence au type Role
-import { emitUpdatedContextualMessage, emitDeletedContextualMessage } from '@/lib/socket'; // Ajout pour WebSockets
+import { emitUpdatedContextualMessage, emitDeletedContextualMessage } from '@/lib/socket';
 import {
     requireMessagePermission,
-    logSecurityAction,
     AuthorizationError,
     AuthenticationError
 } from '@/lib/auth/authorization';
+import { auditService } from '@/services/auditService';
 
 interface ContextualMessageUpdateInput {
     content: string;
@@ -47,7 +44,17 @@ export async function PUT(req: NextRequest, { params }: { params: { messageId: s
             return NextResponse.json({ error: 'Vous n\'êtes pas autorisé à modifier ce message' }, { status: 403 });
         }
 
-        logSecurityAction(session.user.id, 'UPDATE_CONTEXTUAL_MESSAGE', `message:${messageId}`);
+        // Logger l'action de mise à jour
+        await auditService.logAction({
+            action: 'UPDATE_CONTEXTUAL_MESSAGE' as any,
+            userId: session.user.id.toString(),
+            entityId: messageId,
+            entityType: 'contextual_message',
+            details: {
+                authorId: messageToUpdate.authorId,
+                userRole: session.user.role
+            }
+        });
 
         const updatedMessage = await prisma.contextualMessage.update({
             where: { id: messageId },
@@ -107,7 +114,18 @@ export async function DELETE(req: NextRequest, { params }: { params: { messageId
             return NextResponse.json({ error: 'Vous n\'êtes pas autorisé à supprimer ce message' }, { status: 403 });
         }
 
-        logSecurityAction(session.user.id, 'DELETE_CONTEXTUAL_MESSAGE', `message:${messageId}`);
+        // Logger l'action de suppression
+        await auditService.logAction({
+            action: 'DELETE_CONTEXTUAL_MESSAGE' as any,
+            userId: session.user.id.toString(),
+            entityId: messageId,
+            entityType: 'contextual_message',
+            details: {
+                authorId: messageToDelete.authorId,
+                userRole: session.user.role,
+                contextInfo
+            }
+        });
 
         // Collecter les informations de contexte avant suppression pour l'événement WebSocket
         const contextInfo = {

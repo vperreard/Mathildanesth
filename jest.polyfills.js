@@ -4,11 +4,62 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const nodeFetch = require('node-fetch');
 
+// Créer un wrapper pour Response qui ajoute la méthode json() si elle n'existe pas
+class ResponseWrapper {
+  constructor(response) {
+    this._response = response;
+    // Copier toutes les propriétés
+    for (const prop in response) {
+      if (!(prop in this)) {
+        this[prop] = response[prop];
+      }
+    }
+  }
+
+  async json() {
+    if (this._response.json) {
+      return this._response.json();
+    }
+    const text = await this._response.text();
+    return JSON.parse(text);
+  }
+
+  async text() {
+    return this._response.text();
+  }
+
+  async blob() {
+    return this._response.blob();
+  }
+
+  async arrayBuffer() {
+    return this._response.arrayBuffer();
+  }
+
+  clone() {
+    return new ResponseWrapper(this._response.clone());
+  }
+}
+
+// Wrapper pour fetch qui retourne toujours notre ResponseWrapper
+const fetchWrapper = async (...args) => {
+  const response = await nodeFetch(...args);
+  return new ResponseWrapper(response);
+};
+
 if (!global.fetch) {
-  global.fetch = nodeFetch;
+  // Make fetch a jest function so it can be mocked in tests
+  global.fetch = jest.fn(fetchWrapper);
   global.Response = nodeFetch.Response;
   global.Request = nodeFetch.Request;
   global.Headers = nodeFetch.Headers;
+} else if (!jest.isMockFunction(global.fetch)) {
+  // If fetch exists but isn't a jest mock, wrap it
+  const originalFetch = global.fetch;
+  global.fetch = jest.fn(async (...args) => {
+    const response = await originalFetch(...args);
+    return new ResponseWrapper(response);
+  });
 }
 
 // Polyfill pour structuredClone (nécessaire pour jose JWT library)

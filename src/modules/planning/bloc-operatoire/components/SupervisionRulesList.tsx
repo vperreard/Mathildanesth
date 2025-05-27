@@ -23,7 +23,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import Input from '@/components/ui/input';
 import Textarea from '@/components/ui/textarea';
-import Switch from '@/components/ui/switch';
+import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
     Select,

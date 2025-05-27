@@ -72,9 +72,13 @@ export interface ValidationResult {
 export interface BlocSector {
     id: string;
     nom: string;
+    description?: string;
     couleur: string;
+    specialites?: string[];
     salles: string[];
     estActif: boolean;
+    requiresSpecificSkills?: boolean;
+    supervisionSpeciale?: boolean;
 }
 
 /**

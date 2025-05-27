@@ -3,11 +3,11 @@ import { LeaveRequest, LeaveType, LeaveStatus } from '../../leaves/types/leave';
 import { ConflictType, ConflictSeverity, ConflictRules, LeaveConflict } from '../types/conflict';
 import { User } from '../../../types/user';
 import { UserService } from '../../../services/userService';
-import { TeamService } from '../../../services/teamService';
+import { TeamService } from '@/modules/teams/services/teamService';
 import { PerformanceLogger } from '../../../utils/performanceLogger';
 
 jest.mock('../../../services/userService');
-jest.mock('../../../services/teamService');
+jest.mock('@/modules/teams/services/teamService');
 jest.mock('../../../utils/performanceLogger');
 
 const MockUserService = UserService as jest.MockedClass<typeof UserService>;

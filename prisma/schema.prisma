@@ -225,6 +225,9 @@ model User {
   sites                               Site[]                     @relation("SiteUsers")
   teamMembership                      TeamConfiguration[]        @relation("TeamMembers")
   teamResponsibilities                TeamConfiguration[]        @relation("TeamResponsibles")
+  systemConfigUpdates                 SystemConfig[]             @relation("SystemConfigUpdates")
+  activityLogs                        ActivityLog[]              @relation("UserActivityLogs")
+  createdRulesTemplates               RulesTemplate[]            @relation("CreatedRulesTemplates")
 
   @@map("users")
 }
@@ -283,16 +286,77 @@ model LoginLog {
 }
 
 model PlanningRule {
-  id            Int      @id @default(autoincrement())
-  category      String
-  name          String
-  description   String?
-  isActive      Boolean  @default(true)
-  priority      Int      @default(1)
-  conditionJSON Json
-  parameterJSON Json
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String           @id @default(cuid())
+  category        String
+  name            String
+  description     String?
+  type            String?          // PLANNING, LEAVE, CONSTRAINT, ALLOCATION, SUPERVISION
+  status          String           @default("draft") // draft, active, archived, pending_approval
+  enabled         Boolean          @default(true)
+  isActive        Boolean          @default(true) // Legacy field, kept for compatibility
+  priority        Int              @default(1)
+  version         Int              @default(1)
+  createdBy       String
+  updatedBy       String
+  effectiveDate   DateTime?
+  expirationDate  DateTime?
+  conditionJSON   Json             // Legacy field
+  parameterJSON   Json             // Legacy field
+  conditions      Json?
+  actions         Json?
+  conditionGroups Json?
+  tags            String[]         @default([])
+  contexts        String[]         @default([])
+  metadata        Json?
+  conflictsWith   String[]         @default([])
+  dependencies    String[]         @default([])
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  versions        RuleVersion[]
+  metrics         RuleMetrics?
+
+  @@index([type])
+  @@index([status])
+  @@index([enabled])
+  @@index([priority])
+  @@index([effectiveDate])
+  @@index([tags])
+  @@index([contexts])
+}
+
+model RuleVersion {
+  id        String       @id @default(cuid())
+  ruleId    String
+  rule      PlanningRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  version   Int
+  changes   Json?
+  createdBy String
+  createdAt DateTime     @default(now())
+  message   String?
+  snapshot  Json
+
+  @@unique([ruleId, version])
+  @@index([ruleId])
+  @@index([createdAt])
+  @@map("rule_versions")
+}
+
+model RuleMetrics {
+  id                  String       @id @default(cuid())
+  ruleId              String       @unique
+  rule                PlanningRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  evaluationCount     Int          @default(0)
+  averageExecutionTime Float       @default(0)
+  successRate         Float        @default(0)
+  lastEvaluatedAt     DateTime?
+  impactedUsersCount  Int          @default(0)
+  violationCount      Int          @default(0)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@index([ruleId])
+  @@index([lastEvaluatedAt])
+  @@map("rule_metrics")
 }
 
 model OperatingRoom {
@@ -1398,4 +1462,50 @@ enum NotificationType {
   RULE_CONFLICT_DETECTED_ADMIN
   GENERAL_INFO
   SYSTEM_ALERT
+}
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedBy   Int
+  updater     User     @relation("SystemConfigUpdates", fields: [updatedBy], references: [id])
+
+  @@map("system_config")
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    Int
+  user      User     @relation("UserActivityLogs", fields: [userId], references: [id])
+  action    String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
+model RulesTemplate {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  category      String   // STANDARD, INTENSIF, ALLEGE, PEDIATRIE, CUSTOM
+  rules         Json
+  fatigueConfig Json
+  isDefault     Boolean  @default(false)
+  createdBy     Int
+  creator       User     @relation("CreatedRulesTemplates", fields: [createdBy], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([name, isDefault])
+  @@index([category])
+  @@index([isDefault])
+  @@map("rules_templates")
 }

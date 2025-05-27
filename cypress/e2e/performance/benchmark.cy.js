@@ -16,12 +16,12 @@ describe('Benchmark de performances', () => {
         });
 
         // Vérifier que la page de connexion est bien chargée
-        cy.get('[data-test=login-email]', { timeout: 10000 }).should('be.visible');
+        cy.get('[data-testid=login-email-input]', { timeout: 10000 }).should('be.visible');
 
         // Se connecter avec les identifiants corrects des fixtures users.json
-        cy.get('[data-test=login-email]').type('admin@example.com');
-        cy.get('[data-test=login-password]').type('Test123!');
-        cy.get('[data-test=login-submit]').click();
+        cy.get('[data-testid=login-email-input]').type('admin');
+        cy.get('[data-testid=login-password-input]').type('Test123!');
+        cy.get('[data-testid=login-submit-button]').click();
 
         // Attendre que l'authentification soit complète
         cy.url().should('not.include', '/login', { timeout: 30000 });

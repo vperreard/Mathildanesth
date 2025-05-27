@@ -23,8 +23,9 @@ describe('RuleCacheService', () => {
         enabled: true,
         parameters: { minHours: 11 },
         priority: 1,
-        createdAt: new Date(2023, 0, 1).toISOString(),
-        updatedAt: new Date(2023, 0, 1).toISOString()
+        createdAt: new Date(2023, 0, 1),
+        updatedAt: new Date(2023, 0, 1),
+        configuration: {}
     };
 
     // Contexte d'évaluation de test

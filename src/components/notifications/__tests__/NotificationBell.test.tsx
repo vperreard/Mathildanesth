@@ -89,27 +89,28 @@ describe('NotificationBell', () => {
         render(<NotificationBell />);
 
         // Le panneau est initialement fermé
-        expect(screen.queryByText('Notifications')).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: 'Notifications' })).not.toBeInTheDocument();
 
         // Ouvrir le panneau
         fireEvent.click(screen.getByRole('button', { name: 'Notifications' }));
 
         // Le panneau doit être ouvert avec le titre
         await waitFor(() => {
-            expect(screen.getByText('Notifications')).toBeInTheDocument();
+            expect(screen.getByRole('heading', { name: 'Notifications' })).toBeInTheDocument();
         });
 
         // Vérifier que les notifications sont affichées
         expect(screen.getByText('Notification de test')).toBeInTheDocument();
         expect(screen.getByText('Notification lue')).toBeInTheDocument();
 
-        // Fermer le panneau
-        fireEvent.click(screen.getByRole('button', { name: 'Notifications' }));
+        // Fermer le panneau en cliquant sur le bouton bell
+        const bellButton = screen.getByRole('button', { name: 'Notifications' });
+        fireEvent.click(bellButton);
 
-        // Le panneau doit être fermé
+        // Le panneau doit être fermé après l'animation
         await waitFor(() => {
-            expect(screen.queryByText('Notifications')).not.toBeInTheDocument();
-        });
+            expect(screen.queryByRole('heading', { name: 'Notifications' })).not.toBeInTheDocument();
+        }, { timeout: 2000 });
     });
 
     test('affiche un message quand il n\'y a pas de notifications', () => {

@@ -1,14 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { InfoIcon, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import BlocPlanning from './components/BlocPlanning';
 import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Lazy loading des composants lourds avec version optimisée
+const BlocPlanning = lazy(() => import('./components/OptimizedBlocPlanning'));
+const SallesOperatoireManager = lazy(() => import('@/components/bloc-operatoire/components/SallesOperatoireManager'));
+const SecteursOperatoireManager = lazy(() => import('@/components/bloc-operatoire/components/SecteursOperatoireManager'));
+
+// Composant de fallback pendant le chargement
+const LoadingFallback = () => (
+    <div className="space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-12 w-3/4" />
+    </div>
+);
 
 /**
  * Page principale du module de bloc opératoire
@@ -66,7 +80,9 @@ export default function BlocOperatoirePage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <BlocPlanning />
+                            <Suspense fallback={<LoadingFallback />}>
+                                <BlocPlanning />
+                            </Suspense>
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -80,12 +96,9 @@ export default function BlocOperatoirePage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {/* Placeholder pour le composant de gestion des salles */}
-                            <div className="border rounded-md p-6 text-center bg-muted/10">
-                                <p className="text-muted-foreground">
-                                    Le composant de gestion des salles d'opération sera implémenté ici.
-                                </p>
-                            </div>
+                            <Suspense fallback={<LoadingFallback />}>
+                                <SallesOperatoireManager />
+                            </Suspense>
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -99,12 +112,9 @@ export default function BlocOperatoirePage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {/* Placeholder pour le composant de gestion des secteurs */}
-                            <div className="border rounded-md p-6 text-center bg-muted/10">
-                                <p className="text-muted-foreground">
-                                    Le composant de gestion des secteurs sera implémenté ici.
-                                </p>
-                            </div>
+                            <Suspense fallback={<LoadingFallback />}>
+                                <SecteursOperatoireManager />
+                            </Suspense>
                         </CardContent>
                     </Card>
                 </TabsContent>

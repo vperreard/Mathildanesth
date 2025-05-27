@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { CalendarIcon, HomeIcon, UserGroupIcon, CogIcon } from '@heroicons/react/24/outline';
 
@@ -19,10 +20,13 @@ export const Navigation: React.FC = () => {
                 <div className="flex justify-between h-16">
                     <div className="flex">
                         <div className="flex-shrink-0 flex items-center">
-                            <img
+                            <Image
                                 className="h-8 w-auto"
                                 src="/logo.png"
                                 alt="Mathildanesth"
+                                width={32}
+                                height={32}
+                                priority
                             />
                         </div>
                         <div className="hidden sm:ml-6 sm:flex sm:space-x-8">

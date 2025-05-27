@@ -2,26 +2,57 @@ import { cookies, headers as nextHeaders } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
 // Importer les types depuis le fichier client pour éviter la duplication
 import type { UserRole, AuthResult } from './auth-client-utils';
+import { AuthCacheService } from './auth/authCache';
+import { logger } from './logger';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'un_secret_jwt_robuste_et_difficile_a_deviner_pour_la_securite_de_l_application';
 const TOKEN_EXPIRATION = 24 * 60 * 60; // 24 heures en secondes
 const AUTH_TOKEN_KEY = 'auth_token';
 
 export async function generateAuthTokenServer(payload: any) {
-    const token = await new SignJWT({
+    const iat = Math.floor(Date.now() / 1000);
+    const exp = iat + TOKEN_EXPIRATION;
+    
+    const tokenPayload = {
         ...payload,
         iss: 'mathildanesth',
-        aud: 'mathildanesth-client'
-    })
+        aud: 'mathildanesth-client',
+        iat,
+        exp
+    };
+    
+    const token = await new SignJWT(tokenPayload)
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
         .setExpirationTime('24h')
         .sign(new TextEncoder().encode(JWT_SECRET));
+    
+    // Cache le token décodé
+    await AuthCacheService.cacheAuthToken(token, {
+        userId: payload.userId,
+        login: payload.login,
+        role: payload.role,
+        exp,
+        iat
+    });
+    
     return token;
 }
 
 export async function verifyAuthToken(token: string): Promise<AuthResult> {
     try {
+        // Vérifier d'abord dans le cache
+        const cachedToken = await AuthCacheService.getCachedAuthToken(token);
+        if (cachedToken) {
+            logger.debug('Token found in cache');
+            return {
+                authenticated: true,
+                userId: cachedToken.userId as any,
+                role: cachedToken.role as string
+            };
+        }
+        
+        // Si pas dans le cache, vérifier le token
         const secretKey = new TextEncoder().encode(JWT_SECRET);
         const { payload } = await jwtVerify(token, secretKey);
 
@@ -31,6 +62,15 @@ export async function verifyAuthToken(token: string): Promise<AuthResult> {
                 error: 'Token invalide'
             };
         }
+        
+        // Mettre en cache pour les prochaines requêtes
+        await AuthCacheService.cacheAuthToken(token, {
+            userId: payload.userId as string,
+            login: payload.login as string,
+            role: payload.role as string,
+            exp: payload.exp as number,
+            iat: payload.iat as number
+        });
 
         return {
             authenticated: true,
@@ -38,7 +78,7 @@ export async function verifyAuthToken(token: string): Promise<AuthResult> {
             role: payload.role as string
         };
     } catch (error) {
-        console.error('Erreur de vérification du token (serveur):', error);
+        logger.error('Erreur de vérification du token (serveur):', error);
         return {
             authenticated: false,
             error: 'Token invalide ou expiré'
