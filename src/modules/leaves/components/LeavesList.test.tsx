@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import LeavesList from './LeavesList'; // Assurez-vous que l'export est default ou nommé
-import { LeaveWithUser, LeaveStatus, LeaveType, Leave } from '@/modules/leaves/types/leave';
+import { LeaveWithUser, LeaveStatus, LeaveType, Leave } from '@/modules/conges/types/leave';
 import { User, UserRole, ExperienceLevel } from '@/types/user';
 import { useLeaveListFilteringSorting } from '../hooks/useLeaveListFilteringSorting';
 

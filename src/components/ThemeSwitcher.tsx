@@ -19,9 +19,9 @@ export function ThemeSwitcher() {
                 }`}
         >
             {theme === 'light' ? (
-                <Moon className="h-5 w-5 text-secondary-600 hover:text-tertiary-500" />
+                <Moon className="h-6 w-6 text-secondary-600 hover:text-tertiary-500" />
             ) : (
-                <Sun className="h-5 w-5" />
+                <Sun className="h-6 w-6" />
             )}
         </Button>
     );

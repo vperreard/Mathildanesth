@@ -14,7 +14,7 @@ import { differenceInCalendarDays } from 'date-fns';
 // À implémenter avec une bibliothèque appropriée ou une API externe
 const isHoliday = (date: Date, options: { locale: Locale }): boolean => {
     // Implémentation simplifiée - à remplacer par une vraie vérification
-    // Exemple: utiliser @date/holidays ou une API externe
+    // Exemple: utiliser @date/jours-feries ou une API externe
     return false;
 };
 

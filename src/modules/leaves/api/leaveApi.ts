@@ -25,7 +25,7 @@ const leaveApi = {
         employeeId: string,
         filters?: Partial<LeaveFilters>
     ): Promise<PaginatedLeaveResults> => {
-        const response = await apiClient.get('/api/leaves/employee/' + employeeId, {
+        const response = await apiClient.get('/api/conges/employee/' + employeeId, {
             params: filters
         });
         return response.data;
@@ -39,7 +39,7 @@ const leaveApi = {
     getAllLeaves: async (
         filters?: Partial<LeaveFilters>
     ): Promise<PaginatedLeaveResults> => {
-        const response = await apiClient.get('/api/leaves', {
+        const response = await apiClient.get('/api/conges', {
             params: filters
         });
         return response.data;
@@ -51,7 +51,7 @@ const leaveApi = {
      * @returns Détails de la demande
      */
     getLeaveById: async (leaveId: string): Promise<LeaveRequest> => {
-        const response = await apiClient.get(`/api/leaves/${leaveId}`);
+        const response = await apiClient.get(`/api/conges/${leaveId}`);
         return response.data;
     },
 
@@ -61,7 +61,7 @@ const leaveApi = {
      * @returns Demande créée
      */
     createLeave: async (leaveData: Omit<LeaveRequest, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Promise<LeaveRequest> => {
-        const response = await apiClient.post('/api/leaves', leaveData);
+        const response = await apiClient.post('/api/conges', leaveData);
         return response.data;
     },
 
@@ -72,7 +72,7 @@ const leaveApi = {
      * @returns Demande mise à jour
      */
     updateLeave: async (leaveId: string, leaveData: Partial<LeaveRequest>): Promise<LeaveRequest> => {
-        const response = await apiClient.put(`/api/leaves/${leaveId}`, leaveData);
+        const response = await apiClient.put(`/api/conges/${leaveId}`, leaveData);
         return response.data;
     },
 
@@ -82,7 +82,7 @@ const leaveApi = {
      * @returns Statut de suppression
      */
     deleteLeave: async (leaveId: string): Promise<{ success: boolean }> => {
-        const response = await apiClient.delete(`/api/leaves/${leaveId}`);
+        const response = await apiClient.delete(`/api/conges/${leaveId}`);
         return response.data;
     },
 
@@ -92,7 +92,7 @@ const leaveApi = {
      * @returns Demande mise à jour
      */
     cancelLeave: async (leaveId: string): Promise<LeaveRequest> => {
-        const response = await apiClient.post(`/api/leaves/${leaveId}/cancel`);
+        const response = await apiClient.post(`/api/conges/${leaveId}/cancel`);
         return response.data;
     },
 
@@ -103,7 +103,7 @@ const leaveApi = {
      * @returns Demande mise à jour
      */
     respondToLeave: async (leaveId: string, response: LeaveResponse): Promise<LeaveRequest> => {
-        const responseData = await apiClient.post(`/api/leaves/${leaveId}/respond`, response);
+        const responseData = await apiClient.post(`/api/conges/${leaveId}/respond`, response);
         return responseData.data;
     },
 
@@ -113,7 +113,7 @@ const leaveApi = {
      * @returns URL de téléchargement
      */
     downloadDocument: async (documentId: string): Promise<{ url: string }> => {
-        const response = await apiClient.get(`/api/leaves/documents/${documentId}/download`);
+        const response = await apiClient.get(`/api/conges/documents/${documentId}/download`);
         return response.data;
     },
 
@@ -133,7 +133,7 @@ const leaveApi = {
         formData.append('file', file);
         formData.append('documentType', documentType);
 
-        const response = await apiClient.post(`/api/leaves/${leaveId}/documents`, formData, {
+        const response = await apiClient.post(`/api/conges/${leaveId}/documents`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -149,7 +149,7 @@ const leaveApi = {
      * @returns Statut de suppression
      */
     deleteDocument: async (leaveId: string, documentId: string): Promise<{ success: boolean }> => {
-        const response = await apiClient.delete(`/api/leaves/${leaveId}/documents/${documentId}`);
+        const response = await apiClient.delete(`/api/conges/${leaveId}/documents/${documentId}`);
         return response.data;
     },
 
@@ -167,7 +167,7 @@ const leaveApi = {
         endDate: string,
         leaveId?: string
     ): Promise<{ hasConflicts: boolean; conflicts: LeaveRequest[] }> => {
-        const response = await apiClient.get('/api/leaves/conflicts', {
+        const response = await apiClient.get('/api/conges/conflicts', {
             params: {
                 employeeId,
                 startDate,

@@ -64,7 +64,7 @@ Tracer toutes les modifications de code qui impactent les tests E2E et gérer la
 
 **Triggers automatiques** :
 - Modification composants avec `data-testid`
-- Changement routes principales (`/auth/login`, `/leaves`, etc.)
+- Changement routes principales (`/auth/connexion`, `/conges`, etc.)
 - Modification APIs utilisées par les tests
 - Changement structure formulaires
 
@@ -112,7 +112,7 @@ npm run test:e2e:impact-analysis -- --files="src/path/modified.tsx"
 ### **Étape 2 - Invalidation Tests**
 ```bash
 # Marquer les tests comme NEEDS_REVALIDATION
-npm run test:e2e:invalidate -- --routes="/auth/login,/leaves"
+npm run test:e2e:invalidate -- --routes="/auth/connexion,/conges"
 ```
 
 ### **Étape 3 - Re-validation**

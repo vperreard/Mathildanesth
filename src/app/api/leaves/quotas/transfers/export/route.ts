@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { QuotaTransferReportOptions } from '@/modules/leaves/types/quota';
+import { QuotaTransferReportOptions } from '@/modules/conges/types/quota';
 import ExcelJS from 'exceljs';
 import { PDFDocument, rgb } from 'pdf-lib';
 import { parse as csvParse, stringify as csvStringify } from 'csv-string';
@@ -11,7 +11,7 @@ import { formatDate } from '@/utils/dateUtils';
 const prisma = new PrismaClient();
 
 /**
- * GET /api/leaves/quotas/transfers/export
+ * GET /api/conges/quotas/transfers/export
  * Exporte un rapport de transferts de quotas au format demandé
  */
 export async function POST(req: NextRequest) {

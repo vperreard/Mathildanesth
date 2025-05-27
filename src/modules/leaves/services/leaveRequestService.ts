@@ -207,7 +207,7 @@ const leaveRequestService = {
         const start = typeof startDate === 'string' ? startDate : startDate.toISOString().split('T')[0];
         const end = typeof endDate === 'string' ? endDate : endDate.toISOString().split('T')[0];
 
-        const response = await apiClient.get('/api/leave-requests/calendar', {
+        const response = await apiClient.get('/api/leave-requests/calendrier', {
             params: {
                 startDate: start,
                 endDate: end,

@@ -7,7 +7,7 @@ import { Assignment } from '@/types/assignment';
 const prisma = new PrismaClient();
 
 /**
- * POST /api/assignments/batch
+ * POST /api/affectations/batch
  * Traite un lot d'affectations (création ou mise à jour)
  */
 export async function POST(req: NextRequest) {

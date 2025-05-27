@@ -173,7 +173,7 @@ const RulesList: React.FC<RulesListProps> = ({
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">Règles de planification</h2>
                 <Button
-                    onClick={() => router.push('/admin/schedule-rules/new')}
+                    onClick={() => router.push('/admin/schedule-rules/nouveau')}
                     variant="default"
                 >
                     Nouvelle règle

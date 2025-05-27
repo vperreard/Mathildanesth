@@ -39,7 +39,7 @@ export const useUserWorkSchedule = ({ userId }: UseUserWorkScheduleProps = {}): 
 
             logger.info(`Fetching work schedule for user ID: ${targetUserId}`);
 
-            const response = await fetch(`/api/users/${targetUserId}/work-schedule`);
+            const response = await fetch(`/api/utilisateurs/${targetUserId}/work-schedule`);
 
             if (!response.ok) {
                 const errorText = await response.text();

@@ -105,7 +105,7 @@ describe('Header Component', () => {
     it('should render correctly when authenticated', () => {
         mockUseAuth.mockReturnValue({ user: { name: 'Test User' }, isAuthenticated: true });
         mockUseSidebar.mockReturnValue({ isSidebarOpen: false, setSidebarOpen: mockSetSidebarOpen });
-        mockUsePathname.mockReturnValue('/dashboard');
+        mockUsePathname.mockReturnValue('/tableau-de-bord');
 
         render(<Header />);
 
@@ -131,7 +131,7 @@ describe('Header Component', () => {
     it('should call setSidebarOpen when toggle button is clicked', () => {
         mockUseAuth.mockReturnValue({ user: { name: 'Test User' }, isAuthenticated: true });
         mockUseSidebar.mockReturnValue({ isSidebarOpen: false, setSidebarOpen: mockSetSidebarOpen });
-        mockUsePathname.mockReturnValue('/dashboard');
+        mockUsePathname.mockReturnValue('/tableau-de-bord');
 
         render(<Header />);
         const toggleButton = screen.getByLabelText(/Toggle sidebar/);

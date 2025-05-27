@@ -82,7 +82,7 @@ export default function HomePage() {
             title: "Congés",
             description: "Gérez les congés et les absences",
             icon: <ClipboardList className="w-5 h-5" />,
-            href: "/leaves",
+            href: "/conges",
             delay: 0.3
         }
     ];

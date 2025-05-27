@@ -1,11 +1,11 @@
 import axios from 'axios';
-import { NotificationService, leaveNotificationService } from '../../../../../src/modules/leaves/services/notificationService';
+import { NotificationService, leaveNotificationService } from '../../../../../src/modules/conges/services/notificationService';
 import {
     LeaveNotificationType,
     NotificationPriority,
     LeaveRelatedNotification
-} from '../../../../../src/modules/leaves/types/notification';
-import { Leave, LeaveStatus, LeaveType } from '../../../../../src/modules/leaves/types/leave';
+} from '../../../../../src/modules/conges/types/notification';
+import { Leave, LeaveStatus, LeaveType } from '../../../../../src/modules/conges/types/leave';
 import { User, UserRole, ExperienceLevel } from '../../../../../src/types/user';
 
 // Mock des dépendances
@@ -158,7 +158,7 @@ describe('NotificationService', () => {
 
             // Vérifier que l'API a été appelée avec les bons paramètres
             expect(mockedAxios.get).toHaveBeenCalledWith(
-                '/api/users/user123/notifications?limit=10'
+                '/api/utilisateurs/user123/notifications?limit=10'
             );
 
             // Vérifier le résultat
@@ -269,7 +269,7 @@ describe('NotificationService', () => {
 
             await leaveNotificationService.markAllAsRead(userId);
 
-            expect(mockedAxios.post).toHaveBeenCalledWith(`/api/users/${userId}/notifications/read-all`);
+            expect(mockedAxios.post).toHaveBeenCalledWith(`/api/utilisateurs/${userId}/notifications/read-all`);
         });
 
         it('devrait gérer les erreurs lors du marquage total comme lu', async () => {
@@ -279,7 +279,7 @@ describe('NotificationService', () => {
 
             await leaveNotificationService.markAllAsRead(userId);
 
-            expect(mockedAxios.post).toHaveBeenCalledWith(`/api/users/${userId}/notifications/read-all`);
+            expect(mockedAxios.post).toHaveBeenCalledWith(`/api/utilisateurs/${userId}/notifications/read-all`);
             expect(consoleSpy).toHaveBeenCalled();
         });
 
@@ -309,7 +309,7 @@ describe('NotificationService', () => {
 
             await leaveNotificationService.deleteAllNotifications(userId);
 
-            expect(mockedAxios.delete).toHaveBeenCalledWith(`/api/users/${userId}/notifications`);
+            expect(mockedAxios.delete).toHaveBeenCalledWith(`/api/utilisateurs/${userId}/notifications`);
         });
 
         it('devrait gérer les erreurs lors de la suppression totale des notifications', async () => {
@@ -319,7 +319,7 @@ describe('NotificationService', () => {
 
             await leaveNotificationService.deleteAllNotifications(userId);
 
-            expect(mockedAxios.delete).toHaveBeenCalledWith(`/api/users/${userId}/notifications`);
+            expect(mockedAxios.delete).toHaveBeenCalledWith(`/api/utilisateurs/${userId}/notifications`);
             expect(consoleSpy).toHaveBeenCalled();
         });
     });

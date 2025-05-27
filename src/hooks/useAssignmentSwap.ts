@@ -137,7 +137,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
 
         try {
             const queryString = buildQueryParams(params);
-            const url = `/api/assignments/swap${queryString ? `?${queryString}` : ''}`;
+            const url = `/api/affectations/echange${queryString ? `?${queryString}` : ''}`;
 
             const response = await fetch(url);
 
@@ -170,7 +170,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch(`/api/assignments/swap/${id}`);
+            const response = await fetch(`/api/affectations/echange/${id}`);
 
             if (!response.ok) {
                 const errorData = await response.json();
@@ -220,7 +220,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch('/api/assignments/swap', {
+            const response = await fetch('/api/affectations/echange', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -264,7 +264,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch(`/api/assignments/swap/${id}`, {
+            const response = await fetch(`/api/affectations/echange/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -325,7 +325,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch(`/api/assignments/swap/${id}`, {
+            const response = await fetch(`/api/affectations/echange/${id}`, {
                 method: 'DELETE'
             });
 
@@ -367,7 +367,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch(`/api/assignments/swap/${id}/admin`, {
+            const response = await fetch(`/api/affectations/echange/${id}/admin`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

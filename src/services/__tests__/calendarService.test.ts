@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { calendarService } from '../calendarService';
+import { calendarService } from '../calendrierService';
 import { LeaveStatus } from '@prisma/client';
 
 // Mock dependencies

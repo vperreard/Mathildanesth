@@ -5,7 +5,7 @@ import {
     RecurrenceEndType,
     RecurrencePattern
 } from '../types/leave';
-import { formatRecurrencePattern } from '../utils/recurringLeavesUtils';
+import { formatRecurrencePattern } from '../utils/recurrentsLeavesUtils';
 
 interface RecurrenceFormProps {
     value: RecurrencePattern;

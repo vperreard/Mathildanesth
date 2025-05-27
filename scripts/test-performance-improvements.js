@@ -239,7 +239,7 @@ async function main() {
         // Test auth page
         metrics.authPage = await measurePageMetrics(
             page, 
-            'http://localhost:3000/auth/login',
+            'http://localhost:3000/auth/connexion',
             'Auth Page'
         );
         

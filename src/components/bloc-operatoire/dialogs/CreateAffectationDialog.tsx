@@ -77,7 +77,7 @@ export const CreateAffectationDialog: React.FC<CreateAffectationDialogProps> = (
     const { data: supervisors } = useQuery({
         queryKey: ['supervisors', formData.jourSemaine, formData.periode],
         queryFn: async () => {
-            const response = await axios.get('/api/users', {
+            const response = await axios.get('/api/utilisateurs', {
                 params: {
                     role: 'SUPERVISOR',
                     available: true,

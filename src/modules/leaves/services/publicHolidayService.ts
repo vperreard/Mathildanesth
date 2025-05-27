@@ -274,7 +274,7 @@ class PublicHolidayService {
 
         try {
             // Essayer de récupérer depuis l'API
-            const response = await apiClient.get(`/api/public-holidays?year=${year}`);
+            const response = await apiClient.get(`/api/jours-feries?year=${year}`);
             const holidays = response.data as PublicHoliday[];
 
             // Mettre à jour le cache
@@ -531,7 +531,7 @@ class PublicHolidayService {
 
             // Envoyer à l'API si disponible
             try {
-                const response = await apiClient.post('/api/public-holidays', newHoliday);
+                const response = await apiClient.post('/api/jours-feries', newHoliday);
                 const createdHoliday = response.data;
 
                 // Invalider le cache pour l'année concernée
@@ -581,7 +581,7 @@ class PublicHolidayService {
                     date: formattedDate
                 };
 
-                const response = await apiClient.put(`/api/public-holidays/${data.id}`, updateData);
+                const response = await apiClient.put(`/api/jours-feries/${data.id}`, updateData);
                 const updatedHoliday = response.data;
 
                 // Invalider le cache
@@ -640,7 +640,7 @@ class PublicHolidayService {
         try {
             // Envoyer à l'API si disponible
             try {
-                await apiClient.delete(`/api/public-holidays/${id}`);
+                await apiClient.delete(`/api/jours-feries/${id}`);
 
                 // Invalider le cache
                 this.invalidateCache();

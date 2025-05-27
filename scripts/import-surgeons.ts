@@ -167,7 +167,7 @@ async function main() {
         await createSpecialties();
 
         // Étape 2: Charger les données des chirurgiens
-        const surgeonsCsvPath = path.resolve(__dirname, '../prisma/seed_data/surgeons.csv');
+        const surgeonsCsvPath = path.resolve(__dirname, '../prisma/seed_data/chirurgiens.csv');
         const surgeonsData = safeLoadCsv<SurgeonCsvData>(surgeonsCsvPath);
 
         if (surgeonsData.length === 0) {

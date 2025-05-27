@@ -89,7 +89,7 @@ export const useCalendarSettings = ({
                 }
 
                 // Si pas en cache, charger depuis l'API
-                const response = await axios.get(`/api/users/${userId}/calendar-settings`);
+                const response = await axios.get(`/api/utilisateurs/${userId}/calendrier-settings`);
 
                 if (response.data) {
                     setSettings(prevSettings => ({
@@ -140,7 +140,7 @@ export const useCalendarSettings = ({
                 localStorage.setItem(`calendar-settings-${userId}`, JSON.stringify(currentSettings));
 
                 // Envoyer à l'API de manière asynchrone
-                await axios.put(`/api/users/${userId}/calendar-settings`, currentSettings);
+                await axios.put(`/api/utilisateurs/${userId}/calendrier-settings`, currentSettings);
 
             } catch (err) {
                 console.error('Erreur lors de la mise à jour des paramètres:', err);
@@ -158,7 +158,7 @@ export const useCalendarSettings = ({
         localStorage.removeItem(`calendar-settings-${userId}`);
 
         // Envoyer à l'API
-        axios.delete(`/api/users/${userId}/calendar-settings`)
+        axios.delete(`/api/utilisateurs/${userId}/calendrier-settings`)
             .catch(err => {
                 console.error('Erreur lors de la réinitialisation des paramètres:', err);
             });

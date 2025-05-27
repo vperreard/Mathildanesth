@@ -12,7 +12,7 @@ import {
     Legend,
     ChartOptions
 } from 'chart.js';
-import { LeaveType } from '@/modules/leaves/types/leave';
+import { LeaveType } from '@/modules/conges/types/leave';
 import { fr } from 'date-fns/locale';
 import { format, parseISO } from 'date-fns';
 

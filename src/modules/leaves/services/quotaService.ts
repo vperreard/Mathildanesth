@@ -20,7 +20,7 @@ import { v4 as uuidv4 } from 'uuid';
 /**
  * URL de base pour les APIs de quotas
  */
-const QUOTA_API_BASE_URL = '/api/leaves/quotas';
+const QUOTA_API_BASE_URL = '/api/conges/quotas';
 
 /**
  * Récupère toutes les règles de transfert de quotas

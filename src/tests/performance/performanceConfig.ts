@@ -16,7 +16,7 @@ export const performanceConfig = {
     // Endpoints à tester
     endpoints: [
         '/api/auth/me',
-        '/api/admin/leaves/pending',
+        '/api/admin/conges/pending',
         '/api/admin/leave-types',
         '/parametres/configuration'
     ],
@@ -31,7 +31,7 @@ export const performanceConfig = {
         },
         {
             name: 'Récupération des congés en attente',
-            url: '/api/admin/leaves/pending',
+            url: '/api/admin/conges/pending',
             method: 'GET',
             expectedStatus: 200
         },

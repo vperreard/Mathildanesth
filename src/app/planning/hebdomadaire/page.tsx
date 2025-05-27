@@ -230,7 +230,7 @@ export default function WeeklyPlanningPage() {
             ] = await Promise.all([
                 apiClient.get('/api/utilisateurs'),
                 apiClient.get('/api/operating-rooms'), // Temporairement sans siteId pour tout récupérer
-                apiClient.get(`/api/assignments?start=${startDate.toISOString()}&end=${endDate.toISOString()}`),
+                apiClient.get(`/api/affectations?start=${startDate.toISOString()}&end=${endDate.toISOString()}`),
                 apiClient.get('/api/sites')
             ]);
 
@@ -1193,7 +1193,7 @@ export default function WeeklyPlanningPage() {
 
         // --- Validation Serveur (optionnelle ou complémentaire) ---
         try {
-            const response = await fetch('/api/assignments/validate', {
+            const response = await fetch('/api/affectations/validate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ assignments: assignmentsToValidate }),
@@ -1250,10 +1250,10 @@ export default function WeeklyPlanningPage() {
                 roomId: tempAssign.roomId ? Number(tempAssign.roomId) : null,
             }));
 
-            console.log("Assignations envoyées à /api/assignments/batch (via apiClient):", assignmentsToSave);
+            console.log("Assignations envoyées à /api/affectations/batch (via apiClient):", assignmentsToSave);
 
             // Utiliser apiClient pour la sauvegarde aussi
-            const response = await apiClient.post('/api/assignments/batch', { assignments: assignmentsToSave });
+            const response = await apiClient.post('/api/affectations/batch', { assignments: assignmentsToSave });
 
             // Avec axios, le résultat est dans response.data
             const result = response.data;

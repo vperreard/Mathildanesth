@@ -59,7 +59,7 @@ export class QuotaManagementService {
      */
     public async getTransferRules(sourceType: LeaveType): Promise<QuotaTransferRule[]> {
         try {
-            const response = await fetch(`/api/leaves/quota-transfers/rules/${sourceType}`);
+            const response = await fetch(`/api/conges/quota-transfers/rules/${sourceType}`);
 
             if (!response.ok) {
                 throw new Error(`Erreur lors de la récupération des règles de transfert: ${response.status}`);
@@ -86,7 +86,7 @@ export class QuotaManagementService {
      */
     public async getCarryOverRules(leaveType: LeaveType): Promise<QuotaCarryOverRule[]> {
         try {
-            const response = await fetch(`/api/leaves/quota-carryovers/rules/${leaveType}`);
+            const response = await fetch(`/api/conges/quota-carryovers/rules/${leaveType}`);
 
             if (!response.ok) {
                 throw new Error(`Erreur lors de la récupération des règles de report: ${response.status}`);
@@ -112,7 +112,7 @@ export class QuotaManagementService {
      */
     public async getActivePeriods(): Promise<QuotaPeriod[]> {
         try {
-            const response = await fetch('/api/leaves/quota-periods?active=true');
+            const response = await fetch('/api/conges/quota-periods?active=true');
 
             if (!response.ok) {
                 throw new Error(`Erreur lors de la récupération des périodes: ${response.status}`);
@@ -141,7 +141,7 @@ export class QuotaManagementService {
     public async getUserQuotaSummary(userId: string, periodId?: string): Promise<UserQuotaSummary | null> {
         try {
             const periodParam = periodId ? `&periodId=${periodId}` : '';
-            const response = await fetch(`/api/leaves/quotas/summary?userId=${userId}${periodParam}`);
+            const response = await fetch(`/api/conges/quotas/summary?userId=${userId}${periodParam}`);
 
             if (!response.ok) {
                 throw new Error(`Erreur lors de la récupération du bilan des quotas: ${response.status}`);
@@ -173,7 +173,7 @@ export class QuotaManagementService {
         transactionType?: QuotaTransactionType
     ): Promise<QuotaTransaction[]> {
         try {
-            let url = `/api/leaves/quotas/transactions?userId=${userId}`;
+            let url = `/api/conges/quotas/transactions?userId=${userId}`;
 
             if (periodId) url += `&periodId=${periodId}`;
             if (transactionType) url += `&type=${transactionType}`;
@@ -221,7 +221,7 @@ export class QuotaManagementService {
         requiresApproval?: boolean;
     }> {
         try {
-            const response = await fetch('/api/leaves/quota-transfers/simulate', {
+            const response = await fetch('/api/conges/quota-transfers/simulate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -277,7 +277,7 @@ export class QuotaManagementService {
         comment?: string
     ): Promise<QuotaTransferRequest | null> {
         try {
-            const response = await fetch('/api/leaves/quota-transfers/request', {
+            const response = await fetch('/api/conges/quota-transfers/request', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -329,7 +329,7 @@ export class QuotaManagementService {
         comment?: string
     ): Promise<boolean> {
         try {
-            const response = await fetch(`/api/leaves/quota-transfers/${transferRequestId}/process`, {
+            const response = await fetch(`/api/conges/quota-transfers/${transferRequestId}/process`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -385,7 +385,7 @@ export class QuotaManagementService {
         requiresApproval?: boolean;
     }> {
         try {
-            const response = await fetch('/api/leaves/quota-carryovers/simulate', {
+            const response = await fetch('/api/conges/quota-carryovers/simulate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -439,7 +439,7 @@ export class QuotaManagementService {
         comment?: string
     ): Promise<QuotaCarryOverRequest | null> {
         try {
-            const response = await fetch('/api/leaves/quota-carryovers/request', {
+            const response = await fetch('/api/conges/quota-carryovers/request', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -490,7 +490,7 @@ export class QuotaManagementService {
         comment?: string
     ): Promise<boolean> {
         try {
-            const response = await fetch(`/api/leaves/quota-carryovers/${carryOverRequestId}/process`, {
+            const response = await fetch(`/api/conges/quota-carryovers/${carryOverRequestId}/process`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -538,7 +538,7 @@ export class QuotaManagementService {
         requestedDays: number
     ): Promise<QuotaCalculationResult> {
         try {
-            const response = await fetch('/api/leaves/quotas/calculate', {
+            const response = await fetch('/api/conges/quotas/calculate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -636,7 +636,7 @@ export class QuotaManagementService {
         adminId: string
     ): Promise<boolean> {
         try {
-            const response = await fetch('/api/leaves/quotas/adjust', {
+            const response = await fetch('/api/conges/quotas/adjust', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

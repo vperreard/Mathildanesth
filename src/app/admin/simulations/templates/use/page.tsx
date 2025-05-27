@@ -13,8 +13,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { prepareTemplateForScenario, createScenarioFromTemplate, SimulationTemplate } from '@/services/simulationTemplateService';
-import { UserSelect } from '@/components/users/user-select';
-import { SurgeonSelect } from '@/components/surgeons/surgeon-select';
+import { UserSelect } from '@/components/utilisateurs/user-select';
+import { SurgeonSelect } from '@/components/chirurgiens/surgeon-select';
 import { User } from '@/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -116,7 +116,7 @@ export default function UseTemplatePage() {
         try {
             // Charger les utilisateurs
             setLoadingUsers(true);
-            const usersResponse = await fetch('/api/users');
+            const usersResponse = await fetch('/api/utilisateurs');
             if (usersResponse.ok) {
                 const userData = await usersResponse.json();
                 setUsers(userData);
@@ -125,7 +125,7 @@ export default function UseTemplatePage() {
 
             // Charger les chirurgiens
             setLoadingSurgeons(true);
-            const surgeonsResponse = await fetch('/api/surgeons');
+            const surgeonsResponse = await fetch('/api/chirurgiens');
             if (surgeonsResponse.ok) {
                 const surgeonData = await surgeonsResponse.json();
                 setSurgeons(surgeonData);

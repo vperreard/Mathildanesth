@@ -4,7 +4,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useLeaveApi } from './useLeaveApi';
-import { useUserApi } from '../../users/hooks/useUserApi';
+import { useUserApi } from '../../utilisateurs/hooks/useUserApi';
 import { useDepartmentApi } from '../../organization/hooks/useDepartmentApi';
 import {
     LeaveConflictAnalyticsService,

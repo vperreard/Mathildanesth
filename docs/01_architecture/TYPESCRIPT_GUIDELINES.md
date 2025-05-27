@@ -197,8 +197,8 @@ enum LeaveStatus {
 
 // Constantes typées
 const API_ENDPOINTS = {
-  USERS: '/api/users',
-  LEAVES: '/api/leaves'
+  USERS: '/api/utilisateurs',
+  LEAVES: '/api/conges'
 } as const;
 
 type ApiEndpoint = typeof API_ENDPOINTS[keyof typeof API_ENDPOINTS];

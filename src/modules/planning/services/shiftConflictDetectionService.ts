@@ -7,7 +7,7 @@ import {
     ConflictType,
     ConflictSeverity,
     LeaveConflict
-} from '@/modules/leaves/types/conflict';
+} from '@/modules/conges/types/conflict';
 import { v4 as uuidv4 } from 'uuid';
 import { differenceInHours, addHours } from 'date-fns';
 

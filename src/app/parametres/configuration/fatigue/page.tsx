@@ -19,7 +19,7 @@ const fallbackDefaultConfig: FatigueConfig = {
 const fetchFatigueConfig = async (): Promise<FatigueConfig> => {
     console.log("API Call: Fetching fatigue config...");
     try {
-        const response = await fetch('/api/admin/settings/fatigue'); // Appel API GET
+        const response = await fetch('/api/admin/parametres/fatigue'); // Appel API GET
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
@@ -38,7 +38,7 @@ const fetchFatigueConfig = async (): Promise<FatigueConfig> => {
 const saveFatigueConfig = async (config: FatigueConfig): Promise<void> => {
     console.log("API Call: Saving fatigue config...", config);
     try {
-        const response = await fetch('/api/admin/settings/fatigue', { // Appel API PUT
+        const response = await fetch('/api/admin/parametres/fatigue', { // Appel API PUT
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

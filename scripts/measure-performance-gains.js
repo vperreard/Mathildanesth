@@ -101,9 +101,9 @@ const performanceTests = {
         
         const endpoints = [
             '/api/auth/session',
-            '/api/leaves',
+            '/api/conges',
             '/api/planning/bloc-operatoire',
-            '/api/users',
+            '/api/utilisateurs',
             '/api/operating-rooms'
         ];
 

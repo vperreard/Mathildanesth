@@ -1,5 +1,5 @@
 import { ConflictDetectionService } from '../conflictDetectionService';
-import { UserService } from '../../../users/services/userService';
+import { UserService } from '../../../utilisateurs/services/userService';
 import { TeamService } from '../../../teams/services/teamService';
 import { ConfigService } from '../../../config/services/configService';
 import { PerformanceLogger } from '../../../../utils/performanceLogger';
@@ -8,7 +8,7 @@ import { ConflictType, ConflictSeverity, ConflictRules } from '../../types/confl
 import { User } from '../../../../types/user';
 
 // Mock des dépendances
-jest.mock('../../../users/services/userService');
+jest.mock('../../../utilisateurs/services/userService');
 jest.mock('../../../teams/services/teamService');
 jest.mock('../../../config/services/configService');
 jest.mock('../../../../utils/performanceLogger');

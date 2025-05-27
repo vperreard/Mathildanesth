@@ -345,7 +345,7 @@ describe('LeavePermissionService', () => {
             // Assert
             expect(result).toBe(true);
             expect(mockFetch).toHaveBeenCalledWith(
-                `/api/leaves/permissions/${userId}/grant`,
+                `/api/conges/permissions/${userId}/grant`,
                 expect.objectContaining({
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -411,7 +411,7 @@ describe('LeavePermissionService', () => {
             // Assert
             expect(result).toBe(true);
             expect(mockFetch).toHaveBeenCalledWith(
-                `/api/leaves/permissions/${userId}/revoke`,
+                `/api/conges/permissions/${userId}/revoke`,
                 expect.objectContaining({
                     method: 'POST',
                     body: JSON.stringify({ permission: permissionToRevoke })
@@ -469,7 +469,7 @@ describe('LeavePermissionService', () => {
             const permissions = await permissionService.getUserPermissions(userId);
 
             // Assert
-            expect(mockFetch).toHaveBeenCalledWith(`/api/users/${userId}`);
+            expect(mockFetch).toHaveBeenCalledWith(`/api/utilisateurs/${userId}`);
             expect(permissions).toEqual(mockPermissions);
         });
 
@@ -533,7 +533,7 @@ describe('LeavePermissionService', () => {
             // Assert
             expect(result).toBe(true);
             expect(mockFetch).toHaveBeenCalledWith(
-                `/api/leaves/permissions/${userId}/reset`,
+                `/api/conges/permissions/${userId}/reset`,
                 expect.objectContaining({ method: 'POST' })
             );
         });

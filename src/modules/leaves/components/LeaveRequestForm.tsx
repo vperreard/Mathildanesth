@@ -27,7 +27,7 @@ import {
     RecurrencePattern,
     RecurringLeaveRequest
 } from '../types/leave';
-import { generateRecurringDates } from '../utils/recurringLeavesUtils';
+import { generateRecurringDates } from '../utils/recurrentsLeavesUtils';
 
 interface LeaveRequestFormProps {
     userId: string;

@@ -35,24 +35,24 @@ Ce document décrit la conception de l'API REST pour MATHILDA. L'API est le poin
 *   `POST /api/auth/signout` : Déconnexion.
 *   ... (autres endpoints NextAuth.js selon les fournisseurs activés)
 
-### Utilisateurs (`/api/v1/users`)
+### Utilisateurs (`/api/v1/utilisateurs`)
 
-*   `GET /api/v1/users` : Lister les utilisateurs (avec filtres: rôle, nom...). (Admin)
+*   `GET /api/v1/utilisateurs` : Lister les utilisateurs (avec filtres: rôle, nom...). (Admin)
     *   Query Params: `role`, `search`, `page`, `pageSize`
-*   `POST /api/v1/users` : Créer un nouvel utilisateur. (Super Admin)
-*   `GET /api/v1/users/me` : Récupérer les informations de l'utilisateur connecté.
-*   `GET /api/v1/users/{userId}` : Récupérer les détails d'un utilisateur spécifique. (Admin)
-*   `PUT /api/v1/users/{userId}` : Mettre à jour un utilisateur. (Admin pour les autres, utilisateur pour son propre profil limité)
-*   `DELETE /api/v1/users/{userId}` : Désactiver un utilisateur. (Super Admin)
-*   `GET /api/v1/users/{userId}/skills` : Lister les compétences d'un utilisateur.
-*   `POST /api/v1/users/{userId}/skills` : Assigner une compétence à un utilisateur. (Admin)
-*   `PUT /api/v1/users/{userId}/skills/{skillId}` : Modifier le niveau/préférence d'une compétence. (Admin)
-*   `DELETE /api/v1/users/{userId}/skills/{skillId}` : Retirer une compétence. (Admin)
-*   `GET /api/v1/users/{userId}/counters` : Récupérer les compteurs d'équité d'un utilisateur.
+*   `POST /api/v1/utilisateurs` : Créer un nouvel utilisateur. (Super Admin)
+*   `GET /api/v1/utilisateurs/me` : Récupérer les informations de l'utilisateur connecté.
+*   `GET /api/v1/utilisateurs/{userId}` : Récupérer les détails d'un utilisateur spécifique. (Admin)
+*   `PUT /api/v1/utilisateurs/{userId}` : Mettre à jour un utilisateur. (Admin pour les autres, utilisateur pour son propre profil limité)
+*   `DELETE /api/v1/utilisateurs/{userId}` : Désactiver un utilisateur. (Super Admin)
+*   `GET /api/v1/utilisateurs/{userId}/skills` : Lister les compétences d'un utilisateur.
+*   `POST /api/v1/utilisateurs/{userId}/skills` : Assigner une compétence à un utilisateur. (Admin)
+*   `PUT /api/v1/utilisateurs/{userId}/skills/{skillId}` : Modifier le niveau/préférence d'une compétence. (Admin)
+*   `DELETE /api/v1/utilisateurs/{userId}/skills/{skillId}` : Retirer une compétence. (Admin)
+*   `GET /api/v1/utilisateurs/{userId}/counters` : Récupérer les compteurs d'équité d'un utilisateur.
     *   Query Params: `periodType`, `startDate`, `endDate`
-*   `PUT /api/v1/users/{userId}/counters` : **Modifier manuellement un compteur initial.** (Admin) - *Nécessaire pour l'initialisation sans migration.*
-*   `GET /api/v1/users/{userId}/preferences` : Récupérer les préférences d'un utilisateur. (Utilisateur pour soi-même, Admin pour les autres)
-*   `PUT /api/v1/users/{userId}/preferences` : Mettre à jour les préférences d'un utilisateur. (Utilisateur pour soi-même, Admin pour les autres)
+*   `PUT /api/v1/utilisateurs/{userId}/counters` : **Modifier manuellement un compteur initial.** (Admin) - *Nécessaire pour l'initialisation sans migration.*
+*   `GET /api/v1/utilisateurs/{userId}/preferences` : Récupérer les préférences d'un utilisateur. (Utilisateur pour soi-même, Admin pour les autres)
+*   `PUT /api/v1/utilisateurs/{userId}/preferences` : Mettre à jour les préférences d'un utilisateur. (Utilisateur pour soi-même, Admin pour les autres)
     *   Body: `{ defaultView?, theme?, notificationPreferences?, timezone? ... }`
 
 ### Planning / Affectations (`/api/v1/planning-assignments`)
@@ -68,16 +68,16 @@ Ce document décrit la conception de l'API REST pour MATHILDA. L'API est le poin
 *   `PUT /api/v1/planning-assignments/{assignmentId}` : Modifier une affectation existante. (Admin)
 *   `DELETE /api/v1/planning-assignments/{assignmentId}` : Supprimer une affectation. (Admin)
 
-### Congés (`/api/v1/leaves`)
+### Congés (`/api/v1/conges`)
 
-*   `GET /api/v1/leaves` : Lister les demandes de congés (les siennes ou toutes pour admin).
+*   `GET /api/v1/conges` : Lister les demandes de congés (les siennes ou toutes pour admin).
     *   Query Params: `userId`, `status`, `startDate`, `endDate`
-*   `POST /api/v1/leaves` : Soumettre une demande de congé.
-*   `GET /api/v1/leaves/{leaveId}` : Voir les détails d'une demande.
-*   `PUT /api/v1/leaves/{leaveId}` : Modifier sa propre demande (si `pending`).
-*   `DELETE /api/v1/leaves/{leaveId}` : Annuler sa propre demande (si `pending`).
-*   `POST /api/v1/leaves/{leaveId}/approve` : Approuver une demande (Admin).
-*   `POST /api/v1/leaves/{leaveId}/reject` : Rejeter une demande (Admin).
+*   `POST /api/v1/conges` : Soumettre une demande de congé.
+*   `GET /api/v1/conges/{leaveId}` : Voir les détails d'une demande.
+*   `PUT /api/v1/conges/{leaveId}` : Modifier sa propre demande (si `pending`).
+*   `DELETE /api/v1/conges/{leaveId}` : Annuler sa propre demande (si `pending`).
+*   `POST /api/v1/conges/{leaveId}/approve` : Approuver une demande (Admin).
+*   `POST /api/v1/conges/{leaveId}/reject` : Rejeter une demande (Admin).
 
 ### Trame Chirurgien (`/api/v1/surgeon-schedule`)
 
@@ -88,8 +88,8 @@ Ce document décrit la conception de l'API REST pour MATHILDA. L'API est le poin
 
 ### Configuration (`/api/v1/config`)
 
-*   `GET /api/v1/config/settings` : Récupérer les paramètres généraux configurables. (Admin)
-*   `PUT /api/v1/config/settings` : Modifier des paramètres. (Super Admin)
+*   `GET /api/v1/config/parametres` : Récupérer les paramètres généraux configurables. (Admin)
+*   `PUT /api/v1/config/parametres` : Modifier des paramètres. (Super Admin)
 *   `GET /api/v1/config/penibilite` : Récupérer la configuration des points de pénibilité. (Admin)
 *   `PUT /api/v1/config/penibilite` : Modifier la configuration des points. (Super Admin)
 
@@ -145,11 +145,11 @@ Ce document décrit la conception de l'API REST pour MATHILDA. L'API est le poin
     *   `DELETE /api/v1/config/leave-types/{leaveTypeId}` : Supprimer un type de congé. (Super Admin)
 
 *   **Jours Fériés:**
-    *   `GET /api/v1/config/holidays` : Lister les jours fériés pour une année donnée. (Admin)
+    *   `GET /api/v1/config/jours-feries` : Lister les jours fériés pour une année donnée. (Admin)
         *   Query Params: `year`
-    *   `POST /api/v1/config/holidays` : Ajouter un jour férié. (Super Admin)
+    *   `POST /api/v1/config/jours-feries` : Ajouter un jour férié. (Super Admin)
         *   Body: `{ date, name, siteId? }` (siteId optionnel si spécifique à un site)
-    *   `DELETE /api/v1/config/holidays/{holidayId}` : Supprimer un jour férié. (Super Admin)
+    *   `DELETE /api/v1/config/jours-feries/{holidayId}` : Supprimer un jour férié. (Super Admin)
 
 *   **Périodes Spéciales:**
     *   `GET /api/v1/config/special-periods` : Lister les périodes spéciales (vacances scolaires, etc.). (Admin)
@@ -171,8 +171,8 @@ Ce document décrit la conception de l'API REST pour MATHILDA. L'API est le poin
     *   Query Params: `unreadOnly` (boolean), `limit`, `before` (pour pagination)
 *   `PUT /api/v1/notifications/{notificationId}/read` : Marquer une notification comme lue.
 *   `PUT /api/v1/notifications/read-all` : Marquer toutes les notifications comme lues.
-*   `GET /api/v1/notifications/settings` : Récupérer les préférences de notification de l'utilisateur.
-*   `PUT /api/v1/notifications/settings` : Mettre à jour les préférences de notification (quels types par email, etc.).
+*   `GET /api/v1/notifications/parametres` : Récupérer les préférences de notification de l'utilisateur.
+*   `PUT /api/v1/notifications/parametres` : Mettre à jour les préférences de notification (quels types par email, etc.).
 
 ### Historique & Audit (`/api/v1/audit`)
 
@@ -222,7 +222,7 @@ Ce document décrit la conception de l'API REST pour MATHILDA. L'API est le poin
         *   Request: `multipart/form-data` avec le fichier
         *   Réponse : Résumé de l'import (succès/échecs).
 *   **Import Utilisateurs:**
-    *   `POST /api/v1/io/import/users` : Importer une liste d'utilisateurs (CSV). (Super Admin)
+    *   `POST /api/v1/io/import/utilisateurs` : Importer une liste d'utilisateurs (CSV). (Super Admin)
 *   **Export Planning:**
     *   `GET /api/v1/io/export/planning` : Exporter le planning (PDF, Excel). (Utilisateur connecté)
         *   Query Params: `startDate`, `endDate`, `format` (`pdf`, `xlsx`), `userId` (Admin), `view` (`global`, `personal`)

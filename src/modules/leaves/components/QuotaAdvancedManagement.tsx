@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Button from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { useLeaveQuota, UseLeaveQuotaReturn, LeaveTypeQuota } from '@/modules/leaves/hooks/useLeaveQuota';
+import { useLeaveQuota, UseLeaveQuotaReturn, LeaveTypeQuota } from '@/modules/conges/hooks/useLeaveQuota';
 import { useToast } from '@/components/ui/use-toast';
 import AvailableQuotaDisplay from "./quotas/AvailableQuotaDisplay";
 import QuotaTransferForm from "./QuotaTransferForm";
@@ -172,7 +172,7 @@ export default function QuotaAdvancedManagement({ userId }: QuotaAdvancedManagem
                 <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push('/leaves/new')}
+                    onClick={() => router.push('/conges/nouveau')}
                     className="mt-4"
                 >
                     Faire une nouvelle demande

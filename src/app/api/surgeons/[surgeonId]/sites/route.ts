@@ -5,7 +5,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 const prisma = new PrismaClient();
 
-// GET /api/surgeons/[surgeonId]/sites - Récupérer les sites d'un chirurgien
+// GET /api/chirurgiens/[surgeonId]/sites - Récupérer les sites d'un chirurgien
 export async function GET(
     request: NextRequest,
     { params }: { params: { surgeonId: string } }
@@ -72,7 +72,7 @@ export async function GET(
     }
 }
 
-// PUT /api/surgeons/[surgeonId]/sites - Mettre à jour les sites d'un chirurgien
+// PUT /api/chirurgiens/[surgeonId]/sites - Mettre à jour les sites d'un chirurgien
 export async function PUT(
     request: NextRequest,
     { params }: { params: { surgeonId: string } }
@@ -159,7 +159,7 @@ export async function PUT(
     }
 }
 
-// POST /api/surgeons/[surgeonId]/sites - Ajouter des sites à un chirurgien
+// POST /api/chirurgiens/[surgeonId]/sites - Ajouter des sites à un chirurgien
 export async function POST(
     request: NextRequest,
     { params }: { params: { surgeonId: string } }
@@ -216,7 +216,7 @@ export async function POST(
     }
 }
 
-// DELETE /api/surgeons/[surgeonId]/sites - Retirer un chirurgien de sites spécifiques
+// DELETE /api/chirurgiens/[surgeonId]/sites - Retirer un chirurgien de sites spécifiques
 export async function DELETE(
     request: NextRequest,
     { params }: { params: { surgeonId: string } }

@@ -1,18 +1,18 @@
 import {
     notificationEventService,
     NotificationEventService
-} from '../../../../../src/modules/leaves/services/notificationEventService';
-import { leaveNotificationService } from '../../../../../src/modules/leaves/services/notificationService';
+} from '../../../../../src/modules/conges/services/notificationEventService';
+import { leaveNotificationService } from '../../../../../src/modules/conges/services/notificationService';
 import {
     LeaveNotificationType,
     LeaveNotificationEvent,
     NotificationConfig
-} from '../../../../../src/modules/leaves/types/notification';
-import { Leave, LeaveStatus, LeaveType } from '../../../../../src/modules/leaves/types/leave';
+} from '../../../../../src/modules/conges/types/notification';
+import { Leave, LeaveStatus, LeaveType } from '../../../../../src/modules/conges/types/leave';
 import { User, UserRole, ExperienceLevel } from '../../../../../src/types/user';
 
 // Mock du service de notification
-jest.mock('../../../../../src/modules/leaves/services/notificationService', () => ({
+jest.mock('../../../../../src/modules/conges/services/notificationService', () => ({
     leaveNotificationService: {
         notifyLeaveRequest: jest.fn(),
         notifyLeaveStatusUpdate: jest.fn(),

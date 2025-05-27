@@ -120,7 +120,7 @@ describe('WCAG 2.1 Accessibility Compliance Tests', () => {
 
   test('Public pages accessibility', async () => {
     const publicPages = [
-      { name: 'Login', url: `${testConfig.baseUrl}/auth/login` },
+      { name: 'Login', url: `${testConfig.baseUrl}/auth/connexion` },
       { name: 'Home', url: `${testConfig.baseUrl}/` }
     ];
 
@@ -144,8 +144,8 @@ describe('WCAG 2.1 Accessibility Compliance Tests', () => {
   test('Authenticated pages accessibility', async () => {
     const authenticatedPages = [
       { name: 'Dashboard', url: `${testConfig.baseUrl}/` },
-      { name: 'Calendar', url: `${testConfig.baseUrl}/calendar` },
-      { name: 'Leaves', url: `${testConfig.baseUrl}/leaves` },
+      { name: 'Calendar', url: `${testConfig.baseUrl}/calendrier` },
+      { name: 'Leaves', url: `${testConfig.baseUrl}/conges` },
       { name: 'Planning', url: `${testConfig.baseUrl}/planning` },
       { name: 'Notifications', url: `${testConfig.baseUrl}/notifications` }
     ];
@@ -169,7 +169,7 @@ describe('WCAG 2.1 Accessibility Compliance Tests', () => {
     // Test leave request form
     const report = await runAccessibilityTest(
       'Leave Request Form',
-      `${testConfig.baseUrl}/leaves`,
+      `${testConfig.baseUrl}/conges`,
       {
         authenticate: true,
         interactions: async () => {
@@ -191,7 +191,7 @@ describe('WCAG 2.1 Accessibility Compliance Tests', () => {
 
   test('Keyboard navigation', async () => {
     await loginAs(page, testUser);
-    await page.goto(`${testConfig.baseUrl}/calendar`);
+    await page.goto(`${testConfig.baseUrl}/calendrier`);
 
     // Test tab navigation
     const tabbableElements = await page.evaluate(() => {
@@ -236,8 +236,8 @@ describe('WCAG 2.1 Accessibility Compliance Tests', () => {
     await loginAs(page, testUser);
     
     const pagesToTest = [
-      `${testConfig.baseUrl}/calendar`,
-      `${testConfig.baseUrl}/leaves`,
+      `${testConfig.baseUrl}/calendrier`,
+      `${testConfig.baseUrl}/conges`,
       `${testConfig.baseUrl}/planning`
     ];
 
@@ -295,8 +295,8 @@ describe('WCAG 2.1 Accessibility Compliance Tests', () => {
     
     const pages = [
       `${testConfig.baseUrl}/`,
-      `${testConfig.baseUrl}/calendar`,
-      `${testConfig.baseUrl}/leaves`
+      `${testConfig.baseUrl}/calendrier`,
+      `${testConfig.baseUrl}/conges`
     ];
 
     for (const url of pages) {
@@ -325,7 +325,7 @@ describe('WCAG 2.1 Accessibility Compliance Tests', () => {
 
   test('Focus indicators', async () => {
     await loginAs(page, testUser);
-    await page.goto(`${testConfig.baseUrl}/calendar`);
+    await page.goto(`${testConfig.baseUrl}/calendrier`);
 
     // Check if focus indicators are visible
     const focusIndicatorTest = await page.evaluate(() => {
@@ -408,11 +408,11 @@ describe('WCAG 2.1 Accessibility Compliance Tests', () => {
 
     for (const viewport of viewports) {
       await page.setViewport({ width: viewport.width, height: viewport.height });
-      await page.goto(`${testConfig.baseUrl}/calendar`);
+      await page.goto(`${testConfig.baseUrl}/calendrier`);
       
       const report = await runAccessibilityTest(
         `Calendar - ${viewport.name}`,
-        `${testConfig.baseUrl}/calendar`,
+        `${testConfig.baseUrl}/calendrier`,
         { authenticate: false } // Already authenticated
       );
 
@@ -425,8 +425,8 @@ describe('WCAG 2.1 Accessibility Compliance Tests', () => {
   test('Admin pages accessibility', async () => {
     const adminPages = [
       { name: 'Admin Dashboard', url: `${testConfig.baseUrl}/admin` },
-      { name: 'User Management', url: `${testConfig.baseUrl}/admin/users` },
-      { name: 'System Settings', url: `${testConfig.baseUrl}/admin/settings` }
+      { name: 'User Management', url: `${testConfig.baseUrl}/admin/utilisateurs` },
+      { name: 'System Settings', url: `${testConfig.baseUrl}/admin/parametres` }
     ];
 
     for (const pageInfo of adminPages) {

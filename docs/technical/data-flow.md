@@ -49,7 +49,7 @@ const useUserStore = create((set) => ({
   fetchUsers: async () => {
     set({ isLoading: true });
     try {
-      const response = await api.get('/users');
+      const response = await api.get('/utilisateurs');
       set({ users: response.data, isLoading: false });
     } catch (error) {
       set({ error: error.message, isLoading: false });
@@ -59,7 +59,7 @@ const useUserStore = create((set) => ({
   addUser: async (userData) => {
     set({ isLoading: true });
     try {
-      const response = await api.post('/users', userData);
+      const response = await api.post('/utilisateurs', userData);
       set((state) => ({ 
         users: [...state.users, response.data],
         isLoading: false 

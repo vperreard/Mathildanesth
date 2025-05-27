@@ -12,12 +12,12 @@ import 'cypress-plugin-tab';
 // Fonctions utilitaires pour le setup des tests
 const setupApiInterceptions = () => {
   // Intercepter les requêtes API et simuler certaines réponses si nécessaire
-  cy.intercept('GET', '**/api/users/**').as('getUsers');
-  cy.intercept('GET', '**/api/surgeons/**').as('getSurgeons');
-  cy.intercept('GET', '**/api/leaves/**').as('getLeaves');
+  cy.intercept('GET', '**/api/utilisateurs/**').as('getUsers');
+  cy.intercept('GET', '**/api/chirurgiens/**').as('getSurgeons');
+  cy.intercept('GET', '**/api/conges/**').as('getLeaves');
   cy.intercept('GET', '**/api/planning/**').as('getPlanning');
-  cy.intercept('POST', '**/api/auth/login').as('login');
-  cy.intercept('POST', '**/api/leaves/**').as('createLeave');
+  cy.intercept('POST', '**/api/auth/connexion').as('login');
+  cy.intercept('POST', '**/api/conges/**').as('createLeave');
 
   // Intercepter génériquement les autres requêtes API
   cy.intercept('GET', '**/api/**').as('apiGet');

@@ -294,7 +294,7 @@ describe('Workflow Notifications E2E', () => {
         test('Toast notifications', async () => {
             try {
                 // Déclencher une action qui génère une notification
-                await page.goto(`${config.urls.base}/leaves`);
+                await page.goto(`${config.urls.base}/conges`);
                 
                 // Essayer de créer une demande pour déclencher une notification
                 const newRequestButton = await page.$('button:has-text("Nouvelle demande")');

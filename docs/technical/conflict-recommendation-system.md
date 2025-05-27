@@ -8,16 +8,16 @@ Le système de recommandation automatique pour la résolution des conflits de co
 
 Le système se compose des éléments suivants :
 
-1. **Types de données** (`src/modules/leaves/types/recommendation.ts`)
+1. **Types de données** (`src/modules/conges/types/recommendation.ts`)
    - Définition des priorités, stratégies et règles de résolution
    - Interfaces pour les recommandations et les résultats d'analyse
 
-2. **Service de recommandation** (`src/modules/leaves/services/conflictRecommendationService.ts`)
+2. **Service de recommandation** (`src/modules/conges/services/conflictRecommendationService.ts`)
    - Analyse des conflits et génération de recommandations
    - Détermination des priorités et stratégies adaptées
    - Gestion des règles de résolution automatique
 
-3. **Hook React** (`src/modules/leaves/hooks/useConflictRecommendation.ts`)
+3. **Hook React** (`src/modules/conges/hooks/useConflictRecommendation.ts`)
    - Extension du hook `useConflictDetection` existant
    - Gestion de l'état des recommandations
    - Interface pour appliquer ou rejeter les recommandations

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { LeaveQueryCacheService } from '@/modules/leaves/services/LeaveQueryCacheService';
+import { LeaveQueryCacheService } from '@/modules/conges/services/LeaveQueryCacheService';
 import { logger } from '@/lib/logger';
 import { Prisma, LeaveType as PrismaLeaveType, LeaveStatus as PrismaLeaveStatus } from '@prisma/client';
 
 /**
- * Route GET /api/leaves/balance
+ * Route GET /api/conges/balance
  * Récupère le solde de congés d'un utilisateur pour une année donnée.
  */
 export async function GET(request: NextRequest) {

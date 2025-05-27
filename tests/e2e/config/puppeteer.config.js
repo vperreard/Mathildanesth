@@ -32,11 +32,11 @@ const puppeteerConfig = {
     // URLs et environnement
     urls: {
         base: process.env.TEST_BASE_URL || 'http://localhost:3000',
-        login: '/auth/login',
-        leaves: '/leaves',
+        login: '/auth/connexion',
+        leaves: '/conges',
         planning: '/planning/hebdomadaire',
         admin: '/admin',
-        calendar: '/calendar',
+        calendar: '/calendrier',
         profile: '/profil',
         notifications: '/notifications',
         blocOperatoire: '/bloc-operatoire',
@@ -61,7 +61,7 @@ const puppeteerConfig = {
         navigation: {
             userMenu: '[data-testid="user-menu"]',
             planningDropdown: '[data-testid="planning-dropdown"]',
-            leavesLink: 'a[href*="/leaves"]'
+            leavesLink: 'a[href*="/conges"]'
         },
         leaves: {
             newRequestButton: 'button:has-text("Nouvelle demande")',

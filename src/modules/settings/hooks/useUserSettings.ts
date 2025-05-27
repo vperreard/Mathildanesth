@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserCalendarSettings } from '../../calendar/types/event';
+import { UserCalendarSettings } from '../../calendrier/types/event';
 
 interface UseUserSettingsReturn {
     settings: Partial<UserCalendarSettings>;
@@ -45,7 +45,7 @@ export function useUserSettings(userId?: string): UseUserSettingsReturn {
             try {
                 // Simuler un appel API pour récupérer les préférences
                 // Dans une vraie implémentation, on ferait un appel API
-                // api.get(`/api/user/${userId || 'current'}/settings`)
+                // api.get(`/api/user/${userId || 'current'}/parametres`)
                 const storedSettings = localStorage.getItem(`user_settings_${userId || 'current'}`);
 
                 if (storedSettings) {
@@ -79,7 +79,7 @@ export function useUserSettings(userId?: string): UseUserSettingsReturn {
 
             // Simuler un appel API pour sauvegarder les préférences
             // Dans une vraie implémentation, on ferait un appel API
-            // await api.post(`/api/user/${userId || 'current'}/settings`, updatedSettings)
+            // await api.post(`/api/user/${userId || 'current'}/parametres`, updatedSettings)
             localStorage.setItem(`user_settings_${userId || 'current'}`, JSON.stringify(updatedSettings));
 
             // Simuler un délai d'API

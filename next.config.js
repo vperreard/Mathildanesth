@@ -12,7 +12,6 @@ const nextConfig = {
     experimental: {
         forceSwcTransforms: true,
         optimizeCss: true,
-        optimisticClientCache: true,
         typedRoutes: true,
         optimizePackageImports: [
             '@radix-ui/react-*',
@@ -25,7 +24,7 @@ const nextConfig = {
     },
 
     // Configuration des packages externes côté serveur
-    serverExternalPackages: ['bcrypt', '@prisma/client', 'ioredis', 'redis-errors'],
+    serverExternalPackages: ['bcrypt', '@prisma/client', 'ioredis', 'redis-errors', 'argon2'],
 
     poweredByHeader: false,
 
@@ -40,7 +39,17 @@ const nextConfig = {
         styledComponents: true,
     },
 
-    // Optimisations Webpack simplifiées
+    // Configuration du module splitting
+    modularizeImports: {
+        'lucide-react': {
+            transform: 'lucide-react/dist/esm/icons/{{member}}',
+        },
+        'date-fns': {
+            transform: 'date-fns/{{member}}',
+        },
+    },
+
+    // Optimisations Webpack avancées
     webpack: (config, { isServer, webpack, dev }) => {
         // Résolution des modules côté client
         if (!isServer) {
@@ -68,7 +77,8 @@ const nextConfig = {
                 'bcryptjs',
                 '@mapbox/node-pre-gyp',
                 'node-gyp',
-                'npm'
+                'npm',
+                'argon2'
             ];
         }
 
@@ -80,85 +90,118 @@ const nextConfig = {
             })
         );
 
-        // Optimisations pour la production uniquement
+        // Optimisations pour la production
         if (!dev) {
             config.optimization.moduleIds = 'deterministic';
 
-            // Cache simplifié
+            // Cache filesystem
             config.cache = {
                 type: 'filesystem',
                 cacheDirectory: path.resolve(process.cwd(), '.next/cache/webpack'),
+                buildDependencies: {
+                    config: [__filename],
+                },
             };
 
             // Optimisation runtime
             config.optimization.runtimeChunk = {
                 name: 'runtime',
             };
+
+            // Configuration du tree shaking
+            config.optimization.usedExports = true;
+            config.optimization.sideEffects = false;
         }
 
         // Configuration personnalisée webpack pour les performances
         if (!dev && !isServer) {
-            // Optimisations pour la production
+            // Split chunks agressif
             config.optimization = {
                 ...config.optimization,
                 splitChunks: {
                     chunks: 'all',
+                    maxAsyncRequests: 30,
+                    maxInitialRequests: 30,
+                    minSize: 20000,
                     cacheGroups: {
-                        vendor: {
+                        // Framework core
+                        framework: {
+                            test: /[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-sync-external-store)[\\/]/,
+                            name: 'framework',
+                            priority: 40,
+                            chunks: 'all',
+                        },
+                        // Bibliothèques lourdes
+                        lib: {
                             test: /[\\/]node_modules[\\/]/,
-                            name: 'vendors',
-                            chunks: 'all',
+                            name(module) {
+                                const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1];
+                                // Split des gros packages en chunks séparés
+                                if (['@fullcalendar', 'recharts', 'd3', 'framer-motion'].includes(packageName)) {
+                                    return `npm.${packageName.replace('@', '').replace('/', '-')}`;
+                                }
+                                return 'vendor';
+                            },
+                            priority: 30,
+                            minChunks: 1,
                         },
-                        common: {
-                            name: 'common',
+                        // Commons
+                        commons: {
+                            name: 'commons',
                             minChunks: 2,
-                            chunks: 'all',
+                            priority: 20,
                         },
-                        // Bundle spécifique pour les modules leaves
+                        // Modules métier
                         leaves: {
                             test: /[\\/]src[\\/]modules[\\/]leaves[\\/]/,
                             name: 'leaves',
                             chunks: 'all',
-                            priority: 20,
+                            priority: 25,
+                            reuseExistingChunk: true,
                         },
-                        // Bundle pour l'authentification
                         auth: {
-                            test: /[\\/]src[\\/](lib[\\/]auth|components[\\/]auth)[\\/]/,
+                            test: /[\\/]src[\\/](lib[\\/]auth|components[\\/]auth|hooks[\\/]useAuth)[\\/]/,
                             name: 'auth',
                             chunks: 'all',
-                            priority: 20,
+                            priority: 25,
+                            reuseExistingChunk: true,
                         },
-                        // Bundle pour bloc operatoire
                         blocOperatoire: {
                             test: /[\\/]src[\\/]modules[\\/]planning[\\/]bloc-operatoire[\\/]/,
                             name: 'bloc-operatoire',
                             chunks: 'all',
-                            priority: 20,
+                            priority: 25,
+                            reuseExistingChunk: true,
                         },
-                        // Bundle pour calendrier
                         calendar: {
-                            test: /[\\/]src[\\/]modules[\\/]calendar[\\/]/,
+                            test: /[\\/]src[\\/](modules[\\/]calendar|components[\\/].*Calendar)[\\/]/,
                             name: 'calendar',
                             chunks: 'all',
+                            priority: 25,
+                            reuseExistingChunk: true,
+                        },
+                        // UI Components
+                        ui: {
+                            test: /[\\/]src[\\/]components[\\/]ui[\\/]/,
+                            name: 'ui',
+                            chunks: 'all',
                             priority: 20,
+                            reuseExistingChunk: true,
                         },
-                        // Bundle pour les composants UI lourds
-                        uiComponents: {
-                            test: /[\\/]node_modules[\\/](@radix-ui|react-window|react-virtualized)[\\/]/,
-                            name: 'ui-components',
+                        // Pages spécifiques
+                        admin: {
+                            test: /[\\/]src[\\/]app[\\/]admin[\\/]/,
+                            name: 'admin',
                             chunks: 'all',
                             priority: 15,
-                        },
-                        // Bundle pour les librairies de formulaires
-                        forms: {
-                            test: /[\\/]node_modules[\\/](react-hook-form|zod|@hookform)[\\/]/,
-                            name: 'forms',
-                            chunks: 'all',
-                            priority: 15,
+                            reuseExistingChunk: true,
                         },
                     },
                 },
             };
+
+            // Minimizer configuration
+            config.optimization.minimize = true;
         }
 
         // Analyse des performances webpack
@@ -216,17 +259,17 @@ const nextConfig = {
                 ],
             },
             {
-                // API routes (no cache by default)
+                // API routes (cache court pour certaines)
                 source: '/api/:path*',
                 headers: [
                     {
                         key: 'Cache-Control',
-                        value: 'no-cache, no-store, must-revalidate',
+                        value: 'private, s-maxage=10, stale-while-revalidate=59',
                     },
                 ],
             },
             {
-                // Pages HTML (stale-while-revalidate)
+                // Pages HTML
                 source: '/(.*)',
                 headers: [
                     {
@@ -243,7 +286,7 @@ const nextConfig = {
                     },
                     {
                         key: 'Cache-Control',
-                        value: 'public, max-age=0, must-revalidate',
+                        value: 'public, s-maxage=10, stale-while-revalidate=59',
                     },
                 ],
             },
@@ -255,22 +298,25 @@ const nextConfig = {
         return [
             {
                 source: '/login',
-                destination: '/auth/login',
+                destination: '/auth/connexion',
                 permanent: true,
             },
         ];
     },
 
+    // Output configuration
+    output: 'standalone',
+    
+    // SWC Minify
+    swcMinify: true,
+
     eslint: {
-        // Permettre le build même avec des erreurs ESLint (temporaire)
         ignoreDuringBuilds: true,
     },
 
     typescript: {
-        // Permettre le build même avec des erreurs TypeScript (temporaire)
         ignoreBuildErrors: true,
     },
-
 };
 
-module.exports = withBundleAnalyzer(nextConfig); 
+module.exports = withBundleAnalyzer(nextConfig);

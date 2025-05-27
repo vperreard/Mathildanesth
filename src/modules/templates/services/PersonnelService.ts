@@ -53,11 +53,11 @@ export class PersonnelService {
     }
 
     /**
-     * Récupère tous les MARs (via /api/users?role=MAR)
+     * Récupère tous les MARs (via /api/utilisateurs?role=MAR)
      */
     static async getMARs(): Promise<Personnel[]> {
         try {
-            const response = await fetch(`${this.API_BASE_URL}/users?role=MAR`, {
+            const response = await fetch(`${this.API_BASE_URL}/utilisateurs?role=MAR`, {
                 credentials: 'include'
             });
             if (!response.ok) {
@@ -78,11 +78,11 @@ export class PersonnelService {
     }
 
     /**
-     * Récupère tous les IADEs (via /api/users?role=IADE)
+     * Récupère tous les IADEs (via /api/utilisateurs?role=IADE)
      */
     static async getIADEs(): Promise<Personnel[]> {
         try {
-            const response = await fetch(`${this.API_BASE_URL}/users?role=IADE`, {
+            const response = await fetch(`${this.API_BASE_URL}/utilisateurs?role=IADE`, {
                 credentials: 'include'
             });
             if (!response.ok) {

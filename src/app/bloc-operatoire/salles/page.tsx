@@ -1,34 +1,24 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
-import RoomsList from '@/modules/planning/bloc-operatoire/components/RoomsList';
-import SectorsList from '@/modules/planning/bloc-operatoire/components/SectorsList';
-import SupervisionRulesList from '@/modules/planning/bloc-operatoire/components/SupervisionRulesList';
+'use client';
 
-export default function OperatingRoomsPage() {
-    return (
-        <div className="container mx-auto p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Gestion du bloc opératoire</h1>
-            </div>
+import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
+import { PermissionGuard } from '../_components/PermissionGuard';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
-            <Tabs defaultValue="rooms" className="space-y-6">
-                <TabsList className="mb-4">
-                    <TabsTrigger value="rooms">Salles</TabsTrigger>
-                    <TabsTrigger value="sectors">Secteurs</TabsTrigger>
-                    <TabsTrigger value="rules">Règles de supervision</TabsTrigger>
-                </TabsList>
+const SallesAdmin = dynamic(
+  () => import('./components/SallesAdmin').then(mod => ({ default: mod.default || mod.SallesAdmin })),
+  { 
+    loading: () => <LoadingSpinner />,
+    ssr: false 
+  }
+);
 
-                <TabsContent value="rooms" className="space-y-6">
-                    <RoomsList />
-                </TabsContent>
-
-                <TabsContent value="sectors" className="space-y-6">
-                    <SectorsList />
-                </TabsContent>
-
-                <TabsContent value="rules" className="space-y-6">
-                    <SupervisionRulesList />
-                </TabsContent>
-            </Tabs>
-        </div>
-    );
-} 
+export default function SallesPage() {
+  return (
+    <PermissionGuard requiredRole="ADMIN">
+      <Suspense fallback={<LoadingSpinner />}>
+        <SallesAdmin />
+      </Suspense>
+    </PermissionGuard>
+  );
+}

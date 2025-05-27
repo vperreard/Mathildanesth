@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 const prisma = new PrismaClient();
 
 /**
- * GET /api/leaves/quotas/transfers
+ * GET /api/conges/quotas/transfers
  * Récupère tous les transferts de quotas (admin uniquement)
  */
 export async function GET(req: NextRequest) {
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
 }
 
 /**
- * POST /api/leaves/quotas/transfers
+ * POST /api/conges/quotas/transfers
  * Crée un nouveau transfert de quota
  */
 export async function POST(req: NextRequest) {

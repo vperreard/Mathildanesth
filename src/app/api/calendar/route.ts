@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { CalendarEventType, CalendarEvent } from '@/modules/calendar/types/event';
+import { CalendarEventType, CalendarEvent } from '@/modules/calendrier/types/event';
 import { formatISO } from 'date-fns';
 
 // Helper function to parse and convert IDs to numbers

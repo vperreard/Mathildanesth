@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger';
 import bcrypt from 'bcrypt';
 
 /**
- * GET /api/users/[userId]
+ * GET /api/utilisateurs/[userId]
  * Récupérer les informations d'un utilisateur
  */
 export const GET = withAuth({
@@ -56,7 +56,7 @@ export const GET = withAuth({
 });
 
 /**
- * PUT /api/users/[userId]
+ * PUT /api/utilisateurs/[userId]
  * Mettre à jour un utilisateur
  */
 export const PUT = withAuth({
@@ -165,7 +165,7 @@ export const PUT = withAuth({
 });
 
 /**
- * DELETE /api/users/[userId]
+ * DELETE /api/utilisateurs/[userId]
  * Désactiver un utilisateur (soft delete) - ADMIN TOTAL uniquement
  */
 export const DELETE = withAuth({

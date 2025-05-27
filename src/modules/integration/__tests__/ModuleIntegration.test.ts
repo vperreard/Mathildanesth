@@ -1,6 +1,6 @@
 import { eventBus, IntegrationEventType } from '../services/EventBusService';
-import { auditService, AuditActionType } from '../../leaves/services/AuditService';
-import { LeavePermissionService, LeavePermission } from '../../leaves/permissions/LeavePermissionService';
+import { auditService, AuditActionType } from '../../conges/services/AuditService';
+import { LeavePermissionService, LeavePermission } from '../../conges/permissions/LeavePermissionService';
 import { jest } from '@jest/globals';
 import axios from 'axios';
 

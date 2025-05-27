@@ -197,8 +197,8 @@ const config = require('./config/puppeteer.config');
 
 // URLs d'environnement
 config.urls.base;     // http://localhost:3000
-config.urls.login;    // /auth/login
-config.urls.leaves;   // /leaves
+config.urls.login;    // /auth/connexion
+config.urls.leaves;   // /conges
 
 // Sélecteurs standardisés
 config.selectors.auth.emailInput;     // input[name="email"]

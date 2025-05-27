@@ -214,7 +214,7 @@ describe('Performance Metrics Tests', () => {
   }
 
   test('Login page performance', async () => {
-    const metrics = await measurePageMetrics('login', `${testConfig.baseUrl}/auth/login`);
+    const metrics = await measurePageMetrics('login', `${testConfig.baseUrl}/auth/connexion`);
     
     console.log('Login Page Metrics:', {
       FCP: `${metrics.FCP.toFixed(2)}ms`,
@@ -264,7 +264,7 @@ describe('Performance Metrics Tests', () => {
   test('Calendar page performance', async () => {
     const metrics = await measurePageMetrics(
       'calendar',
-      `${testConfig.baseUrl}/calendar`,
+      `${testConfig.baseUrl}/calendrier`,
       async () => {
         await loginAs(page, testUser);
       }
@@ -300,7 +300,7 @@ describe('Performance Metrics Tests', () => {
   test('Leaves page performance', async () => {
     const metrics = await measurePageMetrics(
       'leaves',
-      `${testConfig.baseUrl}/leaves`,
+      `${testConfig.baseUrl}/conges`,
       async () => {
         await loginAs(page, testUser);
       }
@@ -376,7 +376,7 @@ describe('Performance Metrics Tests', () => {
     
     const pages = [
       { name: 'dashboard', url: '/' },
-      { name: 'calendar', url: '/calendar' },
+      { name: 'calendar', url: '/calendrier' },
       { name: 'planning', url: '/planning' }
     ];
 

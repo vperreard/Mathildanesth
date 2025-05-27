@@ -4,8 +4,14 @@ import { NextRequest, NextResponse } from 'next/server';
 export const redirects = {
   '/demo': '/',
   '/diagnostic': '/admin',
-  '/admin/users': '/utilisateurs',
-  '/admin/surgeons': '/parametres/chirurgiens',
+  '/admin/utilisateurs': '/utilisateurs',
+  '/admin/chirurgiens': '/parametres/chirurgiens',
+  // Bloc-opératoire unifiées
+  '/admin/bloc-operatoire': '/bloc-operatoire',
+  '/admin/bloc-operatoire/salles': '/bloc-operatoire/salles',
+  '/admin/bloc-operatoire/secteurs': '/bloc-operatoire/secteurs',
+  '/admin/bloc-operatoire/regles-supervision': '/bloc-operatoire/regles',
+  '/bloc-operatoire/regles-supervision': '/bloc-operatoire/regles',
 } as const;
 
 export function handleRedirects(request: NextRequest): NextResponse | null {

@@ -7,8 +7,8 @@ const mockApp = () => (
         <nav role="navigation" aria-label="Navigation principale">
             <ul>
                 <li><a href="/" data-testid="dashboard-link">Tableau de bord</a></li>
-                <li><a href="/leaves" data-testid="leaves-link">Congés</a></li>
-                <li><a href="/calendar" data-testid="calendar-link">Calendrier</a></li>
+                <li><a href="/conges" data-testid="leaves-link">Congés</a></li>
+                <li><a href="/calendrier" data-testid="calendar-link">Calendrier</a></li>
                 <li><a href="/config" data-testid="config-link">Configuration</a></li>
             </ul>
         </nav>

@@ -179,7 +179,7 @@ async function testSiteAssignments() {
         console.log('\n📋 RÉSUMÉ DES FONCTIONNALITÉS DISPONIBLES :');
         console.log('   ✅ Associations utilisateurs ↔ sites');
         console.log('   ✅ Associations chirurgiens ↔ sites');
-        console.log('   ✅ APIs de gestion (/api/users/[id]/sites, /api/surgeons/[id]/sites)');
+        console.log('   ✅ APIs de gestion (/api/utilisateurs/[id]/sites, /api/chirurgiens/[id]/sites)');
         console.log('   ✅ Composant SiteSelector réutilisable');
         console.log('   ✅ Hooks personnalisés (useSiteAssignments)');
         console.log('   ✅ Page d\'administration (/admin/site-assignments)');

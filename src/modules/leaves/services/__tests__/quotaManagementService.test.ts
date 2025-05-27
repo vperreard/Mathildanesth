@@ -65,7 +65,7 @@ describe('QuotaManagementService', () => {
 
         // Vérifier les résultats
         expect(result).toEqual(mockRules);
-        expect(localMockFetch).toHaveBeenCalledWith(`/api/leaves/quota-transfers/rules/${LeaveType.ANNUAL}`);
+        expect(localMockFetch).toHaveBeenCalledWith(`/api/conges/quota-transfers/rules/${LeaveType.ANNUAL}`);
     });
 
     test('doit gérer les erreurs lors de la récupération des règles', async () => {
@@ -124,7 +124,7 @@ describe('QuotaManagementService', () => {
         // Vérifier les résultats
         expect(result).toEqual(mockSimulation);
         expect(localMockFetch).toHaveBeenCalledWith(
-            '/api/leaves/quota-transfers/simulate',
+            '/api/conges/quota-transfers/simulate',
             expect.objectContaining({
                 method: 'POST',
                 body: JSON.stringify({
@@ -207,7 +207,7 @@ describe('QuotaManagementService', () => {
         // Vérifier les résultats
         expect(result).toEqual(mockRequest);
         expect(localMockFetch).toHaveBeenCalledWith(
-            '/api/leaves/quota-transfers/request',
+            '/api/conges/quota-transfers/request',
             expect.objectContaining({
                 method: 'POST',
                 body: JSON.stringify({
@@ -282,7 +282,7 @@ describe('QuotaManagementService', () => {
 
         expect(result).toEqual(mockHistory);
         expect(localMockFetch).toHaveBeenCalledWith(
-            `/api/leaves/quotas/transactions?userId=${userId}&periodId=${periodId}&type=${QuotaTransactionType.TRANSFER}`
+            `/api/conges/quotas/transactions?userId=${userId}&periodId=${periodId}&type=${QuotaTransactionType.TRANSFER}`
         );
     });
 
@@ -319,7 +319,7 @@ describe('QuotaManagementService', () => {
 
         expect(result).toBe(true);
         expect(localMockFetch).toHaveBeenCalledWith(
-            '/api/leaves/quota-transfers/transfer123/process', // URL correcte
+            '/api/conges/quota-transfers/transfer123/process', // URL correcte
             expect.objectContaining({
                 method: 'POST',
                 body: JSON.stringify({ approve: true, approverUserId: 'adminUser' }),
@@ -361,7 +361,7 @@ describe('QuotaManagementService', () => {
 
         expect(result).toBe(true);
         expect(localMockFetch).toHaveBeenCalledWith(
-            '/api/leaves/quota-transfers/transfer123/process', // URL correcte
+            '/api/conges/quota-transfers/transfer123/process', // URL correcte
             expect.objectContaining({
                 method: 'POST',
                 body: JSON.stringify({ approve: false, approverUserId: 'adminUser', comment: 'Motif rejet' }),
@@ -401,7 +401,7 @@ describe('QuotaManagementService', () => {
             const result = await service.getCarryOverRules(LeaveType.ANNUAL);
 
             expect(result).toEqual(mockRules);
-            expect(localMockFetch).toHaveBeenCalledWith(`/api/leaves/quota-carryovers/rules/${LeaveType.ANNUAL}`);
+            expect(localMockFetch).toHaveBeenCalledWith(`/api/conges/quota-carryovers/rules/${LeaveType.ANNUAL}`);
             expect(mockPublish).not.toHaveBeenCalled(); // Aucun événement d'erreur ne doit être publié
         });
 
@@ -449,7 +449,7 @@ describe('QuotaManagementService', () => {
 
             expect(result).toEqual(mockCarryOverRequest);
             expect(localMockFetch).toHaveBeenCalledWith(
-                '/api/leaves/quota-carryovers/request',
+                '/api/conges/quota-carryovers/request',
                 expect.objectContaining({
                     method: 'POST',
                     // Le body doit correspondre exactement à ce que l'API attend
@@ -514,7 +514,7 @@ describe('QuotaManagementService', () => {
 
             expect(result).toBe(true);
             expect(localMockFetch).toHaveBeenCalledWith(
-                `/api/leaves/quota-carryovers/${carryOverRequestId}/process`, // URL correcte avec ID
+                `/api/conges/quota-carryovers/${carryOverRequestId}/process`, // URL correcte avec ID
                 expect.objectContaining({
                     method: 'POST',
                     body: JSON.stringify(processParams)

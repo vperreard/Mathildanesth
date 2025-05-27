@@ -63,7 +63,7 @@ npm run test:e2e:debug
    ```
 
 2. **Identifier les tests impactés** :
-   - Routes modifiées (`/auth/login`, `/leaves`, etc.)
+   - Routes modifiées (`/auth/connexion`, `/conges`, etc.)
    - Composants avec `data-testid`
    - APIs utilisées par l'interface
    - Structure formulaires/modales
@@ -88,13 +88,13 @@ npm run test:e2e:debug
 #### **🔴 Pour BREAKING CHANGES :**
 ```bash
 # 1. Invalider tests impactés
-npm run test:e2e:invalidate "/auth/login,/leaves"
+npm run test:e2e:invalidate "/auth/connexion,/conges"
 
 # 2. Re-tester workflows
 npm run test:e2e:auth
 
 # 3. Valider tests corrigés
-npm run test:e2e:validate "/auth/login" "TESTED"
+npm run test:e2e:validate "/auth/connexion" "TESTED"
 
 # 4. Mettre à jour changelog
 ```

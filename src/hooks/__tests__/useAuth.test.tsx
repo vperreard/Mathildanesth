@@ -213,7 +213,7 @@ describe('useAuth Hook', () => {
 
             // Assert
             expect(mockedAxios.post).toHaveBeenCalledWith(
-                '/api/auth/login',
+                '/api/auth/connexion',
                 credentials,
                 expect.objectContaining({
                     headers: { 'Content-Type': 'application/json' },
@@ -293,11 +293,11 @@ describe('useAuth Hook', () => {
             });
 
             // Assert
-            expect(mockedAxios.post).toHaveBeenCalledWith('/api/auth/logout');
+            expect(mockedAxios.post).toHaveBeenCalledWith('/api/auth/deconnexion');
             expect(mockedRemoveClientAuthToken).toHaveBeenCalled();
             expect(result.current.user).toBeNull();
             expect(result.current.isAuthenticated).toBe(false);
-            expect(mockPush).toHaveBeenCalledWith('/auth/login');
+            expect(mockPush).toHaveBeenCalledWith('/auth/connexion');
         });
 
         it('devrait gérer les erreurs de déconnexion côté serveur', async () => {
@@ -316,7 +316,7 @@ describe('useAuth Hook', () => {
             // Assert - Même en cas d'erreur, le nettoyage local doit se faire
             expect(mockedRemoveClientAuthToken).toHaveBeenCalled();
             expect(result.current.user).toBeNull();
-            expect(mockPush).toHaveBeenCalledWith('/auth/login');
+            expect(mockPush).toHaveBeenCalledWith('/auth/connexion');
         });
     });
 

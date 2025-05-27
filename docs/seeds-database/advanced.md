@@ -26,9 +26,9 @@
 ```typescript
 // prisma/seeds/base/index.ts
 import { PrismaClient } from '@prisma/client';
-import { seedUsers } from './users.seed';
+import { seedUsers } from './utilisateurs.seed';
 import { seedSpecialties } from './specialties.seed';
-import { seedSurgeons } from './surgeons.seed';
+import { seedSurgeons } from './chirurgiens.seed';
 
 const prisma = new PrismaClient();
 

@@ -13,7 +13,8 @@ import ProtectedRoute from '@/components/ProtectedRoute'; // Importer ProtectedR
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 import { Label } from "@/components/ui/label"; // Import Label
 import { useToast } from "@/components/ui/use-toast"; // Ajout pour les notifications
-import UserTable from '@/components/users/UserTable'; // Import de notre tableau virtualisé
+// import UserTable from '@/components/utilisateurs/UserTable'; // Import de notre tableau virtualisé
+// TODO: Créer le composant UserTable
 
 // Type Role et Interface User déplacés vers src/types/user.ts
 
@@ -80,7 +81,7 @@ function UsersPageContent() {
         }
         setSkillsLoading(true);
         try {
-            const response = await axios.get<UserSkill[]>(`/api/users/${userId}/skills`);
+            const response = await axios.get<UserSkill[]>(`/api/utilisateurs/${userId}/skills`);
             setEditingUserSkills(response.data);
         } catch (err) {
             console.error(`Erreur fetchUserSkills pour ${userId}:`, err);
@@ -153,7 +154,7 @@ function UsersPageContent() {
                 try {
                     // Assigner chaque compétence sélectionnée
                     for (const skillId of selectedSkills) {
-                        await axios.post(`/api/users/${newUser.id}/skills`, { skillId });
+                        await axios.post(`/api/utilisateurs/${newUser.id}/skills`, { skillId });
                     }
                     toast({ title: "Succès", description: `${selectedSkills.length} compétence(s) assignée(s) à l'utilisateur.` });
                 } catch (err) {
@@ -190,7 +191,7 @@ function UsersPageContent() {
             // Gérer la synchronisation des compétences
             try {
                 // Récupérer les IDs des compétences actuellement assignées
-                const currentSkillsResponse = await axios.get<UserSkill[]>(`/api/users/${userId}/skills`);
+                const currentSkillsResponse = await axios.get<UserSkill[]>(`/api/utilisateurs/${userId}/skills`);
                 const currentSkillIds = currentSkillsResponse.data.map(us => us.skillId);
 
                 // Déterminer les compétences à ajouter et à supprimer
@@ -199,12 +200,12 @@ function UsersPageContent() {
 
                 // Ajouter les nouvelles compétences
                 for (const skillId of skillsToAdd) {
-                    await axios.post(`/api/users/${userId}/skills`, { skillId });
+                    await axios.post(`/api/utilisateurs/${userId}/skills`, { skillId });
                 }
 
                 // Supprimer les compétences non sélectionnées
                 for (const skillId of skillsToRemove) {
-                    await axios.delete(`/api/users/${userId}/skills/${skillId}`);
+                    await axios.delete(`/api/utilisateurs/${userId}/skills/${skillId}`);
                 }
 
                 if (skillsToAdd.length > 0 || skillsToRemove.length > 0) {

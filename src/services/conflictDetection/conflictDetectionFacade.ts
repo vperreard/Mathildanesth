@@ -1,5 +1,5 @@
-import { ConflictCheckResult, ConflictType, ConflictSeverity, LeaveConflict } from '@/modules/leaves/types/conflict';
-import { checkLeaveConflicts } from '@/modules/leaves/services/leaveService';
+import { ConflictCheckResult, ConflictType, ConflictSeverity, LeaveConflict } from '@/modules/conges/types/conflict';
+import { checkLeaveConflicts } from '@/modules/conges/services/leaveService';
 import { User } from '@/types/user';
 import {
     conflictEventBus,

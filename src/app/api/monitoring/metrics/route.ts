@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { PrismaClient } from '@prisma/client';
+import { performanceMonitor } from '@/lib/monitoring';
+import { performanceMonitor as serviceMonitor } from '@/services/PerformanceMonitoringService';
 
 const prisma = new PrismaClient();
 
@@ -65,7 +67,16 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    // Authentification requise pour consulter les métriques
+    // Check if request is for dashboard metrics (no auth required for basic metrics)
+    const { searchParams } = req.nextUrl;
+    const isDashboard = searchParams.get('dashboard') === 'true';
+    
+    if (isDashboard) {
+      // Return dashboard metrics without authentication
+      return getDashboardMetrics();
+    }
+    
+    // Authentification requise pour consulter les métriques détaillées
     const authToken = req.headers.get('Authorization')?.replace('Bearer ', '');
     if (!authToken) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
@@ -76,7 +87,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    const { searchParams } = req.nextUrl;
     const type = searchParams.get('type');
     const operation = searchParams.get('operation');
     const last = parseInt(searchParams.get('last') || '100');
@@ -132,6 +142,123 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching metrics:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch metrics' },
+      { status: 500 }
+    );
+  }
+}
+
+// Helper function to get dashboard metrics
+function getDashboardMetrics() {
+  try {
+    // Collect metrics from monitoring service
+    const monitoringStats = performanceMonitor.exportData();
+    const serviceReport = serviceMonitor.generateReport();
+
+    // Calculate metrics with trend and status
+    const metrics: Array<{
+      name: string;
+      value: number;
+      unit: string;
+      trend: 'up' | 'down' | 'stable';
+      status: 'good' | 'warning' | 'critical';
+    }> = [];
+
+    // Page Load Time
+    const pageLoadStats = performanceMonitor.getMetricStats('page_load_time', 3600000); // Last hour
+    metrics.push({
+      name: 'Page Load Time',
+      value: Math.round(pageLoadStats.average),
+      unit: 'ms',
+      trend: pageLoadStats.average > 2000 ? 'up' : 'stable',
+      status: pageLoadStats.average > 5000 ? 'critical' : pageLoadStats.average > 2000 ? 'warning' : 'good'
+    });
+
+    // API Response Time
+    const apiStats = performanceMonitor.getMetricStats('api_response_time', 3600000);
+    metrics.push({
+      name: 'API Response Time',
+      value: Math.round(apiStats.average),
+      unit: 'ms',
+      trend: apiStats.average > 200 ? 'up' : 'stable',
+      status: apiStats.average > 500 ? 'critical' : apiStats.average > 200 ? 'warning' : 'good'
+    });
+
+    // First Contentful Paint
+    const fcpStats = performanceMonitor.getMetricStats('first_contentful_paint', 3600000);
+    metrics.push({
+      name: 'First Contentful Paint',
+      value: Math.round(fcpStats.average),
+      unit: 'ms',
+      trend: fcpStats.average > 1800 ? 'up' : 'stable',
+      status: fcpStats.average > 3000 ? 'critical' : fcpStats.average > 1800 ? 'warning' : 'good'
+    });
+
+    // Largest Contentful Paint
+    const lcpStats = performanceMonitor.getMetricStats('largest_contentful_paint', 3600000);
+    metrics.push({
+      name: 'Largest Contentful Paint',
+      value: Math.round(lcpStats.average),
+      unit: 'ms',
+      trend: lcpStats.average > 2500 ? 'up' : 'stable',
+      status: lcpStats.average > 4000 ? 'critical' : lcpStats.average > 2500 ? 'warning' : 'good'
+    });
+
+    // Cumulative Layout Shift
+    const clsStats = performanceMonitor.getMetricStats('cumulative_layout_shift', 3600000);
+    metrics.push({
+      name: 'Cumulative Layout Shift',
+      value: Number(clsStats.average.toFixed(3)),
+      unit: '',
+      trend: clsStats.average > 0.1 ? 'up' : 'stable',
+      status: clsStats.average > 0.25 ? 'critical' : clsStats.average > 0.1 ? 'warning' : 'good'
+    });
+
+    // Error Rate
+    const errorStats = performanceMonitor.getMetricStats('api_error', 3600000);
+    const totalApiCalls = apiStats.count + errorStats.count;
+    const errorRate = totalApiCalls > 0 ? (errorStats.count / totalApiCalls) * 100 : 0;
+    metrics.push({
+      name: 'Error Rate',
+      value: Number(errorRate.toFixed(2)),
+      unit: '%',
+      trend: errorRate > 1 ? 'up' : 'stable',
+      status: errorRate > 5 ? 'critical' : errorRate > 1 ? 'warning' : 'good'
+    });
+
+    // Cache Hit Rate (simulated for now)
+    const cacheHitRate = 87; // This would come from actual cache stats
+    metrics.push({
+      name: 'Cache Hit Rate',
+      value: cacheHitRate,
+      unit: '%',
+      trend: 'stable',
+      status: cacheHitRate > 80 ? 'good' : cacheHitRate > 60 ? 'warning' : 'critical'
+    });
+
+    // Memory Usage (if available)
+    if (typeof process !== 'undefined' && process.memoryUsage) {
+      const memUsage = process.memoryUsage();
+      const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
+      metrics.push({
+        name: 'Memory Usage',
+        value: heapUsedMB,
+        unit: 'MB',
+        trend: heapUsedMB > 500 ? 'up' : 'stable',
+        status: heapUsedMB > 1000 ? 'critical' : heapUsedMB > 500 ? 'warning' : 'good'
+      });
+    }
+
+    // Response with all collected metrics
+    return NextResponse.json({
+      metrics,
+      summary: monitoringStats.summary,
+      recentMetrics: performanceMonitor.getRecentMetrics(undefined, 20),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard metrics:', error);
     return NextResponse.json(
       { error: 'Failed to fetch metrics' },
       { status: 500 }

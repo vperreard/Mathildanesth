@@ -118,7 +118,7 @@ describe('Assignment Swap Workflow - Multi-User E2E', () => {
     ]);
 
     // Step 7: Verify calendar updates
-    await requestorPage.goto(`${testConfig.baseUrl}/calendar`);
+    await requestorPage.goto(`${testConfig.baseUrl}/calendrier`);
     await requestorPage.waitForSelector('[data-date="2025-02-15"]');
     
     const requestorAssignment = await requestorPage.$eval(
@@ -127,7 +127,7 @@ describe('Assignment Swap Workflow - Multi-User E2E', () => {
     );
     expect(requestorAssignment).toContain('Échangé');
 
-    await targetPage.goto(`${testConfig.baseUrl}/calendar`);
+    await targetPage.goto(`${testConfig.baseUrl}/calendrier`);
     await targetPage.waitForSelector('[data-date="2025-02-15"]');
     
     const targetAssignment = await targetPage.$eval(

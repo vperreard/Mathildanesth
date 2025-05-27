@@ -82,7 +82,7 @@ export function RuleNotificationBell({
                     title={isConnected ? 'Notifications de règles' : 'Déconnecté'}
                 >
                     <Bell className={cn(
-                        "h-5 w-5",
+                        "h-7 w-7",
                         !isConnected && "text-muted-foreground"
                     )} />
                     

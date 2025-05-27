@@ -4,8 +4,8 @@ import { SwapOutlined, CalendarOutlined, InfoCircleOutlined, CheckCircleOutlined
 import {
     fetchTransferHistory,
     fetchCarryOverHistory
-} from '@/modules/leaves/services/quotaService';
-import { QuotaTransactionStatus, QuotaTransactionType } from '@/modules/leaves/types/quota';
+} from '@/modules/conges/services/quotaService';
+import { QuotaTransactionStatus, QuotaTransactionType } from '@/modules/conges/types/quota';
 
 const { Text } = Typography;
 

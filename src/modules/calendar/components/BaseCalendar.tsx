@@ -14,7 +14,7 @@ import {
     CalendarViewType,
     UserCalendarSettings
 } from '../types/event';
-import { useCalendarStore } from '../store/calendarStore';
+import { useCalendarStore } from '../store/calendrierStore';
 import { EventRenderer } from './events/EventRenderer';
 import { CalendarLoadingOverlay } from './ui/CalendarLoadingOverlay';
 import DayGridView from './views/DayGridView';
@@ -24,7 +24,7 @@ import { holidayCalendarService } from '../services/holidayService';
 import { format } from 'date-fns';
 
 // Styles personnalisés pour le calendrier
-import './calendar.css';
+import './calendrier.css';
 
 interface BaseCalendarProps {
     events?: AnyCalendarEvent[];

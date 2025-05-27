@@ -1,10 +1,10 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useQuotaTransfer } from '../useQuotaTransfer';
-import { QuotaAdvancedService } from '@/modules/leaves/services/QuotaAdvancedService';
-import LeaveBalanceService from '@/modules/leaves/services/leaveBalanceService';
-import { LeaveType } from '@/modules/leaves/types/leave';
+import { QuotaAdvancedService } from '@/modules/conges/services/QuotaAdvancedService';
+import LeaveBalanceService from '@/modules/conges/services/leaveBalanceService';
+import { LeaveType } from '@/modules/conges/types/leave';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
-import { QuotaTransferResult } from '@/modules/leaves/types/quota';
+import { QuotaTransferResult } from '@/modules/conges/types/quota';
 import {
     fetchActiveTransferRulesForUser,
     transferQuota,

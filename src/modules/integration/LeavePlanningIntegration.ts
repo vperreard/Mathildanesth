@@ -1,8 +1,8 @@
 import eventService from '../../core/events/EventService';
 import { EventType, LeaveEvent, PlanningEvent } from '../../core/events/EventTypes';
-import { Leave, LeaveStatus } from '../leaves/types/leave';
+import { Leave, LeaveStatus } from '../conges/types/leave';
 import { PlanningEventType } from '../planning/types/planning';
-import leaveEventAdapter from '../leaves/adapters/LeaveEventAdapter';
+import leaveEventAdapter from '../conges/adapters/LeaveEventAdapter';
 import planningEventAdapter from '../planning/adapters/PlanningEventAdapter';
 
 /**

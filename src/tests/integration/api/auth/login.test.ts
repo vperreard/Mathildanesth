@@ -28,17 +28,17 @@ jest.mock('next/server', () => ({
     }
 }));
 
-describe('POST /api/auth/login', () => {
+describe('POST /api/auth/connexion', () => {
     let handler: any;
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        const route = await import('@/app/api/auth/login/route');
+        const route = await import('@/app/api/auth/connexion/route');
         handler = route.POST;
     });
 
     const createRequest = (body: any) => {
-        return new NextRequest('http://localhost:3000/api/auth/login', {
+        return new NextRequest('http://localhost:3000/api/auth/connexion', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -171,7 +171,7 @@ describe('POST /api/auth/login', () => {
     });
 
     it('should handle malformed JSON body', async () => {
-        const request = new NextRequest('http://localhost:3000/api/auth/login', {
+        const request = new NextRequest('http://localhost:3000/api/auth/connexion', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

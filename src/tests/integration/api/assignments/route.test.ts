@@ -27,17 +27,17 @@ jest.mock('next/server', () => ({
     }
 }));
 
-describe('/api/assignments', () => {
+describe('/api/affectations', () => {
     let handlers: any;
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        const route = await import('@/app/api/assignments/route');
+        const route = await import('@/app/api/affectations/route');
         handlers = route;
     });
 
     const createRequest = (method: string, body?: any, params?: URLSearchParams) => {
-        const url = new URL('http://localhost:3000/api/assignments');
+        const url = new URL('http://localhost:3000/api/affectations');
         if (params) {
             url.search = params.toString();
         }
@@ -52,7 +52,7 @@ describe('/api/assignments', () => {
         });
     };
 
-    describe('GET /api/assignments', () => {
+    describe('GET /api/affectations', () => {
         it('should return user assignments', async () => {
             const mockUser = { id: 1, role: Role.USER };
             const mockAssignments = [
@@ -174,7 +174,7 @@ describe('/api/assignments', () => {
         });
     });
 
-    describe('POST /api/assignments', () => {
+    describe('POST /api/affectations', () => {
         it('should create assignment for admin', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             const assignmentData = {
@@ -281,7 +281,7 @@ describe('/api/assignments', () => {
         });
     });
 
-    describe('PUT /api/assignments/[id]', () => {
+    describe('PUT /api/affectations/[id]', () => {
         it('should update assignment', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             const updateData = {
@@ -335,7 +335,7 @@ describe('/api/assignments', () => {
         });
     });
 
-    describe('DELETE /api/assignments/[id]', () => {
+    describe('DELETE /api/affectations/[id]', () => {
         it('should delete assignment', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             mockedGetUserFromCookie.mockResolvedValue(mockAdmin as any);

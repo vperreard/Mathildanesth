@@ -101,13 +101,13 @@ grep -r ": any\|as any" src --include="*.ts" --include="*.tsx" | wc -l
    - Tests d'intégration : Login/logout workflows
 
 3. **API Routes critiques**
-   - Tests sur `/api/leaves/*`
+   - Tests sur `/api/conges/*`
    - Tests sur `/api/auth/*`
-   - Tests sur `/api/users/*`
+   - Tests sur `/api/utilisateurs/*`
 
 #### Template de test standard :
 ```typescript
-// src/modules/leaves/services/__tests__/leaveService.test.ts
+// src/modules/conges/services/__tests__/leaveService.test.ts
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { LeaveService } from '../leaveService';
 

@@ -27,17 +27,17 @@ jest.mock('next/server', () => ({
     }
 }));
 
-describe('GET /api/leaves/types', () => {
+describe('GET /api/conges/types', () => {
     let handler: any;
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        const route = await import('@/app/api/leaves/types/route');
+        const route = await import('@/app/api/conges/types/route');
         handler = route.GET;
     });
 
     const createRequest = () => {
-        return new NextRequest('http://localhost:3000/api/leaves/types', {
+        return new NextRequest('http://localhost:3000/api/conges/types', {
             method: 'GET',
             headers: {
                 'cookie': 'auth-token=valid_token',

@@ -5,7 +5,7 @@ import RuleFeedback from '@/modules/rules/components/RuleFeedback';
 import { PieChart, LineChart, BarChart } from '@/components/ui/charts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar } from '@/components/ui/calendrier';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRule } from '@/modules/rules/hooks/useRule';
 import { Rule, RuleType } from '@/modules/dynamicRules/types/rule';

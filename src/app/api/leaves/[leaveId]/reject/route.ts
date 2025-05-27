@@ -5,7 +5,7 @@ import { LeaveStatus } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
 /**
- * POST /api/leaves/[leaveId]/reject
+ * POST /api/conges/[leaveId]/reject
  * Rejeter une demande de congé - ADMIN uniquement
  */
 export const POST = withAuth({
@@ -84,7 +84,7 @@ export const POST = withAuth({
                 type: 'LEAVE_REJECTED',
                 title: 'Demande de congé refusée',
                 message: `Votre demande de congé du ${leave.startDate.toLocaleDateString()} au ${leave.endDate.toLocaleDateString()} a été refusée. Raison: ${reason}`,
-                link: `/leaves/${leaveId}`,
+                link: `/conges/${leaveId}`,
                 isRead: false
             }
         });

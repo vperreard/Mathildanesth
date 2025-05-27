@@ -1,9 +1,9 @@
 import { getServerSession } from 'next-auth/next';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
-import TransferQuotaForm from '@/modules/leaves/components/quotas/TransferQuotaForm';
-import QuotaTransferHistory from '@/modules/leaves/components/quotas/QuotaTransferHistory';
-import AvailableQuotaDisplay from '@/modules/leaves/components/quotas/AvailableQuotaDisplay';
+import TransferQuotaForm from '@/modules/conges/components/quotas/TransferQuotaForm';
+import QuotaTransferHistory from '@/modules/conges/components/quotas/QuotaTransferHistory';
+import AvailableQuotaDisplay from '@/modules/conges/components/quotas/AvailableQuotaDisplay';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 

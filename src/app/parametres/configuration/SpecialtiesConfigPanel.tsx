@@ -58,7 +58,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
     // Récupération des chirurgiens
     const fetchSurgeons = useCallback(async () => {
         try {
-            const response = await axios.get<Surgeon[]>('/api/surgeons');
+            const response = await axios.get<Surgeon[]>('/api/chirurgiens');
             setSurgeons(response.data);
         } catch (err: any) {
             console.error('Erreur lors du chargement des chirurgiens:', err);

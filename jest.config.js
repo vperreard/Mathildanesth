@@ -86,19 +86,19 @@ module.exports = {
             statements: 75,
         },
         // Module leaves - Objectif 85%
-        'src/modules/leaves/services/leaveService.ts': {
+        'src/modules/conges/services/leaveService.ts': {
             branches: 85,
             functions: 85,
             lines: 85,
             statements: 85,
         },
-        'src/modules/leaves/services/leaveCalculator.ts': {
+        'src/modules/conges/services/leaveCalculator.ts': {
             branches: 85,
             functions: 85,
             lines: 85,
             statements: 85,
         },
-        'src/modules/leaves/services/quotaService.ts': {
+        'src/modules/conges/services/quotaService.ts': {
             branches: 80,
             functions: 80,
             lines: 80,

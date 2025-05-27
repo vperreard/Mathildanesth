@@ -99,20 +99,20 @@ describe('Migration des routes API - Pages Router vers App Router', () => {
     });
 
     describe('Routes de calendrier', () => {
-        test('GET /api/calendar - doit retourner des événements vides', async () => {
-            const { GET } = await import('@/app/api/calendar/route');
+        test('GET /api/calendrier - doit retourner des événements vides', async () => {
+            const { GET } = await import('@/app/api/calendrier/route');
 
-            const request = createMockRequest(`${baseUrl}/api/calendar`);
+            const request = createMockRequest(`${baseUrl}/api/calendrier`);
             const response = await GET(request);
 
             // Peut retourner 200 avec tableau vide ou 500 selon la DB
             expect([200, 500]).toContain(response.status);
         });
 
-        test('POST /api/calendar/export - doit retourner 400 pour format invalide', async () => {
-            const { POST } = await import('@/app/api/calendar/export/route');
+        test('POST /api/calendrier/export - doit retourner 400 pour format invalide', async () => {
+            const { POST } = await import('@/app/api/calendrier/export/route');
 
-            const request = createMockRequest(`${baseUrl}/api/calendar/export`, 'POST', {
+            const request = createMockRequest(`${baseUrl}/api/calendrier/export`, 'POST', {
                 format: 'INVALID_FORMAT'
             });
             const response = await POST(request);
@@ -193,7 +193,7 @@ describe('Migration des routes API - Pages Router vers App Router', () => {
             // Test que les routes retournent des objets JSON avec des messages d'erreur
             const routes = [
                 { module: '@/app/api/absences/route', method: 'GET' },
-                { module: '@/app/api/calendar/route', method: 'GET' },
+                { module: '@/app/api/calendrier/route', method: 'GET' },
                 { module: '@/app/api/audit/batch/route', method: 'POST' },
             ];
 
@@ -237,8 +237,8 @@ describe('Vérification de la suppression de Pages Router', () => {
         const balanceTestPath = path.join(process.cwd(), 'src', 'tests', 'integration', 'api', 'leaves', 'balance.test.ts');
         if (fs.existsSync(balanceTestPath)) {
             const content = fs.readFileSync(balanceTestPath, 'utf8');
-            expect(content).toContain('@/app/api/leaves/balance/route');
-            expect(content).not.toContain('pages/api/leaves/balance');
+            expect(content).toContain('@/app/api/conges/balance/route');
+            expect(content).not.toContain('pages/api/conges/balance');
         }
 
         expect(true).toBe(true); // Test passé

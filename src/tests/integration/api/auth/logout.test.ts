@@ -17,17 +17,17 @@ jest.mock('next/server', () => ({
     }
 }));
 
-describe('POST /api/auth/logout', () => {
+describe('POST /api/auth/deconnexion', () => {
     let handler: any;
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        const route = await import('@/app/api/auth/logout/route');
+        const route = await import('@/app/api/auth/deconnexion/route');
         handler = route.POST;
     });
 
     const createRequest = () => {
-        return new NextRequest('http://localhost:3000/api/auth/logout', {
+        return new NextRequest('http://localhost:3000/api/auth/deconnexion', {
             method: 'POST',
             headers: {
                 'cookie': 'auth-token=valid_token',
@@ -52,7 +52,7 @@ describe('POST /api/auth/logout', () => {
     });
 
     it('should handle logout even without existing auth cookie', async () => {
-        const request = new NextRequest('http://localhost:3000/api/auth/logout', {
+        const request = new NextRequest('http://localhost:3000/api/auth/deconnexion', {
             method: 'POST',
         });
 

@@ -21,8 +21,8 @@ export class SyncService {
     async syncAssignments(assignments: Assignment[]): Promise<SyncResult> {
         try {
             // Appel à l'API pour sauvegarder (validation incluse côté serveur idéalement)
-            // Supposons une route unique /api/assignments pour PATCH/POST qui valide et sauve
-            const response = await fetch('/api/assignments', {
+            // Supposons une route unique /api/affectations pour PATCH/POST qui valide et sauve
+            const response = await fetch('/api/affectations', {
                 method: 'PATCH', // ou POST
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ assignments }),
@@ -62,7 +62,7 @@ export class SyncService {
      */
     async validateOnly(assignments: Assignment[]): Promise<ValidationResult> { // Utiliser ValidationResult
         try {
-            const response = await fetch('/api/assignments/validate', { // Utiliser l'API de validation dédiée
+            const response = await fetch('/api/affectations/validate', { // Utiliser l'API de validation dédiée
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ assignments }),

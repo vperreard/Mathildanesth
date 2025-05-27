@@ -7,7 +7,7 @@ import {
     ChartData
 } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
-import { LeaveType } from '../../../leaves/types/leave';
+import { LeaveType } from '../../../conges/types/leave';
 
 // Enregistrement des éléments ChartJS nécessaires
 ChartJS.register(ArcElement, Tooltip, Legend);

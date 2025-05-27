@@ -1,5 +1,5 @@
 import { ConflictDetectionService } from '../conflictDetectionService';
-import { LeaveRequest, LeaveType, LeaveStatus } from '../../leaves/types/leave';
+import { LeaveRequest, LeaveType, LeaveStatus } from '../../conges/types/leave';
 import { ConflictType, ConflictSeverity, ConflictRules, LeaveConflict } from '../types/conflict';
 import { User } from '../../../types/user';
 import { UserService } from '../../../services/userService';

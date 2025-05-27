@@ -123,13 +123,13 @@ declare global {
 
 // Commande pour se connecter via l'interface utilisateur
 Cypress.Commands.add('login', (email: string, password: string) => {
-    cy.visit('/auth/login');
+    cy.visit('/auth/connexion');
     cy.get('[data-testid=login-email-input]').type(email);
     cy.get('[data-testid=login-password-input]').type(password);
     cy.get('[data-testid=login-submit-button]').click();
 
     // Vérification d'authentification réussie
-    cy.url().should('not.include', '/auth/login');
+    cy.url().should('not.include', '/auth/connexion');
 
     // Attendre que la page se charge complètement
     cy.get('main').should('exist');
@@ -285,7 +285,7 @@ Cypress.Commands.add('logout', () => {
     cy.clearCookies();
     cy.clearLocalStorage();
     // Optionnel: appeler une API de déconnexion si nécessaire
-    // cy.request('POST', '/api/auth/logout');
+    // cy.request('POST', '/api/auth/deconnexion');
 });
 
 /**
@@ -432,8 +432,8 @@ Cypress.Commands.add('createLeave', (options: {
 }) => {
     // Naviguer vers la page des congés si nécessaire
     cy.url().then((url) => {
-        if (!url.includes('/leaves')) {
-            cy.visit('/leaves');
+        if (!url.includes('/conges')) {
+            cy.visit('/conges');
         }
     });
 
@@ -468,7 +468,7 @@ Cypress.Commands.add('createLeave', (options: {
  */
 Cypress.Commands.add('checkLeaveQuota', (leaveType: string, expectedRemaining: number) => {
     // Naviguer vers la page de gestion des quotas
-    cy.visit('/quota-management');
+    cy.visit('/gestion-quotas');
     
     // Trouver la ligne du type de congé
     cy.get('[data-testid=quota-table]').within(() => {

@@ -34,10 +34,10 @@ Statut : ✅ SÉCURISÉ
 | Route | Méthode | Rôles Autorisés | Vérifications Supplémentaires |
 |-------|---------|-----------------|------------------------------|
 | **LEAVES** |
-| `/api/leaves` | GET | Tous les utilisateurs connectés | Filtre par utilisateur sauf admin |
-| `/api/leaves` | POST | Tous les utilisateurs connectés | Validation des dates |
-| `/api/leaves/[id]/approve` | POST | ADMIN_TOTAL, ADMIN_PARTIEL | Statut PENDING requis |
-| `/api/leaves/[id]/reject` | POST | ADMIN_TOTAL, ADMIN_PARTIEL | Raison obligatoire |
+| `/api/conges` | GET | Tous les utilisateurs connectés | Filtre par utilisateur sauf admin |
+| `/api/conges` | POST | Tous les utilisateurs connectés | Validation des dates |
+| `/api/conges/[id]/approve` | POST | ADMIN_TOTAL, ADMIN_PARTIEL | Statut PENDING requis |
+| `/api/conges/[id]/reject` | POST | ADMIN_TOTAL, ADMIN_PARTIEL | Raison obligatoire |
 | **AFFECTATIONS** |
 | `/api/affectation-modeles/[id]` | PUT | ADMIN_TOTAL, ADMIN_PARTIEL | Validation complète des données |
 | `/api/affectation-modeles/[id]` | DELETE | ADMIN_TOTAL | - |
@@ -47,9 +47,9 @@ Statut : ✅ SÉCURISÉ
 | **TRAMES** |
 | `/api/trame-modeles/[id]/apply` | POST | ADMIN_TOTAL, ADMIN_PARTIEL | Limite 365 jours |
 | **USERS** |
-| `/api/users/[id]` | GET | Utilisateur lui-même ou Admin | - |
-| `/api/users/[id]` | PUT | Utilisateur (champs limités) ou Admin | Validation email/password |
-| `/api/users/[id]` | DELETE | ADMIN_TOTAL uniquement | Soft delete + anonymisation |
+| `/api/utilisateurs/[id]` | GET | Utilisateur lui-même ou Admin | - |
+| `/api/utilisateurs/[id]` | PUT | Utilisateur (champs limités) ou Admin | Validation email/password |
+| `/api/utilisateurs/[id]` | DELETE | ADMIN_TOTAL uniquement | Soft delete + anonymisation |
 | **SÉCURITÉ** |
 | `/api/admin/security/audit-logs` | GET | ADMIN_TOTAL, ADMIN_PARTIEL | Pagination obligatoire |
 | `/api/admin/security/audit-logs/export` | POST | ADMIN_TOTAL uniquement | - |

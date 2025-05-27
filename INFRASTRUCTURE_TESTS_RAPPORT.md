@@ -24,7 +24,7 @@ module.exports = {
         global: { branches: 70, functions: 70, lines: 75, statements: 75 },
         
         // Module leaves - Objectif 85%
-        'src/modules/leaves/services/leaveService.ts': {
+        'src/modules/conges/services/leaveService.ts': {
             branches: 85, functions: 85, lines: 85, statements: 85
         },
         

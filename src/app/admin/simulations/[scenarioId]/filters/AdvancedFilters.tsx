@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Calendar as CalendarComponent } from '@/components/ui/calendrier';
 
 export interface FilterOptions {
     dateRange: DateRange | undefined;

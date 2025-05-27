@@ -1,6 +1,6 @@
 import { PrismaClient, User, Leave, LeaveTypeSetting, Role, LeaveStatus } from '@prisma/client';
-// Assumons que createLeave est la fonction/handler ou un service qui gère la création via POST /api/leaves
-// import { createLeaveHandler } from '../../../../pages/api/leaves'; // Ajuster le chemin
+// Assumons que createLeave est la fonction/handler ou un service qui gère la création via POST /api/conges
+// import { createLeaveHandler } from '../../../../pages/api/conges'; // Ajuster le chemin
 import { createMocks } from 'node-mocks-http';
 
 const prisma = new PrismaClient();
@@ -52,7 +52,7 @@ async function seedLeaveConflictTestData() {
     return { testUser, leaveTypeForConflict, existingLeave };
 }
 
-describe('Leave Conflict Detection (e.g., POST /api/leaves or /api/leaves/batch)', () => {
+describe('Leave Conflict Detection (e.g., POST /api/conges or /api/conges/batch)', () => {
     beforeAll(async () => { });
 
     beforeEach(async () => {
@@ -78,8 +78,8 @@ describe('Leave Conflict Detection (e.g., POST /api/leaves or /api/leaves/batch)
         // Simuler l'appel API. Remplacer par un vrai appel avec supertest ou le handler.
         // const { req, res } = createMocks({
         //     method: 'POST',
-        //     body: conflictingLeaveData, // Pour /api/leaves
-        //     // Ou pour /api/leaves/batch: [conflictingLeaveData]
+        //     body: conflictingLeaveData, // Pour /api/conges
+        //     // Ou pour /api/conges/batch: [conflictingLeaveData]
         // });
         // await createLeaveHandler(req, res); // ou le handler batch
 

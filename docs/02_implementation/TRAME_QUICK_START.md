@@ -421,7 +421,7 @@ for (const affectation of affectations) {
   for (const personnel of affectation.personnelRequis) {
     if (personnel.personnelHabituelUserId) {
       // Vérifier que l'utilisateur existe et est actif
-      const user = await fetch(`/api/users/${personnel.personnelHabituelUserId}`)
+      const user = await fetch(`/api/utilisateurs/${personnel.personnelHabituelUserId}`)
         .then(r => r.json());
       
       if (!user.actif) {

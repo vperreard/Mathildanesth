@@ -86,7 +86,7 @@ Service **Singleton** gérant le contrôle d'accès granulaire pour le module de
 **Responsabilités** :
 - Définition des permissions (`LeavePermission`) et des rôles (`LeaveRole`).
 - Mappage des rôles aux permissions par défaut.
-- Gestion des permissions personnalisées par utilisateur (accordées/refusées) via une API (`/api/leaves/permissions`).
+- Gestion des permissions personnalisées par utilisateur (accordées/refusées) via une API (`/api/conges/permissions`).
 - Vérification des permissions (`hasPermission`, `hasPermissions`) pour un utilisateur donné, en tenant compte du rôle et des permissions personnalisées.
 - Gestion des permissions relatives (ex: `APPROVE_TEAM_LEAVES` nécessite de vérifier si l'utilisateur cible est dans l'équipe).
 - Cache configurable (`PermissionCacheConfig`) pour optimiser les vérifications de permissions.
@@ -132,7 +132,7 @@ Service **Singleton** gérant le contrôle d'accès granulaire pour le module de
 1. **UI** : Un administrateur accorde la permission `VIEW_REPORTS` à un utilisateur.
 2. **AdminModule** (ou `LeaveModule`) → `LeavePermissionService` : Appelle `grantPermission('user-123', LeavePermission.VIEW_REPORTS)`.
 3. `LeavePermissionService` : Vérifie si l'administrateur a la permission de modifier les permissions.
-4. `LeavePermissionService` : Met à jour les permissions personnalisées via l'API (`/api/leaves/permissions/user-123/grant`).
+4. `LeavePermissionService` : Met à jour les permissions personnalisées via l'API (`/api/conges/permissions/user-123/grant`).
 5. `LeavePermissionService` → `AuditService` : Appelle `logPermissionChange` pour journaliser l'octroi.
 6. `LeavePermissionService` : Invalide le cache de permissions pour `user-123` (`invalidateUserCache`).
 7. `AuditService` → `EventBusService` : L'appel à `logPermissionChange` peut potentiellement publier un événement `AUDIT_ACTION` (selon l'implémentation interne d'AuditService).

@@ -1,5 +1,5 @@
 import { rest } from 'msw';
-import { LeaveConflict, ConflictSeverity, ConflictType } from '../modules/leaves/types/conflict';
+import { LeaveConflict, ConflictSeverity, ConflictType } from '../modules/conges/types/conflict';
 
 // Mock data pour les conflits de congés
 const mockConflicts: Partial<LeaveConflict>[] = [
@@ -32,7 +32,7 @@ const mockConflicts: Partial<LeaveConflict>[] = [
 
 export const handlers = [
     // Gestionnaire pour le endpoint de vérification des conflits
-    rest.post('/api/leaves/check-conflicts', (req, res, ctx) => {
+    rest.post('/api/conges/check-conflicts', (req, res, ctx) => {
         // Simulation d'un délai réseau
         return res(
             ctx.delay(100),
@@ -45,7 +45,7 @@ export const handlers = [
     }),
 
     // Gestionnaire pour le endpoint de création d'un congé
-    rest.post('/api/leaves', (req, res, ctx) => {
+    rest.post('/api/conges', (req, res, ctx) => {
         return res(
             ctx.delay(100),
             ctx.status(201),
@@ -81,8 +81,8 @@ export const handlers = [
         );
     }),
 
-    // Gestionnaire pour /api/leaves/balance
-    rest.get('/api/leaves/balance', (req, res, ctx) => {
+    // Gestionnaire pour /api/conges/balance
+    rest.get('/api/conges/balance', (req, res, ctx) => {
         // Simuler une balance de congés
         return res(
             ctx.status(200),
@@ -104,7 +104,7 @@ export const handlers = [
     }),
 
     // Gestionnaire pour récupérer un congé par ID
-    rest.get('/api/leaves/:leaveId', (req, res, ctx) => {
+    rest.get('/api/conges/:leaveId', (req, res, ctx) => {
         const { leaveId } = req.params;
         
         if (leaveId === 'non-existent-id') {
@@ -131,7 +131,7 @@ export const handlers = [
     }),
     
     // Gestionnaire pour récupérer la liste des congés
-    rest.get('/api/leaves', (req, res, ctx) => {
+    rest.get('/api/conges', (req, res, ctx) => {
         return res(
             ctx.status(200),
             ctx.json({
@@ -170,7 +170,7 @@ export const handlers = [
     }),
 
     // Gestionnaire pour vérifier les conflits
-    rest.get('/api/leaves/check-conflicts', (req, res, ctx) => {
+    rest.get('/api/conges/check-conflicts', (req, res, ctx) => {
         const url = new URL(req.url.href);
         const startDate = url.searchParams.get('startDate');
         const endDate = url.searchParams.get('endDate');
@@ -185,7 +185,7 @@ export const handlers = [
     }),
     
     // Gestionnaire pour vérifier les quotas
-    rest.get('/api/leaves/check-allowance', (req, res, ctx) => {
+    rest.get('/api/conges/check-allowance', (req, res, ctx) => {
         const url = new URL(req.url.href);
         const userId = url.searchParams.get('userId');
         const leaveType = url.searchParams.get('leaveType');
@@ -204,7 +204,7 @@ export const handlers = [
     }),
     
     // Gestionnaire pour les congés récurrents
-    rest.post('/api/leaves/recurring', (req, res, ctx) => {
+    rest.post('/api/conges/recurrents', (req, res, ctx) => {
         return res(
             ctx.status(201),
             ctx.json({
@@ -219,7 +219,7 @@ export const handlers = [
     }),
     
     // Gestionnaire pour preview des congés récurrents
-    rest.post('/api/leaves/recurring/preview', (req, res, ctx) => {
+    rest.post('/api/conges/recurrents/preview', (req, res, ctx) => {
         return res(
             ctx.status(200),
             ctx.json({
@@ -242,7 +242,7 @@ export const handlers = [
     }),
     
     // Gestionnaire pour conflits des congés récurrents
-    rest.post('/api/leaves/recurring/conflicts', (req, res, ctx) => {
+    rest.post('/api/conges/recurrents/conflicts', (req, res, ctx) => {
         return res(
             ctx.status(200),
             ctx.json({
@@ -254,7 +254,7 @@ export const handlers = [
     }),
     
     // Gestionnaire pour mettre à jour un congé
-    rest.put('/api/leaves/:leaveId', (req, res, ctx) => {
+    rest.put('/api/conges/:leaveId', (req, res, ctx) => {
         const { leaveId } = req.params;
         
         return res(
@@ -268,7 +268,7 @@ export const handlers = [
     }),
     
     // Gestionnaire pour supprimer un congé
-    rest.delete('/api/leaves/:leaveId', (req, res, ctx) => {
+    rest.delete('/api/conges/:leaveId', (req, res, ctx) => {
         const { leaveId } = req.params;
         
         return res(
@@ -281,7 +281,7 @@ export const handlers = [
     }),
     
     // Gestionnaire pour approuver un congé
-    rest.post('/api/leaves/:leaveId/approve', (req, res, ctx) => {
+    rest.post('/api/conges/:leaveId/approve', (req, res, ctx) => {
         const { leaveId } = req.params;
         
         return res(
@@ -296,7 +296,7 @@ export const handlers = [
     }),
     
     // Gestionnaire pour rejeter un congé
-    rest.post('/api/leaves/:leaveId/reject', (req, res, ctx) => {
+    rest.post('/api/conges/:leaveId/reject', (req, res, ctx) => {
         const { leaveId } = req.params;
         
         return res(
@@ -312,7 +312,7 @@ export const handlers = [
     }),
     
     // Gestionnaire pour annuler un congé
-    rest.post('/api/leaves/:leaveId/cancel', (req, res, ctx) => {
+    rest.post('/api/conges/:leaveId/cancel', (req, res, ctx) => {
         const { leaveId } = req.params;
         
         return res(

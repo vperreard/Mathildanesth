@@ -109,7 +109,7 @@ export class NotificationEventService {
      */
     private async getApproverIds(userId: string): Promise<string[]> {
         try {
-            const response = await fetch(`/api/users/${userId}/approvers`);
+            const response = await fetch(`/api/utilisateurs/${userId}/approvers`);
             const data = await response.json();
             return data.map((user: User) => user.id);
         } catch (error) {
@@ -149,8 +149,8 @@ export class NotificationEventService {
                         referenceType: 'leave',
                         requestorName: leave.user ? `${leave.user.prenom} ${leave.user.nom}` : 'Utilisateur inconnu',
                         actions: [
-                            { label: 'Approuver', action: 'APPROVE', url: `/admin/leaves/${leave.id}/approve` },
-                            { label: 'Refuser', action: 'REJECT', url: `/admin/leaves/${leave.id}/reject` }
+                            { label: 'Approuver', action: 'APPROVE', url: `/admin/conges/${leave.id}/approve` },
+                            { label: 'Refuser', action: 'REJECT', url: `/admin/conges/${leave.id}/reject` }
                         ]
                     });
                 }

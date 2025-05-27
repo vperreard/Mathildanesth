@@ -19,7 +19,7 @@ export interface PublicHoliday {
 export async function getPublicHolidays(startYear: number, endYear: number): Promise<Date[]> {
     try {
         // URL de l'API française des jours fériés (exemple)
-        const response = await axios.get(`${CONFIG.API_BASE_URL}/api/holidays?startYear=${startYear}&endYear=${endYear}`);
+        const response = await axios.get(`${CONFIG.API_BASE_URL}/api/jours-feries?startYear=${startYear}&endYear=${endYear}`);
 
         // Convertir les dates en objets Date
         return response.data.map((holiday: any) => new Date(holiday.date));

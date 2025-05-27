@@ -67,7 +67,7 @@
               "fail": true,
               "pending": false,
               "context": null,
-              "code": "cy.visitAsAuthenticatedUser('/leaves');\ncy.runLighthouseAudit();",
+              "code": "cy.visitAsAuthenticatedUser('/conges');\ncy.runLighthouseAudit();",
               "err": {
                 "message": "TypeError: cy.lighthouse is not a function",
                 "estack": "TypeError: cy.lighthouse is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/support/e2e.ts:80:5)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromiseCtx (http://localhost:3000/__cypress/runner/cypress_runner.js:1583:10)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2381:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)",
@@ -89,7 +89,7 @@
               "fail": true,
               "pending": false,
               "context": null,
-              "code": "cy.visitAsAuthenticatedUser('/calendar');\ncy.runLighthouseAudit();",
+              "code": "cy.visitAsAuthenticatedUser('/calendrier');\ncy.runLighthouseAudit();",
               "err": {
                 "message": "TypeError: cy.lighthouse is not a function",
                 "estack": "TypeError: cy.lighthouse is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/support/e2e.ts:80:5)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromiseCtx (http://localhost:3000/__cypress/runner/cypress_runner.js:1583:10)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2381:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)",

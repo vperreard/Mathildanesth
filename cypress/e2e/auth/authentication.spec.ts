@@ -17,14 +17,14 @@ describe('Authentification et gestion des sessions', () => {
     });
 
     it('permet la connexion avec des identifiants valides', () => {
-        cy.visit('/auth/login');
+        cy.visit('/auth/connexion');
         cy.get('[data-testid=login-email-input]').type(testUser.email);
         cy.get('[data-testid=login-password-input]').type(testUser.password);
         cy.get('[data-testid=login-submit-button]').click();
 
         // Vérifier la redirection après connexion
         cy.url().should('satisfy', (url: string) => {
-            return url.includes('/dashboard') || url.includes('/planning');
+            return url.includes('/tableau-de-bord') || url.includes('/planning');
         });
 
         // Vérifier que le nom de l'utilisateur est affiché
@@ -32,7 +32,7 @@ describe('Authentification et gestion des sessions', () => {
     });
 
     it('affiche un message d\'erreur pour des identifiants invalides', () => {
-        cy.visit('/auth/login');
+        cy.visit('/auth/connexion');
         cy.get('[data-testid=login-email-input]').type('utilisateur.invalide@example.com');
         cy.get('[data-testid=login-password-input]').type('mot_de_passe_incorrect');
         cy.get('[data-testid=login-submit-button]').click();
@@ -48,7 +48,7 @@ describe('Authentification et gestion des sessions', () => {
         cy.loginByApi(testUser.email, testUser.password);
 
         // Visiter la page d'accueil
-        cy.visitAsAuthenticatedUser('/dashboard');
+        cy.visitAsAuthenticatedUser('/tableau-de-bord');
 
         // Vérifier que l'utilisateur est connecté
         cy.get('[data-cy=user-name]').should('contain', testUser.name);
@@ -63,20 +63,20 @@ describe('Authentification et gestion des sessions', () => {
     it('permet la déconnexion', () => {
         // Se connecter via l'API
         cy.loginByApi(testUser.email, testUser.password);
-        cy.visitAsAuthenticatedUser('/dashboard');
+        cy.visitAsAuthenticatedUser('/tableau-de-bord');
 
         // Ouvrir le menu utilisateur et cliquer sur déconnexion
         cy.get('[data-cy=user-menu]').click();
         cy.get('[data-cy=logout-option]').click();
 
         // Vérifier la redirection vers la page de connexion
-        cy.url().should('include', '/auth/login');
+        cy.url().should('include', '/auth/connexion');
 
         // Essayer d'accéder à une page protégée
-        cy.visit('/dashboard');
+        cy.visit('/tableau-de-bord');
 
         // Vérifier qu'on est redirigé vers la page de connexion
-        cy.url().should('include', '/auth/login');
+        cy.url().should('include', '/auth/connexion');
     });
 
     it('redirige vers la page demandée après connexion', () => {
@@ -84,7 +84,7 @@ describe('Authentification et gestion des sessions', () => {
         cy.visit('/planning');
 
         // Vérifier qu'on est redirigé vers la page de connexion
-        cy.url().should('include', '/auth/login');
+        cy.url().should('include', '/auth/connexion');
 
         // Se connecter
         cy.get('[data-testid=login-email-input]').type(testUser.email);
@@ -96,7 +96,7 @@ describe('Authentification et gestion des sessions', () => {
     });
 
     it('permet la récupération de mot de passe', () => {
-        cy.visit('/auth/login');
+        cy.visit('/auth/connexion');
 
         // Cliquer sur le lien "Mot de passe oublié"
         cy.get('[data-cy=forgot-password-link]').click();

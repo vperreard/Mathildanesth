@@ -6,17 +6,17 @@ import {
     DateValidationErrorType,
     RecurringValidationResult,
     RecurringValidationOptions
-} from '../../../../../src/modules/leaves/hooks/useRecurringLeaveValidation';
+} from '../../../../../src/modules/conges/hooks/useRecurringLeaveValidation';
 import {
     RecurrenceFrequency,
     RecurrenceEndType,
     RecurrencePattern,
     LeaveType,
     Leave
-} from '../../../../../src/modules/leaves/types/leave';
+} from '../../../../../src/modules/conges/types/leave';
 import { addDays, isBefore } from 'date-fns';
-import { useLeaveValidation } from '../../../../../src/modules/leaves/hooks/useLeaveValidation';
-import { useConflictDetection } from '../../../../../src/modules/leaves/hooks/useConflictDetection';
+import { useLeaveValidation } from '../../../../../src/modules/conges/hooks/useLeaveValidation';
+import { useConflictDetection } from '../../../../../src/modules/conges/hooks/useConflictDetection';
 import { differenceInDays } from 'date-fns';
 
 // Définition corrigée pour le retour du hook
@@ -84,7 +84,7 @@ jest.mock('../../../../../src/hooks/useDateValidation', () => ({
     })
 }));
 
-jest.mock('../../../../../src/modules/leaves/hooks/useLeaveValidation', () => ({
+jest.mock('../../../../../src/modules/conges/hooks/useLeaveValidation', () => ({
     useLeaveValidation: () => ({
         validateLeaveRequest: jest.fn().mockImplementation(async (start, end, userId, options) => {
             let startDate: Date | null = null;
@@ -139,7 +139,7 @@ mockCheckConflicts.mockImplementation(async () => ({
     hasBlockingConflicts: false
 }));
 
-jest.mock('../../../../../src/modules/leaves/hooks/useConflictDetection', () => ({
+jest.mock('../../../../../src/modules/conges/hooks/useConflictDetection', () => ({
     useConflictDetection: () => ({
         checkConflicts: mockCheckConflicts,
         detectConflicts: jest.fn().mockResolvedValue({ hasConflicts: false, conflicts: [] }),

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { produce } from 'immer';
 import { AnyCalendarEvent, CalendarEventType, CalendarFilters } from '../types/event';
-import { calendarService } from '../services/calendarService';
+import { calendarService } from '../services/calendrierService';
 
 // Valeur par défaut pour les filtres
 const DEFAULT_FILTERS: CalendarFilters = {

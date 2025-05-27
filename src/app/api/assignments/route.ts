@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ assignments });
 
     } catch (error: any) {
-        console.error('Erreur API [GET /api/assignments]:', error);
+        console.error('Erreur API [GET /api/affectations]:', error);
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération des affectations.', details: error.message },
             { status: 500 }
@@ -69,7 +69,7 @@ const createAssignmentSchema = z.object({
 });
 
 /**
- * POST /api/assignments
+ * POST /api/affectations
  * Crée une nouvelle affectation avec validation des règles métier
  */
 export async function POST(request: NextRequest) {
@@ -79,13 +79,13 @@ export async function POST(request: NextRequest) {
         const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
         
         if (!token) {
-            logger.warn('Tentative de création d\'affectation sans token', { path: '/api/assignments' });
+            logger.warn('Tentative de création d\'affectation sans token', { path: '/api/affectations' });
             return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
         }
 
         const authResult = await verifyAuthToken(token);
         if (!authResult.authenticated) {
-            logger.warn('Token invalide pour création d\'affectation', { path: '/api/assignments' });
+            logger.warn('Token invalide pour création d\'affectation', { path: '/api/affectations' });
             return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
         }
 
@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(newAssignment, { status: 201 });
 
     } catch (error: any) {
-        console.error('Erreur API [POST /api/assignments]:', error);
+        console.error('Erreur API [POST /api/affectations]:', error);
         logger.error('Erreur lors de la création de l\'affectation', { error: error.message });
         return NextResponse.json(
             { error: 'Erreur serveur lors de la création de l\'affectation.', details: error.message },

@@ -20,8 +20,8 @@
     {
       "uuid": "7b39b9f5-e0da-46e7-ba29-240257bdaac7",
       "title": "",
-      "fullFile": "cypress/e2e/leaves/quota-management.spec.ts",
-      "file": "cypress/e2e/leaves/quota-management.spec.ts",
+      "fullFile": "cypress/e2e/conges/quota-management.spec.ts",
+      "file": "cypress/e2e/conges/quota-management.spec.ts",
       "beforeHooks": [],
       "afterHooks": [],
       "tests": [],

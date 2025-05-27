@@ -47,7 +47,7 @@ export default function ScheduleRulesPage() {
 
     // Naviguer vers la page de création
     const handleCreateRule = () => {
-        router.push('/admin/schedule-rules/new');
+        router.push('/admin/schedule-rules/nouveau');
     };
 
     // Naviguer vers la page d'édition

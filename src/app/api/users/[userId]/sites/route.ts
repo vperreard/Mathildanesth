@@ -5,7 +5,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 const prisma = new PrismaClient();
 
-// GET /api/users/[userId]/sites - Récupérer les sites d'un utilisateur
+// GET /api/utilisateurs/[userId]/sites - Récupérer les sites d'un utilisateur
 export async function GET(
     request: NextRequest,
     { params }: { params: { userId: string } }
@@ -63,7 +63,7 @@ export async function GET(
     }
 }
 
-// PUT /api/users/[userId]/sites - Mettre à jour les sites d'un utilisateur
+// PUT /api/utilisateurs/[userId]/sites - Mettre à jour les sites d'un utilisateur
 export async function PUT(
     request: NextRequest,
     { params }: { params: { userId: string } }
@@ -143,7 +143,7 @@ export async function PUT(
     }
 }
 
-// POST /api/users/[userId]/sites - Ajouter des sites à un utilisateur
+// POST /api/utilisateurs/[userId]/sites - Ajouter des sites à un utilisateur
 export async function POST(
     request: NextRequest,
     { params }: { params: { userId: string } }

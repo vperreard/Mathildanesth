@@ -1,5 +1,8 @@
-import PerformanceDashboardClient from './PerformanceDashboardClient';
+'use client';
 
-export default function PerformanceDashboard() {
-    return <PerformanceDashboardClient />;
+import React from 'react';
+import { PerformanceDashboard } from '@/components/PerformanceDashboard';
+
+export default function PerformancePage() {
+  return <PerformanceDashboard />;
 }

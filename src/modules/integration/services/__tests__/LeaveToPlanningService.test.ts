@@ -1,8 +1,8 @@
-import { CalendarService } from '../../../calendar/services/calendarService';
+import { CalendarService } from '../../../calendrier/services/calendrierService';
 import { PlanningService } from '../../../planning/services/planningService';
 import { eventBus, IntegrationEventType } from '../EventBusService';
-import { Leave, LeaveStatus, LeaveType } from '../../../leaves/types/leave';
-import { CalendarEventType } from '../../../calendar/types/event';
+import { Leave, LeaveStatus, LeaveType } from '../../../conges/types/leave';
+import { CalendarEventType } from '../../../calendrier/types/event';
 
 /**
  * Version simplifiée du LeaveToPlanningService pour les tests
@@ -146,7 +146,7 @@ class LeaveToPlanningService {
 }
 
 // Mock des dépendances
-jest.mock('../../../calendar/services/calendarService', () => ({
+jest.mock('../../../calendrier/services/calendrierService', () => ({
     CalendarService: jest.fn().mockImplementation(() => ({
         addOrUpdateEvent: jest.fn().mockResolvedValue(undefined),
         removeEvent: jest.fn().mockResolvedValue(undefined)

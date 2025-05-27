@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { LeaveType } from '@/modules/leaves/types/leave';
+import { LeaveType } from '@/modules/conges/types/leave';
 
 export async function POST(request: NextRequest) {
     try {

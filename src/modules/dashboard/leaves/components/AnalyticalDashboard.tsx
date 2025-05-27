@@ -38,7 +38,7 @@ import { fr } from 'date-fns/locale';
 
 import { useLeaveStatistics } from '../hooks/useLeaveStatistics';
 import { Department } from '@/modules/organization/types';
-import { LeaveType, LeaveStatus } from '@/modules/leaves/types/leave';
+import { LeaveType, LeaveStatus } from '@/modules/conges/types/leave';
 import LeaveTrendsChart from './charts/LeaveTrendsChart';
 import TeamAvailabilityChart from './charts/TeamAvailabilityChart';
 import { useEventPublisher } from '@/core/events/useEvents';

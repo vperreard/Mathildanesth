@@ -16,26 +16,26 @@ Le module de congés expose plusieurs interfaces d'API qui permettent aux autres
 ### Base URL
 
 ```
-/api/leaves
+/api/conges
 ```
 
 ### Endpoints - Gestion des congés
 
 | Méthode | Endpoint | Description | Permissions requises |
 |---------|----------|-------------|----------------------|
-| GET | `/api/leaves` | Récupérer la liste des congés | `VIEW_OWN_LEAVES`, `VIEW_TEAM_LEAVES`, `VIEW_ALL_LEAVES` |
-| GET | `/api/leaves/:id` | Récupérer un congé spécifique | `VIEW_OWN_LEAVES`, `VIEW_TEAM_LEAVES`, `VIEW_ALL_LEAVES` |
-| POST | `/api/leaves` | Créer une demande de congé | `REQUEST_LEAVE` |
-| PUT | `/api/leaves/:id` | Mettre à jour un congé | `REQUEST_LEAVE` |
-| DELETE | `/api/leaves/:id` | Supprimer un congé | `DELETE_LEAVE` |
-| POST | `/api/leaves/:id/approve` | Approuver un congé | `APPROVE_TEAM_LEAVES`, `APPROVE_ALL_LEAVES` |
-| POST | `/api/leaves/:id/reject` | Rejeter un congé | `APPROVE_TEAM_LEAVES`, `APPROVE_ALL_LEAVES` |
-| POST | `/api/leaves/:id/cancel` | Annuler un congé | `CANCEL_OWN_LEAVE`, `CANCEL_ANY_LEAVE` |
+| GET | `/api/conges` | Récupérer la liste des congés | `VIEW_OWN_LEAVES`, `VIEW_TEAM_LEAVES`, `VIEW_ALL_LEAVES` |
+| GET | `/api/conges/:id` | Récupérer un congé spécifique | `VIEW_OWN_LEAVES`, `VIEW_TEAM_LEAVES`, `VIEW_ALL_LEAVES` |
+| POST | `/api/conges` | Créer une demande de congé | `REQUEST_LEAVE` |
+| PUT | `/api/conges/:id` | Mettre à jour un congé | `REQUEST_LEAVE` |
+| DELETE | `/api/conges/:id` | Supprimer un congé | `DELETE_LEAVE` |
+| POST | `/api/conges/:id/approve` | Approuver un congé | `APPROVE_TEAM_LEAVES`, `APPROVE_ALL_LEAVES` |
+| POST | `/api/conges/:id/reject` | Rejeter un congé | `APPROVE_TEAM_LEAVES`, `APPROVE_ALL_LEAVES` |
+| POST | `/api/conges/:id/cancel` | Annuler un congé | `CANCEL_OWN_LEAVE`, `CANCEL_ANY_LEAVE` |
 
 #### Exemple de requête pour créer un congé
 
 ```http
-POST /api/leaves
+POST /api/conges
 Content-Type: application/json
 
 {
@@ -72,16 +72,16 @@ Content-Type: application/json
 
 | Méthode | Endpoint | Description | Permissions requises |
 |---------|----------|-------------|----------------------|
-| GET | `/api/leaves/quotas` | Récupérer les quotas de l'utilisateur courant | `VIEW_OWN_LEAVES` |
-| GET | `/api/leaves/quotas/:userId` | Récupérer les quotas d'un utilisateur spécifique | `VIEW_TEAM_LEAVES`, `VIEW_ALL_LEAVES` |
-| PUT | `/api/leaves/quotas/:userId` | Mettre à jour les quotas d'un utilisateur | `MANAGE_QUOTAS` |
-| POST | `/api/leaves/quotas/transfer` | Transférer des quotas | `TRANSFER_QUOTAS` |
-| POST | `/api/leaves/quotas/carryover` | Reporter des quotas | `CARRY_OVER_QUOTAS` |
+| GET | `/api/conges/quotas` | Récupérer les quotas de l'utilisateur courant | `VIEW_OWN_LEAVES` |
+| GET | `/api/conges/quotas/:userId` | Récupérer les quotas d'un utilisateur spécifique | `VIEW_TEAM_LEAVES`, `VIEW_ALL_LEAVES` |
+| PUT | `/api/conges/quotas/:userId` | Mettre à jour les quotas d'un utilisateur | `MANAGE_QUOTAS` |
+| POST | `/api/conges/quotas/transfer` | Transférer des quotas | `TRANSFER_QUOTAS` |
+| POST | `/api/conges/quotas/carryover` | Reporter des quotas | `CARRY_OVER_QUOTAS` |
 
 #### Exemple de requête pour transférer des quotas
 
 ```http
-POST /api/leaves/quotas/transfer
+POST /api/conges/quotas/transfer
 Content-Type: application/json
 
 {
@@ -97,21 +97,21 @@ Content-Type: application/json
 
 | Méthode | Endpoint | Description | Permissions requises |
 |---------|----------|-------------|----------------------|
-| GET | `/api/leaves/reports/leave_usage` | Rapport d'utilisation des congés | `VIEW_REPORTS` |
-| GET | `/api/leaves/reports/leave_balance` | Rapport des soldes de congés | `VIEW_REPORTS` |
-| GET | `/api/leaves/reports/leave_distribution` | Rapport de distribution des congés | `VIEW_REPORTS` |
-| POST | `/api/leaves/reports/:type/export` | Exporter un rapport | `EXPORT_REPORTS` |
-| GET | `/api/leaves/reports/export/:id/status` | Vérifier le statut d'une exportation | `EXPORT_REPORTS` |
-| GET | `/api/leaves/reports/export/:id/download` | Télécharger un rapport exporté | `EXPORT_REPORTS` |
+| GET | `/api/conges/reports/leave_usage` | Rapport d'utilisation des congés | `VIEW_REPORTS` |
+| GET | `/api/conges/reports/leave_balance` | Rapport des soldes de congés | `VIEW_REPORTS` |
+| GET | `/api/conges/reports/leave_distribution` | Rapport de distribution des congés | `VIEW_REPORTS` |
+| POST | `/api/conges/reports/:type/export` | Exporter un rapport | `EXPORT_REPORTS` |
+| GET | `/api/conges/reports/export/:id/status` | Vérifier le statut d'une exportation | `EXPORT_REPORTS` |
+| GET | `/api/conges/reports/export/:id/download` | Télécharger un rapport exporté | `EXPORT_REPORTS` |
 
 ### Endpoints - Gestion des permissions
 
 | Méthode | Endpoint | Description | Permissions requises |
 |---------|----------|-------------|----------------------|
-| GET | `/api/leaves/permissions` | Récupérer toutes les permissions personnalisées | `MANAGE_LEAVE_RULES` |
-| GET | `/api/leaves/permissions/:userId` | Récupérer les permissions d'un utilisateur | `MANAGE_LEAVE_RULES` |
-| PUT | `/api/leaves/permissions/:userId` | Mettre à jour les permissions d'un utilisateur | `MANAGE_LEAVE_RULES` |
-| DELETE | `/api/leaves/permissions/:userId` | Réinitialiser les permissions d'un utilisateur | `MANAGE_LEAVE_RULES` |
+| GET | `/api/conges/permissions` | Récupérer toutes les permissions personnalisées | `MANAGE_LEAVE_RULES` |
+| GET | `/api/conges/permissions/:userId` | Récupérer les permissions d'un utilisateur | `MANAGE_LEAVE_RULES` |
+| PUT | `/api/conges/permissions/:userId` | Mettre à jour les permissions d'un utilisateur | `MANAGE_LEAVE_RULES` |
+| DELETE | `/api/conges/permissions/:userId` | Réinitialiser les permissions d'un utilisateur | `MANAGE_LEAVE_RULES` |
 
 ### Endpoints - Audit
 
@@ -182,7 +182,7 @@ Le module de congés expose plusieurs services qui peuvent être directement uti
 Service pour vérifier les permissions liées aux congés.
 
 ```typescript
-import { leavePermissionService, LeavePermission } from '../../leaves/permissions/LeavePermissionService';
+import { leavePermissionService, LeavePermission } from '../../conges/permissions/LeavePermissionService';
 
 // Vérifier si un utilisateur a une permission spécifique
 const canViewAllLeaves = await leavePermissionService.hasPermission(
@@ -203,7 +203,7 @@ const canManageQuotas = await leavePermissionService.hasPermissions(
 Service pour journaliser les actions importantes.
 
 ```typescript
-import { auditService, AuditActionType, AuditSeverity } from '../../leaves/services/AuditService';
+import { auditService, AuditActionType, AuditSeverity } from '../../conges/services/AuditService';
 
 // Créer une entrée d'audit
 await auditService.createAuditEntry({
@@ -220,7 +220,7 @@ await auditService.createAuditEntry({
 API pour accéder aux données de rapports de congés.
 
 ```typescript
-import { leaveReportApi, ReportType } from '../../leaves/api/leaveReportApi';
+import { leaveReportApi, ReportType } from '../../conges/api/leaveReportApi';
 
 // Obtenir un rapport d'utilisation des congés
 const leaveUsageReport = await leaveReportApi.getLeaveUsageReport({
@@ -246,7 +246,7 @@ Le module de congés fournit plusieurs hooks React pour faciliter l'intégration
 Hook pour accéder aux données de congés.
 
 ```typescript
-import { useLeaveData } from '../../leaves/hooks/useLeaveData';
+import { useLeaveData } from '../../conges/hooks/useLeaveData';
 
 function MyComponent() {
   const { 
@@ -281,7 +281,7 @@ function MyComponent() {
 Hook pour valider les demandes de congés.
 
 ```typescript
-import { useLeaveValidation } from '../../leaves/hooks/useLeaveValidation';
+import { useLeaveValidation } from '../../conges/hooks/useLeaveValidation';
 
 function LeaveRequestForm() {
   const [startDate, setStartDate] = useState(new Date());
@@ -330,7 +330,7 @@ function LeaveRequestForm() {
 Hook pour gérer les notifications liées aux congés.
 
 ```typescript
-import { useLeaveNotifications } from '../../leaves/hooks/useLeaveNotifications';
+import { useLeaveNotifications } from '../../conges/hooks/useLeaveNotifications';
 
 function NotificationCenter() {
   const { 
@@ -486,7 +486,7 @@ interface AuditEntry {
 
 ## Versions de l'API
 
-L'API actuelle est en version `v1`. Toutes les routes commencent par `/api/v1/leaves`. Pour des raisons de compatibilité, l'URL `/api/leaves` redirige vers la dernière version.
+L'API actuelle est en version `v1`. Toutes les routes commencent par `/api/v1/conges`. Pour des raisons de compatibilité, l'URL `/api/conges` redirige vers la dernière version.
 
 ### Gestion des changements
 
@@ -509,7 +509,7 @@ Ce module permet de gérer un référentiel de compétences et de les assigner a
 
 ```
 /api/skills
-/api/users
+/api/utilisateurs
 /api/me
 ```
 
@@ -557,12 +557,12 @@ Ce module permet de gérer un référentiel de compétences et de les assigner a
 
 | Méthode | Endpoint                          | Description                                       | Permissions requises |
 |---------|-----------------------------------|---------------------------------------------------|----------------------|
-| GET     | `/api/users/:userId/skills`       | Lister les compétences assignées à un utilisateur | Admin                |
-| POST    | `/api/users/:userId/skills`       | Assigner une compétence à un utilisateur          | Admin                |
-| DELETE  | `/api/users/:userId/skills/:skillId`| Retirer une compétence d'un utilisateur         | Admin                |
+| GET     | `/api/utilisateurs/:userId/skills`       | Lister les compétences assignées à un utilisateur | Admin                |
+| POST    | `/api/utilisateurs/:userId/skills`       | Assigner une compétence à un utilisateur          | Admin                |
+| DELETE  | `/api/utilisateurs/:userId/skills/:skillId`| Retirer une compétence d'un utilisateur         | Admin                |
 | GET     | `/api/me/skills`                  | Lister les propres compétences de l'utilisateur connecté | Utilisateur Connecté |
 
-#### Exemple de payload pour POST /api/users/:userId/skills
+#### Exemple de payload pour POST /api/utilisateurs/:userId/skills
 
 ```json
 {
@@ -570,7 +570,7 @@ Ce module permet de gérer un référentiel de compétences et de les assigner a
 }
 ```
 
-#### Exemple de réponse pour GET /api/users/:userId/skills et GET /api/me/skills
+#### Exemple de réponse pour GET /api/utilisateurs/:userId/skills et GET /api/me/skills
 
 ```json
 [

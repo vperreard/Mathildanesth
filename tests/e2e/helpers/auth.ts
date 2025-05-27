@@ -30,7 +30,7 @@ export const testUsers = {
 export async function login(page: Page, user: TestUser, baseUrl: string): Promise<void> {
     try {
         // Aller à la page de login
-        await page.goto(`${baseUrl}/auth/login`, { waitUntil: 'networkidle0' });
+        await page.goto(`${baseUrl}/auth/connexion`, { waitUntil: 'networkidle0' });
         
         // Attendre le formulaire avec plusieurs sélecteurs possibles
         await page.waitForSelector('input[name="login"], input[name="email"], input[type="email"], #login', { timeout: 10000 });
@@ -73,7 +73,7 @@ export async function login(page: Page, user: TestUser, baseUrl: string): Promis
         
         // Vérifier qu'on est bien connecté (pas sur la page de login)
         const currentUrl = page.url();
-        if (currentUrl.includes('/auth/login') || currentUrl.includes('/login')) {
+        if (currentUrl.includes('/auth/connexion') || currentUrl.includes('/login')) {
             throw new Error('Login failed - still on login page');
         }
         
@@ -106,7 +106,7 @@ export async function logout(page: Page, baseUrl: string): Promise<void> {
             await page.waitForNavigation({ waitUntil: 'networkidle0' });
         } else {
             // Alternative : aller directement à l'URL de logout
-            await page.goto(`${baseUrl}/api/auth/logout`, { waitUntil: 'networkidle0' });
+            await page.goto(`${baseUrl}/api/auth/deconnexion`, { waitUntil: 'networkidle0' });
         }
     } catch (error) {
         console.error('Logout error:', error);

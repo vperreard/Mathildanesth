@@ -30,7 +30,7 @@ export default function BlocPlanningCalendar({ date, period, onAssignmentChange 
                 setRooms(roomsData);
 
                 // Fetch surgeons (à remplacer par la vraie API)
-                const surgeonsResponse = await fetch('/api/surgeons');
+                const surgeonsResponse = await fetch('/api/chirurgiens');
                 if (surgeonsResponse.ok) {
                     const surgeonsData = await surgeonsResponse.json();
                     setSurgeons(surgeonsData);

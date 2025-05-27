@@ -182,7 +182,7 @@ export const useOptimizedBlocOperatoire = (options: OptimizedBlocOperatoireOptio
         return useQuery({
             queryKey: [...queryKeys.supervisors, date.toISOString(), period],
             queryFn: async () => {
-                const response = await axios.get('/api/users', {
+                const response = await axios.get('/api/utilisateurs', {
                     params: {
                         role: 'SUPERVISOR',
                         available: true,

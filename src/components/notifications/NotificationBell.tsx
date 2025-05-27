@@ -90,7 +90,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                 className="relative p-2 rounded-full hover:bg-gray-100 transition-colors duration-200 focus:outline-none"
                 aria-label="Notifications"
             >
-                <Bell className="h-6 w-6 text-gray-600" />
+                <Bell className="h-7 w-7 text-gray-600" />
 
                 {/* Badge compteur de notifications */}
                 {unreadCount > 0 && (

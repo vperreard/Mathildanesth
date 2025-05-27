@@ -1,6 +1,6 @@
-import { Leave, LeaveStatus, LeaveType } from '../../leaves/types/leave';
+import { Leave, LeaveStatus, LeaveType } from '../../conges/types/leave';
 import { LeaveToPlanningService } from '../services/leaveToPlanningService';
-import { CalendarEventType } from '../../calendar/types/event';
+import { CalendarEventType } from '../../calendrier/types/event';
 
 // Mocks des services
 const mockCalendarService = {

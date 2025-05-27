@@ -57,7 +57,7 @@ let cache: {
 const CACHE_DURATION = 30 * 1000; // 30 secondes
 
 /**
- * GET /api/admin/leaves/pending
+ * GET /api/admin/conges/pending
  * Récupère les deux plus anciennes demandes de congé en attente pour les administrateurs
  */
 export async function GET(request: NextRequest) {
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
 
         return handleAuthorizedRequest(userIdForRequest);
     } catch (error) {
-        console.error('[API /api/admin/leaves/pending] Erreur:', error);
+        console.error('[API /api/admin/conges/pending] Erreur:', error);
         return NextResponse.json(
             {
                 error: 'Erreur serveur lors de la récupération des demandes en attente',
@@ -192,7 +192,7 @@ async function handleAuthorizedRequest(userId: number) {
 
         return NextResponse.json(formattedLeaves);
     } catch (error) {
-        console.error('[API /api/admin/leaves/pending] Erreur lors du traitement:', error);
+        console.error('[API /api/admin/conges/pending] Erreur lors du traitement:', error);
         throw error;
     }
 } 

@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 /**
- * GET /api/leaves/types
+ * GET /api/conges/types
  * Récupère la liste des types de congés actifs et sélectionnables par les utilisateurs.
  * Accessible publiquement (par les utilisateurs connectés pour faire une demande).
  */
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
         return NextResponse.json(leaveTypeSettings);
 
     } catch (error) {
-        console.error('Erreur API [GET /leaves/types]:', error);
+        console.error('Erreur API [GET /conges/types]:', error);
         return NextResponse.json({ error: 'Erreur serveur lors de la récupération des types de congés.' }, { status: 500 });
     } finally {
         // Envisager la déconnexion si prisma est instancié localement

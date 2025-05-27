@@ -152,8 +152,8 @@ const defaultMockUseLeaveCalculationResult = {
 // pour les tests fonctionnels du composant, sauf si on teste la validation en isolation.
 
 // mockCreateLeave et mockUpdateLeave ne sont plus nécessaires
-// const mockCreateLeave = require('@/services/api/leaves').createLeave as jest.Mock;
-// const mockUpdateLeave = require('@/services/api/leaves').updateLeave as jest.Mock;
+// const mockCreateLeave = require('@/services/api/conges').createLeave as jest.Mock;
+// const mockUpdateLeave = require('@/services/api/conges').updateLeave as jest.Mock;
 
 // mockLeaveTypes n'est plus nécessaire car on mocke la réponse fetch brute
 // const mockLeaveTypes: LeaveTypeSetting[] = [ ... ];
@@ -179,7 +179,7 @@ describe('LeaveForm', () => {
 
         // Mock fetch plus explicite avec vraie simulation asynchrone
         (global.fetch as jest.Mock).mockImplementation(async (url: string | Request | URL) => {
-            if (url === '/api/leaves/types') {
+            if (url === '/api/conges/types') {
                 // Simuler un vrai délai réseau court
                 return new Promise(resolve => {
                     setTimeout(() => {
@@ -459,7 +459,7 @@ describe('LeaveForm', () => {
             simulateDateSelection(validStartDate, validEndDate, 'success');
         });
 
-        it('should submit valid data to /api/leaves/batch and handle success', async () => {
+        it('should submit valid data to /api/conges/batch and handle success', async () => {
             // S'assurer que le hook retournera 'success' une fois les dates valides settées.
             // Le simulateDateSelection dans beforeEach fait déjà cela.
 
@@ -504,7 +504,7 @@ describe('LeaveForm', () => {
             await user.click(submitButton);
 
             await waitFor(() => {
-                expectToHaveBeenCalledWith(mockedAxios.post, '/api/leaves/batch', [
+                expectToHaveBeenCalledWith(mockedAxios.post, '/api/conges/batch', [
                     objectContaining({
                         userId: parseInt(mockUser.id, 10),
                         startDate: '2024-09-02',
@@ -530,7 +530,7 @@ describe('LeaveForm', () => {
             expectToHaveValue(screen.getByLabelText(/Motif/), '');
         });
 
-        it('should handle API error from /api/leaves/batch on submit', async () => {
+        it('should handle API error from /api/conges/batch on submit', async () => {
             simulateDateSelection(validStartDate, validEndDate, 'success');
 
             let rendered;
@@ -569,7 +569,7 @@ describe('LeaveForm', () => {
             await user.click(submitButton);
 
             await waitFor(() => {
-                expectToHaveBeenCalledWith(mockedAxios.post, '/api/leaves/batch', anyValue(Array));
+                expectToHaveBeenCalledWith(mockedAxios.post, '/api/conges/batch', anyValue(Array));
             });
 
             expectNotToHaveBeenCalled(mockOnSuccess);
@@ -608,7 +608,7 @@ describe('LeaveForm', () => {
             await user.click(submitButton);
 
             await waitFor(() => {
-                expectToHaveBeenCalledWith(mockedAxios.post, '/api/leaves/batch', anyValue(Array));
+                expectToHaveBeenCalledWith(mockedAxios.post, '/api/conges/batch', anyValue(Array));
             });
 
             expectNotToHaveBeenCalled(mockOnSuccess);

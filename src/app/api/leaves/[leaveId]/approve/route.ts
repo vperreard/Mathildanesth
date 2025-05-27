@@ -5,7 +5,7 @@ import { LeaveStatus } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
 /**
- * POST /api/leaves/[leaveId]/approve
+ * POST /api/conges/[leaveId]/approve
  * Approuver une demande de congé - ADMIN uniquement
  */
 export const POST = withAuth({
@@ -73,7 +73,7 @@ export const POST = withAuth({
                 type: 'LEAVE_APPROVED',
                 title: 'Demande de congé approuvée',
                 message: `Votre demande de congé du ${leave.startDate.toLocaleDateString()} au ${leave.endDate.toLocaleDateString()} a été approuvée.`,
-                link: `/leaves/${leaveId}`,
+                link: `/conges/${leaveId}`,
                 isRead: false
             }
         });

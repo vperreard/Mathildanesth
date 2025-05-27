@@ -8,6 +8,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - When reading logs or documentation, pay attention to date formats
 - Example: 27/5/25 means May 27, 2025 (not January 27, 2025)
 
+## 🧪 CRITICAL: Testing is Mandatory
+**IMPORTANT**: Tests are NOT optional. Every code change MUST include appropriate tests.
+- **New feature** → Create comprehensive unit and integration tests
+- **Bug fix** → Add regression test to prevent recurrence
+- **Refactoring** → Ensure existing tests still pass, add new ones if needed
+- **No exceptions**: Even POCs and urgent fixes need basic tests
+
 ## Project Overview
 
 Mathildanesth is a medical planning application for anesthesia teams (MARs and IADEs), managing schedules, leave requests, and work time. Built with Next.js 14, TypeScript, PostgreSQL, and Prisma.
@@ -102,7 +109,7 @@ npm run quality:full       # Full quality analysis
 
 ### Critical Modules
 
-1. **Leaves Module** (`/src/modules/leaves/`)
+1. **Leaves Module** (`/src/modules/conges/`)
    - Complex leave request and quota management
    - Recurring leaves support
    - Conflict detection system
@@ -164,15 +171,25 @@ npm run test:critical                    # Test all critical modules
 2. **For migrations**: Always test locally with `npx prisma migrate dev`
 3. **For API changes**: Update TypeScript types in `/src/types/`
 4. **For UI changes**: Check responsive design and accessibility
-5. **Documentation**: 
+5. **Testing Requirements**: 
+   - **ALWAYS create tests for new code**:
+     - New functions/services → Unit tests required
+     - New API routes → Integration tests required
+     - New components → Component tests (if complex logic)
+     - Bug fixes → Regression tests to prevent recurrence
+   - **Test coverage targets**:
+     - Critical modules (auth, leaves, planning): 80% minimum
+     - Other modules: 70% minimum
+   - **Run tests before ANY commit**: `npm test` must pass
+6. **Documentation**: 
    - Update relevant docs in `/docs/` structure
    - **Add new TODOs or tasks to [ROADMAP.md](docs/04_roadmap/ROADMAP.md)** - DO NOT create new todo files
    - **Log bugs in [KNOWN_ISSUES.md](docs/04_roadmap/KNOWN_ISSUES.md)**
    - **IMPORTANT: After completing ANY task, immediately update ROADMAP.md and KNOWN_ISSUES.md**
    - Mark completed tasks with [x] and add completion date
    - Add new issues discovered during development
-6. **Planning**: Check [Consolidated ROADMAP](docs/04_roadmap/ROADMAP.md) for current priorities
-7. **Standards**: Follow [TypeScript Guidelines](docs/01_architecture/TYPESCRIPT_GUIDELINES.md)
+7. **Planning**: Check [Consolidated ROADMAP](docs/04_roadmap/ROADMAP.md) for current priorities
+8. **Standards**: Follow [TypeScript Guidelines](docs/01_architecture/TYPESCRIPT_GUIDELINES.md)
 
 ### Debugging
 
@@ -190,6 +207,7 @@ npm run test:critical                    # Test all critical modules
 4. **State Management**: Use React Query for server state, Context for UI state
 5. **TypeScript**: NEVER use `@ts-ignore` - find typed solutions (see [TypeScript Guidelines](docs/01_architecture/TYPESCRIPT_GUIDELINES.md))
 6. **Security**: Always implement proper authorization (see [Authorization System](src/lib/auth/authorization.ts))
+7. **Testing**: NEVER skip tests - if time is short, create at least basic tests with TODOs for enhancement
 
 ### Current Priorities (January 2025)
 
@@ -213,8 +231,37 @@ See **[CONSOLIDATED ROADMAP](docs/04_roadmap/ROADMAP.md)** for detailed planning
 - **CI/CD Setup**: [Deployment Guide](docs/03_Guides_Developpement/01_Deployment_Guide.md)
 - **Performance Analysis**: [Performance Tools](docs/03_performance/)
 
-**Last Updated**: May 2025 - Documentation maintenance rules added
+## 🚀 AUTONOMY & PROACTIVITY GUIDELINES
+
+### When to be Proactive
+1. **Architecture Improvements**: Always suggest better patterns when you see anti-patterns
+2. **Performance Optimizations**: Propose optimizations when you detect potential bottlenecks  
+3. **Security Enhancements**: Alert immediately on security concerns with solutions
+4. **User Experience**: Suggest UX improvements based on best practices
+5. **Technical Debt**: Create entries in ROADMAP.md for debt you identify
+
+### Decision Making Framework
+- **Low Risk Changes** (formatting, comments, small refactors): Execute immediately
+- **Medium Risk** (new utilities, test improvements): Implement with clear documentation
+- **High Risk** (architecture changes, API modifications): Propose detailed plan first
+
+### Always Include in Responses
+1. **Next Concrete Steps**: List 3-5 immediate actionable items
+2. **Alternative Solutions**: Present options when applicable
+3. **Time Estimates**: Realistic development time for each task
+4. **Innovative Ideas**: Suggest features/improvements user might not have considered
+
+### Feature Suggestions to Consider
+- **AI/ML Enhancements**: Smart scheduling, predictive analytics, anomaly detection
+- **Real-time Collaboration**: Live updates, presence indicators, contextual chat
+- **Mobile Excellence**: PWA, offline mode, voice commands
+- **Integrations**: Calendar sync, HR systems, automation opportunities
+- **Performance**: Caching strategies, lazy loading, optimistic updates
+
+**Last Updated**: May 2025 - Autonomy guidelines added
 - All TODO/NEXT_STEPS files consolidated into single ROADMAP.md
 - Established rule: Only maintain ROADMAP.md and KNOWN_ISSUES.md for project planning
 - Added requirement to update documentation immediately after completing tasks
 - Added critical reminder about date awareness (DD/MM/YY format)
+- Added mandatory testing requirements
+- Added autonomy and proactivity guidelines for enhanced collaboration

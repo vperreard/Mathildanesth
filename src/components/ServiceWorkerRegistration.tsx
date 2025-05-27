@@ -32,7 +32,7 @@ const ServiceWorkerRegistration: React.FC = () => {
     useEffect(() => {
         if (isInstalled && isOnline) {
             const criticalRoutes = [
-                '/auth/login',
+                '/auth/connexion',
                 '/api/auth/me',
                 '/api/sites',
                 '/api/specialties'

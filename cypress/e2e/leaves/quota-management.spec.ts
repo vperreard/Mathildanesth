@@ -52,10 +52,10 @@ describe('Gestion des quotas de congés', () => {
         cy.loginByApi(testUser.login, testUser.password);
 
         // Accéder à la page des congés
-        cy.visitAsAuthenticatedUser('/leaves');
+        cy.visitAsAuthenticatedUser('/conges');
 
         // Vérifier que la page s'affiche correctement
-        cy.location('pathname').should('include', '/leaves');
+        cy.location('pathname').should('include', '/conges');
 
         // Prendre une capture d'écran pour vérifier visuellement
         cy.screenshot('page-leaves-authentifiee');
@@ -66,7 +66,7 @@ describe('Gestion des quotas de congés', () => {
         cy.loginByApi(testUser.login, testUser.password);
 
         // Accéder à la page des congés
-        cy.visitAsAuthenticatedUser('/leaves');
+        cy.visitAsAuthenticatedUser('/conges');
 
         // Vérifier qu'il y a du contenu visible (au lieu de chercher un texte spécifique)
         cy.get('main').should('be.visible')
@@ -83,7 +83,7 @@ describe('Gestion des quotas de congés', () => {
         cy.loginByApi(testUser.login, testUser.password);
 
         // Accéder à la page des congés
-        cy.visitAsAuthenticatedUser('/leaves');
+        cy.visitAsAuthenticatedUser('/conges');
 
         // Plutôt que de chercher un bouton spécifique qui peut ne pas exister
         // on vérifie simplement que la page a chargé correctement
@@ -91,9 +91,9 @@ describe('Gestion des quotas de congés', () => {
         cy.log('Page des congés accessible - Test OK (adapté)');
 
         // Tester la navigation directe vers la page de demande (qui peut ne pas exister)
-        cy.visitAsAuthenticatedUser('/leaves/new');
+        cy.visitAsAuthenticatedUser('/conges/nouveau');
         cy.get('body').should('be.visible');
-        cy.log('Accès direct à /leaves/new - Test adapté');
+        cy.log('Accès direct à /conges/nouveau - Test adapté');
 
         cy.screenshot('acces-page-conges');
     });
@@ -104,7 +104,7 @@ describe('Gestion des quotas de congés', () => {
 
         // Tenter d'accéder à la page des quotas de congés 
         // Note: cette route peut ne pas exister dans la version actuelle
-        cy.visitAsAuthenticatedUser('/leaves/quotas');
+        cy.visitAsAuthenticatedUser('/conges/quotas');
 
         // Vérifier que la page a chargé, même si ce n'est pas la bonne
         cy.get('body').should('be.visible');

@@ -58,12 +58,12 @@ model Site {
 
 ### 1. **APIs RESTful complètes**
 
-#### 👨‍⚕️ Utilisateurs : `/api/users/[userId]/sites`
+#### 👨‍⚕️ Utilisateurs : `/api/utilisateurs/[userId]/sites`
 - **GET** : Récupérer les sites d'un utilisateur
 - **PUT** : Remplacer tous les sites d'un utilisateur
 - **POST** : Ajouter des sites à un utilisateur
 
-#### 🩺 Chirurgiens : `/api/surgeons/[surgeonId]/sites`
+#### 🩺 Chirurgiens : `/api/chirurgiens/[surgeonId]/sites`
 - **GET** : Récupérer les sites d'un chirurgien
 - **PUT** : Remplacer tous les sites d'un chirurgien
 - **POST** : Ajouter des sites à un chirurgien

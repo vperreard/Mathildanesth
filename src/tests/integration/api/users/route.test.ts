@@ -30,17 +30,17 @@ jest.mock('next/server', () => ({
     }
 }));
 
-describe('/api/users', () => {
+describe('/api/utilisateurs', () => {
     let handlers: any;
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        const route = await import('@/app/api/users/route');
+        const route = await import('@/app/api/utilisateurs/route');
         handlers = route;
     });
 
     const createRequest = (method: string, body?: any, params?: URLSearchParams) => {
-        const url = new URL('http://localhost:3000/api/users');
+        const url = new URL('http://localhost:3000/api/utilisateurs');
         if (params) {
             url.search = params.toString();
         }
@@ -55,7 +55,7 @@ describe('/api/users', () => {
         });
     };
 
-    describe('GET /api/users', () => {
+    describe('GET /api/utilisateurs', () => {
         it('should return users list for admin', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             const mockUsers = [
@@ -206,7 +206,7 @@ describe('/api/users', () => {
         });
     });
 
-    describe('POST /api/users', () => {
+    describe('POST /api/utilisateurs', () => {
         it('should create a new user for admin', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             const userData = {
@@ -335,7 +335,7 @@ describe('/api/users', () => {
         });
     });
 
-    describe('PUT /api/users/[id]', () => {
+    describe('PUT /api/utilisateurs/[id]', () => {
         it('should update user data', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             const updateData = {
@@ -386,7 +386,7 @@ describe('/api/users', () => {
         });
     });
 
-    describe('DELETE /api/users/[id]', () => {
+    describe('DELETE /api/utilisateurs/[id]', () => {
         it('should soft delete user (set status to INACTIF)', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             mockedGetUserFromCookie.mockResolvedValue(mockAdmin as any);

@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
-import { publicHolidayService } from '@/modules/leaves/services/publicHolidayService';
+import { publicHolidayService } from '@/modules/conges/services/publicHolidayService';
 import { HolidayEvent, CalendarEventType } from '../types/event';
-import { PublicHoliday } from '@/modules/leaves/types/public-holiday';
+import { PublicHoliday } from '@/modules/conges/types/public-holiday';
 
 /**
  * Service pour convertir les jours fériés en événements de calendrier

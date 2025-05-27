@@ -16,7 +16,7 @@
             "coverage": 37.5,
             "lastValidated": "2025-01-25",
             "routes": {
-                "/auth/login": {
+                "/auth/connexion": {
                     "name": "Page de connexion",
                     "method": "GET",
                     "testStatus": "TESTED",
@@ -40,7 +40,7 @@
                         }
                     ]
                 },
-                "POST /api/auth/login": {
+                "POST /api/auth/connexion": {
                     "name": "API Authentification",
                     "method": "POST",
                     "testStatus": "TESTED",
@@ -55,7 +55,7 @@
                         }
                     ]
                 },
-                "/api/auth/logout": {
+                "/api/auth/deconnexion": {
                     "name": "Déconnexion",
                     "method": "POST",
                     "testStatus": "PLANNED",
@@ -70,7 +70,7 @@
             "coverage": 16.7,
             "lastValidated": "2025-01-25",
             "routes": {
-                "/leaves": {
+                "/conges": {
                     "name": "Page principale congés",
                     "method": "GET",
                     "testStatus": "TESTING",
@@ -92,19 +92,19 @@
                         }
                     ]
                 },
-                "/api/leaves": {
+                "/api/conges": {
                     "name": "API Liste congés",
                     "method": "GET",
                     "testStatus": "NOT_TESTED",
-                    "dependency": "/leaves"
+                    "dependency": "/conges"
                 },
-                "/api/leaves/balance": {
+                "/api/conges/balance": {
                     "name": "API Solde congés",
                     "method": "GET",
                     "testStatus": "NOT_TESTED",
-                    "dependency": "/leaves"
+                    "dependency": "/conges"
                 },
-                "POST /api/leaves": {
+                "POST /api/conges": {
                     "name": "Création demande congé",
                     "method": "POST",
                     "testStatus": "PLANNED",
@@ -159,13 +159,13 @@
                     "testStatus": "NOT_TESTED",
                     "priority": "HIGH"
                 },
-                "/api/planning/assignments": {
+                "/api/planning/affectations": {
                     "name": "API Affectations",
                     "method": "GET",
                     "testStatus": "NOT_TESTED",
                     "priority": "CRITICAL"
                 },
-                "POST /api/planning/assignments": {
+                "POST /api/planning/affectations": {
                     "name": "Création affectation",
                     "method": "POST",
                     "testStatus": "NOT_TESTED",
@@ -193,7 +193,7 @@
                     "testStatus": "NOT_TESTED",
                     "priority": "MEDIUM"
                 },
-                "/api/users": {
+                "/api/utilisateurs": {
                     "name": "API Utilisateurs",
                     "method": "GET",
                     "testStatus": "NOT_TESTED"
@@ -220,7 +220,7 @@
                     "testStatus": "NOT_TESTED",
                     "priority": "MEDIUM"
                 },
-                "/admin/holidays": {
+                "/admin/jours-feries": {
                     "name": "Gestion jours fériés",
                     "method": "GET",
                     "testStatus": "NOT_TESTED"
@@ -269,12 +269,12 @@
             "status": "NOT_STARTED",
             "coverage": 0,
             "routes": {
-                "/calendar": {
+                "/calendrier": {
                     "name": "Vue calendrier",
                     "method": "GET",
                     "testStatus": "NOT_TESTED"
                 },
-                "/api/calendar": {
+                "/api/calendrier": {
                     "name": "API Calendrier",
                     "method": "GET",
                     "testStatus": "NOT_TESTED"
@@ -313,10 +313,10 @@
         "minOverallCoverage": 60,
         "maxFailingTests": 5,
         "mandatoryTests": [
-            "/auth/login",
-            "POST /api/auth/login",
-            "/leaves",
-            "POST /api/leaves",
+            "/auth/connexion",
+            "POST /api/auth/connexion",
+            "/conges",
+            "POST /api/conges",
             "/planning/hebdomadaire"
         ]
     }

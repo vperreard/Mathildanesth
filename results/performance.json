@@ -1,7 +1,7 @@
 [
   {
     "type": "api",
-    "name": "/api/users",
+    "name": "/api/utilisateurs",
     "duration": 11,
     "timestamp": 1747848622316,
     "status": 401,
@@ -9,7 +9,7 @@
   },
   {
     "type": "api",
-    "name": "/api/leaves/types",
+    "name": "/api/conges/types",
     "duration": 5,
     "timestamp": 1747848622336,
     "status": 401,
@@ -95,7 +95,7 @@
   },
   {
     "type": "page",
-    "name": "/auth/login",
+    "name": "/auth/connexion",
     "duration": 10321,
     "timestamp": 1747848673990,
     "run": "2025-05-21T17:31:14.017Z"
@@ -109,7 +109,7 @@
   },
   {
     "type": "api",
-    "name": "/api/users",
+    "name": "/api/utilisateurs",
     "duration": 29,
     "timestamp": 1747893413569,
     "status": 401,
@@ -117,7 +117,7 @@
   },
   {
     "type": "api",
-    "name": "/api/leaves/types",
+    "name": "/api/conges/types",
     "duration": 9,
     "timestamp": 1747893413589,
     "status": 401,
@@ -203,7 +203,7 @@
   },
   {
     "type": "page",
-    "name": "/auth/login",
+    "name": "/auth/connexion",
     "duration": 3035,
     "timestamp": 1747893422839,
     "run": "2025-05-22T05:57:02.846Z"
@@ -217,7 +217,7 @@
   },
   {
     "type": "api",
-    "name": "/api/users",
+    "name": "/api/utilisateurs",
     "duration": 9,
     "timestamp": 1747905541841,
     "status": 401,
@@ -225,7 +225,7 @@
   },
   {
     "type": "api",
-    "name": "/api/leaves/types",
+    "name": "/api/conges/types",
     "duration": 5,
     "timestamp": 1747905541857,
     "status": 401,
@@ -311,7 +311,7 @@
   },
   {
     "type": "page",
-    "name": "/auth/login",
+    "name": "/auth/connexion",
     "duration": 5671,
     "timestamp": 1747905563561,
     "run": "2025-05-22T09:19:23.590Z"
@@ -332,7 +332,7 @@
   },
   {
     "type": "api",
-    "name": "/api/users",
+    "name": "/api/utilisateurs",
     "duration": 22,
     "timestamp": 1748322673070,
     "status": 401,
@@ -340,7 +340,7 @@
   },
   {
     "type": "api",
-    "name": "/api/leaves/types",
+    "name": "/api/conges/types",
     "duration": 5,
     "timestamp": 1748322673084,
     "status": 401,

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateRecurringDates } from '@/modules/leaves/utils/recurringLeavesUtils';
-import { getPublicHolidays } from '@/services/calendarService';
+import { generateRecurringDates } from '@/modules/conges/utils/recurrentsLeavesUtils';
+import { getPublicHolidays } from '@/services/calendrierService';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
- * POST /api/leaves/recurring
+ * POST /api/conges/recurrents
  * Crée une nouvelle demande de congés récurrente et génère ses occurrences
  */
 export async function POST(request: NextRequest) {
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/leaves/recurring
+ * GET /api/conges/recurrents
  * Récupère les demandes de congés récurrentes d'un utilisateur
  */
 export async function GET(request: NextRequest) {

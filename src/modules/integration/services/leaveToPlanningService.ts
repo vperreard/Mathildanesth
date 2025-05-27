@@ -1,6 +1,6 @@
-import { Leave, LeaveStatus } from '../../leaves/types/leave';
-import { CalendarEventType, LeaveEvent } from '../../calendar/types/event';
-import { CalendarService } from '../../calendar/services/calendarService';
+import { Leave, LeaveStatus } from '../../conges/types/leave';
+import { CalendarEventType, LeaveEvent } from '../../calendrier/types/event';
+import { CalendarService } from '../../calendrier/services/calendrierService';
 import { PlanningService } from '../../planning/services/planningService';
 import { eventBus, IntegrationEventType, IntegrationEvent } from './EventBusService';
 

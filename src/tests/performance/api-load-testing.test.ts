@@ -11,7 +11,7 @@ describe('API Load Testing', () => {
 
     beforeAll(async () => {
         // Obtenir un token d'authentification pour les tests
-        const response = await fetch(`${BASE_URL}/api/auth/login`, {
+        const response = await fetch(`${BASE_URL}/api/auth/connexion`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -26,10 +26,10 @@ describe('API Load Testing', () => {
         }
     });
 
-    describe('GET /api/users - Endpoint critique', () => {
+    describe('GET /api/utilisateurs - Endpoint critique', () => {
         it('should handle concurrent requests efficiently', async () => {
             const requests = Array.from({ length: CONCURRENT_REQUESTS }, () =>
-                fetch(`${BASE_URL}/api/users`, {
+                fetch(`${BASE_URL}/api/utilisateurs`, {
                     headers: { Authorization: authToken }
                 })
             );
@@ -57,7 +57,7 @@ describe('API Load Testing', () => {
             while (Date.now() - startTime < TEST_DURATION_MS) {
                 const requestStart = performance.now();
                 
-                const response = await fetch(`${BASE_URL}/api/users?limit=10`, {
+                const response = await fetch(`${BASE_URL}/api/utilisateurs?limit=10`, {
                     headers: { Authorization: authToken }
                 });
                 
@@ -86,7 +86,7 @@ describe('API Load Testing', () => {
         });
     });
 
-    describe('POST /api/leaves - Endpoint création', () => {
+    describe('POST /api/conges - Endpoint création', () => {
         it('should handle multiple leave creations efficiently', async () => {
             const leaveData = {
                 leaveTypeCode: 'CP',
@@ -96,7 +96,7 @@ describe('API Load Testing', () => {
             };
 
             const requests = Array.from({ length: 20 }, () =>
-                fetch(`${BASE_URL}/api/leaves`, {
+                fetch(`${BASE_URL}/api/conges`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -188,9 +188,9 @@ describe('API Load Testing', () => {
     describe('Database intensive operations', () => {
         it('should handle large dataset queries efficiently', async () => {
             const queries = [
-                '/api/leaves?startDate=2023-01-01&endDate=2023-12-31', // Année complète
-                '/api/users?includeStats=true', // Avec statistiques
-                '/api/assignments?startDate=2024-01-01&endDate=2024-12-31' // Assignations année
+                '/api/conges?startDate=2023-01-01&endDate=2023-12-31', // Année complète
+                '/api/utilisateurs?includeStats=true', // Avec statistiques
+                '/api/affectations?startDate=2024-01-01&endDate=2024-12-31' // Assignations année
             ];
 
             const results = await Promise.all(
@@ -225,7 +225,7 @@ describe('API Load Testing', () => {
             
             // Faire beaucoup de requêtes pour tester les fuites mémoire
             for (let i = 0; i < 100; i++) {
-                await fetch(`${BASE_URL}/api/users?page=${i % 10}`, {
+                await fetch(`${BASE_URL}/api/utilisateurs?page=${i % 10}`, {
                     headers: { Authorization: authToken }
                 });
                 
@@ -254,7 +254,7 @@ describe('API Load Testing', () => {
             const requests = Array.from({ length: 30 }, (_, i) => {
                 const isValid = i % 3 !== 0; // 2/3 valides, 1/3 invalides
                 
-                return fetch(`${BASE_URL}/api/users${isValid ? '' : '/invalid-endpoint'}`, {
+                return fetch(`${BASE_URL}/api/utilisateurs${isValid ? '' : '/invalid-endpoint'}`, {
                     headers: { Authorization: isValid ? authToken : 'invalid-token' }
                 });
             });

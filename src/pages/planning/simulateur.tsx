@@ -44,7 +44,7 @@ export default function SimulateurPage() {
                 setLoading(true);
 
                 // Chargement du personnel (utilisateurs actifs)
-                const personnelResponse = await fetch('/api/users?status=active');
+                const personnelResponse = await fetch('/api/utilisateurs?status=active');
                 if (!personnelResponse.ok) {
                     throw new Error('Erreur lors du chargement des utilisateurs');
                 }
@@ -56,7 +56,7 @@ export default function SimulateurPage() {
                 const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
                 const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
 
-                const assignmentsResponse = await fetch(`/api/assignments?start=${firstDay}&end=${lastDay}`);
+                const assignmentsResponse = await fetch(`/api/affectations?start=${firstDay}&end=${lastDay}`);
                 if (!assignmentsResponse.ok) {
                     throw new Error('Erreur lors du chargement des affectations');
                 }
@@ -85,7 +85,7 @@ export default function SimulateurPage() {
             setLoading(true);
 
             // Appel à l'API pour enregistrer les nouvelles affectations
-            const response = await fetch('/api/assignments/batch', {
+            const response = await fetch('/api/affectations/batch', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

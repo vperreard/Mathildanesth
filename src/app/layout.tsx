@@ -117,7 +117,7 @@ export default function RootLayout({
 
                 {/* Resource hints pour les performances */}
                 <link rel="prefetch" href="/api/auth/me" />
-                <link rel="prefetch" href="/auth/login" />
+                <link rel="prefetch" href="/auth/connexion" />
             </head>
             <body className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
                 <AuthProvider>

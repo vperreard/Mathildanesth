@@ -24,7 +24,7 @@ Chaque type de congé peut avoir des règles spécifiques associées (ex: impact
 
 ## 3. Soumission d'une Demande de Congé/Absence
 
-Les utilisateurs peuvent soumettre leurs demandes via une interface dédiée (`src/app/leaves/new/` ou via le module `src/modules/leaves/components/LeaveRequestForm.tsx`).
+Les utilisateurs peuvent soumettre leurs demandes via une interface dédiée (`src/app/conges/nouveau/` ou via le module `src/modules/conges/components/LeaveRequestForm.tsx`).
 
 - **Informations Requises** :
   - Type de congé/absence.

@@ -240,7 +240,7 @@ export class LeaveConflictNotificationService {
             {
                 label: 'Voir les détails',
                 action: 'VIEW_CONFLICT',
-                url: `/leaves/conflicts/${conflict.leaveId}`
+                url: `/conges/conflicts/${conflict.leaveId}`
             }
         ];
 

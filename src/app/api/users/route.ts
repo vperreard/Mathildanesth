@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
         // Créer la réponse avec liens de pagination
         const response = createPaginationResponse(
             result,
-            '/api/users',
+            '/api/utilisateurs',
             Object.fromEntries(searchParams.entries())
         );
 

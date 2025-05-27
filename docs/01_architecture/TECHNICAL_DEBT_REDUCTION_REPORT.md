@@ -10,7 +10,7 @@
 ## 🚨 CORRECTIONS CRITIQUES DE SÉCURITÉ ACCOMPLIES (19/19)
 
 ### ✅ **APIs Critiques - 100% SÉCURISÉES** (8/8)
-1. **`src/app/api/leaves/route.ts`** : ✅ Vérifications permissions utilisateur/admin
+1. **`src/app/api/conges/route.ts`** : ✅ Vérifications permissions utilisateur/admin
 2. **`src/app/api/affectation-modeles/[affectationModeleId]/route.ts`** : ✅ Rôle admin pour modifications/suppressions
 3. **`src/app/api/trame-modeles/[trameModeleId]/affectations/route.ts`** : ✅ Rôle admin pour création d'affectations
 4. **`src/app/api/admin/leave-types/route.ts`** : ✅ CRUD complet sécurisé + implémentation POST/PUT/DELETE
@@ -24,7 +24,7 @@
    - ✅ Permissions changements de statut par rôle
    - ✅ Permissions modifications personnel bloc
    - ✅ Matrice de permissions granulaire
-2. **`src/modules/leaves/services/leaveService.ts`** : ✅ Gestion congés récurrents sécurisée (2 TODO corrigés)
+2. **`src/modules/conges/services/leaveService.ts`** : ✅ Gestion congés récurrents sécurisée (2 TODO corrigés)
    - ✅ Vérification conflits avec occurrences récurrentes
    - ✅ Validation quotas avec congés récurrents
 

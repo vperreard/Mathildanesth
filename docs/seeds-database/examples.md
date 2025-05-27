@@ -39,16 +39,16 @@ BERNARD,Pierre,pierre.bernard,pierre.bernard@hopital.fr,UTILISATEUR,IADE,false,,
 EOF
 
 # 4. Fusionner avec utilisateurs existants
-tail -n +2 nouveaux-iade.csv >> exports/csv/users-$(date +%Y-%m-%d).csv
+tail -n +2 nouveaux-iade.csv >> exports/csv/utilisateurs-$(date +%Y-%m-%d).csv
 
 # 5. Remplacer le fichier source
-cp exports/csv/users-$(date +%Y-%m-%d).csv prisma/seed_data/users.csv
+cp exports/csv/utilisateurs-$(date +%Y-%m-%d).csv prisma/seed_data/utilisateurs.csv
 
 # 6. Appliquer
 npm run db:seed
 
 # 7. Vérifier
-curl "http://localhost:3000/api/users?role=IADE" | jq 'length'
+curl "http://localhost:3000/api/utilisateurs?role=IADE" | jq 'length'
 ```
 
 ### Exemple 2 : Planifier les congés d'été 2026
@@ -590,7 +590,7 @@ function generateRecommendations(stats: number[], checks: any): string[] {
     }
     
     if (!checks.hasBalancedRoles) {
-        recs.push('⚠️ Déséquilibre MAR/IADE - Vérifier prisma/seed_data/users.csv');
+        recs.push('⚠️ Déséquilibre MAR/IADE - Vérifier prisma/seed_data/utilisateurs.csv');
     }
     
     if (stats[5] === 0) {

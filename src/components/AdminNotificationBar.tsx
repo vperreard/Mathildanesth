@@ -17,7 +17,7 @@ const AdminNotificationBar: React.FC = () => {
 
     const fetchPendingRequests = async () => {
         try {
-            const res = await fetch('/api/admin/requests');
+            const res = await fetch('/api/admin/demandes');
             if (!res.ok) throw new Error('Erreur lors de la récupération des demandes');
             const data = await res.json();
             const pending = data.filter((req: LeaveRequest) => req.status === 'pending');
@@ -36,7 +36,7 @@ const AdminNotificationBar: React.FC = () => {
 
     const handleValidate = async (id: number) => {
         try {
-            const res = await fetch(`/api/admin/requests/${id}`, {
+            const res = await fetch(`/api/admin/demandes/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'validated' })

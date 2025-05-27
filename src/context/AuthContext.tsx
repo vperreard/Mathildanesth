@@ -155,14 +155,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post('/api/auth/logout');
+      await axios.post('/api/auth/deconnexion');
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
     } finally {
       removeClientAuthToken();
       userCache.clear();
       setUser(null);
-      router.push('/auth/login');
+      router.push('/auth/connexion');
     }
   };
 

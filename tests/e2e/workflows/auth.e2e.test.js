@@ -35,7 +35,7 @@ describe('Workflow Authentification E2E', () => {
 
                 // Vérifier redirection vers dashboard
                 const url = page.url();
-                expect(url).not.toContain('/auth/login');
+                expect(url).not.toContain('/auth/connexion');
 
                 // Vérifier présence d'éléments authentifiés
                 await page.waitForSelector('[data-testid="user-menu"], .user-avatar, .logout-button');
@@ -68,7 +68,7 @@ describe('Workflow Authentification E2E', () => {
 
                 // Vérifier qu'on reste sur la page de login
                 const url = page.url();
-                expect(url).toContain('/auth/login');
+                expect(url).toContain('/auth/connexion');
 
                 await PuppeteerHelpers.screenshot(page, 'login-failed');
                 console.log('✅ Échec de connexion géré correctement');
@@ -90,13 +90,13 @@ describe('Workflow Authentification E2E', () => {
                 await page.click('[data-testid="logout-button"], .logout, button:has-text("Déconnexion")');
 
                 // Attendre redirection vers login
-                await page.waitForURL('**/auth/login', { timeout: config.timeouts.medium });
+                await page.waitForURL('**/auth/connexion', { timeout: config.timeouts.medium });
 
                 // Vérifier qu'on ne peut plus accéder aux pages protégées
                 await page.goto(`${config.urls.base}${config.urls.leaves}`);
 
                 const url = page.url();
-                expect(url).toContain('/auth/login');
+                expect(url).toContain('/auth/connexion');
 
                 await PuppeteerHelpers.screenshot(page, 'successful-logout');
                 console.log('✅ Déconnexion réussie');
@@ -121,7 +121,7 @@ describe('Workflow Authentification E2E', () => {
                 await page.goto(`${config.urls.base}${config.urls.leaves}`);
 
                 // Vérifier redirection vers login
-                await page.waitForURL('**/auth/login', { timeout: config.timeouts.medium });
+                await page.waitForURL('**/auth/connexion', { timeout: config.timeouts.medium });
 
                 await PuppeteerHelpers.screenshot(page, 'session-expired-redirect');
                 console.log('✅ Redirection session expirée fonctionnelle');

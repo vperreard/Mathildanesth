@@ -108,7 +108,7 @@ describe('BlocPlanningCalendar', () => {
                     json: async () => mockRooms
                 } as Response);
             }
-            if (url.toString().includes('/api/surgeons')) {
+            if (url.toString().includes('/api/chirurgiens')) {
                 return Promise.resolve({
                     ok: true,
                     json: async () => mockSurgeons
@@ -136,7 +136,7 @@ describe('BlocPlanningCalendar', () => {
 
             await waitFor(() => {
                 expect(mockFetch).toHaveBeenCalledWith('/api/operating-rooms');
-                expect(mockFetch).toHaveBeenCalledWith('/api/surgeons');
+                expect(mockFetch).toHaveBeenCalledWith('/api/chirurgiens');
                 expect(mockFetch).toHaveBeenCalledWith(
                     expect.stringContaining('2025-01-15')
                 );
@@ -507,7 +507,7 @@ describe('BlocPlanningCalendar', () => {
         it('should check surgeon availability', async () => {
             // Mock surgeon already assigned elsewhere
             mockFetch.mockImplementation((url) => {
-                if (url.toString().includes('/api/surgeons/surgeon-1/availability')) {
+                if (url.toString().includes('/api/chirurgiens/surgeon-1/availability')) {
                     return Promise.resolve({
                         ok: true,
                         json: async () => ({ available: false })

@@ -6,7 +6,7 @@ import { CalendarFiltersComponent } from './CalendarFilters';
 import { CalendarLegend } from './CalendarLegend';
 import { CalendarExport } from './CalendarExport';
 import { AnyCalendarEvent, CalendarEventType, CalendarViewType } from '../types/event';
-import { useCalendarStore } from '../store/calendarStore';
+import { useCalendarStore } from '../store/calendrierStore';
 import { CalendarHeader } from './ui/CalendarHeader';
 import { EventDetailModal } from './events/EventDetailModal';
 import { useRouter } from 'next/navigation';

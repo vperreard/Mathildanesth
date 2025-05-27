@@ -76,7 +76,7 @@ class HolidayService {
 
         try {
             // Récupérer les données depuis l'API
-            const response = await apiClient.get('/api/holidays', {
+            const response = await apiClient.get('/api/jours-feries', {
                 params: { startDate, endDate }
             });
 

@@ -75,6 +75,10 @@ export function useServiceWorker() {
 
     // Enregistrement du service worker
     const registerServiceWorker = useCallback(async () => {
+        // TEMPORAIRE: Désactiver le service worker pour résoudre les problèmes de connexion
+        console.log('[SW] Service Worker temporairement désactivé');
+        return;
+        
         if (!('serviceWorker' in navigator)) {
             setState(prev => ({
                 ...prev,

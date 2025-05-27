@@ -54,7 +54,7 @@ export default function PerformanceDashboardClient() {
 
     const fetchPerformanceMetrics = async () => {
         try {
-            const response = await fetch('/api/monitoring/metrics');
+            const response = await fetch('/api/monitoring/metrics?dashboard=true');
             if (response.ok) {
                 const data = await response.json();
                 setPerformanceMetrics(data.metrics || []);
@@ -333,10 +333,10 @@ export default function PerformanceDashboardClient() {
                         <CardContent>
                             <div className="space-y-4">
                                 {[
-                                    { endpoint: '/api/auth/login', avg: 45, p95: 120, requests: 1240 },
-                                    { endpoint: '/api/leaves', avg: 67, p95: 180, requests: 3421 },
+                                    { endpoint: '/api/auth/connexion', avg: 45, p95: 120, requests: 1240 },
+                                    { endpoint: '/api/conges', avg: 67, p95: 180, requests: 3421 },
                                     { endpoint: '/api/planning/bloc-operatoire', avg: 234, p95: 450, requests: 876 },
-                                    { endpoint: '/api/users', avg: 34, p95: 89, requests: 5643 },
+                                    { endpoint: '/api/utilisateurs', avg: 34, p95: 89, requests: 5643 },
                                     { endpoint: '/api/operating-rooms', avg: 56, p95: 134, requests: 2341 },
                                 ].map((api) => (
                                     <div key={api.endpoint} className="space-y-2">

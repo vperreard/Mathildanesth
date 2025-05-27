@@ -12,7 +12,7 @@ import {
     Tooltip,
     Legend,
 } from 'chart.js';
-import { Leave, LeaveType, LeaveBalance } from '../../leaves/types/leave';
+import { Leave, LeaveType, LeaveBalance } from '../../conges/types/leave';
 import { format, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths, addMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button, Card, Col, DatePicker, Row, Select, Table, Tabs, Typography } from 'antd';

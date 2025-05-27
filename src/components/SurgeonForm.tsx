@@ -99,7 +99,7 @@ export default function SurgeonForm({
         const fetchUsers = async () => {
             setLoadingUsers(true);
             try {
-                const response = await axios.get<LinkableUser[]>('/api/users/linkable');
+                const response = await axios.get<LinkableUser[]>('/api/utilisateurs/linkable');
                 setLinkableUsers(response.data);
             } catch (err) {
                 console.error("Erreur fetch linkable users:", err);

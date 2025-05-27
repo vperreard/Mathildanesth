@@ -15,6 +15,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useAppearance } from '@/hooks/useAppearance';
 import { NotificationBell } from './notifications/NotificationBell';
 import { RuleNotificationBell } from './rules/RuleNotificationBell';
+import { UniversalSearch } from './UniversalSearch';
 
 const fadeIn = {
     hidden: { opacity: 0, y: -10 },
@@ -116,6 +117,11 @@ const Header = memo(function Header() {
                                 role="region"
                                 aria-label="Profil utilisateur et options"
                             >
+                                {/* Universal Search */}
+                                {user && (
+                                    <UniversalSearch />
+                                )}
+                                
                                 <ThemeSwitcher />
                                 
                                 {/* Notification de règles pour les admins */}

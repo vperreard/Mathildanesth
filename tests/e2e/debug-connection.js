@@ -67,10 +67,10 @@ async function testConnection() {
         });
         console.log('   ✅ Screenshot sauvegardé: ./tests/e2e/screenshots/debug-home.png');
 
-        // 8. Essayer de naviguer vers /auth/login
-        console.log('\n7. Navigation vers /auth/login...');
+        // 8. Essayer de naviguer vers /auth/connexion
+        console.log('\n7. Navigation vers /auth/connexion...');
         try {
-            await page.goto('http://localhost:3000/auth/login', {
+            await page.goto('http://localhost:3000/auth/connexion', {
                 waitUntil: 'networkidle0',
                 timeout: 30000
             });

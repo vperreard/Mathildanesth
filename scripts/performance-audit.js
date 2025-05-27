@@ -25,15 +25,15 @@ const config = {
         { path: '/', name: 'home', description: 'Page d\'accueil' },
         { path: '/login', name: 'login', description: 'Page de connexion' },
         { path: '/dashboard', name: 'dashboard', description: 'Tableau de bord' },
-        { path: '/leaves', name: 'leaves', description: 'Gestion des congés' },
+        { path: '/conges', name: 'leaves', description: 'Gestion des congés' },
         { path: '/planning', name: 'planning', description: 'Planning' }
     ],
 
     // APIs critiques à tester
     apis: [
         { path: '/api/auth/session', name: 'auth-session', description: 'Session utilisateur' },
-        { path: '/api/leaves/balance', name: 'leaves-balance', description: 'Solde des congés' },
-        { path: '/api/users/me', name: 'user-profile', description: 'Profil utilisateur' }
+        { path: '/api/conges/balance', name: 'leaves-balance', description: 'Solde des congés' },
+        { path: '/api/utilisateurs/me', name: 'user-profile', description: 'Profil utilisateur' }
     ],
 
     // Seuils de performance
@@ -132,7 +132,7 @@ class PerformanceAuditor {
             { name: 'Accueil', url: '/' },
             { name: 'Login', url: '/login' },
             { name: 'Dashboard', url: '/dashboard' },
-            { name: 'Congés', url: '/leaves' },
+            { name: 'Congés', url: '/conges' },
             { name: 'Planning', url: '/planning' }
         ];
 
@@ -190,9 +190,9 @@ class PerformanceAuditor {
 
         const criticalApis = [
             { name: 'Auth', endpoint: '/api/auth/me', method: 'GET' },
-            { name: 'Leaves Balance', endpoint: '/api/leaves/balance', method: 'GET' },
-            { name: 'Users List', endpoint: '/api/users', method: 'GET' },
-            { name: 'Leave Creation', endpoint: '/api/leaves/batch', method: 'POST' }
+            { name: 'Leaves Balance', endpoint: '/api/conges/balance', method: 'GET' },
+            { name: 'Users List', endpoint: '/api/utilisateurs', method: 'GET' },
+            { name: 'Leave Creation', endpoint: '/api/conges/batch', method: 'POST' }
         ];
 
         for (const api of criticalApis) {

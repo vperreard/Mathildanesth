@@ -93,7 +93,7 @@ describe('LeaveReportApi', () => {
 
             // Assert
             expect(axios.get).toHaveBeenCalledWith(
-                '/api/leaves/reports/leave_usage',
+                '/api/conges/reports/leave_usage',
                 expect.objectContaining({
                     headers: expect.any(Object),
                     params: expect.objectContaining({
@@ -224,7 +224,7 @@ describe('LeaveReportApi', () => {
 
             // Assert
             expect(axios.post).toHaveBeenCalledWith(
-                '/api/leaves/reports/custom',
+                '/api/conges/reports/custom',
                 customQuery,
                 expect.any(Object)
             );
@@ -253,7 +253,7 @@ describe('LeaveReportApi', () => {
 
             // Assert
             expect(axios.post).toHaveBeenCalledWith(
-                `/api/leaves/reports/leave_usage/export`,
+                `/api/conges/reports/leave_usage/export`,
                 expect.objectContaining({
                     filters: {
                         ...mockFilters,
@@ -283,7 +283,7 @@ describe('LeaveReportApi', () => {
 
             // Assert
             expect(axios.get).toHaveBeenCalledWith(
-                `/api/leaves/reports/export/${taskId}/status`,
+                `/api/conges/reports/export/${taskId}/status`,
                 expect.any(Object) // headers
             );
             expect(status).toEqual(mockStatus);
@@ -308,7 +308,7 @@ describe('LeaveReportApi', () => {
 
             // Assert
             expect(axios.get).toHaveBeenCalledWith(
-                '/api/leaves/reports/export/export-task-1/download',
+                '/api/conges/reports/export/export-task-1/download',
                 expect.objectContaining({
                     responseType: 'blob'
                 })

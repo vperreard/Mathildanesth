@@ -53,7 +53,7 @@ Pour isoler les tests des données de production, nous utilisons une base de don
 // cypress/e2e/login.spec.ts
 describe('Page de connexion', () => {
   it('connecte l\'utilisateur avec des identifiants valides', () => {
-    cy.visit('/auth/login');
+    cy.visit('/auth/connexion');
     cy.get('[data-cy=email-input]').type('utilisateur.test@example.com');
     cy.get('[data-cy=password-input]').type('mot_de_passe_test');
     cy.get('[data-cy=login-button]').click();

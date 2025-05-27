@@ -166,7 +166,7 @@ const QuotaTransferService = {
      * @returns Liste des règles de transfert
      */
     getTransferRules: async (): Promise<TransferRule[]> => {
-        const response = await apiClient.get('/api/leaves/quota-transfers/rules');
+        const response = await apiClient.get('/api/conges/quota-transfers/rules');
         return response.data;
     },
 
@@ -176,7 +176,7 @@ const QuotaTransferService = {
      * @returns Liste des règles de transfert disponibles
      */
     getTransferRulesForSourceType: async (sourceType: LeaveType): Promise<TransferRule[]> => {
-        const response = await apiClient.get(`/api/leaves/quota-transfers/rules/${sourceType}`);
+        const response = await apiClient.get(`/api/conges/quota-transfers/rules/${sourceType}`);
         return response.data;
     },
 
@@ -187,7 +187,7 @@ const QuotaTransferService = {
      */
     executeTransfer: async (transferRequest: TransferRequest): Promise<TransferResult> => {
         try {
-            const response = await apiClient.post('/api/leaves/quota-transfers/execute', transferRequest);
+            const response = await apiClient.post('/api/conges/quota-transfers/execute', transferRequest);
             return response.data;
         } catch (error: any) {
             return {
@@ -204,7 +204,7 @@ const QuotaTransferService = {
      */
     simulateTransfer: async (transferRequest: TransferRequest): Promise<TransferResult> => {
         try {
-            const response = await apiClient.post('/api/leaves/quota-transfers/simulate', transferRequest);
+            const response = await apiClient.post('/api/conges/quota-transfers/simulate', transferRequest);
             return response.data;
         } catch (error: any) {
             return {
@@ -222,7 +222,7 @@ const QuotaTransferService = {
      */
     getTransferHistory: async (userId: string, year?: number): Promise<TransferHistory[]> => {
         const params = year ? { year } : {};
-        const response = await apiClient.get(`/api/leaves/quota-transfers/history/${userId}`, { params });
+        const response = await apiClient.get(`/api/conges/quota-transfers/history/${userId}`, { params });
         return response.data;
     },
 

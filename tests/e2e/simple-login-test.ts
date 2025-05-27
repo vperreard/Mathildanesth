@@ -12,7 +12,7 @@ import puppeteer from 'puppeteer';
     
     try {
         console.log('Navigation vers la page de login...');
-        await page.goto('http://localhost:3000/auth/login', { waitUntil: 'networkidle0' });
+        await page.goto('http://localhost:3000/auth/connexion', { waitUntil: 'networkidle0' });
         
         console.log('Attente du formulaire...');
         await page.waitForSelector('input[name="login"]', { timeout: 10000 });
@@ -30,7 +30,7 @@ import puppeteer from 'puppeteer';
         console.log('URL après login:', page.url());
         
         // Vérifier qu'on est bien connecté
-        const isHomePage = page.url().includes('localhost:3000') && !page.url().includes('/auth/login');
+        const isHomePage = page.url().includes('localhost:3000') && !page.url().includes('/auth/connexion');
         console.log('Login réussi:', isHomePage);
         
         if (isHomePage) {

@@ -76,7 +76,7 @@ export default function SpecialtyManager() {
     useEffect(() => {
         const fetchSurgeons = async () => {
             try {
-                const response = await axios.get<Surgeon[]>('/api/surgeons');
+                const response = await axios.get<Surgeon[]>('/api/chirurgiens');
                 setSurgeons(response.data);
             } catch (err: any) {
                 console.error('Fetch surgeons error:', err);

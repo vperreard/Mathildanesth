@@ -11,7 +11,7 @@ import {
     expectNotToBeInDocument
 } from '@/tests/utils/assertions';
 
-// Mock de l'API /api/leaves/balance
+// Mock de l'API /api/conges/balance
 // global.fetch = jest.fn();
 
 // Mock d'axios
@@ -88,7 +88,7 @@ describe('UserLeaveBalance Component', () => {
         expectToBeInDocument(screen.getByText('En attente de validation:'));
         expectToBeInDocument(screen.getByText('1 j'));
 
-        expectToHaveBeenCalledWith(mockedAxios.get, '/api/leaves/balance', {
+        expectToHaveBeenCalledWith(mockedAxios.get, '/api/conges/balance', {
             params: { userId: 123, year: anyValue(Number) }
         });
     });

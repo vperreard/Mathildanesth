@@ -34,9 +34,9 @@ src/
 ### 1. Tests Unitaires (Target: 80% de couverture)
 
 **Modules Prioritaires :**
-- `src/modules/leaves/services/` (calculs critiques)
+- `src/modules/conges/services/` (calculs critiques)
 - `src/lib/auth.ts` (sécurité JWT)
-- `src/modules/leaves/hooks/` (logique métier)
+- `src/modules/conges/hooks/` (logique métier)
 
 **Standards :**
 ```typescript
@@ -81,7 +81,7 @@ describe('Leave Request Workflow', () => {
     const leaveType = await createTestLeaveType();
     
     const response = await request(app)
-      .post('/api/leaves/batch')
+      .post('/api/conges/batch')
       .set('Authorization', `Bearer ${user.token}`)
       .send({
         userId: user.id,
@@ -114,7 +114,7 @@ describe('Performance Tests', () => {
     const startTime = Date.now();
     
     await request(app)
-      .get('/api/leaves/balance')
+      .get('/api/conges/balance')
       .set('Authorization', `Bearer ${validToken}`);
       
     const duration = Date.now() - startTime;
@@ -134,7 +134,7 @@ module.exports = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/src/tests/setup/jest.setup.js'],
   collectCoverageFrom: [
-    'src/modules/leaves/**/*.{js,ts,tsx}',
+    'src/modules/conges/**/*.{js,ts,tsx}',
     'src/lib/auth*.{js,ts}',
     '!src/**/*.d.ts',
     '!src/**/node_modules/**',
@@ -146,7 +146,7 @@ module.exports = {
       lines: 80,
       statements: 80
     },
-    './src/modules/leaves/': {
+    './src/modules/conges/': {
       branches: 80,
       functions: 85,
       lines: 85,
@@ -410,7 +410,7 @@ npm run performance:audit
 |--------|------------------|-----------------|
 | leaves/services | 85% | Calculs, quotas |
 | auth | 90% | JWT, permissions |
-| components/leaves | 75% | Interactions UI |
+| components/conges | 75% | Interactions UI |
 
 ### Monitoring Continu
 

@@ -11,7 +11,7 @@
       "min": 55,
       "max": 106
     },
-    "/api/leaves": {
+    "/api/conges": {
       "average": "115.00",
       "min": 62,
       "max": 147
@@ -21,7 +21,7 @@
       "min": 92,
       "max": 112
     },
-    "/api/users": {
+    "/api/utilisateurs": {
       "average": "121.80",
       "min": 100,
       "max": 146

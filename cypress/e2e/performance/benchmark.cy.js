@@ -31,9 +31,9 @@ describe('Benchmark de performances', () => {
         const pages = [
             '/',
             '/utilisateurs',
-            '/calendar',
+            '/calendrier',
             '/planning/hebdomadaire',
-            '/leaves',
+            '/conges',
             '/parametres'
         ];
 
@@ -86,8 +86,8 @@ describe('Benchmark de performances', () => {
     it('Mesure les temps de réponse des API principales', () => {
         // Test des principales API
         const apiEndpoints = [
-            '/api/users',
-            '/api/leaves/types',
+            '/api/utilisateurs',
+            '/api/conges/types',
             '/api/planning',
             '/api/skills',
             '/api/notifications/preferences'

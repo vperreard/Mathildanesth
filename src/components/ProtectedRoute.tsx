@@ -20,8 +20,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
         // Uniquement agir quand le chargement initial est terminé
         if (!isLoading) {
             if (!user) {
-                console.log('ProtectedRoute Effect: User NULL et !isLoading -> Redirection vers /auth/login');
-                router.replace('/auth/login'); // CORRIGÉ: Rediriger vers la bonne page
+                console.log('ProtectedRoute Effect: User NULL et !isLoading -> Redirection vers /auth/connexion');
+                router.replace('/auth/connexion'); // CORRIGÉ: Rediriger vers la bonne page
             }
             // Si l'utilisateur est chargé et que des rôles spécifiques sont requis
             else if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {

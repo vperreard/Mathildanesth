@@ -131,7 +131,7 @@ function UserCardContainer({ userId }: { userId: string }) {
   if (loading) return <Skeleton />;
   if (!data) return <ErrorState />;
   
-  const handleEdit = (id: string) => navigate(`/users/${id}/edit`);
+  const handleEdit = (id: string) => navigate(`/utilisateurs/${id}/edit`);
   
   return <UserCard user={data} onEdit={handleEdit} />;
 }

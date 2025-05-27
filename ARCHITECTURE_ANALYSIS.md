@@ -3,8 +3,8 @@
 ## 1. Complete Pages Map
 
 ### Authentication & Access
-- `/login` → Redirects to `/auth/login`
-- `/auth/login` → Main login page (uses OptimizedLoginPage component)
+- `/login` → Redirects to `/auth/connexion`
+- `/auth/connexion` → Main login page (uses OptimizedLoginPage component)
   - **Duplicate**: Two login routes exist
 
 ### Main Application Pages
@@ -36,17 +36,17 @@
   - **Major Issue**: Complete duplication of bloc operatoire features
 
 #### Leave Management
-- `/leaves` → Main leave management page
-- `/leaves/new` → Create new leave request
-- `/leaves/quotas` → Quota management
-- `/leaves/quotas/advanced` → Advanced quota features
-- `/leaves/recurring` → Recurring leaves
-- `/admin/leaves` → Admin leave management
-- `/admin/leaves/analytics` → Leave analytics
+- `/conges` → Main leave management page
+- `/conges/nouveau` → Create new leave request
+- `/conges/quotas` → Quota management
+- `/conges/quotas/avances` → Advanced quota features
+- `/conges/recurrents` → Recurring leaves
+- `/admin/conges` → Admin leave management
+- `/admin/conges/analytics` → Leave analytics
 
 #### Calendar
-- `/calendar` → Main calendar view
-- `/calendar/settings` → Calendar settings
+- `/calendrier` → Main calendar view
+- `/calendrier/parametres` → Calendar settings
 
 #### Consultations
 - `/consultations` → Consultation management
@@ -75,12 +75,12 @@
 - `/parametres/configuration/fatigue` → Fatigue settings
 
 #### Admin Section
-- `/admin/holidays` → Holiday management
+- `/admin/jours-feries` → Holiday management
 - `/admin/performance` → Performance dashboard
 - `/admin/planning-rules` → Planning rules
 - `/admin/planning-rules/dashboard` → Rules dashboard
-- `/admin/settings` → Admin settings
-- `/admin/settings/conflict-rules` → Conflict rules
+- `/admin/parametres` → Admin settings
+- `/admin/parametres/conflict-rules` → Conflict rules
 - `/admin/skills` → Skills management
 - `/admin/site-assignments` → Site assignments
 - `/admin/team-configurations` → Team configurations
@@ -96,17 +96,17 @@
 
 #### Simulation Module
 - `/admin/simulations` → Simulation list
-- `/admin/simulations/new` → Create simulation
+- `/admin/simulations/nouveau` → Create simulation
 - `/admin/simulations/compare` → Compare simulations
 - `/admin/simulations/performance` → Performance analysis
 - `/admin/simulations/visualizations` → Basic visualizations
-- `/admin/simulations/advanced-visualizations` → Advanced viz
+- `/admin/simulations/avances-visualizations` → Advanced viz
 - `/admin/simulations/templates` → Simulation templates
 - Multiple nested pages for scenarios and results
 
 #### Other Pages
 - `/notifications` → Notifications center
-- `/quota-management` → Quota management (duplicate of `/leaves/quotas`?)
+- `/quota-management` → Quota management (duplicate of `/conges/quotas`?)
 - `/documentation` → Documentation viewer
 - `/diagnostic` → Diagnostic page
 - `/demo` → Demo page
@@ -115,21 +115,21 @@
 ## 2. Major Issues Identified
 
 ### Duplicated Pages
-1. **Login Pages**: `/login` and `/auth/login`
+1. **Login Pages**: `/login` and `/auth/connexion`
 2. **Bloc Opératoire**: Complete duplication between `/bloc-operatoire/*` and `/admin/bloc-operatoire/*`
 3. **Requests**: Three different request pages (`/requetes`, `/admin/requetes`, `/parametres/requetes`)
-4. **Quotas**: `/quota-management` and `/leaves/quotas`
+4. **Quotas**: `/quota-management` and `/conges/quotas`
 5. **Trames/Templates**: Multiple template pages (`/admin/trames`, `/parametres/trames`, `/bloc-operatoire/trames`)
 
 ### Overlapping Functionalities
 1. **Planning**: Multiple planning interfaces without clear distinction
 2. **User Management**: Split between `/utilisateurs` and various admin pages
-3. **Settings**: Scattered across `/parametres/*` and `/admin/settings/*`
+3. **Settings**: Scattered across `/parametres/*` and `/admin/parametres/*`
 4. **Rules Management**: Planning rules, schedule rules, supervision rules in different places
 
 ### Routing Inconsistencies
 1. Some features under `/admin`, others directly accessible
-2. Mixing French and English routes (`/requetes` vs `/requests` in API)
+2. Mixing French and English routes (`/requetes` vs `/demandes` in API)
 3. Inconsistent nesting (some features deeply nested, others at root)
 
 ### Old vs New Implementations

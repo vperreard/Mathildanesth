@@ -19,7 +19,7 @@ describe('Validation des règles métier', () => {
 
     describe('Règles de gestion des congés', () => {
         beforeEach(() => {
-            cy.visitAsAuthenticatedUser('/leaves');
+            cy.visitAsAuthenticatedUser('/conges');
         });
 
         it('valide la règle de préavis minimum pour les congés', () => {
@@ -222,7 +222,7 @@ describe('Validation des règles métier', () => {
     describe('Règles de cohérence globale', () => {
         it('valide la cohérence entre congés et affectations', () => {
             // Créer un congé pour un chirurgien
-            cy.visitAsAuthenticatedUser('/leaves');
+            cy.visitAsAuthenticatedUser('/conges');
             cy.get('[data-testid=create-leave-button]').click();
             cy.get('[data-testid=user-select]').select('Dr Dupont');
             cy.get('[data-testid=leave-type-select]').select('Congé annuel');

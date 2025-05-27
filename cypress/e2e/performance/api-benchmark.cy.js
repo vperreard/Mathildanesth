@@ -5,8 +5,8 @@ describe('Benchmark des API', () => {
     it('Mesure les temps de réponse des principales API', () => {
         // Définir les API à tester
         const apiEndpoints = [
-            '/api/users',
-            '/api/leaves/types',
+            '/api/utilisateurs',
+            '/api/conges/types',
             '/api/planning',
             '/api/skills',
             '/api/notifications/preferences',

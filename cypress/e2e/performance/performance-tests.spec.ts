@@ -22,13 +22,13 @@ describe('Tests de performance', () => {
     });
 
     it('évalue les performances de la page de congés', () => {
-        cy.visitAsAuthenticatedUser('/leaves');
+        cy.visitAsAuthenticatedUser('/conges');
         // cy.lighthouse(); // Commenté temporairement
         cy.log("Lighthouse test skipped");
     });
 
     it('évalue les performances du calendrier', () => {
-        cy.visitAsAuthenticatedUser('/calendar');
+        cy.visitAsAuthenticatedUser('/calendrier');
         // cy.lighthouse(); // Commenté temporairement
         cy.log("Lighthouse test skipped");
     });

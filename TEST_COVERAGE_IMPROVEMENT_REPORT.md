@@ -126,7 +126,7 @@ Après : 🟢 50% | 🟡 35% | 🔴 15%
 **Mission accomplie !** La couverture de tests a été significativement améliorée :
 - ✅ +400% tests E2E admin
 - ✅ +75% services testés
-- ✅ 100% auth/users API couverts
+- ✅ 100% auth/utilisateurs API couverts
 - ✅ Workflows critiques sécurisés
 
 L'application est maintenant **beaucoup plus fiable** avec une base solide de tests automatisés. Les modules critiques (auth, users, leaves) sont production-ready avec une excellente couverture.

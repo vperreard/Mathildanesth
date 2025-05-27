@@ -1,12 +1,12 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { renderHook, act } from '@testing-library/react';
 import { useCalendarCache } from '../useCalendarCache';
-import { calendarCache } from '../../services/calendarCache';
-import { calendarService } from '../../services/calendarService';
+import { calendarCache } from '../../services/calendrierCache';
+import { calendarService } from '../../services/calendrierService';
 import { CalendarEventType, CalendarFilters } from '../../types/event';
 
 // Mock des dépendances avec plus de flexibilité
-jest.mock('../../services/calendarCache', () => ({
+jest.mock('../../services/calendrierCache', () => ({
     calendarCache: {
         getCachedEvents: jest.fn((filters) => {
             // Accepte à la fois une chaîne JSON et un objet
@@ -22,7 +22,7 @@ jest.mock('../../services/calendarCache', () => ({
     },
 }));
 
-jest.mock('../../services/calendarService', () => ({
+jest.mock('../../services/calendrierService', () => ({
     calendarService: {
         getEvents: jest.fn((filters) => {
             // Garantit que l'objet filtre est bien utilisé, pas la chaîne

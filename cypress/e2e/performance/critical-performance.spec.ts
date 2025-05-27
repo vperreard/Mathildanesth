@@ -23,10 +23,10 @@ describe('Tests de Performance Critiques', () => {
         });
 
         it('devrait charger la liste des utilisateurs rapidement même avec beaucoup de données', () => {
-            cy.intercept('GET', '/api/users*', { fixture: 'large-users-dataset.json' }).as('getUsers');
+            cy.intercept('GET', '/api/utilisateurs*', { fixture: 'large-users-dataset.json' }).as('getUsers');
             
             const startTime = Date.now();
-            cy.visit('/admin/users');
+            cy.visit('/admin/utilisateurs');
             
             cy.wait('@getUsers');
             cy.get('[data-testid="users-table"]').should('be.visible');
@@ -56,12 +56,12 @@ describe('Tests de Performance Critiques', () => {
 
     describe('Performance des API critiques', () => {
         it('devrait répondre rapidement aux requêtes de recherche d\'utilisateurs', () => {
-            cy.visit('/admin/users');
+            cy.visit('/admin/utilisateurs');
             
             // Mesurer le temps de réponse de la recherche
             cy.get('[data-testid="search-input"]').type('dupont');
             
-            cy.intercept('GET', '/api/users/search*').as('searchUsers');
+            cy.intercept('GET', '/api/utilisateurs/search*').as('searchUsers');
             cy.wait('@searchUsers').then((interception) => {
                 expect(interception.reply.delay || 0).to.be.lessThan(500);
             });
@@ -89,7 +89,7 @@ describe('Tests de Performance Critiques', () => {
         });
 
         it('devrait traiter les demandes de congés en masse rapidement', () => {
-            cy.visit('/admin/leaves');
+            cy.visit('/admin/conges');
             
             // Sélectionner plusieurs demandes
             cy.get('[data-testid="select-all-pending"]').check();
@@ -132,7 +132,7 @@ describe('Tests de Performance Critiques', () => {
         });
 
         it('devrait gérer le tri de grandes listes sans lag', () => {
-            cy.visit('/admin/users');
+            cy.visit('/admin/utilisateurs');
             
             // Trier une grande liste
             const startTime = Date.now();
@@ -150,7 +150,7 @@ describe('Tests de Performance Critiques', () => {
 
     describe('Performance des filtres et recherches', () => {
         it('devrait filtrer les données instantanément', () => {
-            cy.visit('/admin/leaves');
+            cy.visit('/admin/conges');
             
             // Test de filtre en temps réel
             cy.get('[data-testid="status-filter"]').select('PENDING');
@@ -193,7 +193,7 @@ describe('Tests de Performance Critiques', () => {
         });
 
         it('devrait exporter des données volumineuses en CSV rapidement', () => {
-            cy.visit('/admin/users');
+            cy.visit('/admin/utilisateurs');
             
             const startTime = Date.now();
             cy.get('[data-testid="export-all-csv"]').click();
@@ -212,8 +212,8 @@ describe('Tests de Performance Critiques', () => {
         it('devrait naviguer entre les pages sans délai perceptible', () => {
             const pages = [
                 '/admin/dashboard',
-                '/admin/users',
-                '/admin/leaves',
+                '/admin/utilisateurs',
+                '/admin/conges',
                 '/admin/planning',
                 '/admin/sites'
             ];
@@ -235,7 +235,7 @@ describe('Tests de Performance Critiques', () => {
         it('devrait gérer le cache du routeur efficacement', () => {
             // Première visite
             const startTime1 = Date.now();
-            cy.visit('/admin/users');
+            cy.visit('/admin/utilisateurs');
             cy.get('[data-testid="users-table"]').should('be.visible');
             
             cy.then(() => {
@@ -247,7 +247,7 @@ describe('Tests de Performance Critiques', () => {
                 
                 // Retour à la page utilisateurs (doit être plus rapide)
                 const startTime2 = Date.now();
-                cy.visit('/admin/users');
+                cy.visit('/admin/utilisateurs');
                 cy.get('[data-testid="users-table"]').should('be.visible');
                 
                 cy.then(() => {
@@ -303,7 +303,7 @@ describe('Tests de Performance Critiques', () => {
     describe('Performance mémoire', () => {
         it('ne devrait pas avoir de fuites mémoire lors de navigation intensive', () => {
             // Test de navigation répétée pour détecter les fuites
-            const pages = ['/admin/users', '/admin/leaves', '/admin/planning'];
+            const pages = ['/admin/utilisateurs', '/admin/conges', '/admin/planning'];
             
             // Navigation répétée
             for (let i = 0; i < 5; i++) {
@@ -316,7 +316,7 @@ describe('Tests de Performance Critiques', () => {
             
             // Vérifier que la performance ne se dégrade pas
             const finalStartTime = Date.now();
-            cy.visit('/admin/users');
+            cy.visit('/admin/utilisateurs');
             cy.get('[data-testid="users-table"]').should('be.visible');
             
             cy.then(() => {

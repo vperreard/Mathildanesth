@@ -32,7 +32,7 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`/api/users/${userId}/sites`);
+            const response = await fetch(`/api/utilisateurs/${userId}/sites`);
 
             if (!response.ok) {
                 throw new Error('Erreur lors de la récupération des sites');
@@ -56,7 +56,7 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`/api/users/${userId}/sites`, {
+            const response = await fetch(`/api/utilisateurs/${userId}/sites`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`/api/users/${userId}/sites`, {
+            const response = await fetch(`/api/utilisateurs/${userId}/sites`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -153,7 +153,7 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`/api/surgeons/${surgeonId}/sites`);
+            const response = await fetch(`/api/chirurgiens/${surgeonId}/sites`);
 
             if (!response.ok) {
                 throw new Error('Erreur lors de la récupération des sites');
@@ -177,7 +177,7 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`/api/surgeons/${surgeonId}/sites`, {
+            const response = await fetch(`/api/chirurgiens/${surgeonId}/sites`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`/api/surgeons/${surgeonId}/sites`, {
+            const response = await fetch(`/api/chirurgiens/${surgeonId}/sites`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -243,7 +243,7 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`/api/surgeons/${surgeonId}/sites`, {
+            const response = await fetch(`/api/chirurgiens/${surgeonId}/sites`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

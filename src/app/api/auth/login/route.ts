@@ -61,8 +61,6 @@ export async function POST(req: NextRequest) {
             role: user.role
         });
 
-        await setAuthTokenServer(token);
-
         // Exclure le mot de passe de la réponse
         const { password: _, ...userWithoutPassword } = user;
 
@@ -71,10 +69,22 @@ export async function POST(req: NextRequest) {
             console.log(`[Auth] Login successful for ${user.login} in ${Date.now() - startTime}ms`);
         }
 
-        return NextResponse.json({
+        // Créer la réponse avec le cookie
+        const response = NextResponse.json({
             user: userWithoutPassword,
             token: token
         });
+
+        // Définir le cookie d'authentification
+        response.cookies.set('auth_token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60, // 24 heures
+            path: '/',
+        });
+
+        return response;
     } catch (error) {
         console.error('API LOGIN ERROR:', error);
         return NextResponse.json(

@@ -2,7 +2,7 @@ import { Page } from 'puppeteer';
 import { testConfig } from '../config/test-config';
 
 export async function loginAs(page: Page, user: { email: string; password: string }) {
-  await page.goto(`${testConfig.baseUrl}/auth/login`);
+  await page.goto(`${testConfig.baseUrl}/auth/connexion`);
   await page.waitForSelector('[data-testid="email-input"]');
   
   await page.type('[data-testid="email-input"]', user.email);
@@ -14,7 +14,7 @@ export async function loginAs(page: Page, user: { email: string; password: strin
   
   // Verify login succeeded
   const url = page.url();
-  if (url.includes('/auth/login')) {
+  if (url.includes('/auth/connexion')) {
     throw new Error(`Login failed for user: ${user.email}`);
   }
 }

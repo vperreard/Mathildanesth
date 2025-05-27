@@ -37,7 +37,7 @@ describe('Workflow Calendrier E2E', () => {
         test('Accès et chargement de la vue calendrier', async () => {
             try {
                 // Navigation vers le calendrier
-                await page.goto(`${config.urls.base}/calendar`, {
+                await page.goto(`${config.urls.base}/calendrier`, {
                     waitUntil: 'networkidle2'
                 });
 
@@ -65,7 +65,7 @@ describe('Workflow Calendrier E2E', () => {
 
         test('Navigation entre les mois', async () => {
             try {
-                await page.goto(`${config.urls.base}/calendar`);
+                await page.goto(`${config.urls.base}/calendrier`);
                 await page.waitForSelector('[data-testid="calendar-grid"], .calendar-grid');
 
                 // Capturer le mois actuel
@@ -98,7 +98,7 @@ describe('Workflow Calendrier E2E', () => {
 
         test('Changement de vue (mois/semaine/jour)', async () => {
             try {
-                await page.goto(`${config.urls.base}/calendar`);
+                await page.goto(`${config.urls.base}/calendrier`);
 
                 // Test vue semaine
                 const weekButton = await page.$('[data-testid="view-week"], .fc-timeGridWeek-button, button:has-text("Semaine")');
@@ -140,7 +140,7 @@ describe('Workflow Calendrier E2E', () => {
     describe('🎯 Interactions avec les Événements', () => {
         test('Affichage des événements du calendrier', async () => {
             try {
-                await page.goto(`${config.urls.base}/calendar`);
+                await page.goto(`${config.urls.base}/calendrier`);
                 await page.waitForSelector('[data-testid="calendar-grid"], .calendar-grid');
 
                 // Attendre le chargement des événements
@@ -176,7 +176,7 @@ describe('Workflow Calendrier E2E', () => {
 
         test('Filtrage des événements par type', async () => {
             try {
-                await page.goto(`${config.urls.base}/calendar`);
+                await page.goto(`${config.urls.base}/calendrier`);
 
                 // Chercher les filtres
                 const filterButton = await page.$('[data-testid="calendar-filters"], button:has-text("Filtres")');
@@ -208,7 +208,7 @@ describe('Workflow Calendrier E2E', () => {
                 // Définir viewport mobile
                 await page.setViewport({ width: 375, height: 667 });
                 
-                await page.goto(`${config.urls.base}/calendar`);
+                await page.goto(`${config.urls.base}/calendrier`);
                 await page.waitForSelector('[data-testid="calendar-grid"], .calendar-grid');
 
                 // Vérifier l'adaptation mobile
@@ -225,7 +225,7 @@ describe('Workflow Calendrier E2E', () => {
 
         test('Navigation clavier dans le calendrier', async () => {
             try {
-                await page.goto(`${config.urls.base}/calendar`);
+                await page.goto(`${config.urls.base}/calendrier`);
                 await page.waitForSelector('[data-testid="calendar-grid"], .calendar-grid');
 
                 // Focus sur le calendrier
@@ -249,17 +249,17 @@ describe('Workflow Calendrier E2E', () => {
     describe('⚙️ Paramètres et Export', () => {
         test('Accès aux paramètres du calendrier', async () => {
             try {
-                await page.goto(`${config.urls.base}/calendar`);
+                await page.goto(`${config.urls.base}/calendrier`);
 
                 // Chercher bouton paramètres
-                const settingsButton = await page.$('[data-testid="calendar-settings"], a[href*="/calendar/settings"], button:has-text("Paramètres")');
+                const settingsButton = await page.$('[data-testid="calendar-settings"], a[href*="/calendrier/parametres"], button:has-text("Paramètres")');
                 
                 if (settingsButton) {
                     await settingsButton.click();
                     await page.waitForNavigation();
                     
                     const url = page.url();
-                    expect(url).toContain('/calendar/settings');
+                    expect(url).toContain('/calendrier/parametres');
                     
                     console.log('✅ Page paramètres calendrier accessible');
                 }
@@ -270,7 +270,7 @@ describe('Workflow Calendrier E2E', () => {
 
         test('Export du calendrier', async () => {
             try {
-                await page.goto(`${config.urls.base}/calendar`);
+                await page.goto(`${config.urls.base}/calendrier`);
 
                 // Chercher bouton export
                 const exportButton = await page.$('[data-testid="calendar-export"], button:has-text("Export")');

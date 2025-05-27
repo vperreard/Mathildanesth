@@ -23,15 +23,15 @@
 **Routes critiques sécurisées :**
 
 #### Gestion des congés
-- ✅ `POST /api/leaves/[leaveId]/approve` - ADMIN uniquement
-- ✅ `POST /api/leaves/[leaveId]/reject` - ADMIN uniquement
-- ✅ `GET /api/leaves` - Utilisateur ou ADMIN
-- ✅ `POST /api/leaves` - Utilisateur authentifié
+- ✅ `POST /api/conges/[leaveId]/approve` - ADMIN uniquement
+- ✅ `POST /api/conges/[leaveId]/reject` - ADMIN uniquement
+- ✅ `GET /api/conges` - Utilisateur ou ADMIN
+- ✅ `POST /api/conges` - Utilisateur authentifié
 
 #### Gestion des utilisateurs
-- ✅ `GET /api/users/[userId]` - Propriétaire ou ADMIN
-- ✅ `PUT /api/users/[userId]` - Propriétaire (champs limités) ou ADMIN (tous champs)
-- ✅ `DELETE /api/users/[userId]` - ADMIN_TOTAL uniquement avec soft delete
+- ✅ `GET /api/utilisateurs/[userId]` - Propriétaire ou ADMIN
+- ✅ `PUT /api/utilisateurs/[userId]` - Propriétaire (champs limités) ou ADMIN (tous champs)
+- ✅ `DELETE /api/utilisateurs/[userId]` - ADMIN_TOTAL uniquement avec soft delete
 
 #### Simulations et affectations
 - ✅ `POST /api/simulations` - ADMIN uniquement
@@ -76,11 +76,11 @@
 
 | Route | Méthode | Rôle Requis | Vérifications Supplémentaires |
 |-------|---------|-------------|--------------------------------|
-| `/api/leaves/[id]/approve` | POST | ADMIN | Statut congé valide |
-| `/api/leaves/[id]/reject` | POST | ADMIN | Raison obligatoire |
-| `/api/users/[id]` | GET | USER/ADMIN | Propriétaire ou admin |
-| `/api/users/[id]` | PUT | USER/ADMIN | Champs limités pour users |
-| `/api/users/[id]` | DELETE | ADMIN_TOTAL | Soft delete uniquement |
+| `/api/conges/[id]/approve` | POST | ADMIN | Statut congé valide |
+| `/api/conges/[id]/reject` | POST | ADMIN | Raison obligatoire |
+| `/api/utilisateurs/[id]` | GET | USER/ADMIN | Propriétaire ou admin |
+| `/api/utilisateurs/[id]` | PUT | USER/ADMIN | Champs limités pour users |
+| `/api/utilisateurs/[id]` | DELETE | ADMIN_TOTAL | Soft delete uniquement |
 | `/api/simulations` | POST | ADMIN | Validation paramètres |
 | `/api/affectation-modeles/[id]` | PUT/DELETE | ADMIN | Existence ressource |
 

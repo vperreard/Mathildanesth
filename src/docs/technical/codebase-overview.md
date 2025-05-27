@@ -2,7 +2,7 @@
 
 Le projet est organisé en modules fonctionnels:
 
-### Module de gestion des congés (`/src/modules/leaves`)
+### Module de gestion des congés (`/src/modules/conges`)
 
 Ce module gère tout ce qui concerne les congés des employés:
 
@@ -43,8 +43,8 @@ Le système a été conçu pour être facilement extensible dans plusieurs domai
 
 Les principales routes API sont:
 
-- `/api/leaves`: Gestion des demandes de congés
-- `/api/leaves/balance`: Consultation des soldes de congés
-- `/api/leaves/check-conflicts`: Vérification des conflits potentiels
+- `/api/conges`: Gestion des demandes de congés
+- `/api/conges/balance`: Consultation des soldes de congés
+- `/api/conges/check-conflicts`: Vérification des conflits potentiels
 - `/api/admin/leave-types`: Administration des types de congés
 - `/api/admin/conflict-rules`: Administration des règles de détection de conflits 

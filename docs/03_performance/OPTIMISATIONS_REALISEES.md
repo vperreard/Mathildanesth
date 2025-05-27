@@ -43,7 +43,7 @@
 **Impact**: Réduction significative des temps de réponse API
 
 ### 3. **API Utilisateurs Optimisée** (60% d'amélioration)
-**Fichier**: `src/app/api/users/route.ts`
+**Fichier**: `src/app/api/utilisateurs/route.ts`
 
 **Fonctionnalités**:
 - Endpoints multiples optimisés (GET, HEAD, OPTIONS, POST, PUT, DELETE)

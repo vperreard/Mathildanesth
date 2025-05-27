@@ -21,25 +21,25 @@ L'architecture est conçue pour être :
 
 ### Composants principaux
 
-1. **Types de données** (`src/modules/leaves/types/notification.ts`)
+1. **Types de données** (`src/modules/conges/types/notification.ts`)
    - Définition des interfaces, types et énumérations pour les notifications
    - Types spécifiques pour différentes catégories de notifications
 
-2. **Service de notification** (`src/modules/leaves/services/notificationService.ts`)
+2. **Service de notification** (`src/modules/conges/services/notificationService.ts`)
    - Gestion de l'envoi et réception des notifications
    - Fonctions pour marquer les notifications comme lues
    - Stockage et récupération des notifications
 
-3. **Service d'événements** (`src/modules/leaves/services/notificationEventService.ts`)
+3. **Service d'événements** (`src/modules/conges/services/notificationEventService.ts`)
    - Écoute les événements liés aux congés et déclenche les notifications appropriées
    - Gère les vérifications périodiques et les rappels automatiques
 
-4. **Hook personnalisé** (`src/modules/leaves/hooks/useNotifications.ts`)
+4. **Hook personnalisé** (`src/modules/conges/hooks/useNotifications.ts`)
    - Interface entre les services et les composants React
    - Gestion de l'état local des notifications
    - Méthodes pour interagir avec les notifications
 
-5. **Composant d'affichage** (`src/modules/leaves/components/LeaveNotificationCenter.tsx`)
+5. **Composant d'affichage** (`src/modules/conges/components/LeaveNotificationCenter.tsx`)
    - Interface utilisateur pour afficher les notifications
    - Groupement et formatage des notifications
    - Indicateur de notifications non lues

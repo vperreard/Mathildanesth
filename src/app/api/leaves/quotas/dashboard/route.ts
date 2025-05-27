@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 const prisma = new PrismaClient();
 
 /**
- * GET /api/leaves/quotas/dashboard
+ * GET /api/conges/quotas/dashboard
  * Récupère les données pour le tableau de bord des quotas
  */
 export async function GET(req: NextRequest) {

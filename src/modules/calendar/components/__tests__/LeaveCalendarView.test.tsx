@@ -1,16 +1,16 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { LeaveCalendarView } from '../LeaveCalendarView';
-import { useLeaveData } from '../../../leaves/hooks/useLeaveData';
-import { useUserSettings } from '../../../settings/hooks/useUserSettings';
-import { Leave, LeaveStatus, LeaveType } from '../../../leaves/types/leave';
+import { useLeaveData } from '../../../conges/hooks/useLeaveData';
+import { useUserSettings } from '../../../parametres/hooks/useUserSettings';
+import { Leave, LeaveStatus, LeaveType } from '../../../conges/types/leave';
 
 // Mock des hooks
-jest.mock('../../../leaves/hooks/useLeaveData');
-jest.mock('../../../settings/hooks/useUserSettings');
+jest.mock('../../../conges/hooks/useLeaveData');
+jest.mock('../../../parametres/hooks/useUserSettings');
 
 // Mock de la modal de détail
-jest.mock('../../../leaves/components/LeaveDetailModal', () => ({
+jest.mock('../../../conges/components/LeaveDetailModal', () => ({
     LeaveDetailModal: ({ leaveId, onClose }: any) => (
         <div data-testid="leave-detail-modal">
             <span>Leave ID: {leaveId}</span>

@@ -8,9 +8,9 @@ Les tests sont organisés par service et fonctionnalité :
 
 - `EventBusService.test.ts` : Tests pour le bus d'événements central
 - `LeaveModuleIntegration.test.ts` : Tests d'intégration entre le module de congés et les autres modules
-- `../../leaves/services/__tests__/AuditService.test.ts` : Tests pour le service d'audit
-- `../../leaves/permissions/__tests__/LeavePermissionService.test.ts` : Tests pour le service de gestion des permissions (tests de base)
-- `../../leaves/permissions/__tests__/LeavePermissionService.extended.test.ts` : Tests étendus pour le service de gestion des permissions (tests avancés)
+- `../../conges/services/__tests__/AuditService.test.ts` : Tests pour le service d'audit
+- `../../conges/permissions/__tests__/LeavePermissionService.test.ts` : Tests pour le service de gestion des permissions (tests de base)
+- `../../conges/permissions/__tests__/LeavePermissionService.extended.test.ts` : Tests étendus pour le service de gestion des permissions (tests avancés)
 
 ## Exécution des tests
 

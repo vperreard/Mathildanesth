@@ -42,7 +42,7 @@ import {
 // Importer l'instance partagée de Prisma
 import { prisma } from '@/lib/prisma';
 
-const BASE_URL = '/leaves';
+const BASE_URL = '/conges';
 
 /**
  * Helper pour construire ErrorDetails pour ce service
@@ -247,7 +247,7 @@ export const fetchLeaves = async (filters: LeaveFilters = {}): Promise<Paginated
 export const fetchLeaveById = async (leaveId: string): Promise<Leave> => {
   const operationKey = 'LeaveService.fetchLeaveById';
   try {
-    const response = await fetch(`/api/leaves/${leaveId}`);
+    const response = await fetch(`/api/conges/${leaveId}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -272,7 +272,7 @@ export const fetchLeaveById = async (leaveId: string): Promise<Leave> => {
 export const fetchLeaveBalance = async (userId: string): Promise<LeaveBalance> => {
   const operationKey = 'LeaveService.fetchLeaveBalance';
   try {
-    const response = await fetch(`/api/leaves/balance?userId=${userId}`);
+    const response = await fetch(`/api/conges/balance?userId=${userId}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -298,7 +298,7 @@ export const saveLeave = async (leave: Partial<Leave>): Promise<Leave> => {
   const operationKey = leave.id ? 'LeaveService.updateLeave' : 'LeaveService.createLeave';
   try {
     const method = leave.id ? 'PUT' : 'POST';
-    const url = leave.id ? `/api/leaves/${leave.id}` : '/api/leaves';
+    const url = leave.id ? `/api/conges/${leave.id}` : '/api/conges';
 
     const payload = {
       ...leave,
@@ -366,7 +366,7 @@ export const submitLeaveRequest = async (leaveData: Partial<Leave>): Promise<Lea
 export const approveLeave = async (leaveId: string, comment?: string): Promise<Leave> => {
   const operationKey = 'LeaveService.approveLeave';
   try {
-    const response = await fetch(`/api/leaves/${leaveId}/approve`, {
+    const response = await fetch(`/api/conges/${leaveId}/approve`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -397,7 +397,7 @@ export const approveLeave = async (leaveId: string, comment?: string): Promise<L
 export const rejectLeave = async (leaveId: string, comment?: string): Promise<Leave> => {
   const operationKey = 'LeaveService.rejectLeave';
   try {
-    const response = await fetch(`/api/leaves/${leaveId}/reject`, {
+    const response = await fetch(`/api/conges/${leaveId}/reject`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -428,7 +428,7 @@ export const rejectLeave = async (leaveId: string, comment?: string): Promise<Le
 export const cancelLeave = async (leaveId: string, comment?: string): Promise<Leave> => {
   const operationKey = 'LeaveService.cancelLeave';
   try {
-    const response = await fetch(`/api/leaves/${leaveId}/cancel`, {
+    const response = await fetch(`/api/conges/${leaveId}/cancel`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -477,7 +477,7 @@ export const checkLeaveConflicts = async (
       params.append('leaveId', leaveId);
     }
 
-    const response = await fetch(`/api/leaves/check-conflicts?${params.toString()}`);
+    const response = await fetch(`/api/conges/check-conflicts?${params.toString()}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -528,7 +528,7 @@ export const checkLeaveAllowance = async (
       includeRecurringOccurrences: includeRecurringOccurrences.toString(),
     });
 
-    const response = await fetch(`/api/leaves/check-allowance?${params.toString()}`);
+    const response = await fetch(`/api/conges/check-allowance?${params.toString()}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -664,7 +664,7 @@ export const createRecurringLeaveRequest = async (
         : undefined,
     };
 
-    const response = await fetch('/api/leaves/recurring', {
+    const response = await fetch('/api/conges/recurrents', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -713,7 +713,7 @@ export const updateRecurringLeaveRequest = async (
         : undefined,
     };
 
-    const response = await fetch(`/api/leaves/recurring/${recurringRequest.id}`, {
+    const response = await fetch(`/api/conges/recurrents/${recurringRequest.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -748,7 +748,7 @@ export const fetchRecurringLeaveRequestById = async (
 ): Promise<RecurringLeaveRequest> => {
   const operationKey = 'LeaveService.fetchRecurringLeaveRequestById';
   try {
-    const response = await fetch(`/api/leaves/recurring/${id}`);
+    const response = await fetch(`/api/conges/recurrents/${id}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -777,7 +777,7 @@ export const fetchRecurringLeaveRequestsByUser = async (
 ): Promise<RecurringLeaveRequest[]> => {
   const operationKey = 'LeaveService.fetchRecurringLeaveRequestsByUser';
   try {
-    const response = await fetch(`/api/leaves/recurring?userId=${userId}`);
+    const response = await fetch(`/api/conges/recurrents?userId=${userId}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -809,7 +809,7 @@ export const deleteRecurringLeaveRequest = async (
   const operationKey = 'LeaveService.deleteRecurringLeaveRequest';
   try {
     const response = await fetch(
-      `/api/leaves/recurring/${id}?deleteOccurrences=${deleteOccurrences}`,
+      `/api/conges/recurrents/${id}?deleteOccurrences=${deleteOccurrences}`,
       {
         method: 'DELETE',
       }
@@ -852,7 +852,7 @@ export const previewRecurringLeaveOccurrences = async (
         : undefined,
     };
 
-    const response = await fetch('/api/leaves/recurring/preview', {
+    const response = await fetch('/api/conges/recurrents/preview', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -897,7 +897,7 @@ export const checkRecurringLeaveConflicts = async (
         : undefined,
     };
 
-    const response = await fetch('/api/leaves/recurring/conflicts', {
+    const response = await fetch('/api/conges/recurrents/conflicts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

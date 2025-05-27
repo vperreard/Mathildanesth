@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
                 } else if (message.requestId) {
                     linkToMessage = `/requetes?requestId=${message.requestId}&contextMessageId=${message.id}`;
                 } else if (message.contextDate && message.contextDate instanceof Date) {
-                    linkToMessage = `/calendar?date=${message.contextDate.toISOString().split('T')[0]}&contextMessageId=${message.id}`;
+                    linkToMessage = `/calendrier?date=${message.contextDate.toISOString().split('T')[0]}&contextMessageId=${message.id}`;
                 }
 
                 // Construction prudente du message de notification pour les réponses

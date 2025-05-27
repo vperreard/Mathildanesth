@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { calendarService } from './calendarService';
+import { calendarService } from './calendrierService';
 import { CalendarEventType, CalendarFilters } from '../types/event';
 
 // Mock d'axios
@@ -44,7 +44,7 @@ describe('CalendarService', () => {
 
             // Vérifications
             expect(mockedAxios.get).toHaveBeenCalledWith(
-                expect.stringContaining('/api/calendar/events?')
+                expect.stringContaining('/api/calendrier/events?')
             );
             expect(mockedAxios.get).toHaveBeenCalledWith(
                 expect.stringContaining('eventTypes=ASSIGNMENT')
@@ -94,7 +94,7 @@ describe('CalendarService', () => {
 
             // Vérifications
             expect(mockedAxios.get).toHaveBeenCalledWith(
-                expect.stringContaining('/api/calendar/events/1?type=ASSIGNMENT')
+                expect.stringContaining('/api/calendrier/events/1?type=ASSIGNMENT')
             );
             expect(result.id).toBe('1');
             expect(result.title).toBe('Événement test');
@@ -116,7 +116,7 @@ describe('CalendarService', () => {
 
             // Vérifications
             expect(mockedAxios.put).toHaveBeenCalledWith(
-                expect.stringContaining('/api/calendar/events/1'),
+                expect.stringContaining('/api/calendrier/events/1'),
                 expect.objectContaining({
                     title: 'Événement modifié'
                 })
@@ -146,7 +146,7 @@ describe('CalendarService', () => {
 
             // Vérifications
             expect(mockedAxios.post).toHaveBeenCalledWith(
-                expect.stringContaining('/api/calendar/events'),
+                expect.stringContaining('/api/calendrier/events'),
                 expect.objectContaining({
                     title: 'Nouvel événement'
                 })
@@ -167,7 +167,7 @@ describe('CalendarService', () => {
 
             // Vérifications
             expect(mockedAxios.delete).toHaveBeenCalledWith(
-                expect.stringContaining('/api/calendar/events/1?type=ASSIGNMENT')
+                expect.stringContaining('/api/calendrier/events/1?type=ASSIGNMENT')
             );
         });
     });

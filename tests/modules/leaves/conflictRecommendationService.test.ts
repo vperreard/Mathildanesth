@@ -1,18 +1,18 @@
 import { jest, expect, describe, test, beforeEach, afterEach } from '@jest/globals';
 import {
     ConflictRecommendationService,
-} from '@/modules/leaves/services/conflictRecommendationService';
+} from '@/modules/conges/services/conflictRecommendationService';
 import {
     ConflictType,
     ConflictSeverity,
     LeaveConflict
-} from '@/modules/leaves/types/conflict';
+} from '@/modules/conges/types/conflict';
 import {
     ConflictPriority,
     ResolutionStrategy,
     ConflictResolutionRules
-} from '@/modules/leaves/types/recommendation';
-import { LeaveRequest, LeaveStatus } from '@/modules/leaves/types/leave';
+} from '@/modules/conges/types/recommendation';
+import { LeaveRequest, LeaveStatus } from '@/modules/conges/types/leave';
 import { User } from '@/types/user';
 import { EventBusService } from '@/services/eventBusService';
 import { differenceInDays } from 'date-fns';

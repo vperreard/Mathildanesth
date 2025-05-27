@@ -284,8 +284,8 @@ Commands:
 
 Examples:
   node inventory-manager.js status
-  node inventory-manager.js invalidate "/auth/login,/leaves"
-  node inventory-manager.js validate "/auth/login" "TESTED"
+  node inventory-manager.js invalidate "/auth/connexion,/conges"
+  node inventory-manager.js validate "/auth/connexion" "TESTED"
             `);
     }
 }

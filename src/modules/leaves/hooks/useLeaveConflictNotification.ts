@@ -9,7 +9,7 @@ import { ConflictType, ConflictSeverity, LeaveConflict } from '../types/conflict
 import { useConflictDetection } from './useConflictDetection';
 import { LeaveConflictNotificationService } from '../services/leaveConflictNotificationService';
 import { useNotifications } from '../../notifications/hooks/useNotifications';
-import { useUser } from '../../users/hooks/useUser';
+import { useUser } from '../../utilisateurs/hooks/useUser';
 
 // Types d'affichage de notification
 type NotificationDisplayType = 'toast' | 'alert' | 'badge' | 'all';

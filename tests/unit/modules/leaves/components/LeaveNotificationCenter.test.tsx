@@ -1,16 +1,16 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { LeaveNotificationCenter } from '../../../../../src/modules/leaves/components/LeaveNotificationCenter';
-import { useLeaveNotifications } from '../../../../../src/modules/leaves/hooks/useNotifications';
+import { LeaveNotificationCenter } from '../../../../../src/modules/conges/components/LeaveNotificationCenter';
+import { useLeaveNotifications } from '../../../../../src/modules/conges/hooks/useNotifications';
 import {
     LeaveNotificationType,
     NotificationPriority,
     LeaveRelatedNotification
-} from '../../../../../src/modules/leaves/types/notification';
-import { LeaveStatus } from '../../../../../src/modules/leaves/types/leave';
+} from '../../../../../src/modules/conges/types/notification';
+import { LeaveStatus } from '../../../../../src/modules/conges/types/leave';
 
 // Mock des dépendances
-jest.mock('../../../../../src/modules/leaves/hooks/useNotifications');
+jest.mock('../../../../../src/modules/conges/hooks/useNotifications');
 
 // Mock framer-motion sans utiliser l'opérateur rest dans la factory
 jest.mock('framer-motion', () => {
@@ -67,7 +67,7 @@ const mockNotifications: LeaveRelatedNotification[] = [
         referenceType: 'leave',
         leaveType: 'ANNUAL',
         actions: [
-            { label: 'Voir', action: 'VIEW', url: '/leaves/123' }
+            { label: 'Voir', action: 'VIEW', url: '/conges/123' }
         ]
     },
     {

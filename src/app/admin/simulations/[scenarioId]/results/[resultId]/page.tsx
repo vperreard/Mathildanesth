@@ -564,7 +564,7 @@ export default function SimulationResultPage() {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => router.push(`/admin/simulations/advanced-visualizations?resultId=${result.id}&scenarioId=${params.scenarioId as string}`)}
+                                onClick={() => router.push(`/admin/simulations/avances-visualizations?resultId=${result.id}&scenarioId=${params.scenarioId as string}`)}
                                 className="flex items-center"
                             >
                                 <BarChart3Icon className="w-4 h-4 mr-2" /> Visualisations avancées

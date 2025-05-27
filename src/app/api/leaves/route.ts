@@ -47,7 +47,7 @@ const mapCodeToLeaveType = (code: string): PrismaLeaveType => {
 };
 
 /**
- * GET /api/leaves?userId=123
+ * GET /api/conges?userId=123
  * Récupère les congés d'un utilisateur.
  */
 export async function GET(request: NextRequest) {
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const userId = searchParams.get('userId');
 
-        console.log(`[API /api/leaves] Requête GET reçue pour userId: ${userId}`);
+        console.log(`[API /api/conges] Requête GET reçue pour userId: ${userId}`);
 
         if (!userId) {
             return NextResponse.json({ error: 'Le paramètre userId est manquant' }, { status: 400 });
@@ -66,13 +66,13 @@ export async function GET(request: NextRequest) {
         const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
         
         if (!token) {
-            logger.warn('Tentative d\'accès sans token', { path: '/api/leaves', userId });
+            logger.warn('Tentative d\'accès sans token', { path: '/api/conges', userId });
             return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
         }
 
         const authResult = await verifyAuthToken(token);
         if (!authResult.authenticated) {
-            logger.warn('Token invalide', { path: '/api/leaves', userId });
+            logger.warn('Token invalide', { path: '/api/conges', userId });
             return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
         }
 
@@ -188,13 +188,13 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(formattedLeaves);
 
     } catch (error) {
-        console.error(`[API /api/leaves] Erreur lors de la récupération des congés:`, error);
+        console.error(`[API /api/conges] Erreur lors de la récupération des congés:`, error);
         return NextResponse.json({ error: 'Erreur serveur lors de la récupération des congés.' }, { status: 500 });
     }
 }
 
 /**
- * POST /api/leaves
+ * POST /api/conges
  * Crée une nouvelle demande de congé.
  */
 export async function POST(request: NextRequest) {
@@ -204,18 +204,18 @@ export async function POST(request: NextRequest) {
         const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
         
         if (!token) {
-            logger.warn('Tentative de création de congé sans token', { path: '/api/leaves' });
+            logger.warn('Tentative de création de congé sans token', { path: '/api/conges' });
             return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
         }
 
         const authResult = await verifyAuthToken(token);
         if (!authResult.authenticated) {
-            logger.warn('Token invalide pour création de congé', { path: '/api/leaves' });
+            logger.warn('Token invalide pour création de congé', { path: '/api/conges' });
             return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
         }
 
         const body = await request.json();
-        console.log('[API /leaves POST] Corps de la requête reçu:', JSON.stringify(body, null, 2));
+        console.log('[API /conges POST] Corps de la requête reçu:', JSON.stringify(body, null, 2));
 
         const { userId, startDate, endDate, typeCode, reason } = body;
 
@@ -251,7 +251,7 @@ export async function POST(request: NextRequest) {
             details: { typeCode, startDate, endDate }
         });
 
-        console.log('[API /leaves POST] Valeurs extraites:', {
+        console.log('[API /conges POST] Valeurs extraites:', {
             userId,
             startDate,
             endDate,
@@ -265,7 +265,7 @@ export async function POST(request: NextRequest) {
 
         // --- Validation des données --- 
         if (!userId || !startDate || !endDate || !typeCode) {
-            console.log('[API /leaves POST] Validation échouée:', {
+            console.log('[API /conges POST] Validation échouée:', {
                 hasUserId: !!userId,
                 hasStartDate: !!startDate,
                 hasEndDate: !!endDate,
@@ -342,7 +342,7 @@ export async function POST(request: NextRequest) {
                 },
             });
 
-            console.log('[API /leaves POST] Données utilisateur récupérées:', JSON.stringify({
+            console.log('[API /conges POST] Données utilisateur récupérées:', JSON.stringify({
                 userId: userIdInt,
                 userIncluded: !!newLeave.user,
                 userData: newLeave.user
@@ -363,7 +363,7 @@ export async function POST(request: NextRequest) {
 
             // S'assurer que les valeurs de nom et prénom ne sont jamais undefined
             const adaptedUser = adaptUserFields(newLeave.user);
-            console.log('[API /leaves POST] Utilisateur adapté:', JSON.stringify(adaptedUser, null, 2));
+            console.log('[API /conges POST] Utilisateur adapté:', JSON.stringify(adaptedUser, null, 2));
 
             const firstName = adaptedUser?.prenom || adaptedUser?.firstName || '(Prénom non défini)';
             const lastName = adaptedUser?.nom || adaptedUser?.lastName || '(Nom non défini)';
@@ -390,19 +390,19 @@ export async function POST(request: NextRequest) {
                 }
             };
 
-            console.log('[API /leaves POST] Congé créé avec succès:', JSON.stringify(formattedLeave, null, 2));
+            console.log('[API /conges POST] Congé créé avec succès:', JSON.stringify(formattedLeave, null, 2));
             return NextResponse.json(formattedLeave, { status: 201 }); // 201 Created
         } catch (error) {
-            console.error('[API /leaves POST] Erreur lors de la création du congé:', error);
+            console.error('[API /conges POST] Erreur lors de la création du congé:', error);
             return NextResponse.json({ error: "Erreur lors de la création du congé dans la base de données." }, { status: 500 });
         }
 
     } catch (error) {
-        console.error('[API /leaves POST] Erreur générale:', error);
+        console.error('[API /conges POST] Erreur générale:', error);
         return NextResponse.json({ error: 'Erreur serveur lors de la création de la demande de congé.' }, { status: 500 });
     }
 }
 
 // Ajouter d'autres méthodes (PUT, DELETE) si nécessaire pour modifier/annuler
-// export async function PUT(request: NextRequest) { ... } // ou /api/leaves/[id]
-// export async function DELETE(request: NextRequest) { ... } // ou /api/leaves/[id] 
+// export async function PUT(request: NextRequest) { ... } // ou /api/conges/[id]
+// export async function DELETE(request: NextRequest) { ... } // ou /api/conges/[id] 

@@ -1,10 +1,10 @@
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 // import { eventBus, IntegrationEventType } from '../EventBusService'; // Ne pas importer directement si on le mocke entièrement
-import { auditService } from '../../../leaves/services/AuditService';
-import { LeavePermissionService } from '../../../leaves/permissions/LeavePermissionService';
+import { auditService } from '../../../conges/services/AuditService';
+import { LeavePermissionService } from '../../../conges/permissions/LeavePermissionService';
 
 // Mock des dépendances comme auditService
-jest.mock('../../../leaves/services/AuditService', () => ({
+jest.mock('../../../conges/services/AuditService', () => ({
     auditService: {
         logSystemAccess: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
         logUserRoleChange: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),

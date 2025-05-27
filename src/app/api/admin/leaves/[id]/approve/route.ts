@@ -5,7 +5,7 @@ import { verifyAuthToken } from '@/lib/auth-utils';
 import { createNotification } from '@/lib/notifications';
 
 /**
- * POST /api/admin/leaves/[id]/approve
+ * POST /api/admin/conges/[id]/approve
  * Approuve une demande de congé
  */
 export async function POST(
@@ -111,7 +111,7 @@ export async function POST(
         });
 
     } catch (error) {
-        console.error('[API /api/admin/leaves/approve] Erreur:', error);
+        console.error('[API /api/admin/conges/approve] Erreur:', error);
         return NextResponse.json(
             { error: 'Erreur serveur lors de l\'approbation de la demande de congé' },
             { status: 500 }

@@ -16,9 +16,9 @@ describe('Notifications d\'échanges d\'affectations', () => {
 
     beforeEach(function () {
         // Intercepter les requêtes API
-        cy.intercept('GET', '**/api/assignments/swap*').as('getSwapRequests');
-        cy.intercept('POST', '**/api/assignments/swap').as('createSwapRequest');
-        cy.intercept('PUT', '**/api/assignments/swap/*').as('updateSwapRequest');
+        cy.intercept('GET', '**/api/affectations/echange*').as('getSwapRequests');
+        cy.intercept('POST', '**/api/affectations/echange').as('createSwapRequest');
+        cy.intercept('PUT', '**/api/affectations/echange/*').as('updateSwapRequest');
         cy.intercept('GET', '**/api/notifications*').as('getNotifications');
         cy.intercept('POST', '**/api/notifications/read').as('markNotificationsAsRead');
     });

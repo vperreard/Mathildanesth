@@ -86,7 +86,7 @@ describe('Real-time Notifications E2E Tests', () => {
     });
 
     // Sender creates a leave request
-    await senderPage.goto(`${testConfig.baseUrl}/leaves`);
+    await senderPage.goto(`${testConfig.baseUrl}/conges`);
     await senderPage.click('[data-testid="create-leave-request"]');
     await senderPage.waitForSelector('[data-testid="leave-type-select"]');
     await senderPage.select('[data-testid="leave-type-select"]', 'ANNUAL_LEAVE');

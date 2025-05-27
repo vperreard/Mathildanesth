@@ -5,9 +5,9 @@ const fs = require('fs');
 // Configuration
 const BASE_URL = 'http://localhost:3000';
 const ENDPOINTS = [
-    { name: 'API Users', path: '/api/users?limit=20' },
-    { name: 'API Users (Count)', path: '/api/users', method: 'HEAD' },
-    { name: 'API Users (Suggestions)', path: '/api/users?q=test&field=nom', method: 'OPTIONS' },
+    { name: 'API Users', path: '/api/utilisateurs?limit=20' },
+    { name: 'API Users (Count)', path: '/api/utilisateurs', method: 'HEAD' },
+    { name: 'API Users (Suggestions)', path: '/api/utilisateurs?q=test&field=nom', method: 'OPTIONS' },
     { name: 'API Sites', path: '/api/sites' },
     { name: 'API Specialties', path: '/api/specialties' },
 ];
@@ -128,7 +128,7 @@ async function testEndpoint(endpoint) {
 async function performLoadTest() {
     const concurrent = 10;
     const requestsPerBatch = 5;
-    const endpoint = '/api/users?limit=10';
+    const endpoint = '/api/utilisateurs?limit=10';
 
     const startTime = Date.now();
     const promises = [];

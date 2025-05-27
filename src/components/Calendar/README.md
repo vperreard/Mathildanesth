@@ -17,14 +17,14 @@ Ce composant est un formulaire pour la création et la modification d'événemen
 ### Importation
 
 ```tsx
-import CalendarEventForm, { CalendarEvent, CalendarEventType } from '@/components/calendar/CalendarEventForm';
+import CalendarEventForm, { CalendarEvent, CalendarEventType } from '@/components/calendrier/CalendarEventForm';
 ```
 
 ### Exemple d'utilisation basique
 
 ```tsx
 import React, { useState } from 'react';
-import CalendarEventForm, { CalendarEvent } from '@/components/calendar/CalendarEventForm';
+import CalendarEventForm, { CalendarEvent } from '@/components/calendrier/CalendarEventForm';
 
 const CalendarPage: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);

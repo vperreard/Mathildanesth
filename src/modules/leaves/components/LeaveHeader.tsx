@@ -20,15 +20,15 @@ export const LeaveHeader: React.FC = () => {
 
     // Liens de navigation
     const navLinks = [
-        { href: '/leaves', label: 'Mes congés', icon: Calendar },
-        { href: '/leaves/request', label: 'Nouvelle demande', icon: ClipboardCheck },
-        { href: '/leaves/quotas', label: 'Mes quotas', icon: PieChart }
+        { href: '/conges', label: 'Mes congés', icon: Calendar },
+        { href: '/conges/request', label: 'Nouvelle demande', icon: ClipboardCheck },
+        { href: '/conges/quotas', label: 'Mes quotas', icon: PieChart }
     ];
 
     // Liens administrateurs
     const adminLinks = [
-        { href: '/admin/leaves', label: 'Gestion des congés', icon: Users },
-        { href: '/admin/leaves/settings', label: 'Paramètres', icon: Settings }
+        { href: '/admin/conges', label: 'Gestion des congés', icon: Users },
+        { href: '/admin/conges/parametres', label: 'Paramètres', icon: Settings }
     ];
 
     // Liens actifs pour le module courant

@@ -8,7 +8,7 @@ describe('Benchmark des pages publiques', () => {
         const publicPages = [
             '/',
             '/login',
-            '/auth/login'
+            '/auth/connexion'
         ];
 
         // Tester chaque page

@@ -15,7 +15,7 @@ describe('Gestion complète des congés - CRUD', () => {
 
         // Se connecter
         cy.loginByApi(testUser.email, testUser.password);
-        cy.visitAsAuthenticatedUser('/leaves');
+        cy.visitAsAuthenticatedUser('/conges');
     });
 
     describe('Création de congés', () => {
@@ -275,7 +275,7 @@ describe('Gestion complète des congés - CRUD', () => {
             });
 
             // Vérifier que le fichier est téléchargé
-            cy.readFile('cypress/downloads/leaves-export-2025.csv').should('exist');
+            cy.readFile('cypress/downloads/conges-export-2025.csv').should('exist');
         });
 
         it('permet de filtrer et rechercher les congés', () => {

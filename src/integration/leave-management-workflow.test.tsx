@@ -8,8 +8,8 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { jest, describe, test, expect, beforeAll, beforeEach } from '@jest/globals';
-import { LeaveType, LeaveStatus } from '../modules/leaves/types/leave';
-import { QuotaCalculationResult } from '../modules/leaves/hooks/useLeaveQuota';
+import { LeaveType, LeaveStatus } from '../modules/conges/types/leave';
+import { QuotaCalculationResult } from '../modules/conges/hooks/useLeaveQuota';
 
 // Interface pour les props du formulaire de demande de congé
 interface LeaveRequestFormProps {
@@ -24,7 +24,7 @@ interface LeaveRequestFormProps {
 }
 
 // Mock des services avec des fonctions vides (impl détaillée plus tard)
-jest.mock('../modules/leaves/services/leaveService', () => ({
+jest.mock('../modules/conges/services/leaveService', () => ({
     createLeaveRequest: jest.fn(),
     approveLeaveRequest: jest.fn(),
     cancelLeaveRequest: jest.fn(),
@@ -33,16 +33,16 @@ jest.mock('../modules/leaves/services/leaveService', () => ({
 }));
 
 // Mock des composants React avec des fonctions vides
-jest.mock('../modules/leaves/components/LeaveRequestForm', () => ({
+jest.mock('../modules/conges/components/LeaveRequestForm', () => ({
     LeaveRequestForm: jest.fn()
 }));
 
 // Mock des hooks avec des fonctions vides
-jest.mock('../modules/leaves/hooks/useLeaveValidation', () => ({
+jest.mock('../modules/conges/hooks/useLeaveValidation', () => ({
     useLeaveValidation: jest.fn()
 }));
 
-jest.mock('../modules/leaves/hooks/useLeaveQuota', () => ({
+jest.mock('../modules/conges/hooks/useLeaveQuota', () => ({
     useLeaveQuota: jest.fn()
 }));
 
@@ -61,7 +61,7 @@ describe('Workflow complet de gestion des congés', () => {
     // Configuration des implémentations détaillées des mocks
     beforeAll(() => {
         // Implémentation du mock LeaveRequestForm
-        require('../modules/leaves/components/LeaveRequestForm').LeaveRequestForm.mockImplementation(
+        require('../modules/conges/components/LeaveRequestForm').LeaveRequestForm.mockImplementation(
             ({ userId, onSubmit }: LeaveRequestFormProps) => {
                 const handleSubmitInternal = (e: React.FormEvent) => {
                     e.preventDefault();
@@ -137,7 +137,7 @@ describe('Workflow complet de gestion des congés', () => {
         );
 
         // Implémentation du mock useLeaveValidation
-        require('../modules/leaves/hooks/useLeaveValidation').useLeaveValidation.mockReturnValue({
+        require('../modules/conges/hooks/useLeaveValidation').useLeaveValidation.mockReturnValue({
             validateLeaveRequest: jest.fn().mockReturnValue(true),
             hasError: jest.fn().mockReturnValue(false),
             getErrorMessage: jest.fn(),
@@ -147,7 +147,7 @@ describe('Workflow complet de gestion des congés', () => {
         });
 
         // Implémentation du mock useLeaveQuota
-        require('../modules/leaves/hooks/useLeaveQuota').useLeaveQuota.mockReturnValue({
+        require('../modules/conges/hooks/useLeaveQuota').useLeaveQuota.mockReturnValue({
             loading: false,
             error: null,
             quotasByType: [
@@ -190,7 +190,7 @@ describe('Workflow complet de gestion des congés', () => {
         mockSendNotification.mockClear();
 
         // Configuration des mocks par défaut
-        require('../modules/leaves/services/leaveService').createLeaveRequest.mockResolvedValue({
+        require('../modules/conges/services/leaveService').createLeaveRequest.mockResolvedValue({
             id: 'leave123',
             userId: 'user123',
             startDate: new Date('2023-12-18'),
@@ -213,8 +213,8 @@ describe('Workflow complet de gestion des congés', () => {
      * 3. La vérification de l'appel au service
      */
     test('Création d\'une demande de congé', async () => {
-        const { LeaveRequestForm } = require('../modules/leaves/components/LeaveRequestForm');
-        const createLeaveRequestMock = require('../modules/leaves/services/leaveService').createLeaveRequest;
+        const { LeaveRequestForm } = require('../modules/conges/components/LeaveRequestForm');
+        const createLeaveRequestMock = require('../modules/conges/services/leaveService').createLeaveRequest;
 
         // Fonction de callback pour la soumission
         const handleSubmit = jest.fn();
@@ -249,7 +249,7 @@ describe('Workflow complet de gestion des congés', () => {
      * 3. La vérification de l'envoi de notifications
      */
     test('Approbation d\'une demande de congé', async () => {
-        const approveLeaveRequestMock = require('../modules/leaves/services/leaveService').approveLeaveRequest;
+        const approveLeaveRequestMock = require('../modules/conges/services/leaveService').approveLeaveRequest;
 
         approveLeaveRequestMock.mockResolvedValue({
             id: 'leave123',
@@ -290,7 +290,7 @@ describe('Workflow complet de gestion des congés', () => {
      */
     test('Détection de l\'épuisement de quotas de congés', async () => {
         // Mock du hook useLeaveQuota pour simuler un quota épuisé
-        require('../modules/leaves/hooks/useLeaveQuota').useLeaveQuota.mockReturnValue({
+        require('../modules/conges/hooks/useLeaveQuota').useLeaveQuota.mockReturnValue({
             loading: false,
             error: null,
             quotasByType: [
@@ -327,7 +327,7 @@ describe('Workflow complet de gestion des congés', () => {
             })
         });
 
-        const { useLeaveQuota } = require('../modules/leaves/hooks/useLeaveQuota');
+        const { useLeaveQuota } = require('../modules/conges/hooks/useLeaveQuota');
         const { checkQuota } = useLeaveQuota({ userId: mockUser.id });
 
         // Simuler une vérification de quota
@@ -351,7 +351,7 @@ describe('Workflow complet de gestion des congés', () => {
      * et que les quotas sont mis à jour après annulation
      */
     test('Annulation d\'une demande de congé', async () => {
-        const cancelLeaveRequestMock = require('../modules/leaves/services/leaveService').cancelLeaveRequest;
+        const cancelLeaveRequestMock = require('../modules/conges/services/leaveService').cancelLeaveRequest;
 
         cancelLeaveRequestMock.mockResolvedValue({
             id: 'leave123',
@@ -376,7 +376,7 @@ describe('Workflow complet de gestion des congés', () => {
      */
     test('Détection de chevauchement entre demandes de congés', async () => {
         // Mock du service pour simuler un chevauchement
-        const checkLeaveAllowanceMock = require('../modules/leaves/services/leaveService').checkLeaveAllowance;
+        const checkLeaveAllowanceMock = require('../modules/conges/services/leaveService').checkLeaveAllowance;
 
         checkLeaveAllowanceMock.mockResolvedValue({
             isAllowed: false,

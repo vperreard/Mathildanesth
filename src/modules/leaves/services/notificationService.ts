@@ -247,7 +247,7 @@ export class NotificationService {
             }
 
             console.debug(`Chargement des notifications avec params: ${params.toString()}`);
-            const response = await axios.get(`/api/users/${userId}/notifications?${params.toString()}`);
+            const response = await axios.get(`/api/utilisateurs/${userId}/notifications?${params.toString()}`);
 
             const { notifications, totalCount, unreadCount } = response.data;
 
@@ -343,7 +343,7 @@ export class NotificationService {
      */
     public async markAllAsRead(userId: string): Promise<void> {
         try {
-            await axios.post(`/api/users/${userId}/notifications/read-all`);
+            await axios.post(`/api/utilisateurs/${userId}/notifications/read-all`);
 
             // Invalider le cache pour cet utilisateur
             this.invalidateUserNotificationsCache(userId);
@@ -391,7 +391,7 @@ export class NotificationService {
      */
     public async deleteAllNotifications(userId: string): Promise<void> {
         try {
-            await axios.delete(`/api/users/${userId}/notifications`);
+            await axios.delete(`/api/utilisateurs/${userId}/notifications`);
 
             // Invalider le cache pour cet utilisateur
             this.invalidateUserNotificationsCache(userId);
@@ -425,8 +425,8 @@ export class NotificationService {
                     leaveType: leave.type,
                     leaveStatus: leave.status,
                     actions: [
-                        { label: 'Approuver', action: 'APPROVE', url: `/admin/leaves/${leave.id}/approve` },
-                        { label: 'Refuser', action: 'REJECT', url: `/admin/leaves/${leave.id}/reject` },
+                        { label: 'Approuver', action: 'APPROVE', url: `/admin/conges/${leave.id}/approve` },
+                        { label: 'Refuser', action: 'REJECT', url: `/admin/conges/${leave.id}/reject` },
                     ]
                 });
             }
@@ -454,7 +454,7 @@ export class NotificationService {
                 leaveStatus: leave.status,
                 leaveType: leave.type,
                 actions: [
-                    { label: 'Voir les détails', action: 'VIEW', url: `/leaves?id=${leave.id}` }
+                    { label: 'Voir les détails', action: 'VIEW', url: `/conges?id=${leave.id}` }
                 ]
             });
         } catch (error) {
@@ -493,7 +493,7 @@ export class NotificationService {
                     conflictStartDate: leave.startDate,
                     conflictEndDate: leave.endDate,
                     actions: [
-                        { label: 'Gérer le conflit', action: 'MANAGE', url: `/admin/leaves/conflicts?id=${leave.id}` }
+                        { label: 'Gérer le conflit', action: 'MANAGE', url: `/admin/conges/conflicts?id=${leave.id}` }
                     ]
                 });
             }
@@ -519,7 +519,7 @@ export class NotificationService {
                 leaveType: leave.type,
                 leaveStatus: leave.status,
                 actions: [
-                    { label: 'Voir les détails', action: 'VIEW', url: `/leaves?id=${leave.id}` }
+                    { label: 'Voir les détails', action: 'VIEW', url: `/conges?id=${leave.id}` }
                 ]
             });
         } catch (error) {
@@ -549,7 +549,7 @@ export class NotificationService {
                 totalAllowance,
                 year,
                 actions: [
-                    { label: 'Voir mes quotas', action: 'VIEW_QUOTAS', url: '/leaves/quotas' }
+                    { label: 'Voir mes quotas', action: 'VIEW_QUOTAS', url: '/conges/quotas' }
                 ]
             });
         } catch (error) {
@@ -562,7 +562,7 @@ export class NotificationService {
      */
     private async getApproverIds(userId: string): Promise<string[]> {
         try {
-            const response = await axios.get(`/api/users/${userId}/approvers`);
+            const response = await axios.get(`/api/utilisateurs/${userId}/approvers`);
             return response.data.map((user: User) => user.id);
         } catch (error) {
             console.error('Erreur lors de la récupération des approbateurs:', error);
@@ -572,7 +572,7 @@ export class NotificationService {
 
     private async getSchedulerManagerIds(): Promise<string[]> {
         try {
-            const response = await axios.get('/api/users/roles/SCHEDULER_MANAGER');
+            const response = await axios.get('/api/utilisateurs/roles/SCHEDULER_MANAGER');
             return response.data.map((user: User) => user.id);
         } catch (error) {
             console.error('Erreur lors de la récupération des gestionnaires de planning:', error);

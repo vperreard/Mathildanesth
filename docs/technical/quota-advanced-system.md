@@ -45,11 +45,11 @@ Le système est composé des éléments suivants :
 
 ### APIs
 
-- `/api/leaves/quotas/transfer` : API de transfert de quotas
-- `/api/leaves/quotas/transfer/preview` : API de simulation de transfert
-- `/api/leaves/quotas/carry-over` : API de report de quotas
-- `/api/leaves/quotas/transfer-rules` : API de gestion des règles de transfert
-- `/api/leaves/quotas/carry-over-rules` : API de gestion des règles de report
+- `/api/conges/quotas/transfer` : API de transfert de quotas
+- `/api/conges/quotas/transfer/preview` : API de simulation de transfert
+- `/api/conges/quotas/carry-over` : API de report de quotas
+- `/api/conges/quotas/transfer-rules` : API de gestion des règles de transfert
+- `/api/conges/quotas/carry-over-rules` : API de gestion des règles de report
 
 ## Modèle de données
 

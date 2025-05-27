@@ -11,11 +11,11 @@ graph TD
     subgraph Frontend
         UI_LeaveForm[LeaveRequestForm] -- Utilise --> Hook_useLeave(useLeave)
         UI_LeavesList[LeavesList] -- Affiche --> Hook_useLeave
-        UI_Planning[PlanningView] -- Affiche congés --> API_Leaves(GET /api/leaves)
+        UI_Planning[PlanningView] -- Affiche congés --> API_Leaves(GET /api/conges)
         UI_Calendar[CalendarWidget] -- Affiche congés --> API_Leaves
         UI_LeaveConflict[LeaveConflictDashboard] -- Analyse conflits --> API_Conflicts(GET /api/conflicts)
         Hook_useLeave -- Appelle --> API_Leaves
-        Hook_useLeave -- Appelle --> API_Leaves_ID(API /api/leaves/[id])
+        Hook_useLeave -- Appelle --> API_Leaves_ID(API /api/conges/[id])
         Hook_useLeave -- Utilise --> Hook_useConflict(useConflictDetection)
         Hook_useConflict -- Appelle --> API_Conflicts
         UI_LeaveForm -- Notifie --> Hook_useLeaveNotif(useLeaveNotifications)
@@ -25,13 +25,13 @@ graph TD
 
     subgraph Backend
         subgraph API_Layer [API Layer (Next.js Route Handlers)]
-            API_Leaves(GET /api/leaves) -- Lit --> DB[(Prisma ORM)]
-            API_Leaves_ID(POST /api/leaves/[id]/...) -- Appelle --> LeaveService
-            API_Leaves(POST /api/leaves) -- Appelle --> LeaveService
-            API_QuotaTransferRules(GET /api/leaves/quota-transfers/rules/[type]) -- Lit --> DB
+            API_Leaves(GET /api/conges) -- Lit --> DB[(Prisma ORM)]
+            API_Leaves_ID(POST /api/conges/[id]/...) -- Appelle --> LeaveService
+            API_Leaves(POST /api/conges) -- Appelle --> LeaveService
+            API_QuotaTransferRules(GET /api/conges/quota-transfers/rules/[type]) -- Lit --> DB
             API_Conflicts(GET /api/conflicts) -- Appelle --> ConflictService[Conflict Detection Service]
             API_Audit(POST /api/audit) -- Écrit --> DB
-            API_Users(GET /api/users/[id]) -- Lit --> DB
+            API_Users(GET /api/utilisateurs/[id]) -- Lit --> DB
         end
 
         subgraph Services_Layer [Services Layer]
@@ -69,7 +69,7 @@ graph TD
         end
     end
 
-    UI_LeaveForm --> API_Leaves(POST /api/leaves)
+    UI_LeaveForm --> API_Leaves(POST /api/conges)
     UI_LeavesList -- Actions (Approve, Cancel) --> API_Leaves_ID
 
     API_Leaves_ID -- Interagit avec --> DB
@@ -91,12 +91,12 @@ graph TD
 
 1.  **Demande de congé :**
     *   L'utilisateur soumet via `LeaveRequestForm`.
-    *   Le hook `useLeave` appelle l'API `POST /api/leaves`.
+    *   Le hook `useLeave` appelle l'API `POST /api/conges`.
     *   Le handler API valide les données et appelle `LeaveService`.
     *   `LeaveService` vérifie les quotas (`QuotaService`), les permissions (`PermissionService`), crée l'entrée `Leave` dans la base de données via Prisma, journalise l'action (`AuditService`) et publie un événement `LEAVE_CREATED` sur l'`EventBusService`.
 2.  **Approbation de congé :**
     *   Un manager approuve via `LeavesList` (ou une interface dédiée).
-    *   L'API `POST /api/leaves/[id]/approve` est appelée.
+    *   L'API `POST /api/conges/[id]/approve` est appelée.
     *   Le handler appelle `LeaveService`.
     *   `LeaveService` met à jour le statut du congé, vérifie les permissions, journalise et publie `LEAVE_APPROVED`.
 3.  **Synchronisation avec le Planning :**
@@ -119,59 +119,59 @@ graph TD
 
 ### 2.1 API REST
 
-Le module de congés expose plusieurs points d'API REST sous `/api/leaves/` :
+Le module de congés expose plusieurs points d'API REST sous `/api/conges/` :
 
-*   **`GET /api/leaves?userId={userId}` :**
+*   **`GET /api/conges?userId={userId}` :**
     *   **Rôle :** Récupérer la liste des congés pour un utilisateur spécifique.
     *   **Paramètres :** `userId` (obligatoire).
-    *   **Réponse :** Tableau d'objets `LeaveWithUserFrontend` (voir `src/app/api/leaves/route.ts`).
+    *   **Réponse :** Tableau d'objets `LeaveWithUserFrontend` (voir `src/app/api/conges/route.ts`).
     *   **Intégration :** Utilisé par le frontend (`LeavesList`, `PlanningView`, `CalendarWidget`) pour afficher les congés.
-*   **`POST /api/leaves` :**
+*   **`POST /api/conges` :**
     *   **Rôle :** Créer une nouvelle demande de congé.
     *   **Corps (Body) :** `{ userId: number, startDate: string (ISO), endDate: string (ISO), typeCode: string, reason?: string }`.
     *   **Réponse :** L'objet `LeaveWithUserFrontend` nouvellement créé.
     *   **Intégration :** Appelé par `LeaveRequestForm` via le hook `useLeave`. Déclenche la logique de service (validation, quotas, permissions, audit, événement `LEAVE_CREATED`).
-*   **`GET /api/leaves/[id]` :** (Implémentation à vérifier/confirmer)
+*   **`GET /api/conges/[id]` :** (Implémentation à vérifier/confirmer)
     *   **Rôle :** Récupérer les détails d'un congé spécifique.
     *   **Paramètres :** `id` du congé dans l'URL.
     *   **Réponse :** Objet `LeaveWithUserFrontend`.
     *   **Intégration :** Utilisé potentiellement par le frontend pour afficher/éditer un congé.
-*   **`PUT /api/leaves/[id]` :** (Implémentation à vérifier/confirmer)
+*   **`PUT /api/conges/[id]` :** (Implémentation à vérifier/confirmer)
     *   **Rôle :** Mettre à jour un congé existant.
     *   **Paramètres :** `id` du congé dans l'URL.
     *   **Corps (Body) :** Champs à mettre à jour (`startDate`, `endDate`, `typeCode`, `reason`).
     *   **Réponse :** L'objet `LeaveWithUserFrontend` mis à jour.
     *   **Intégration :** Appelé lors de la modification d'un congé. Déclenche `LEAVE_UPDATED`.
-*   **`POST /api/leaves/[id]/approve` :** (Implémentation à vérifier/confirmer)
+*   **`POST /api/conges/[id]/approve` :** (Implémentation à vérifier/confirmer)
     *   **Rôle :** Approuver une demande de congé.
     *   **Paramètres :** `id` du congé dans l'URL.
     *   **Réponse :** L'objet `LeaveWithUserFrontend` mis à jour avec le statut `APPROVED`.
     *   **Intégration :** Appelé par les managers. Déclenche `LEAVE_APPROVED`.
-*   **`POST /api/leaves/[id]/reject` :** (Implémentation à vérifier/confirmer)
+*   **`POST /api/conges/[id]/reject` :** (Implémentation à vérifier/confirmer)
     *   **Rôle :** Rejeter une demande de congé.
     *   **Paramètres :** `id` du congé dans l'URL.
     *   **Corps (Body) :** `{ reason?: string }`.
     *   **Réponse :** L'objet `LeaveWithUserFrontend` mis à jour avec le statut `REJECTED`.
     *   **Intégration :** Appelé par les managers. Déclenche `LEAVE_REJECTED`.
-*   **`POST /api/leaves/[id]/cancel` :** (Implémentation à vérifier/confirmer)
+*   **`POST /api/conges/[id]/cancel` :** (Implémentation à vérifier/confirmer)
     *   **Rôle :** Annuler un congé (par l'utilisateur ou un admin).
     *   **Paramètres :** `id` du congé dans l'URL.
     *   **Réponse :** L'objet `LeaveWithUserFrontend` mis à jour avec le statut `CANCELLED`.
     *   **Intégration :** Appelé par l'utilisateur ou les admins. Déclenche `LEAVE_CANCELLED`.
-*   **`DELETE /api/leaves/[id]` :** (Implémentation à vérifier/confirmer)
+*   **`DELETE /api/conges/[id]` :** (Implémentation à vérifier/confirmer)
     *   **Rôle :** Supprimer un congé (action administrative).
     *   **Paramètres :** `id` du congé dans l'URL.
     *   **Réponse :** Statut 204 (No Content) ou confirmation.
     *   **Intégration :** Appelé par les admins. Déclenche `LEAVE_DELETED`.
-*   **`GET /api/leaves/quota-transfers/rules/[sourceType]` :**
+*   **`GET /api/conges/quota-transfers/rules/[sourceType]` :**
     *   **Rôle :** Récupérer les règles de transfert de quota pour un type de congé source donné.
     *   **Paramètres :** `sourceType` (enum `LeaveType`) dans l'URL.
     *   **Réponse :** Tableau d'objets représentant les `QuotaTransferRule` applicables.
     *   **Intégration :** Utilisé par l'interface de gestion des transferts de quotas.
 *   **Autres API potentielles :**
-    *   `/api/leaves/quotas` (pour gérer les soldes)
-    *   `/api/leaves/types` (pour gérer les types de congés)
-    *   `/api/leaves/reports` (via `LeaveReportApi`)
+    *   `/api/conges/quotas` (pour gérer les soldes)
+    *   `/api/conges/types` (pour gérer les types de congés)
+    *   `/api/conges/reports` (via `LeaveReportApi`)
 
 ### 2.2 Événements d'Intégration (via `EventBusService`)
 
@@ -228,7 +228,7 @@ Le `EventBusService` est un singleton accessible via `EventBusService.getInstanc
 **a) Publier un événement (depuis un service) :**
 
 ```typescript
-// src/modules/leaves/services/LeaveService.ts
+// src/modules/conges/services/LeaveService.ts
 import { eventBus, IntegrationEventType } from '@/modules/integration/services/EventBusService';
 import { Leave } from '@prisma/client'; // Ou votre type Leave
 
@@ -342,7 +342,7 @@ const unsubscribeAll = eventBus.subscribeToAll((event: IntegrationEvent) => {
 
 ### 4.1 Permissions (`LeavePermissionService`)
 
-Le `LeavePermissionService` (`src/modules/leaves/permissions/LeavePermissionService.ts`) centralise la logique de contrôle d'accès pour le module de congés.
+Le `LeavePermissionService` (`src/modules/conges/permissions/LeavePermissionService.ts`) centralise la logique de contrôle d'accès pour le module de congés.
 
 **Concepts Clés :**
 
@@ -358,7 +358,7 @@ Le `LeavePermissionService` (`src/modules/leaves/permissions/LeavePermissionServ
 *   **Un employé demande un congé :**
     *   Le `LeaveService`, avant de créer le congé, appelle `leavePermissionService.hasPermission(LeavePermission.REQUEST_LEAVE, currentUser)`.
 *   **Un manager approuve un congé pour son équipe :**
-    *   L'API `/api/leaves/[id]/approve`, via `LeaveService`, appelle `leavePermissionService.hasPermission(LeavePermission.APPROVE_TEAM_LEAVES, currentUser, targetUserId)`. Le `targetUserId` est l'ID de l'employé dont le congé est approuvé. `checkRelativePermission` vérifiera si `targetUserId` est dans l'équipe de `currentUser`.
+    *   L'API `/api/conges/[id]/approve`, via `LeaveService`, appelle `leavePermissionService.hasPermission(LeavePermission.APPROVE_TEAM_LEAVES, currentUser, targetUserId)`. Le `targetUserId` est l'ID de l'employé dont le congé est approuvé. `checkRelativePermission` vérifiera si `targetUserId` est dans l'équipe de `currentUser`.
 *   **Un admin RH gère les quotas :**
     *   L'interface de gestion des quotas, via le service `QuotaService`, appelle `leavePermissionService.hasPermission(LeavePermission.MANAGE_QUOTAS, currentUser)`.
 *   **Un admin système accorde une permission spéciale :**
@@ -366,7 +366,7 @@ Le `LeavePermissionService` (`src/modules/leaves/permissions/LeavePermissionServ
 
 ### 4.2 Audit (`AuditService`)
 
-Le `AuditService` (implémentations trouvées dans `src/lib/auditService.ts` et `src/modules/leaves/services/AuditService.ts` - vérifier quelle est la version canonique) est responsable de la journalisation des actions importantes.
+Le `AuditService` (implémentations trouvées dans `src/lib/auditService.ts` et `src/modules/conges/services/AuditService.ts` - vérifier quelle est la version canonique) est responsable de la journalisation des actions importantes.
 
 **Concepts Clés :**
 
@@ -402,7 +402,7 @@ sequenceDiagram
     participant User as Utilisateur
     participant UI as Frontend (LeaveRequestForm)
     participant Hook as useLeave
-    participant API as POST /api/leaves
+    participant API as POST /api/conges
     participant LeaveSvc as LeaveService
     participant QuotaSvc as LeaveQuotaService
     participant PermSvc as LeavePermissionService
@@ -412,7 +412,7 @@ sequenceDiagram
 
     User->>UI: Remplit et soumet le formulaire
     UI->>Hook: appelle createLeave(leaveData)
-    Hook->>API: Fetch POST /api/leaves (body: leaveData)
+    Hook->>API: Fetch POST /api/conges (body: leaveData)
     API->>LeaveSvc: appelle handleCreateLeave(data)
     LeaveSvc->>PermSvc: hasPermission(REQUEST_LEAVE, user)
     PermSvc-->>LeaveSvc: true/false
@@ -446,7 +446,7 @@ sequenceDiagram
 sequenceDiagram
     participant Manager as Manager
     participant UI as Frontend (LeavesList/Approval UI)
-    participant API as POST /api/leaves/[id]/approve
+    participant API as POST /api/conges/[id]/approve
     participant LeaveSvc as LeaveService
     participant PermSvc as LeavePermissionService
     participant AuditSvc as AuditService
@@ -456,7 +456,7 @@ sequenceDiagram
     participant PlanningAPI as API /api/planning
 
     Manager->>UI: Clique sur "Approuver" pour un congé
-    UI->>API: Fetch POST /api/leaves/{leaveId}/approve
+    UI->>API: Fetch POST /api/conges/{leaveId}/approve
     API->>LeaveSvc: appelle handleApproveLeave(leaveId, managerId)
     LeaveSvc->>PermSvc: hasPermission(APPROVE_TEAM_LEAVES, manager, targetUserId)
     PermSvc-->>LeaveSvc: true/false
@@ -514,7 +514,7 @@ import { eventBus, IntegrationEventType, IntegrationEvent } from '@/modules/inte
 import { Leave, LeaveType } from '@prisma/client'; // Importer les types nécessaires
 // Supposer l'existence d'un service pour gérer les inscriptions aux formations
 import { trainingEnrollmentService } from './TrainingEnrollmentService';
-import { auditService, AuditActionType, AuditSeverity } from '@/modules/leaves/services/AuditService'; // Utiliser le service d'audit
+import { auditService, AuditActionType, AuditSeverity } from '@/modules/conges/services/AuditService'; // Utiliser le service d'audit
 
 export class TrainingIntegrationService {
     private unsubscribeCallback: (() => void) | null = null;
@@ -591,7 +591,7 @@ export const trainingIntegrationService = new TrainingIntegrationService();
 import { prisma } from '@/lib/prisma'; // Accès direct DB ou via une API dédiée
 import { LeaveStatus, LeaveType } from '@prisma/client';
 // Importer le service de permission pour vérifier l'accès aux rapports
-import { leavePermissionService, LeavePermission } from '@/modules/leaves/permissions/LeavePermissionService';
+import { leavePermissionService, LeavePermission } from '@/modules/conges/permissions/LeavePermissionService';
 import { User } from '@/types/user'; // Type User
 
 // Interface pour les données agrégées

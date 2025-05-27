@@ -14,20 +14,20 @@ J'ai créé un plan complet de migration des routes anglaises vers des routes fr
 
 | Route Actuelle | Route Française | Impact |
 |----------------|-----------------|--------|
-| `/leaves` | `/conges` | Élevé (8+ fichiers) |
-| `/calendar` | `/calendrier` | Élevé (4+ fichiers) |
-| `/auth/login` | `/auth/connexion` | Critique |
-| `/admin/settings` | `/admin/parametres` | Moyen |
-| `/admin/holidays` | `/admin/jours-feries` | Moyen |
+| `/conges` | `/conges` | Élevé (8+ fichiers) |
+| `/calendrier` | `/calendrier` | Élevé (4+ fichiers) |
+| `/auth/connexion` | `/auth/connexion` | Critique |
+| `/admin/parametres` | `/admin/parametres` | Moyen |
+| `/admin/jours-feries` | `/admin/jours-feries` | Moyen |
 
 ### Routes API
 
 | API Actuelle | API Française |
 |--------------|---------------|
-| `/api/leaves` | `/api/conges` |
-| `/api/users` | `/api/utilisateurs` |
-| `/api/assignments` | `/api/affectations` |
-| `/api/public-holidays` | `/api/jours-feries` |
+| `/api/conges` | `/api/conges` |
+| `/api/utilisateurs` | `/api/utilisateurs` |
+| `/api/affectations` | `/api/affectations` |
+| `/api/jours-feries` | `/api/jours-feries` |
 
 ## 🛠️ Script de Migration
 
@@ -50,7 +50,7 @@ npx tsx scripts/migrate-to-french-routes.ts --execute
 
 ### Ce que fait le script
 1. **Remplace les routes** dans tous les fichiers (.ts, .tsx, .js, .jsx, .json, .md)
-2. **Renomme les dossiers** (ex: `src/app/leaves` → `src/app/conges`)
+2. **Renomme les dossiers** (ex: `src/app/conges` → `src/app/conges`)
 3. **Crée les redirections** 301 dans next.config.js
 4. **Génère un rapport** complet des modifications
 
@@ -66,12 +66,12 @@ Le fichier `TRADUCTIONS_UI_EN_FR.md` contient :
 
 ### Phase 1 (Semaine 1) - Routes Critiques
 1. Activer les redirections dans next.config.js
-2. Migrer `/leaves` → `/conges`
-3. Migrer `/calendar` → `/calendrier`
+2. Migrer `/conges` → `/conges`
+3. Migrer `/calendrier` → `/calendrier`
 4. Tester avec les utilisateurs clés
 
 ### Phase 2 (Semaine 2) - Authentification
-1. Migrer `/auth/login` → `/auth/connexion`
+1. Migrer `/auth/connexion` → `/auth/connexion`
 2. Mettre à jour tous les liens de déconnexion
 3. Tester les workflows d'authentification
 

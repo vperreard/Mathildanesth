@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { CalendarExportFormat } from '@/modules/calendar/types/event';
+import { CalendarExportFormat } from '@/modules/calendrier/types/event';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { exportSimulationResults, exportLeaveData, exportPlanningData } from '@/services/exportServiceV2';
@@ -31,9 +31,9 @@ export async function POST(request: NextRequest) {
 
         const options = await request.json();
 
-        // Réutiliser la logique de récupération des événements de l'API /api/calendar
+        // Réutiliser la logique de récupération des événements de l'API /api/calendrier
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || request.nextUrl.origin;
-        const eventsResponse = await fetch(`${baseUrl}/api/calendar`, {
+        const eventsResponse = await fetch(`${baseUrl}/api/calendrier`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
             case CalendarExportFormat.ICS:
                 filePath = await exportToICS(filteredEvents, options);
                 fileName = (options.fileName || `calendrier_${format(new Date(), 'yyyy-MM-dd')}`) + '.ics';
-                contentType = 'text/calendar';
+                contentType = 'text/calendrier';
                 break;
 
             default:

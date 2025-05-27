@@ -1,0 +1,129 @@
+import { redirects, handleRedirects } from './_redirects';
+import { NextRequest, NextResponse } from 'next/server';
+
+describe('Redirects Configuration', () => {
+  describe('redirects object', () => {
+    it('should export an object of redirect configurations', () => {
+      expect(typeof redirects).toBe('object');
+      expect(Object.keys(redirects).length).toBeGreaterThan(0);
+    });
+
+    it('should have string values for all entries', () => {
+      Object.entries(redirects).forEach(([source, destination]) => {
+        expect(typeof source).toBe('string');
+        expect(typeof destination).toBe('string');
+      });
+    });
+
+    it('should contain all expected redirects', () => {
+      const expectedRedirects = {
+        '/demo': '/',
+        '/diagnostic': '/admin',
+        '/admin/utilisateurs': '/utilisateurs',
+        '/admin/chirurgiens': '/parametres/chirurgiens'
+      };
+
+      Object.entries(expectedRedirects).forEach(([source, destination]) => {
+        expect(redirects).toHaveProperty(source);
+        expect(redirects[source as keyof typeof redirects]).toBe(destination);
+      });
+    });
+  });
+
+  describe('redirect logic', () => {
+    it('should redirect demo to home', () => {
+      expect(redirects['/demo']).toBe('/');
+    });
+
+    it('should redirect diagnostic to admin', () => {
+      expect(redirects['/diagnostic']).toBe('/admin');
+    });
+
+    it('should redirect admin legacy routes to new locations', () => {
+      expect(redirects['/admin/utilisateurs']).toBe('/utilisateurs');
+      expect(redirects['/admin/chirurgiens']).toBe('/parametres/chirurgiens');
+    });
+  });
+
+  describe('handleRedirects function', () => {
+    it('should return redirect response for known routes', () => {
+      const mockRequest = {
+        nextUrl: {
+          pathname: '/demo',
+          clone: () => ({
+            pathname: '/demo',
+            toString: () => 'http://localhost:3000/'
+          })
+        }
+      } as unknown as NextRequest;
+
+      const response = handleRedirects(mockRequest);
+      
+      expect(response).toBeInstanceOf(NextResponse);
+      expect(response?.status).toBe(301);
+    });
+
+    it('should return null for unknown routes', () => {
+      const mockRequest = {
+        nextUrl: {
+          pathname: '/unknown-route',
+          clone: () => ({
+            pathname: '/unknown-route'
+          })
+        }
+      } as unknown as NextRequest;
+
+      const response = handleRedirects(mockRequest);
+      
+      expect(response).toBeNull();
+    });
+
+    it('should handle all configured redirects', () => {
+      Object.keys(redirects).forEach(source => {
+        const mockRequest = {
+          nextUrl: {
+            pathname: source,
+            clone: () => ({
+              pathname: source,
+              toString: () => `http://localhost:3000${source}`
+            })
+          }
+        } as unknown as NextRequest;
+
+        const response = handleRedirects(mockRequest);
+        
+        expect(response).toBeInstanceOf(NextResponse);
+        expect(response?.status).toBe(301);
+      });
+    });
+  });
+
+  describe('redirect configuration validation', () => {
+    it('should have valid path format for all redirects', () => {
+      Object.entries(redirects).forEach(([source, destination]) => {
+        // Ensure paths start with /
+        expect(source).toMatch(/^\//);
+        expect(destination).toMatch(/^\//);
+        
+        // Ensure no trailing slashes except for root
+        if (source !== '/') {
+          expect(source).not.toMatch(/\/$/);
+        }
+        if (destination !== '/') {
+          expect(destination).not.toMatch(/\/$/);
+        }
+      });
+    });
+
+    it('should not create redirect loops', () => {
+      Object.entries(redirects).forEach(([source, destination]) => {
+        // Check if destination is not a source for another redirect
+        if (destination in redirects) {
+          const nextDestination = redirects[destination as keyof typeof redirects];
+          // Ensure it doesn't redirect back to the original source
+          expect(nextDestination).not.toBe(source);
+        }
+      });
+    });
+  });
+});

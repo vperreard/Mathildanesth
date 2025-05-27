@@ -45,7 +45,7 @@
               "fail": true,
               "pending": false,
               "context": null,
-              "code": "cy.visit('/auth/login');\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=password-input]').type(testUser.password);\ncy.get('[data-cy=login-button]').click();\n// Vérifier la redirection après connexion\ncy.url().should(function (url) {\n    expect(url).to.satisfy(function (url) {\n        return url.includes('/dashboard') || url.includes('/planning');\n    });\n});\n// Vérifier que le nom de l'utilisateur est affiché\ncy.get('[data-cy=user-name]').should('contain', testUser.name);",
+              "code": "cy.visit('/auth/connexion');\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=password-input]').type(testUser.password);\ncy.get('[data-cy=login-button]').click();\n// Vérifier la redirection après connexion\ncy.url().should(function (url) {\n    expect(url).to.satisfy(function (url) {\n        return url.includes('/dashboard') || url.includes('/planning');\n    });\n});\n// Vérifier que le nom de l'utilisateur est affiché\ncy.get('[data-cy=user-name]').should('contain', testUser.name);",
               "err": {
                 "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=email-input]`, but never found it.",
                 "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=email-input]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:21:11)",
@@ -67,7 +67,7 @@
               "fail": true,
               "pending": false,
               "context": null,
-              "code": "cy.visit('/auth/login');\ncy.get('[data-cy=email-input]').type('utilisateur.invalide@example.com');\ncy.get('[data-cy=password-input]').type('mot_de_passe_incorrect');\ncy.get('[data-cy=login-button]').click();\n// Vérifier le message d'erreur\ncy.get('[data-cy=notification-error]')\n    .should('be.visible')\n    .and('contain', 'Identifiants invalides');",
+              "code": "cy.visit('/auth/connexion');\ncy.get('[data-cy=email-input]').type('utilisateur.invalide@example.com');\ncy.get('[data-cy=password-input]').type('mot_de_passe_incorrect');\ncy.get('[data-cy=login-button]').click();\n// Vérifier le message d'erreur\ncy.get('[data-cy=notification-error]')\n    .should('be.visible')\n    .and('contain', 'Identifiants invalides');",
               "err": {
                 "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=email-input]`, but never found it.",
                 "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=email-input]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:38:11)",
@@ -111,7 +111,7 @@
               "fail": true,
               "pending": false,
               "context": null,
-              "code": "// Se connecter via l'API\ncy.loginByApi(testUser.email, testUser.password);\ncy.visitAsAuthenticatedUser('/dashboard');\n// Ouvrir le menu utilisateur et cliquer sur déconnexion\ncy.get('[data-cy=user-menu]').click();\ncy.get('[data-cy=logout-option]').click();\n// Vérifier la redirection vers la page de connexion\ncy.url().should('include', '/auth/login');\n// Essayer d'accéder à une page protégée\ncy.visit('/dashboard');\n// Vérifier qu'on est redirigé vers la page de connexion\ncy.url().should('include', '/auth/login');",
+              "code": "// Se connecter via l'API\ncy.loginByApi(testUser.email, testUser.password);\ncy.visitAsAuthenticatedUser('/dashboard');\n// Ouvrir le menu utilisateur et cliquer sur déconnexion\ncy.get('[data-cy=user-menu]').click();\ncy.get('[data-cy=logout-option]').click();\n// Vérifier la redirection vers la page de connexion\ncy.url().should('include', '/auth/connexion');\n// Essayer d'accéder à une page protégée\ncy.visit('/dashboard');\n// Vérifier qu'on est redirigé vers la page de connexion\ncy.url().should('include', '/auth/connexion');",
               "err": {
                 "message": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}",
                 "estack": "Error: Échec d'authentification: 400 {\"error\":\"Login et mot de passe requis\"}\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:97:18)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140155:19)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:146100:15)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
@@ -133,10 +133,10 @@
               "fail": true,
               "pending": false,
               "context": null,
-              "code": "// Essayer d'accéder à une page protégée sans être connecté\ncy.visit('/planning');\n// Vérifier qu'on est redirigé vers la page de connexion\ncy.url().should('include', '/auth/login');\n// Se connecter\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=password-input]').type(testUser.password);\ncy.get('[data-cy=login-button]').click();\n// Vérifier qu'on est redirigé vers la page initialement demandée\ncy.url().should('include', '/planning');",
+              "code": "// Essayer d'accéder à une page protégée sans être connecté\ncy.visit('/planning');\n// Vérifier qu'on est redirigé vers la page de connexion\ncy.url().should('include', '/auth/connexion');\n// Se connecter\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=password-input]').type(testUser.password);\ncy.get('[data-cy=login-button]').click();\n// Vérifier qu'on est redirigé vers la page initialement demandée\ncy.url().should('include', '/planning');",
               "err": {
-                "message": "AssertionError: Timed out retrying after 4000ms: expected 'http://localhost:3000/planning' to include '/auth/login'",
-                "estack": "AssertionError: Timed out retrying after 4000ms: expected 'http://localhost:3000/planning' to include '/auth/login'\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:89:17)",
+                "message": "AssertionError: Timed out retrying after 4000ms: expected 'http://localhost:3000/planning' to include '/auth/connexion'",
+                "estack": "AssertionError: Timed out retrying after 4000ms: expected 'http://localhost:3000/planning' to include '/auth/connexion'\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:89:17)",
                 "diff": null
               },
               "uuid": "f91ab5d6-d14b-4fa4-8e35-ed480be07952",
@@ -155,7 +155,7 @@
               "fail": true,
               "pending": false,
               "context": null,
-              "code": "cy.visit('/auth/login');\n// Cliquer sur le lien \"Mot de passe oublié\"\ncy.get('[data-cy=forgot-password-link]').click();\n// Vérifier qu'on est sur la page de récupération de mot de passe\ncy.url().should('include', '/auth/reset-password');\n// Saisir l'email et soumettre\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=submit-button]').click();\n// Vérifier le message de confirmation\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Instructions envoyées');",
+              "code": "cy.visit('/auth/connexion');\n// Cliquer sur le lien \"Mot de passe oublié\"\ncy.get('[data-cy=forgot-password-link]').click();\n// Vérifier qu'on est sur la page de récupération de mot de passe\ncy.url().should('include', '/auth/reset-password');\n// Saisir l'email et soumettre\ncy.get('[data-cy=email-input]').type(testUser.email);\ncy.get('[data-cy=submit-button]').click();\n// Vérifier le message de confirmation\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Instructions envoyées');",
               "err": {
                 "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=forgot-password-link]`, but never found it.",
                 "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=forgot-password-link]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/authentication.spec.ts:104:11)",

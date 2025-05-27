@@ -5,24 +5,24 @@ export const apiConfig = {
     baseUrl: process.env.NEXT_PUBLIC_API_URL || '/api',
     endpoints: {
         users: {
-            active: '/users/active',
-            byId: (id: string) => `/users/${id}`,
-            update: (id: string) => `/users/${id}`,
-            create: '/users',
-            delete: (id: string) => `/users/${id}`
+            active: '/utilisateurs/active',
+            byId: (id: string) => `/utilisateurs/${id}`,
+            update: (id: string) => `/utilisateurs/${id}`,
+            create: '/utilisateurs',
+            delete: (id: string) => `/utilisateurs/${id}`
         },
         user: {
             preferences: '/user/preferences'
         },
         assignments: {
-            list: '/assignments',
-            byId: (id: string) => `/assignments/${id}`,
-            create: '/assignments',
-            update: (id: string) => `/assignments/${id}`,
-            delete: (id: string) => `/assignments/${id}`,
+            list: '/affectations',
+            byId: (id: string) => `/affectations/${id}`,
+            create: '/affectations',
+            update: (id: string) => `/affectations/${id}`,
+            delete: (id: string) => `/affectations/${id}`,
             byDateRange: (startDate: string, endDate: string) =>
-                `/assignments?startDate=${startDate}&endDate=${endDate}`,
-            batch: '/assignments/batch'
+                `/affectations?startDate=${startDate}&endDate=${endDate}`,
+            batch: '/affectations/batch'
         },
         planning: {
             generate: '/planning/generate',
@@ -31,11 +31,11 @@ export const apiConfig = {
             reject: '/planning/reject'
         },
         dashboard: {
-            leaveStatistics: '/dashboard/leave-statistics',
-            teamAvailability: '/dashboard/team-availability',
-            leaveReports: '/dashboard/leave-reports',
-            peakPeriods: '/dashboard/peak-periods',
-            leaveTrends: '/dashboard/leave-trends'
+            leaveStatistics: '/tableau-de-bord/leave-statistics',
+            teamAvailability: '/tableau-de-bord/team-availability',
+            leaveReports: '/tableau-de-bord/leave-reports',
+            peakPeriods: '/tableau-de-bord/peak-periods',
+            leaveTrends: '/tableau-de-bord/leave-trends'
         }
     },
     headers: {
@@ -47,18 +47,18 @@ export const apiConfig = {
 // Points d'entrée API exportés pour l'utilisation dans les services
 export const API_ENDPOINTS = {
     // Authentification
-    LOGIN: `${apiConfig.baseUrl}/auth/login`,
-    LOGOUT: `${apiConfig.baseUrl}/auth/logout`,
+    LOGIN: `${apiConfig.baseUrl}/auth/connexion`,
+    LOGOUT: `${apiConfig.baseUrl}/auth/deconnexion`,
     REGISTER: `${apiConfig.baseUrl}/auth/register`,
     ME: `${apiConfig.baseUrl}/auth/me`,
 
     // Utilisateurs
-    USERS: `${apiConfig.baseUrl}/users`,
-    USER: (id: string) => `${apiConfig.baseUrl}/users/${id}`,
+    USERS: `${apiConfig.baseUrl}/utilisateurs`,
+    USER: (id: string) => `${apiConfig.baseUrl}/utilisateurs/${id}`,
 
     // Congés
-    LEAVES: `${apiConfig.baseUrl}/leaves`,
-    LEAVE: (id: string) => `${apiConfig.baseUrl}/leaves/${id}`,
+    LEAVES: `${apiConfig.baseUrl}/conges`,
+    LEAVE: (id: string) => `${apiConfig.baseUrl}/conges/${id}`,
     LEAVE_REQUESTS: `${apiConfig.baseUrl}/leave-requests`,
     LEAVE_REQUEST: (id: string) => `${apiConfig.baseUrl}/leave-requests/${id}`,
 

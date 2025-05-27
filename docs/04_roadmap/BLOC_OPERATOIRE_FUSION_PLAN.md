@@ -94,23 +94,26 @@
 
 ## 📋 Plan de Migration Étape par Étape
 
-### Phase 1: Préparation (2 jours)
-- [ ] Créer la nouvelle structure `/src/app/(app)/bloc-operatoire/`
-- [ ] Mettre en place le layout avec navigation par tabs
-- [ ] Créer `PermissionGuard` pour protéger les sections admin
-- [ ] Configurer les redirections depuis les anciennes URLs
+### Phase 1: Préparation (2 jours) ✅ COMPLÉTÉ
+- [x] Créer la nouvelle structure `/src/app/(app)/bloc-operatoire/`
+- [x] Mettre en place le layout avec navigation par tabs
+- [x] Créer `PermissionGuard` pour protéger les sections admin
+- [x] Configurer les redirections depuis les anciennes URLs
 
-### Phase 2: Migration Planning (3 jours)
-- [ ] Migrer `BlocPlanning` et `OptimizedBlocPlanning`
-- [ ] Migrer tous les composants d'édition (Editor, DayEditor, etc.)
-- [ ] Adapter les imports vers le module unifié
+### Phase 2: Migration Planning (3 jours) 🚧 EN COURS
+- [x] Créer adaptateurs pour `BlocPlanning` et `OptimizedBlocPlanning`
+- [x] Créer les routes create/[date] et edit/[id]
+- [x] Mettre en place un service de migration pour tracer l'avancement
+- [x] Créer une page de statut de migration
+- [ ] Migrer effectivement les composants (copier et adapter imports)
+- [ ] Migrer composants UI manquants (TrameEditor, PlanningWeekView, etc.)
 - [ ] Tester le planning complet
 
-### Phase 3: Migration Admin (2 jours)
-- [ ] Migrer les composants CRUD salles
-- [ ] Migrer les composants CRUD secteurs
-- [ ] Fusionner les règles de supervision
-- [ ] Implémenter les vérifications de permissions
+### Phase 3: Migration Admin (2 jours) ✅ COMPLÉTÉ
+- [x] Migrer les composants CRUD salles
+- [x] Migrer les composants CRUD secteurs
+- [x] Fusionner les règles de supervision
+- [x] Implémenter les vérifications de permissions (PermissionGuard)
 
 ### Phase 4: Unification Services (2 jours)
 - [ ] Pointer tous les imports vers `/modules/planning/bloc-operatoire/services/`

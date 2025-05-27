@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-// GET /api/users/[userId]/calendar-settings
+// GET /api/utilisateurs/[userId]/calendrier-settings
 export async function GET(
     request: Request,
     { params }: { params: { userId: string } }
@@ -55,7 +55,7 @@ export async function GET(
     }
 }
 
-// PUT /api/users/[userId]/calendar-settings
+// PUT /api/utilisateurs/[userId]/calendrier-settings
 export async function PUT(
     request: Request,
     { params }: { params: { userId: string } }

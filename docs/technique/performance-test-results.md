@@ -37,14 +37,14 @@ Les tests ont été exécutés sur un environnement représentatif de la product
 |------|---------------------|--------|
 | `/` (accueil) | 1702ms | Acceptable 🟡 |
 | `/login` | 6321ms | Amélioration nécessaire 🟠 |
-| `/auth/login` | 10321ms | Critique 🔴 |
+| `/auth/connexion` | 10321ms | Critique 🔴 |
 
 ### API (non authentifiées)
 
 | Endpoint | Temps de réponse | Statut HTTP |
 |----------|------------------|-------------|
-| `/api/users` | 11ms | 401 |
-| `/api/leaves/types` | 5ms | 401 |
+| `/api/utilisateurs` | 11ms | 401 |
+| `/api/conges/types` | 5ms | 401 |
 | `/api/planning` | 5ms | 401 |
 | `/api/skills` | 4ms | 401 |
 | `/api/notifications/preferences` | 5ms | 401 |
@@ -65,7 +65,7 @@ Les tests ont été exécutés sur un environnement représentatif de la product
 
 ### 1. Pages d'authentification lentes
 
-Les pages `/login` (6.3s) et `/auth/login` (10.3s) sont particulièrement lentes, ce qui représente un obstacle important pour les utilisateurs. Les causes potentielles identifiées sont :
+Les pages `/login` (6.3s) et `/auth/connexion` (10.3s) sont particulièrement lentes, ce qui représente un obstacle important pour les utilisateurs. Les causes potentielles identifiées sont :
 
 - JavaScript initial trop volumineux
 - Rendu serveur inefficace
@@ -105,7 +105,7 @@ De nombreux avertissements concernant la configuration du viewport ont été ide
 
 ### 1. Optimisation des pages d'authentification
 
-#### Page `/auth/login` (Priorité : Haute)
+#### Page `/auth/connexion` (Priorité : Haute)
 
 ```tsx
 // Implémentation recommandée pour le composant de connexion

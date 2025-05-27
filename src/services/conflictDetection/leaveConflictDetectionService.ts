@@ -7,8 +7,8 @@ import {
     ConflictType,
     ConflictSeverity,
     LeaveConflict
-} from '@/modules/leaves/types/conflict';
-import { checkLeaveConflicts } from '@/modules/leaves/services/leaveService';
+} from '@/modules/conges/types/conflict';
+import { checkLeaveConflicts } from '@/modules/conges/services/leaveService';
 
 /**
  * Service de détection de conflits spécifique aux congés

@@ -13,7 +13,7 @@ npm run db:seed               # Données de base (utilisateurs, chirurgiens, sp�
 npm run seed:leaves-test      # Données de test (congés été 2025)
 
 # Vérifier que tout fonctionne
-curl http://localhost:3000/api/users
+curl http://localhost:3000/api/utilisateurs
 ```
 
 **Résultat attendu** :
@@ -34,13 +34,13 @@ npm run export:all
 npm run export:csv users
 
 # 3. Éditer le CSV
-code exports/csv/users-$(date +%Y-%m-%d).csv
+code exports/csv/utilisateurs-$(date +%Y-%m-%d).csv
 
 # 4. Ajouter les nouvelles lignes :
 # "NOUVEAU","Jean","jean.nouveau","jean.nouveau@hopital.fr","UTILISATEUR","MAR","false","","2025-01-01","","true","","","","",""
 
 # 5. Remplacer le fichier source
-cp exports/csv/users-$(date +%Y-%m-%d).csv prisma/seed_data/users.csv
+cp exports/csv/utilisateurs-$(date +%Y-%m-%d).csv prisma/seed_data/utilisateurs.csv
 
 # 6. Reseeder
 npm run db:seed
@@ -114,7 +114,7 @@ scp exports/db-export-*.json staging:/app/exports/
 ssh staging "cd /app && node scripts/import-db-state.js exports/db-export-*.json"
 
 # Vérification
-ssh staging "cd /app && curl http://localhost:3000/api/users | jq length"
+ssh staging "cd /app && curl http://localhost:3000/api/utilisateurs | jq length"
 ```
 
 ### 7. Tests de charge avec données volumineuses

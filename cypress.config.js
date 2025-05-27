@@ -88,7 +88,7 @@ module.exports = defineConfig({
                     console.log(`Chargement des fixtures demandées: ${fixtures ? JSON.stringify(fixtures) : 'users (par défaut)'}`);
 
                     // Par défaut, toujours charger les utilisateurs
-                    const usersFixturePath = path.join(__dirname, 'cypress/fixtures/users.json');
+                    const usersFixturePath = path.join(__dirname, 'cypress/fixtures/utilisateurs.json');
                     try {
                         const usersJson = fs.readFileSync(usersFixturePath, 'utf-8');
                         const usersData = JSON.parse(usersJson);
@@ -137,7 +137,7 @@ module.exports = defineConfig({
                                 return null; // Retourner null en cas d'erreur pour éviter le blocage de Cypress
                             });
                     } catch (error) {
-                        console.error('Erreur lors de la lecture du fichier fixtures/users.json:', error);
+                        console.error('Erreur lors de la lecture du fichier fixtures/utilisateurs.json:', error);
                         prisma.$disconnect();
                         return null; // Retourner null en cas d'erreur pour éviter le blocage de Cypress
                     }

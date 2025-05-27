@@ -26,7 +26,7 @@ async function measurePagePerformance() {
 
     // Test 2: Page de connexion
     console.log('📊 Test 2: Page de connexion...');
-    await testPage(page, 'http://localhost:3000/auth/login', 'Page de connexion', results);
+    await testPage(page, 'http://localhost:3000/auth/connexion', 'Page de connexion', results);
 
     // Test 3: Test avec cache (second chargement)
     console.log('📊 Test 3: Page d\'accueil (avec cache)...');
@@ -35,7 +35,7 @@ async function measurePagePerformance() {
 
     // Test 4: API utilisateurs
     console.log('📊 Test 4: API utilisateurs...');
-    await testAPI(page, 'http://localhost:3000/api/users?limit=20', 'API Users', results);
+    await testAPI(page, 'http://localhost:3000/api/utilisateurs?limit=20', 'API Users', results);
 
     // Test 5: Service Worker
     console.log('📊 Test 5: Service Worker...');

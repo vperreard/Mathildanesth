@@ -175,7 +175,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
             setLoadTypeError(null);
             try {
                 // Utilisation de l'API des types de congés settings pour avoir plus d'infos
-                const response = await fetch('/api/leaves/types');
+                const response = await fetch('/api/conges/types');
                 if (!response.ok) {
                     throw new Error(`Erreur HTTP ${response.status}`);
                 }
@@ -253,7 +253,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
         }];
 
         try {
-            const response = await axios.post('/api/leaves/batch', batchPayload);
+            const response = await axios.post('/api/conges/batch', batchPayload);
 
             // L'API batch retourne un objet { results: BatchResult[] }
             const batchResults = response.data.results;

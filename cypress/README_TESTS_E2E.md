@@ -78,7 +78,7 @@ Exécute tous les tests en mode headless et génère des rapports.
 npm run cypress:run -- --spec "cypress/e2e/auth/**/*"
 
 # Tester uniquement les congés
-npm run cypress:run -- --spec "cypress/e2e/leaves/**/*"
+npm run cypress:run -- --spec "cypress/e2e/conges/**/*"
 
 # Tester uniquement le bloc opératoire
 npm run cypress:run -- --spec "cypress/e2e/bloc-operatoire/**/*"
@@ -149,7 +149,7 @@ cy.dragAndDrop('[data-testid=source]', '[data-testid=target]');
 Les fixtures contiennent les données de test :
 
 ```json
-// cypress/fixtures/users.json
+// cypress/fixtures/utilisateurs.json
 [
   {
     "email": "admin@example.com",

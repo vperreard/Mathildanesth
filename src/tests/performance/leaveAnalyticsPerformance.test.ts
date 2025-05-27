@@ -1,5 +1,5 @@
-import { LeaveAnalyticsService } from '../../modules/dashboard/leaves/services/leaveAnalyticsService';
-import { AggregationType } from '../../modules/dashboard/leaves/services/leaveAnalyticsService';
+import { LeaveAnalyticsService } from '../../modules/dashboard/conges/services/leaveAnalyticsService';
+import { AggregationType } from '../../modules/dashboard/conges/services/leaveAnalyticsService';
 import { performance } from 'perf_hooks';
 
 describe('Leave Analytics Performance Tests', () => {

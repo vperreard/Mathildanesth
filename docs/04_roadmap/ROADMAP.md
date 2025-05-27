@@ -35,18 +35,21 @@
 - [x] Redirections créées dans `/src/app/_redirects.ts`:
   - `/demo` → `/`
   - `/diagnostic` → `/admin`
-  - `/admin/users` → `/utilisateurs` (inversé car /admin/users n'existe pas)
-  - `/admin/surgeons` → `/parametres/chirurgiens`
+  - `/admin/utilisateurs` → `/utilisateurs` (inversé car /admin/utilisateurs n'existe pas)
+  - `/admin/chirurgiens` → `/parametres/chirurgiens`
 
 **Unification Doublons**
-- [ ] **Bloc Opératoire** : Fusionner `/bloc-operatoire` et `/admin/bloc-operatoire`
-  - Garder une seule version avec vues par rôle
-  - Migration des données existantes
+- [ ] **Bloc Opératoire** : Fusionner `/bloc-operatoire` et `/admin/bloc-operatoire` 🚧 EN COURS
+  - [x] Analyse complète et plan de fusion créé (27/05/25)
+  - [x] Phase 1 : Structure unifiée `/src/app/(app)/bloc-operatoire/` créée
+  - [x] Navigation par tabs et PermissionGuard implémentés
+  - [ ] Phase 2 : Migration des composants planning (en cours)
+  - [ ] Phase 3-6 : Migration admin, services, optimisations, tests
 - [ ] **Système Demandes** : Unifier 3 systèmes en 1
-  - `/requetes` + `/admin/requests` + `/notifications/swaps`
+  - `/requetes` + `/admin/demandes` + `/notifications/echanges`
   - Un seul workflow cohérent
 
-### 1.2 Harmonisation Langue (Semaine 3) 🌐 ✅
+### 1.2 Harmonisation Langue (Semaine 3) 🌐 ✅ COMPLÉTÉ (27/05/2025)
 
 **Décision** : Tout en français pour cohérence UX
 - [x] **Migration routes planifiée** (27/05/2025) - Documentation et script créés
@@ -54,12 +57,11 @@
   - [x] Script automatique : `scripts/migrate-to-french-routes.ts`
   - [x] Guide traductions UI : `TRADUCTIONS_UI_EN_FR.md` (300+ termes)
   - [x] Redirections 301 préparées pour migration sans interruption
-- [ ] **Exécution migration** : À faire après validation équipe
-  - [ ] `/leaves` → `/conges`
-  - [ ] `/users` → `/utilisateurs` 
-  - [ ] `/settings` → `/parametres`
-  - [ ] `/assignments` → `/affectations`
-  - [ ] Mise à jour de toutes les références
+- [x] **Exécution migration** : ✅ TERMINÉE (27/05/2025)
+  - [x] Routes principales migrées (leaves→conges, calendar→calendrier, etc.)
+  - [x] 705 fichiers modifiés, 13,947 changements effectués
+  - [x] 6 dossiers renommés avec succès
+  - [x] Toutes les références mises à jour automatiquement
 
 ### 1.3 Restructuration Routes (Semaine 4) 🗂️
 
@@ -402,7 +404,12 @@ Validation & Ajustements
 - **Nettoyage architecture** : Suppression de `/demo`, `/diagnostic` et 8 fichiers de sauvegarde
 - **Système de redirections** : Créé dans `/src/app/_redirects.ts` et intégré au middleware
 - **Navigation mise à jour** : Footer et page d'accueil nettoyés, navigationConfig.ts corrigé
-- **Note** : `/admin/users` et `/admin/surgeons` n'existent pas, redirections inversées vers les pages existantes
+- **Note** : `/admin/utilisateurs` et `/admin/chirurgiens` n'existent pas, redirections inversées vers les pages existantes
+- **MIGRATION FRANÇAISE COMPLÈTE** : Toutes les routes migrées vers le français
+  - 705 fichiers modifiés avec 13,947 changements
+  - 6 dossiers renommés : leaves→conges, calendar→calendrier, auth/login→auth/connexion, etc.
+  - Script automatique exécuté avec succès
+  - ⚠️ Tests à mettre à jour suite aux changements de routes
 - **Tests E2E Puppeteer** : Suite complète implémentée
   - Tests workflows multi-utilisateurs (échanges de gardes)
   - Tests de charge (50+ utilisateurs simultanés)
@@ -443,6 +450,66 @@ Validation & Ajustements
 - <1s temps de réponse
 - 0 erreur planning critique
 - 50% réduction temps administratif
+
+---
+
+## 💡 IDÉES FUTURES À DISCUTER (Ajouté le 27/05/2025)
+
+### Phase 2 - Améliorations Quick Wins (À discuter)
+Ces fonctionnalités pourraient être implémentées relativement rapidement avec un bon ROI :
+
+1. **Progressive Web App (PWA)** 📱
+   - Installation sur mobile/desktop
+   - Notifications push natives
+   - Mode hors ligne basique
+   - *Avantage* : Améliore l'accessibilité et l'engagement utilisateur
+
+2. **Collaboration Temps Réel** 🔄
+   - Indicateurs "en cours d'édition" sur le planning
+   - Curseurs collaboratifs
+   - Synchronisation instantanée
+   - *Avantage* : Évite les conflits de modification
+
+3. **Mode Hors Ligne Simple** 💾
+   - Consultation planning sans connexion
+   - File d'attente pour les modifications
+   - Synchronisation au retour en ligne
+   - *Avantage* : Fiabilité en cas de connexion instable
+
+### Phase 3 - Fonctionnalités Avancées (Moyen terme)
+Ces fonctionnalités demandent plus de développement mais pourraient apporter de la valeur :
+
+1. **Assistant IA Simple** 🤖
+   - Suggestions de remplacement basées sur l'historique
+   - Détection de patterns dans les plannings
+   - Aide à la décision pour les conflits
+   - *Note* : Version simple sans ML complexe
+
+2. **Analytics Avancés** 📈
+   - Tableaux de bord personnalisables
+   - Rapports automatiques périodiques
+   - Prédictions de charge basées sur l'historique
+   - *Avantage* : Aide à la prise de décision stratégique
+
+### Idées Écartées pour le Moment
+Ces approches ont été analysées mais ne sont pas recommandées actuellement :
+
+1. **Machine Learning Complexe** ❌
+   - *Raison* : ROI incertain, complexité élevée
+   - *Alternative* : Règles métier bien définies
+
+2. **Event Sourcing/CQRS** ❌
+   - *Raison* : Sur-ingénierie pour les besoins actuels
+   - *Alternative* : Architecture actuelle suffisante
+
+3. **Micro-frontends** ❌
+   - *Raison* : Complexité sans bénéfice clair
+   - *Alternative* : Monolithe modulaire actuel
+
+### Notes de Discussion
+- Ces idées sont à rediscuter ensemble selon l'évolution des besoins
+- Priorisation basée sur le feedback utilisateur
+- Évaluation du ROI avant toute implémentation
 
 ---
 

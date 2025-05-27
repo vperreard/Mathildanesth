@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Désactiver Service Worker - Mathildanesth</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .unregister {
+            background-color: #f44336;
+            color: white;
+        }
+        .unregister:hover {
+            background-color: #d32f2f;
+        }
+        .login {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .login:hover {
+            background-color: #45a049;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Gestion du Service Worker</h1>
+        
+        <div id="status" class="status"></div>
+        
+        <button class="unregister" onclick="unregisterServiceWorker()">
+            🛑 Désactiver le Service Worker
+        </button>
+        
+        <button class="login" onclick="goToLogin()">
+            🔐 Aller à la page de connexion
+        </button>
+        
+        <h2>Instructions :</h2>
+        <ol>
+            <li>Cliquez sur "Désactiver le Service Worker"</li>
+            <li>Attendez la confirmation</li>
+            <li>Cliquez sur "Aller à la page de connexion"</li>
+            <li>Connectez-vous avec :
+                <ul>
+                    <li>Login : <strong>test.user</strong></li>
+                    <li>Mot de passe : <strong>Test123!</strong></li>
+                </ul>
+            </li>
+        </ol>
+        
+        <h3>État actuel :</h3>
+        <pre id="swStatus">Vérification en cours...</pre>
+    </div>
+
+    <script>
+        // Vérifier l'état du Service Worker au chargement
+        async function checkServiceWorkerStatus() {
+            const statusEl = document.getElementById('swStatus');
+            
+            if (!('serviceWorker' in navigator)) {
+                statusEl.textContent = '❌ Service Worker non supporté par ce navigateur';
+                return;
+            }
+            
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                
+                if (registrations.length === 0) {
+                    statusEl.textContent = '✅ Aucun Service Worker actif';
+                } else {
+                    statusEl.innerHTML = '⚠️ Service Workers actifs :\n';
+                    registrations.forEach((reg, index) => {
+                        statusEl.innerHTML += `\n${index + 1}. Scope: ${reg.scope}\n`;
+                        statusEl.innerHTML += `   Active: ${reg.active ? 'Oui' : 'Non'}\n`;
+                        statusEl.innerHTML += `   Waiting: ${reg.waiting ? 'Oui' : 'Non'}\n`;
+                        statusEl.innerHTML += `   Installing: ${reg.installing ? 'Oui' : 'Non'}\n`;
+                    });
+                }
+            } catch (error) {
+                statusEl.textContent = '❌ Erreur lors de la vérification : ' + error.message;
+            }
+        }
+        
+        // Désactiver le Service Worker
+        async function unregisterServiceWorker() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status info';
+            statusDiv.innerHTML = '⏳ Désactivation en cours...';
+            
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    
+                    if (registrations.length === 0) {
+                        statusDiv.className = 'status info';
+                        statusDiv.innerHTML = 'ℹ️ Aucun Service Worker à désactiver';
+                    } else {
+                        for (const registration of registrations) {
+                            await registration.unregister();
+                            console.log('Service Worker désenregistré:', registration.scope);
+                        }
+                        
+                        statusDiv.className = 'status success';
+                        statusDiv.innerHTML = `✅ ${registrations.length} Service Worker(s) désactivé(s) avec succès !`;
+                    }
+                    
+                    // Vider les caches
+                    if ('caches' in window) {
+                        const cacheNames = await caches.keys();
+                        await Promise.all(cacheNames.map(name => caches.delete(name)));
+                        console.log('Caches vidés:', cacheNames);
+                    }
+                    
+                    setTimeout(checkServiceWorkerStatus, 1000);
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = '❌ Service Worker non supporté';
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '❌ Erreur : ' + error.message;
+                console.error('Erreur:', error);
+            }
+        }
+        
+        // Aller à la page de connexion
+        function goToLogin() {
+            window.location.href = 'http://localhost:3000/auth/connexion';
+        }
+        
+        // Vérifier au chargement
+        checkServiceWorkerStatus();
+        
+        // Rafraîchir toutes les 2 secondes
+        setInterval(checkServiceWorkerStatus, 2000);
+    </script>
+</body>
+</html>

@@ -39,8 +39,8 @@ describe('Vérification de la migration Pages Router → App Router', () => {
         const balanceTestPath = path.join(process.cwd(), 'src', 'tests', 'integration', 'api', 'leaves', 'balance.test.ts');
         if (fs.existsSync(balanceTestPath)) {
             const content = fs.readFileSync(balanceTestPath, 'utf8');
-            expect(content).toContain('@/app/api/leaves/balance/route');
-            expect(content).not.toContain('../../../../pages/api/leaves/balance');
+            expect(content).toContain('@/app/api/conges/balance/route');
+            expect(content).not.toContain('../../../../pages/api/conges/balance');
         }
     });
 

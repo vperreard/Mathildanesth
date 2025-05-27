@@ -67,7 +67,7 @@ const ConsultationsPage: React.FC = () => {
     const fetchData = async () => {
         try {
             // Charger les utilisateurs (médecins)
-            const usersResponse = await fetch('/api/users');
+            const usersResponse = await fetch('/api/utilisateurs');
             if (usersResponse.ok) {
                 const usersData = await usersResponse.json();
                 setUsers(usersData.users);

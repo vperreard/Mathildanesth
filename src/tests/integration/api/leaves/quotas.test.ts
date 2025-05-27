@@ -27,21 +27,21 @@ jest.mock('next/server', () => ({
     }
 }));
 
-describe('/api/leaves/quotas/*', () => {
+describe('/api/conges/quotas/*', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    describe('GET /api/leaves/quotas/dashboard', () => {
+    describe('GET /api/conges/quotas/dashboard', () => {
         let handler: any;
 
         beforeEach(async () => {
-            const route = await import('@/app/api/leaves/quotas/dashboard/route');
+            const route = await import('@/app/api/conges/quotas/dashboard/route');
             handler = route.GET;
         });
 
         const createRequest = (params?: URLSearchParams) => {
-            const url = new URL('http://localhost:3000/api/leaves/quotas/dashboard');
+            const url = new URL('http://localhost:3000/api/conges/quotas/dashboard');
             if (params) {
                 url.search = params.toString();
             }
@@ -141,16 +141,16 @@ describe('/api/leaves/quotas/*', () => {
         });
     });
 
-    describe('POST /api/leaves/quotas/transfers', () => {
+    describe('POST /api/conges/quotas/transfers', () => {
         let handler: any;
 
         beforeEach(async () => {
-            const route = await import('@/app/api/leaves/quotas/transfers/route');
+            const route = await import('@/app/api/conges/quotas/transfers/route');
             handler = route.POST;
         });
 
         const createRequest = (body: any) => {
-            return new NextRequest('http://localhost:3000/api/leaves/quotas/transfers', {
+            return new NextRequest('http://localhost:3000/api/conges/quotas/transfers', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -245,11 +245,11 @@ describe('/api/leaves/quotas/*', () => {
         });
     });
 
-    describe('GET /api/leaves/quotas/carry-over-rules', () => {
+    describe('GET /api/conges/quotas/carry-over-rules', () => {
         let handler: any;
 
         beforeEach(async () => {
-            const route = await import('@/app/api/leaves/quotas/carry-over-rules/route');
+            const route = await import('@/app/api/conges/quotas/carry-over-rules/route');
             handler = route.GET;
         });
 
@@ -270,7 +270,7 @@ describe('/api/leaves/quotas/*', () => {
                 findMany: jest.fn().mockResolvedValue(mockRules),
             } as any;
 
-            const request = new NextRequest('http://localhost:3000/api/leaves/quotas/carry-over-rules', {
+            const request = new NextRequest('http://localhost:3000/api/conges/quotas/carry-over-rules', {
                 method: 'GET',
                 headers: { 'cookie': 'auth-token=valid_token' },
             });

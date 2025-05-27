@@ -85,7 +85,7 @@
             "name": "Congés",
             "short_name": "Congés",
             "description": "Gérer les congés",
-            "url": "/leaves",
+            "url": "/conges",
             "icons": [
                 {
                     "src": "/icons/shortcut-leaves.png",

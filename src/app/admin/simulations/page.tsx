@@ -315,7 +315,7 @@ export default function SimulationsPage() {
                         Templates
                     </Button>
                     <Button
-                        onClick={() => router.push('/admin/simulations/new')}
+                        onClick={() => router.push('/admin/simulations/nouveau')}
                     >
                         <Plus className="h-4 w-4 mr-2" />
                         Nouveau scénario
@@ -349,7 +349,7 @@ export default function SimulationsPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="flex justify-center py-6">
-                                <Button onClick={() => router.push('/admin/simulations/new')}>
+                                <Button onClick={() => router.push('/admin/simulations/nouveau')}>
                                     <Plus className="h-4 w-4 mr-2" />
                                     Créer un scénario
                                 </Button>
@@ -488,7 +488,7 @@ export default function SimulationsPage() {
                             {templates.length === 0 ? (
                                 <div className="text-center py-6">
                                     <p className="text-muted-foreground mb-4">Aucun template disponible</p>
-                                    <Button onClick={() => router.push('/admin/simulations/templates/new')} size="sm">
+                                    <Button onClick={() => router.push('/admin/simulations/templates/nouveau')} size="sm">
                                         <Plus className="h-4 w-4 mr-2" />
                                         Créer un template
                                     </Button>
@@ -522,7 +522,7 @@ export default function SimulationsPage() {
                                                     className="flex-1"
                                                     onClick={() => {
                                                         router.push({
-                                                            pathname: '/admin/simulations/new',
+                                                            pathname: '/admin/simulations/nouveau',
                                                             query: { templateId: template.id }
                                                         });
                                                     }}

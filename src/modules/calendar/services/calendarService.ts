@@ -7,7 +7,7 @@ import { CalendarFilters, AnyCalendarEvent, CalendarEventType, BaseCalendarEvent
  * Centralise les appels API et la logique métier liée au calendrier
  */
 class CalendarService {
-    private readonly baseUrl = `${CONFIG.API_BASE_URL}/api/calendar`;
+    private readonly baseUrl = `${CONFIG.API_BASE_URL}/api/calendrier`;
 
     /**
      * Récupère les événements du calendrier selon les filtres spécifiés

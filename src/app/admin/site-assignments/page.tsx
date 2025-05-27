@@ -53,8 +53,8 @@ const SiteAssignmentsPage = () => {
             setLoading(true);
 
             const [usersRes, surgeonsRes, sitesRes] = await Promise.all([
-                fetch('/api/users?limit=50'),
-                fetch('/api/surgeons?limit=100'),
+                fetch('/api/utilisateurs?limit=50'),
+                fetch('/api/chirurgiens?limit=100'),
                 fetch('/api/sites')
             ]);
 

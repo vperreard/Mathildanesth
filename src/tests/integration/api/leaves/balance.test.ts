@@ -91,7 +91,7 @@ const mockLeaveQueryCacheService = {
     })
 };
 
-jest.mock('@/modules/leaves/services/LeaveQueryCacheService', () => ({
+jest.mock('@/modules/conges/services/LeaveQueryCacheService', () => ({
     LeaveQueryCacheService: mockLeaveQueryCacheService
 }));
 
@@ -106,9 +106,9 @@ jest.mock('@/lib/logger', () => ({
 }));
 
 // Importer la route App Router après avoir configuré les mocks
-import { GET } from '@/app/api/leaves/balance/route';
+import { GET } from '@/app/api/conges/balance/route';
 
-describe('GET /api/leaves/balance', () => {
+describe('GET /api/conges/balance', () => {
     const currentYear = new Date().getFullYear();
 
     beforeEach(() => {
@@ -135,7 +135,7 @@ describe('GET /api/leaves/balance', () => {
 
     it('should return correct leave balances', async () => {
         // Créer une requête NextRequest pour App Router
-        const request = new NextRequest(`http://localhost:3000/api/leaves/balance?userId=101&year=${currentYear}`, {
+        const request = new NextRequest(`http://localhost:3000/api/conges/balance?userId=101&year=${currentYear}`, {
             method: 'GET'
         });
 
@@ -170,7 +170,7 @@ describe('GET /api/leaves/balance', () => {
 
     it('should return 400 if userId is missing', async () => {
         // Créer une requête sans userId
-        const request = new NextRequest(`http://localhost:3000/api/leaves/balance?year=${currentYear}`, {
+        const request = new NextRequest(`http://localhost:3000/api/conges/balance?year=${currentYear}`, {
             method: 'GET'
         });
 
@@ -198,7 +198,7 @@ describe('GET /api/leaves/balance', () => {
             { typeCode: 'ANNUAL', status: 'APPROVED', totalDays: 15 }
         ]);
 
-        const request = new NextRequest(`http://localhost:3000/api/leaves/balance?userId=101&year=${testYear}`, {
+        const request = new NextRequest(`http://localhost:3000/api/conges/balance?userId=101&year=${testYear}`, {
             method: 'GET'
         });
 
@@ -221,7 +221,7 @@ describe('GET /api/leaves/balance', () => {
         // Mock un cas où aucun type de congé n'est défini
         mockFindManyLeaveTypeSetting.mockResolvedValue([]);
 
-        const request = new NextRequest(`http://localhost:3000/api/leaves/balance?userId=999&year=${currentYear}`, {
+        const request = new NextRequest(`http://localhost:3000/api/conges/balance?userId=999&year=${currentYear}`, {
             method: 'GET'
         });
 

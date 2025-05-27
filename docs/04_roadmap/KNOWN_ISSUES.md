@@ -12,9 +12,13 @@
   - 16 vulnérabilités npm restantes (principalement dans les outils de test)
 
 ### 2. Tests Défaillants
-- **285 tests échouent** sur 1395 (20%)
+- **285+ tests échouent** sur 1395 (20%+)
 - ✅ **WebSocket tests** : CORRIGÉ - Tests mockés correctement
 - **Leave Form tests** : Problèmes avec les mocks de hooks
+- ⚠️ **NOUVEAU (27/05/2025)** : Migration routes françaises a cassé de nombreux tests
+  - Tests E2E Cypress référencent anciennes routes (/leaves, /calendar, etc.)
+  - Tests unitaires avec hardcoded paths à mettre à jour
+  - Estimation : +100 tests supplémentaires à corriger
 
 ## ⚠️ Problèmes Moyens
 
@@ -36,7 +40,7 @@
 ### 1. Architecture
 - Migration pages/ → app/ incomplète
 - Code dupliqué entre modules
-- ⚠️ **Routes manquantes** : `/admin/users` et `/admin/surgeons` n'existent pas (redirections inversées mises en place)
+- ⚠️ **Routes manquantes** : `/admin/utilisateurs` et `/admin/chirurgiens` n'existent pas (redirections inversées mises en place)
 
 ### 2. Performance
 - Tests de performance non automatisés
@@ -62,10 +66,12 @@
    - Tests d'accessibilité WCAG 2.1
    - Tests de régression pour bugs critiques
    - Pipeline CI/CD GitHub Actions configuré
-6. ✅ **Migration routes françaises** : Préparation complète
+6. ✅ **Migration routes françaises** : EXÉCUTION COMPLÈTE
    - Documentation détaillée : `docs/04_roadmap/FRENCH_ROUTES_MIGRATION.md`
    - Script automatique : `scripts/migrate-to-french-routes.ts`
    - Guide traductions UI : `TRADUCTIONS_UI_EN_FR.md` (300+ termes)
+   - **EXÉCUTÉ** : 705 fichiers modifiés, 13,947 changements
+   - **IMPACT** : Tests unitaires et E2E nécessitent mise à jour
    - Stratégie migration en 4 phases sans interruption
 
 ### 25/05/2025

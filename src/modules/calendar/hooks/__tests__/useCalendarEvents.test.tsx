@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useCalendarEvents } from '../useCalendarEvents';
-import { calendarService } from '../../services/calendarService';
+import { calendarService } from '../../services/calendrierService';
 import { AnyCalendarEvent, CalendarEventType, CalendarFilters, AssignmentEvent, DutyEvent, MeetingEvent, LeaveEvent } from '../../types/event';
 import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
 
@@ -11,7 +11,7 @@ import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globa
 // const mockDeleteEvent = jest.fn<(eventId: string, eventType?: CalendarEventType) => Promise<boolean>>();
 // const mockUpdateEventStatus = jest.fn<(eventId: string, status: string) => Promise<AnyCalendarEvent | null>>();
 
-jest.mock('../../services/calendarService', () => ({
+jest.mock('../../services/calendrierService', () => ({
     calendarService: {
         getEvents: jest.fn<(filters?: CalendarFilters) => Promise<AnyCalendarEvent[]>>(),
         createEvent: jest.fn<(event: Omit<AnyCalendarEvent, 'id'>) => Promise<AnyCalendarEvent>>(),
@@ -49,7 +49,7 @@ describe('useCalendarEvents Hook', () => {
 
     beforeEach(() => {
         // Récupérer les instances mockées de calendarService
-        const mockedCalendarService = require('../../services/calendarService').calendarService;
+        const mockedCalendarService = require('../../services/calendrierService').calendarService;
         mockGetEvents = mockedCalendarService.getEvents as jest.MockedFunction<typeof calendarService.getEvents>;
         mockCreateEvent = mockedCalendarService.createEvent as jest.MockedFunction<typeof calendarService.createEvent>;
         mockUpdateEvent = mockedCalendarService.updateEvent as jest.MockedFunction<typeof calendarService.updateEvent>;

@@ -3,7 +3,7 @@
 describe('Visualisations Avancées de Simulation', () => {
     beforeEach(() => {
         cy.login('admin@mathildanesth.fr', 'AdminSecure123!');
-        cy.visit('/admin/simulations/advanced-visualizations');
+        cy.visit('/admin/simulations/avances-visualizations');
     });
 
     describe('Tableau de bord des visualisations', () => {

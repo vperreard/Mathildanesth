@@ -19,30 +19,30 @@ interface MigrationResult {
 // Configuration des mappings de routes
 const ROUTE_MAPPINGS: RouteMapping[] = [
   // Routes principales
-  { from: '/leaves', to: '/conges', regex: /\/leaves/g },
-  { from: '/calendar', to: '/calendrier', regex: /\/calendar/g },
-  { from: '/users', to: '/utilisateurs', regex: /\/users/g },
-  { from: '/assignments', to: '/affectations', regex: /\/assignments/g },
-  { from: '/settings', to: '/parametres', regex: /\/settings/g },
-  { from: '/holidays', to: '/jours-feries', regex: /\/holidays/g },
-  { from: '/requests', to: '/demandes', regex: /\/requests/g },
-  { from: '/surgeons', to: '/chirurgiens', regex: /\/surgeons/g },
+  { from: '/conges', to: '/conges', regex: /\/conges/g },
+  { from: '/calendrier', to: '/calendrier', regex: /\/calendrier/g },
+  { from: '/utilisateurs', to: '/utilisateurs', regex: /\/utilisateurs/g },
+  { from: '/affectations', to: '/affectations', regex: /\/affectations/g },
+  { from: '/parametres', to: '/parametres', regex: /\/parametres/g },
+  { from: '/jours-feries', to: '/jours-feries', regex: /\/jours-feries/g },
+  { from: '/demandes', to: '/demandes', regex: /\/demandes/g },
+  { from: '/chirurgiens', to: '/chirurgiens', regex: /\/chirurgiens/g },
   
   // Routes d'authentification
-  { from: '/auth/login', to: '/auth/connexion', regex: /\/auth\/login/g },
-  { from: '/auth/logout', to: '/auth/deconnexion', regex: /\/auth\/logout/g },
+  { from: '/auth/connexion', to: '/auth/connexion', regex: /\/auth\/login/g },
+  { from: '/auth/deconnexion', to: '/auth/deconnexion', regex: /\/auth\/logout/g },
   
   // Sous-routes spécifiques
-  { from: '/new', to: '/nouveau', regex: /\/new(?![\w-])/g },
-  { from: '/recurring', to: '/recurrents', regex: /\/recurring/g },
-  { from: '/advanced', to: '/avances', regex: /\/advanced/g },
-  { from: '/swap', to: '/echange', regex: /\/swap/g },
+  { from: '/nouveau', to: '/nouveau', regex: /\/nouveau(?![\w-])/g },
+  { from: '/recurrents', to: '/recurrents', regex: /\/recurrents/g },
+  { from: '/avances', to: '/avances', regex: /\/avances/g },
+  { from: '/echange', to: '/echange', regex: /\/echange/g },
   
   // Routes API
-  { from: '/api/leaves', to: '/api/conges', regex: /\/api\/leaves/g },
-  { from: '/api/users', to: '/api/utilisateurs', regex: /\/api\/users/g },
-  { from: '/api/assignments', to: '/api/affectations', regex: /\/api\/assignments/g },
-  { from: '/api/public-holidays', to: '/api/jours-feries', regex: /\/api\/public-holidays/g },
+  { from: '/api/conges', to: '/api/conges', regex: /\/api\/conges/g },
+  { from: '/api/utilisateurs', to: '/api/utilisateurs', regex: /\/api\/utilisateurs/g },
+  { from: '/api/affectations', to: '/api/affectations', regex: /\/api\/affectations/g },
+  { from: '/api/jours-feries', to: '/api/jours-feries', regex: /\/api\/public-holidays/g },
 ];
 
 // Patterns de fichiers à ignorer
@@ -143,12 +143,12 @@ class RouteMigrator {
     console.log('\n📁 Renaming folders...\n');
 
     const folderMappings = [
-      { from: 'src/app/leaves', to: 'src/app/conges' },
-      { from: 'src/app/calendar', to: 'src/app/calendrier' },
-      { from: 'src/app/auth/login', to: 'src/app/auth/connexion' },
-      { from: 'src/app/admin/settings', to: 'src/app/admin/parametres' },
-      { from: 'src/app/admin/holidays', to: 'src/app/admin/jours-feries' },
-      { from: 'src/app/admin/leaves', to: 'src/app/admin/conges' },
+      { from: 'src/app/conges', to: 'src/app/conges' },
+      { from: 'src/app/calendrier', to: 'src/app/calendrier' },
+      { from: 'src/app/auth/connexion', to: 'src/app/auth/connexion' },
+      { from: 'src/app/admin/parametres', to: 'src/app/admin/parametres' },
+      { from: 'src/app/admin/jours-feries', to: 'src/app/admin/jours-feries' },
+      { from: 'src/app/admin/conges', to: 'src/app/admin/conges' },
     ];
 
     for (const mapping of folderMappings) {
@@ -181,31 +181,31 @@ class RouteMigrator {
 // Redirections pour la migration des routes françaises
 const frenchRoutesRedirects = [
   // Routes principales
-  { source: '/leaves', destination: '/conges', permanent: true },
-  { source: '/leaves/:path*', destination: '/conges/:path*', permanent: true },
-  { source: '/calendar', destination: '/calendrier', permanent: true },
-  { source: '/calendar/:path*', destination: '/calendrier/:path*', permanent: true },
-  { source: '/users', destination: '/utilisateurs', permanent: true },
-  { source: '/users/:path*', destination: '/utilisateurs/:path*', permanent: true },
-  { source: '/assignments', destination: '/affectations', permanent: true },
-  { source: '/assignments/:path*', destination: '/affectations/:path*', permanent: true },
+  { source: '/conges', destination: '/conges', permanent: true },
+  { source: '/conges/:path*', destination: '/conges/:path*', permanent: true },
+  { source: '/calendrier', destination: '/calendrier', permanent: true },
+  { source: '/calendrier/:path*', destination: '/calendrier/:path*', permanent: true },
+  { source: '/utilisateurs', destination: '/utilisateurs', permanent: true },
+  { source: '/utilisateurs/:path*', destination: '/utilisateurs/:path*', permanent: true },
+  { source: '/affectations', destination: '/affectations', permanent: true },
+  { source: '/affectations/:path*', destination: '/affectations/:path*', permanent: true },
   
   // Routes d'authentification
-  { source: '/auth/login', destination: '/auth/connexion', permanent: true },
-  { source: '/auth/logout', destination: '/auth/deconnexion', permanent: true },
+  { source: '/auth/connexion', destination: '/auth/connexion', permanent: true },
+  { source: '/auth/deconnexion', destination: '/auth/deconnexion', permanent: true },
   
   // Routes admin
-  { source: '/admin/settings', destination: '/admin/parametres', permanent: true },
-  { source: '/admin/holidays', destination: '/admin/jours-feries', permanent: true },
-  { source: '/admin/leaves', destination: '/admin/conges', permanent: true },
+  { source: '/admin/parametres', destination: '/admin/parametres', permanent: true },
+  { source: '/admin/jours-feries', destination: '/admin/jours-feries', permanent: true },
+  { source: '/admin/conges', destination: '/admin/conges', permanent: true },
   
   // Routes API (avec période de dépréciation)
-  { source: '/api/leaves', destination: '/api/conges', permanent: false },
-  { source: '/api/leaves/:path*', destination: '/api/conges/:path*', permanent: false },
-  { source: '/api/users', destination: '/api/utilisateurs', permanent: false },
-  { source: '/api/users/:path*', destination: '/api/utilisateurs/:path*', permanent: false },
-  { source: '/api/assignments', destination: '/api/affectations', permanent: false },
-  { source: '/api/assignments/:path*', destination: '/api/affectations/:path*', permanent: false },
+  { source: '/api/conges', destination: '/api/conges', permanent: false },
+  { source: '/api/conges/:path*', destination: '/api/conges/:path*', permanent: false },
+  { source: '/api/utilisateurs', destination: '/api/utilisateurs', permanent: false },
+  { source: '/api/utilisateurs/:path*', destination: '/api/utilisateurs/:path*', permanent: false },
+  { source: '/api/affectations', destination: '/api/affectations', permanent: false },
+  { source: '/api/affectations/:path*', destination: '/api/affectations/:path*', permanent: false },
 ];
 `;
 

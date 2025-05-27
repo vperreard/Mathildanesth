@@ -35,7 +35,7 @@ class PuppeteerHelpers {
 
         // Vérifier que la connexion a réussi (redirection vers la page d'accueil)
         const currentUrl = page.url();
-        if (currentUrl.includes('/auth/login')) {
+        if (currentUrl.includes('/auth/connexion')) {
             throw new Error('Échec de l\'authentification - toujours sur la page de connexion');
         }
 

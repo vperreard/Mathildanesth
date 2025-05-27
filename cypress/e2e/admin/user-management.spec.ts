@@ -4,7 +4,7 @@ describe('Admin - Gestion des Utilisateurs', () => {
     beforeEach(() => {
         // Login comme admin
         cy.login('admin@mathildanesth.fr', 'AdminSecure123!');
-        cy.visit('/admin/users');
+        cy.visit('/admin/utilisateurs');
     });
 
     describe('Liste des utilisateurs', () => {
@@ -152,7 +152,7 @@ describe('Admin - Gestion des Utilisateurs', () => {
             // Tester qu'un admin partiel ne peut voir que ses sites
             cy.logout();
             cy.login('admin.partiel@test.fr', 'password');
-            cy.visit('/admin/users');
+            cy.visit('/admin/utilisateurs');
             
             cy.get('[data-testid="user-row"]').each(($row) => {
                 cy.wrap($row).find('[data-testid="user-sites"]').should('contain.oneOf', ['Site A', 'Site B']);
@@ -186,7 +186,7 @@ user2@test.fr,Test2,User2,USER,IADE`;
             cy.get('[data-testid="confirm-export-btn"]').click();
             
             // Vérifier le téléchargement
-            cy.readFile('cypress/downloads/users-export.csv').should('exist');
+            cy.readFile('cypress/downloads/utilisateurs-export.csv').should('exist');
         });
     });
 

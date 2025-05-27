@@ -3,7 +3,7 @@
 describe('Admin - Gestion des Congés', () => {
     beforeEach(() => {
         cy.login('admin@mathildanesth.fr', 'AdminSecure123!');
-        cy.visit('/admin/leaves');
+        cy.visit('/admin/conges');
     });
 
     describe('Tableau de bord des congés', () => {

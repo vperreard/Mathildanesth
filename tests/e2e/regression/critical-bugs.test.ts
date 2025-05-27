@@ -39,7 +39,7 @@ describe('Regression Tests - Critical Bugs', () => {
 
   describe('Bug #301 - Calendar date selection issues', () => {
     test('Should correctly handle month transitions', async () => {
-      await page.goto(`${testConfig.baseUrl}/calendar`);
+      await page.goto(`${testConfig.baseUrl}/calendrier`);
       await page.waitForSelector('[data-testid="calendar-container"]');
 
       // Get current month/year
@@ -72,7 +72,7 @@ describe('Regression Tests - Critical Bugs', () => {
     });
 
     test('Should maintain selected date when switching views', async () => {
-      await page.goto(`${testConfig.baseUrl}/calendar`);
+      await page.goto(`${testConfig.baseUrl}/calendrier`);
       await page.waitForSelector('[data-testid="calendar-container"]');
 
       // Select a specific date
@@ -100,7 +100,7 @@ describe('Regression Tests - Critical Bugs', () => {
 
   describe('Bug #245 - Leave request quota validation', () => {
     test('Should prevent negative quota balances', async () => {
-      await page.goto(`${testConfig.baseUrl}/leaves`);
+      await page.goto(`${testConfig.baseUrl}/conges`);
       await page.waitForSelector('[data-testid="leave-quota-display"]');
 
       // Get current quota
@@ -137,11 +137,11 @@ describe('Regression Tests - Critical Bugs', () => {
       
       // Verify form was not submitted
       const currentUrl = page.url();
-      expect(currentUrl).toContain('/leaves');
+      expect(currentUrl).toContain('/conges');
     });
 
     test('Should correctly calculate business days excluding weekends', async () => {
-      await page.goto(`${testConfig.baseUrl}/leaves`);
+      await page.goto(`${testConfig.baseUrl}/conges`);
       await page.click('[data-testid="create-leave-request"]');
       
       // Select a date range that includes a weekend
@@ -224,8 +224,8 @@ describe('Regression Tests - Critical Bugs', () => {
 
       // Both pages navigate to leaves
       await Promise.all([
-        page.goto(`${testConfig.baseUrl}/leaves`),
-        page2.goto(`${testConfig.baseUrl}/leaves`)
+        page.goto(`${testConfig.baseUrl}/conges`),
+        page2.goto(`${testConfig.baseUrl}/conges`)
       ]);
 
       // Create a leave request on page 1
@@ -278,7 +278,7 @@ describe('Regression Tests - Critical Bugs', () => {
 
   describe('Bug #134 - Session timeout handling', () => {
     test('Should redirect to login on session expiry', async () => {
-      await page.goto(`${testConfig.baseUrl}/calendar`);
+      await page.goto(`${testConfig.baseUrl}/calendrier`);
       await page.waitForSelector('[data-testid="calendar-container"]');
 
       // Simulate session expiry by clearing auth cookie
@@ -289,7 +289,7 @@ describe('Regression Tests - Critical Bugs', () => {
       
       // Should redirect to login
       await page.waitForNavigation();
-      expect(page.url()).toContain('/auth/login');
+      expect(page.url()).toContain('/auth/connexion');
 
       // Should show session expired message
       const message = await page.$eval(
@@ -302,7 +302,7 @@ describe('Regression Tests - Critical Bugs', () => {
 
   describe('Bug #112 - Form validation edge cases', () => {
     test('Should validate special characters in form inputs', async () => {
-      await page.goto(`${testConfig.baseUrl}/leaves`);
+      await page.goto(`${testConfig.baseUrl}/conges`);
       await page.click('[data-testid="create-leave-request"]');
 
       // Test XSS attempt in reason field
@@ -317,7 +317,7 @@ describe('Regression Tests - Critical Bugs', () => {
       
       // Wait for success and navigate to list
       await page.waitForSelector('[data-testid="success-message"]');
-      await page.goto(`${testConfig.baseUrl}/leaves`);
+      await page.goto(`${testConfig.baseUrl}/conges`);
       
       // Verify the text is escaped properly
       const savedReason = await page.$eval(
@@ -330,7 +330,7 @@ describe('Regression Tests - Critical Bugs', () => {
     });
 
     test('Should handle very long input gracefully', async () => {
-      await page.goto(`${testConfig.baseUrl}/leaves`);
+      await page.goto(`${testConfig.baseUrl}/conges`);
       await page.click('[data-testid="create-leave-request"]');
 
       // Generate very long string

@@ -2,7 +2,7 @@ import {
     generateRecurringDates,
     formatRecurrencePattern,
     isHoliday
-} from '../../../../../src/modules/leaves/utils/recurringLeavesUtils';
+} from '../../../../../src/modules/conges/utils/recurrentsLeavesUtils';
 import {
     RecurrenceFrequency,
     RecurrenceEndType,
@@ -10,7 +10,7 @@ import {
     Leave,
     LeaveStatus,
     LeaveType
-} from '../../../../../src/modules/leaves/types/leave';
+} from '../../../../../src/modules/conges/types/leave';
 import { addDays, addMonths, addWeeks, addYears, format } from 'date-fns';
 
 describe('recurringLeavesUtils', () => {

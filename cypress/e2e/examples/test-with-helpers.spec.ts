@@ -42,7 +42,7 @@ describe('Exemple de test avec helpers', () => {
         cy.loginByApi(this.testUser.email, this.testUser.password);
 
         // Intercepter les requêtes API courantes
-        cy.intercept('GET', '**/api/users/me').as('getCurrentUser');
+        cy.intercept('GET', '**/api/utilisateurs/me').as('getCurrentUser');
         cy.intercept('GET', '**/api/notifications*').as('getNotifications');
     });
 
@@ -56,7 +56,7 @@ describe('Exemple de test avec helpers', () => {
         cy.wait('@getNotifications');
 
         // Vérifier que nous sommes sur le dashboard
-        cy.url().should('include', '/dashboard');
+        cy.url().should('include', '/tableau-de-bord');
 
         // Utiliser les helpers pour attendre que les animations soient terminées
         helpers.waitForAnimations();
@@ -78,7 +78,7 @@ describe('Exemple de test avec helpers', () => {
         const formattedEndDate = helpers.formatDate(endDate);
 
         // Visiter la page de création de congés
-        cy.visitAsAuthenticatedUser('/leaves/new');
+        cy.visitAsAuthenticatedUser('/conges/nouveau');
 
         // Remplir le formulaire
         cy.get('[data-cy=start-date]').type(formattedStartDate);

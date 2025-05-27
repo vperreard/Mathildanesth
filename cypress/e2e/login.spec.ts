@@ -2,7 +2,7 @@
 describe('Page de connexion', () => {
     beforeEach(() => {
         // Visiter la page de connexion avant chaque test
-        cy.visit('/auth/login');
+        cy.visit('/auth/connexion');
     });
 
     it('affiche correctement le formulaire de connexion', () => {
@@ -26,7 +26,7 @@ describe('Page de connexion', () => {
 
     it('connecte l\'utilisateur avec des identifiants valides', () => {
         // Intercepter la requête de connexion
-        cy.intercept('POST', '**/api/auth/login').as('loginRequest');
+        cy.intercept('POST', '**/api/auth/connexion').as('loginRequest');
 
         // Connexion avec des identifiants valides (utiliser admin des fixtures)
         cy.get('[data-testid=login-email-input]').type('admin');
@@ -41,11 +41,11 @@ describe('Page de connexion', () => {
             if (interception.response?.statusCode === 200) {
                 // Si connexion réussie, vérifier la redirection
                 cy.url().should('satisfy', (url: string) => {
-                    return url.includes('/dashboard') || url.includes('/planning') || url.includes('/');
+                    return url.includes('/tableau-de-bord') || url.includes('/planning') || url.includes('/');
                 });
             } else {
                 // Si erreur 500, vérifier qu'on reste sur la page de login avec un message d'erreur
-                cy.url().should('include', '/auth/login');
+                cy.url().should('include', '/auth/connexion');
                 cy.get('[data-testid=login-error-message]').should('be.visible');
             }
         });

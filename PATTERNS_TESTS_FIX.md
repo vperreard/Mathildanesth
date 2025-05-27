@@ -83,7 +83,7 @@ import { Service } from '../service';
 
 **Solution**: Ajouter tous les endpoints dans src/mocks/handlers.ts
 ```typescript
-rest.get('/api/leaves/:leaveId', (req, res, ctx) => {
+rest.get('/api/conges/:leaveId', (req, res, ctx) => {
     const { leaveId } = req.params;
     return res(ctx.status(200), ctx.json({ id: leaveId, ... }));
 })

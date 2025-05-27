@@ -16,14 +16,14 @@
 
 ### Pages Covered by Cypress Tests (19 pages)
 1. `/` - Home page
-2. `/auth/login` - Login page
+2. `/auth/connexion` - Login page
 3. `/login` - Alternative login page
 4. `/dashboard` - Dashboard
 5. `/bloc-operatoire` - Operating room management
-6. `/calendar` - Calendar view
-7. `/leaves` - Leave management
-8. `/leaves/new` - New leave request
-9. `/leaves/quotas` - Leave quotas
+6. `/calendrier` - Calendar view
+7. `/conges` - Leave management
+8. `/conges/nouveau` - New leave request
+9. `/conges/quotas` - Leave quotas
 10. `/notifications` - Notifications
 11. `/planning` - Planning management
 12. `/planning/generator` - Planning generator
@@ -32,7 +32,7 @@
 15. `/planning/echanges` - Planning exchanges
 16. `/profil/notifications` - Profile notifications
 17. `/utilisateurs` - Users management
-18. `/admin/leaves` - Admin leave management
+18. `/admin/conges` - Admin leave management
 19. `/admin/rules` - Admin rules management
 
 ### Pages Covered by Puppeteer Tests (9 main workflows)
@@ -51,7 +51,7 @@
 ### High Priority Pages (No Coverage)
 1. **Admin Pages** (62 pages total, only 2 covered):
    - `/admin/performance` - Performance monitoring
-   - `/admin/holidays` - Holiday management
+   - `/admin/jours-feries` - Holiday management
    - `/admin/incompatibilites/*` - Incompatibility management
    - `/admin/planning-rules/*` - Planning rules
    - `/admin/simulations/*` - Simulation features (14 pages)
@@ -82,7 +82,7 @@
 
 ### Estimated Coverage (based on test analysis):
 - Authentication routes: `/api/auth/*` - Partially covered
-- Leaves routes: `/api/leaves/*` - Partially covered
+- Leaves routes: `/api/conges/*` - Partially covered
 - Planning routes: `/api/planning/*` - Partially covered
 - Bloc opératoire routes: `/api/bloc-operatoire/*` - Partially covered
 - Notifications routes: `/api/notifications/*` - Partially covered

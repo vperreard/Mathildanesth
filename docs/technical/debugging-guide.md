@@ -241,7 +241,7 @@ try {
    ```typescript
    // Avec SWR
    const { data, error, isValidating, mutate } = useSWR(
-     `/api/users/${userId}`,
+     `/api/utilisateurs/${userId}`,
      fetcher,
      { refreshInterval: 30000 }
    );

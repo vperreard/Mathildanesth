@@ -66,7 +66,7 @@ describe('Load Testing - 50+ Concurrent Users', () => {
     const loginPromises = pages.map(async (page, index) => {
       const loginStart = Date.now();
       try {
-        await page.goto(`${testConfig.baseUrl}/auth/login`);
+        await page.goto(`${testConfig.baseUrl}/auth/connexion`);
         await page.waitForSelector('[data-testid="email-input"]', { timeout: 30000 });
         await page.type('[data-testid="email-input"]', testUsers[index].email);
         await page.type('[data-testid="password-input"]', testUsers[index].password);
@@ -132,7 +132,7 @@ describe('Load Testing - 50+ Concurrent Users', () => {
     const calendarPromises = pages.map(async (page, index) => {
       const startTime = Date.now();
       try {
-        await page.goto(`${testConfig.baseUrl}/calendar`);
+        await page.goto(`${testConfig.baseUrl}/calendrier`);
         await page.waitForSelector('[data-testid="calendar-container"]', { timeout: 30000 });
         await page.waitForLoadState('networkidle');
         
@@ -191,7 +191,7 @@ describe('Load Testing - 50+ Concurrent Users', () => {
       const requestPromise = page.evaluate(async (token) => {
         const startTime = performance.now();
         try {
-          const response = await fetch('/api/users/profile', {
+          const response = await fetch('/api/utilisateurs/profile', {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -253,10 +253,10 @@ describe('Load Testing - 50+ Concurrent Users', () => {
     const activityInterval = setInterval(async () => {
       try {
         // Navigate between pages
-        await page.goto(`${testConfig.baseUrl}/calendar`);
+        await page.goto(`${testConfig.baseUrl}/calendrier`);
         await page.waitForSelector('[data-testid="calendar-container"]');
         
-        await page.goto(`${testConfig.baseUrl}/leaves`);
+        await page.goto(`${testConfig.baseUrl}/conges`);
         await page.waitForSelector('[data-testid="leaves-container"]');
         
         await page.goto(`${testConfig.baseUrl}/planning`);

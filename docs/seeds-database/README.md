@@ -83,10 +83,10 @@ npm run prisma:migrate
 npm run export:csv users
 
 # 2. Éditer le fichier CSV
-code exports/csv/users-YYYY-MM-DD.csv
+code exports/csv/utilisateurs-YYYY-MM-DD.csv
 
 # 3. Remplacer le fichier de seed
-cp exports/csv/users-YYYY-MM-DD.csv prisma/seed_data/users.csv
+cp exports/csv/utilisateurs-YYYY-MM-DD.csv prisma/seed_data/utilisateurs.csv
 
 # 4. Appliquer les changements
 npm run db:seed

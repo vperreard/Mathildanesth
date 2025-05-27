@@ -1,149 +1,171 @@
-'use client';
-
-import React, { useState, lazy, Suspense } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { InfoIcon, Settings } from 'lucide-react';
+import { Metadata } from 'next';
 import Link from 'next/link';
+import { 
+  CalendarDays, 
+  Building2, 
+  Layout, 
+  Shield, 
+  Grid3X3,
+  Activity,
+  Clock,
+  Users
+} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
-import { Skeleton } from '@/components/ui/skeleton';
 
-// Lazy loading des composants lourds avec version optimisée
-const BlocPlanning = lazy(() => import('./components/OptimizedBlocPlanning'));
-const SallesOperatoireManager = lazy(() => import('@/components/bloc-operatoire/components/SallesOperatoireManager'));
-const SecteursOperatoireManager = lazy(() => import('@/components/bloc-operatoire/components/SecteursOperatoireManager'));
+export const metadata: Metadata = {
+  title: 'Bloc Opératoire - Vue d\'ensemble | Mathildanesth',
+  description: 'Tableau de bord et gestion complète du bloc opératoire',
+};
 
-// Composant de fallback pendant le chargement
-const LoadingFallback = () => (
-    <div className="space-y-4">
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-64 w-full" />
-        <Skeleton className="h-12 w-3/4" />
-    </div>
-);
+const features = [
+  {
+    title: 'Planning',
+    description: 'Gérez le planning du bloc opératoire avec vue jour, semaine et mois',
+    icon: CalendarDays,
+    href: '/bloc-operatoire/planning',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+  },
+  {
+    title: 'Salles d\'opération',
+    description: 'Configurez et gérez les salles d\'opération et leurs équipements',
+    icon: Building2,
+    href: '/bloc-operatoire/salles',
+    color: 'text-green-600',
+    bgColor: 'bg-green-50',
+  },
+  {
+    title: 'Secteurs',
+    description: 'Organisez les secteurs et spécialités du bloc',
+    icon: Layout,
+    href: '/bloc-operatoire/secteurs',
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-50',
+    adminOnly: true,
+  },
+  {
+    title: 'Règles de supervision',
+    description: 'Définissez les règles de supervision et contraintes',
+    icon: Shield,
+    href: '/bloc-operatoire/regles',
+    color: 'text-red-600',
+    bgColor: 'bg-red-50',
+    adminOnly: true,
+  },
+  {
+    title: 'Trames',
+    description: 'Créez des modèles de planning réutilisables',
+    icon: Grid3X3,
+    href: '/bloc-operatoire/trames',
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-50',
+  },
+];
 
-/**
- * Page principale du module de bloc opératoire
- * 
- * Cette page sert de conteneur pour les différentes sections du module bloc opératoire :
- * - Planning du bloc (par jour, semaine, mois)
- * - Gestion des salles d'opération
- * - Gestion des secteurs
- * - Configuration des règles de supervision
- */
+const stats = [
+  { name: 'Salles actives', value: '12', icon: Building2 },
+  { name: 'Chirurgiens', value: '45', icon: Users },
+  { name: 'Opérations/jour', value: '32', icon: Activity },
+  { name: 'Taux occupation', value: '87%', icon: Clock },
+];
+
 export default function BlocOperatoirePage() {
-    const [activeTab, setActiveTab] = useState('planning');
-    const router = useRouter();
+  return (
+    <div className="space-y-6">
+      {/* En-tête */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Bloc Opératoire</h1>
+        <p className="mt-2 text-lg text-gray-600">
+          Gérez l'ensemble des activités du bloc opératoire
+        </p>
+      </div>
 
-    return (
-        <div className="container mx-auto py-6 space-y-6">
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h1 className="text-3xl font-bold">Bloc Opératoire</h1>
-                    <p className="text-muted-foreground">
-                        Gestion des plannings du bloc opératoire, salles d'opération, secteurs et règles de supervision
-                    </p>
+      {/* Statistiques */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={stat.name}>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <Icon className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">{stat.name}</p>
+                    <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
+                  </div>
                 </div>
-                <Button variant="outline" asChild>
-                    <Link href="/admin/bloc-operatoire">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Administration
-                    </Link>
-                </Button>
-            </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-            <Alert variant="info" className="mb-6">
-                <InfoIcon className="h-4 w-4" />
-                <AlertTitle>Module en développement (MVP)</AlertTitle>
-                <AlertDescription>
-                    Ce module est actuellement en phase de développement initial. Des fonctionnalités
-                    supplémentaires seront ajoutées progressivement.
-                </AlertDescription>
-            </Alert>
+      {/* Fonctionnalités */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {features.map((feature) => {
+          const Icon = feature.icon;
+          return (
+            <Card key={feature.title} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className={`inline-flex p-3 rounded-lg ${feature.bgColor}`}>
+                  <Icon className={`h-6 w-6 ${feature.color}`} />
+                </div>
+                <CardTitle className="mt-4">{feature.title}</CardTitle>
+                {feature.adminOnly && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    Admin
+                  </span>
+                )}
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="mb-4">
+                  {feature.description}
+                </CardDescription>
+                <Link href={feature.href}>
+                  <Button variant="outline" className="w-full">
+                    Accéder
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-4 mb-8 w-full max-w-2xl">
-                    <TabsTrigger value="planning">Planning</TabsTrigger>
-                    <TabsTrigger value="salles">Salles</TabsTrigger>
-                    <TabsTrigger value="secteurs">Secteurs</TabsTrigger>
-                    <TabsTrigger value="regles">Règles</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="planning" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Planning du Bloc Opératoire</CardTitle>
-                            <CardDescription>
-                                Visualisez et gérez les affectations dans les salles d'opération
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Suspense fallback={<LoadingFallback />}>
-                                <BlocPlanning />
-                            </Suspense>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="salles" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Gestion des Salles d'Opération</CardTitle>
-                            <CardDescription>
-                                Ajoutez, modifiez et configurez les salles d'opération
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Suspense fallback={<LoadingFallback />}>
-                                <SallesOperatoireManager />
-                            </Suspense>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="secteurs" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Gestion des Secteurs</CardTitle>
-                            <CardDescription>
-                                Organisez vos salles en secteurs spécialisés
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Suspense fallback={<LoadingFallback />}>
-                                <SecteursOperatoireManager />
-                            </Suspense>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="regles" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Règles de Supervision</CardTitle>
-                            <CardDescription>
-                                Définissez les règles qui régissent la supervision des salles par le personnel médical
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Button
-                                variant="default"
-                                onClick={() => router.push('/bloc-operatoire/regles-supervision')}
-                                className="w-full flex items-center justify-center"
-                            >
-                                <Settings className="h-4 w-4 mr-2" />
-                                Gérer les règles de supervision
-                            </Button>
-                            <p className="text-sm text-muted-foreground mt-4 text-center">
-                                Configurez les règles de supervision pour contrôler le nombre de salles par superviseur,
-                                les contraintes par secteur, et les exceptions.
-                            </p>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
-        </div>
-    );
-} 
+      {/* Actions rapides */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Actions rapides</CardTitle>
+          <CardDescription>
+            Accédez rapidement aux fonctions les plus utilisées
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/bloc-operatoire/planning/create">
+              <Button variant="outline" size="sm">
+                <CalendarDays className="mr-2 h-4 w-4" />
+                Nouveau planning
+              </Button>
+            </Link>
+            <Link href="/bloc-operatoire/salles/nouveau">
+              <Button variant="outline" size="sm">
+                <Building2 className="mr-2 h-4 w-4" />
+                Ajouter une salle
+              </Button>
+            </Link>
+            <Link href="/bloc-operatoire/trames/nouveau">
+              <Button variant="outline" size="sm">
+                <Grid3X3 className="mr-2 h-4 w-4" />
+                Créer une trame
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

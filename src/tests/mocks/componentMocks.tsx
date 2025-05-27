@@ -251,7 +251,7 @@ jest.mock('next/router', () => ({
 /**
  * Mocks liés aux conflits de congés.
  */
-jest.mock('@/modules/leaves/hooks/useLeaveConflictNotification', () => ({
+jest.mock('@/modules/conges/hooks/useLeaveConflictNotification', () => ({
     useLeaveConflictNotification: jest.fn().mockReturnValue({
         notifyConflict: jest.fn(),
         notifyConflicts: jest.fn(),

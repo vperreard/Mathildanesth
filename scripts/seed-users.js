@@ -25,7 +25,7 @@ const parseCsv = (filePath) => {
 
 async function seedUsers() {
     console.log('Importation des utilisateurs...');
-    const usersData = parseCsv(path.join(process.cwd(), 'prisma/seed_data/users.csv'));
+    const usersData = parseCsv(path.join(process.cwd(), 'prisma/seed_data/utilisateurs.csv'));
 
     console.log(`Nombre d'utilisateurs trouvés dans le CSV: ${usersData.length}`);
 

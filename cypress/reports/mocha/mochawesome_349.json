@@ -45,7 +45,7 @@
               "fail": false,
               "pending": false,
               "context": null,
-              "code": "// Liste des pages publiques à tester\nconst publicPages = ['/', '/login', '/auth/login'];\n// Tester chaque page\npublicPages.forEach(page => {\n  // Mesurer le temps de navigation complet\n  const startTime = Date.now();\n  cy.visit(page, {\n    failOnStatusCode: false,\n    timeout: 30000\n  });\n  cy.get('body', {\n    timeout: 30000\n  }).should('be.visible');\n  cy.window().then(() => {\n    const loadTime = Date.now() - startTime;\n    // Enregistrer la métrique\n    cy.task('logPerformance', {\n      type: 'page',\n      name: page,\n      duration: loadTime,\n      timestamp: Date.now()\n    });\n    // Montrer le résultat\n    cy.log(`📊 Page publique ${page}: ${loadTime}ms`);\n  });\n});",
+              "code": "// Liste des pages publiques à tester\nconst publicPages = ['/', '/login', '/auth/connexion'];\n// Tester chaque page\npublicPages.forEach(page => {\n  // Mesurer le temps de navigation complet\n  const startTime = Date.now();\n  cy.visit(page, {\n    failOnStatusCode: false,\n    timeout: 30000\n  });\n  cy.get('body', {\n    timeout: 30000\n  }).should('be.visible');\n  cy.window().then(() => {\n    const loadTime = Date.now() - startTime;\n    // Enregistrer la métrique\n    cy.task('logPerformance', {\n      type: 'page',\n      name: page,\n      duration: loadTime,\n      timestamp: Date.now()\n    });\n    // Montrer le résultat\n    cy.log(`📊 Page publique ${page}: ${loadTime}ms`);\n  });\n});",
               "err": {},
               "uuid": "ad6ba4d1-434e-4f5c-9fef-11c8c2fd34d1",
               "parentUUID": "bcaf6e74-35f2-480a-abe1-29c41f0e67db",

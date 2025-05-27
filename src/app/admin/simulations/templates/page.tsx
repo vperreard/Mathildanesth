@@ -153,7 +153,7 @@ export default function TemplatesPage() {
             <Button
                 variant="default"
                 size="sm"
-                onClick={() => router.push('/admin/simulations/templates/new')}
+                onClick={() => router.push('/admin/simulations/templates/nouveau')}
             >
                 <PlusIcon className="h-4 w-4 mr-2" />
                 Créer un template
@@ -180,7 +180,7 @@ export default function TemplatesPage() {
                     </Button>
                     <Button
                         variant="default"
-                        onClick={() => router.push('/admin/simulations/templates/new')}
+                        onClick={() => router.push('/admin/simulations/templates/nouveau')}
                     >
                         <PlusIcon className="h-4 w-4 mr-2" />
                         Nouveau Template

@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
-import { publicHolidayService } from '@/modules/leaves/services/publicHolidayService';
+import { publicHolidayService } from '@/modules/conges/services/publicHolidayService';
 import { holidayCalendarService } from '../services/holidayService';
 import { HolidayEvent } from '../types/event';
-import { PublicHoliday } from '@/modules/leaves/types/public-holiday';
+import { PublicHoliday } from '@/modules/conges/types/public-holiday';
 
 /**
  * Hook pour charger et gérer les jours fériés

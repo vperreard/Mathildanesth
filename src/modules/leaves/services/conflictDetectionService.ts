@@ -15,7 +15,7 @@ import {
     ConflictCheckResult
 } from '../types/conflict';
 import { User } from '../../../types/user';
-import { UserService } from '../../users/services/userService';
+import { UserService } from '../../utilisateurs/services/userService';
 import { TeamService } from '../../teams/services/teamService';
 import { ConfigService } from '../../config/services/configService';
 import { PerformanceLogger } from '../../../utils/performanceLogger';

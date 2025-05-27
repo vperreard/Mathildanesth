@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BaseCalendar } from './BaseCalendar';
 import { LeaveEvent, CalendarEventType, CalendarSettings } from '../types/event';
-import { useLeaveData } from '../../leaves/hooks/useLeaveData';
-import { Leave, LeaveStatus } from '../../leaves/types/leave';
+import { useLeaveData } from '../../conges/hooks/useLeaveData';
+import { Leave, LeaveStatus } from '../../conges/types/leave';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { User } from '@/types/user';
-import { LeaveDetailModal } from '../../leaves/components/LeaveDetailModal';
-import { useUserSettings } from '../../settings/hooks/useUserSettings';
-import { performanceTracker } from '../../leaves/utils/performanceMonitoring';
+import { LeaveDetailModal } from '../../conges/components/LeaveDetailModal';
+import { useUserSettings } from '../../parametres/hooks/useUserSettings';
+import { performanceTracker } from '../../conges/utils/performanceMonitoring';
 
 interface LeaveCalendarViewProps {
     userId?: string;

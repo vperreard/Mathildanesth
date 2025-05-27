@@ -1,17 +1,17 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useLeaveNotifications } from '../../../../../src/modules/leaves/hooks/useNotifications';
-import { leaveNotificationService } from '../../../../../src/modules/leaves/services/notificationService';
+import { useLeaveNotifications } from '../../../../../src/modules/conges/hooks/useNotifications';
+import { leaveNotificationService } from '../../../../../src/modules/conges/services/notificationService';
 import {
     LeaveNotificationType,
     NotificationPriority,
     LeaveRelatedNotification
-} from '../../../../../src/modules/leaves/types/notification';
+} from '../../../../../src/modules/conges/types/notification';
 import { useSession } from 'next-auth/react';
-import { LeaveStatus } from '../../../../../src/modules/leaves/types/leave';
+import { LeaveStatus } from '../../../../../src/modules/conges/types/leave';
 
 // Mock des dépendances
 jest.mock('next-auth/react');
-jest.mock('../../../../../src/modules/leaves/services/notificationService');
+jest.mock('../../../../../src/modules/conges/services/notificationService');
 
 // Mock de useSession
 const mockUseSession = useSession as jest.Mock;

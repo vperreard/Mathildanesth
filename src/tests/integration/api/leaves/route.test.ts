@@ -27,17 +27,17 @@ jest.mock('next/server', () => ({
     }
 }));
 
-describe('/api/leaves', () => {
+describe('/api/conges', () => {
     let handlers: any;
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        const route = await import('@/app/api/leaves/route');
+        const route = await import('@/app/api/conges/route');
         handlers = route;
     });
 
     const createRequest = (method: string, body?: any, params?: URLSearchParams) => {
-        const url = new URL('http://localhost:3000/api/leaves');
+        const url = new URL('http://localhost:3000/api/conges');
         if (params) {
             url.search = params.toString();
         }
@@ -52,7 +52,7 @@ describe('/api/leaves', () => {
         });
     };
 
-    describe('GET /api/leaves', () => {
+    describe('GET /api/conges', () => {
         it('should return leaves for authenticated user', async () => {
             const mockUser = { id: 1, role: Role.USER };
             const mockLeaves = [
@@ -156,7 +156,7 @@ describe('/api/leaves', () => {
         });
     });
 
-    describe('POST /api/leaves', () => {
+    describe('POST /api/conges', () => {
         it('should create a new leave request', async () => {
             const mockUser = { id: 1, role: Role.USER };
             const leaveData = {

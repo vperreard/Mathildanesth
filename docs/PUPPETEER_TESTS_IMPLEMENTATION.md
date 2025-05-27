@@ -67,7 +67,7 @@ export const testUsers = {
 
 ### 1. Authentification
 - La page de login utilise `login` au lieu de `email` comme champ
-- L'URL est `/auth/login` et non `/auth/signin`
+- L'URL est `/auth/connexion` et non `/auth/signin`
 - Les credentials admin/admin fonctionnent bien selon l'utilisateur
 
 ### 2. Schéma de base de données

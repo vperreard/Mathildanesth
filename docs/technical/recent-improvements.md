@@ -35,7 +35,7 @@ Amélioration des temps de chargement perçus :
 
 Développement d'outils pour mesurer et maintenir les améliorations :
 
-- Composant de test de performance dans `/src/modules/leaves/tests/LeavePerformanceTest.tsx`
+- Composant de test de performance dans `/src/modules/conges/tests/LeavePerformanceTest.tsx`
 - API de test du cache dans `/src/pages/api/test/cache-performance.ts`
 - Service de benchmarking pour quantifier les améliorations
 

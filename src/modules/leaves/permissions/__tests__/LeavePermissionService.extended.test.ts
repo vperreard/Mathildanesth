@@ -159,7 +159,7 @@ describe('LeavePermissionService (Tests avancés)', () => {
             console.log(`[MOCK FETCH] Called with URL: ${url}, method: ${options?.method}`);
 
             // Pour les tests grant/revoke/reset permissions
-            if (url.includes('/api/leaves/permissions/')) {
+            if (url.includes('/api/conges/permissions/')) {
                 return Promise.resolve({
                     ok: true,
                     json: () => Promise.resolve({ success: true })
@@ -496,7 +496,7 @@ describe('LeavePermissionService (Tests avancés)', () => {
             // Assert
             expect(result).toBe(true);
             expect(global.fetch).toHaveBeenCalledWith(
-                '/api/leaves/permissions/user-123',
+                '/api/conges/permissions/user-123',
                 expect.objectContaining({
                     method: 'DELETE'
                 })

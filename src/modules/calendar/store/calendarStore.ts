@@ -6,14 +6,14 @@ import {
     CalendarSettings,
     CalendarViewType
 } from '../types/event';
-import { calendarService } from '../services/calendarService';
+import { calendarService } from '../services/calendrierService';
 import { startOfMonth, endOfMonth, addMonths, subMonths, startOfWeek, endOfWeek, addWeeks, subWeeks, startOfDay, endOfDay, addDays, subDays } from 'date-fns';
 import {
     DEFAULT_FILTERS,
     DEFAULT_SETTINGS,
     CACHE_TTL,
     createCacheKey
-} from './calendarStoreConfig';
+} from './calendrierStoreConfig';
 
 export interface CalendarState {
     // Événements et données

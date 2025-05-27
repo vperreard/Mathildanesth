@@ -9,16 +9,16 @@ import { QuotaAdvancedService, quotaAdvancedService } from '../QuotaAdvancedServ
 
 import AuditService from '@/services/AuditService';
 import EventBusService from '@/services/eventBusService';
-import { LeaveType, LeaveBalance } from '@/modules/leaves/types/leave';
+import { LeaveType, LeaveBalance } from '@/modules/conges/types/leave';
 import {
     QuotaTransferRule,
     QuotaCarryOverRule,
     QuotaTransferRuleType,
     QuotaCarryOverRuleType
-} from '@/modules/leaves/types/quota';
+} from '@/modules/conges/types/quota';
 import { addMonths } from '@/utils/dateUtils';
-import { QuotaTransactionStatus } from '@/modules/leaves/types/quota';
-import { QuotaCarryOverCalculationResult } from '@/modules/leaves/types/quota';
+import { QuotaTransactionStatus } from '@/modules/conges/types/quota';
+import { QuotaCarryOverCalculationResult } from '@/modules/conges/types/quota';
 
 // --- Mocks manuels --- 
 // Pour leaveService
@@ -191,25 +191,25 @@ const mockCarryOverHistoryData = [
 ];
 
 const quotaHandlers = [
-    http.post('/api/leaves/quotas/transfer', async ({ request }) => {
+    http.post('/api/conges/quotas/transfer', async ({ request }) => {
         return HttpResponse.json({
             success: true,
             transferId: 'mock-transfer-id-from-msw',
         }, { status: 200 });
     }),
-    http.post('/api/leaves/quotas/carry-over', async ({ request }) => {
+    http.post('/api/conges/quotas/carry-over', async ({ request }) => {
         return HttpResponse.json({
             success: true,
             id: 'mock-carryover-id-from-msw',
         }, { status: 200 });
     }),
-    http.post('/api/leaves/audit/entries', async ({ request }) => {
+    http.post('/api/conges/audit/entries', async ({ request }) => {
         return HttpResponse.json({ id: 'mock-audit-entry-id', success: true }, { status: 201 });
     }),
-    http.get('/api/leaves/quotas/transfer/history', () => {
+    http.get('/api/conges/quotas/transfer/history', () => {
         return HttpResponse.json(mockTransferHistoryData, { status: 200 });
     }),
-    http.get('/api/leaves/quotas/carry-over/history', () => {
+    http.get('/api/conges/quotas/carry-over/history', () => {
         return HttpResponse.json(mockCarryOverHistoryData, { status: 200 });
     }),
 ];
