@@ -3,10 +3,86 @@ import { PlanningGenerator } from '@/services/planningGenerator';
 import { ApiService } from '@/services/api'; // Supposons que l'ApiService peut aussi être utilisé côté serveur si nécessaire
 import { GenerationParameters } from '@/types/assignment';
 import { defaultRulesConfiguration, defaultFatigueConfig } from '@/types/rules';
+import { BusinessRulesValidator } from '@/services/businessRulesValidator';
+import { verifyAuthToken } from '@/lib/auth-server-utils';
+import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
     try {
+        // 🔐 Vérifier l'authentification
+        const authHeader = request.headers.get('authorization');
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        
+        if (!token) {
+            logger.warn('Tentative de génération de planning sans token', { path: '/api/planning/generate' });
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+
+        const authResult = await verifyAuthToken(token);
+        if (!authResult.authenticated) {
+            logger.warn('Token invalide pour génération de planning', { path: '/api/planning/generate' });
+            return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+        }
+
+        // Récupérer l'utilisateur authentifié
+        const authenticatedUser = await prisma.user.findUnique({
+            where: { id: authResult.userId },
+            select: { id: true, role: true, siteId: true }
+        });
+
+        if (!authenticatedUser) {
+            return NextResponse.json({ error: 'User not found' }, { status: 403 });
+        }
+
+        // 🔐 Vérifier les permissions (admin ou responsable planning)
+        if (authenticatedUser.role !== 'ADMIN_TOTAL' && 
+            authenticatedUser.role !== 'ADMIN_PARTIEL' &&
+            authenticatedUser.role !== 'MANAGER') {
+            logger.warn('Tentative non autorisée de génération de planning', { 
+                authenticatedUserId: authenticatedUser.id,
+                role: authenticatedUser.role 
+            });
+            return NextResponse.json({ error: 'Forbidden - Seuls les administrateurs peuvent générer des plannings' }, { status: 403 });
+        }
+
         const params: GenerationParameters = await request.json();
+
+        // 🔐 VALIDATION DES RÈGLES MÉTIER POUR LA GÉNÉRATION
+        const validationResult = await BusinessRulesValidator.validatePlanningGeneration({
+            startDate: new Date(params.dateDebut),
+            endDate: new Date(params.dateFin),
+            siteId: params.siteId || authenticatedUser.siteId || '',
+            includeWeekends: params.includeWeekends !== false,
+            respectQuotas: params.respectLeaveQuotas !== false
+        });
+
+        if (!validationResult.valid) {
+            logger.warn('Validation des règles métier échouée pour génération de planning', {
+                errors: validationResult.errors,
+                params: { 
+                    dateDebut: params.dateDebut, 
+                    dateFin: params.dateFin,
+                    siteId: params.siteId 
+                }
+            });
+            return NextResponse.json({ 
+                error: 'La génération du planning ne respecte pas les règles métier',
+                details: validationResult.errors
+            }, { status: 400 });
+        }
+
+        // Logger l'action
+        logger.info('Génération de planning', {
+            action: 'GENERATE_PLANNING',
+            authenticatedUserId: authenticatedUser.id,
+            role: authenticatedUser.role,
+            details: { 
+                dateDebut: params.dateDebut, 
+                dateFin: params.dateFin,
+                siteId: params.siteId || authenticatedUser.siteId
+            }
+        });
 
         // Ici, idéalement, on récupère les données réelles (users, assignments) via un accès direct DB ou un service interne
         // Pour l'exemple, utilisons une méthode fictive ou supposons un accès DB via Prisma/autre ORM
@@ -24,7 +100,7 @@ export async function POST(request: Request) {
         // Initialiser et exécuter le générateur
         const generator = new PlanningGenerator(params, rulesConfig, fatigueConfig);
         await generator.initialize(users, existingAssignments);
-        const validationResult = await generator.generateFullPlanning();
+        const generationResult = await generator.generateFullPlanning();
 
         const results = generator.getResults();
         const allAssignments = [
@@ -37,7 +113,7 @@ export async function POST(request: Request) {
         // Retourner le résultat complet
         return NextResponse.json({
             assignments: allAssignments,
-            validationResult
+            validationResult: generationResult
         });
 
     } catch (error) {

@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Calendar, BarChart3, Settings, Users, Terminal, ClipboardList } from 'lucide-react';
+import { Calendar, BarChart3, Settings, Users, ClipboardList } from 'lucide-react';
 import AdminRequestsDashboard from '@/components/AdminRequestsDashboard';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -79,18 +79,11 @@ export default function HomePage() {
 
     const otherFeatures = [
         {
-            title: "Diagnostic",
-            description: "Vérifiez le bon fonctionnement du système",
-            icon: <Terminal className="w-5 h-5" />,
-            href: "/diagnostic",
-            delay: 0.3
-        },
-        {
             title: "Congés",
             description: "Gérez les congés et les absences",
             icon: <ClipboardList className="w-5 h-5" />,
             href: "/leaves",
-            delay: 0.4
+            delay: 0.3
         }
     ];
 

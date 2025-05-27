@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import type { UserJWTPayload, AuthResult } from '@/lib/auth-client-utils';
+import { handleRedirects } from '@/app/_redirects';
 
 // Cache de vérification des tokens - durée de vie de 5 minutes
 const tokenVerificationCache = new Map<string, { result: AuthResult, timestamp: number }>();
@@ -8,6 +9,12 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
+
+    // Gérer les redirections en premier
+    const redirectResponse = handleRedirects(request);
+    if (redirectResponse) {
+        return redirectResponse;
+    }
 
     // Ignorer les ressources statiques pour éviter un traitement inutile
     if (

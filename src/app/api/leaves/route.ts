@@ -5,6 +5,7 @@ import { withAuth, SecurityChecks } from '@/middleware/authorization';
 import { logger } from '@/lib/logger';
 import { auth } from '@/lib/auth';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
+import { BusinessRulesValidator } from '@/services/businessRulesValidator';
 
 // Interface attendue par le frontend (similaire à celle dans page.tsx)
 interface UserFrontend {
@@ -294,6 +295,27 @@ export async function POST(request: NextRequest) {
 
         // Valeur par défaut pour les jours comptés, à remplacer par le vrai calcul
         const countedDays = 1;
+
+        // 🔐 VALIDATION DES RÈGLES MÉTIER AVANT CRÉATION
+        const validationResult = await BusinessRulesValidator.validateLeaveRequest({
+            userId: String(userIdInt),
+            startDate: start,
+            endDate: end,
+            type: typeCode,
+            quotaId: body.quotaId // Si applicable
+        });
+
+        if (!validationResult.valid) {
+            logger.warn('Validation des règles métier échouée', {
+                userId: userIdInt,
+                errors: validationResult.errors,
+                leaveDetails: { typeCode, startDate, endDate }
+            });
+            return NextResponse.json({ 
+                error: 'La demande de congé ne respecte pas les règles métier',
+                details: validationResult.errors
+            }, { status: 400 });
+        }
 
         // --- Création en base de données --- 
         try {

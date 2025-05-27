@@ -57,11 +57,6 @@ export default function Footer() {
                             <li>
                                 <span className="text-gray-600 dark:text-slate-300">Environnement: {process.env.NODE_ENV}</span>
                             </li>
-                            <li>
-                                <Link href="/diagnostic" className="text-gray-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-500 transition-colors">
-                                    Diagnostic
-                                </Link>
-                            </li>
                         </ul>
                     </div>
                 </div>

@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🗓️ CRITICAL: Date Awareness
+**IMPORTANT**: Always verify and use the correct current date. The date format is DD/MM/YY.
+- When updating documentation, use the actual current date
+- When reading logs or documentation, pay attention to date formats
+- Example: 27/5/25 means May 27, 2025 (not January 27, 2025)
+
 ## Project Overview
 
 Mathildanesth is a medical planning application for anesthesia teams (MARs and IADEs), managing schedules, leave requests, and work time. Built with Next.js 14, TypeScript, PostgreSQL, and Prisma.
@@ -162,6 +168,9 @@ npm run test:critical                    # Test all critical modules
    - Update relevant docs in `/docs/` structure
    - **Add new TODOs or tasks to [ROADMAP.md](docs/04_roadmap/ROADMAP.md)** - DO NOT create new todo files
    - **Log bugs in [KNOWN_ISSUES.md](docs/04_roadmap/KNOWN_ISSUES.md)**
+   - **IMPORTANT: After completing ANY task, immediately update ROADMAP.md and KNOWN_ISSUES.md**
+   - Mark completed tasks with [x] and add completion date
+   - Add new issues discovered during development
 6. **Planning**: Check [Consolidated ROADMAP](docs/04_roadmap/ROADMAP.md) for current priorities
 7. **Standards**: Follow [TypeScript Guidelines](docs/01_architecture/TYPESCRIPT_GUIDELINES.md)
 
@@ -204,7 +213,8 @@ See **[CONSOLIDATED ROADMAP](docs/04_roadmap/ROADMAP.md)** for detailed planning
 - **CI/CD Setup**: [Deployment Guide](docs/03_Guides_Developpement/01_Deployment_Guide.md)
 - **Performance Analysis**: [Performance Tools](docs/03_performance/)
 
-**Last Updated**: January 2025 - Documentation consolidation completed
+**Last Updated**: May 2025 - Documentation maintenance rules added
 - All TODO/NEXT_STEPS files consolidated into single ROADMAP.md
 - Established rule: Only maintain ROADMAP.md and KNOWN_ISSUES.md for project planning
-- Obsolete roadmap files marked for deletion
+- Added requirement to update documentation immediately after completing tasks
+- Added critical reminder about date awareness (DD/MM/YY format)

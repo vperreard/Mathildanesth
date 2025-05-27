@@ -29,6 +29,7 @@ export const navigationGroups = [
             { href: '/admin/planning-rules', label: 'Règles de Planning' },
             { href: '/admin/performance', label: 'Monitoring Performance' },
             { href: '/parametres/hopitaux', label: 'Hôpitaux' },
+            { href: '/parametres/chirurgiens', label: 'Chirurgiens' },
             { href: '/parametres/sites', label: 'Sites' },
             { href: '/parametres/specialites', label: 'Spécialités' },
             { href: '/parametres/types-conges', label: 'Types de Congés' },
@@ -47,6 +48,7 @@ export const navigationLinks = [
 export const adminLinks = [
     '/parametres',
     '/utilisateurs',
+    '/parametres/chirurgiens',
     '/parametres/configuration',
     '/parametres/configuration/fatigue',
     '/admin/bloc-operatoire',
