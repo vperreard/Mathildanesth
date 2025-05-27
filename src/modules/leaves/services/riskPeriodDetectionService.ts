@@ -566,7 +566,7 @@ export class RiskPeriodDetectionService {
      * Prédire le nombre de conflits attendus
      */
     private predictConflictCount(date: Date, score: number): number {
-        // Cette méthode utiliserait idéalement un modèle prédictif basé sur des données historiques
+        // Cette méthode utiliserait idéalement un template prédictif basé sur des données historiques
         // Pour cette démonstration, utilisons une formule simple
         const baseCount = (score / 20); // 0-5 conflits selon le score
 

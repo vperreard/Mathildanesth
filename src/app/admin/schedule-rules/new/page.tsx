@@ -36,7 +36,7 @@ export default function NewRulePage() {
                 description: 'La règle a été créée avec succès.'
             });
 
-            router.push('/admin/planning médical-rules');
+            router.push('/admin/planningMedical-rules');
         } catch (error) {
             console.error('Erreur lors de la création de la règle:', error);
             toast({
@@ -50,7 +50,7 @@ export default function NewRulePage() {
     };
 
     const handleCancel = () => {
-        router.push('/admin/planning médical-rules');
+        router.push('/admin/planningMedical-rules');
     };
 
     return (

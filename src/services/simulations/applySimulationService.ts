@@ -1,10 +1,7 @@
 import { PrismaClient, SimulationStatus, Attribution, Leave } from '@prisma/client';
 import { simulationNotificationService } from './notificationService';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
+import { prisma } from "@/lib/prisma";
 
 /**
  * Options pour l'application d'une simulation au planning réel
@@ -329,7 +326,7 @@ export class ApplySimulationService {
                     created++;
                 }
             } catch (error) {
-                console.error('Erreur lors de la création d\'une garde/vacation:', error);
+                console.error('Erreur lors de la création d\'une affectation:', error);
                 conflicts.push({
                     type: 'ASSIGNMENT_CREATION_ERROR',
                     attribution,

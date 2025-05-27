@@ -18,8 +18,8 @@ export const blocOperatoireRedirects = [
     permanent: true,
   },
   {
-    source: '/bloc-operatoire/tableaux de service',
-    destination: '/bloc-operatoire/tableaux de service',
+    source: '/bloc-operatoire/trameModeles',
+    destination: '/bloc-operatoire/trameModeles',
     permanent: true,
   },
   {

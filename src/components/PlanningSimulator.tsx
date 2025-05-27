@@ -358,7 +358,7 @@ export const PlanningSimulatorComponent: React.FC<PlanningSimulatorProps> = ({
                                                 <p className="text-lg">{metrics?.satisfactionScore.toFixed(2)}</p>
                                             </div>
                                             <div className="bg-gray-50 p-2 rounded">
-                                                <span className="text-sm font-medium">Total gardes/vacations</span>
+                                                <span className="text-sm font-medium">Total affectations</span>
                                                 <p className="text-lg">{metrics?.assignmentCounts.total}</p>
                                             </div>
                                         </div>

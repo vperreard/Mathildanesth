@@ -53,7 +53,7 @@ const PlanningRulesConfigPanel = dynamic(() => import('./PlanningRulesConfigPane
 });
 
 const AssignmentsConfigPanel = dynamic(() => import('./AssignmentsConfigPanel'), {
-    loading: () => <div>Chargement des gardes/vacations...</div>
+    loading: () => <div>Chargement des affectations...</div>
 });
 
 const WeeklyPlanningConfigPanel = dynamic(() => import('./WeeklyPlanningConfigPanel'), {
@@ -69,7 +69,7 @@ const ProfessionalRoleManagementPanel = dynamic(() => import('./ProfessionalRole
 });
 
 const TramesConfigPanel = dynamic(() => import('./TramesConfigPanel'), {
-    loading: () => <div>Chargement des tableaux de service...</div>
+    loading: () => <div>Chargement des trameModeles...</div>
 });
 
 // Ajout de l'import dynamique pour le nouveau panneau combiné
@@ -150,7 +150,7 @@ const menuItems: ConfigMenuItem[] = [
     },
     {
         id: 'attributions',
-        label: 'Gardes/Vacations',
+        label: 'Affectations',
         icon: <Share2 className="h-5 w-5" />,
         color: 'bg-gradient-to-r from-primary-500 to-secondary-500',
         hoverColor: 'hover:from-primary-400 hover:to-secondary-400'
@@ -163,8 +163,8 @@ const menuItems: ConfigMenuItem[] = [
         hoverColor: 'hover:from-tertiary-400 hover:to-primary-400'
     },
     {
-        id: 'tableaux de service',
-        label: 'Tableaux de service',
+        id: 'trameModeles',
+        label: 'TrameModeles',
         icon: <Clock className="h-5 w-5" />,
         color: 'bg-gradient-to-r from-secondary-500 to-tertiary-500',
         hoverColor: 'hover:from-secondary-400 hover:to-tertiary-400'
@@ -236,11 +236,11 @@ const ConfigurationPanelPage: React.FC = () => {
                 return <AssignmentsConfigPanel />;
             case 'weekly-planning':
                 return preloadedComponents.has('weekly-planning') || selectedItem === 'weekly-planning' ? <WeeklyPlanningConfigPanel /> : null;
-            case 'tableaux de service':
-                typeof window !== 'undefined' && window.location.replace('/parametres/tableaux de service');
+            case 'trameModeles':
+                typeof window !== 'undefined' && window.location.replace('/parametres/trameModeles');
                 return <div className="p-6 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p>Redirection vers la nouvelle interface des tableaux de service...</p>
+                    <p>Redirection vers la nouvelle interface des trameModeles...</p>
                 </div>;
             case 'header':
                 return <HeaderConfigPanel />;

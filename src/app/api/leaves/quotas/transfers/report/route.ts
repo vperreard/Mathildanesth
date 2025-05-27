@@ -7,10 +7,6 @@ import { formatDate } from '@/utils/dateUtils';
 import { format, parse, parseISO, isWithinInterval, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 /**
  * POST /api/conges/quotas/transfers/report

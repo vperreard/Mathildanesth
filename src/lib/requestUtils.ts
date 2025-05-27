@@ -1,10 +1,10 @@
 /**
- * Utilitaires pour la gestion des requêtes (congés, gardes/vacations, etc.)
+ * Utilitaires pour la gestion des requêtes (congés, affectations, etc.)
  * Ces fonctions permettent de filtrer les requêtes selon différents critères
  */
 
 // Types de requêtes
-export type RequestType = 'congés' | 'gardes/vacations' | 'autres';
+export type RequestType = 'congés' | 'affectations' | 'autres';
 export type RequestStatus = 'en-attente' | 'approuvée' | 'refusée';
 
 // Interface pour représenter une requête

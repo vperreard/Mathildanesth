@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { format, isSameDay } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DayOfWeek, Period } from '@prisma/client';
 import {
@@ -20,7 +20,7 @@ import { AlertTriangle, Clock, User, Settings } from 'lucide-react';
 
 interface WeeklyGridProps {
     gridData: WeeklyGridData;
-    gardes/vacations: EditorAffectation[];
+    affectations: EditorAffectation[];
     onAffectationMove: (affectationId: number, target: any) => void;
     onAffectationSelect: (affectationId: number) => void;
     onCellClick: (jourSemaine: DayOfWeek, periode: Period, roomId?: number) => void;
@@ -79,17 +79,17 @@ const periodLabels: Record<Period, string> = {
     [Period.JOURNEE_ENTIERE]: 'Journée entière'
 };
 
-// Composant pour une garde/vacation individuelle
+// Composant pour une affectation individuelle
 const AffectationCard: React.FC<{
-    garde/vacation: EditorAffectation;
+    affectation: EditorAffectation;
     index: number;
     isSelected: boolean;
     isDragging: boolean;
     colors: ActivityTypeColor;
     onSelect: () => void;
     readOnly?: boolean;
-}> = ({ garde/vacation, index, isSelected, isDragging, colors, onSelect, readOnly = false }) => {
-    const dragId = `garde/vacation-${garde/vacation.id}`;
+}> = ({ affectation, index, isSelected, isDragging, colors, onSelect, readOnly = false }) => {
+    const dragId = `affectation-${affectation.id}`;
 
     return (
         <Draggable
@@ -115,37 +115,37 @@ const AffectationCard: React.FC<{
                 >
                     <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center space-x-1">
-                            {garde/vacation.activityType?.name && (
+                            {affectation.activityType?.name && (
                                 <Badge variant="secondary" className="text-xs">
-                                    {garde/vacation.activityType.name}
+                                    {affectation.activityType.name}
                                 </Badge>
                             )}
-                            {garde/vacation.hasConflict && (
+                            {affectation.hasConflict && (
                                 <AlertTriangle className="w-3 h-3 text-yellow-600" />
                             )}
                         </div>
                         <div className="flex items-center space-x-1 text-xs opacity-70">
                             <Clock className="w-3 h-3" />
-                            <span>{periodLabels[garde/vacation.periode]}</span>
+                            <span>{periodLabels[affectation.periode]}</span>
                         </div>
                     </div>
 
-                    {garde/vacation.operatingRoom && (
+                    {affectation.operatingRoom && (
                         <div className="text-xs font-medium mb-1">
-                            Salle {garde/vacation.operatingRoom.name}
+                            Salle {affectation.operatingRoom.name}
                         </div>
                     )}
 
-                    {garde/vacation.personnelRequis && garde/vacation.personnelRequis.length > 0 && (
+                    {affectation.personnelRequis && affectation.personnelRequis.length > 0 && (
                         <div className="flex items-center space-x-1 text-xs">
                             <User className="w-3 h-3" />
-                            <span>{garde/vacation.personnelRequis.length} pers.</span>
+                            <span>{affectation.personnelRequis.length} pers.</span>
                         </div>
                     )}
 
-                    {garde/vacation.conflictDetails && garde/vacation.conflictDetails.length > 0 && (
+                    {affectation.conflictDetails && affectation.conflictDetails.length > 0 && (
                         <div className="mt-1 text-xs text-yellow-700">
-                            {garde/vacation.conflictDetails.length} conflit(s)
+                            {affectation.conflictDetails.length} conflit(s)
                         </div>
                     )}
                 </div>
@@ -157,7 +157,7 @@ const AffectationCard: React.FC<{
 // Composant pour une cellule de la grille
 const GridCellComponent: React.FC<{
     cell: GridCell;
-    gardes/vacations: EditorAffectation[];
+    affectations: EditorAffectation[];
     onCellClick: () => void;
     onAffectationSelect: (id: number) => void;
     selectedAffectations: number[];
@@ -165,7 +165,7 @@ const GridCellComponent: React.FC<{
     readOnly?: boolean;
 }> = ({
     cell,
-    gardes/vacations,
+    affectations,
     onCellClick,
     onAffectationSelect,
     selectedAffectations,
@@ -195,19 +195,19 @@ const GridCellComponent: React.FC<{
                         whileHover={!readOnly ? { scale: 1.01 } : {}}
                     >
                         <AnimatePresence mode="popLayout">
-                            {gardes/vacations.map((garde/vacation, index) => {
-                                const colors = themeColors[garde/vacation.activityTypeId] || defaultActivityColors['bloc-anesthesie'];
-                                const isSelected = selectedAffectations.includes(garde/vacation.id!);
+                            {affectations.map((affectation, index) => {
+                                const colors = themeColors[affectation.activityTypeId] || defaultActivityColors['bloc-anesthesie'];
+                                const isSelected = selectedAffectations.includes(affectation.id!);
 
                                 return (
                                     <AffectationCard
-                                        key={garde/vacation.id}
-                                        garde/vacation={garde/vacation}
+                                        key={affectation.id}
+                                        affectation ={ affectation }
                                         index={index}
                                         isSelected={isSelected}
                                         isDragging={false}
                                         colors={colors}
-                                        onSelect={() => onAffectationSelect(garde/vacation.id!)}
+                                        onSelect={() => onAffectationSelect(affectation.id!)}
                                         readOnly={readOnly}
                                     />
                                 );
@@ -215,7 +215,7 @@ const GridCellComponent: React.FC<{
                         </AnimatePresence>
                         {provided.placeholder}
 
-                        {gardes/vacations.length === 0 && !snapshot.isDraggingOver && (
+                        {affectations.length === 0 && !snapshot.isDraggingOver && (
                             <div className="h-full flex items-center justify-center text-gray-400 text-sm">
                                 <div className="text-center">
                                     <Settings className="w-6 h-6 mx-auto mb-1 opacity-50" />
@@ -232,7 +232,7 @@ const GridCellComponent: React.FC<{
 // Composant principal de la grille
 export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     gridData,
-    gardes/vacations,
+    affectations,
     onAffectationMove,
     onAffectationSelect,
     onCellClick,
@@ -247,20 +247,20 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
         }
     });
 
-    // Grouper les gardes/vacations par cellule
+    // Grouper les affectations par cellule
     const cellAffectations = useMemo(() => {
         const grouped: Record<string, EditorAffectation[]> = {};
 
-        gardes/vacations.forEach(garde/vacation => {
-            const key = `${garde/vacation.jourSemaine}-${garde/vacation.periode}${garde/vacation.operatingRoomId ? `-${garde/vacation.operatingRoomId}` : ''}`;
+        affectations.forEach(affectation => {
+            const key = `${affectation.jourSemaine}-${affectation.periode}${affectation.operatingRoomId ? `-${affectation.operatingRoomId}` : ''}`;
             if (!grouped[key]) {
                 grouped[key] = [];
             }
-            grouped[key].push(garde/vacation);
+            grouped[key].push(affectation);
         });
 
         return grouped;
-    }, [gardes/vacations]);
+    }, [affectations]);
 
     // Créer les couleurs de thème
     const colors = useMemo(() => {
@@ -338,7 +338,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                             const cell: GridCell = {
                                 jourSemaine: day,
                                 periode,
-                                gardes/vacations: cellAffectationsForDay,
+                                affectations: cellAffectationsForDay,
                                 isDropTarget: false,
                                 isHighlighted: false,
                                 conflictLevel: cellAffectationsForDay.some(aff => aff.hasConflict) ? 'warning' : 'none'
@@ -348,7 +348,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                                 <GridCellComponent
                                     key={cellKey}
                                     cell={cell}
-                                    gardes/vacations={cellAffectationsForDay}
+                                    affectations={cellAffectationsForDay}
                                     onCellClick={() => onCellClick(day, periode)}
                                     onAffectationSelect={onAffectationSelect}
                                     selectedAffectations={selectedAffectations}

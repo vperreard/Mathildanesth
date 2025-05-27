@@ -27,13 +27,13 @@ export class RuleEvaluationService {
     }
 
     /**
-     * Vérifie si une garde/vacation est valide selon les règles configurées
+     * Vérifie si une affectation est valide selon les règles configurées
      * @param userId ID de l'utilisateur
-     * @param date Date de l'garde/vacation
-     * @param assignmentType Type d'garde/vacation
+     * @param date Date de l'affectation
+     * @param assignmentType Type d'affectation
      * @param locationId ID de l'emplacement
      * @param additionalContext Contexte supplémentaire
-     * @returns Si l'garde/vacation est valide et les raisons
+     * @returns Si l'affectation est valide et les raisons
      */
     async validateAssignment(
         userId: number,
@@ -87,7 +87,7 @@ export class RuleEvaluationService {
         const attributions = generationContext.attributions || [];
         const modifiedAssignments = [...attributions];
 
-        // Évaluer chaque garde/vacation proposée
+        // Évaluer chaque affectation proposée
         for (let i = 0; i < modifiedAssignments.length; i++) {
             const attribution = modifiedAssignments[i];
 
@@ -118,7 +118,7 @@ export class RuleEvaluationService {
                 }
             );
 
-            // Marquer l'garde/vacation comme invalide si elle viole des règles critiques
+            // Marquer l'affectation comme invalide si elle viole des règles critiques
             if (!validationResult.isValid) {
                 modifiedAssignments[i] = {
                     ...attribution,
@@ -161,8 +161,8 @@ export class RuleEvaluationService {
 
     /**
      * Applique des optimisations avancées basées sur les règles actives
-     * @param attributions Gardes/Vacations à optimiser
-     * @returns Gardes/Vacations optimisées
+     * @param attributions Affectations à optimiser
+     * @returns Affectations optimisées
      */
     private applyAdvancedOptimizations(attributions: any[]): any[] {
         // Copie pour éviter la mutation directe
@@ -178,10 +178,10 @@ export class RuleEvaluationService {
 
     /**
      * Optimise la répartition de la charge de travail
-     * @param attributions Gardes/Vacations à optimiser
+     * @param attributions Affectations à optimiser
      */
     private balanceWorkload(attributions: any[]): void {
-        // Compter les gardes/vacations par utilisateur
+        // Compter les affectations par utilisateur
         const userAssignmentCounts = new Map<number, number>();
 
         attributions.forEach(a => {
@@ -203,7 +203,7 @@ export class RuleEvaluationService {
             .filter(([_, count]) => count < averageAssignments * 0.8)
             .map(([userId]) => userId);
 
-        // Marquer les gardes/vacations qui pourraient être réaffectées
+        // Marquer les affectations qui pourraient être réaffectées
         if (overAssigned.length > 0 && underAssigned.length > 0) {
             for (let i = 0; i < attributions.length; i++) {
                 const attribution = attributions[i];

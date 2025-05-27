@@ -2,9 +2,6 @@ import { prisma } from '@/lib/prisma';
 import { Prisma, NotificationType } from '@prisma/client';
 import { io } from '@/lib/socket'; // Importer l'instance io
 
-jest.mock('@/lib/prisma');
-
-
 // Assurez-vous que NotificationType est bien exporté/accessible
 // Si ce n'est pas le cas, il faudra l'importer depuis là où il est défini, ou le redéfinir ici.
 
@@ -59,7 +56,7 @@ export async function createNotification(args: NotificationCreationArgs) {
             include: {
                 user: { select: { id: true, login: true } },
                 triggeredByUser: { select: { id: true, login: true } },
-                relatedAssignment: true, // Inclure l'garde/vacation liée si elle existe
+                relatedAssignment: true, // Inclure l'affectation liée si elle existe
                 relatedRequest: true,    // Inclure la requête liée si elle existe
                 relatedContextualMessage: { // Inclure le message contextuel lié
                     include: {

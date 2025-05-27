@@ -8,10 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePickerComponent } from '@/components/ui/date-picker';
 import { toast } from 'sonner';
 
-// Types pour le modèle de données
+// Types pour le template de données
 export type PeriodeType = 'HEBDOMADAIRE' | 'BI_HEBDOMADAIRE' | 'MENSUEL';
 
-export interface Garde/Vacation {
+export interface Affectation {
     id: string;
     userId: number;
     periodeType: PeriodeType;
@@ -22,12 +22,12 @@ export interface Garde/Vacation {
 }
 
 export interface TrameAffectationProps {
-    onSave: (tableau de service: Garde/Vacation[]) => void;
-    initialData?: Garde/Vacation[];
+    onSave: (trameModele: Affectation[]) => void;
+    initialData?: Affectation[];
 }
 
 export const TrameAffectation: React.FC<TrameAffectationProps> = ({ onSave, initialData = [] }) => {
-    const [gardes/vacations, setAffectations] = useState<Garde/Vacation[]>(initialData);
+    const [affectations, setAffectations] = useState<Affectation[]>(initialData);
     const [selectedPeriode, setSelectedPeriode] = useState<PeriodeType>('HEBDOMADAIRE');
     const [dateDebut, setDateDebut] = useState<Date | null>(null);
     const [dateFin, setDateFin] = useState<Date | null>(null);
@@ -39,7 +39,7 @@ export const TrameAffectation: React.FC<TrameAffectationProps> = ({ onSave, init
             return;
         }
 
-        const newAffectation: Garde/Vacation = {
+        const newAffectation: Affectation = {
             id: Math.random().toString(36).substr(2, 9),
             userId: 1, // À remplacer par l'ID de l'utilisateur connecté
             periodeType: selectedPeriode,
@@ -49,19 +49,19 @@ export const TrameAffectation: React.FC<TrameAffectationProps> = ({ onSave, init
             isRecurrent: false,
         };
 
-        setAffectations([...gardes/vacations, newAffectation]);
+        setAffectations([...affectations, newAffectation]);
         setMotif('');
     };
 
     const handleSave = () => {
-        onSave(gardes/vacations);
-        toast.success('Tableau de service d\'garde/vacation sauvegardée avec succès');
+        onSave(affectations);
+        toast.success('TrameModele d\'affectation sauvegardée avec succès');
     };
 
     return (
         <Card className="w-full">
             <CardHeader>
-                <CardTitle>Gestion des tableaux de service d'garde/vacation</CardTitle>
+                <CardTitle>Gestion des trameModeles d'affectation</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
@@ -97,32 +97,32 @@ export const TrameAffectation: React.FC<TrameAffectationProps> = ({ onSave, init
                         <Input
                             value={motif}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMotif(e.target.value)}
-                            placeholder="Motif de l'garde/vacation"
+                            placeholder="Motif de l'affectation"
                             className="flex-1"
                         />
                         <Button onClick={handleAddAffectation}>Ajouter</Button>
                     </div>
 
                     <div className="mt-4">
-                        <h3 className="text-lg font-semibold mb-2">Gardes/Vacations enregistrées</h3>
+                        <h3 className="text-lg font-semibold mb-2">Affectations enregistrées</h3>
                         <div className="space-y-2">
-                            {gardes/vacations.map((garde/vacation) => (
+                            {affectations.map((affectation) => (
                                 <div
-                                    key={garde/vacation.id}
+                                    key={affectation.id}
                                     className="p-3 bg-gray-100 rounded-lg flex justify-between items-center"
                                 >
                                     <div>
-                                        <p className="font-medium">{garde/vacation.motif}</p>
+                                        <p className="font-medium">{affectation.motif}</p>
                                         <p className="text-sm text-gray-600">
-                                            {garde/vacation.periodeType} - Du {garde/vacation.dateDebut.toLocaleDateString()} au{' '}
-                                            {garde/vacation.dateFin.toLocaleDateString()}
+                                            {affectation.periodeType} - Du {affectation.dateDebut.toLocaleDateString()} au{' '}
+                                            {affectation.dateFin.toLocaleDateString()}
                                         </p>
                                     </div>
                                     <Button
                                         variant="destructive"
                                         size="sm"
                                         onClick={() =>
-                                            setAffectations(gardes/vacations.filter((a) => a.id !== garde/vacation.id))
+                                            setAffectations(affectations.filter((a) => a.id !== affectation.id))
                                         }
                                     >
                                         Supprimer
@@ -133,7 +133,7 @@ export const TrameAffectation: React.FC<TrameAffectationProps> = ({ onSave, init
                     </div>
 
                     <div className="flex justify-end mt-4">
-                        <Button onClick={handleSave}>Sauvegarder la tableau de service</Button>
+                        <Button onClick={handleSave}>Sauvegarder la trameModele</Button>
                     </div>
                 </div>
             </CardContent>

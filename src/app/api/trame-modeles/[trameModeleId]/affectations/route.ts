@@ -5,9 +5,6 @@ import { withAuth } from '@/middleware/authorization';
 import { logger } from '@/lib/logger';
 import { auditService } from '@/services/auditService';
 
-jest.mock('@/lib/prisma');
-
-
 export const POST = withAuth({
     requireAuth: true,
     allowedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
@@ -22,10 +19,10 @@ export const POST = withAuth({
         const userRole = request.headers.get('x-user-role') || '';
         
         const { trameModeleId } = params;
-        console.log(`[API POST /tableau de service-modeles/${trameModeleId}/gardes/vacations] Début du traitement.`);
-        console.log("\n--- POST /api/tableau de service-modeles/[trameModeleId]/gardes/vacations START ---");
+        console.log(`[API POST /trameModele-modeles/${trameModeleId}/affectations] Début du traitement.`);
+        console.log("\n--- POST /api/trameModele-modeles/[trameModeleId]/affectations START ---");
 
-        // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de tableaux de service (déjà fait via withAuth)
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de trameModeles (déjà fait via withAuth)
         // Logger l'action de création
         await auditService.logAction({
             action: 'CREATE_TRAME_AFFECTATION' as any,
@@ -39,13 +36,13 @@ export const POST = withAuth({
         });
 
         if (!trameModeleId || isNaN(parseInt(trameModeleId))) {
-            console.warn("POST /api/tableau de service-modeles/[trameModeleId]/gardes/vacations: Invalid trameModeleId");
-            return NextResponse.json({ error: 'ID du modèle de tableau de service invalide' }, { status: 400 });
+            console.warn("POST /api/trameModele-modeles/[trameModeleId]/affectations: Invalid trameModeleId");
+            return NextResponse.json({ error: 'ID du template de trameModele invalide' }, { status: 400 });
         }
         const trameId = parseInt(trameModeleId);
 
         const body = await request.json();
-        console.log("POST /api/tableau de service-modeles/[trameModeleId]/gardes/vacations - Received data:", body);
+        console.log("POST /api/trameModele-modeles/[trameModeleId]/affectations - Received data:", body);
 
         const {
             activityTypeId,
@@ -53,7 +50,7 @@ export const POST = withAuth({
             periode,
             typeSemaine,
             operatingRoomId,
-            locationId, // Non utilisé dans le modèle AffectationModele actuel, mais gardé si évolution
+            locationId, // Non utilisé dans le template AffectationModele actuel, mais gardé si évolution
             priorite,
             isActive,
             detailsJson,
@@ -61,20 +58,20 @@ export const POST = withAuth({
         } = body;
 
         // Log for debugging personnelRequis structure
-        console.log("POST /api/tableau de service-modeles/[trameModeleId]/gardes/vacations - personnelRequis structure:",
+        console.log("POST /api/trameModele-modeles/[trameModeleId]/affectations - personnelRequis structure:",
             JSON.stringify(personnelRequis, null, 2));
 
         // Validations de base
         if (!activityTypeId || !jourSemaine || !periode || !typeSemaine) {
-            console.warn("POST .../gardes/vacations: Validation failed - Champs requis manquants");
-            return NextResponse.json({ error: 'Champs requis manquants pour l\'garde/vacation (activityTypeId, jourSemaine, periode, typeSemaine)' }, { status: 400 });
+            console.warn("POST .../affectations: Validation failed - Champs requis manquants");
+            return NextResponse.json({ error: 'Champs requis manquants pour l\'affectation (activityTypeId, jourSemaine, periode, typeSemaine)' }, { status: 400 });
         }
 
         // Vérifier l'existence du TrameModele parent
         const parentTrame = await prisma.trameModele.findUnique({ where: { id: trameId } });
         if (!parentTrame) {
-            console.warn(`POST .../gardes/vacations: TrameModele with id ${trameId} not found.`);
-            return NextResponse.json({ error: 'Modèle de tableau de service parent non trouvé' }, { status: 404 });
+            console.warn(`POST .../affectations: TrameModele with id ${trameId} not found.`);
+            return NextResponse.json({ error: 'Modèle de trameModele parent non trouvé' }, { status: 404 });
         }
 
         try {
@@ -89,7 +86,7 @@ export const POST = withAuth({
                 isActive: isActive !== undefined ? isActive : true,
                 detailsJson: detailsJson ? detailsJson : undefined,
                 ...(operatingRoomId && { operatingRoom: { connect: { id: parseInt(operatingRoomId.toString()) } } }),
-                // locationId n'est pas dans le modèle AffectationModele, donc pas de connexion pour l'instant
+                // locationId n'est pas dans le template AffectationModele, donc pas de connexion pour l'instant
                 ...(personnelRequis && Array.isArray(personnelRequis) && personnelRequis.length > 0 && {
                     personnelRequis: {
                         create: personnelRequis.map((pr: any) => ({
@@ -103,7 +100,7 @@ export const POST = withAuth({
                 })
             };
 
-            console.log("POST .../gardes/vacations: Structure finale de createData:", JSON.stringify(createData, null, 2));
+            console.log("POST .../affectations: Structure finale de createData:", JSON.stringify(createData, null, 2));
 
             const newAffectationModele = await prisma.affectationModele.create({
                 data: createData,
@@ -114,8 +111,8 @@ export const POST = withAuth({
                 },
             });
 
-            console.log("POST .../gardes/vacations: AffectationModele created successfully:", newAffectationModele);
-            console.log("--- POST /api/tableau de service-modeles/[trameModeleId]/gardes/vacations END ---\n");
+            console.log("POST .../affectations: AffectationModele created successfully:", newAffectationModele);
+            console.log("--- POST /api/trameModele-modeles/[trameModeleId]/affectations END ---\n");
             return NextResponse.json(newAffectationModele, { status: 201 });
         } catch (prismaError) {
             console.error("Erreur Prisma détaillée:", prismaError);
@@ -123,7 +120,7 @@ export const POST = withAuth({
         }
 
     } catch (error) {
-        console.error("Error during POST /api/tableau de service-modeles/[trameModeleId]/gardes/vacations:", error);
+        console.error("Error during POST /api/trameModele-modeles/[trameModeleId]/affectations:", error);
 
         // Afficher plus d'informations sur l'erreur
         if (error instanceof Error) {
@@ -148,8 +145,8 @@ export const POST = withAuth({
             return NextResponse.json({ error: `Erreur Prisma (${error.code}): ${error.message}`, meta: error.meta }, { status: 500 });
         }
 
-        console.log("--- POST /api/tableau de service-modeles/[trameModeleId]/gardes/vacations END (with error) ---\n");
-        return NextResponse.json({ error: 'Erreur lors de la création de l\'garde/vacation modèle', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
+        console.log("--- POST /api/trameModele-modeles/[trameModeleId]/affectations END (with error) ---\n");
+        return NextResponse.json({ error: 'Erreur lors de la création de l\'affectation template', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
     }
 });
 
@@ -163,27 +160,27 @@ export const GET = withAuth({
 ) => {
     const userId = parseInt(request.headers.get('x-user-id') || '0');
     const { trameModeleId } = params;
-    console.log(`[API GET /tableau de service-modeles/${trameModeleId}/gardes/vacations] Début du traitement.`);
+    console.log(`[API GET /trameModele-modeles/${trameModeleId}/affectations] Début du traitement.`);
 
-    console.log("\n--- GET /api/tableau de service-modeles/[trameModeleId]/gardes/vacations START ---");
+    console.log("\n--- GET /api/trameModele-modeles/[trameModeleId]/affectations START ---");
 
     if (!trameModeleId || isNaN(parseInt(trameModeleId))) {
-        console.warn("GET /api/tableau de service-modeles/[trameModeleId]/gardes/vacations: Invalid trameModeleId");
-        return NextResponse.json({ error: 'ID du modèle de tableau de service invalide' }, { status: 400 });
+        console.warn("GET /api/trameModele-modeles/[trameModeleId]/affectations: Invalid trameModeleId");
+        return NextResponse.json({ error: 'ID du template de trameModele invalide' }, { status: 400 });
     }
     const trameId = parseInt(trameModeleId);
 
     try {
-        console.log(`GET .../gardes/vacations: Retrieving gardes/vacations for trameModeleId ${trameId}...`);
+        console.log(`GET .../affectations: Retrieving affectations for trameModeleId ${trameId}...`);
 
         // Vérifier l'existence du TrameModele parent
         const parentTrame = await prisma.trameModele.findUnique({ where: { id: trameId } });
         if (!parentTrame) {
-            console.warn(`GET .../gardes/vacations: TrameModele with id ${trameId} not found.`);
-            return NextResponse.json({ error: 'Modèle de tableau de service parent non trouvé' }, { status: 404 });
+            console.warn(`GET .../affectations: TrameModele with id ${trameId} not found.`);
+            return NextResponse.json({ error: 'Modèle de trameModele parent non trouvé' }, { status: 404 });
         }
 
-        const gardes/vacations = await prisma.affectationModele.findMany({
+        const affectations = await prisma.affectationModele.findMany({
             where: { trameModeleId: trameId },
             include: {
                 activityType: true,
@@ -204,12 +201,12 @@ export const GET = withAuth({
             ]
         });
 
-        console.log(`GET .../gardes/vacations: ${gardes/vacations.length} gardes/vacations retrieved successfully.`);
-        console.log("--- GET /api/tableau de service-modeles/[trameModeleId]/gardes/vacations END ---\n");
-        return NextResponse.json(gardes/vacations);
+        console.log(`GET .../affectations: ${affectations.length} affectations retrieved successfully.`);
+        console.log("--- GET /api/trameModele-modeles/[trameModeleId]/affectations END ---\n");
+        return NextResponse.json(affectations);
 
     } catch (error: any) {
-        console.error(`Erreur lors de la récupération des gardes/vacations pour la tableau de service ${trameModeleId}:`, error);
+        console.error(`Erreur lors de la récupération des affectations pour la trameModele ${trameModeleId}:`, error);
         return NextResponse.json({ error: 'Erreur interne du serveur.', details: error.message }, { status: 500 });
     }
 });

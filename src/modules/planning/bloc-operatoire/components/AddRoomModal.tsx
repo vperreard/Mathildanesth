@@ -7,7 +7,7 @@
  * 3. Types incompatibles pour les sectorId convertis de string à number
  * 
  * SOLUTION À LONG TERME:
- * 1. Créer des types explicites pour les données du formulaire et les distinguer des types du modèle
+ * 1. Créer des types explicites pour les données du formulaire et les distinguer des types du template
  * 2. Utiliser une interface utilisée à la fois par le schéma Zod et par useForm
  * 3. Ajouter des transformations appropriées dans le schéma Zod pour la conversion string/number
  */

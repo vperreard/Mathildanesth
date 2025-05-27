@@ -3,10 +3,6 @@ import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import type { AuthResult } from '@/lib/auth-client-utils';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 // Récupérer tous les types d'activité
 export async function GET(req: NextRequest) {

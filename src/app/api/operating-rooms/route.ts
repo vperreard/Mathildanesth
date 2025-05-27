@@ -2,10 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { PrismaClient, Prisma } from '@prisma/client';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
     try {

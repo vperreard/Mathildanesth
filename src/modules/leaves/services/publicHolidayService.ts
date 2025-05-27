@@ -12,10 +12,6 @@ import { calculateEaster } from '@/utils/dateUtils';
 import { isWithinInterval } from 'date-fns';
 import { prisma } from '@/lib/prisma';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 /**
  * Service pour la gestion des jours fériés

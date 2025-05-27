@@ -197,7 +197,7 @@ export const useValidationRules = () => {
             });
 
         if (supervisedSectorTypes.size === 0) {
-            return result; // Première garde/vacation
+            return result; // Première affectation
         }
 
         // Vérifier la compatibilité selon les règles
@@ -227,7 +227,7 @@ export const useValidationRules = () => {
         return result;
     }, []);
 
-    // Vérifier les conflits avec d'autres gardes/vacations
+    // Vérifier les conflits avec d'autres affectations
     const validateNoConflicts = useCallback((
         context: ValidationContext,
         roleType: 'ANESTHESIA' | 'SUPERVISION',
@@ -241,7 +241,7 @@ export const useValidationRules = () => {
             warnings: []
         };
 
-        // Vérifier si le superviseur a déjà une garde/vacation incompatible
+        // Vérifier si le superviseur a déjà une affectation incompatible
         const existingAssignments = context.existingAssignments.filter(
             a => a.supervisorId === context.supervisorId &&
                  a.day === day &&

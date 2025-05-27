@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, handleApiError } from '@/lib/apiUtils';
 
-jest.mock('@/lib/prisma');
-
-
 // GET /api/me/skills - Permet à l'utilisateur connecté de récupérer ses propres compétences
 export async function GET(request: NextRequest) {
     try {

@@ -1,6 +1,5 @@
 describe('Génération de Planning', () => {
     beforeEach(() => {
-    jest.clearAllMocks();
         // Se connecter en tant qu'admin
         cy.login('admin@example.com', 'password');
         cy.visit('/planning');
@@ -89,7 +88,6 @@ describe('Génération de Planning', () => {
 
     describe('Validation et modifications', () => {
         beforeEach(() => {
-    jest.clearAllMocks();
             // Générer un planning de test
             cy.generateTestPlanning({
                 startDate: '2024-02-01',

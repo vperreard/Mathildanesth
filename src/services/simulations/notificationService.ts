@@ -1,11 +1,7 @@
 // Service de notifications pour les simulations longues
-import { PrismaClient, Notification, NotificationType, SimulationStatus } from '@prisma/client';
+import { Notification, NotificationType, SimulationStatus } from '@prisma/client';
 import { pusherServer } from '@/lib/pusher';
-
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
+import { prisma } from '@/lib/prisma';
 
 /**
  * Événements de notification pour les simulations

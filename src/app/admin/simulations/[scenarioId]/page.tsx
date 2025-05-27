@@ -39,7 +39,7 @@ interface SimulationScenario {
         name: string;
     };
     templateId?: string;
-    modèle?: {
+    template?: {
         id: string;
         name: string;
     };
@@ -220,7 +220,7 @@ export default function ScenarioDetailsPage({ params }: { params: { scenarioId: 
 
             // Pour les autres filtres (serviceIds, userIds, resourceIds), nous aurions besoin
             // que ces informations soient disponibles dans le résultat de simulation
-            // Ce qui n'est pas le cas actuellement dans notre modèle de données
+            // Ce qui n'est pas le cas actuellement dans notre template de données
 
             return true;
         });
@@ -363,15 +363,15 @@ export default function ScenarioDetailsPage({ params }: { params: { scenarioId: 
                                     <div>
                                         <dt className="text-sm font-medium text-muted-foreground">Modèle utilisé</dt>
                                         <dd className="mt-1">
-                                            {scenario.modèle ? (
+                                            {scenario.template ? (
                                                 <Link
-                                                    href={`/admin/simulations/modèles/${scenario.modèle.id}`}
+                                                    href={`/admin/simulations/templates/${scenario.template.id}`}
                                                     className="text-primary hover:underline"
                                                 >
-                                                    {scenario.modèle.name}
+                                                    {scenario.template.name}
                                                 </Link>
                                             ) : (
-                                                <span className="text-muted-foreground italic">Aucun modèle</span>
+                                                <span className="text-muted-foreground italic">Aucun template</span>
                                             )}
                                         </dd>
                                     </div>
@@ -604,15 +604,15 @@ export default function ScenarioDetailsPage({ params }: { params: { scenarioId: 
                                 <div>
                                     <h3 className="text-lg font-medium mb-2">Modèle</h3>
                                     <p className="mb-2">
-                                        {scenario.modèle ? (
+                                        {scenario.template ? (
                                             <Link
-                                                href={`/admin/simulations/modèles/${scenario.modèle.id}`}
+                                                href={`/admin/simulations/templates/${scenario.template.id}`}
                                                 className="text-primary hover:underline"
                                             >
-                                                {scenario.modèle.name}
+                                                {scenario.template.name}
                                             </Link>
                                         ) : (
-                                            <span className="text-muted-foreground italic">Aucun modèle</span>
+                                            <span className="text-muted-foreground italic">Aucun template</span>
                                         )}
                                     </p>
                                 </div>

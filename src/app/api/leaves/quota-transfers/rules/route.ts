@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-jest.mock('@/lib/prisma');
-
-
 /**
  * Gestion des règles de transfert de quotas de congés
  */

@@ -143,14 +143,14 @@ export class LeaveConflictNotificationService {
         locale: string = 'fr'
     ): Promise<boolean> {
         try {
-            const modèle = this.generateNotificationTemplate(conflict, locale);
+            const template = this.generateNotificationTemplate(conflict, locale);
 
             // Pour chaque utilisateur concerné
             for (const userId of userIds) {
                 await this.emailService.sendEmail({
                     to: userId,
-                    subject: modèle.title,
-                    body: modèle.message,
+                    subject: template.title,
+                    body: template.message,
                     templateId: 'leave-conflict-notification',
                     data: {
                         conflictType: conflict.type,
@@ -183,14 +183,14 @@ export class LeaveConflictNotificationService {
         locale: string = 'fr'
     ): Promise<boolean> {
         try {
-            const modèle = this.generateNotificationTemplate(conflict, locale);
+            const template = this.generateNotificationTemplate(conflict, locale);
 
             // Pour chaque utilisateur concerné
             for (const userId of userIds) {
                 await this.notificationService.createNotification({
                     userId,
-                    title: modèle.title,
-                    message: modèle.message,
+                    title: template.title,
+                    message: template.message,
                     type: 'leave-conflict',
                     severity: this.mapSeverityToNotificationType(conflict.severity),
                     data: {

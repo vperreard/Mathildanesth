@@ -11,7 +11,7 @@ const isTestEnv = process.env.NODE_ENV === 'test' || process.env.CYPRESS === 'tr
 
 /**
  * POST /api/test/ensure-attribution-exists
- * S'assure qu'une garde/vacation de test existe pour les tests E2E
+ * S'assure qu'une affectation de test existe pour les tests E2E
  * Cet endpoint est uniquement disponible en environnement de test
  */
 export async function POST(request: NextRequest) {
@@ -25,20 +25,20 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { id, userId, date, type, salle } = body;
 
-        // Vérifier si l'garde/vacation existe déjà
+        // Vérifier si l'affectation existe déjà
         const existingAssignment = await prisma.attribution.findUnique({
             where: { id }
         });
 
         if (existingAssignment) {
-            // L'garde/vacation existe déjà, renvoyer ses informations
+            // L'affectation existe déjà, renvoyer ses informations
             return NextResponse.json({
-                message: 'L\'garde/vacation existe déjà',
+                message: 'L\'affectation existe déjà',
                 attribution: existingAssignment
             });
         }
 
-        // Créer une nouvelle garde/vacation
+        // Créer une nouvelle affectation
         const newAssignment = await prisma.attribution.create({
             data: {
                 id,
@@ -52,14 +52,14 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json({
-            message: 'Garde/Vacation créée avec succès',
+            message: 'Affectation créée avec succès',
             attribution: newAssignment
         }, { status: 201 });
 
     } catch (error: any) {
-        console.error("Erreur lors de la création de l'garde/vacation de test:", error);
+        console.error("Erreur lors de la création de l'affectation de test:", error);
         return NextResponse.json({
-            error: 'Erreur lors de la création de l\'garde/vacation de test',
+            error: 'Erreur lors de la création de l\'affectation de test',
             details: error.message
         }, { status: 500 });
     }

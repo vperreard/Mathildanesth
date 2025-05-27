@@ -7,9 +7,6 @@ import { RuleVersioningService } from '@/modules/dynamicRules/v2/services/RuleVe
 import { ConflictDetector } from '@/modules/dynamicRules/v2/services/ConflictDetector';
 import { z } from 'zod';
 
-jest.mock('@/lib/prisma');
-
-
 const updateRuleSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().min(1).optional(),
@@ -248,7 +245,7 @@ export async function PATCH(
 
     const { action, value } = await request.json();
 
-    let updateData: any = {};
+    const updateData: any = {};
     let actionName = '';
 
     switch (action) {

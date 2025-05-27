@@ -179,7 +179,7 @@ export function useRecurringLeaveValidation() {
             newErrors.push({
                 field: `${fieldPrefix}`,
                 type: RecurringValidationErrorType.INVALID_PATTERN,
-                message: 'Le modèle de récurrence est invalide'
+                message: 'Le template de récurrence est invalide'
             });
             setErrors(newErrors);
             return false;
@@ -468,7 +468,7 @@ export function useRecurringLeaveValidation() {
                 allErrors.push({
                     field: 'recurrencePattern',
                     type: RecurringValidationErrorType.NO_OCCURRENCES,
-                    message: 'Aucune occurrence n\'a pu être générée avec ce modèle de récurrence'
+                    message: 'Aucune occurrence n\'a pu être générée avec ce template de récurrence'
                 });
 
                 const result: RecurringValidationResult = {

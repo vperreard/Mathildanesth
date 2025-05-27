@@ -6,9 +6,6 @@ import { logger } from '@/lib/logger';
 import { withSensitiveRateLimit } from '@/lib/rateLimit';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
-jest.mock('@/lib/prisma');
-
-
 /**
  * POST /api/conges/[leaveId]/approve
  * Approuver une demande de congé - ADMIN uniquement

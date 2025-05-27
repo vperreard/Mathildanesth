@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
                 }
                 (prisma as any).$cache.invalidateModel(model);
                 return NextResponse.json({
-                    message: `Cache du modèle ${model} invalidé avec succès.`,
+                    message: `Cache du template ${model} invalidé avec succès.`,
                     timestamp: new Date().toISOString()
                 });
 

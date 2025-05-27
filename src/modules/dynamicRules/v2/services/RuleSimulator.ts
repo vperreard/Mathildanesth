@@ -4,9 +4,6 @@ import { prisma } from '@/lib/prisma';
 import { addDays, eachDayOfInterval, isWeekend, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-jest.mock('@/lib/prisma');
-
-
 export class RuleSimulator {
   private ruleEngine: RuleEngineV2;
 

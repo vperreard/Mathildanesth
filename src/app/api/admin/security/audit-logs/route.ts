@@ -4,9 +4,6 @@ import { withAuth } from '@/middleware/authorization';
 import { logger } from '@/lib/logger';
 import { withAdminRateLimit } from '@/lib/rateLimit';
 
-jest.mock('@/lib/prisma');
-
-
 /**
  * GET /api/admin/security/audit-logs
  * Récupérer les logs de sécurité - ADMIN uniquement

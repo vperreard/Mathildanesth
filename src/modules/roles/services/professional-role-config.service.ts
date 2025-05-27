@@ -1,10 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { DisplayPreferences } from '../types/professional-role-config';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 export class ProfessionalRoleConfigService {
     async updateDisplayPreferences(roleCode: string, preferences: DisplayPreferences) {

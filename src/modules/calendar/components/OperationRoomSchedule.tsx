@@ -183,7 +183,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
         return Array.from({ length: 24 }, (_, i) => i);
     }, []);
 
-    // Vérifier si un créneau horaire est disponible
+    // Vérifier si un slot horaire est disponible
     const isTimeSlotAvailable = useCallback(
         (roomId: string, hour: number) => {
             const roomOperations = operationsByRoom[roomId] || [];
@@ -204,7 +204,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
         [currentDate, operationsByRoom]
     );
 
-    // Obtenir l'opération pour un créneau horaire donné
+    // Obtenir l'opération pour un slot horaire donné
     const getOperationForTimeSlot = useCallback(
         (roomId: string, hour: number): Operation | null => {
             const roomOperations = operationsByRoom[roomId] || [];
@@ -227,7 +227,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
         [currentDate, operationsByRoom]
     );
 
-    // Gérer le clic sur un créneau horaire
+    // Gérer le clic sur un slot horaire
     const handleTimeSlotClick = useCallback(
         (roomId: string, hour: number) => {
             if (isReadOnly) return;
@@ -238,7 +238,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
                 // Si une opération existe, appeler le gestionnaire de clic d'opération
                 onOperationClick && onOperationClick(operation);
             } else {
-                // Sinon, appeler le gestionnaire de clic de créneau horaire
+                // Sinon, appeler le gestionnaire de clic de slot horaire
                 const startHour = new Date(currentDate);
                 startHour.setHours(hour, 0, 0, 0);
                 const endHour = new Date(currentDate);
@@ -250,7 +250,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
         [currentDate, getOperationForTimeSlot, isReadOnly, onOperationClick, onTimeSlotClick]
     );
 
-    // Gérer le survol d'un créneau horaire
+    // Gérer le survol d'un slot horaire
     const handleTimeSlotHover = useCallback(
         (roomId: string, hour: number) => {
             setHoveredTimeSlot({ roomId, hour });
@@ -263,7 +263,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
         setHoveredTimeSlot(null);
     }, []);
 
-    // Déterminer la couleur du créneau horaire
+    // Déterminer la couleur du slot horaire
     const getTimeSlotColor = useCallback(
         (roomId: string, hour: number) => {
             const operation = getOperationForTimeSlot(roomId, hour);
@@ -288,7 +288,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
         [getOperationForTimeSlot, isTimeSlotAvailable, sectors]
     );
 
-    // Style pour le créneau horaire avec la couleur du secteur
+    // Style pour le slot horaire avec la couleur du secteur
     const getTimeSlotStyle = useCallback(
         (roomId: string, hour: number) => {
             const operation = getOperationForTimeSlot(roomId, hour);
@@ -504,10 +504,10 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
                                                 {room.name}
                                             </div>
 
-                                            {/* Grille des créneaux horaires */}
+                                            {/* Grille des slots horaires */}
                                             <div className="grid grid-cols-11 border-t">
                                                 {hours.map(hour => {
-                                                    // Filtrer les opérations pour cette salle et ce créneau
+                                                    // Filtrer les opérations pour cette salle et ce slot
                                                     const slotOperations = operations.filter(op => {
                                                         return op.room === room.id &&
                                                             op.start.getHours() <= hour &&

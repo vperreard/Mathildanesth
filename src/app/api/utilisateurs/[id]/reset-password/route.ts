@@ -3,9 +3,6 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 import { headers } from 'next/headers';
 
-jest.mock('@/lib/prisma');
-
-
 // Helper pour vérifier les rôles autorisés (utilisation de chaînes)
 const hasRequiredRole = (allowedRoles: string[]): boolean => {
     const headersList = headers();

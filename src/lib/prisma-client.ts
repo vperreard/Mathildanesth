@@ -1,8 +1,5 @@
-import { prisma } from '@/lib/prisma';
+import { prisma as prismaInstance } from '@/lib/prisma';
 import NodeCache from 'node-cache';
-
-jest.mock('@/lib/prisma');
-
 
 // Configuration du cache
 const CACHE_TTL = 5 * 60; // 5 minutes en secondes
@@ -15,8 +12,8 @@ const cache = new NodeCache({
     useClones: false,
 });
 
-// Créer une instance de PrismaClient
-const prisma = prisma;
+// Utiliser l'instance importée
+const prisma = prismaInstance;
 
 // Intercepter les requêtes Prisma pour mettre en cache les résultats
 prisma.$use(async (params, next) => {
@@ -29,7 +26,7 @@ prisma.$use(async (params, next) => {
         params.action === 'deleteMany' ||
         params.action === 'upsert'
     ) {
-        // Invalider le cache pour ce modèle lors des mutations
+        // Invalider le cache pour ce template lors des mutations
         if (params.model) {
             const keys = cache.keys().filter((key) => key.startsWith(`${params.model}:`));
             console.log(`[PrismaCache] Invalidating ${keys.length} keys for model ${params.model}`);
@@ -44,7 +41,7 @@ prisma.$use(async (params, next) => {
         params.action === 'findFirst' ||
         params.action === 'findMany'
     ) {
-        // Générer une clé de cache basée sur le modèle, l'action et les arguments
+        // Générer une clé de cache basée sur le template, l'action et les arguments
         const cacheKey = `${params.model}:${params.action}:${JSON.stringify(params.args)}`;
 
         // Vérifier si les données sont dans le cache
@@ -84,7 +81,7 @@ prisma.$use(async (params, next) => {
         cache.flushAll();
     },
 
-    // Invalider le cache pour un modèle spécifique
+    // Invalider le cache pour un template spécifique
     invalidateModel: (modelName: string) => {
         const keys = cache.keys().filter((key) => key.startsWith(`${modelName}:`));
         console.log(`[PrismaCache] Invalidating ${keys.length} keys for model ${modelName}`);

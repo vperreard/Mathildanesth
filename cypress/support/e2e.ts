@@ -28,7 +28,6 @@ const setupApiInterceptions = () => {
 
 // Configuration globale pour les tests e2e
 beforeEach(() => {
-    jest.clearAllMocks();
   // Réinitialiser la base de données avant chaque test si nécessaire
   // Cette action peut être conditionnelle selon les besoins des tests
   // if (Cypress.env('resetDatabase') !== false) {

@@ -230,7 +230,7 @@ export default function WeeklyPlanningPage() {
             ] = await Promise.all([
                 apiClient.get('/api/utilisateurs'),
                 apiClient.get('/api/operating-rooms'), // Temporairement sans siteId pour tout récupérer
-                apiClient.get(`/api/gardes/vacations?start=${startDate.toISOString()}&end=${endDate.toISOString()}`),
+                apiClient.get(`/api/affectations?start=${startDate.toISOString()}&end=${endDate.toISOString()}`),
                 apiClient.get('/api/sites')
             ]);
 
@@ -1077,7 +1077,7 @@ export default function WeeklyPlanningPage() {
             const originalAssign = originalMap.get(id);
             if (!originalAssign) {
                 // Nouvelle assignation (pas géré par DND actuel, mais pourrait l'être)
-                // diffMessages.push(`Nouvelle garde/vacation: ...`);
+                // diffMessages.push(`Nouvelle affectation: ...`);
             } else if (
                 tempAssign.roomId !== originalAssign.roomId ||
                 tempAssign.date !== originalAssign.date ||
@@ -1193,7 +1193,7 @@ export default function WeeklyPlanningPage() {
 
         // --- Validation Serveur (optionnelle ou complémentaire) ---
         try {
-            const response = await fetch('http://localhost:3000/api/gardes/vacations/validate', {
+            const response = await fetch('http://localhost:3000/api/affectations/validate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ attributions: assignmentsToValidate }),
@@ -1250,10 +1250,10 @@ export default function WeeklyPlanningPage() {
                 roomId: tempAssign.roomId ? Number(tempAssign.roomId) : null,
             }));
 
-            console.log("Assignations envoyées à /api/gardes/vacations/batch (via apiClient):", assignmentsToSave);
+            console.log("Assignations envoyées à /api/affectations/batch (via apiClient):", assignmentsToSave);
 
             // Utiliser apiClient pour la sauvegarde aussi
-            const response = await apiClient.post('/api/gardes/vacations/batch', { attributions: assignmentsToSave });
+            const response = await apiClient.post('/api/affectations/batch', { attributions: assignmentsToSave });
 
             // Avec axios, le résultat est dans response.data
             const result = response.data;
@@ -1261,7 +1261,7 @@ export default function WeeklyPlanningPage() {
             // La vérification de response.ok n'est plus nécessaire comme avec fetch, axios lève une erreur pour les status non-2xx
             // Gérer les erreurs spécifiques si l'API batch retourne des erreurs dans le corps même avec un statut 2xx (si c'est le cas)
             // if (response.status === 207 && result.errors) { // Exemple si 207 est possible et géré comme ça
-            //     toast.error(`Erreur partielle: ${result.errors.length} garde/vacation(s) non enregistrée(s).`);
+            //     toast.error(`Erreur partielle: ${result.errors.length} affectation(s) non enregistrée(s).`);
             //     // Potentiellement throw new Error pour aller au catch, ou gérer différemment
             // } else if (result.error) { // Si l'API retourne un champ "error" dans un 2xx
             //    toast.error(result.error);

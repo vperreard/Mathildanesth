@@ -4,10 +4,6 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 // Schéma de validation pour la duplication d'un scénario
 const duplicateScenarioSchema = z.object({

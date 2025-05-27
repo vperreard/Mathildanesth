@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ArrowRight, Calendar, CheckCircle, Clock, Filter, Users, XCircle, ArchiveIcon } from 'lucide-react';
 
 // Types de requêtes possibles (à adapter selon vos besoins)
-type RequestType = 'congés' | 'gardes/vacations' | 'autres';
+type RequestType = 'congés' | 'affectations' | 'autres';
 type RequestStatus = 'en-attente' | 'approuvée' | 'refusée';
 type TabType = RequestType | 'refusées';
 
@@ -39,7 +39,7 @@ const mockRequests: Request[] = [
     },
     {
         id: '2',
-        type: 'gardes/vacations',
+        type: 'affectations',
         status: 'en-attente',
         userId: 'user2',
         userName: 'Dr. Thomas Dubois',
@@ -81,7 +81,7 @@ const mockRequests: Request[] = [
     },
     {
         id: '6',
-        type: 'gardes/vacations',
+        type: 'affectations',
         status: 'refusée',
         userId: 'user6',
         userName: 'Dr. Camille Leroy',
@@ -125,7 +125,7 @@ export default function AdminRequestsDashboard() {
     // Nombre de requêtes par type (seulement les requêtes en attente)
     const requestCounts = {
         congés: requests.filter(r => r.type === 'congés' && r.status === 'en-attente').length,
-        gardes/vacations: requests.filter(r => r.type === 'gardes/vacations' && r.status === 'en-attente').length,
+        affectations: requests.filter(r => r.type === 'affectations' && r.status === 'en-attente').length,
         autres: requests.filter(r => r.type === 'autres' && r.status === 'en-attente').length,
         refusées: requests.filter(r => r.status === 'refusée').length
     };
@@ -161,17 +161,17 @@ export default function AdminRequestsDashboard() {
                     )}
                 </button>
                 <button
-                    onClick={() => setActiveTab('gardes/vacations')}
-                    className={`px-4 py-2 font-medium text-sm rounded-t-lg flex items-center ${activeTab === 'gardes/vacations'
+                    onClick={() => setActiveTab('affectations')}
+                    className={`px-4 py-2 font-medium text-sm rounded-t-lg flex items-center ${activeTab === 'affectations'
                         ? 'text-primary-600 border-b-2 border-primary-500 bg-primary-50 dark:text-primary-400 dark:border-primary-400 dark:bg-slate-700'
                         : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50 dark:text-slate-300 dark:hover:text-primary-400 dark:hover:bg-slate-700'
                         }`}
                 >
                     <Users className="w-4 h-4 mr-2" />
-                    Gardes/Vacations
-                    {requestCounts.gardes/vacations > 0 && (
+                    Affectations
+                    {requestCounts.affectations > 0 && (
                         <span className="ml-2 bg-primary-100 text-primary-700 dark:bg-primary-700 dark:text-primary-200 text-xs font-semibold px-2 py-0.5 rounded-full">
-                            {requestCounts.gardes/vacations}
+                            {requestCounts.affectations}
                         </span>
                     )}
                 </button>

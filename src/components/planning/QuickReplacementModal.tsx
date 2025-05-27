@@ -176,10 +176,10 @@ export function QuickReplacementModal({
                 </DialogHeader>
 
                 <div className="space-y-4">
-                    {/* Détails de l'garde/vacation */}
+                    {/* Détails de l'affectation */}
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-sm">Garde/Vacation à remplacer</CardTitle>
+                            <CardTitle className="text-sm">Affectation à remplacer</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-2 gap-4 text-sm">

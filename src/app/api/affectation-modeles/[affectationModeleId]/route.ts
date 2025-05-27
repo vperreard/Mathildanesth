@@ -6,10 +6,7 @@ import { logger } from '@/lib/logger';
 import { requirePlanningPermission, AuthenticationError, AuthorizationError, logSecurityAction } from '@/lib/auth/authorization';
 import { auditService, AuditAction } from '@/services/auditService';
 
-jest.mock('@/lib/prisma');
-
-
-// PUT /api/garde/vacation-modeles/{affectationModeleId} - Mettre à jour une AffectationModele
+// PUT /api/affectation-modeles/{affectationModeleId} - Mettre à jour une AffectationModele
 export const PUT = withAuth({
     requireAuth: true,
     allowedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
@@ -24,13 +21,13 @@ export const PUT = withAuth({
 
         const { affectationModeleId } = await Promise.resolve(params);
         if (!affectationModeleId || isNaN(parseInt(affectationModeleId))) {
-            console.warn("PUT /api/garde/vacation-modeles/[id]: Invalid affectationModeleId");
-            return NextResponse.json({ error: 'ID de l\'garde/vacation modèle invalide' }, { status: 400 });
+            console.warn("PUT /api/affectation-modeles/[id]: Invalid affectationModeleId");
+            return NextResponse.json({ error: 'ID de l\'affectation template invalide' }, { status: 400 });
         }
         const idToUpdate = parseInt(affectationModeleId);
 
         const body = await request.json();
-        console.log(`PUT /api/garde/vacation-modeles/${idToUpdate} - Received data:`, body);
+        console.log(`PUT /api/affectation-modeles/${idToUpdate} - Received data:`, body);
 
         const {
             activityTypeId,
@@ -116,8 +113,8 @@ export const PUT = withAuth({
             });
         });
 
-        console.log(`PUT /api/garde/vacation-modeles/${idToUpdate}: AffectationModele updated successfully:`, updatedAffectationModele);
-        console.log("--- PUT /api/garde/vacation-modeles/[affectationModeleId] END ---\n");
+        console.log(`PUT /api/affectation-modeles/${idToUpdate}: AffectationModele updated successfully:`, updatedAffectationModele);
+        console.log("--- PUT /api/affectation-modeles/[affectationModeleId] END ---\n");
         return NextResponse.json(updatedAffectationModele);
 
     } catch (error) {
@@ -128,19 +125,19 @@ export const PUT = withAuth({
             return NextResponse.json({ error: error.message }, { status: 403 });
         }
 
-        console.error(`Error during PUT /api/garde/vacation-modeles/${affectationModeleId}:`, error);
+        console.error(`Error during PUT /api/affectation-modeles/${affectationModeleId}:`, error);
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
                 console.error("Prisma Error P2025 (update): Record to update not found or related record not found.", error.meta);
                 return NextResponse.json({ error: `Enregistrement à mettre à jour non trouvé ou référence invalide: ${error.meta?.cause || 'non trouvé'}` }, { status: 404 });
             }
         }
-        console.log("--- PUT /api/garde/vacation-modeles/[affectationModeleId] END (with error) ---\n");
-        return NextResponse.json({ error: 'Erreur lors de la mise à jour de l\'garde/vacation modèle' }, { status: 500 });
+        console.log("--- PUT /api/affectation-modeles/[affectationModeleId] END (with error) ---\n");
+        return NextResponse.json({ error: 'Erreur lors de la mise à jour de l\'affectation template' }, { status: 500 });
     }
 });
 
-// DELETE /api/garde/vacation-modeles/{affectationModeleId} - Supprimer une AffectationModele
+// DELETE /api/affectation-modeles/{affectationModeleId} - Supprimer une AffectationModele
 export const DELETE = withAuth({
     requireAuth: true,
     allowedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
@@ -155,8 +152,8 @@ export const DELETE = withAuth({
         const userRole = request.headers.get('x-user-role') || '';
         
         const { affectationModeleId } = params;
-        console.log(`[API DELETE /garde/vacation-modeles/${affectationModeleId}] Début du traitement.`);
-        console.log("\n--- DELETE /api/garde/vacation-modeles/[affectationModeleId] START ---");
+        console.log(`[API DELETE /affectation-modeles/${affectationModeleId}] Début du traitement.`);
+        console.log("\n--- DELETE /api/affectation-modeles/[affectationModeleId] START ---");
 
         // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour suppression (déjà fait via withAuth)
         // Logger l'action de suppression
@@ -172,25 +169,25 @@ export const DELETE = withAuth({
         });
 
         if (!affectationModeleId || isNaN(parseInt(affectationModeleId))) {
-            console.warn("DELETE /api/garde/vacation-modeles/[id]: Invalid affectationModeleId");
-            return NextResponse.json({ error: 'ID de l\'garde/vacation modèle invalide' }, { status: 400 });
+            console.warn("DELETE /api/affectation-modeles/[id]: Invalid affectationModeleId");
+            return NextResponse.json({ error: 'ID de l\'affectation template invalide' }, { status: 400 });
         }
         const idToDelete = parseInt(affectationModeleId);
 
-        console.log(`DELETE /api/garde/vacation-modeles/${idToDelete}: Attempting to delete...`);
+        console.log(`DELETE /api/affectation-modeles/${idToDelete}: Attempting to delete...`);
 
         // La suppression en cascade devrait s'occuper des PersonnelRequisModele grâce à onDelete: Cascade dans le schéma
         await prisma.affectationModele.delete({
             where: { id: idToDelete },
         });
 
-        console.log(`DELETE /api/garde/vacation-modeles/${idToDelete}: AffectationModele deleted successfully.`);
-        console.log("--- DELETE /api/garde/vacation-modeles/[affectationModeleId] END ---\n");
-        return NextResponse.json({ message: "Garde/Vacation modèle supprimée avec succès" }, { status: 200 }); // ou 204 No Content
+        console.log(`DELETE /api/affectation-modeles/${idToDelete}: AffectationModele deleted successfully.`);
+        console.log("--- DELETE /api/affectation-modeles/[affectationModeleId] END ---\n");
+        return NextResponse.json({ message: "Affectation template supprimée avec succès" }, { status: 200 }); // ou 204 No Content
 
     } catch (error: any) {
-        console.error(`DELETE /api/garde/vacation-modeles/${params.affectationModeleId}: Error - ${error.message}`, { stack: error.stack });
-        console.log("--- DELETE /api/garde/vacation-modeles/[affectationModeleId] END (with error) ---\n");
-        return NextResponse.json({ error: 'Erreur lors de la suppression de l\'garde/vacation modèle', details: error.message }, { status: 500 });
+        console.error(`DELETE /api/affectation-modeles/${params.affectationModeleId}: Error - ${error.message}`, { stack: error.stack });
+        console.log("--- DELETE /api/affectation-modeles/[affectationModeleId] END (with error) ---\n");
+        return NextResponse.json({ error: 'Erreur lors de la suppression de l\'affectation template', details: error.message }, { status: 500 });
     }
 }); 

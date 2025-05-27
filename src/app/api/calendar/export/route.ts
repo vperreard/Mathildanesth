@@ -7,7 +7,7 @@ import { fr } from 'date-fns/locale';
 import { exportSimulationResults, exportLeaveData, exportPlanningData } from '@/services/exportServiceV2';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import ical from 'ical-organisateur';
+import ical from 'ical-generator';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import * as ExcelJS from 'exceljs';
@@ -328,7 +328,7 @@ function getEventTypeLabel(type: string): string {
     const labels: Record<string, string> = {
         'LEAVE': 'Congé',
         'DUTY': 'Garde',
-        'ASSIGNMENT': 'Garde/Vacation',
+        'ASSIGNMENT': 'Affectation',
         'ON_CALL': 'Astreinte',
         'TRAINING': 'Formation',
         'MEETING': 'Réunion'

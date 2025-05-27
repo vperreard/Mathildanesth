@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { fetchTemplate, updateTemplate } from '@/services/simulationTemplateService';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-// Catégories communes pour les modèles
+// Catégories communes pour les templates
 const TEMPLATE_CATEGORIES = [
     'Vacances scolaires',
     'Effectif réduit',
@@ -58,28 +58,28 @@ export default function EditTemplatePage() {
             setIsLoading(true);
             setError(null);
             try {
-                const modèle = await fetchTemplate(templateId);
+                const template = await fetchTemplate(templateId);
 
                 // Normaliser les options pour s'assurer qu'elles existent
-                const options = modèle.parametersJson.options || {
+                const options = template.parametersJson.options || {
                     ignoreLeaves: false,
                     prioritizeExistingAssignments: true,
                     balanceWorkload: true
                 };
 
                 setFormData({
-                    name: modèle.name,
-                    description: modèle.description || '',
-                    category: modèle.category || '',
-                    isPublic: modèle.isPublic || false,
+                    name: template.name,
+                    description: template.description || '',
+                    category: template.category || '',
+                    isPublic: template.isPublic || false,
                     parametersJson: {
-                        ...modèle.parametersJson,
+                        ...template.parametersJson,
                         options
                     }
                 });
             } catch (err: any) {
-                setError(err.message || 'Erreur lors du chargement du modèle');
-                toast.error('Erreur lors du chargement du modèle');
+                setError(err.message || 'Erreur lors du chargement du template');
+                toast.error('Erreur lors du chargement du template');
             } finally {
                 setIsLoading(false);
             }
@@ -126,7 +126,7 @@ export default function EditTemplatePage() {
         e.preventDefault();
 
         if (!formData.name.trim()) {
-            toast.error('Le nom du modèle est requis');
+            toast.error('Le nom du template est requis');
             return;
         }
 
@@ -142,9 +142,9 @@ export default function EditTemplatePage() {
             });
 
             toast.success('Modèle mis à jour avec succès');
-            router.push('/admin/simulations/modèles');
+            router.push('/admin/simulations/templates');
         } catch (error: any) {
-            toast.error(`Erreur lors de la mise à jour du modèle: ${error.message}`);
+            toast.error(`Erreur lors de la mise à jour du template: ${error.message}`);
         } finally {
             setIsSubmitting(false);
         }
@@ -154,7 +154,7 @@ export default function EditTemplatePage() {
         return (
             <div className="container p-4 mx-auto flex flex-col items-center justify-center min-h-[60vh]">
                 <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-                <p>Chargement du modèle...</p>
+                <p>Chargement du template...</p>
             </div>
         );
     }
@@ -165,8 +165,8 @@ export default function EditTemplatePage() {
                 <AlertTriangleIcon className="h-10 w-10 text-red-500 mb-4" />
                 <h2 className="text-xl font-bold mb-2">Erreur</h2>
                 <p className="text-red-500 mb-4">{error}</p>
-                <Button onClick={() => router.push('/admin/simulations/modèles')}>
-                    Retour à la liste des modèles
+                <Button onClick={() => router.push('/admin/simulations/templates')}>
+                    Retour à la liste des templates
                 </Button>
             </div>
         );
@@ -174,9 +174,9 @@ export default function EditTemplatePage() {
 
     return (
         <div className="container p-4 mx-auto max-w-4xl">
-            <Link href="/admin/simulations/modèles" className="inline-flex items-center text-sm text-primary hover:underline mb-4">
+            <Link href="/admin/simulations/templates" className="inline-flex items-center text-sm text-primary hover:underline mb-4">
                 <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                Retour à la liste des modèles
+                Retour à la liste des templates
             </Link>
 
             <form onSubmit={handleSubmit}>
@@ -184,12 +184,12 @@ export default function EditTemplatePage() {
                     <CardHeader>
                         <CardTitle>Modifier le Modèle</CardTitle>
                         <CardDescription>
-                            Mettez à jour votre modèle de simulation pour le planning
+                            Mettez à jour votre template de simulation pour le planning
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Nom du modèle *</Label>
+                            <Label htmlFor="name">Nom du template *</Label>
                             <Input
                                 id="name"
                                 name="name"
@@ -207,7 +207,7 @@ export default function EditTemplatePage() {
                                 name="description"
                                 value={formData.description}
                                 onChange={handleChange}
-                                placeholder="Décrivez le but et les caractéristiques de ce modèle"
+                                placeholder="Décrivez le but et les caractéristiques de ce template"
                                 rows={3}
                             />
                         </div>
@@ -236,7 +236,7 @@ export default function EditTemplatePage() {
                                     onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPublic: !!checked }))}
                                 />
                                 <Label htmlFor="isPublic" className="text-sm font-normal">
-                                    Rendre ce modèle public (visible et utilisable par tous les utilisateurs)
+                                    Rendre ce template public (visible et utilisable par tous les utilisateurs)
                                 </Label>
                             </div>
                         </div>
@@ -286,7 +286,7 @@ export default function EditTemplatePage() {
                                                 onCheckedChange={(checked) => handleOptionsChange('prioritizeExistingAssignments', !!checked)}
                                             />
                                             <Label htmlFor="prioritizeExistingAssignments" className="text-sm font-normal">
-                                                Prioriser les gardes/vacations existantes
+                                                Prioriser les affectations existantes
                                             </Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
@@ -305,7 +305,7 @@ export default function EditTemplatePage() {
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-between">
-                        <Button variant="outline" type="button" onClick={() => router.push('/admin/simulations/modèles')}>
+                        <Button variant="outline" type="button" onClick={() => router.push('/admin/simulations/templates')}>
                             Annuler
                         </Button>
                         <Button type="submit" disabled={isSubmitting}>

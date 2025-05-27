@@ -3,9 +3,6 @@ import { LeaveRequest } from '@/types/leave';
 import { Attribution } from '@/types/attribution';
 import { startOfDay, endOfDay, differenceInDays, addDays, subDays } from 'date-fns';
 
-jest.mock('@/lib/prisma');
-
-
 interface ValidationResult {
   valid: boolean;
   errors: string[];

@@ -33,7 +33,7 @@ const createInitialState = (config: Partial<TrameEditorConfig> = {}): TrameEdito
         rooms: [],
         grid: []
     },
-    gardes/vacations: [],
+    affectations: [],
     selectedAffectations: [],
     dragState: {
         isDragging: false
@@ -58,14 +58,14 @@ const trameEditorReducer = (state: TrameEditorState, action: TrameEditorAction):
         case 'ADD_AFFECTATION':
             return {
                 ...state,
-                gardes/vacations: [...state.gardes/vacations, action.payload],
+                affectations: [...state.affectations, action.payload],
                 unsavedChanges: true
             };
 
         case 'UPDATE_AFFECTATION':
             return {
                 ...state,
-                gardes/vacations: state.gardes/vacations.map(aff =>
+                affectations: state.affectations.map(aff =>
                     aff.id === action.payload.id
                         ? { ...aff, ...action.payload.updates }
                         : aff
@@ -76,7 +76,7 @@ const trameEditorReducer = (state: TrameEditorState, action: TrameEditorAction):
         case 'DELETE_AFFECTATION':
             return {
                 ...state,
-                gardes/vacations: state.gardes/vacations.filter(aff => aff.id !== action.payload.id),
+                affectations: state.affectations.filter(aff => aff.id !== action.payload.id),
                 selectedAffectations: state.selectedAffectations.filter(id => id !== action.payload.id),
                 unsavedChanges: true
             };
@@ -84,7 +84,7 @@ const trameEditorReducer = (state: TrameEditorState, action: TrameEditorAction):
         case 'MOVE_AFFECTATION':
             return {
                 ...state,
-                gardes/vacations: state.gardes/vacations.map(aff =>
+                affectations: state.affectations.map(aff =>
                     aff.id === action.payload.id
                         ? {
                             ...aff,
@@ -98,7 +98,7 @@ const trameEditorReducer = (state: TrameEditorState, action: TrameEditorAction):
             };
 
         case 'DUPLICATE_AFFECTATION':
-            const original = state.gardes/vacations.find(aff => aff.id === action.payload.id);
+            const original = state.affectations.find(aff => aff.id === action.payload.id);
             if (!original) return state;
 
             const duplicate: EditorAffectation = {
@@ -111,7 +111,7 @@ const trameEditorReducer = (state: TrameEditorState, action: TrameEditorAction):
 
             return {
                 ...state,
-                gardes/vacations: [...state.gardes/vacations, duplicate],
+                affectations: [...state.affectations, duplicate],
                 unsavedChanges: true
             };
 
@@ -150,14 +150,14 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
 
     // Queries pour charger les données
     const { data: trameModele, isLoading: loadingTrame } = useQuery({
-        queryKey: ['tableau de service-modele', trameModeleId],
+        queryKey: ['trameModele-modele', trameModeleId],
         queryFn: async () => {
             if (!trameModeleId) return null;
             const token = getClientAuthToken();
-            const response = await fetch(`http://localhost:3000/api/tableau de service-modeles/${trameModeleId}`, {
+            const response = await fetch(`http://localhost:3000/api/trameModele-modeles/${trameModeleId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            if (!response.ok) throw new Error('Erreur lors du chargement de la tableau de service');
+            if (!response.ok) throw new Error('Erreur lors du chargement de la trameModele');
             return response.json();
         },
         enabled: !!trameModeleId
@@ -189,27 +189,27 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
 
     // Mutations pour sauvegarder
     const saveAffectationMutation = useMutation({
-        mutationFn: async (garde/vacation: EditorAffectation) => {
+        mutationFn: async (affectation: EditorAffectation) => {
             const token = getClientAuthToken();
-            const url = garde/vacation.id
-                ? `/api/garde/vacation-modeles/${garde/vacation.id}`
-                : `/api/tableau de service-modeles/${garde/vacation.trameModeleId}/gardes/vacations`;
+            const url = affectation.id
+                ? `/api/affectation-modeles/${affectation.id}`
+                : `/api/trameModele-modeles/${affectation.trameModeleId}/affectations`;
 
             const response = await fetch(url, {
-                method: garde/vacation.id ? 'PUT' : 'POST',
+                method: affectation.id ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify(garde/vacation)
+                body: JSON.stringify(affectation)
             });
 
             if (!response.ok) throw new Error('Erreur lors de la sauvegarde');
             return response.json();
         },
         onSuccess: () => {
-            toast.success('Garde/Vacation sauvegardée');
-            queryClient.invalidateQueries({ queryKey: ['tableau de service-modele'] });
+            toast.success('Affectation sauvegardée');
+            queryClient.invalidateQueries({ queryKey: ['trameModele-modele'] });
         },
         onError: (error) => {
             toast.error(`Erreur de sauvegarde: ${error.message}`);
@@ -219,7 +219,7 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
     const deleteAffectationMutation = useMutation({
         mutationFn: async (affectationId: number) => {
             const token = getClientAuthToken();
-            const response = await fetch(`http://localhost:3000/api/garde/vacation-modeles/${affectationId}`, {
+            const response = await fetch(`http://localhost:3000/api/affectation-modeles/${affectationId}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -227,8 +227,8 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
             if (!response.ok) throw new Error('Erreur lors de la suppression');
         },
         onSuccess: () => {
-            toast.success('Garde/Vacation supprimée');
-            queryClient.invalidateQueries({ queryKey: ['tableau de service-modele'] });
+            toast.success('Affectation supprimée');
+            queryClient.invalidateQueries({ queryKey: ['trameModele-modele'] });
         },
         onError: (error) => {
             toast.error(`Erreur de suppression: ${error.message}`);
@@ -247,7 +247,7 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
             periods.map(period => ({
                 jourSemaine: day,
                 periode: period,
-                gardes/vacations: state.gardes/vacations.filter(aff =>
+                affectations: state.affectations.filter(aff =>
                     aff.jourSemaine === day && aff.periode === period
                 ),
                 isDropTarget: false,
@@ -264,32 +264,32 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
             rooms,
             grid
         };
-    }, [state.config.weekStart, state.gardes/vacations, operatingRooms]);
+    }, [state.config.weekStart, state.affectations, operatingRooms]);
 
     // Actions
     const actions = {
-        addAffectation: useCallback((garde/vacation: EditorAffectation) => {
-            dispatch({ type: 'ADD_AFFECTATION', payload: garde/vacation });
+        addAffectation: useCallback((affectation: EditorAffectation) => {
+            dispatch({ type: 'ADD_AFFECTATION', payload: affectation });
             if (autoSave) {
-                saveAffectationMutation.mutate(garde/vacation);
+                saveAffectationMutation.mutate(affectation);
             }
         }, [autoSave, saveAffectationMutation]),
 
-        setAffectations: useCallback((gardes/vacations: EditorAffectation[]) => {
-            // Remplacer toutes les gardes/vacations (utilisé par undo/redo)
-            state.gardes/vacations = gardes/vacations;
+        setAffectations: useCallback((affectations: EditorAffectation[]) => {
+            // Remplacer toutes les affectations (utilisé par undo/redo)
+            state.affectations = affectations;
             state.unsavedChanges = true;
         }, [state]),
 
         updateAffectation: useCallback((id: number, updates: Partial<EditorAffectation>) => {
             dispatch({ type: 'UPDATE_AFFECTATION', payload: { id, updates } });
             if (autoSave) {
-                const garde/vacation = state.gardes/vacations.find(aff => aff.id === id);
-                if (garde/vacation) {
-                    saveAffectationMutation.mutate({ ...garde/vacation, ...updates });
+                const affectation = state.affectations.find(aff => aff.id === id);
+                if (affectation) {
+                    saveAffectationMutation.mutate({ ...affectation, ...updates });
                 }
             }
-        }, [autoSave, state.gardes/vacations, saveAffectationMutation]),
+        }, [autoSave, state.affectations, saveAffectationMutation]),
 
         deleteAffectation: useCallback((id: number) => {
             dispatch({ type: 'DELETE_AFFECTATION', payload: { id } });
@@ -310,23 +310,23 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
             if (!state.unsavedChanges) return;
 
             try {
-                for (const garde/vacation of state.gardes/vacations) {
-                    if (!garde/vacation.id) {
-                        await saveAffectationMutation.mutateAsync(garde/vacation);
+                for (const affectation of state.affectations) {
+                    if (!affectation.id) {
+                        await saveAffectationMutation.mutateAsync(affectation);
                     }
                 }
                 toast.success('Modifications sauvegardées');
             } catch (error) {
                 toast.error('Erreur lors de la sauvegarde');
             }
-        }, [state.gardes/vacations, state.unsavedChanges, saveAffectationMutation])
+        }, [state.affectations, state.unsavedChanges, saveAffectationMutation])
     };
 
-    // Charger les gardes/vacations quand la tableau de service est chargée
+    // Charger les affectations quand la trameModele est chargée
     useEffect(() => {
-        if (trameModele?.gardes/vacations) {
-            // Remplacer les gardes/vacations par celles de la tableau de service
-            const gardes/vacations = trameModele.gardes/vacations.map((aff: any) => ({
+        if (trameModele?.affectations) {
+            // Remplacer les affectations par celles de la trameModele
+            const affectations = trameModele.affectations.map((aff: any) => ({
                 ...aff,
                 isSelected: false,
                 isDragging: false,
@@ -335,7 +335,7 @@ export const useTrameEditor = (options: UseTrameEditorOptions = {}) => {
             }));
 
             // Mettre à jour le state sans passer par le reducer pour éviter de marquer comme unsavedChanges
-            state.gardes/vacations = gardes/vacations;
+            state.affectations = affectations;
         }
     }, [trameModele]);
 

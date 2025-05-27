@@ -239,7 +239,7 @@ function getEventTypeDescription(event: AnyCalendarEvent): string {
         case CalendarEventType.ON_CALL:
             return 'Astreinte';
         case CalendarEventType.ASSIGNMENT:
-            return 'Garde/Vacation';
+            return 'Affectation';
         default:
             return 'Événement';
     }

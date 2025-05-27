@@ -193,7 +193,7 @@ export const OperationForm: React.FC<OperationFormProps> = ({
 
                     if (hasConflict) {
                         setHasTimeConflict(true);
-                        setConflictDetails('Cette salle est déjà réservée à ce créneau horaire.');
+                        setConflictDetails('Cette salle est déjà réservée à ce slot horaire.');
                     } else {
                         setHasTimeConflict(false);
                         setConflictDetails(null);

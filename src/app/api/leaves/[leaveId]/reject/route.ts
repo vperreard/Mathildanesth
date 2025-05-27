@@ -5,9 +5,6 @@ import { LeaveStatus } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
-jest.mock('@/lib/prisma');
-
-
 /**
  * POST /api/conges/[leaveId]/reject
  * Rejeter une demande de congé - ADMIN uniquement

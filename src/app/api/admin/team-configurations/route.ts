@@ -3,9 +3,6 @@ import { prisma } from '@/lib/prisma';
 import { checkUserRole, UserRole } from '@/lib/auth-utils';
 import { TeamConfiguration } from '@/types/team-configuration';
 
-jest.mock('@/lib/prisma');
-
-
 // GET /api/admin/team-configurations
 export async function GET(request: Request) {
     const authCheck = await checkUserRole(['ADMIN_TOTAL', 'ADMIN_PARTIEL'] as UserRole[]);

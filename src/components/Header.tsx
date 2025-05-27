@@ -83,7 +83,7 @@ const Header = memo(function Header() {
                             <Link
                                 href="/"
                                 className="flex items-center space-x-3 group"
-                                aria-label="Accueil Mathildanesth - Gestion planning médical"
+                                aria-label="Accueil Mathildanesth - Gestion planningMedical"
                             >
                                 <div className="w-10 h-10 bg-gradient-to-br from-blue-600 via-teal-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg transition-all duration-300 transform group-hover:scale-105 group-hover:shadow-xl">
                                     <Stethoscope className="w-5 h-5 text-white" />

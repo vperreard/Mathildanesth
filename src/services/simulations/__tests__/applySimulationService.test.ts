@@ -146,7 +146,7 @@ describe('ApplySimulationService', () => {
 
             // Assert
             expect(result.success).toBe(true);
-            expect(result.assignmentsCreated).toBe(2); // 2 gardes/vacations dans les données mockées
+            expect(result.assignmentsCreated).toBe(2); // 2 assignments dans les données mockées
             expect(result.assignmentsUpdated).toBe(0); // Pas de mises à jour, seulement des créations
             expect(result.leavesCreated).toBe(0); // Pas de congés car includeLeaves = false
 
@@ -157,7 +157,7 @@ describe('ApplySimulationService', () => {
             expect(prisma.notification.create).toHaveBeenCalled();
         });
 
-        it('doit supprimer les gardes/vacations existantes si clearExistingAssignments est true', async () => {
+        it('doit supprimer les assignments existantes si clearExistingAssignments est true', async () => {
             // Arrange
             const optionsWithClear = { ...mockOptions, clearExistingAssignments: true };
 
@@ -184,7 +184,7 @@ describe('ApplySimulationService', () => {
             // Assert
             expect(result.success).toBe(true);
 
-            // Vérifier que les gardes/vacations existantes ont été supprimées
+            // Vérifier que les assignments existantes ont été supprimées
             expect(prisma.attribution.deleteMany).toHaveBeenCalledWith({
                 where: {
                     date: {
@@ -195,7 +195,7 @@ describe('ApplySimulationService', () => {
             });
         });
 
-        it('doit mettre à jour les gardes/vacations existantes plutôt que d\'en créer de nouvelles', async () => {
+        it('doit mettre à jour les assignments existantes plutôt que d\'en créer de nouvelles', async () => {
             // Arrange
             (prisma.simulationResult.findUnique as jest.Mock).mockResolvedValue({
                 id: mockSimulationResultId,
@@ -234,7 +234,7 @@ describe('ApplySimulationService', () => {
             expect(prisma.attribution.update).toHaveBeenCalled();
         });
 
-        it('doit gérer correctement les erreurs lors de la création d\'gardes/vacations', async () => {
+        it('doit gérer correctement les erreurs lors de la création d\'assignments', async () => {
             // Arrange
             (prisma.simulationResult.findUnique as jest.Mock).mockResolvedValue({
                 id: mockSimulationResultId,

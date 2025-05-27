@@ -13,16 +13,16 @@ export enum RuleSeverity {
 }
 
 /**
- * Configuration des règles pour la validation des gardes/vacations
+ * Configuration des règles pour la validation des affectations
  */
 export interface RulesConfiguration {
-    /** Nombre minimum de jours entre deux gardes/vacations pour un même médecin */
+    /** Nombre minimum de jours entre deux affectations pour un même médecin */
     minDaysBetweenAssignments?: number;
 
-    /** Nombre maximum d'gardes/vacations par mois pour un médecin */
+    /** Nombre maximum d'affectations par mois pour un médecin */
     maxAssignmentsPerMonth?: number;
 
-    /** Nombre maximum d'gardes/vacations consécutives pour un médecin */
+    /** Nombre maximum d'affectations consécutives pour un médecin */
     maxConsecutiveAssignments?: number;
 
     /** Liste des jours spéciaux avec des règles particulières */
@@ -202,7 +202,7 @@ export const defaultRulesConfiguration: RulesConfiguration = {
 export interface FatigueConfig {
     enabled?: boolean;
     points: {
-        // Points de fatigue par type d'garde/vacation
+        // Points de fatigue par type d'affectation
         garde: number;  // défaut +30
         astreinte: number;  // défaut +10
         supervisionMultiple: number;  // défaut +15

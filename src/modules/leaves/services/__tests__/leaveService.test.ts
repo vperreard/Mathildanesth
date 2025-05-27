@@ -462,14 +462,14 @@ describe('LeaveService', () => {
             // Arrange
             const startDate = new Date('2024-06-03'); // Lundi
             const endDate = new Date('2024-06-07'); // Vendredi
-            const planning médical: WorkSchedule = {
+            const schedule: WorkSchedule = {
                 workingDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
                 dailyHours: 8,
                 weeklyHours: 40,
             };
 
             // Act
-            const result = calculateLeaveDays(startDate, endDate, planning médical);
+            const result = calculateLeaveDays(startDate, endDate, schedule);
 
             // Assert
             expect(result).toBe(5); // 5 jours ouvrés
@@ -479,14 +479,14 @@ describe('LeaveService', () => {
             // Arrange
             const startDate = new Date('2024-06-01'); // Samedi
             const endDate = new Date('2024-06-09'); // Dimanche
-            const planning médical: WorkSchedule = {
+            const schedule: WorkSchedule = {
                 workingDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
                 dailyHours: 8,
                 weeklyHours: 40,
             };
 
             // Act
-            const result = calculateLeaveDays(startDate, endDate, planning médical);
+            const result = calculateLeaveDays(startDate, endDate, schedule);
 
             // Assert
             expect(result).toBe(5); // Seulement les jours ouvrés

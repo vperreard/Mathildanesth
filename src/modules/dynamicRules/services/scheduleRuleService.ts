@@ -8,10 +8,6 @@ import {
     ScheduleRuleAction
 } from '../models/ScheduleRule';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 export interface ScheduleContext {
     userId?: number;
@@ -420,7 +416,7 @@ export class ScheduleRuleService {
     }
 
     /**
-     * Mappage d'une règle de la base de données vers le modèle ScheduleRule
+     * Mappage d'une règle de la base de données vers le template ScheduleRule
      */
     private mapDatabaseRuleToScheduleRule(dbRule: any): ScheduleRule {
         const config = dbRule.configuration as any;
@@ -443,7 +439,7 @@ export class ScheduleRuleService {
     }
 
     /**
-     * Mappage de la priorité du modèle vers la base de données
+     * Mappage de la priorité du template vers la base de données
      */
     private mapPriorityToDatabase(priority: ScheduleRulePriority): string {
         const mapping: Record<ScheduleRulePriority, string> = {
@@ -456,7 +452,7 @@ export class ScheduleRuleService {
     }
 
     /**
-     * Mappage de la priorité de la base de données vers le modèle
+     * Mappage de la priorité de la base de données vers le template
      */
     private mapDatabasePriorityToModel(dbPriority: string): ScheduleRulePriority {
         const mapping: Record<string, ScheduleRulePriority> = {

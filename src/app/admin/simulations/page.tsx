@@ -30,7 +30,7 @@ interface SimulationScenario {
     endDate: string;
     status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
     templateId?: string;
-    modèle?: SimulationTemplate;
+    template?: SimulationTemplate;
     results?: SimulationResult[];
 }
 
@@ -44,7 +44,7 @@ interface SimulationResult {
 export default function SimulationsPage() {
     const router = useRouter();
     const [scenarios, setScenarios] = useState<SimulationScenario[]>([]);
-    const [modèles, setTemplates] = useState<SimulationTemplate[]>([]);
+    const [templates, setTemplates] = useState<SimulationTemplate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
@@ -71,11 +71,11 @@ export default function SimulationsPage() {
                 const scenariosData = await scenariosResponse.json();
                 setScenarios(scenariosData.data);
 
-                // Charger les modèles
-                const templatesResponse = await fetch('http://localhost:3000/api/simulations/modèles');
+                // Charger les templates
+                const templatesResponse = await fetch('http://localhost:3000/api/simulations/templates');
 
                 if (!templatesResponse.ok) {
-                    throw new Error('Erreur lors de la récupération des modèles');
+                    throw new Error('Erreur lors de la récupération des templates');
                 }
 
                 const templatesData = await templatesResponse.json();
@@ -309,7 +309,7 @@ export default function SimulationsPage() {
                     </Button>
                     <Button
                         variant="outline"
-                        onClick={() => router.push('/admin/simulations/modèles')}
+                        onClick={() => router.push('/admin/simulations/templates')}
                     >
                         <Eye className="h-4 w-4 mr-2" />
                         Modèles
@@ -329,7 +329,7 @@ export default function SimulationsPage() {
                         <Calendar className="h-4 w-4 mr-2" />
                         Scénarios
                     </TabsTrigger>
-                    <TabsTrigger value="modèles">
+                    <TabsTrigger value="templates">
                         <BarChart2 className="h-4 w-4 mr-2" />
                         Modèles
                     </TabsTrigger>
@@ -391,7 +391,7 @@ export default function SimulationsPage() {
                                                 <div className="flex justify-between">
                                                     <span className="text-muted-foreground">Modèle:</span>
                                                     <span>
-                                                        {scenario.modèle?.name || 'Aucun'}
+                                                        {scenario.template?.name || 'Aucun'}
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between">
@@ -476,33 +476,33 @@ export default function SimulationsPage() {
                     )}
                 </TabsContent>
 
-                <TabsContent value="modèles">
+                <TabsContent value="templates">
                     <Card>
                         <CardHeader>
                             <CardTitle>Modèles de Simulation</CardTitle>
                             <CardDescription>
-                                Utilisez des modèles prédéfinis pour créer rapidement des scénarios
+                                Utilisez des templates prédéfinis pour créer rapidement des scénarios
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {modèles.length === 0 ? (
+                            {templates.length === 0 ? (
                                 <div className="text-center py-6">
-                                    <p className="text-muted-foreground mb-4">Aucun modèle disponible</p>
-                                    <Button onClick={() => router.push('/admin/simulations/modèles/nouveau')} size="sm">
+                                    <p className="text-muted-foreground mb-4">Aucun template disponible</p>
+                                    <Button onClick={() => router.push('/admin/simulations/templates/nouveau')} size="sm">
                                         <Plus className="h-4 w-4 mr-2" />
-                                        Créer un modèle
+                                        Créer un template
                                     </Button>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {modèles.map(modèle => (
-                                        <Card key={modèle.id} className="overflow-hidden">
+                                    {templates.map(template => (
+                                        <Card key={template.id} className="overflow-hidden">
                                             <CardHeader className="pb-2">
                                                 <CardTitle className="text-base flex justify-between items-start">
-                                                    <span className="line-clamp-1">{modèle.name}</span>
-                                                    {modèle.category && (
+                                                    <span className="line-clamp-1">{template.name}</span>
+                                                    {template.category && (
                                                         <Badge variant="outline" className="ml-2">
-                                                            {modèle.category}
+                                                            {template.category}
                                                         </Badge>
                                                     )}
                                                 </CardTitle>
@@ -512,7 +512,7 @@ export default function SimulationsPage() {
                                                     variant="outline"
                                                     size="sm"
                                                     className="flex-1"
-                                                    onClick={() => router.push(`/admin/simulations/modèles/${modèle.id}`)}
+                                                    onClick={() => router.push(`/admin/simulations/templates/${template.id}`)}
                                                 >
                                                     <Eye className="h-3 w-3 mr-1" />
                                                     Voir
@@ -523,7 +523,7 @@ export default function SimulationsPage() {
                                                     onClick={() => {
                                                         router.push({
                                                             pathname: '/admin/simulations/nouveau',
-                                                            query: { templateId: modèle.id }
+                                                            query: { templateId: template.id }
                                                         });
                                                     }}
                                                 >
@@ -538,12 +538,12 @@ export default function SimulationsPage() {
                         </CardContent>
                         <CardFooter>
                             <div className="flex justify-between w-full">
-                                <Link href="/admin/simulations/modèles">
+                                <Link href="/admin/simulations/templates">
                                     <Button variant="outline" size="sm">
-                                        Voir tous les modèles
+                                        Voir tous les templates
                                     </Button>
                                 </Link>
-                                <Link href="/admin/simulations/modèles/stats">
+                                <Link href="/admin/simulations/templates/stats">
                                     <Button variant="outline" size="sm">
                                         <BarChart2 className="h-4 w-4 mr-2" />
                                         Statistiques

@@ -4,9 +4,6 @@ import bcrypt from 'bcrypt';
 import { headers } from 'next/headers'; // Pour récupérer l'ID utilisateur depuis le middleware
 import { verifyToken } from '@/lib/auth'; // Alias path
 
-jest.mock('@/lib/prisma');
-
-
 // const prisma = prisma; // Supprimé
 
 export async function PUT(request: Request) {

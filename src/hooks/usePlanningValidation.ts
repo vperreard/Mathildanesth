@@ -36,7 +36,7 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
         staleTime: Infinity
     });
 
-    // Créer le contexte de règle pour une garde/vacation
+    // Créer le contexte de règle pour une affectation
     const createRuleContext = useCallback((
         attribution: Attribution,
         allAssignments: Attribution[]
@@ -57,7 +57,7 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
         };
     }, []);
 
-    // Valider une seule garde/vacation
+    // Valider une seule affectation
     const validateAssignment = useCallback(async (
         attribution: Attribution,
         allAssignments: Attribution[]
@@ -106,7 +106,7 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
         try {
             const allViolations: RuleViolation[] = [];
             
-            // Valider chaque garde/vacation
+            // Valider chaque affectation
             for (const attribution of attributions) {
                 const violations = await validateAssignment(attribution, attributions);
                 allViolations.push(...violations);
@@ -179,12 +179,12 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
                 suggestions.push('Réaffecter à un autre praticien');
                 break;
             case 'FATIGUE':
-                suggestions.push('Réduire le nombre d\'gardes/vacations pour ce praticien');
+                suggestions.push('Réduire le nombre d\'affectations pour ce praticien');
                 suggestions.push('Prévoir des jours de repos supplémentaires');
                 break;
             case 'CONSECUTIVE_ASSIGNMENTS':
-                suggestions.push('Insérer un jour de repos entre les gardes/vacations');
-                suggestions.push('Redistribuer les gardes/vacations sur d\'autres praticiens');
+                suggestions.push('Insérer un jour de repos entre les affectations');
+                suggestions.push('Redistribuer les affectations sur d\'autres praticiens');
                 break;
             default:
                 suggestions.push('Vérifier les règles de planning configurées');

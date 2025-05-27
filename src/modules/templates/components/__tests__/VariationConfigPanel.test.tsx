@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import VariationConfigPanel from '../VariationConfigPanel';
-import { ConfigurationVariation } from '../../types/modèle';
+import { ConfigurationVariation } from '../../types/template';
 
 // Mock pour les Date Pickers
 jest.mock('@mui/x-date-pickers/DatePicker', () => {

@@ -4,16 +4,13 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
 
-jest.mock('@/lib/prisma');
-
-
 // Importer les types et services nécessaires
 import { Rule } from '@/modules/dynamicRules/types/rule';
 import { User } from '@/types/user';
 import { RuleEngineService } from '@/modules/dynamicRules/services/ruleEngineService';
 import { RuleBasedPlanningGeneratorService, OptimizationResult } from '@/modules/rules/services/RuleBasedPlanningGeneratorService';
 
-const prisma = prisma;
+import { prisma } from "@/lib/prisma";
 
 interface SimulationParameters {
     period: {
@@ -37,8 +34,6 @@ const simulationParametersSchema = z.object({
     message: "End date must be after start date",
     path: ["period", "endDate"],
 });
-
-
 export async function POST(request: NextRequest, { params }: { params: { scenarioId: string } }) {
     // Vérifier l'authentification
     const session = await getServerSession(authOptions);

@@ -9,9 +9,6 @@ import {
 } from '@/lib/auth/authorization';
 import { auditService } from '@/services/auditService';
 
-jest.mock('@/lib/prisma');
-
-
 // Schéma de validation pour la mise à jour d'un scénario
 const updateScenarioSchema = z.object({
     name: z.string().min(1, { message: "Le nom ne peut pas être vide." }).optional(),

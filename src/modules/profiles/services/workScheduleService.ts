@@ -29,23 +29,23 @@ export const isEvenMonth = (date: Date): boolean => {
 /**
  * Vérifier si l'utilisateur est censé travailler à une date spécifique
  * selon son planning de travail
- * @param planning médical Planning de travail de l'utilisateur
+ * @param planningMedical Planning de travail de l'utilisateur
  * @param date Date à vérifier
  * @returns true si l'utilisateur doit travailler ce jour-là
  */
-export const isWorkingDay = (planning médical: WorkSchedule, date: Date): boolean => {
+export const isWorkingDay = (planningMedical: WorkSchedule, date: Date): boolean => {
     // Vérifier que la date est dans la période de validité du planning
     if (
         !isWithinInterval(date, {
-            start: planning médical.validFrom,
-            end: planning médical.validTo || new Date(2099, 11, 31) // Date lointaine si pas de date de fin
+            start: planningMedical.validFrom,
+            end: planningMedical.validTo || new Date(2099, 11, 31) // Date lointaine si pas de date de fin
         })
     ) {
         return false;
     }
 
     // Si le planning n'est pas actif
-    if (!planning médical.isActive) {
+    if (!planningMedical.isActive) {
         return false;
     }
 
@@ -53,45 +53,45 @@ export const isWorkingDay = (planning médical: WorkSchedule, date: Date): boole
     const isEven = isEvenWeek(date);
     const isEvenMonthDate = isEvenMonth(date);
 
-    switch (planning médical.frequency) {
+    switch (planningMedical.frequency) {
         case WorkFrequency.FULL_TIME:
             // En temps plein, on travaille tous les jours de la semaine (hors weekend)
             return weekday >= 1 && weekday <= 5;
 
         case WorkFrequency.PART_TIME:
             // Temps partiel, on vérifie les jours spécifiques
-            return planning médical.workingDays ? planning médical.workingDays.includes(weekday) : false;
+            return planningMedical.workingDays ? planningMedical.workingDays.includes(weekday) : false;
 
         case WorkFrequency.ALTERNATE_WEEKS:
             // Alternance semaines paires/impaires
-            if (planning médical.weekType === WeekType.BOTH) {
-                return planning médical.workingDays ? planning médical.workingDays.includes(weekday) : (weekday >= 1 && weekday <= 5);
-            } else if (planning médical.weekType === WeekType.EVEN && isEven) {
-                return planning médical.workingDays ? planning médical.workingDays.includes(weekday) : (weekday >= 1 && weekday <= 5);
-            } else if (planning médical.weekType === WeekType.ODD && !isEven) {
-                return planning médical.workingDays ? planning médical.workingDays.includes(weekday) : (weekday >= 1 && weekday <= 5);
+            if (planningMedical.weekType === WeekType.BOTH) {
+                return planningMedical.workingDays ? planningMedical.workingDays.includes(weekday) : (weekday >= 1 && weekday <= 5);
+            } else if (planningMedical.weekType === WeekType.EVEN && isEven) {
+                return planningMedical.workingDays ? planningMedical.workingDays.includes(weekday) : (weekday >= 1 && weekday <= 5);
+            } else if (planningMedical.weekType === WeekType.ODD && !isEven) {
+                return planningMedical.workingDays ? planningMedical.workingDays.includes(weekday) : (weekday >= 1 && weekday <= 5);
             }
             return false;
 
         case WorkFrequency.ALTERNATE_MONTHS:
             // Alternance mois pairs/impairs
-            if (planning médical.monthType === MonthType.BOTH) {
-                return planning médical.workingDays ? planning médical.workingDays.includes(weekday) : (weekday >= 1 && weekday <= 5);
-            } else if (planning médical.monthType === MonthType.EVEN && isEvenMonthDate) {
-                return planning médical.workingDays ? planning médical.workingDays.includes(weekday) : (weekday >= 1 && weekday <= 5);
-            } else if (planning médical.monthType === MonthType.ODD && !isEvenMonthDate) {
-                return planning médical.workingDays ? planning médical.workingDays.includes(weekday) : (weekday >= 1 && weekday <= 5);
+            if (planningMedical.monthType === MonthType.BOTH) {
+                return planningMedical.workingDays ? planningMedical.workingDays.includes(weekday) : (weekday >= 1 && weekday <= 5);
+            } else if (planningMedical.monthType === MonthType.EVEN && isEvenMonthDate) {
+                return planningMedical.workingDays ? planningMedical.workingDays.includes(weekday) : (weekday >= 1 && weekday <= 5);
+            } else if (planningMedical.monthType === MonthType.ODD && !isEvenMonthDate) {
+                return planningMedical.workingDays ? planningMedical.workingDays.includes(weekday) : (weekday >= 1 && weekday <= 5);
             }
             return false;
 
         case WorkFrequency.CUSTOM:
             // Configuration personnalisée
-            if (!planning médical.customSchedule) return false;
+            if (!planningMedical.customSchedule) return false;
 
-            if (isEven && planning médical.customSchedule.evenWeeks) {
-                return planning médical.customSchedule.evenWeeks.includes(weekday);
-            } else if (!isEven && planning médical.customSchedule.oddWeeks) {
-                return planning médical.customSchedule.oddWeeks.includes(weekday);
+            if (isEven && planningMedical.customSchedule.evenWeeks) {
+                return planningMedical.customSchedule.evenWeeks.includes(weekday);
+            } else if (!isEven && planningMedical.customSchedule.oddWeeks) {
+                return planningMedical.customSchedule.oddWeeks.includes(weekday);
             }
             return false;
 
@@ -102,13 +102,13 @@ export const isWorkingDay = (planning médical: WorkSchedule, date: Date): boole
 
 /**
  * Calculer le nombre de jours travaillés dans une période
- * @param planning médical Planning de travail
+ * @param planningMedical Planning de travail
  * @param startDate Date de début de la période
  * @param endDate Date de fin de la période
  * @returns Nombre de jours travaillés dans la période
  */
 export const countWorkingDaysInPeriod = (
-    planning médical: WorkSchedule,
+    planningMedical: WorkSchedule,
     startDate: Date,
     endDate: Date
 ): number => {
@@ -116,7 +116,7 @@ export const countWorkingDaysInPeriod = (
     let currentDate = new Date(startDate);
 
     while (currentDate <= endDate) {
-        if (isWorkingDay(planning médical, currentDate)) {
+        if (isWorkingDay(planningMedical, currentDate)) {
             count++;
         }
         currentDate = addDays(currentDate, 1);
@@ -138,14 +138,14 @@ export const calculateAnnualLeaveAllowance = (percentage: number): number => {
 
 /**
  * Calculer le nombre de jours travaillés dans une semaine typique
- * @param planning médical Planning de travail
+ * @param planningMedical Planning de travail
  * @returns Objet contenant le nombre total de jours et la répartition par type de semaine
  */
-export const calculateWeeklyWorkingDays = (planning médical: WorkSchedule): WeeklyWorkingDays => {
+export const calculateWeeklyWorkingDays = (planningMedical: WorkSchedule): WeeklyWorkingDays => {
     let evenWeekDays = 0;
     let oddWeekDays = 0;
 
-    switch (planning médical.frequency) {
+    switch (planningMedical.frequency) {
         case WorkFrequency.FULL_TIME:
             // 5 jours par semaine (lundi-vendredi)
             evenWeekDays = oddWeekDays = 5;
@@ -153,35 +153,35 @@ export const calculateWeeklyWorkingDays = (planning médical: WorkSchedule): Wee
 
         case WorkFrequency.PART_TIME:
             // Jours spécifiques
-            const workingDays = planning médical.workingDays || [];
+            const workingDays = planningMedical.workingDays || [];
             evenWeekDays = oddWeekDays = workingDays.length;
             break;
 
         case WorkFrequency.ALTERNATE_WEEKS:
-            if (planning médical.weekType === WeekType.BOTH) {
-                evenWeekDays = oddWeekDays = planning médical.workingDays?.length || 5;
-            } else if (planning médical.weekType === WeekType.EVEN) {
-                evenWeekDays = planning médical.workingDays?.length || 5;
+            if (planningMedical.weekType === WeekType.BOTH) {
+                evenWeekDays = oddWeekDays = planningMedical.workingDays?.length || 5;
+            } else if (planningMedical.weekType === WeekType.EVEN) {
+                evenWeekDays = planningMedical.workingDays?.length || 5;
                 oddWeekDays = 0;
-            } else if (planning médical.weekType === WeekType.ODD) {
+            } else if (planningMedical.weekType === WeekType.ODD) {
                 evenWeekDays = 0;
-                oddWeekDays = planning médical.workingDays?.length || 5;
+                oddWeekDays = planningMedical.workingDays?.length || 5;
             }
             break;
 
         case WorkFrequency.ALTERNATE_MONTHS:
             // Simplifié pour la calculation hebdomadaire
-            if (planning médical.monthType === MonthType.BOTH) {
-                evenWeekDays = oddWeekDays = planning médical.workingDays?.length || 5;
+            if (planningMedical.monthType === MonthType.BOTH) {
+                evenWeekDays = oddWeekDays = planningMedical.workingDays?.length || 5;
             } else {
-                evenWeekDays = oddWeekDays = (planning médical.workingDays?.length || 5) / 2;
+                evenWeekDays = oddWeekDays = (planningMedical.workingDays?.length || 5) / 2;
             }
             break;
 
         case WorkFrequency.CUSTOM:
-            if (planning médical.customSchedule) {
-                evenWeekDays = planning médical.customSchedule.evenWeeks?.length || 0;
-                oddWeekDays = planning médical.customSchedule.oddWeeks?.length || 0;
+            if (planningMedical.customSchedule) {
+                evenWeekDays = planningMedical.customSchedule.evenWeeks?.length || 0;
+                oddWeekDays = planningMedical.customSchedule.oddWeeks?.length || 0;
             }
             break;
     }
@@ -215,14 +215,14 @@ export const fetchUserWorkSchedules = async (userId: string): Promise<WorkSchedu
 
 /**
  * Créer ou mettre à jour un planning de travail
- * @param planning médical Planning de travail à créer ou mettre à jour
+ * @param planningMedical Planning de travail à créer ou mettre à jour
  * @returns Promise avec le planning créé ou mis à jour
  */
-export const saveWorkSchedule = async (planning médical: Partial<WorkSchedule>): Promise<WorkSchedule> => {
+export const saveWorkSchedule = async (planningMedical: Partial<WorkSchedule>): Promise<WorkSchedule> => {
     try {
-        const method = planning médical.id ? 'PUT' : 'POST';
-        const url = planning médical.id
-            ? `/api/profils/work-schedules/${planning médical.id}`
+        const method = planningMedical.id ? 'PUT' : 'POST';
+        const url = planningMedical.id
+            ? `/api/profils/work-schedules/${planningMedical.id}`
             : '/api/profils/work-schedules';
 
         const response = await fetch(url, {
@@ -230,7 +230,7 @@ export const saveWorkSchedule = async (planning médical: Partial<WorkSchedule>)
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(planning médical),
+            body: JSON.stringify(planningMedical),
         });
 
         if (!response.ok) {

@@ -5,12 +5,9 @@ import { getAuthTokenServer, checkUserRole } from '@/lib/auth-server-utils';
 import type { UserRole as AuthUserRole } from '@/lib/auth-client-utils';
 import { headers } from 'next/headers';
 
-jest.mock('@/lib/prisma');
-
-
 const ALLOWED_ROLES_TRAMES: AuthUserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL']; // SUPER_ADMIN retiré
 
-// GET /api/tableaux de service - Récupérer toutes les tableaux de service
+// GET /api/trameModeles - Récupérer toutes les trameModeles
 export async function GET(request: NextRequest) {
     try {
         const token = await getAuthTokenServer();
@@ -21,7 +18,7 @@ export async function GET(request: NextRequest) {
                 const headersList = await headers();
                 const devUserRole = headersList.get('x-user-role');
                 if (devUserRole && ALLOWED_ROLES_TRAMES.includes(devUserRole as AuthUserRole)) {
-                    console.log('[DEV MODE] Authentification par en-tête pour GET /api/tableaux de service après échec du token');
+                    console.log('[DEV MODE] Authentification par en-tête pour GET /api/trameModeles après échec du token');
                 } else {
                     return NextResponse.json({ error: authError || 'Non autorisé' }, { status: 401 });
                 }
@@ -30,7 +27,7 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        const tableaux de service = await prisma.trameAffectation.findMany({
+        const trameModeles = await prisma.trameAffectation.findMany({
             orderBy: { updatedAt: 'desc' },
             include: {
                 periods: {
@@ -52,17 +49,17 @@ export async function GET(request: NextRequest) {
             }
         });
 
-        return NextResponse.json(tableaux de service);
+        return NextResponse.json(trameModeles);
     } catch (error) {
-        console.error('Erreur lors de la récupération des tableaux de service:', error);
+        console.error('Erreur lors de la récupération des trames:', error);
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la récupération des tableaux de service' },
+            { error: 'Erreur serveur lors de la récupération des trameModeles' },
             { status: 500 }
         );
     }
 }
 
-// POST /api/tableaux de service - Créer une nouvelle tableau de service
+// POST /api/trameModeles - Créer une nouvelle trameModele
 export async function POST(request: NextRequest) {
     try {
         const token = await getAuthTokenServer();
@@ -73,7 +70,7 @@ export async function POST(request: NextRequest) {
                 const headersList = await headers();
                 const devUserRole = headersList.get('x-user-role');
                 if (devUserRole && ALLOWED_ROLES_TRAMES.includes(devUserRole as AuthUserRole)) {
-                    console.log('[DEV MODE] Authentification par en-tête pour POST /api/tableaux de service après échec du token');
+                    console.log('[DEV MODE] Authentification par en-tête pour POST /api/trameModeles après échec du token');
                 } else {
                     return NextResponse.json({ error: authError || 'Non autorisé' }, { status: 401 });
                 }
@@ -95,7 +92,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Le champ endDate doit être une date valide si fourni.' }, { status: 400 });
         }
 
-        const trameId = uuidv4(); // Gardé car le modèle utilise @id @default(cuid()) mais on peut vouloir forcer l'ID
+        const trameId = uuidv4(); // Gardé car le template utilise @id @default(cuid()) mais on peut vouloir forcer l'ID
 
         const createData: any = {
             id: trameId, // ou laisser cuid() générer
@@ -158,7 +155,7 @@ export async function POST(request: NextRequest) {
             // Le schéma actuel montre `createdBy   Int?` donc c'est optionnel.
         }
 
-        const tableau de service = await prisma.trameAffectation.create({
+        const trameModele = await prisma.trameAffectation.create({
             data: createData,
             include: {
                 periods: {
@@ -180,11 +177,11 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        return NextResponse.json(tableau de service, { status: 201 });
+        return NextResponse.json(trameModele, { status: 201 });
     } catch (error) {
-        console.error('Erreur lors de la création de la tableau de service:', error);
+        console.error('Erreur lors de la création de la trameModele:', error);
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la création de la tableau de service' },
+            { error: 'Erreur serveur lors de la création de la trameModele' },
             { status: 500 }
         );
     }

@@ -1,8 +1,5 @@
 import { prisma } from './prisma';
 
-jest.mock('@/lib/prisma');
-
-
 export interface AuditLogParams {
     action: string;
     entityId: string | number;

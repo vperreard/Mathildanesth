@@ -5,9 +5,6 @@
  * les performances des simulations, particulièrement pour les jeux de données volumineux.
  */
 
-jest.mock('@/lib/prisma');
-
-
 import { PrismaClient, SimulationStatus } from '@prisma/client';
 import { simulationCache } from './simulationCacheService';
 import { simulationNotificationService } from './notificationService';
@@ -16,7 +13,7 @@ import path from 'path';
 import { createSimulationHash } from '@/utils/simulationUtils';
 import { notifyProgressUpdate } from '@/services/notifications/notificationService';
 
-const prisma = prisma;
+import { prisma } from "@/lib/prisma";
 
 // Configuration
 const MAX_WORKERS = Math.min(4, require('os').cpus().length);
@@ -55,7 +52,7 @@ interface DailyStaffingCoverage {
     coverage: {
         [shiftType: string]: {
             required: number;
-            en garde/vacation: number;
+            enAffectation: number;
             coverage: number;
         };
     };

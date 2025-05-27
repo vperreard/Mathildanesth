@@ -83,6 +83,7 @@ describe("Tests d'intégration des hooks de planification du bloc opératoire", 
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
         vi.resetAllMocks(); // Réinitialise tous les mocks (y compris ceux du mockBlocPlanningService)
 
         // Configurer les fonctions mockées

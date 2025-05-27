@@ -36,7 +36,7 @@ const FIELD_OPTIONS = [
   { value: 'planning.hoursWorked', label: 'Heures travaillées' },
   { value: 'leave.type', label: 'Type de congé' },
   { value: 'leave.duration', label: 'Durée du congé' },
-  { value: 'attribution.type', label: 'Type d\'garde/vacation' },
+  { value: 'attribution.type', label: 'Type d\'affectation' },
   { value: 'attribution.sector', label: 'Secteur' },
   { value: 'attribution.room', label: 'Salle' }
 ];

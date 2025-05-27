@@ -3,10 +3,6 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 // GET /api/chirurgiens/[surgeonId]/sites - Récupérer les sites d'un chirurgien
 export async function GET(

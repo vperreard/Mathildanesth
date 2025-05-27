@@ -105,7 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return cachedEntry.user;
       }
 
-      const response = await axios.get('http://localhost:3000/api/auth/me');
+      const response = await axios.get('/api/auth/me');
       const userData = response.data.user;
 
       // Mettre en cache

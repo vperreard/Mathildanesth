@@ -2,9 +2,6 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
 
-jest.mock('@/lib/prisma');
-
-
 // Helper pour vérifier les rôles admin
 const hasRequiredRole = (): boolean => {
     const headersList = headers();

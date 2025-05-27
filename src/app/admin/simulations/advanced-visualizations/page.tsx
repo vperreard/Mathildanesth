@@ -180,7 +180,7 @@ const SankeyTab = memo(({ data, selectedDepth, onExport }: {
                     </Select>
                 </div>
                 <CardDescription>
-                    Visualisation des flux de personnel entre les différentes gardes/vacations
+                    Visualisation des flux de personnel entre les différentes affectations
                 </CardDescription>
             </CardHeader>
             <CardContent className="pt-4 px-2">

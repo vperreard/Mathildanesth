@@ -20,7 +20,7 @@ import { RuleTemplate } from '../types/ruleV2.types';
 import { useQuery } from '@tanstack/react-query';
 
 interface RuleTemplatesProps {
-  onSelectTemplate: (modèle: RuleTemplate, parameters?: Record<string, any>) => void;
+  onSelectTemplate: (template: RuleTemplate, parameters?: Record<string, any>) => void;
 }
 
 export const RuleTemplates: React.FC<RuleTemplatesProps> = ({ onSelectTemplate }) => {
@@ -29,15 +29,15 @@ export const RuleTemplates: React.FC<RuleTemplatesProps> = ({ onSelectTemplate }
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
-  // Fetch modèles
+  // Fetch templates
   const { data: templatesData, isLoading } = useQuery({
-    queryKey: ['rule-modèles', selectedCategory],
+    queryKey: ['rule-templates', selectedCategory],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedCategory) params.append('category', selectedCategory);
       
-      const response = await fetch(`http://localhost:3000/api/admin/rules/v2/modèles?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch modèles');
+      const response = await fetch(`http://localhost:3000/api/admin/rules/v2/templates?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch templates');
       return response.json();
     }
   });
@@ -64,13 +64,13 @@ export const RuleTemplates: React.FC<RuleTemplatesProps> = ({ onSelectTemplate }
     return colors[category] || 'bg-gray-500';
   };
 
-  const filteredTemplates = templatesData?.modèles?.filter((modèle: RuleTemplate) => {
+  const filteredTemplates = templatesData?.templates?.filter((template: RuleTemplate) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
-      modèle.name.toLowerCase().includes(query) ||
-      modèle.description.toLowerCase().includes(query) ||
-      modèle.category.toLowerCase().includes(query)
+      template.name.toLowerCase().includes(query) ||
+      template.description.toLowerCase().includes(query) ||
+      template.category.toLowerCase().includes(query)
     );
   }) || [];
 
@@ -120,7 +120,7 @@ export const RuleTemplates: React.FC<RuleTemplatesProps> = ({ onSelectTemplate }
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
-              placeholder="Rechercher un modèle..."
+              placeholder="Rechercher un template..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -144,30 +144,30 @@ export const RuleTemplates: React.FC<RuleTemplatesProps> = ({ onSelectTemplate }
 
       {/* Modèles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredTemplates.map((modèle: RuleTemplate) => (
+        {filteredTemplates.map((template: RuleTemplate) => (
           <Card 
-            key={modèle.id}
+            key={template.id}
             className="hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => setSelectedTemplate(modèle)}
+            onClick={() => setSelectedTemplate(template)}
           >
             <CardHeader>
               <div className="flex items-start justify-between">
-                <div className={`p-3 rounded-lg ${getCategoryColor(modèle.category)} text-white`}>
-                  {getIconForTemplate(modèle.id)}
+                <div className={`p-3 rounded-lg ${getCategoryColor(template.category)} text-white`}>
+                  {getIconForTemplate(template.id)}
                 </div>
-                <Badge variant="outline">{modèle.category}</Badge>
+                <Badge variant="outline">{template.category}</Badge>
               </div>
-              <CardTitle className="mt-4">{modèle.name}</CardTitle>
-              <CardDescription>{modèle.description}</CardDescription>
+              <CardTitle className="mt-4">{template.name}</CardTitle>
+              <CardDescription>{template.description}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  {modèle.parameters.length} paramètre{modèle.parameters.length > 1 ? 's' : ''} configurables
+                  {template.parameters.length} paramètre{template.parameters.length > 1 ? 's' : ''} configurables
                 </p>
-                {modèle.examples.length > 0 && (
+                {template.examples.length > 0 && (
                   <p className="text-sm text-muted-foreground">
-                    {modèle.examples.length} exemple{modèle.examples.length > 1 ? 's' : ''} disponible{modèle.examples.length > 1 ? 's' : ''}
+                    {template.examples.length} exemple{template.examples.length > 1 ? 's' : ''} disponible{template.examples.length > 1 ? 's' : ''}
                   </p>
                 )}
               </div>
@@ -176,10 +176,10 @@ export const RuleTemplates: React.FC<RuleTemplatesProps> = ({ onSelectTemplate }
                 className="w-full mt-4"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedTemplate(modèle);
+                  setSelectedTemplate(template);
                 }}
               >
-                Utiliser ce modèle
+                Utiliser ce template
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             </CardContent>
@@ -192,7 +192,7 @@ export const RuleTemplates: React.FC<RuleTemplatesProps> = ({ onSelectTemplate }
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
           <div className="fixed inset-x-4 top-[10%] max-w-2xl mx-auto bg-background border rounded-lg shadow-lg max-h-[80vh] overflow-auto">
             <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Configurer le modèle</h2>
+              <h2 className="text-2xl font-bold mb-4">Configurer le template</h2>
               <div className="space-y-4">
                 <div>
                   <h3 className="font-semibold">{selectedTemplate.name}</h3>

@@ -190,7 +190,7 @@ describe('API Load Testing', () => {
             const queries = [
                 '/api/conges?startDate=2023-01-01&endDate=2023-12-31', // Année complète
                 '/api/utilisateurs?includeStats=true', // Avec statistiques
-                '/api/gardes/vacations?startDate=2024-01-01&endDate=2024-12-31' // Assignations année
+                '/api/assignments?startDate=2024-01-01&endDate=2024-12-31' // Assignations année
             ];
 
             const results = await Promise.all(

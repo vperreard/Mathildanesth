@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { headers } from 'next/headers';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
+import { prisma } from "@/lib/prisma";
 
 // Fonction utilitaire pour l'authentification (similaire à celle des secteurs)
 function checkAuth(requestHeaders: Headers): { userId: string; userRole: string } | null {
@@ -33,8 +30,6 @@ export async function GET(request: NextRequest) {
         }
         // Pour l'instant, on autorise tous les utilisateurs connectés à voir les sites
         console.log(`GET /api/sites: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`);
-
-
         console.log("GET /api/sites: Retrieving all sites from DB...");
         const sites = await prisma.site.findMany({
             orderBy: [

@@ -12,6 +12,7 @@ const originalFetch = global.fetch;
 describe('Simulation API', () => {
     // Configuration commune avant chaque test
     beforeEach(() => {
+    jest.clearAllMocks();
         // Réinitialiser les mocks entre les tests
         jest.resetAllMocks();
 

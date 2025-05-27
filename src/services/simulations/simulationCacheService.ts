@@ -2,10 +2,6 @@
 import { createHash } from 'crypto';
 import { prisma } from '@/lib/prisma';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 interface CacheEntry {
     key: string;

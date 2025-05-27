@@ -4,9 +4,6 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { emitNotificationsReadUpdate } from '@/lib/socket';
 
-jest.mock('@/lib/prisma');
-
-
 interface MarkAsReadRequest {
     notificationIds?: string[];  // IDs spécifiques à marquer comme lus, null/undefined pour marquer tout
     all?: boolean;               // Si true, marque toutes les notifications de l'utilisateur comme lues

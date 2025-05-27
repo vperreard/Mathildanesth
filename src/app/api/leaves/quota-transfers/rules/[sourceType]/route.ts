@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { LeaveType } from '@prisma/client';
 
-jest.mock('@/lib/prisma');
-
-
 interface Params {
     params: {
         sourceType: LeaveType;

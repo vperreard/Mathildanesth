@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { RuleTemplate } from '@/modules/dynamicRules/v2/types/ruleV2.types';
 
-// Predefined modèles
+// Predefined templates
 const RULE_TEMPLATES: RuleTemplate[] = [
   {
     id: 'max-guards-week',
@@ -74,7 +74,7 @@ const RULE_TEMPLATES: RuleTemplate[] = [
         title: 'IADE - 2 gardes max',
         description: 'Limite les IADEs à 2 gardes par semaine',
         parameters: { role: 'IADE', maxGuards: 2 },
-        expectedBehavior: 'Empêche l\'garde/vacation d\'une 3ème garde dans la semaine'
+        expectedBehavior: 'Empêche l\'affectation d\'une 3ème garde dans la semaine'
       }
     ]
   },
@@ -126,7 +126,7 @@ const RULE_TEMPLATES: RuleTemplate[] = [
         title: 'Repos 48h standard',
         description: 'Impose 48h de repos après chaque garde',
         parameters: { restHours: 48 },
-        expectedBehavior: 'Bloque toute garde/vacation dans les 48h suivant une garde'
+        expectedBehavior: 'Bloque toute affectation dans les 48h suivant une garde'
       }
     ]
   },
@@ -321,7 +321,7 @@ const RULE_TEMPLATES: RuleTemplate[] = [
   }
 ];
 
-// GET /api/admin/rules/v2/modèles - Get available modèles
+// GET /api/admin/rules/v2/templates - Get available templates
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -332,30 +332,30 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get('category');
 
-    let modèles = RULE_TEMPLATES;
+    let templates = RULE_TEMPLATES;
     
     if (category) {
-      modèles = modèles.filter(t => t.category === category);
+      templates = templates.filter(t => t.category === category);
     }
 
     const categories = [...new Set(RULE_TEMPLATES.map(t => t.category))];
 
     return NextResponse.json({
-      modèles,
+      templates,
       categories,
-      total: modèles.length
+      total: templates.length
     });
 
   } catch (error) {
-    console.error('Error fetching modèles:', error);
+    console.error('Error fetching templates:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération des modèles' },
+      { error: 'Erreur lors de la récupération des templates' },
       { status: 500 }
     );
   }
 }
 
-// POST /api/admin/rules/v2/modèles - Create rule from modèle
+// POST /api/admin/rules/v2/templates - Create rule from template
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -365,8 +365,8 @@ export async function POST(request: NextRequest) {
 
     const { templateId, parameters } = await request.json();
 
-    const modèle = RULE_TEMPLATES.find(t => t.id === templateId);
-    if (!modèle) {
+    const template = RULE_TEMPLATES.find(t => t.id === templateId);
+    if (!template) {
       return NextResponse.json(
         { error: 'Modèle non trouvé' },
         { status: 404 }
@@ -374,7 +374,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate parameters
-    for (const param of modèle.parameters) {
+    for (const param of template.parameters) {
       if (param.required && !(param.name in parameters)) {
         return NextResponse.json(
           { error: `Paramètre requis manquant: ${param.label}` },
@@ -399,8 +399,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Apply parameters to modèle
-    const rule = JSON.parse(JSON.stringify(modèle.baseRule));
+    // Apply parameters to template
+    const rule = JSON.parse(JSON.stringify(template.baseRule));
     
     // Replace placeholders in all string fields
     const replacePlaceholders = (obj: any): any => {
@@ -424,17 +424,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       rule: processedRule,
-      modèle: {
-        id: modèle.id,
-        name: modèle.name
+      template: {
+        id: template.id,
+        name: template.name
       },
       parameters
     });
 
   } catch (error) {
-    console.error('Error creating from modèle:', error);
+    console.error('Error creating from template:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la création depuis le modèle' },
+      { error: 'Erreur lors de la création depuis le template' },
       { status: 500 }
     );
   }

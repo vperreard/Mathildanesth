@@ -4,10 +4,6 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { AuditService } from '@/services/AuditService';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 const auditService = new AuditService();
 
 /**

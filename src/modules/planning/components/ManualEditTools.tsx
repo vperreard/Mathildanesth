@@ -54,7 +54,7 @@ export default function ManualEditTools({
                 roomId,
                 surgeonId: surgeonId || undefined,
                 // Ces valeurs devraient être déjà définies pour les mises à jour/suppressions
-                // ou fournies par le parent pour les nouvelles gardes/vacations
+                // ou fournies par le parent pour les nouvelles affectations
                 ...attributions.find(a => a.roomId === roomId)
             };
 
@@ -79,7 +79,7 @@ export default function ManualEditTools({
             setValidationResult(null);
             setActiveTab('attribution');
         } catch (error) {
-            console.error('Erreur lors de la modification de l\'garde/vacation:', error);
+            console.error('Erreur lors de la modification de l\'affectation:', error);
         } finally {
             setIsLoading(false);
         }
@@ -98,7 +98,7 @@ export default function ManualEditTools({
 
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'attribution' | 'validation')} className="w-full mb-4">
                 <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="attribution">Garde/Vacation</TabsTrigger>
+                    <TabsTrigger value="attribution">Affectation</TabsTrigger>
                     <TabsTrigger value="validation" disabled={!validationResult}>Validation</TabsTrigger>
                 </TabsList>
 
@@ -157,7 +157,7 @@ export default function ManualEditTools({
                                 className="flex gap-2 items-center"
                             >
                                 <Pencil size={16} />
-                                Ajouter l'garde/vacation
+                                Ajouter l'affectation
                             </Button>
                         ) : (
                             <>
@@ -184,7 +184,7 @@ export default function ManualEditTools({
 
                     {currentAssignment && (
                         <div className="mt-4 p-3 bg-blue-50 rounded-md">
-                            <h3 className="text-sm font-medium text-blue-800">Garde/Vacation actuelle</h3>
+                            <h3 className="text-sm font-medium text-blue-800">Affectation actuelle</h3>
                             <p className="text-sm mt-1">
                                 Salle: {rooms.find(r => r.id === currentAssignment.roomId)?.name || 'Inconnue'}
                                 <br />
@@ -206,10 +206,10 @@ export default function ManualEditTools({
                                     )}
                                     <h3 className={`font-medium ${validationResult.isValid ? 'text-green-800' : 'text-yellow-800'}`}>
                                         {validationResult.isValid
-                                            ? 'Garde/Vacation valide'
+                                            ? 'Affectation valide'
                                             : validationResult.conflicts.some(c => c.severity === 'error')
-                                                ? 'Garde/Vacation invalide'
-                                                : 'Garde/Vacation avec avertissements'}
+                                                ? 'Affectation invalide'
+                                                : 'Affectation avec avertissements'}
                                     </h3>
                                 </div>
                             </div>
@@ -267,7 +267,7 @@ export default function ManualEditTools({
                                         ) : (
                                             <>
                                                 <CheckCircle size={16} />
-                                                Confirmer l'garde/vacation
+                                                Confirmer l'affectation
                                             </>
                                         )}
                                     </Button>

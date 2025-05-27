@@ -118,7 +118,7 @@ export default function PlanningChangeHistory({ planningId, onLoadHistory }: Pla
     const getTargetLabel = (item: ChangeHistoryItem) => {
         switch (item.targetType) {
             case 'attribution':
-                return `Garde/Vacation ${item.details.roomName ? `- Salle ${item.details.roomName}` : ''}`;
+                return `Affectation ${item.details.roomName ? `- Salle ${item.details.roomName}` : ''}`;
             case 'planning':
                 return 'Planning';
             case 'supervisor':

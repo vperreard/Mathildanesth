@@ -2,16 +2,13 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDefaultTemplates } from '@/lib/default-rule-modèles';
-
-jest.mock('@/lib/prisma');
-
+import { getDefaultTemplates } from '@/lib/default-rule-templates';
 
 export async function POST(request: Request) {
     try {
         const session = await getServerSession(authOptions);
         
-        // Seuls les super admins peuvent réinitialiser les modèles
+        // Seuls les super admins peuvent réinitialiser les templates
         if (!session?.user || session.user.email !== 'admin@mathildanesth.fr') {
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
@@ -19,31 +16,31 @@ export async function POST(request: Request) {
         const { action } = await request.json();
 
         if (action === 'reset-defaults') {
-            // Récupérer les modèles par défaut
+            // Récupérer les templates par défaut
             const defaultTemplates = getDefaultTemplates();
             
-            // Réinitialiser chaque modèle par défaut
-            for (const modèle of defaultTemplates) {
+            // Réinitialiser chaque template par défaut
+            for (const template of defaultTemplates) {
                 await prisma.rulesTemplate.upsert({
                     where: {
                         name_isDefault: {
-                            name: modèle.name,
+                            name: template.name,
                             isDefault: true
                         }
                     },
                     update: {
-                        description: modèle.description || '',
-                        category: modèle.category,
-                        rules: modèle.rules,
-                        fatigueConfig: modèle.fatigueConfig,
+                        description: template.description || '',
+                        category: template.category,
+                        rules: template.rules,
+                        fatigueConfig: template.fatigueConfig,
                         updatedAt: new Date()
                     },
                     create: {
-                        name: modèle.name,
-                        description: modèle.description || '',
-                        category: modèle.category,
-                        rules: modèle.rules,
-                        fatigueConfig: modèle.fatigueConfig,
+                        name: template.name,
+                        description: template.description || '',
+                        category: template.category,
+                        rules: template.rules,
+                        fatigueConfig: template.fatigueConfig,
                         isDefault: true,
                         createdBy: session.user.id
                     }
@@ -55,7 +52,7 @@ export async function POST(request: Request) {
                     userId: session.user.id,
                     action: 'RESET_DEFAULT_TEMPLATES',
                     details: {
-                        message: 'Réinitialisation des modèles par défaut',
+                        message: 'Réinitialisation des templates par défaut',
                         count: defaultTemplates.length
                     }
                 }
@@ -93,7 +90,7 @@ export async function POST(request: Request) {
             });
 
             return NextResponse.json({
-                message: 'Configuration actuelle sauvegardée comme modèle',
+                message: 'Configuration actuelle sauvegardée comme template',
                 name: backupName
             });
         }

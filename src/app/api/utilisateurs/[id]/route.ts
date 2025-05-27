@@ -4,9 +4,6 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import { headers } from 'next/headers';
 
-jest.mock('@/lib/prisma');
-
-
 // const prisma = prisma; // Supprimé
 
 // Helper pour vérifier si l'utilisateur a AU MOINS l'un des rôles requis

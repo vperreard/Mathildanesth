@@ -69,7 +69,7 @@ interface RoomAssignmentPanelProps {
     className?: string;
 }
 
-// Composant pour afficher une garde/vacation
+// Composant pour afficher une affectation
 const AssignmentCard: React.FC<{
     attribution: Attribution;
     room: Room;
@@ -176,7 +176,7 @@ export const RoomAssignmentPanel: React.FC<RoomAssignmentPanelProps> = ({
     const [showValidation, setShowValidation] = useState(false);
     const [activityType, setActivityType] = useState('bloc-supervision');
 
-    // Filtrer les gardes/vacations pour la période sélectionnée
+    // Filtrer les affectations pour la période sélectionnée
     const filteredAssignments = useMemo(() => {
         return currentAssignments.filter(
             attribution => attribution.day === selectedDay && attribution.period === selectedPeriod
@@ -289,7 +289,7 @@ export const RoomAssignmentPanel: React.FC<RoomAssignmentPanelProps> = ({
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900">
-                            Garde/Vacation des Salles
+                            Affectation des Salles
                         </h2>
                         <p className="text-sm text-gray-600">
                             {selectedDay} - {selectedPeriod}
@@ -330,11 +330,11 @@ export const RoomAssignmentPanel: React.FC<RoomAssignmentPanelProps> = ({
             </AnimatePresence>
 
             <div className="flex-1 flex overflow-hidden">
-                {/* Panel de création d'garde/vacation */}
+                {/* Panel de création d'affectation */}
                 {!readOnly && (
                     <div className="w-80 border-r border-gray-200 p-4 overflow-y-auto">
                         <h3 className="text-lg font-medium text-gray-900 mb-4">
-                            Nouvelle Garde/Vacation
+                            Nouvelle Affectation
                         </h3>
 
                         <div className="space-y-4">
@@ -400,17 +400,17 @@ export const RoomAssignmentPanel: React.FC<RoomAssignmentPanelProps> = ({
                                 disabled={!selectedRoomId || !selectedSupervisorId}
                                 className="w-full"
                             >
-                                Créer l'garde/vacation
+                                Créer l'affectation
                             </Button>
                         </div>
                     </div>
                 )}
 
-                {/* Liste des gardes/vacations */}
+                {/* Liste des affectations */}
                 <div className="flex-1 p-4 overflow-y-auto">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-gray-900">
-                            Gardes/Vacations actuelles ({filteredAssignments.length})
+                            Affectations actuelles ({filteredAssignments.length})
                         </h3>
                     </div>
 
@@ -439,9 +439,9 @@ export const RoomAssignmentPanel: React.FC<RoomAssignmentPanelProps> = ({
                         {filteredAssignments.length === 0 && (
                             <div className="text-center py-8 text-gray-500">
                                 <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                <p>Aucune garde/vacation pour cette période</p>
+                                <p>Aucune affectation pour cette période</p>
                                 {!readOnly && (
-                                    <p className="text-sm">Utilisez le panel de gauche pour créer une garde/vacation</p>
+                                    <p className="text-sm">Utilisez le panel de gauche pour créer une affectation</p>
                                 )}
                             </div>
                         )}

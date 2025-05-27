@@ -5,13 +5,9 @@
  * les performances des simulations, particulièrement pour les jeux de données volumineux.
  */
 
-jest.mock('@/lib/prisma');
-
-
 import { prisma } from '@/lib/prisma';
 import * as workerpool from 'workerpool';
 
-const prisma = prisma;
 
 // Types
 export interface EnhancedSimulationParams {

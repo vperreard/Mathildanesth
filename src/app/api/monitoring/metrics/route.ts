@@ -4,10 +4,6 @@ import { prisma } from '@/lib/prisma';
 import { performanceMonitor } from '@/lib/monitoring';
 import { performanceMonitor as serviceMonitor } from '@/services/PerformanceMonitoringService';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 // Stockage en mémoire des métriques (à remplacer par Redis en production)
 const metricsStore: any[] = [];

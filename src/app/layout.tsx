@@ -22,17 +22,10 @@ import ClientPerformanceTracker from '@/components/ClientPerformanceTracker';
 import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/context/AuthContext';
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
+// Import du layout responsive médical
+import { ProductionLayout } from '@/components/layout/ProductionLayout';
 
-// Chargement dynamique des composants non critiques avec priorité
-const Header = dynamic(() => import('@/components/Header'), {
-    ssr: true,
-    loading: () => <div className="h-16 bg-primary-100 animate-pulse"></div>
-});
-
-const Footer = dynamic(() => import('@/components/Footer'), {
-    ssr: true,
-    loading: () => <div className="h-10 bg-gray-100 animate-pulse"></div>
-});
+// Suppression des imports dynamiques non utilisés dans le nouveau layout responsive
 
 // Suppression du préchargeur chargé dynamiquement (déplacé dans le composant client)
 
@@ -48,14 +41,14 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
     title: {
-        default: 'MATHILDA',
-        modèle: '%s | MATHILDA'
+        default: 'Mathildanesth - Planning Médical',
+        template: '%s | Mathildanesth'
     },
     description: 'Système de gestion des plannings et congés pour établissements de santé',
-    keywords: ['planning', 'santé', 'hôpital', 'congés', 'médecin'],
-    authors: [{ name: 'MATHILDA Team' }],
-    creator: 'MATHILDA',
-    publisher: 'MATHILDA',
+    keywords: ['planning', 'santé', 'hôpital', 'congés', 'médecin', 'anesthésie', 'bloc opératoire'],
+    authors: [{ name: 'Mathildanesth Team' }],
+    creator: 'Mathildanesth',
+    publisher: 'Mathildanesth',
     formatDetection: {
         email: false,
         address: false,
@@ -66,9 +59,9 @@ export const metadata: Metadata = {
         type: 'website',
         locale: 'fr_FR',
         url: '/',
-        title: 'MATHILDA',
+        title: 'Mathildanesth - Planning Médical',
         description: 'Système de gestion des plannings et congés pour établissements de santé',
-        siteName: 'MATHILDA',
+        siteName: 'Mathildanesth',
     },
     robots: {
         index: false,
@@ -92,8 +85,8 @@ export const viewport: Viewport = {
     maximumScale: 1,
     userScalable: false,
     themeColor: [
-        { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-        { media: '(prefers-color-scheme: dark)', color: '#000000' }
+        { media: '(prefers-color-scheme: light)', color: '#3b82f6' },
+        { media: '(prefers-color-scheme: dark)', color: '#1e40af' }
     ]
 };
 
@@ -119,24 +112,22 @@ export default function RootLayout({
                 <link rel="prefetch" href="/api/auth/me" />
                 <link rel="prefetch" href="/auth/connexion" />
             </head>
-            <body className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+            <body className="transition-colors duration-300">
                 <AuthProvider>
                     <Providers>
                         <ThemeProvider>
-                            <div className="flex flex-col min-h-screen">
-                                <Header />
-                                <main className="flex-grow container mx-auto px-4 py-8">
-                                    <ErrorBoundary
-                                        fallbackComponent={LayoutErrorFallback}
-                                    >
-                                        {children}
-                                    </ErrorBoundary>
-                                    <NotificationToast />
-                                    <ClientNotificationCenter />
-                                    <ClientSimulationNotifications />
-                                </main>
-                                <Footer />
-
+                            <ProductionLayout>
+                                <ErrorBoundary
+                                    fallbackComponent={LayoutErrorFallback}
+                                >
+                                    {children}
+                                </ErrorBoundary>
+                                
+                                {/* Notifications et composants globaux */}
+                                <NotificationToast />
+                                <ClientNotificationCenter />
+                                <ClientSimulationNotifications />
+                                
                                 {/* Préchargeur de routes et données via un wrapper client */}
                                 <ClientPrefetcherWrapper />
 
@@ -144,7 +135,7 @@ export default function RootLayout({
                                 <ClientPerformanceTracker />
 
                                 <ServiceWorkerRegistration />
-                            </div>
+                            </ProductionLayout>
                         </ThemeProvider>
                     </Providers>
                 </AuthProvider>

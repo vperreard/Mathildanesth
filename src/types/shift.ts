@@ -50,7 +50,7 @@ export interface Shift {
 /**
  * Représente un planning de gardes
  */
-export interface Planning médical {
+export interface PlanningMedical {
     /** Identifiant unique du planning */
     id: string;
     /** Période couverte par ce planning */

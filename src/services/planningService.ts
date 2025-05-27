@@ -98,8 +98,7 @@ export class PlanningService {
         // ... Logique serveur ...
     }
 
-    private static generateAffectationsFromTrame(
-        tableau de service: any,
+    private static generateAffectationsFromTrame(trameModele: any,
         startDate: Date,
         endDate: Date
     ): PlanningSlot[] {

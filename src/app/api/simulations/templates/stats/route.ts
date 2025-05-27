@@ -3,10 +3,6 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 // Type pour les statistiques
 interface TemplateUsageStats {
@@ -22,7 +18,7 @@ interface CategoryStats {
     percentage: number;
 }
 
-// Route pour obtenir les statistiques des modèles de simulation
+// Route pour obtenir les statistiques des templates de simulation
 export async function GET() {
     try {
         // Vérifier l'authentification
@@ -31,7 +27,7 @@ export async function GET() {
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
-        // Récupérer tous les modèles
+        // Récupérer tous les templates
         const totalTemplates = await prisma.simulationTemplate.count();
 
         // Récupérer le nombre total d'utilisations
@@ -43,7 +39,7 @@ export async function GET() {
             },
         });
 
-        // Récupérer les modèles les plus utilisés
+        // Récupérer les templates les plus utilisés
         const mostUsedTemplates = await prisma.simulationTemplate.findMany({
             select: {
                 id: true,
@@ -71,7 +67,7 @@ export async function GET() {
             take: 5,
         });
 
-        // Récupérer les modèles récemment utilisés
+        // Récupérer les templates récemment utilisés
         const recentlyUsedTemplates = await prisma.simulationTemplate.findMany({
             where: {
                 scenarios: {
@@ -113,18 +109,18 @@ export async function GET() {
         });
 
         // Formater les données pour la réponse
-        const formattedMostUsed: TemplateUsageStats[] = mostUsedTemplates.map((modèle) => ({
-            templateId: modèle.id,
-            templateName: modèle.name,
-            usageCount: modèle._count.scenarios,
-            lastUsed: modèle.scenarios[0]?.createdAt.toISOString() || null,
+        const formattedMostUsed: TemplateUsageStats[] = mostUsedTemplates.map((template) => ({
+            templateId: template.id,
+            templateName: template.name,
+            usageCount: template._count.scenarios,
+            lastUsed: template.scenarios[0]?.createdAt.toISOString() || null,
         }));
 
-        const formattedRecentlyUsed: TemplateUsageStats[] = recentlyUsedTemplates.map((modèle) => ({
-            templateId: modèle.id,
-            templateName: modèle.name,
-            usageCount: modèle._count.scenarios,
-            lastUsed: modèle.scenarios[0]?.createdAt.toISOString() || null,
+        const formattedRecentlyUsed: TemplateUsageStats[] = recentlyUsedTemplates.map((template) => ({
+            templateId: template.id,
+            templateName: template.name,
+            usageCount: template._count.scenarios,
+            lastUsed: template.scenarios[0]?.createdAt.toISOString() || null,
         }));
 
         const categoryBreakdown: CategoryStats[] = categoriesRaw.map((cat) => {

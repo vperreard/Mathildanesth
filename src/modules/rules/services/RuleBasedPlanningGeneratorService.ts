@@ -176,7 +176,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
 
             const problematicAssignments = this.identifyProblematicAssignments(currentAssignments, violatedRuleIds);
             if (problematicAssignments.length === 0) {
-                console.log('Aucune garde/vacation problématique identifiée pour les règles violées, arrêt.');
+                console.log('Aucune affectation problématique identifiée pour les règles violées, arrêt.');
                 break;
             }
             console.log(`${problematicAssignments.length} gardes/vacations problématiques identifiées.`);
@@ -292,12 +292,12 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
         for (const problematicAssignment of problematicAssignments) {
             const alternative = await this.findBetterAssignment(problematicAssignment, newAssignments);
             if (alternative) {
-                // Remplacer l'garde/vacation problématique par l'alternative
+                // Remplacer l'affectation problématique par l'alternative
                 newAssignments = newAssignments.map(assign =>
                     assign.id === problematicAssignment.id ? alternative : assign
                 );
                 changesMade++;
-                console.log(`Alternative trouvée pour l'garde/vacation ${problematicAssignment.id}`);
+                console.log(`Alternative trouvée pour l'affectation ${problematicAssignment.id}`);
             }
         }
         console.log(`${changesMade} alternatives appliquées.`);
@@ -305,8 +305,8 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
     }
 
     /**
-     * Cherche une meilleure garde/vacation (utilisateur différent ou shift différent)
-     * pour remplacer une garde/vacation problématique.
+     * Cherche une meilleure affectation (utilisateur différent ou shift différent)
+     * pour remplacer une affectation problématique.
      */
     private async findBetterAssignment(
         problematicAssignment: Attribution,
@@ -339,11 +339,11 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
             );
             const tempEvaluation = this.evaluatePlanningQuality(tempAssignments);
 
-            // Comparer avec une évaluation où l'garde/vacation problématique est simplement retirée
+            // Comparer avec une évaluation où l'affectation problématique est simplement retirée
             const assignmentsWithoutProblem = currentAssignments.filter(a => a.id !== problematicAssignment.id);
             const evalWithoutProblem = this.evaluatePlanningQuality(assignmentsWithoutProblem);
 
-            // Si l'alternative est meilleure que de simplement supprimer l'garde/vacation problématique
+            // Si l'alternative est meilleure que de simplement supprimer l'affectation problématique
             if (tempEvaluation.score > evalWithoutProblem.score) {
                 console.log(`  -> Utilisateur alternatif ${potentialUser.email} améliore le score.`);
                 // Retourner une copie propre de l'alternative
@@ -354,7 +354,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
         // 2. Si aucun utilisateur alternatif n'améliore, envisager d'autres stratégies
         //    (changer le type de shift, laisser vacant, etc.) - Non implémenté ici
 
-        console.log(`  -> Aucune alternative trouvée pour l'garde/vacation ${problematicAssignment.id}.`);
+        console.log(`  -> Aucune alternative trouvée pour l'affectation ${problematicAssignment.id}.`);
         return null;
     }
 

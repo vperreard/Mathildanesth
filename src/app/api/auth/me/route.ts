@@ -3,9 +3,6 @@ import { verifyAuthToken, getAuthTokenServer } from '@/lib/auth-server-utils';
 import { prisma } from '@/lib/prisma';
 import { withUserRateLimit } from '@/lib/rateLimit';
 
-jest.mock('@/lib/prisma');
-
-
 async function handler(req: NextRequest) {
     try {
         // Récupérer le token depuis les cookies ou headers

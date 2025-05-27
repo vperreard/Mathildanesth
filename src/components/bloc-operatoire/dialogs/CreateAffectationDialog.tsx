@@ -22,7 +22,7 @@ import axios from 'axios';
 interface CreateAffectationDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onConfirm: (garde/vacation: NewAffectation) => void;
+    onConfirm: (affectation: NewAffectation) => void;
     defaultDay?: DayOfWeek;
     defaultPeriod?: Period;
     defaultRoomId?: number;
@@ -155,10 +155,10 @@ export const CreateAffectationDialog: React.FC<CreateAffectationDialogProps> = (
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Users className="h-5 w-5" />
-                        Créer une garde/vacation
+                        Créer une affectation
                     </DialogTitle>
                     <DialogDescription>
-                        Créez une nouvelle garde/vacation pour la tableau de service {trameModeleId}
+                        Créez une nouvelle affectation pour la trameModele {trameModeleId}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -212,7 +212,7 @@ export const CreateAffectationDialog: React.FC<CreateAffectationDialogProps> = (
 
                     {/* Type de rôle */}
                     <div className="space-y-2">
-                        <Label>Type d'garde/vacation</Label>
+                        <Label>Type d'affectation</Label>
                         <div className="flex gap-4">
                             <label className="flex items-center gap-2">
                                 <input
@@ -312,7 +312,7 @@ export const CreateAffectationDialog: React.FC<CreateAffectationDialogProps> = (
                             }
                         />
                         <Label htmlFor="applyToAll" className="text-sm font-normal">
-                            Appliquer à toutes les semaines de la tableau de service
+                            Appliquer à toutes les semaines de la trameModele
                         </Label>
                     </div>
 
@@ -339,7 +339,7 @@ export const CreateAffectationDialog: React.FC<CreateAffectationDialogProps> = (
                         onClick={handleConfirm} 
                         disabled={validationErrors.length > 0}
                     >
-                        Créer l'garde/vacation
+                        Créer l'affectation
                     </Button>
                 </DialogFooter>
             </DialogContent>

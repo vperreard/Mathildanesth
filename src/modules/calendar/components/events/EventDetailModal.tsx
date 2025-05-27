@@ -13,7 +13,7 @@ interface EventDetailModalProps {
 const getEventTypeDescription = (type: CalendarEventType): string => {
     switch (type) {
         case CalendarEventType.ASSIGNMENT:
-            return 'Garde/Vacation';
+            return 'Affectation';
         case CalendarEventType.LEAVE:
             return 'Congé';
         case CalendarEventType.DUTY:

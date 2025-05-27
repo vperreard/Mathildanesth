@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'jwt-dev-secret-change-me-in-produc
 
 // Utilisez Prisma uniquement si nous ne sommes pas en mode développement sans base de données
 const IS_DEV_MODE = process.env.NODE_ENV === 'development' && process.env.USE_MOCK_AUTH === 'true';
-const prisma = IS_DEV_MODE ? null : prisma;
+const prismaClient = IS_DEV_MODE ? null : prisma;
 
 const secretKey = new TextEncoder().encode(JWT_SECRET);
 

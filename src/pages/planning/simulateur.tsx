@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PlanningSimulatorComponent from '../../components/PlanningSimulator';
-import { Attribution, GenerationParameters, AssignmentType } from '../../types/attribution';
+import { Attribution, GenerationParameters, AssignmentType } from '../../types/assignment';
 import { User } from '../../types/user';
 import { defaultRulesConfiguration } from '../../types/rules';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';

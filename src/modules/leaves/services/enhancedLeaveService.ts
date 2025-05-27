@@ -11,10 +11,6 @@ import { logger } from '@/lib/logger';
 import { LeaveEvent } from '../types/cache';
 import { formatDate, ISO_DATE_FORMAT } from '@/utils/dateUtils';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 const cacheService = LeaveQueryCacheService.getInstance();
 
 /**

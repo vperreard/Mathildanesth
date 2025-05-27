@@ -3,9 +3,6 @@ import { BlocPlanningStatus } from '@/modules/planning/bloc-operatoire/models/Bl
 import { getSession } from 'next-auth/react';
 import { notifyUsers } from '@/modules/notifications/services/notificationService';
 
-jest.mock('@/lib/prisma');
-
-
 export interface AuditLogEntry {
     id: string;
     timestamp: Date;
@@ -229,13 +226,13 @@ export class PlanningAuditService {
 
         switch (action) {
             case 'create':
-                return `Nouvelle ${targetType === 'attribution' ? 'garde/vacation' : targetType === 'planning' ? 'planification' : targetType === 'supervisor' ? 'supervision' : 'annotation'} créée pour le planning du ${date} (${period}).`;
+                return `Nouvelle ${targetType === 'attribution' ? 'affectation' : targetType === 'planning' ? 'planification' : targetType === 'supervisor' ? 'supervision' : 'annotation'} créée pour le planning du ${date} (${period}).`;
 
             case 'update':
-                return `Modification d'${targetType === 'attribution' ? 'une garde/vacation' : targetType === 'planning' ? 'un planning' : targetType === 'supervisor' ? 'une supervision' : 'une annotation'} pour le ${date} (${period}).`;
+                return `Modification d'${targetType === 'attribution' ? 'une affectation' : targetType === 'planning' ? 'un planning' : targetType === 'supervisor' ? 'une supervision' : 'une annotation'} pour le ${date} (${period}).`;
 
             case 'delete':
-                return `Suppression d'${targetType === 'attribution' ? 'une garde/vacation' : targetType === 'planning' ? 'un planning' : targetType === 'supervisor' ? 'une supervision' : 'une annotation'} pour le ${date} (${period}).`;
+                return `Suppression d'${targetType === 'attribution' ? 'une affectation' : targetType === 'planning' ? 'un planning' : targetType === 'supervisor' ? 'une supervision' : 'une annotation'} pour le ${date} (${period}).`;
 
             case 'statusChange':
                 const statusLabel = planning.status === BlocPlanningStatus.APPROVED

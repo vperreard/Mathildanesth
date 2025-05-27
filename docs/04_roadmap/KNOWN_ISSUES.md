@@ -19,6 +19,11 @@
   - Tests E2E Cypress référencent anciennes routes (/leaves, /calendar, etc.)
   - Tests unitaires avec hardcoded paths à mettre à jour
   - Estimation : +100 tests supplémentaires à corriger
+- ✅ **Infrastructure Tests E2E** : CORRIGÉ (27/05/2025 - 23h00)
+  - Fixtures créées avec structure correcte
+  - Sélecteurs data-cy standardisés
+  - Routes API unifiées
+  - Références Jest supprimées des tests Cypress
 
 ## ⚠️ Problèmes Moyens
 

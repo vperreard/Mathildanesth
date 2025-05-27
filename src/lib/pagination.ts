@@ -359,11 +359,11 @@ export class OptimizedPaginator<T> {
     }
 
     /**
-     * Invalide le cache pour ce modèle
+     * Invalide le cache pour ce template
      */
     invalidateCache(pattern?: string): void {
         if (!pattern) {
-            // Invalider tout le cache pour ce modèle
+            // Invalider tout le cache pour ce template
             for (const [key] of this.cache.entries()) {
                 if (key.includes(this.model)) {
                     this.cache.delete(key);

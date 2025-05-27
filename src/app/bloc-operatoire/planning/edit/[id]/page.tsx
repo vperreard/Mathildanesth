@@ -38,7 +38,7 @@ export default function EditPlanningPage() {
           Modifier le Planning
         </h1>
         <p className="mt-1 text-sm text-gray-600">
-          Modifiez les gardes/vacations et les détails du planning
+          Modifiez les affectations et les détails du planning
         </p>
       </div>
 

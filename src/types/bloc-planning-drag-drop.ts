@@ -35,13 +35,13 @@ export interface PeriodDragItem {
 }
 
 /**
- * Interface pour un élément glissable de type modèle de planning
+ * Interface pour un élément glissable de type template de planning
  */
 export interface PlanningTemplateDragItem {
     type: 'PLANNING_TEMPLATE';
     id: string;
     nom: string;
-    gardes/vacations: {
+    affectations: {
         salleId: string;
         superviseurs: Omit<BlocSupervisor, 'id'>[];
     }[];

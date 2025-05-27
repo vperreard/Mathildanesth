@@ -142,7 +142,7 @@ describe('PlanningGeneratorService', () => {
             expect(attributions).toBeDefined();
             expect(attributions.length).toBeGreaterThan(0);
             
-            // Vérifier que le fallback a été utilisé (Marie devrait avoir plus d'gardes/vacations)
+            // Vérifier que le fallback a été utilisé (Marie devrait avoir plus d'assignments)
             const marieAssignments = attributions.filter(a => a.userId === '2');
             const jeanAssignments = attributions.filter(a => a.userId === '1');
             expect(marieAssignments.length).toBeGreaterThan(jeanAssignments.length);

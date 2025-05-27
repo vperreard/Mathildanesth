@@ -81,7 +81,7 @@ export async function fetchRooms(): Promise<Room[]> {
     }
 }
 
-// Fonction pour générer des gardes/vacations mock
+// Fonction pour générer des affectations mock
 export function getMockAssignments(): Attribution[] {
     const users = getMockUsers();
     const rooms = getMockRooms();

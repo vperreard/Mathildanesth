@@ -99,7 +99,7 @@ const ValidationStats: React.FC<{
                     </div>
                     <div className="text-xs text-gray-600">
                         {summary.totalConflicts === 0
-                            ? 'Toutes les gardes/vacations sont valides'
+                            ? 'Toutes les affectations sont valides'
                             : `${summary.totalConflicts} conflit${summary.totalConflicts > 1 ? 's' : ''} détecté${summary.totalConflicts > 1 ? 's' : ''}`
                         }
                     </div>
@@ -109,7 +109,7 @@ const ValidationStats: React.FC<{
     );
 };
 
-// Composant pour afficher les détails des gardes/vacations
+// Composant pour afficher les détails des affectations
 const AssignmentDetails: React.FC<{
     attributions: Attribution[];
 }> = ({ attributions }) => {
@@ -118,13 +118,13 @@ const AssignmentDetails: React.FC<{
 
     return (
         <div className="space-y-4">
-            {/* Gardes/Vacations valides */}
+            {/* Affectations valides */}
             {validAssignments.length > 0 && (
                 <div>
                     <div className="flex items-center space-x-2 mb-3">
                         <CheckCircle className="w-4 h-4 text-green-600" />
                         <h4 className="font-medium text-gray-900">
-                            Gardes/Vacations valides ({validAssignments.length})
+                            Affectations valides ({validAssignments.length})
                         </h4>
                     </div>
                     <div className="space-y-2">
@@ -152,13 +152,13 @@ const AssignmentDetails: React.FC<{
                 </div>
             )}
 
-            {/* Gardes/Vacations avec conflits */}
+            {/* Affectations avec conflits */}
             {invalidAssignments.length > 0 && (
                 <div>
                     <div className="flex items-center space-x-2 mb-3">
                         <XCircle className="w-4 h-4 text-red-600" />
                         <h4 className="font-medium text-gray-900">
-                            Gardes/Vacations avec conflits ({invalidAssignments.length})
+                            Affectations avec conflits ({invalidAssignments.length})
                         </h4>
                     </div>
                     <div className="space-y-2">
@@ -228,7 +228,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                                 ) : (
                                     <AlertTriangle className="w-5 h-5 text-orange-600" />
                                 )}
-                                <span>Validation des gardes/vacations</span>
+                                <span>Validation des affectations</span>
                             </CardTitle>
                             <Button
                                 variant="ghost"
@@ -262,7 +262,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                                 <span className={`font-medium ${summary.isValid ? 'text-green-900' : 'text-orange-900'
                                     }`}>
                                     {summary.isValid
-                                        ? 'Toutes les gardes/vacations sont valides'
+                                        ? 'Toutes les affectations sont valides'
                                         : 'Des conflits doivent être résolus'
                                     }
                                 </span>
@@ -270,13 +270,13 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                             <div className={`text-sm ${summary.isValid ? 'text-green-700' : 'text-orange-700'
                                 }`}>
                                 {summary.isValid
-                                    ? 'Vous pouvez valider et appliquer ces gardes/vacations au planning.'
-                                    : 'Résolvez les conflits avant de pouvoir valider les gardes/vacations.'
+                                    ? 'Vous pouvez valider et appliquer ces affectations au planning.'
+                                    : 'Résolvez les conflits avant de pouvoir valider les affectations.'
                                 }
                             </div>
                         </div>
 
-                        {/* Détails des gardes/vacations */}
+                        {/* Détails des affectations */}
                         {attributions.length > 0 && (
                             <AssignmentDetails attributions={attributions} />
                         )}
@@ -285,8 +285,8 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                         <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                             <div className="text-sm text-gray-600">
                                 {summary.totalAssignments === 0
-                                    ? 'Aucune garde/vacation à valider'
-                                    : `${summary.totalAssignments} garde/vacation${summary.totalAssignments > 1 ? 's' : ''} à valider`
+                                    ? 'Aucune affectation à valider'
+                                    : `${summary.totalAssignments} affectation${summary.totalAssignments > 1 ? 's' : ''} à valider`
                                 }
                             </div>
 
@@ -307,7 +307,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                                     {canValidate ? (
                                         <>
                                             <CheckCircle className="w-4 h-4 mr-1" />
-                                            Valider les gardes/vacations
+                                            Valider les affectations
                                         </>
                                     ) : (
                                         <>

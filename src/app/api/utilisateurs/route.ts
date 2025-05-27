@@ -8,9 +8,6 @@ import { Role as PrismaRole, ProfessionalRole, Prisma } from '@prisma/client';
 // Importer les types d'erreurs spécifiques
 import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/library';
 
-jest.mock('@/lib/prisma');
-
-
 // Définir les enums localement pour éviter les problèmes d'import
 enum Role {
     ADMIN_TOTAL = 'ADMIN_TOTAL',

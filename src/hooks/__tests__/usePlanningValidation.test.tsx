@@ -437,7 +437,7 @@ describe('usePlanningValidation', () => {
                 suggestions = await result.current.getSuggestions(violation, mockAssignments);
             });
 
-            expect(suggestions).toContain('Réduire le nombre d\'gardes/vacations pour ce praticien');
+            expect(suggestions).toContain('Réduire le nombre d\'assignments pour ce praticien');
             expect(suggestions).toContain('Prévoir des jours de repos supplémentaires');
         });
 

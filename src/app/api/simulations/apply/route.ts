@@ -4,10 +4,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { applySimulationService } from '@/services/simulations/applySimulationService';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 /**
  * API pour appliquer un résultat de simulation au planning réel
@@ -123,7 +119,7 @@ async function checkUserRightsForSimulationApply(userId: number): Promise<boolea
 
         if (!user) return false;
 
-        // Vérifier les rôles (vous devrez adapter cette logique à votre modèle de données)
+        // Vérifier les rôles (vous devrez adapter cette logique à votre template de données)
         const allowedRoles = ['ADMIN', 'PLANNER', 'SUPER_USER'];
 
         // Si l'utilisateur a des rôles définis, vérifier s'il a un rôle autorisé

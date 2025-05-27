@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 interface RouteParams {
     params: {

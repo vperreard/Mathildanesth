@@ -6,11 +6,11 @@ import path from 'path';
 export default async function DocumentationPage() {
     // Lire les fichiers de documentation
     const technicalDoc = fs.readFileSync(
-        path.join(process.cwd(), 'docs/technical/tableaux de service-garde/vacation.md'),
+        path.join(process.cwd(), 'docs/technical/trameModeles-affectation.md'),
         'utf-8'
     );
     const userGuide = fs.readFileSync(
-        path.join(process.cwd(), 'docs/user-guides/admin-tableaux de service.md'),
+        path.join(process.cwd(), 'docs/user-guides/admin-trameModeles.md'),
         'utf-8'
     );
 

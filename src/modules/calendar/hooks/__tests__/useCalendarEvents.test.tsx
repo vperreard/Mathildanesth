@@ -38,8 +38,8 @@ describe('useCalendarEvents Hook', () => {
     let mockUpdateEventStatus: jest.MockedFunction<typeof calendarService.updateEventStatus>;
 
     const mockAssignmentEvents: AssignmentEvent[] = [
-        { id: 'event1', title: 'Garde/Vacation 1', start: '2023-06-15T09:00:00', end: '2023-06-15T10:00:00', type: CalendarEventType.ASSIGNMENT, locationId: 'location1' },
-        { id: 'event3', title: 'Garde/Vacation 2', start: '2023-06-16T14:00:00', end: '2023-06-16T15:00:00', type: CalendarEventType.ASSIGNMENT, locationId: 'location1' }
+        { id: 'event1', title: 'Affectation 1', start: '2023-06-15T09:00:00', end: '2023-06-15T10:00:00', type: CalendarEventType.ASSIGNMENT, locationId: 'location1' },
+        { id: 'event3', title: 'Affectation 2', start: '2023-06-16T14:00:00', end: '2023-06-16T15:00:00', type: CalendarEventType.ASSIGNMENT, locationId: 'location1' }
     ];
     const mockDutyEvents: DutyEvent[] = [
         { id: 'event2', title: 'Garde 1', start: '2023-06-15T11:00:00', end: '2023-06-15T12:30:00', type: CalendarEventType.DUTY, locationId: 'location2' }

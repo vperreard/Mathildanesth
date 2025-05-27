@@ -30,7 +30,7 @@ const CACHE_CONFIG = {
         staleTime: 1000 * 60 * 2, // 2 minutes
         cacheTime: 1000 * 60 * 5, // 5 minutes
     },
-    // Données temps réel (gardes/vacations en cours) - pas de cache
+    // Données temps réel (affectations en cours) - pas de cache
     realtime: {
         staleTime: 0,
         cacheTime: 1000 * 30, // 30 secondes
@@ -54,7 +54,7 @@ export const useOptimizedBlocOperatoire = (options: OptimizedBlocOperatoireOptio
         supervisors: ['supervisors', 'available', siteId].filter(Boolean),
         activityTypes: ['activity-types'],
         blocPlanning: (date: Date) => ['bloc-planning', date.toISOString(), siteId].filter(Boolean),
-        trameModeles: ['tableau de service-modeles', 'bloc', siteId].filter(Boolean)
+        trameModeles: ['trameModele-modeles', 'bloc', siteId].filter(Boolean)
     };
 
     // Préchargement intelligent des données critiques

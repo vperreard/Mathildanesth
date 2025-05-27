@@ -4,9 +4,6 @@ import { LeaveStatus, NotificationType } from '@prisma/client';
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { createNotification } from '@/lib/notifications';
 
-jest.mock('@/lib/prisma');
-
-
 /**
  * POST /api/admin/conges/[id]/approve
  * Approuve une demande de congé
@@ -91,7 +88,7 @@ export async function POST(
                 message: notificationMessage,
                 link: linkToLeave,
                 triggeredByUserId: Number(adminId), // L'admin qui a approuvé
-                // relatedLeaveId: updatedLeave.id // Si vous ajoutez une relation directe `relatedLeave` au modèle Notification
+                // relatedLeaveId: updatedLeave.id // Si vous ajoutez une relation directe `relatedLeave` au template Notification
             });
         }
 

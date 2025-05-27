@@ -127,7 +127,7 @@ describe('BlocPlanningService', () => {
     });
 
     describe('createOrUpdateBlocDayPlanningsFromTrames', () => {
-        it('devrait créer des plannings à partir de tableaux de service actives', async () => {
+        it('devrait créer des plannings à partir de trameModeles actives', async () => {
             // Arrange
             const params = {
                 siteId: mockSite.id,
@@ -140,7 +140,7 @@ describe('BlocPlanningService', () => {
             const mockTrame = {
                 id: 1,
                 isActive: true,
-                gardes/vacations: [{
+                affectations: [{
                     id: 1,
                     userId: mockUser.id,
                     chirurgienId: mockSurgeon.id,
@@ -180,14 +180,14 @@ describe('BlocPlanningService', () => {
             expect(result).toHaveLength(1);
             expect(mockPrismaClient.blocTramePlanning.findMany).toHaveBeenCalledWith({
                 where: { id: { in: [1] }, isActive: true },
-                include: { gardes/vacations: { include: { user: true, surgeon: true } } }
+                include: { affectations: { include: { user: true, surgeon: true } } }
             });
             expect(mockPrismaClient.blocDayPlanning.create).toHaveBeenCalled();
             expect(mockPrismaClient.blocRoomAssignment.create).toHaveBeenCalled();
             expect(mockPrismaClient.blocStaffAssignment.create).toHaveBeenCalled();
         });
 
-        it('devrait retourner un tableau vide si aucune tableau de service active', async () => {
+        it('devrait retourner un tableau vide si aucune trameModele active', async () => {
             // Arrange
             const params = {
                 siteId: mockSite.id,
@@ -206,7 +206,7 @@ describe('BlocPlanningService', () => {
             expect(result).toHaveLength(0);
         });
 
-        it('devrait gérer les conflits de tableaux de service pour la même salle', async () => {
+        it('devrait gérer les conflits de trameModeles pour la même salle', async () => {
             // Arrange
             const params = {
                 siteId: mockSite.id,
@@ -219,7 +219,7 @@ describe('BlocPlanningService', () => {
             const mockTrame = {
                 id: 1,
                 isActive: true,
-                gardes/vacations: [{
+                affectations: [{
                     id: 1,
                     userId: mockUser.id,
                     operatingRoomId: mockOperatingRoom.id,
@@ -275,7 +275,7 @@ describe('BlocPlanningService', () => {
             const mockTrame = {
                 id: 1,
                 isActive: true,
-                gardes/vacations: [{
+                affectations: [{
                     id: 1,
                     userId: mockUser.id,
                     operatingRoomId: mockOperatingRoom.id,
@@ -522,7 +522,7 @@ describe('BlocPlanningService', () => {
     });
 
     describe('addOrUpdateStaffAssignment', () => {
-        it('devrait ajouter une nouvelle garde/vacation de personnel', async () => {
+        it('devrait ajouter une nouvelle affectation de personnel', async () => {
             // Arrange
             const blocRoomAssignmentId = 'attribution-1';
             const userId = mockUser.id;
@@ -569,7 +569,7 @@ describe('BlocPlanningService', () => {
             });
         });
 
-        it('devrait mettre à jour une garde/vacation existante', async () => {
+        it('devrait mettre à jour une affectation existante', async () => {
             // Arrange
             const blocRoomAssignmentId = 'attribution-1';
             const userId = mockUser.id;
@@ -619,7 +619,7 @@ describe('BlocPlanningService', () => {
     });
 
     describe('removeStaffAssignment', () => {
-        it('devrait supprimer une garde/vacation de personnel', async () => {
+        it('devrait supprimer une affectation de personnel', async () => {
             // Arrange
             const staffAssignmentId = 'staff-1';
             const initiatorUserId = mockUser.id;
@@ -643,7 +643,7 @@ describe('BlocPlanningService', () => {
             });
         });
 
-        it('devrait lever une erreur si l\'garde/vacation n\'existe pas', async () => {
+        it('devrait lever une erreur si l\'affectation n\'existe pas', async () => {
             // Arrange
             const staffAssignmentId = 'non-existent';
             const initiatorUserId = mockUser.id;
@@ -653,7 +653,7 @@ describe('BlocPlanningService', () => {
             // Act & Assert
             await expect(
                 service.removeStaffAssignment(staffAssignmentId, initiatorUserId)
-            ).rejects.toThrow('Garde/Vacation de personnel non trouvée');
+            ).rejects.toThrow('Affectation de personnel non trouvée');
         });
     });
 

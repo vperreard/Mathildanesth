@@ -164,7 +164,7 @@ export function useOptimizedPlanning({
         [localUpdates, saveDelay]
     );
 
-    // Mettre à jour une garde/vacation localement
+    // Mettre à jour une affectation localement
     const updateAssignment = useCallback((assignmentId: string, changes: Partial<Attribution>) => {
         const update: PlanningUpdate = {
             assignmentId,

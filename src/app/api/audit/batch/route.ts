@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuditEntry } from '@/services/AuditService';
 
-jest.mock('@/lib/prisma');
-
-
 /**
  * API pour traiter des lots d'entrées d'audit
  * Cette API est utilisée par le service d'audit optimisé

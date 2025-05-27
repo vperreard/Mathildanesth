@@ -55,7 +55,7 @@ export class TemporalRulesService {
     }
 
     /**
-     * Vérifie si une garde/vacation respecte les règles d'espacement des gardes
+     * Vérifie si une affectation respecte les règles d'espacement des gardes
      */
     validateShiftSpacing(rule: Rule, context: RuleEvaluationContext): RuleEvaluationResult {
         const { proposedShift, existingShifts, doctor } = context;
@@ -130,7 +130,7 @@ export class TemporalRulesService {
     }
 
     /**
-     * Vérifie si une garde/vacation respecte les règles de repos obligatoire
+     * Vérifie si une affectation respecte les règles de repos obligatoire
      */
     validateMandatoryRest(rule: Rule, context: RuleEvaluationContext): RuleEvaluationResult {
         const { proposedShift, doctor, existingShifts } = context;
@@ -221,7 +221,7 @@ export class TemporalRulesService {
     }
 
     /**
-     * Vérifie si une garde/vacation respecte les règles d'incompatibilité
+     * Vérifie si une affectation respecte les règles d'incompatibilité
      */
     validateIncompatibilities(rule: Rule, context: RuleEvaluationContext): RuleEvaluationResult {
         const { proposedShift, doctor, existingShifts } = context;
@@ -245,7 +245,7 @@ export class TemporalRulesService {
             shift => shift.doctorId === doctor.id
         );
 
-        // Vérifier les incompatibilités de types d'garde/vacation
+        // Vérifier les incompatibilités de types d'affectation
         for (const incompatibleTypes of this.config.incompatibilities.shiftTypes) {
             if (incompatibleTypes.includes(proposedShift.type)) {
                 // Trouver toutes les gardes/vacations incompatibles

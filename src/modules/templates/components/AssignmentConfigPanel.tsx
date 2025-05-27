@@ -37,7 +37,7 @@ import {
     PosteConfiguration,
     PosteStatus,
     SkillLevel
-} from '../types/modèle';
+} from '../types/template';
 import { useDrag, useDrop } from 'react-dnd';
 
 // Type d'élément pour le drag and drop
@@ -168,15 +168,14 @@ const DraggablePoste: React.FC<DraggablePosteProps> = ({
 };
 
 /**
- * Composant pour configurer une garde/vacation spécifique
+ * Composant pour configurer une affectation spécifique
  */
-const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
-    garde/vacation,
+const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({ affectation,
     onChange: onChangeProp,
     availablePostes,
     isLoading = false
 }) => {
-    console.log('[AssignmentConfigPanel DEBUG] Composant monté/rendu. Props reçues - garde/vacation:', JSON.parse(JSON.stringify(garde/vacation)), 'isLoading:', isLoading);
+    console.log('[AssignmentConfigPanel DEBUG] Composant monté/rendu. Props reçues - affectation:', JSON.parse(JSON.stringify(affectation)), 'isLoading:', isLoading);
 
     // Typer explicitement la callback pour clarifier l'intention
     const onChange = onChangeProp as (config: AffectationConfiguration) => void;
@@ -192,14 +191,14 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
 
     // State local pour la configuration en cours d'édition
     const [config, setConfig] = useState<AffectationConfiguration>(() => {
-        const initialConfig = garde/vacation.configuration;
-        const affectationEstOuverte = garde/vacation.ouvert; // Lire l'état 'ouvert' de l'garde/vacation parente
+        const initialConfig = affectation.configuration;
+        const affectationEstOuverte = affectation.ouvert; // Lire l'état 'ouvert' de l'affectation parente
 
         if (initialConfig && initialConfig.postes && initialConfig.postes.length > 0 && initialConfig.postes.every(p => p.quantite > 0)) {
             // Si une config avec des postes valides (quantité > 0) existe, l'utiliser
             return initialConfig;
         } else if (affectationEstOuverte) {
-            // Si l'garde/vacation est ouverte mais n'a pas de postes valides dans sa config
+            // Si l'affectation est ouverte mais n'a pas de postes valides dans sa config
             // initialiser avec un poste par défaut.
             // Conserver le nom et les heures de la config si existants
             return {
@@ -216,7 +215,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
                 heureFin: initialConfig?.heureFin || '',
             };
         } else {
-            // Si l'garde/vacation est fermée ou n'a pas de config / postes valides, initialiser avec postes vides
+            // Si l'affectation est fermée ou n'a pas de config / postes valides, initialiser avec postes vides
             return {
                 id: initialConfig?.id || `conf_${Date.now()}`,
                 nom: initialConfig?.nom || '',
@@ -398,8 +397,8 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
     return (
         <Card>
             <CardHeader
-                title={`Configuration: ${garde/vacation.type} - ${garde/vacation.jour}`}
-                subheader="Configurez les détails de cette garde/vacation"
+                title={`Configuration: ${affectation.type} - ${affectation.jour}`}
+                subheader="Configurez les détails de cette affectation"
             />
             <Divider />
             <CardContent>
@@ -411,7 +410,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
                             label="Nom de la configuration"
                             value={config.nom || ''}
                             onChange={(e) => handleConfigChange('nom', e.target.value)}
-                            placeholder={`${garde/vacation.type} ${garde/vacation.jour}`}
+                            placeholder={`${affectation.type} ${affectation.jour}`}
                         />
                     </Box>
                     <Box sx={{ flex: { xs: '1 1 50%', md: '1 1 25%' } }}>
@@ -445,7 +444,7 @@ const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
 
                 {config.postes.length === 0 ? (
                     <Alert severity="info" sx={{ mb: 3 }}>
-                        Aucun poste configuré pour cette garde/vacation. Ajoutez des postes ci-dessous.
+                        Aucun poste configuré pour cette affectation. Ajoutez des postes ci-dessous.
                     </Alert>
                 ) : (
                     <Box sx={{ mb: 3 }}>

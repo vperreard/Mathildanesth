@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient, AssignmentSwapStatus } from '@prisma/client';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
-import { AssignmentSwapEventType, sendAssignmentSwapNotification } from '@/lib/attribution-notification-utils';
+import { AssignmentSwapEventType, sendAssignmentSwapNotification } from '@/lib/assignment-notification-utils';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
+import { prisma } from "@/lib/prisma";
 
 /**
- * PUT /api/gardes/vacations/echange/[id]/admin
+ * PUT /api/affectations/echange/[id]/admin
  * Validation administrative d'une demande d'échange déjà acceptée par les utilisateurs
  */
 export async function PUT(
@@ -17,7 +14,7 @@ export async function PUT(
     { params }: { params: { id: string } }
 ) {
     const { id } = params;
-    console.log(`\n--- PUT /api/gardes/vacations/echange/${id}/admin START ---`);
+    console.log(`\n--- PUT /api/affectations/echange/${id}/admin START ---`);
 
     // Authentification
     const token = request.cookies.get('token')?.value ||
@@ -25,13 +22,13 @@ export async function PUT(
             request.headers.get('Authorization')?.substring(7) : null);
 
     if (!token) {
-        console.error(`PUT /api/gardes/vacations/echange/${id}/admin: Token manquant`);
+        console.error(`PUT /api/affectations/echange/${id}/admin: Token manquant`);
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     const authResult = await verifyAuthToken(token);
     if (!authResult.authenticated) {
-        console.error(`PUT /api/gardes/vacations/echange/${id}/admin: Token invalide`);
+        console.error(`PUT /api/affectations/echange/${id}/admin: Token invalide`);
         return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
     }
 
@@ -40,7 +37,7 @@ export async function PUT(
     const isAdmin = authResult.role === 'ADMIN_TOTAL' || authResult.role === 'ADMIN_PARTIEL';
 
     if (!isAdmin) {
-        console.warn(`PUT /api/gardes/vacations/echange/${id}/admin: Utilisateur ${userId} n'est pas administrateur`);
+        console.warn(`PUT /api/affectations/echange/${id}/admin: Utilisateur ${userId} n'est pas administrateur`);
         return NextResponse.json({ error: 'Action réservée aux administrateurs' }, { status: 403 });
     }
 
@@ -50,7 +47,7 @@ export async function PUT(
 
         // Validation des paramètres
         if (!action || !['approve', 'reject'].includes(action)) {
-            console.warn(`PUT /api/gardes/vacations/echange/${id}/admin: Action invalide - ${action}`);
+            console.warn(`PUT /api/affectations/echange/${id}/admin: Action invalide - ${action}`);
             return NextResponse.json({
                 error: 'L\'action doit être "approve" ou "reject"'
             }, { status: 400 });
@@ -69,7 +66,7 @@ export async function PUT(
 
         // Vérifier que la demande existe
         if (!swapRequest) {
-            console.warn(`PUT /api/gardes/vacations/echange/${id}/admin: Demande introuvable`);
+            console.warn(`PUT /api/affectations/echange/${id}/admin: Demande introuvable`);
             return NextResponse.json({ error: 'Demande d\'échange introuvable' }, { status: 404 });
         }
 
@@ -78,8 +75,8 @@ export async function PUT(
             if (action === 'approve') {
                 // Approuver l'échange
 
-                // Pour une approbation, nous devons effectuer l'échange des gardes/vacations
-                // 1. Mettre à jour l'garde/vacation proposée (maintenant assignée à la cible)
+                // Pour une approbation, nous devons effectuer l'échange des affectations
+                // 1. Mettre à jour l'affectation proposée (maintenant assignée à la cible)
                 if (swapRequest.proposedAssignmentId && swapRequest.targetUserId) {
                     await tx.attribution.update({
                         where: { id: swapRequest.proposedAssignmentId },
@@ -89,7 +86,7 @@ export async function PUT(
                     });
                 }
 
-                // 2. Si une garde/vacation est demandée en retour, l'assigner à l'initiateur
+                // 2. Si une affectation est demandée en retour, l'assigner à l'initiateur
                 if (swapRequest.requestedAssignmentId && swapRequest.initiatorUserId) {
                     await tx.attribution.update({
                         where: { id: swapRequest.requestedAssignmentId },
@@ -134,7 +131,7 @@ export async function PUT(
                     if (notif2) notifications.push(notif2);
                 }
 
-                console.log(`PUT /api/gardes/vacations/echange/${id}/admin: Échange approuvé`);
+                console.log(`PUT /api/affectations/echange/${id}/admin: Échange approuvé`);
                 return { updatedSwapRequest, notifications };
 
             } else {
@@ -175,19 +172,19 @@ export async function PUT(
                     if (notif2) notifications.push(notif2);
                 }
 
-                console.log(`PUT /api/gardes/vacations/echange/${id}/admin: Échange rejeté`);
+                console.log(`PUT /api/affectations/echange/${id}/admin: Échange rejeté`);
                 return { updatedSwapRequest, notifications };
             }
         });
 
-        console.log(`PUT /api/gardes/vacations/echange/${id}/admin: Action "${action}" terminée avec succès`);
-        console.log(`PUT /api/gardes/vacations/echange/${id}/admin: ${result.notifications.length} notifications envoyées`);
-        console.log(`--- PUT /api/gardes/vacations/echange/${id}/admin END ---\n`);
+        console.log(`PUT /api/affectations/echange/${id}/admin: Action "${action}" terminée avec succès`);
+        console.log(`PUT /api/affectations/echange/${id}/admin: ${result.notifications.length} notifications envoyées`);
+        console.log(`--- PUT /api/affectations/echange/${id}/admin END ---\n`);
 
         return NextResponse.json(result.updatedSwapRequest);
 
     } catch (error: any) {
-        console.error(`PUT /api/gardes/vacations/echange/${id}/admin: Erreur serveur`, error);
+        console.error(`PUT /api/affectations/echange/${id}/admin: Erreur serveur`, error);
         return NextResponse.json({
             error: 'Erreur lors du traitement administratif de la demande d\'échange',
             details: error.message

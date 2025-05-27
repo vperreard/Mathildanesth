@@ -21,9 +21,6 @@ import {
 } from '../types/conflict';
 import { WorkflowAction, WorkflowActionType, WorkflowRules } from '../types/request';
 
-jest.mock('@/lib/prisma');
-
-
 import { calculateLeaveCountedDays } from './leaveCalculator';
 import { WorkSchedule } from '../../profiles/types/workSchedule';
 import { Weekday } from '../../profiles/types/workSchedule';
@@ -569,7 +566,7 @@ export const checkLeaveAllowance = async (
 export const calculateLeaveDays = (
   startDate: Date,
   endDate: Date,
-  planning médical: WorkSchedule
+  planningMedical: WorkSchedule
 ): number => {
   const naturalDays = differenceInDays(endDate, startDate) + 1;
 
@@ -591,7 +588,7 @@ export const calculateLeaveDays = (
 
     const weekday = weekdayMap[dayOfWeek];
 
-    if (planning médical.workingDays?.includes(weekday)) {
+    if (planningMedical.workingDays?.includes(weekday)) {
       countedDays++;
     }
 
@@ -811,8 +808,7 @@ export const deleteRecurringLeaveRequest = async (
 ): Promise<{ success: boolean; deletedOccurrences?: number }> => {
   const operationKey = 'LeaveService.deleteRecurringLeaveRequest';
   try {
-    const response = await fetch(
-      `/api/conges/recurrents/${id}?deleteOccurrences=${deleteOccurrences}`,
+    const response = await fetch(`http://localhost:3000/api/conges/recurrents/${id}?deleteOccurrences=${deleteOccurrences}`,
       {
         method: 'DELETE',
       }

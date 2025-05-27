@@ -1,4 +1,4 @@
-import { Attribution, AssignmentStatus } from '@/types/attribution';
+import { Attribution, AssignmentStatus } from '@/types/assignment';
 import { ShiftType } from '@/types/common';
 import { User, LeaveStatus } from '@/types/user';
 import { RulesConfiguration } from '@/types/rules';
@@ -36,7 +36,7 @@ export class PlanningGeneratorService {
      * Génère un planning automatique en respectant les contraintes
      */
     public async generatePlanning(): Promise<Attribution[]> {
-        // Réinitialiser les gardes/vacations
+        // Réinitialiser les affectations
         this.attributions = [];
 
         // Générer le planning jour par jour
@@ -176,9 +176,9 @@ export class PlanningGeneratorService {
             return false;
         }
 
-        // Vérification des règles d'incompatibilité entre types d'gardes/vacations
+        // Vérification des règles d'incompatibilité entre types d'affectations
 
-        // 1. Vérifier si l'utilisateur a déjà une garde/vacation le même jour
+        // 1. Vérifier si l'utilisateur a déjà une affectation le même jour
         const sameDayAssignments = this.attributions.filter(a =>
             a.userId === user.id &&
             isSameDay(new Date(a.startDate), date)
@@ -188,7 +188,7 @@ export class PlanningGeneratorService {
         if (sameDayAssignments.length > 0) {
             const existingShiftTypes = sameDayAssignments.map(a => a.shiftType);
 
-            // Règle: Garde est incompatible avec toute autre garde/vacation
+            // Règle: Garde est incompatible avec toute autre affectation
             if (shiftType.includes('GARDE') || existingShiftTypes.some(type => type.includes('GARDE'))) {
                 console.log(`${logPrefix} REJECTED due to GARDE incompatibility`);
                 return false;
@@ -208,7 +208,7 @@ export class PlanningGeneratorService {
                     return false;
                 }
 
-                // Astreinte est compatible avec d'autres gardes/vacations, donc on continue
+                // Astreinte est compatible avec d'autres affectations, donc on continue
             }
             else if (shiftType.includes('CONSULTATION')) {
                 // Règle: On peut être en consultation le matin OU l'après-midi (pas les deux)
@@ -333,7 +333,7 @@ export class PlanningGeneratorService {
     }
 
     /**
-     * Crée une nouvelle garde/vacation
+     * Crée une nouvelle affectation
      */
     private createAssignment(user: User, date: Date, shiftType: ShiftType): void {
         const startTime = this.rules.shiftStartTimes[shiftType];

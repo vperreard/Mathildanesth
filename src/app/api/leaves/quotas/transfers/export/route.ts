@@ -8,10 +8,6 @@ import { PDFDocument, rgb } from 'pdf-lib';
 import { parse as csvParse, stringify as csvStringify } from 'csv-string';
 import { formatDate } from '@/utils/dateUtils';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 /**
  * GET /api/conges/quotas/transfers/export

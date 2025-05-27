@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Calendar, BarChart3, Settings, Users, ClipboardList, Stethoscope, AlertCircle } from 'lucide-react';
 import AdminRequestsDashboard from '@/components/AdminRequestsDashboard';
 import WeeklyPlanningWidget from '@/components/medical/WeeklyPlanningWidget';
+import { MobileDashboard } from '@/components/dashboard/MobileDashboard';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +14,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function HomePage() {
     const [mounted, setMounted] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const { user, isLoading } = useAuth();
+    
+    // Détecte si l'écran est mobile
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // Déterminer si l'utilisateur est un admin (total ou partiel)
     const isAdmin = user && (user.role === 'ADMIN_TOTAL' || user.role === 'ADMIN_PARTIEL');
@@ -63,7 +76,7 @@ export default function HomePage() {
         },
         {
             title: "Bloc Opératoire",
-            description: "Gestion des salles et tableaux de service",
+            description: "Gestion des salles et trameModeles",
             icon: <Stethoscope className="w-6 h-6 text-white" />,
             href: "/bloc-operatoire",
             gradient: "from-tertiary-500 to-rose-500",
@@ -100,8 +113,70 @@ export default function HomePage() {
 
     if (!mounted) return null;
 
-    // Si l'utilisateur est connecté, afficher directement son planning
+    // Si l'utilisateur est connecté, afficher le dashboard approprié
     if (user && !isLoading) {
+        // Dashboard mobile optimisé
+        if (isMobile) {
+            const mockStats = {
+                todayPlannings: 3,
+                pendingLeaves: 2,
+                activeInterventions: 1,
+                urgentNotifications: 1,
+                onCallToday: true,
+                guardTonight: false
+            };
+
+            const mockTodayEvents = [
+                {
+                    id: '1',
+                    type: 'vacation' as const,
+                    title: 'Bloc Orthopédie - Salle 3',
+                    time: '08:00 - 12:00',
+                    location: 'Bloc C',
+                    status: 'confirmed' as const
+                },
+                {
+                    id: '2',
+                    type: 'oncall' as const,
+                    title: 'Astreinte obstétrique',
+                    time: '18:00 - 08:00',
+                    location: 'Maternité',
+                    status: 'pending' as const
+                }
+            ];
+
+            return (
+                <MobileDashboard
+                    user={{
+                        name: user.prenom || user.firstName || 'Utilisateur',
+                        role: user.role || 'Médecin',
+                        specialties: ['Anesthésie']
+                    }}
+                    stats={mockStats}
+                    todayEvents={mockTodayEvents}
+                    onQuickAction={(action) => {
+                        switch (action) {
+                            case 'planning':
+                                window.location.href = '/planning';
+                                break;
+                            case 'bloc':
+                                window.location.href = '/bloc-operatoire';
+                                break;
+                            case 'conges':
+                                window.location.href = '/leaves';
+                                break;
+                            case 'urgence':
+                                window.location.href = '/notifications?urgent=true';
+                                break;
+                            default:
+                                break;
+                        }
+                    }}
+                />
+            );
+        }
+
+        // Dashboard desktop existant
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 dark:bg-gray-900">
                 <div className="container mx-auto px-4 py-8">

@@ -86,12 +86,12 @@ describe('Module de Planning - Tests d\'intégration', () => {
     await integrationService.disconnect();
   });
 
-  describe('Génération de planning avec tableaux de service', () => {
-    it('devrait générer un planning complet avec tableaux de service et gardes', async () => {
+  describe('Génération de planning avec trameModeles', () => {
+    it('devrait générer un planning complet avec trameModeles et gardes', async () => {
       // Mock des données
       const mockTrame = {
         id: 1,
-        name: 'Tableau de service Test',
+        name: 'TrameModele Test',
         isActive: true,
         siteId: 'site-123',
         dateDebutEffet: new Date('2024-01-01'),
@@ -212,7 +212,7 @@ describe('Module de Planning - Tests d\'intégration', () => {
       expect(validation.errors[0]).toContain('2 jour(s) sans garde');
     });
 
-    it('devrait détecter les conflits d\'gardes/vacations', async () => {
+    it('devrait détecter les conflits d\'assignments', async () => {
       // Premier appel : pas de jours sans garde
       prisma.$queryRaw.mockResolvedValueOnce([]);
       

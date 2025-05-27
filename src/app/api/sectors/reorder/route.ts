@@ -3,10 +3,6 @@ import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { headers } from 'next/headers';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 interface SectorOrder {
     id: number;

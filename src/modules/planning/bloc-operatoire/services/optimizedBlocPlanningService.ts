@@ -15,9 +15,6 @@ import {
     Prisma
 } from '@prisma/client';
 
-jest.mock('@/lib/prisma');
-
-
 interface CreateOrUpdatePlanningsParams {
     siteId: string;
     startDate: Date;
@@ -207,7 +204,7 @@ export class OptimizedBlocPlanningService {
             const generatedPlannings: BlocDayPlanning[] = [];
 
             // Requête optimisée pour récupérer toutes les données nécessaires en une fois
-            const tableaux de service = await tx.blocTramePlanning.findMany({
+            const trameModeles = await tx.blocTramePlanning.findMany({
                 where: {
                     id: { in: trameIds },
                     isActive: true
@@ -215,7 +212,7 @@ export class OptimizedBlocPlanningService {
                 select: {
                     id: true,
                     name: true,
-                    gardes/vacations: {
+                    affectations: {
                         select: {
                             id: true,
                             userId: true,
@@ -232,8 +229,8 @@ export class OptimizedBlocPlanningService {
                 }
             });
 
-            if (!tableaux de service.length) {
-                logger.warn("Aucune tableau de service active trouvée pour les IDs fournis");
+            if (!trameModeles.length) {
+                logger.warn("Aucune trameModele active trouvée pour les IDs fournis");
                 return [];
             }
 
@@ -241,8 +238,8 @@ export class OptimizedBlocPlanningService {
             const userIds = new Set<number>();
             const surgeonIds = new Set<number>();
             
-            tableaux de service.forEach(tableau de service => {
-                tableau de service.gardes/vacations.forEach(aff => {
+            trameModeles.forEach(trameModele => {
+                trameModele.affectations.forEach(aff => {
                     if (aff.userId) userIds.add(aff.userId);
                     if (aff.chirurgienId) surgeonIds.add(aff.chirurgienId);
                 });
@@ -320,7 +317,7 @@ export class OptimizedBlocPlanningService {
                 const dayOfWeek = this.mapDateToDayOfWeek(currentDate);
                 const weekType = this.getWeekType(currentDate);
 
-                let existingPlanning = planningsByDate.get(dateStr);
+                const existingPlanning = planningsByDate.get(dateStr);
 
                 if (!existingPlanning) {
                     // Créer le planning
@@ -332,10 +329,10 @@ export class OptimizedBlocPlanningService {
                         status: BlocPlanningStatus.DRAFT
                     });
                     
-                    // Traiter les gardes/vacations pour ce nouveau planning
+                    // Traiter les affectations pour ce nouveau planning
                     this.processTrameAffectations(
                         newPlanningId,
-                        tableaux de service,
+                        trameModeles,
                         dayOfWeek,
                         weekType,
                         currentDate,
@@ -360,10 +357,10 @@ export class OptimizedBlocPlanningService {
                         where: { blocDayPlanningId: existingPlanning.id } 
                     });
 
-                    // Traiter les gardes/vacations
+                    // Traiter les affectations
                     this.processTrameAffectations(
                         existingPlanning.id,
-                        tableaux de service,
+                        trameModeles,
                         dayOfWeek,
                         weekType,
                         currentDate,
@@ -384,7 +381,7 @@ export class OptimizedBlocPlanningService {
                 });
             }
 
-            // Créer toutes les gardes/vacations en une fois
+            // Créer toutes les affectations en une fois
             if (assignmentsToCreate.length > 0) {
                 await tx.blocRoomAssignment.createMany({
                     data: assignmentsToCreate
@@ -444,7 +441,7 @@ export class OptimizedBlocPlanningService {
 
     private processTrameAffectations(
         planningId: string,
-        tableaux de service: any[],
+        trames: any[],
         dayOfWeek: DayOfWeek,
         weekType: WeekType,
         currentDate: Date,
@@ -455,8 +452,8 @@ export class OptimizedBlocPlanningService {
     ) {
         const roomPeriodAssignments = new Map<string, any>();
 
-        tableaux de service.forEach(tableau de service => {
-            tableau de service.gardes/vacations.forEach((aff: any) => {
+        trameModeles.forEach(trameModele => {
+            trameModele.affectations.forEach((aff: any) => {
                 if (aff.jourSemaine !== dayOfWeek || 
                     (aff.typeSemaine !== WeekType.ALL && aff.typeSemaine !== weekType)) {
                     return;

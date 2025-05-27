@@ -13,10 +13,6 @@ import { BlocPlanningService } from '@/modules/planning/bloc-operatoire/services
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 const planningService = new BlocPlanningService();
 
 export async function GET(request: Request) {
@@ -123,7 +119,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Format de date invalide' }, { status: 400 });
         }
 
-        // Utiliser le service pour créer les plannings à partir des tableaux de service
+        // Utiliser le service pour créer les plannings à partir des trameModeles
         const generatedPlannings = await planningService.createOrUpdateBlocDayPlanningsFromTrames({
             siteId,
             startDate: start,

@@ -286,7 +286,7 @@ export default function VisualizationsPage() {
                 <TabsContent value="sankey" className="w-full">
                     <SankeyChart
                         data={sankeyData}
-                        title="Flux d'garde/vacation du personnel"
+                        title="Flux d'affectation du personnel"
                         height={600}
                         width={1000}
                         onNodeClick={(node) => {
@@ -341,7 +341,7 @@ export default function VisualizationsPage() {
                         <div className="text-sm space-y-2">
                             <p><strong>Applications dans la planification:</strong></p>
                             <ul className="list-disc pl-5 space-y-1">
-                                <li>Garde/Vacation du personnel aux services et aux salles</li>
+                                <li>Affectation du personnel aux services et aux salles</li>
                                 <li>Répartition des heures de travail par type d'activité</li>
                                 <li>Flux de patients entre services</li>
                                 <li>Allocation des compétences selon les besoins</li>

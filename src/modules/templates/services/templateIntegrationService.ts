@@ -1,14 +1,14 @@
-import { PlanningTemplate, AffectationConfiguration } from '../types/modèle';
+import { PlanningTemplate, AffectationConfiguration } from '../types/template';
 import { templateService } from './templateService';
 
 /**
- * Service d'intégration pour les tableaux de service de planning
+ * Service d'intégration pour les trameModeles de planning
  * Gère l'intégration avec d'autres modules, l'exportation et l'importation
  */
 export const templateIntegrationService = {
     /**
-     * Exporte une tableau de service au format JSON avec métadonnées
-     * @param templateId ID de la tableau de service à exporter
+     * Exporte une trameModele au format JSON avec métadonnées
+     * @param templateId ID de la trameModele à exporter
      * @returns Promise avec un objet Blob contenant les données
      */
     async exportTemplateToJSON(templateId: string): Promise<Blob> {
@@ -21,13 +21,13 @@ export const templateIntegrationService = {
     },
 
     /**
-     * Déclenche le téléchargement d'une tableau de service au format JSON
-     * @param templateId ID de la tableau de service à télécharger
-     * @param fileName Nom du fichier à générer (défaut: nom de la tableau de service)
+     * Déclenche le téléchargement d'une trameModele au format JSON
+     * @param templateId ID de la trameModele à télécharger
+     * @param fileName Nom du fichier à générer (défaut: nom de la trameModele)
      */
     async downloadTemplateAsJSON(templateId: string, fileName?: string): Promise<void> {
         try {
-            // Récupérer la tableau de service pour avoir son nom si fileName n'est pas fourni
+            // Récupérer la trameModele pour avoir son nom si fileName n'est pas fourni
             const modèle = await templateService.getTemplateById(templateId);
             if (!modèle) {
                 throw new Error(`Tableau de service avec l'ID ${templateId} non trouvée`);
@@ -36,7 +36,7 @@ export const templateIntegrationService = {
             // Générer le nom du fichier si non fourni
             const safeFileName = fileName || `trame_${modèle.nom.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
 
-            // Obtenir le blob JSON de la tableau de service
+            // Obtenir le blob JSON de la trameModele
             const blob = await this.exportTemplateToJSON(templateId);
 
             // Créer un objet URL pour le blob
@@ -61,9 +61,9 @@ export const templateIntegrationService = {
     },
 
     /**
-     * Importe une tableau de service depuis un fichier JSON
+     * Importe une trameModele depuis un fichier JSON
      * @param file Fichier JSON à importer
-     * @returns Promise avec la tableau de service importée
+     * @returns Promise avec la trameModele importée
      */
     async importTemplateFromJSON(file: File): Promise<PlanningTemplate> {
         try {
@@ -75,10 +75,10 @@ export const templateIntegrationService = {
     },
 
     /**
-     * Duplique une tableau de service existante avec un nouveau nom
-     * @param templateId ID de la tableau de service à dupliquer
+     * Duplique une trameModele existante avec un nouveau nom
+     * @param templateId ID de la trameModele à dupliquer
      * @param newName Nouveau nom pour la copie (optionnel)
-     * @returns Promise avec la nouvelle tableau de service
+     * @returns Promise avec la nouvelle trameModele
      */
     async duplicateTemplate(templateId: string, newName?: string): Promise<PlanningTemplate> {
         try {
@@ -98,8 +98,8 @@ export const templateIntegrationService = {
     },
 
     /**
-     * Applique une tableau de service à un planning pour une période spécifique
-     * @param templateId ID de la tableau de service à appliquer
+     * Applique une trameModele à un planning pour une période spécifique
+     * @param templateId ID de la trameModele à appliquer
      * @param dateDebut Date de début de la période d'application
      * @param dateFin Date de fin de la période d'application
      * @returns Promise avec l'ID du planning généré
@@ -113,7 +113,7 @@ export const templateIntegrationService = {
 
             // Cette fonction est une simulation, dans un cas réel,
             // elle communiquerait avec le module de planning
-            console.log(`Application de la tableau de service ${modèle.nom} du ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}`);
+            console.log(`Application de la trameModele ${modèle.nom} du ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}`);
 
             // Simuler un délai réseau
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -121,7 +121,7 @@ export const templateIntegrationService = {
             // Retourner un ID fictif de planning généré
             return `planning_${Date.now()}`;
         } catch (error) {
-            console.error('Erreur lors de l\'application de la tableau de service au planning:', error);
+            console.error('Erreur lors de l\'application de la trameModele au planning:', error);
             throw error;
         }
     },
@@ -183,8 +183,8 @@ export const templateIntegrationService = {
     },
 
     /**
-     * Vérifier la compatibilité d'une tableau de service avec un planning existant
-     * @param templateId ID de la tableau de service à vérifier
+     * Vérifier la compatibilité d'une trameModele avec un planning existant
+     * @param templateId ID de la trameModele à vérifier
      * @param planningId ID du planning existant
      * @returns Promise avec un rapport de compatibilité
      */
@@ -195,7 +195,7 @@ export const templateIntegrationService = {
         try {
             // Cette fonction est une simulation, dans un cas réel,
             // elle vérifierait réellement la compatibilité avec le module de planning
-            console.log(`Vérification de la compatibilité de la tableau de service ${templateId} avec le planning ${planningId}`);
+            console.log(`Vérification de la compatibilité de la trameModele ${templateId} avec le planning ${planningId}`);
 
             // Simuler un délai réseau
             await new Promise(resolve => setTimeout(resolve, 800));

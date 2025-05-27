@@ -80,7 +80,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
         setRows(medecinRows);
     }, [medecins, attributions]);
 
-    // Valider les gardes/vacations
+    // Valider les affectations
     const validateAssignments = useCallback(async () => {
         // Construire le contexte pour l'évaluation des règles
         const context = {
@@ -126,7 +126,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
             return;
         }
 
-        // Récupérer l'garde/vacation déplacée
+        // Récupérer l'affectation déplacée
         const sourceColumnId = source.droppableId;
         const sourceIndex = source.index;
         let draggedAssignment: Attribution | null = null;
@@ -139,13 +139,13 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
 
         if (!draggedAssignment) return;
 
-        // Copier toutes les gardes/vacations
+        // Copier toutes les affectations
         const newAssignments = [...attributions];
 
-        // Mettre à jour la date de l'garde/vacation déplacée
+        // Mettre à jour la date de l'affectation déplacée
         const destinationDate = columns.find(c => c.id === destination.droppableId)?.date;
         if (destinationDate) {
-            // Trouver l'index de l'garde/vacation dans la liste complète
+            // Trouver l'index de l'affectation dans la liste complète
             const assignmentIndex = newAssignments.findIndex(a => a.id === draggedAssignment?.id);
 
             if (assignmentIndex !== -1) {
@@ -171,7 +171,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
         setSelectedViolation(null);
         setIsDialogOpen(false);
 
-        // Revalider les gardes/vacations
+        // Revalider les affectations
         validateAssignments();
     };
 
@@ -185,7 +185,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
     const generateResolutionOptions = (violation: RuleViolation): ResolutionOption[] => {
         const options: ResolutionOption[] = [];
 
-        // Pour chaque garde/vacation concernée, suggérer de la supprimer
+        // Pour chaque affectation concernée, suggérer de la supprimer
         violation.affectedAssignments.forEach(assignmentId => {
             const attribution = attributions.find(a => a.id === assignmentId);
 
@@ -194,7 +194,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
                 const medecin = medecins.find(m => parseInt(m.id) === medecinId);
 
                 options.push({
-                    description: `Supprimer l'garde/vacation de ${medecin?.prenom} ${medecin?.nom} le ${new Intl.DateTimeFormat('fr-FR').format(attribution.date)}`,
+                    description: `Supprimer l'affectation de ${medecin?.prenom} ${medecin?.nom} le ${new Intl.DateTimeFormat('fr-FR').format(attribution.date)}`,
                     impact: 50,
                     action: () => {
                         const newAssignments = attributions.filter(a => a.id !== assignmentId);
@@ -204,7 +204,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
             }
         });
 
-        // Suggérer d'échanger les gardes/vacations si possible
+        // Suggérer d'échanger les affectations si possible
         if (violation.affectedAssignments.length >= 2) {
             const assignment1 = attributions.find(a => a.id === violation.affectedAssignments[0]);
             const assignment2 = attributions.find(a => a.id === violation.affectedAssignments[1]);
@@ -214,7 +214,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
                 const medecin2 = medecins.find(m => parseInt(m.id) === assignment2.userId);
 
                 options.push({
-                    description: `Échanger les gardes/vacations entre ${medecin1?.prenom} ${medecin1?.nom} et ${medecin2?.prenom} ${medecin2?.nom}`,
+                    description: `Échanger les affectations entre ${medecin1?.prenom} ${medecin1?.nom} et ${medecin2?.prenom} ${medecin2?.nom}`,
                     impact: 30,
                     action: () => {
                         const newAssignments = attributions.map(a => {
@@ -266,7 +266,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Éditeur d'gardes/vacations</h2>
+                <h2 className="text-xl font-bold">Éditeur d'affectations</h2>
                 <div className="flex gap-2">
                     {validationResult && (
                         validationResult.valid
@@ -300,7 +300,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
                                     <span>{violation.message}</span>
                                 </div>
                                 <span className="text-xs px-2 py-1 rounded-full bg-white">
-                                    {violation.affectedAssignments.length} garde/vacation(s)
+                                    {violation.affectedAssignments.length} affectation(s)
                                 </span>
                             </div>
                         ))}
@@ -347,12 +347,12 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
                                                             className="min-h-[60px]"
                                                         >
                                                             {cellAssignments.map((attribution, index) => {
-                                                                // Vérifier si cette garde/vacation est en violation
+                                                                // Vérifier si cette affectation est en violation
                                                                 const hasViolation = validationResult?.violations.some(
                                                                     v => v.affectedAssignments.includes(attribution.id)
                                                                 );
 
-                                                                // Trouver la violation la plus sévère pour cette garde/vacation
+                                                                // Trouver la violation la plus sévère pour cette affectation
                                                                 const mostSevereViolation = validationResult?.violations
                                                                     .filter(v => v.affectedAssignments.includes(attribution.id))
                                                                     .sort((a, b) => {
@@ -436,7 +436,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
                                 </div>
                             </div>
 
-                            <h4 className="font-semibold">Gardes/Vacations concernées :</h4>
+                            <h4 className="font-semibold">Affectations concernées :</h4>
                             <div className="space-y-2">
                                 {selectedViolation.affectedAssignments.map(assignmentId => {
                                     const attribution = attributions.find(a => a.id === assignmentId);

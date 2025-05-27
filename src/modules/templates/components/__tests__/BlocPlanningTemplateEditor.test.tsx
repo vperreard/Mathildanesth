@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import BlocPlanningTemplateEditor from '../BlocPlanningTemplateEditor';
-import { AffectationType, PlanningTemplate, ConfigurationVariation } from '../../types/modèle';
+import { AffectationType, PlanningTemplate, ConfigurationVariation } from '../../types/template';
 
 // Mock de react-dnd
 jest.mock('react-dnd', () => ({
@@ -62,8 +62,8 @@ describe('BlocPlanningTemplateEditor', () => {
 
     const mockTemplate: PlanningTemplate = {
         id: 'test-123',
-        nom: 'Tableau de service Test',
-        gardes/vacations: [
+        nom: 'TrameModele Test',
+        affectations: [
             {
                 id: 'aff-1',
                 jour: 'LUNDI',
@@ -100,14 +100,14 @@ describe('BlocPlanningTemplateEditor', () => {
         );
 
         // Vérifier le champ de nom
-        const nameInput = screen.getByDisplayValue('Tableau de service Test');
+        const nameInput = screen.getByDisplayValue('TrameModele Test');
         expect(nameInput).toBeInTheDocument();
 
         // Vérifier les jours affichés
         expect(screen.getByRole('tab', { name: /lundi/i })).toBeInTheDocument();
         expect(screen.getByRole('tab', { name: /mardi/i })).toBeInTheDocument();
 
-        // Vérifier les gardes/vacations (plusieurs peuvent exister)
+        // Vérifier les assignments (plusieurs peuvent exister)
         const consultations = screen.getAllByText('CONSULTATION');
         expect(consultations.length).toBeGreaterThan(0);
     });

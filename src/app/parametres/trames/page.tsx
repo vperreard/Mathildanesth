@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { TemplateManager } from '@/modules/modèles/components/TemplateManager';
+import { TemplateManager } from '@/modules/templates/components/TemplateManager';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import dynamic from 'next/dynamic';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-// Chargement dynamique de l'éditeur de tableaux de service en grille
+// Chargement dynamique de l'éditeur de trameModeles en grille
 const TrameGridEditor = dynamic(
     () => import('./TrameGridEditor').catch(() => {
         const ErrorComponent = () => <div>Erreur de chargement</div>;
@@ -19,7 +19,7 @@ const TrameGridEditor = dynamic(
 
 // Charger dynamiquement le composant de démo pour éviter les problèmes de SSR
 const TrameGridDemo = dynamic(
-    () => import('@/components/tableaux de service/grid-view/TrameGridDemo').catch(() => {
+    () => import('@/components/trames/grid-view/TrameGridDemo').catch(() => {
         const ErrorComponent = () => <div>Erreur de chargement</div>;
         ErrorComponent.displayName = 'TrameGridDemoError';
         return ErrorComponent;
@@ -54,7 +54,7 @@ export default function TramesPlanningPage() {
     const handleTabChange = (value: string) => {
         console.log(`🔄 [TramesPlanningPage] Changement d'onglet: ${activeTab} → ${value}`);
         setActiveTab(value);
-        router.replace(`/parametres/tableaux de service?tab=${value}`);
+        router.replace(`/parametres/trames?tab=${value}`);
 
         // Forcer le rechargement des données quand on change d'onglet
         // pour synchroniser les vues
@@ -64,7 +64,7 @@ export default function TramesPlanningPage() {
 
     return (
         <div className="container mx-auto py-10">
-            <h1 className="text-3xl font-bold mb-10">Gestion des tableaux de service de planning</h1>
+            <h1 className="text-3xl font-bold mb-10">Gestion des trameModeles de planning</h1>
 
             <Tabs value={activeTab} onValueChange={handleTabChange}>
                 <TabsList className="mb-8">
@@ -79,7 +79,7 @@ export default function TramesPlanningPage() {
                             <CardTitle>Vue Classique</CardTitle>
                         </CardHeader>
                         <CardContent className="p-0">
-                            <TemplateManager key={`modèle-${refreshKey}`} {...emptyProps} />
+                            <TemplateManager key={`template-${refreshKey}`} {...emptyProps} />
                         </CardContent>
                     </Card>
                 </TabsContent>

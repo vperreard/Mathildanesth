@@ -2,9 +2,6 @@ import { RuleV2, RuleVersion, RuleChange } from '../types/ruleV2.types';
 import { prisma } from '@/lib/prisma';
 import { diff } from 'deep-object-diff';
 
-jest.mock('@/lib/prisma');
-
-
 export class RuleVersioningService {
   private static instance: RuleVersioningService;
 

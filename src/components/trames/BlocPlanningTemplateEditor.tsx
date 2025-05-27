@@ -17,13 +17,13 @@ import {
     TrameHebdomadaireService,
     TrameHebdomadaireDTO,
     AffectationTrameDTO,
-} from '@/modules/modèles/services/TrameHebdomadaireService';
-import { TypeSemaine as ImportedTypeSemaine, JourSemaine as ImportedJourSemaine, PeriodeJour as ImportedPeriodeJour } from '@/app/parametres/tableaux de service/EditeurTramesHebdomadaires';
+} from '@/modules/templates/services/TrameHebdomadaireService';
+import { TypeSemaine as ImportedTypeSemaine, JourSemaine as ImportedJourSemaine, PeriodeJour as ImportedPeriodeJour } from '@/app/parametres/trameModeles/EditeurTramesHebdomadaires';
 import EditActivityModal from './EditActivityModal';
-import { PersonnelService, Personnel, RolePersonnel } from '@/modules/modèles/services/PersonnelService';
-import { SalleService, OperatingRoomFromAPI } from '@/modules/modèles/services/SalleService';
+import { PersonnelService, Personnel, RolePersonnel } from '@/modules/templates/services/PersonnelService';
+import { SalleService, OperatingRoomFromAPI } from '@/modules/templates/services/SalleService';
 
-// Nouveaux Enums et Interfaces pour une gestion détaillée des activités dans les tableaux de service
+// Nouveaux Enums et Interfaces pour une gestion détaillée des activités dans les trameModeles
 export enum ActivityType {
     GARDE = 'GARDE',
     ASTREINTE = 'ASTREINTE',
@@ -39,7 +39,7 @@ export enum SlotStatus {
 }
 
 export interface DetailedActivityInTrame {
-    id: string; // uuid de l'activité dans la tableau de service pour ce créneau
+    id: string; // uuid de l'activité dans la trameModele pour ce slot
     jourSemaine: ImportedJourSemaine;
     periode: ImportedPeriodeJour;
     typeActivite: ActivityType;
@@ -48,23 +48,23 @@ export interface DetailedActivityInTrame {
 
     salleId?: string | null;
     chirurgienId?: string | null;
-    marId?: string | null; // Ajout pour garde/vacation nominative
-    iadeId?: string | null; // Ajout pour garde/vacation nominative
+    marId?: string | null; // Ajout pour affectation nominative
+    iadeId?: string | null; // Ajout pour affectation nominative
     statutOuverture?: SlotStatus; // Principalement pour CONSULTATION et BLOC_SALLE (ouvert/fermé, planifié/vide)
 }
 // Fin des nouveaux Enums et Interfaces
 
-// L'interface Tableau de service est maintenant typée avec DetailedActivityInTrame pour ses gardes/vacations
+// L'interface TrameModele est maintenant typée avec DetailedActivityInTrame pour ses affectations
 // Ceci est un changement par rapport à TrameHebdomadaireDTO qui utilise AffectationTrameDTO
 // Nous devrons gérer la conversion lors de la sauvegarde si l'API attend toujours AffectationTrameDTO
-interface Tableau de service extends Omit<TrameHebdomadaireDTO, 'gardes/vacations'> {
-    gardes/vacations: DetailedActivityInTrame[];
+interface TrameModele extends Omit<TrameHebdomadaireDTO, 'affectations'> {
+    affectations: DetailedActivityInTrame[];
 }
-// type Tableau de service = TrameHebdomadaireDTO; // Ancienne définition
+// type TrameModele = TrameHebdomadaireDTO; // Ancienne définition
 type Attribution = AffectationTrameDTO; // Reste pour la compatibilité avec des parties du code non encore migrées
 
 const BlocPlanningTemplateEditor: React.FC = () => {
-    const [tableaux de service, setTrames] = useState<Tableau de service[]>([]);
+    const [trameModeles, setTrames] = useState<TrameModele[]>([]);
     const [selectedTrameId, setSelectedTrameId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('edit');
@@ -85,20 +85,20 @@ const BlocPlanningTemplateEditor: React.FC = () => {
     // Ajouter un état pour mémoriser la clé de la ligne cible
     const [currentTargetActivityRowKey, setCurrentTargetActivityRowKey] = useState<string | null>(null);
 
-    // D'abord, ajoutons un nouvel état pour stocker la tableau de service sélectionnée
-    const [selectedTrame, setSelectedTrame] = useState<Tableau de service | null>(null);
+    // D'abord, ajoutons un nouvel état pour stocker la trameModele sélectionnée
+    const [selectedTrame, setSelectedTrame] = useState<TrameModele | null>(null);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
     // Ensuite, ajoutons un useEffect pour maintenir la synchronisation
     useEffect(() => {
-        // Mettre à jour selectedTrame lorsque tableaux de service ou selectedTrameId change
+        // Mettre à jour selectedTrame lorsque trameModeles ou selectedTrameId change
         if (selectedTrameId) {
-            const foundTrame = tableaux de service.find(t => t.id === selectedTrameId);
+            const foundTrame = trameModeles.find(t => t.id === selectedTrameId);
             if (foundTrame) {
-                console.log("[BlocEditor] Mise à jour de selectedTrame:", foundTrame.id, "avec", foundTrame.gardes/vacations.length, "gardes/vacations");
+                console.log("[BlocEditor] Mise à jour de selectedTrame:", foundTrame.id, "avec", foundTrame.affectations.length, "affectations");
                 setSelectedTrame(foundTrame);
             } else {
-                console.log("[BlocEditor] Aucune tableau de service trouvée avec ID:", selectedTrameId);
+                console.log("[BlocEditor] Aucune trameModele trouvée avec ID:", selectedTrameId);
                 setSelectedTrame(null);
                 setHasUnsavedChanges(false);
             }
@@ -106,7 +106,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             setSelectedTrame(null);
             setHasUnsavedChanges(false);
         }
-    }, [tableaux de service, selectedTrameId]);
+    }, [trameModeles, selectedTrameId]);
 
     // Définir les lignes de la grille (types d'activités principaux et salles spécifiques)
     const fixedActivityRows: Array<{ key: string; label: string; type: ActivityType; isFixed: true; specificSalleKey?: string; specificSalleId?: undefined; colorCode?: undefined }> = [
@@ -150,18 +150,18 @@ const BlocPlanningTemplateEditor: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        // Cet effet est déclenché après chaque mise à jour des tableaux de service
+        // Cet effet est déclenché après chaque mise à jour des trameModeles
         // Il permet de s'assurer que le composant se re-rend correctement
-        console.log("[BlocEditor] useEffect pour mise à jour des tableaux de service:", selectedTrameId ? "Tableau de service sélectionnée existe" : "Aucune tableau de service sélectionnée");
+        console.log("[BlocEditor] useEffect pour mise à jour des trames:", selectedTrameId ? "TrameModele sélectionnée existe" : "Aucune trameModele sélectionnée");
 
-        // Si une tableau de service est sélectionnée, s'assurer que selectedTrame reflète les dernières données
+        // Si une trameModele est sélectionnée, s'assurer que selectedTrame reflète les dernières données
         if (selectedTrameId) {
-            const currentSelectedTrame = tableaux de service.find(t => t.id === selectedTrameId);
-            if (currentSelectedTrame && currentSelectedTrame.gardes/vacations.length > 0) {
-                console.log("[BlocEditor] Tableau de service sélectionnée a", currentSelectedTrame.gardes/vacations.length, "gardes/vacations");
-                // Forcer un re-render en déclenchant un log des dernières gardes/vacations
-                console.log("[BlocEditor] Dernières gardes/vacations:",
-                    currentSelectedTrame.gardes/vacations.slice(-3).map(a => ({
+            const currentSelectedTrame = trameModeles.find(t => t.id === selectedTrameId);
+            if (currentSelectedTrame && currentSelectedTrame.affectations.length > 0) {
+                console.log("[BlocEditor] TrameModele sélectionnée a", currentSelectedTrame.affectations.length, "affectations");
+                // Forcer un re-render en déclenchant un log des dernières affectations
+                console.log("[BlocEditor] Dernières affectations:",
+                    currentSelectedTrame.affectations.slice(-3).map(a => ({
                         id: a.id,
                         jour: a.jourSemaine,
                         periode: a.periode,
@@ -170,15 +170,15 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                 );
             }
         }
-    }, [tableaux de service, selectedTrameId]);
+    }, [trameModeles, selectedTrameId]);
 
     const loadTrames = async () => {
         setIsLoading(true);
         try {
             const loadedTramesDTO = await TrameHebdomadaireService.getAllTrames();
 
-            const convertedTrames: Tableau de service[] = loadedTramesDTO.map(dto => {
-                const detailedAffectations: DetailedActivityInTrame[] = dto.gardes/vacations.map((affDto): DetailedActivityInTrame => {
+            const convertedTrames: TrameModele[] = loadedTramesDTO.map(dto => {
+                const detailedAffectations: DetailedActivityInTrame[] = dto.affectations.map((affDto): DetailedActivityInTrame => {
                     // Logique de conversion initiale (sera affinée avec la modale)
                     // Ceci est une conversion basique pour faire fonctionner le typage.
                     // Le typeActivite, nomAffichage, etc. devront être déterminés plus intelligemment.
@@ -186,7 +186,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                     let nomAffichage = `Salle ${affDto.salleId || 'N/A'}`;
                     if (affDto.chirurgienId) nomAffichage += ` / Chir ${affDto.chirurgienId}`;
 
-                    // TODO: Déterminer typeActivite plus finement basé sur la description/nom de la tableau de service ou affDto
+                    // TODO: Déterminer typeActivite plus finement basé sur la description/nom de la trameModele ou affDto
                     // Par exemple, si affDto.salleId est null et chirId est null, ça pourrait être GARDE/ASTREINTE.
                     // Pour l'instant, c'est une initialisation basique.
 
@@ -209,7 +209,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                     nom: dto.nom,
                     typeSemaine: dto.typeSemaine,
                     description: dto.description,
-                    gardes/vacations: detailedAffectations,
+                    affectations: detailedAffectations,
                 };
             });
 
@@ -218,7 +218,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                 // Si un selectedTrameId existe déjà (suite à une sauvegarde par ex), ne pas le changer
                 // pour éviter de perdre la sélection en cours d'édition.
                 // On ne met à jour que si aucun n'est sélectionné.
-                const currentSelected = tableaux de service.find(t => t.id === selectedTrameId);
+                const currentSelected = trameModeles.find(t => t.id === selectedTrameId);
                 if (!currentSelected && convertedTrames[0]) {
                     setSelectedTrameId(convertedTrames[0].id);
                 } else if (selectedTrameId) {
@@ -235,8 +235,8 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             }
             setHasUnsavedChanges(false);
         } catch (error) {
-            console.error('Erreur lors du chargement des tableaux de service:', error);
-            toast.error('Impossible de charger les tableaux de service');
+            console.error('Erreur lors du chargement des trames:', error);
+            toast.error('Impossible de charger les trameModeles');
         } finally {
             setIsLoading(false);
         }
@@ -272,42 +272,42 @@ const BlocPlanningTemplateEditor: React.FC = () => {
 
     const handleTrameChange = (trameId: string) => {
         setSelectedTrameId(trameId);
-        const trameToSelect = tableaux de service.find(t => t.id === trameId);
+        const trameToSelect = trameModeles.find(t => t.id === trameId);
         if (trameToSelect) {
-            console.log("[BlocEditor] Tableau de service sélectionnée:", trameToSelect.id);
+            console.log("[BlocEditor] TrameModele sélectionnée:", trameToSelect.id);
             setSelectedTrame(trameToSelect);
         } else {
-            console.log("[BlocEditor] Aucune tableau de service trouvée avec ID:", trameId);
+            console.log("[BlocEditor] Aucune trameModele trouvée avec ID:", trameId);
             setSelectedTrame(null);
         }
         setHasUnsavedChanges(false);
     };
 
     const handleCreateNewTrame = () => {
-        // S'assurer que newTrameData est compatible avec la nouvelle interface Tableau de service
-        // Pour l'instant, gardes/vacations sera vide et sera peuplé via la nouvelle UI
-        const newTrameDataOmitId: Omit<Tableau de service, 'id'> = {
-            nom: 'Nouvelle tableau de service de bloc',
+        // S'assurer que newTrameData est compatible avec la nouvelle interface TrameModele
+        // Pour l'instant, affectations sera vide et sera peuplé via la nouvelle UI
+        const newTrameDataOmitId: Omit<TrameModele, 'id'> = {
+            nom: 'Nouvelle trameModele de bloc',
             typeSemaine: ImportedTypeSemaine.TOUTES,
-            description: 'Description de la nouvelle tableau de service',
-            gardes/vacations: [], // Sera de type DetailedActivityInTrame[]
+            description: 'Description de la nouvelle trameModele',
+            affectations: [], // Sera de type DetailedActivityInTrame[]
         };
 
-        const newTrameForState: Tableau de service = {
+        const newTrameForState: TrameModele = {
             ...newTrameDataOmitId,
             id: `new-${Date.now()}`,
         };
 
-        setTrames([...tableaux de service, newTrameForState]);
+        setTrames([...trames, newTrameForState]);
         setSelectedTrameId(newTrameForState.id);
         setHasUnsavedChanges(true);
-        toast('Nouvelle tableau de service initialisée. Pensez à sauvegarder.');
+        toast('Nouvelle trameModele initialisée. Pensez à sauvegarder.');
     };
 
     const handleSaveTrame = async () => {
         if (!selectedTrame) return;
         if (!selectedTrame.nom || selectedTrame.nom.trim() === "") {
-            toast.error("Le nom de la tableau de service ne peut pas être vide.");
+            toast.error("Le nom de la trameModele ne peut pas être vide.");
             return;
         }
 
@@ -318,7 +318,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             // TEMPORAIRE: Transformation de DetailedActivityInTrame[] vers AffectationTrameDTO[]
             // jusqu'à ce que l'API et le service soient mis à jour.
             // Cette transformation sera basique et perdra de l'information.
-            const affectationsPourAPI: AffectationTrameDTO[] = selectedTrame.gardes/vacations.map(detailedAff => {
+            const affectationsPourAPI: AffectationTrameDTO[] = selectedTrame.affectations.map(detailedAff => {
                 // Logique de transformation basique (à affiner)
                 // Attention: perte d'information ici (typeActivite, marRequis, etc. non directement mappables)
                 return {
@@ -339,7 +339,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                 nom: selectedTrame.nom,
                 typeSemaine: selectedTrame.typeSemaine,
                 description: selectedTrame.description,
-                gardes/vacations: affectationsPourAPI, // Utilise les gardes/vacations transformées
+                affectations: affectationsPourAPI, // Utilise les affectations transformées
             };
 
             if (selectedTrame.id.startsWith('new-')) {
@@ -352,14 +352,14 @@ const BlocPlanningTemplateEditor: React.FC = () => {
             }
 
             if (savedTrameDB) {
-                toast.success('Tableau de service sauvegardée avec succès (transformation temporaire appliquée).');
+                toast.success('TrameModele sauvegardée avec succès (transformation temporaire appliquée).');
                 await loadTrames();
                 setSelectedTrameId(savedTrameDB.id);
                 setHasUnsavedChanges(false);
             }
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde de la tableau de service:', error);
-            toast.error('Impossible de sauvegarder la tableau de service. Vérifiez la console.');
+            console.error('Erreur lors de la sauvegarde de la trameModele:', error);
+            toast.error('Impossible de sauvegarder la trameModele. Vérifiez la console.');
         } finally {
             setIsLoading(false);
         }
@@ -379,7 +379,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
         link.href = jsonString;
         link.download = `${selectedTrame.nom.replace(/\s+/g, '_')}.json`;
         link.click();
-        toast.success('Tableau de service exportée localement avec succès');
+        toast.success('TrameModele exportée localement avec succès');
     };
 
     const handleImportTrame = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -393,22 +393,22 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                 const importedTrameData = JSON.parse(content) as Partial<TrameHebdomadaireDTO>;
 
                 const trameToCreate: Omit<TrameHebdomadaireDTO, 'id'> = {
-                    nom: importedTrameData.nom || 'Tableau de service importée',
+                    nom: importedTrameData.nom || 'TrameModele importée',
                     typeSemaine: importedTrameData.typeSemaine || ImportedTypeSemaine.TOUTES,
                     description: importedTrameData.description,
-                    gardes/vacations: importedTrameData.gardes/vacations || []
+                    affectations: importedTrameData.affectations || []
                 };
 
                 setIsLoading(true);
                 const savedTrame = await TrameHebdomadaireService.createTrame(trameToCreate);
                 if (savedTrame) {
-                    toast.success('Tableau de service importée et sauvegardée avec succès');
+                    toast.success('TrameModele importée et sauvegardée avec succès');
                     await loadTrames();
                     setSelectedTrameId(savedTrame.id);
                 }
             } catch (error) {
-                console.error('Erreur lors de l\'import de la tableau de service:', error);
-                toast.error('Impossible d\'importer la tableau de service: format invalide ou erreur.');
+                console.error('Erreur lors de l\'import de la trameModele:', error);
+                toast.error('Impossible d\'importer la trameModele: format invalide ou erreur.');
             } finally {
                 setIsLoading(false);
             }
@@ -418,21 +418,21 @@ const BlocPlanningTemplateEditor: React.FC = () => {
 
     const handleDeleteTrame = async () => {
         if (!selectedTrame || selectedTrame.id.startsWith('new-')) {
-            toast.error('Sélectionnez une tableau de service sauvegardée à supprimer.');
+            toast.error('Sélectionnez une trameModele sauvegardée à supprimer.');
             return;
         }
-        if (!window.confirm(`Êtes-vous sûr de vouloir supprimer la tableau de service "${selectedTrame.nom}" ?`)) {
+        if (!window.confirm(`Êtes-vous sûr de vouloir supprimer la trameModele "${selectedTrame.nom}" ?`)) {
             return;
         }
         setIsLoading(true);
         try {
             await TrameHebdomadaireService.deleteTrame(selectedTrame.id);
-            toast.success('Tableau de service supprimée avec succès');
+            toast.success('TrameModele supprimée avec succès');
             setSelectedTrameId(null);
             await loadTrames();
         } catch (error) {
-            console.error('Erreur lors de la suppression de la tableau de service:', error);
-            toast.error('Impossible de supprimer la tableau de service.');
+            console.error('Erreur lors de la suppression de la trameModele:', error);
+            toast.error('Impossible de supprimer la trameModele.');
         } finally {
             setIsLoading(false);
         }
@@ -440,33 +440,33 @@ const BlocPlanningTemplateEditor: React.FC = () => {
 
     const handleClearTrameAssignments = () => {
         if (!selectedTrame) {
-            toast.error("Aucune tableau de service sélectionnée.");
+            toast.error("Aucune trameModele sélectionnée.");
             return;
         }
-        if (selectedTrame.gardes/vacations.length === 0) {
-            toast("Cette tableau de service est déjà vide.");
+        if (selectedTrame.affectations.length === 0) {
+            toast("Cette trameModele est déjà vide.");
             return;
         }
-        if (window.confirm(`Êtes-vous sûr de vouloir vider toutes les gardes/vacations de la tableau de service "${selectedTrame.nom}" ? Cette action est irréversible.`)) {
+        if (window.confirm(`Êtes-vous sûr de vouloir vider toutes les affectations de la trameModele "${selectedTrame.nom}" ? Cette action est irréversible.`)) {
             setTrames(currentTrames => {
                 const trameToUpdate = currentTrames.find(t => t.id === selectedTrameId);
                 if (!trameToUpdate) {
-                    console.error("[BlocEditor] Tableau de service non trouvée lors de la tentative de vidage.");
+                    console.error("[BlocEditor] TrameModele non trouvée lors de la tentative de vidage.");
                     return currentTrames;
                 }
-                const clearedTrame = { ...trameToUpdate, gardes/vacations: [] };
-                console.log(`[BlocEditor] Vidage des gardes/vacations pour la tableau de service ID: ${selectedTrameId}`);
+                const clearedTrame = { ...trameToUpdate, affectations: [] };
+                console.log(`[BlocEditor] Vidage des affectations pour la trameModele ID: ${selectedTrameId}`);
                 return currentTrames.map(t =>
                     t.id === selectedTrameId ? clearedTrame : t
                 );
             });
-            toast.success(`Gardes/Vacations de la tableau de service "${selectedTrame.nom}" vidées.`);
+            toast.success(`Affectations de la trameModele "${selectedTrame.nom}" vidées.`);
             setHasUnsavedChanges(true);
         }
     };
 
 
-    const handleSelectedTrameFieldChange = (fieldName: keyof Omit<Tableau de service, 'gardes/vacations' | 'id'>, value: any) => {
+    const handleSelectedTrameFieldChange = (fieldName: keyof Omit<TrameModele, 'affectations' | 'id'>, value: any) => {
         if (selectedTrame) {
             const updatedTrame = { ...selectedTrame, [fieldName]: value };
             setTrames(prevTrames => prevTrames.map(t => t.id === selectedTrameId ? updatedTrame : t));
@@ -476,9 +476,9 @@ const BlocPlanningTemplateEditor: React.FC = () => {
     };
 
     // Réintroduire la fonction getCellActivity
-    const getCellActivity = (tableau de service: Tableau de service | null, jour: ImportedJourSemaine, periode: ImportedPeriodeJour, activityRowKey: string): DetailedActivityInTrame | null => {
-        if (!tableau de service) return null;
-        return tableau de service.gardes/vacations.find(
+    const getCellActivity = (trameModele: TrameModele | null, jour: ImportedJourSemaine, periode: ImportedPeriodeJour, activityRowKey: string): DetailedActivityInTrame | null => {
+        if (!trameModele) return null;
+        return trameModele.affectations.find(
             (aff) =>
                 aff.jourSemaine === jour &&
                 aff.periode === periode &&
@@ -501,7 +501,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
 
     const handleSaveActivity = (activity: DetailedActivityInTrame) => {
         if (!selectedTrameId) { // Utiliser selectedTrameId car selectedTrame peut être obsolète dans la portée
-            toast.error("Aucune tableau de service sélectionnée pour sauvegarder l'activité.");
+            toast.error("Aucune trameModele sélectionnée pour sauvegarder l'activité.");
             return;
         }
 
@@ -517,8 +517,8 @@ const BlocPlanningTemplateEditor: React.FC = () => {
         setTrames(currentTrames =>
             currentTrames.map(t => {
                 if (t.id === selectedTrameId) {
-                    // Travailler sur une copie des gardes/vacations de la tableau de service actuelle de l'itération
-                    const newAffectations = [...t.gardes/vacations];
+                    // Travailler sur une copie des affectations de la trameModele actuelle de l'itération
+                    const newAffectations = [...t.affectations];
                     const existingIndex = newAffectations.findIndex(a => a.id === activity.id);
 
                     if (existingIndex > -1) {
@@ -528,7 +528,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                         console.log(`[BlocEditor] Ajout d'une nouvelle activité ID: ${activity.id} pour la période ${activity.periode}`);
                         newAffectations.push(activity);
                     }
-                    return { ...t, gardes/vacations: newAffectations };
+                    return { ...t, affectations: newAffectations };
                 }
                 return t;
             })
@@ -550,12 +550,12 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                         disabled={isLoading}
                     >
                         <SelectTrigger className="w-[300px]">
-                            <SelectValue placeholder="Sélectionner une tableau de service" />
+                            <SelectValue placeholder="Sélectionner une trameModele" />
                         </SelectTrigger>
                         <SelectContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md">
-                            {tableaux de service.map((tableau de service) => (
-                                <SelectItem key={tableau de service.id} value={tableau de service.id}>
-                                    {tableau de service.nom}
+                            {trameModeles.map((trameModele) => (
+                                <SelectItem key={trameModele.id} value={trameModele.id}>
+                                    {trameModele.nom}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -639,13 +639,13 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                             value="edit"
                             className="px-3 py-1.5 text-sm font-medium rounded-sm data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm transition-all duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 outline-none"
                         >
-                            Éditer Tableau de service
+                            Éditer TrameModele
                         </TabsTrigger>
                         <TabsTrigger
                             value="attributions"
                             className="px-3 py-1.5 text-sm font-medium rounded-sm data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm transition-all duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 outline-none"
                         >
-                            Gérer Gardes/Vacations (Bloc)
+                            Gérer Affectations (Bloc)
                         </TabsTrigger>
                     </TabsList>
                     <TabsContent value="edit">
@@ -695,9 +695,9 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                                     </Select>
                                 </div>
                                 <p className="text-orange-600 font-semibold mt-6 p-3 bg-orange-50 rounded-md border border-orange-200">
-                                    Note: La structure de base de la tableau de service (ID: {selectedTrame.id}) est éditée ici.
-                                    La gestion détaillée des gardes/vacations spécifiques au bloc (jours, périodes flexibles, personnel, salles)
-                                    se fait dans l'onglet "Gérer Gardes/Vacations (Bloc)" et nécessite une adaptation majeure.
+                                    Note: La structure de base de la trameModele(ID: {selectedTrame.id}) est éditée ici.
+                                    La gestion détaillée des affectations spécifiques au bloc (jours, périodes flexibles, personnel, salles)
+                                    se fait dans l'onglet "Gérer Affectations (Bloc)" et nécessite une adaptation majeure.
                                 </p>
                             </CardContent>
                         </Card>
@@ -705,12 +705,12 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                     <TabsContent value="attributions">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Gérer les gardes/vacations pour la tableau de service: {selectedTrame.nom}</CardTitle>
+                                <CardTitle>Gérer les affectations pour la trameModele: {selectedTrame.nom}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <p className="text-blue-600 font-semibold p-3 bg-blue-50 rounded-md border border-blue-200 mb-4">
-                                    Cliquez sur une case pour ajouter ou modifier une activité pour ce créneau et ce type d'activité.
-                                    Les modifications sont locales jusqu'à la sauvegarde générale de la tableau de service.
+                                    Cliquez sur une case pour ajouter ou modifier une activité pour ce slot et ce type d'activité.
+                                    Les modifications sont locales jusqu'à la sauvegarde générale de la trameModele.
                                 </p>
                                 <div className="overflow-x-auto">
                                     <table className="min-w-full border-collapse border border-gray-300">
@@ -745,7 +745,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                                                     {joursDeSemaine.map(jour => {
                                                         // Cas spécial pour Garde/Astreinte: fusionner les cellules
                                                         if (row.type === ActivityType.GARDE || row.type === ActivityType.ASTREINTE) {
-                                                            const activity = selectedTrame?.gardes/vacations.find(
+                                                            const activity = selectedTrame?.affectations.find(
                                                                 aff => aff.jourSemaine === jour &&
                                                                     (aff.periode === ImportedPeriodeJour.MATIN || aff.periode === ImportedPeriodeJour.APRES_MIDI || aff.periode === ImportedPeriodeJour.JOURNEE_COMPLETE) &&
                                                                     aff.typeActivite === row.type
@@ -782,7 +782,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                                                                 const cellKey = `${jour}-${periode}-${row.key}`;
 
                                                                 // Condition de recherche simplifiée et fiabilisée
-                                                                const activityForCell = selectedTrame?.gardes/vacations.find(
+                                                                const activityForCell = selectedTrame?.affectations.find(
                                                                     aff =>
                                                                         aff.jourSemaine === jour &&
                                                                         aff.periode === periode &&
@@ -858,7 +858,7 @@ const BlocPlanningTemplateEditor: React.FC = () => {
                 <Card>
                     <CardContent className="pt-6">
                         <p className="text-center text-gray-500">
-                            {isLoading ? 'Chargement des tableaux de service...' : "Sélectionnez une tableau de service pour l'éditer ou créez-en une nouvelle."}
+                            {isLoading ? 'Chargement des trameModeles...' : "Sélectionnez une trameModele pour l'éditer ou créez-en une nouvelle."}
                         </p>
                     </CardContent>
                 </Card>

@@ -7,7 +7,7 @@ import { AuthContext } from '@/middleware/authorization';
 export const RULES_PERMISSIONS = {
     // Permissions de lecture
     VIEW_RULES: 'rules.view',
-    VIEW_TEMPLATES: 'rules.modèles.view',
+    VIEW_TEMPLATES: 'rules.templates.view',
     VIEW_METRICS: 'rules.metrics.view',
     
     // Permissions de création/modification
@@ -17,9 +17,9 @@ export const RULES_PERMISSIONS = {
     ACTIVATE_RULES: 'rules.activate',
     
     // Permissions avancées
-    CREATE_TEMPLATES: 'rules.modèles.create',
-    EDIT_TEMPLATES: 'rules.modèles.edit',
-    DELETE_TEMPLATES: 'rules.modèles.delete',
+    CREATE_TEMPLATES: 'rules.templates.create',
+    EDIT_TEMPLATES: 'rules.templates.edit',
+    DELETE_TEMPLATES: 'rules.templates.delete',
     
     // Permissions de simulation et test
     SIMULATE_RULES: 'rules.simulate',

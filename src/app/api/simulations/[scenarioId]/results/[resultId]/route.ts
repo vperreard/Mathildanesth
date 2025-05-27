@@ -3,10 +3,7 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
+import { prisma } from "@/lib/prisma";
 
 interface RouteParams {
     params: {
@@ -70,8 +67,8 @@ export async function GET(request: Request, { params }: RouteParams) {
             id: simulationResult.id,
             status: simulationResult.status,
             createdAt: simulationResult.createdAt.toISOString(),
-            // completedAt n'est pas dans le modèle, on l'omet
-            updatedAt: new Date().toISOString(), // simulation de updatedAt qui n'est pas dans le modèle
+            // completedAt n'est pas dans le template, on l'omet
+            updatedAt: new Date().toISOString(), // simulation de updatedAt qui n'est pas dans le template
             errorMessage: simulationResult.errorMessage,
             parametersJson: simulationResult.scenario.parametersJson,
             generatedPlanningData: simulationResult.generatedPlanningData,

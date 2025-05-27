@@ -35,7 +35,7 @@ import {
 interface TrameEditorProps {
     trameModeleId?: number;
     config?: Partial<TrameEditorConfig>;
-    onSave?: (gardes/vacations: EditorAffectation[]) => void;
+    onSave?: (affectations: EditorAffectation[]) => void;
     onCancel?: () => void;
     readOnly?: boolean;
     className?: string;
@@ -73,7 +73,7 @@ const ToolBar: React.FC<{
         >
             <div className="flex items-center space-x-2">
                 <h2 className="text-lg font-semibold text-gray-900">
-                    Éditeur de Tableaux de service
+                    Éditeur de TrameModeles
                 </h2>
                 {hasUnsavedChanges && (
                     <Badge variant="outline" className="text-orange-600 border-orange-300">
@@ -171,14 +171,14 @@ const InfoPanel: React.FC<{
     >
         <div className="grid grid-cols-4 gap-4 text-sm">
             <div>
-                <div className="text-gray-600">Tableau de service</div>
+                <div className="text-gray-600">TrameModele</div>
                 <div className="font-medium">
-                    {trameModele?.name || 'Nouvelle tableau de service'}
+                    {trameModele?.name || 'Nouvelle trameModele'}
                 </div>
             </div>
 
             <div>
-                <div className="text-gray-600">Gardes/Vacations</div>
+                <div className="text-gray-600">Affectations</div>
                 <div className="font-medium">{totalAffectations}</div>
             </div>
 
@@ -201,7 +201,7 @@ const InfoPanel: React.FC<{
 );
 
 // Composant principal
-export const TrameEditor: React.FC<TrameEditorProps> = ({
+const TrameEditor: React.FC<TrameEditorProps> = ({
     trameModeleId,
     config,
     onSave,
@@ -246,19 +246,19 @@ export const TrameEditor: React.FC<TrameEditorProps> = ({
         redo,
         canUndo,
         canRedo
-    } = useUndoRedo(state.gardes/vacations, {
+    } = useUndoRedo(state.affectations, {
         maxHistorySize: 30,
-        onUndo: (gardes/vacations) => actions.setAffectations(gardes/vacations),
-        onRedo: (gardes/vacations) => actions.setAffectations(gardes/vacations)
+        onUndo: (affectations) => actions.setAffectations(affectations),
+        onRedo: (affectations) => actions.setAffectations(affectations)
     });
 
     // Gestionnaires d'événements
     const handleAffectationMove = useCallback((affectationId: number, target: any) => {
         // Sauvegarder l'état actuel pour l'undo
-        pushToHistory(state.gardes/vacations);
+        pushToHistory(state.affectations);
         actions.moveAffectation(affectationId, target);
-        toast.success('Garde/Vacation déplacée');
-    }, [actions, pushToHistory, state.gardes/vacations]);
+        toast.success('Affectation déplacée');
+    }, [actions, pushToHistory, state.affectations]);
 
     const handleAffectationSelect = useCallback((affectationId: number) => {
         setSelectedAffectations(prev => {
@@ -282,12 +282,12 @@ export const TrameEditor: React.FC<TrameEditorProps> = ({
 
         try {
             await actions.saveChanges();
-            onSave?.(state.gardes/vacations);
+            onSave?.(state.affectations);
             toast.success('Modifications sauvegardées');
         } catch (error) {
             toast.error('Erreur lors de la sauvegarde');
         }
-    }, [readOnly, actions, onSave, state.gardes/vacations]);
+    }, [readOnly, actions, onSave, state.affectations]);
 
     const handleUndo = useCallback(() => {
         if (canUndo) {
@@ -309,13 +309,13 @@ export const TrameEditor: React.FC<TrameEditorProps> = ({
         setShowCreateDialog(true);
     }, [readOnly]);
 
-    // Filtrer les gardes/vacations selon les conflits
+    // Filtrer les affectations selon les conflits
     const filteredAffectations = useMemo(() => {
         if (!showConflicts) {
-            return state.gardes/vacations.filter(aff => !aff.hasConflict);
+            return state.affectations.filter(aff => !aff.hasConflict);
         }
-        return state.gardes/vacations;
-    }, [state.gardes/vacations, showConflicts]);
+        return state.affectations;
+    }, [state.affectations, showConflicts]);
 
     // Calculer les conflits visibles
     const visibleConflicts = useMemo(() => {
@@ -377,7 +377,7 @@ export const TrameEditor: React.FC<TrameEditorProps> = ({
                         >
                             <WeeklyGrid
                                 gridData={state.gridData}
-                                gardes/vacations={filteredAffectations}
+                                affectations={filteredAffectations}
                                 onAffectationMove={handleAffectationMove}
                                 onAffectationSelect={handleAffectationSelect}
                                 onCellClick={handleCellClick}
@@ -389,15 +389,15 @@ export const TrameEditor: React.FC<TrameEditorProps> = ({
                 </AnimatePresence>
             </div>
 
-            {/* Dialog de création d'garde/vacation */}
+            {/* Dialog de création d'affectation */}
             {trameModeleId && (
                 <CreateAffectationDialog
                     open={showCreateDialog}
                     onOpenChange={setShowCreateDialog}
                     onConfirm={(newAffectation) => {
-                        pushToHistory(state.gardes/vacations);
+                        pushToHistory(state.affectations);
                         actions.addAffectation(newAffectation);
-                        toast.success('Garde/Vacation créée');
+                        toast.success('Affectation créée');
                         setShowCreateDialog(false);
                     }}
                     defaultDay={createDialogDefaults.day}

@@ -26,14 +26,14 @@ import { useRuleConflicts } from '../../hooks/useRuleConflicts';
 
 interface RuleBuilderProps {
   rule?: RuleV2;
-  modèle?: RuleTemplate;
+  template?: RuleTemplate;
   onSave: (rule: Partial<RuleV2>) => Promise<void>;
   onCancel: () => void;
 }
 
 export const RuleBuilder: React.FC<RuleBuilderProps> = ({
   rule,
-  modèle,
+  template,
   onSave,
   onCancel
 }) => {
@@ -47,7 +47,7 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
     removeAction,
     updateAction,
     validate
-  } = useRuleBuilder(rule, modèle);
+  } = useRuleBuilder(rule, template);
 
   const { preview, isLoading: previewLoading, runPreview } = useRulePreview();
   const { conflicts, checkConflicts } = useRuleConflicts();
@@ -94,9 +94,9 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
           <h2 className="text-2xl font-bold">
             {rule ? 'Modifier la règle' : 'Créer une nouvelle règle'}
           </h2>
-          {modèle && (
+          {template && (
             <p className="text-muted-foreground">
-              Basé sur le modèle : {modèle.name}
+              Basé sur le template : {template.name}
             </p>
           )}
         </div>

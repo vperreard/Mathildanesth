@@ -260,13 +260,13 @@ export class TestFactory {
     static createTrameModele(overrides: any = {}) {
         return {
             id: 1,
-            name: 'Tableau de service Test',
-            description: 'Tableau de service de test',
+            name: 'TrameModele Test',
+            description: 'TrameModele de test',
             typeActivite: 'BLOC',
             weekType: WeekType.REGULAR,
             siteId: '1',
             isActive: true,
-            gardes/vacations: [],
+            affectations: [],
             createdAt: new Date(),
             updatedAt: new Date(),
             ...overrides

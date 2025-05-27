@@ -3,10 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { RulesConfiguration, FatigueConfig } from '@/types/rules';
-import { getDefaultTemplates } from '@/lib/default-rule-modèles';
-
-jest.mock('@/lib/prisma');
-
+import { getDefaultTemplates } from '@/lib/default-rule-templates';
 
 export async function GET(request: Request) {
     try {
@@ -15,8 +12,8 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
 
-        // Récupérer tous les modèles
-        const modèles = await prisma.rulesTemplate.findMany({
+        // Récupérer tous les templates
+        const templates = await prisma.rulesTemplate.findMany({
             orderBy: [
                 { isDefault: 'desc' },
                 { category: 'asc' },
@@ -24,12 +21,12 @@ export async function GET(request: Request) {
             ]
         });
 
-        return NextResponse.json({ modèles });
+        return NextResponse.json({ templates });
 
     } catch (error) {
-        console.error('Erreur lors de la récupération des modèles:', error);
+        console.error('Erreur lors de la récupération des templates:', error);
         return NextResponse.json(
-            { error: 'Erreur lors de la récupération des modèles' },
+            { error: 'Erreur lors de la récupération des templates' },
             { status: 500 }
         );
     }
@@ -44,10 +41,10 @@ export async function POST(request: Request) {
 
         const { name, description, category, rules, fatigueConfig, isDefault = false } = await request.json();
 
-        // Seuls les super admins peuvent créer des modèles par défaut
+        // Seuls les super admins peuvent créer des templates par défaut
         const canCreateDefault = session.user.email === 'admin@mathildanesth.fr' || session.user.role === 'SUPER_ADMIN';
         
-        const modèle = await prisma.rulesTemplate.create({
+        const template = await prisma.rulesTemplate.create({
             data: {
                 name,
                 description,
@@ -72,13 +69,13 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ 
             message: 'Modèle créé avec succès',
-            modèle 
+            template 
         });
 
     } catch (error) {
-        console.error('Erreur lors de la création du modèle:', error);
+        console.error('Erreur lors de la création du template:', error);
         return NextResponse.json(
-            { error: 'Erreur lors de la création du modèle' },
+            { error: 'Erreur lors de la création du template' },
             { status: 500 }
         );
     }
@@ -93,7 +90,7 @@ export async function PUT(request: Request) {
 
         const { id, name, description, rules, fatigueConfig } = await request.json();
 
-        // Vérifier que le modèle existe et n'est pas un modèle par défaut
+        // Vérifier que le template existe et n'est pas un template par défaut
         const existingTemplate = await prisma.rulesTemplate.findUnique({
             where: { id }
         });
@@ -107,12 +104,12 @@ export async function PUT(request: Request) {
 
         if (existingTemplate.isDefault) {
             return NextResponse.json(
-                { error: 'Les modèles par défaut ne peuvent pas être modifiés' },
+                { error: 'Les templates par défaut ne peuvent pas être modifiés' },
                 { status: 403 }
             );
         }
 
-        const modèle = await prisma.rulesTemplate.update({
+        const template = await prisma.rulesTemplate.update({
             where: { id },
             data: {
                 name,
@@ -125,13 +122,13 @@ export async function PUT(request: Request) {
 
         return NextResponse.json({ 
             message: 'Modèle mis à jour avec succès',
-            modèle 
+            template 
         });
 
     } catch (error) {
-        console.error('Erreur lors de la mise à jour du modèle:', error);
+        console.error('Erreur lors de la mise à jour du template:', error);
         return NextResponse.json(
-            { error: 'Erreur lors de la mise à jour du modèle' },
+            { error: 'Erreur lors de la mise à jour du template' },
             { status: 500 }
         );
     }
@@ -149,25 +146,25 @@ export async function DELETE(request: Request) {
 
         if (!id) {
             return NextResponse.json(
-                { error: 'ID du modèle requis' },
+                { error: 'ID du template requis' },
                 { status: 400 }
             );
         }
 
-        const modèle = await prisma.rulesTemplate.findUnique({
+        const template = await prisma.rulesTemplate.findUnique({
             where: { id }
         });
 
-        if (!modèle) {
+        if (!template) {
             return NextResponse.json(
                 { error: 'Modèle non trouvé' },
                 { status: 404 }
             );
         }
 
-        if (modèle.isDefault) {
+        if (template.isDefault) {
             return NextResponse.json(
-                { error: 'Les modèles par défaut ne peuvent pas être supprimés' },
+                { error: 'Les templates par défaut ne peuvent pas être supprimés' },
                 { status: 403 }
             );
         }
@@ -181,9 +178,9 @@ export async function DELETE(request: Request) {
         });
 
     } catch (error) {
-        console.error('Erreur lors de la suppression du modèle:', error);
+        console.error('Erreur lors de la suppression du template:', error);
         return NextResponse.json(
-            { error: 'Erreur lors de la suppression du modèle' },
+            { error: 'Erreur lors de la suppression du template' },
             { status: 500 }
         );
     }

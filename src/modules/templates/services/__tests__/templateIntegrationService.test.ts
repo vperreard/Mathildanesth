@@ -1,6 +1,6 @@
 import { templateIntegrationService } from '../templateIntegrationService';
 import { templateService } from '../templateService';
-import { AffectationConfiguration } from '../../types/modèle';
+import { AffectationConfiguration } from '../../types/template';
 import { act } from '@testing-library/react';
 
 // Mock du service de modèles
@@ -61,8 +61,8 @@ describe('templateIntegrationService', () => {
             jest.useRealTimers();
         });
 
-        test('devrait télécharger la tableau de service avec un nom de fichier généré', async () => {
-            const mockTemplate = { id: 'tmpl_1', nom: 'Tableau de service Test' };
+        test('devrait télécharger la trameModele avec un nom de fichier généré', async () => {
+            const mockTemplate = { id: 'tmpl_1', nom: 'TrameModele Test' };
             const mockBlob = new Blob(['{}'], { type: 'application/json' });
 
             (templateService.getTemplateById as jest.Mock).mockResolvedValue(mockTemplate);
@@ -88,7 +88,7 @@ describe('templateIntegrationService', () => {
         });
 
         test('devrait utiliser le nom de fichier fourni s\'il est spécifié', async () => {
-            const mockTemplate = { id: 'tmpl_1', nom: 'Tableau de service Test' };
+            const mockTemplate = { id: 'tmpl_1', nom: 'TrameModele Test' };
             const mockBlob = new Blob(['{}'], { type: 'application/json' });
 
             (templateService.getTemplateById as jest.Mock).mockResolvedValue(mockTemplate);
@@ -106,17 +106,17 @@ describe('templateIntegrationService', () => {
             expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('blob:url');
         });
 
-        test('devrait gérer les erreurs lors de la récupération de la tableau de service', async () => {
+        test('devrait gérer les erreurs lors de la récupération de la trameModele', async () => {
             const error = new Error('Modèle non trouvé');
             (templateService.getTemplateById as jest.Mock).mockResolvedValue(null);
-            await expect(templateIntegrationService.downloadTemplateAsJSON('tmpl_not_found')).rejects.toThrow('Tableau de service avec l\'ID tmpl_not_found non trouvée');
+            await expect(templateIntegrationService.downloadTemplateAsJSON('tmpl_not_found')).rejects.toThrow('TrameModele avec l\'ID tmpl_not_found non trouvée');
         });
     });
 
     describe('importTemplateFromJSON', () => {
         test('devrait appeler le service sous-jacent et retourner le résultat', async () => {
             const mockFile = new File(['{}'], 'import.json', { type: 'application/json' });
-            const mockTemplate = { id: 'tmpl_imported', nom: 'Tableau de service Importée' };
+            const mockTemplate = { id: 'tmpl_imported', nom: 'TrameModele Importée' };
 
             (templateService.importTemplateFromJSON as jest.Mock).mockResolvedValue(mockTemplate);
 
@@ -137,8 +137,8 @@ describe('templateIntegrationService', () => {
     });
 
     describe('duplicateTemplate', () => {
-        test('devrait dupliquer une tableau de service en utilisant le nouveau nom fourni', async () => {
-            const mockDuplicatedTemplate = { id: 'tmpl_dupe', nom: 'Tableau de service Test (Copie)' };
+        test('devrait dupliquer une trameModele en utilisant le nouveau nom fourni', async () => {
+            const mockDuplicatedTemplate = { id: 'tmpl_dupe', nom: 'TrameModele Test (Copie)' };
             const mockUpdatedTemplate = { ...mockDuplicatedTemplate, nom: 'Nouveau Nom' };
 
             (templateService.duplicateTemplate as jest.Mock).mockResolvedValue(mockDuplicatedTemplate);
@@ -154,8 +154,8 @@ describe('templateIntegrationService', () => {
             expect(result).toBe(mockUpdatedTemplate);
         });
 
-        test('devrait dupliquer une tableau de service sans changer le nom si non spécifié', async () => {
-            const mockDuplicatedTemplate = { id: 'tmpl_dupe', nom: 'Tableau de service Test (Copie)' };
+        test('devrait dupliquer une trameModele sans changer le nom si non spécifié', async () => {
+            const mockDuplicatedTemplate = { id: 'tmpl_dupe', nom: 'TrameModele Test (Copie)' };
 
             (templateService.duplicateTemplate as jest.Mock).mockResolvedValue(mockDuplicatedTemplate);
 
@@ -175,8 +175,8 @@ describe('templateIntegrationService', () => {
     });
 
     describe('applyTemplateToPlanning', () => {
-        test('devrait appliquer une tableau de service à un planning et retourner un ID', async () => {
-            const mockTemplate = { id: 'tmpl_1', nom: 'Tableau de service Test' };
+        test('devrait appliquer une trameModele à un planning et retourner un ID', async () => {
+            const mockTemplate = { id: 'tmpl_1', nom: 'TrameModele Test' };
             const dateDebut = new Date(2025, 0, 1);
             const dateFin = new Date(2025, 0, 31);
 
@@ -188,14 +188,14 @@ describe('templateIntegrationService', () => {
             expect(result).toMatch(/^planning_\d+$/);
         });
 
-        test('devrait rejeter si la tableau de service n\'existe pas', async () => {
+        test('devrait rejeter si la trameModele n\'existe pas', async () => {
             const dateDebut = new Date(2025, 0, 1);
             const dateFin = new Date(2025, 0, 31);
 
             (templateService.getTemplateById as jest.Mock).mockResolvedValue(null);
 
             await expect(templateIntegrationService.applyTemplateToPlanning('tmpl_not_found', dateDebut, dateFin))
-                .rejects.toThrow('Tableau de service avec l\'ID tmpl_not_found non trouvée');
+                .rejects.toThrow('TrameModele avec l\'ID tmpl_not_found non trouvée');
         });
     });
 
@@ -261,7 +261,7 @@ describe('templateIntegrationService', () => {
     });
 
     describe('checkTemplateCompatibility', () => {
-        test('devrait vérifier la compatibilité d\'une tableau de service avec un planning existant', async () => {
+        test('devrait vérifier la compatibilité d\'une trameModele avec un planning existant', async () => {
             const result = await templateIntegrationService.checkTemplateCompatibility('tmpl_1', 'planning_1');
 
             expect(result).toHaveProperty('isCompatible');

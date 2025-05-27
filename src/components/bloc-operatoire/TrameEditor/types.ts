@@ -1,6 +1,6 @@
 import { DayOfWeek, Period, TypeSemaineTrame, ActivityType, OperatingRoom, Surgeon, User } from '@prisma/client';
 
-// Types de base pour l'éditeur de tableaux de service
+// Types de base pour l'éditeur de trameModeles
 export interface TrameEditorConfig {
     weekStart: Date;
     viewMode: 'week' | 'biweek' | 'month';
@@ -9,7 +9,7 @@ export interface TrameEditorConfig {
     autoSave: boolean;
 }
 
-// Types pour les gardes/vacations dans l'éditeur
+// Types pour les affectations dans l'éditeur
 export interface EditorAffectation {
     id?: number;
     trameModeleId: number;
@@ -64,7 +64,7 @@ export interface ConflictDetail {
 // Types pour le drag & drop
 export interface DragItem {
     id: string;
-    type: 'garde/vacation' | 'personnel' | 'modèle';
+    type: 'affectation' | 'personnel' | 'template';
     data: EditorAffectation | EditorPersonnelRequis | any;
     source: {
         jourSemaine: DayOfWeek;
@@ -87,7 +87,7 @@ export interface GridCell {
     jourSemaine: DayOfWeek;
     periode: Period;
     roomId?: number;
-    gardes/vacations: EditorAffectation[];
+    affectations: EditorAffectation[];
     isDropTarget: boolean;
     isHighlighted: boolean;
     conflictLevel?: 'none' | 'warning' | 'error';
@@ -128,7 +128,7 @@ export type TrameEditorAction =
 export interface TrameEditorState {
     config: TrameEditorConfig;
     gridData: WeeklyGridData;
-    gardes/vacations: EditorAffectation[];
+    affectations: EditorAffectation[];
     selectedAffectations: number[];
     dragState: {
         isDragging: boolean;

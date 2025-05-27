@@ -5,7 +5,7 @@ import { startOfWeek, endOfWeek, addDays, format } from 'date-fns';
 import { logger } from '@/lib/logger';
 import { withUserRateLimit } from '@/lib/rateLimit';
 
-// Types pour le planning médical
+// Types pour le planningMedical
 type ShiftType = 'GARDE_24H' | 'ASTREINTE' | 'VACATION' | 'BLOC' | 'CONSULTATION' | 'REPOS' | 'CONGE';
 type ShiftStatus = 'CONFIRME' | 'EN_ATTENTE' | 'URGENT' | 'REMPLACE';
 
@@ -61,7 +61,7 @@ async function handler(req: NextRequest) {
 
         // Requête optimisée avec sélection des champs nécessaires uniquement
         const [attributions, leaves, blocPlannings] = await Promise.all([
-            // Récupérer les gardes/vacations de la semaine
+            // Récupérer les affectations de la semaine
             prisma.attribution.findMany({
                 where: {
                     userId: userId,
@@ -157,7 +157,7 @@ async function handler(req: NextRequest) {
         // Transformer les données en format médical intuitif
         const shifts: MedicalShift[] = [];
 
-        // Traiter les gardes/vacations standards
+        // Traiter les affectations standards
         attributions.forEach(attribution => {
             const shift: MedicalShift = {
                 id: `attribution-${attribution.id}`,

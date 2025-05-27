@@ -3,10 +3,6 @@ import { prisma } from '@/lib/prisma';
 import { getAuthTokenServer, checkUserRole } from '@/lib/auth-server-utils';
 import type { UserRole as AuthUserRole } from '@/lib/auth-client-utils';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 // Définir les rôles autorisés pour cette route
 const ALLOWED_ROLES_GET: AuthUserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'USER']; // Large pour l'instant

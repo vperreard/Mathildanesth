@@ -4,10 +4,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { optimizedSimulationService } from '@/services/simulations/optimizedSimulationService';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 export async function POST(request: NextRequest) {
     try {
@@ -49,7 +45,7 @@ export async function POST(request: NextRequest) {
             where: { id: scenarioId },
             include: {
                 results: true,
-                modèle: true
+                template: true
             }
         });
 

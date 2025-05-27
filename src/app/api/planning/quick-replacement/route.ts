@@ -5,9 +5,6 @@ import { authOptions } from '@/lib/auth';
 import { ShiftType } from '@/types/common';
 import { differenceInDays, isWithinInterval, parseISO } from 'date-fns';
 
-jest.mock('@/lib/prisma');
-
-
 interface ReplacementCandidate {
     id: string;
     name: string;
@@ -197,7 +194,7 @@ function determineAvailability(
 }
 
 function calculateFatigueScore(attributions: any[]): number {
-    // Calculer un score de fatigue basé sur les gardes/vacations récentes
+    // Calculer un score de fatigue basé sur les affectations récentes
     const recentAssignments = attributions.filter(a => {
         const daysSince = differenceInDays(new Date(), new Date(a.startDate));
         return daysSince >= 0 && daysSince <= 7;

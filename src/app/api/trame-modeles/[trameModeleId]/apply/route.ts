@@ -3,12 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/middleware/authorization';
 import { logger } from '@/lib/logger';
 
-jest.mock('@/lib/prisma');
-
-
 /**
- * POST /api/tableau de service-modeles/[trameModeleId]/apply
- * Appliquer une tableau de service modèle - ADMIN uniquement
+ * POST /api/trameModele-modeles/[trameModeleId]/apply
+ * Appliquer une trameModele template - ADMIN uniquement
  */
 export const POST = withAuth({
     requireAuth: true,
@@ -29,17 +26,17 @@ export const POST = withAuth({
             );
         }
 
-        // Vérifier que la tableau de service existe
-        const tableau de service = await prisma.trameModele.findUnique({
+        // Vérifier que la trameModele existe
+        const trameModele = await prisma.trameModele.findUnique({
             where: { id: trameModeleId },
             include: {
-                gardes/vacations: true
+                affectations: true
             }
         });
 
-        if (!tableau de service) {
+        if (!trameModele) {
             return NextResponse.json(
-                { error: 'Tableau de service model not found' },
+                { error: 'TrameModele model not found' },
                 { status: 404 }
             );
         }
@@ -77,28 +74,28 @@ export const POST = withAuth({
         }
 
         // Logger l'action avant l'application
-        logger.info('Applying tableau de service model', {
+        logger.info('Applying trameModele model', {
             trameModeleId,
             siteId,
             startDate,
             endDate,
             userId,
-            affectationsCount: tableau de service.gardes/vacations.length
+            affectationsCount: trameModele.affectations.length
         });
 
-        // TODO: Implémenter la logique d'application de la tableau de service
+        // TODO: Implémenter la logique d'application de la trameModele
         // Ceci est un placeholder - la logique réelle dépend de votre implémentation
         const result = {
             success: true,
-            message: 'Tableau de service model applied successfully',
-            appliedCount: tableau de service.gardes/vacations.length,
+            message: 'TrameModele model applied successfully',
+            appliedCount: trameModele.affectations.length,
             period: { startDate, endDate }
         };
 
         return NextResponse.json(result);
 
     } catch (error) {
-        logger.error('Error applying tableau de service model', error);
+        logger.error('Error applying trameModele model', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

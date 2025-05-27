@@ -1,13 +1,13 @@
 import { templateValidationService } from '../templateValidationService';
-import { PlanningTemplate, DayOfWeek, AffectationType } from '../../types/modèle';
+import { PlanningTemplate, DayOfWeek, AffectationType } from '../../types/template';
 
 describe('templateValidationService', () => {
     // Modèle de base pour les tests
     const createValidTemplate = (): PlanningTemplate => ({
         id: 'tmpl_test',
-        nom: 'Tableau de service Test',
+        nom: 'TrameModele Test',
         departementId: 'dept_1',
-        gardes/vacations: [
+        affectations: [
             {
                 id: 'aff_1',
                 jour: 'LUNDI' as DayOfWeek,
@@ -41,7 +41,7 @@ describe('templateValidationService', () => {
         estActif: true
     });
 
-    test('devrait valider une tableau de service correcte sans erreurs', () => {
+    test('devrait valider une trameModele correcte sans erreurs', () => {
         const modèle = createValidTemplate();
         const result = templateValidationService.validateTemplate(modèle);
 
@@ -54,7 +54,7 @@ describe('templateValidationService', () => {
         expect(result.warnings.every(w => w.severity === 'WARNING' && w.type === 'BUSINESS_RULE')).toBe(true);
     });
 
-    test('devrait détecter un nom de tableau de service manquant', () => {
+    test('devrait détecter un nom de trameModele manquant', () => {
         const modèle = createValidTemplate();
         modèle.nom = '';
 
@@ -66,7 +66,7 @@ describe('templateValidationService', () => {
         expect(result.errors[0].field).toBe('nom');
     });
 
-    test('devrait détecter un nom de tableau de service trop court', () => {
+    test('devrait détecter un nom de trameModele trop court', () => {
         const modèle = createValidTemplate();
         modèle.nom = 'AB';
 
@@ -92,7 +92,7 @@ describe('templateValidationService', () => {
 
     test('devrait détecter une garde/vacation sans postes requis mais ouverte', () => {
         const modèle = createValidTemplate();
-        modèle.gardes/vacations.push({
+        modèle.affectations.push({
             id: 'aff_invalid',
             jour: 'MARDI',
             type: 'CONSULTATION',
@@ -111,7 +111,7 @@ describe('templateValidationService', () => {
 
     test('devrait détecter une garde/vacation dupliquée', () => {
         const modèle = createValidTemplate();
-        modèle.gardes/vacations.push({
+        modèle.affectations.push({
             id: 'aff_duplicate',
             jour: 'LUNDI',
             type: 'CONSULTATION',
@@ -131,7 +131,7 @@ describe('templateValidationService', () => {
 
     test('devrait détecter un format d\'heure invalide', () => {
         const modèle = createValidTemplate();
-        modèle.gardes/vacations[0].configuration!.heureDebut = '8h30';
+        modèle.affectations[0].configuration!.heureDebut = '8h30';
 
         const result = templateValidationService.validateTemplate(modèle);
 
@@ -144,8 +144,8 @@ describe('templateValidationService', () => {
 
     test('devrait détecter une heure de fin antérieure à l\'heure de début', () => {
         const modèle = createValidTemplate();
-        modèle.gardes/vacations[0].configuration!.heureDebut = '14:00';
-        modèle.gardes/vacations[0].configuration!.heureFin = '12:00';
+        modèle.affectations[0].configuration!.heureDebut = '14:00';
+        modèle.affectations[0].configuration!.heureFin = '12:00';
 
         const result = templateValidationService.validateTemplate(modèle);
 
@@ -158,7 +158,7 @@ describe('templateValidationService', () => {
 
     test('devrait détecter un poste sans nom', () => {
         const modèle = createValidTemplate();
-        modèle.gardes/vacations[0].configuration!.postes[0].nom = '';
+        modèle.affectations[0].configuration!.postes[0].nom = '';
 
         const result = templateValidationService.validateTemplate(modèle);
 
@@ -172,7 +172,7 @@ describe('templateValidationService', () => {
 
     test('devrait détecter un poste requis avec quantité 0', () => {
         const modèle = createValidTemplate();
-        modèle.gardes/vacations[0].configuration!.postes[0].quantite = 0;
+        modèle.affectations[0].configuration!.postes[0].quantite = 0;
 
         const result = templateValidationService.validateTemplate(modèle);
 
@@ -187,7 +187,7 @@ describe('templateValidationService', () => {
         const modèle = createValidTemplate();
         // La configuration a 2 postes avec quantité 1 chacun (total: 2)
         // Mais l'garde/vacation déclare 3 postes requis
-        modèle.gardes/vacations[0].postesRequis = 3;
+        modèle.affectations[0].postesRequis = 3;
 
         const result = templateValidationService.validateTemplate(modèle);
 
@@ -197,7 +197,7 @@ describe('templateValidationService', () => {
         )).toBe(true);
     });
 
-    test('devrait détecter un jour sans gardes/vacations ouvertes', () => {
+    test('devrait détecter un jour sans assignments ouvertes', () => {
         const modèle = createValidTemplate();
         // Assurer que seul le lundi a une garde/vacation ouverte
         // Les autres jours n'en ont pas
@@ -209,7 +209,7 @@ describe('templateValidationService', () => {
             w.message.includes('Aucune garde/vacation ouverte')
         )).toBe(true);
 
-        // Il devrait y avoir 6 jours sans gardes/vacations (tous sauf lundi)
+        // Il devrait y avoir 6 jours sans assignments (tous sauf lundi)
         const daysWithoutAffectations = result.warnings.filter(w =>
             w.type === 'BUSINESS_RULE' &&
             w.message.includes('Aucune garde/vacation ouverte')

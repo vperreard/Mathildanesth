@@ -134,7 +134,7 @@ export interface BlocRoomAssignment {
     notes?: string;
 }
 
-// Garde/Vacation d'une salle pour une journée
+// Affectation d'une salle pour une journée
 export interface BlocRoomAssignment {
     id: string;
     salleId: string;

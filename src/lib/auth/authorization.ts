@@ -137,7 +137,7 @@ export async function requireLeavePermission(
 }
 
 /**
- * Vérifie les permissions pour les tableaux de service et gardes/vacations
+ * Vérifie les permissions pour les trameModeles et affectations
  */
 export async function requirePlanningPermission(
     action: 'create' | 'read' | 'update' | 'delete'

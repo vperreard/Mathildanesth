@@ -7,7 +7,6 @@ describe('Authentification et gestion des sessions', () => {
     };
 
     beforeEach(() => {
-    jest.clearAllMocks();
         // Réinitialiser la base de données de test
         cy.task('resetTestDatabase');
 
@@ -19,9 +18,9 @@ describe('Authentification et gestion des sessions', () => {
 
     it('permet la connexion avec des identifiants valides', () => {
         cy.visit('/auth/connexion');
-        cy.get('[data-testid=login-email-input]').type(testUser.email);
-        cy.get('[data-testid=login-password-input]').type(testUser.password);
-        cy.get('[data-testid=login-submit-button]').click();
+        cy.get('[data-cy=email-input]').type(testUser.email);
+        cy.get('[data-cy=password-input]').type(testUser.password);
+        cy.get('[data-cy=submit-button]').click();
 
         // Vérifier la redirection après connexion
         cy.url().should('satisfy', (url: string) => {
@@ -34,12 +33,12 @@ describe('Authentification et gestion des sessions', () => {
 
     it('affiche un message d\'erreur pour des identifiants invalides', () => {
         cy.visit('/auth/connexion');
-        cy.get('[data-testid=login-email-input]').type('utilisateur.invalide@example.com');
-        cy.get('[data-testid=login-password-input]').type('mot_de_passe_incorrect');
-        cy.get('[data-testid=login-submit-button]').click();
+        cy.get('[data-cy=email-input]').type('utilisateur.invalide@example.com');
+        cy.get('[data-cy=password-input]').type('mot_de_passe_incorrect');
+        cy.get('[data-cy=submit-button]').click();
 
         // Vérifier le message d'erreur
-        cy.get('[data-testid=login-error-message]')
+        cy.get('[data-cy=error-message], [data-testid=login-error-message]')
             .should('be.visible')
             .and('contain.text', 'Identifiants invalides');
     });

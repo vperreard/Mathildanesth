@@ -224,7 +224,7 @@ function ViolationCard({
                             {violation.affectedAssignments.length > 0 && (
                                 <>
                                     <br />
-                                    <span className="font-medium">Gardes/Vacations concernées:</span>{' '}
+                                    <span className="font-medium">Affectations concernées:</span>{' '}
                                     {violation.affectedAssignments.length}
                                 </>
                             )}

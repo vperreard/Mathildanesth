@@ -1,10 +1,6 @@
 // Service pour l'analyse et les prédictions avancées
 import { prisma } from '@/lib/prisma';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 // Interfaces pour les types de données d'analyse
 export interface GuardDutyDistribution {

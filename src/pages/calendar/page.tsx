@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DraggableCalendar from '../../components/DraggableCalendar';
-import { Attribution, AssignmentStatus } from '../../types/attribution';
+import { Attribution, AssignmentStatus } from '../../types/assignment';
 import { ShiftType } from '../../types/common';
 import { RulesConfiguration } from '../../types/rules';
 import { User, UserRole, LeaveStatus, LeaveType } from '../../types/user';

@@ -3,12 +3,8 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-jest.mock('@/lib/prisma');
 
-
-const prisma = prisma;
-
-// GET /api/bloc-operatoire/gardes/vacations
+// GET /api/bloc-operatoire/affectations
 export async function GET(request: Request) {
     try {
         const session = await getServerSession(authOptions);
@@ -20,11 +16,11 @@ export async function GET(request: Request) {
         const trameId = searchParams.get('trameId');
 
         if (!trameId) {
-            return NextResponse.json({ error: 'ID de tableau de service requis' }, { status: 400 });
+            return NextResponse.json({ error: 'ID de trameModele requis' }, { status: 400 });
         }
 
-        // Récupérer les gardes/vacations pour une tableau de service spécifique
-        const gardes/vacations = await prisma.blocAffectationHabituelle.findMany({
+        // Récupérer les affectations pour une trameModele spécifique
+        const affectations = await prisma.blocAffectationHabituelle.findMany({
             where: {
                 blocTramePlanningId: parseInt(trameId)
             },
@@ -43,14 +39,14 @@ export async function GET(request: Request) {
             ]
         });
 
-        return NextResponse.json(gardes/vacations);
+        return NextResponse.json(affectations);
     } catch (error) {
-        console.error('Erreur lors de la récupération des gardes/vacations:', error);
-        return NextResponse.json({ error: 'Erreur lors de la récupération des gardes/vacations' }, { status: 500 });
+        console.error('Erreur lors de la récupération des affectations:', error);
+        return NextResponse.json({ error: 'Erreur lors de la récupération des affectations' }, { status: 500 });
     }
 }
 
-// POST /api/bloc-operatoire/gardes/vacations
+// POST /api/bloc-operatoire/affectations
 export async function POST(request: Request) {
     try {
         const session = await getServerSession(authOptions);
@@ -84,20 +80,20 @@ export async function POST(request: Request) {
         if (typeAffectation === 'BLOC_OPERATION' && !operatingRoomId) {
             return NextResponse.json({
                 error: 'Salle requise',
-                details: 'Une salle d\'opération est requise pour les gardes/vacations de type BLOC_OPERATION'
+                details: 'Une salle d\'opération est requise pour les affectations de type BLOC_OPERATION'
             }, { status: 400 });
         }
 
-        // Vérifier que la tableau de service existe
-        const tableau de service = await prisma.blocTramePlanning.findUnique({
+        // Vérifier que la trameModele existe
+        const trameModele = await prisma.blocTramePlanning.findUnique({
             where: { id: blocTramePlanningId }
         });
 
-        if (!tableau de service) {
-            return NextResponse.json({ error: 'Tableau de service non trouvée' }, { status: 404 });
+        if (!trameModele) {
+            return NextResponse.json({ error: 'TrameModele non trouvée' }, { status: 404 });
         }
 
-        // Créer l'garde/vacation
+        // Créer l'affectation
         const newAffectation = await prisma.blocAffectationHabituelle.create({
             data: {
                 blocTramePlanningId,
@@ -121,15 +117,15 @@ export async function POST(request: Request) {
 
         return NextResponse.json(newAffectation, { status: 201 });
     } catch (error) {
-        console.error('Erreur lors de la création de l\'garde/vacation:', error);
+        console.error('Erreur lors de la création de l\'affectation:', error);
         return NextResponse.json({
-            error: 'Erreur lors de la création de l\'garde/vacation',
+            error: 'Erreur lors de la création de l\'affectation',
             details: error instanceof Error ? error.message : 'Erreur inconnue'
         }, { status: 500 });
     }
 }
 
-// DELETE /api/bloc-operatoire/gardes/vacations
+// DELETE /api/bloc-operatoire/affectations
 export async function DELETE(request: Request) {
     try {
         const session = await getServerSession(authOptions);
@@ -141,28 +137,28 @@ export async function DELETE(request: Request) {
         const id = searchParams.get('id');
 
         if (!id) {
-            return NextResponse.json({ error: 'ID d\'garde/vacation requis' }, { status: 400 });
+            return NextResponse.json({ error: 'ID d\'affectation requis' }, { status: 400 });
         }
 
-        // Vérifier que l'garde/vacation existe
-        const garde/vacation = await prisma.blocAffectationHabituelle.findUnique({
+        // Vérifier que l'affectation existe
+        const affectation = await prisma.blocAffectationHabituelle.findUnique({
             where: { id: parseInt(id) }
         });
 
-        if (!garde/vacation) {
-            return NextResponse.json({ error: 'Garde/Vacation non trouvée' }, { status: 404 });
+        if (!affectation) {
+            return NextResponse.json({ error: 'Affectation non trouvée' }, { status: 404 });
         }
 
-        // Supprimer l'garde/vacation
+        // Supprimer l'affectation
         await prisma.blocAffectationHabituelle.delete({
             where: { id: parseInt(id) }
         });
 
-        return NextResponse.json({ success: true, message: 'Garde/Vacation supprimée avec succès' });
+        return NextResponse.json({ success: true, message: 'Affectation supprimée avec succès' });
     } catch (error) {
-        console.error('Erreur lors de la suppression de l\'garde/vacation:', error);
+        console.error('Erreur lors de la suppression de l\'affectation:', error);
         return NextResponse.json({
-            error: 'Erreur lors de la suppression de l\'garde/vacation',
+            error: 'Erreur lors de la suppression de l\'affectation',
             details: error instanceof Error ? error.message : 'Erreur inconnue'
         }, { status: 500 });
     }

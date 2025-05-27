@@ -5,9 +5,6 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { z } from 'zod';
 import { LeaveType, LeaveStatus } from '@prisma/client';
 
-jest.mock('@/lib/prisma');
-
-
 const createAbsenceSchema = z.object({
     startDate: z.string().datetime(),
     endDate: z.string().datetime(),

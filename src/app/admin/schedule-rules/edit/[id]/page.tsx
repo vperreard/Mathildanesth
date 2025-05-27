@@ -76,7 +76,7 @@ export default function EditRulePage({ params }: EditRulePageProps) {
                 description: 'La règle a été mise à jour avec succès.'
             });
 
-            router.push('/admin/planning médical-rules');
+            router.push('/admin/planningMedical-rules');
         } catch (error) {
             console.error('Erreur lors de la mise à jour de la règle:', error);
             toast({
@@ -91,7 +91,7 @@ export default function EditRulePage({ params }: EditRulePageProps) {
 
     // Annuler l'édition
     const handleCancel = () => {
-        router.push('/admin/planning médical-rules');
+        router.push('/admin/planningMedical-rules');
     };
 
     // Afficher un message d'erreur si la règle n'a pas pu être chargée
@@ -102,7 +102,7 @@ export default function EditRulePage({ params }: EditRulePageProps) {
                     <h1 className="text-2xl font-bold mb-4">Erreur</h1>
                     <p>{error}</p>
                     <button
-                        onClick={() => router.push('/admin/planning médical-rules')}
+                        onClick={() => router.push('/admin/planningMedical-rules')}
                         className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                     >
                         Retour à la liste des règles

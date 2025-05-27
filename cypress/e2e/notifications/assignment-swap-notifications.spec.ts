@@ -5,7 +5,6 @@ describe('Notifications d\'échanges d\'affectations', () => {
 
     // Charger les fixtures avant chaque test
     beforeEach(() => {
-    jest.clearAllMocks();
         cy.fixture('assignment-swap-notifications.json').as('testData');
     });
 

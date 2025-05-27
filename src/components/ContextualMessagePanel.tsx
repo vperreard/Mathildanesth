@@ -16,7 +16,7 @@ interface ContextualMessagePanelProps {
 }
 
 /**
- * Panneau de messages contextuels pour les gardes/vacations, dates ou requêtes
+ * Panneau de messages contextuels pour les affectations, dates ou requêtes
  */
 export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
     assignmentId,
@@ -38,7 +38,7 @@ export const ContextualMessagePanel: React.FC<ContextualMessagePanelProps> = ({
 
     // Contexte pour le titre du panneau
     let contextTitle = "Messages";
-    if (assignmentId) contextTitle = "Messages - Garde/Vacation";
+    if (assignmentId) contextTitle = "Messages - Affectation";
     else if (contextDate) {
         // Formater la date pour l'affichage
         const dateObj = new Date(contextDate);

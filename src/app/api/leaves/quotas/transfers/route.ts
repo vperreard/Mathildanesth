@@ -3,10 +3,6 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 /**
  * GET /api/conges/quotas/transfers

@@ -8,9 +8,6 @@ import { AuditAction } from '@/services/AuditService';
 import { auditService } from '@/lib/auditService';
 import { LeaveType as PrismaLeaveType } from '@prisma/client';
 
-jest.mock('@/lib/prisma');
-
-
 // Validation du corps de la requête
 const transferRequestSchema = z.object({
     userId: z.string(),

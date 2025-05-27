@@ -4,14 +4,10 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { Attribution } from '@/types/attribution';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 /**
- * POST /api/gardes/vacations/batch
- * Traite un lot d'gardes/vacations (création ou mise à jour)
+ * POST /api/affectations/batch
+ * Traite un lot d'affectations (création ou mise à jour)
  */
 export async function POST(req: NextRequest) {
     try {
@@ -39,12 +35,12 @@ export async function POST(req: NextRequest) {
 
         if (!attributions || !Array.isArray(attributions) || attributions.length === 0) {
             return NextResponse.json(
-                { error: 'Aucune garde/vacation valide n\'a été fournie' },
+                { error: 'Aucune affectation valide n\'a été fournie' },
                 { status: 400 }
             );
         }
 
-        // Traitement par lots des gardes/vacations
+        // Traitement par lots des affectations
         const results = await Promise.all(
             attributions.map(async (attribution) => {
                 try {
@@ -61,20 +57,20 @@ export async function POST(req: NextRequest) {
 
                     // Si l'attribution a un ID, mise à jour, sinon création
                     if (attribution.id && attribution.id !== 'new') {
-                        // Mise à jour d'une garde/vacation existante
+                        // Mise à jour d'une affectation existante
                         return await prisma.attribution.update({
                             where: { id: attribution.id },
                             data: assignmentData,
                         });
                     } else {
-                        // Création d'une nouvelle garde/vacation
+                        // Création d'une nouvelle affectation
                         return await prisma.attribution.create({
                             data: assignmentData,
                         });
                     }
                 } catch (error) {
-                    console.error(`Erreur lors du traitement de l'garde/vacation: ${error}`);
-                    return { error: `Échec pour l'garde/vacation de l'utilisateur ${attribution.userId}` };
+                    console.error(`Erreur lors du traitement de l'affectation: ${error}`);
+                    return { error: `Échec pour l'affectation de l'utilisateur ${attribution.userId}` };
                 }
             })
         );
@@ -84,7 +80,7 @@ export async function POST(req: NextRequest) {
         if (errors.length > 0) {
             return NextResponse.json(
                 {
-                    message: 'Certaines gardes/vacations n\'ont pas pu être traitées',
+                    message: 'Certaines affectations n\'ont pas pu être traitées',
                     errors,
                     successCount: results.length - errors.length
                 },
@@ -94,15 +90,15 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(
             {
-                message: 'Toutes les gardes/vacations ont été traitées avec succès',
+                message: 'Toutes les affectations ont été traitées avec succès',
                 count: results.length
             },
             { status: 200 }
         );
     } catch (error) {
-        console.error('Erreur lors du traitement des gardes/vacations par lots:', error);
+        console.error('Erreur lors du traitement des affectations par lots:', error);
         return NextResponse.json(
-            { error: 'Une erreur est survenue lors du traitement des gardes/vacations' },
+            { error: 'Une erreur est survenue lors du traitement des affectations' },
             { status: 500 }
         );
     }

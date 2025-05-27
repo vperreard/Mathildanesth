@@ -4,9 +4,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { RulesConfiguration, FatigueConfig, defaultRulesConfiguration, defaultFatigueConfig } from '@/types/rules';
 
-jest.mock('@/lib/prisma');
-
-
 // Clé pour stocker la configuration dans la base de données
 const CONFIG_KEY = 'PLANNING_RULES_CONFIG';
 const FATIGUE_CONFIG_KEY = 'FATIGUE_CONFIG';

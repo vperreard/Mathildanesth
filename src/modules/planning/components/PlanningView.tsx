@@ -63,7 +63,7 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
         }
     }, [attributions, onSave]);
 
-    // Filtrer les gardes/vacations par date
+    // Filtrer les affectations par date
     const getAssignmentsForDate = useCallback((date: Date) => {
         // S'assurer que attributions est bien un tableau
         if (!Array.isArray(attributions)) return [];
@@ -73,7 +73,7 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
         );
     }, [attributions]);
 
-    // Filtrer les gardes/vacations par utilisateur
+    // Filtrer les affectations par utilisateur
     const getAssignmentsForUser = useCallback((user: User) => {
         // S'assurer que attributions est bien un tableau
         if (!Array.isArray(attributions)) return [];

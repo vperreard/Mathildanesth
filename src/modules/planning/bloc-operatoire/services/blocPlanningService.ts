@@ -20,14 +20,11 @@ import { getSectorRules, areRoomsContiguous as areRoomsContiguousLib } from '../
 // Importer le service de règles de secteur/salle
 import { sectorTypeRulesService } from './sectorTypeRules';
 
-jest.mock('@/lib/prisma');
-
-
 // Type pour les objets vides
 interface EmptyObject extends Record<string, never> { }
 
 // Instance Prisma
-const prisma = prisma;
+import { prisma } from "@/lib/prisma";
 
 // Nouveaux types / interfaces pour la logique de planning V2 (si non générés par Prisma)
 export interface CreateOrUpdatePlanningsParams {
@@ -52,33 +49,33 @@ export class BlocPlanningService {
 
     /**
      * Crée ou met à jour les plannings journaliers du bloc pour un site et une période donnés,
-     * en se basant sur des tableaux de service.
+     * en se basant sur des trameModeles.
      */
     async createOrUpdateBlocDayPlanningsFromTrames(params: CreateOrUpdatePlanningsParams): Promise<BlocDayPlanning[]> {
         const { siteId, startDate, endDate, trameIds, initiatorUserId } = params;
         const generatedPlannings: BlocDayPlanning[] = [];
 
-        // 1. Récupérer les tableaux de service et leurs gardes/vacations habituelles
-        const tableaux de service = await prisma.blocTramePlanning.findMany({
+        // 1. Récupérer les trameModeles et leurs affectations habituelles
+        const trameModeles = await prisma.blocTramePlanning.findMany({
             where: {
                 id: { in: trameIds },
                 isActive: true,
             },
-            include: { gardes/vacations: { include: { user: true, surgeon: true } } }
+            include: { affectations: { include: { user: true, surgeon: true } } }
         });
 
-        if (!tableaux de service.length) {
+        if (!trameModeles.length) {
             // Ne pas jeter d'erreur ici, car on peut vouloir créer un planning vide basé sur une période,
-            // puis y ajouter des gardes/vacations manuellement. Ou alors, la création depuis tableaux de service est stricte.
-            // Pour l'instant, on retourne un tableau vide si pas de tableaux de service fournies et création stricte depuis tableaux de service.
+            // puis y ajouter des affectations manuellement. Ou alors, la création depuis trameModeles est stricte.
+            // Pour l'instant, on retourne un tableau vide si pas de trameModeles fournies et création stricte depuis trameModeles.
             // Si le but est de créer des BlocDayPlanning vides pour la période, il faudrait une autre logique.
-            console.warn("Aucune tableau de service active trouvée pour les IDs fournis. Aucun planning ne sera généré ou mis à jour à partir de tableaux de service.");
+            console.warn("Aucune trameModele active trouvée pour les IDs fournis. Aucun planning ne sera généré ou mis à jour à partir de trameModeles.");
             return [];
-            // throw new Error("Aucune tableau de service active trouvée pour les IDs fournis.");
+            // throw new Error("Aucune trameModele active trouvée pour les IDs fournis.");
         }
 
-        const allUserIdsInTrames = tableaux de service.flatMap((t: BlocTramePlanning & { gardes/vacations: (BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null })[] }) => t.gardes/vacations.map((a: BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null }) => a.userId).filter(Boolean) as number[]);
-        const allSurgeonIdsInTrames = tableaux de service.flatMap((t: BlocTramePlanning & { gardes/vacations: (BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null })[] }) => t.gardes/vacations.map((a: BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null }) => a.chirurgienId).filter(Boolean) as number[]);
+        const allUserIdsInTrames = trameModeles.flatMap((t: BlocTramePlanning & { affectations: (BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null })[] }) => t.affectations.map((a: BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null }) => a.userId).filter(Boolean) as number[]);
+        const allSurgeonIdsInTrames = trameModeles.flatMap((t: BlocTramePlanning & { affectations: (BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null })[] }) => t.affectations.map((a: BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null }) => a.chirurgienId).filter(Boolean) as number[]);
 
         const absences = await prisma.absence.findMany({
             where: {
@@ -120,14 +117,14 @@ export class BlocPlanningService {
                 continue;
             }
 
-            // Supprimer les anciennes gardes/vacations et conflits (ou marquer comme obsolètes) pour ce planning DRAFT
+            // Supprimer les anciennes affectations et conflits (ou marquer comme obsolètes) pour ce planning DRAFT
             await prisma.blocPlanningConflict.deleteMany({ where: { blocDayPlanningId: blocDayPlanning.id } });
             await prisma.blocStaffAssignment.deleteMany({ where: { blocRoomAssignment: { blocDayPlanningId: blocDayPlanning.id } } });
             await prisma.blocRoomAssignment.deleteMany({ where: { blocDayPlanningId: blocDayPlanning.id } });
 
-            // Appliquer les gardes/vacations des tableaux de service pour ce jour
-            for (const tableau de service of tableaux de service) {
-                for (const affHab of tableau de service.gardes/vacations) {
+            // Appliquer les affectations des trameModeles pour ce jour
+            for (const trameModele of trameModeles) {
+                for (const affHab of trameModele.affectations) {
                     if (affHab.jourSemaine !== dayOfWeek || (affHab.typeSemaine !== WeekType.ALL && affHab.typeSemaine !== weekType)) {
                         continue;
                     }
@@ -139,10 +136,10 @@ export class BlocPlanningService {
                         continue; // Personnel absent
                     }
 
-                    // Créer les gardes/vacations dans le BlocDayPlanning
+                    // Créer les affectations dans le BlocDayPlanning
                     if (affHab.typeAffectation === 'BLOC_OPERATION' && affHab.operatingRoomId) {
-                        // Pour l'instant, on gère une seule garde/vacation de tableau de service par salle/période.
-                        // Une logique de priorité/fusion serait nécessaire si plusieurs tableaux de service affectent la même salle.
+                        // Pour l'instant, on gère une seule affectation de trameModele par salle/période.
+                        // Une logique de priorité/fusion serait nécessaire si plusieurs trameModeles affectent la même salle.
                         const existingAssignmentForRoomPeriod = await prisma.blocRoomAssignment.findFirst({
                             where: {
                                 blocDayPlanningId: blocDayPlanning.id,
@@ -152,10 +149,10 @@ export class BlocPlanningService {
                         });
 
                         if (existingAssignmentForRoomPeriod) {
-                            // TODO: Gestion des conflits de tableaux de service pour la même salle/période
-                            // Options: Priorité de tableau de service, première arrivée, fusion manuelle, ou générer un conflit.
+                            // TODO: Gestion des conflits de trameModeles pour la même salle/période
+                            // Options: Priorité de trameModele, première arrivée, fusion manuelle, ou générer un conflit.
                             // Pour V1: Générer un conflit d'avertissement.
-                            console.warn(`Conflit de tableau de service: Salle ${affHab.operatingRoomId} déjà assignée pour ${affHab.periode} le ${currentDate.toISOString().split('T')[0]}. Tableau de service ${tableau de service.id}, Garde/Vacation ${affHab.id}. La première garde/vacation de tableau de service est conservée.`);
+                            console.warn(`Conflit de trameModele: Salle ${affHab.operatingRoomId} déjà assignée pour ${affHab.periode} le ${currentDate.toISOString().split('T')[0]}. TrameModele ${trameModele.id}, Affectation ${affHab.id}. La première affectation de trameModele est conservée.`);
 
                             // Création d'un conflit pour notifier l'utilisateur
                             await prisma.blocPlanningConflict.create({
@@ -166,14 +163,14 @@ export class BlocPlanningService {
                                     relatedUserId: null,
                                     relatedSurgeonId: null,
                                     type: 'TRAME_OVERLAP_WARNING',
-                                    message: `Conflit de tableau de service : Plusieurs tableaux de service (${existingAssignmentForRoomPeriod.sourceBlocTrameAffectationId ? `provenant de l'garde/vacation de tableau de service ID ${existingAssignmentForRoomPeriod.sourceBlocTrameAffectationId}` : 'origine inconnue'} et tableau de service ID ${tableau de service.id} / garde/vacation ID ${affHab.id}) tentent d'affecter la salle ID ${affHab.operatingRoomId} pour la période ${affHab.periode}. La première garde/vacation a été conservée.`,
+                                    message: `Conflit de trameModele : Plusieurs trameModeles (${existingAssignmentForRoomPeriod.sourceBlocTrameAffectationId ? `provenant de l'affectation de trameModele ID ${existingAssignmentForRoomPeriod.sourceBlocTrameAffectationId}` : 'origine inconnue'} et trameModele ID ${trameModele.id} / affectation ID ${affHab.id}) tentent d'affecter la salle ID ${affHab.operatingRoomId} pour la période ${affHab.periode}. La première affectation a été conservée.`,
                                     severity: ConflictSeverity.WARNING,
                                     isResolved: false, isForceResolved: false,
                                     resolvedAt: null, resolvedByUserId: null, resolutionNotes: null,
                                     forceResolvedAt: null, forceResolvedByUserId: null, forceResolutionNotes: null
                                 }
                             });
-                            continue; // On garde la première garde/vacation trouvée et on ne la remplace pas
+                            continue; // On garde la première affectation trouvée et on ne la remplace pas
                         }
 
                         const roomAssignment = await prisma.blocRoomAssignment.create({
@@ -187,7 +184,7 @@ export class BlocPlanningService {
                             }
                         });
 
-                        // Si l'garde/vacation habituelle concerne un User (MAR/IADE) directement pour cette salle de bloc
+                        // Si l'affectation habituelle concerne un User (MAR/IADE) directement pour cette salle de bloc
                         if (affHab.userId && affHab.roleInAffectation) {
                             await prisma.blocStaffAssignment.create({
                                 data: {
@@ -200,8 +197,8 @@ export class BlocPlanningService {
                         }
                     }
                     // TODO: Gérer autres typeAffectation (CONSULTATION, GARDE, ASTREINTE)
-                    // Ces gardes/vacations ne vont pas dans BlocRoomAssignment mais pourraient générer des contraintes
-                    // ou être stockées dans un autre modèle (GeneralAssignment)
+                    // Ces affectations ne vont pas dans BlocRoomAssignment mais pourraient générer des contraintes
+                    // ou être stockées dans un autre template (GeneralAssignment)
                 }
             }
 
@@ -365,9 +362,7 @@ export class BlocPlanningService {
             }
         }
         // Fin Règle 1
-
-
-        // Règle 2: Double Garde/Vacation du Personnel (MAR, IADE)
+        // Règle 2: Double Affectation du Personnel (MAR, IADE)
         const staffAssignmentsByPeriod: { [key in Period]?: { [userId: number]: { attribution: BlocStaffAssignment & { user: User | null }, room: OperatingRoom, roomAssignmentId: string }[] } } = {};
 
         for (const roomAssignment of attributions) {
@@ -430,12 +425,12 @@ export class BlocPlanningService {
                     // Fin Solution Palliative
 
                     const severity = isSpecialOrConsultation ? ConflictSeverity.WARNING : ConflictSeverity.ERROR;
-                    const message = `L'utilisateur ${user?.prenom || ''} ${user?.nom || `ID ${userId}`} est affecté à plusieurs salles (${roomNames}) sur la période ${period} le ${date.toISOString().split('T')[0]}. ${isSpecialOrConsultation ? 'Une des salles est de type spécial (Consultation/Garde/Astreinte), générant un avertissement.' : 'Cela constitue une double garde/vacation bloquante.'}`;
+                    const message = `L'utilisateur ${user?.prenom || ''} ${user?.nom || `ID ${userId}`} est affecté à plusieurs salles (${roomNames}) sur la période ${period} le ${date.toISOString().split('T')[0]}. ${isSpecialOrConsultation ? 'Une des salles est de type spécial (Consultation/Garde/Astreinte), générant un avertissement.' : 'Cela constitue une double affectation bloquante.'}`;
 
                     conflictsToCreate.push({
                         blocDayPlanningId: planning.id,
                         relatedUserId: userId,
-                        // On pourrait lier à la première garde/vacation problématique, ou créer un conflit par garde/vacation.
+                        // On pourrait lier à la première affectation problématique, ou créer un conflit par affectation.
                         // Pour garder simple, un conflit par utilisateur doublement affecté par période.
                         // relatedStaffAssignmentId: assignmentsForUser[0].attribution.id, 
                         type: 'DOUBLE_AFFECTATION_PERSONNEL',
@@ -447,8 +442,6 @@ export class BlocPlanningService {
             }
         }
         // Fin Règle 2
-
-
         // Règle 3: Max Salles Supervisées par MAR (selon config)
         // (Précisions : 1 principale + 2 supervisions IADE, OU 3 supervisions IADE seules)
         // const config = site.siteConfiguration; // Incorrect, siteConfiguration n'existe pas directement
@@ -553,14 +546,12 @@ export class BlocPlanningService {
                 // - Si primaryCount = 0, alors supervisionCount ne doit pas dépasser 3.
 
                 let maxAllowedSupervisions = maxSallesSuperviseesGlobal; // Par défaut 3 supervisions si 0 principal
-                if (marData.primaryCount >= maxSallesEnPrincipalMAR) { // Si le MAR a déjà son créneau de principal (typiquement 1)
-                    maxAllowedSupervisions = maxSallesSuperviseesGlobal - marData.primaryCount; // Alors il lui reste N-P créneaux pour supervision
+                if (marData.primaryCount >= maxSallesEnPrincipalMAR) { // Si le MAR a déjà son slot de principal (typiquement 1)
+                    maxAllowedSupervisions = maxSallesSuperviseesGlobal - marData.primaryCount; // Alors il lui reste N-P slots pour supervision
                     // Exemple: maxGlobal = 3, maxPrincipal = 1. Si primaryCount = 1, maxAllowedSupervisions = 2.
                 }
                 // Assurons nous que maxAllowedSupervisions n'est pas négatif si primaryCount > maxSallesSuperviseesGlobal (ce qui serait déjà un conflit)
                 maxAllowedSupervisions = Math.max(0, maxAllowedSupervisions);
-
-
                 if (marData.primaryCount === 0 && marData.supervisionCount > maxSallesSuperviseesGlobal) {
                     conflictsToCreate.push({
                         blocDayPlanningId: planning.id,
@@ -619,13 +610,11 @@ export class BlocPlanningService {
             }
         }
         // Fin Règle 3 (et une partie de R8 intégrée)
-
-
         // TODO: Implémenter les autres règles (R4 à R8)
         // R4: Cohérence Secteurs et Contiguïté
         // R5: Incompatibilités et Préférences Utilisateurs
         // R6: Incompatibilités Chirurgiens
-        // R7: Présence et Garde/Vacation IADE
+        // R7: Présence et Affectation IADE
         // R8: Règles Spécifiques Ophtalmo/Endoscopie
 
         // R4: Cohérence Secteurs et Contiguïté
@@ -866,7 +855,7 @@ export class BlocPlanningService {
             }
         }
 
-        // R7: Présence et Garde/Vacation IADE
+        // R7: Présence et Affectation IADE
         // Vérifier le nombre d'IADEs affectés et leur disponibilité
         const roomsWithIADEDataByPeriod: { [key: string]: { roomAssignment: BlocRoomAssignment, iadeCount: number, marCount: number } } = {};
 
@@ -1081,7 +1070,7 @@ export class BlocPlanningService {
         // 🔐 CORRECTION TODO CRITIQUE : Ajouter logique de permissions pour changements de statut
         await this.verifyStatusChangePermissions(userId, planningId, status);
 
-        // TODO: Tracer l'historique des changements de statut si nécessaire (nouveau modèle ?)
+        // TODO: Tracer l'historique des changements de statut si nécessaire (nouveau template ?)
 
         return prisma.blocDayPlanning.update({
             where: { id: planningId },
@@ -1106,22 +1095,22 @@ export class BlocPlanningService {
         });
 
         if (!roomAssignment) {
-            throw new Error("Garde/Vacation de salle non trouvée.");
+            throw new Error("Affectation de salle non trouvée.");
         }
         if (roomAssignment.blocDayPlanning.status !== BlocPlanningStatus.DRAFT) {
             // Ou autre logique, ex: permettre modif sur certains statuts avec droits spécifiques
-            throw new Error("L'garde/vacation ne peut être modifiée que si le planning est en mode brouillon (DRAFT).");
+            throw new Error("L'affectation ne peut être modifiée que si le planning est en mode brouillon (DRAFT).");
         }
 
         // 🔐 CORRECTION TODO CRITIQUE : Vérifier si l'utilisateur a les droits de faire cette modification
         await this.verifyStaffModificationPermissions(initiatorUserId, roomAssignment.blocDayPlanning.siteId);
 
-        // 🔐 CORRECTION TODO CRITIQUE : Gérer le cas "update" si une garde/vacation pour cet userId+role existe déjà pour ce blocRoomAssignmentId
+        // 🔐 CORRECTION TODO CRITIQUE : Gérer le cas "update" si une affectation pour cet userId+role existe déjà pour ce blocRoomAssignmentId
         // Logique d'update/replace améliorée avec gestion des erreurs
 
         //       Actuellement, cela va créer une nouvelle entrée. Faut-il supprimer l'ancienne ou la mettre à jour ?
 
-        // Logique d'update/replace simple: si une garde/vacation pour ce user existe déjà sur ce room attribution, la supprimer.
+        // Logique d'update/replace simple: si une affectation pour ce user existe déjà sur ce room attribution, la supprimer.
         // Cela permet une forme de mise à jour par remplacement.
         // Attention: ne distingue pas par rôle pour la suppression. Si un user peut avoir plusieurs rôles sur la même room (peu probable), cela les supprimerait tous.
         // Pour une gestion plus fine, il faudrait un `findUnique` sur `blocRoomAssignmentId_userId_role` si une telle contrainte unique existait.
@@ -1151,10 +1140,10 @@ export class BlocPlanningService {
         });
 
         if (!staffAssignment) {
-            throw new Error("Garde/Vacation de personnel non trouvée.");
+            throw new Error("Affectation de personnel non trouvée.");
         }
         if (staffAssignment.blocRoomAssignment.blocDayPlanning.status !== BlocPlanningStatus.DRAFT) {
-            throw new Error("L'garde/vacation ne peut être supprimée que si le planning est en mode brouillon (DRAFT).");
+            throw new Error("L'affectation ne peut être supprimée que si le planning est en mode brouillon (DRAFT).");
         }
 
         // 🔐 CORRECTION TODO CRITIQUE : Vérifier si l'utilisateur a les droits de faire cette suppression
@@ -1165,8 +1154,6 @@ export class BlocPlanningService {
         await prisma.blocStaffAssignment.delete({ where: { id: staffAssignmentId } });
         await this.validateEntireBlocDayPlanning(staffAssignment.blocRoomAssignment.blocDayPlanningId);
     }
-
-
     async resolveConflict(conflictId: string, resolutionNotes: string, userId: number): Promise<BlocPlanningConflict> {
         const updatedConflict = await prisma.blocPlanningConflict.update({
             where: { id: conflictId },
@@ -1315,7 +1302,7 @@ export class BlocPlanningService {
                 orderBy: {
                     // Prioriser BLOQUANT si jamais plusieurs règles s'appliquaient (ne devrait pas arriver avec une bonne gestion des données)
                     // Pour cela, il faudrait que l'enum IncompatibilityType ait un ordre intrinsèque ou qu'on mappe les strings
-                    // Pour l'instant, on prend la première trouvée. Ou on peut trier par un champ 'priority' si ajouté au modèle.
+                    // Pour l'instant, on prend la première trouvée. Ou on peut trier par un champ 'priority' si ajouté au template.
                     // Si BLOQUANT est "plus petit" que PREFERENTIEL alphabétiquement, type: 'asc' fonctionnerait.
                     // Actuellement IncompatibilityType est { BLOQUANT, PREFERENTIEL }. BLOQUANT < PREFERENTIEL.
                     type: 'asc'
@@ -1399,7 +1386,7 @@ export class BlocPlanningService {
                 // Pour l'instant, on simplifie : si c'est le même jour, c'est un conflit pour la période planifiée.
                 // Cela pourrait être trop restrictif si une absence se termine le matin et le planning est l'après-midi.
                 // Pour la V1 de correction du linter, on accepte cette simplification.
-                // Idéalement, si absenceStartPeriod/EndPeriod ne sont pas sur le modèle Absence, 
+                // Idéalement, si absenceStartPeriod/EndPeriod ne sont pas sur le template Absence, 
                 // il faudrait une convention (ex: une absence sur un jour X sans période = journée entière).
                 return true;
             }
@@ -1480,8 +1467,6 @@ export class BlocPlanningService {
         });
         return validatedRoomsInternal.filter((r): r is LegacyOperatingRoom => r !== null);
     }
-
-
     /**
      * Récupère toutes les salles d'opération, triées par Site -> Secteur -> Salle
      */
@@ -1744,7 +1729,7 @@ export class BlocPlanningService {
             throw new Error("Utilisateur non trouvé pour vérification des permissions.");
         }
 
-        // Seuls les administrateurs et chefs de service peuvent modifier les gardes/vacations de personnel
+        // Seuls les administrateurs et chefs de service peuvent modifier les affectations de personnel
         const allowedRoles = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'CHEF_SERVICE', 'CADRE_BLOC'];
 
         if (!allowedRoles.includes(user.role)) {

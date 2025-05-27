@@ -31,7 +31,7 @@ import {
     VariationConfigPanelProps,
     DayOfWeek,
     PeriodeVariation
-} from '../types/modèle';
+} from '../types/template';
 import AssignmentConfigPanel from './AssignmentConfigPanel';
 
 // Mapping des jours de la semaine pour l'affichage

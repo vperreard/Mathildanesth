@@ -285,20 +285,20 @@ export const getQuickLinks = (userRole: string): NavigationItem[] => {
 // Terminologie médicale - mapping pour les remplacements
 export const medicalTerminology = {
   // Ancien → Nouveau
-  'Tableaux de service': 'Tableaux de service',
-  'tableaux de service': 'tableaux de service',
-  'Tableau de service': 'Tableau de service',
-  'tableau de service': 'tableau de service',
+  'TrameModeles': 'TrameModeles',
+  'trameModeles': 'trameModeles',
+  'TrameModele': 'TrameModele',
+  'trameModele': 'trameModele',
   
-  'Gardes/Vacations': 'Gardes/Vacations',
-  'gardes/vacations': 'gardes/vacations',
-  'Garde/Vacation': 'Garde/Vacation',
-  'garde/vacation': 'garde/vacation',
+  'Affectations': 'Affectations',
+  'affectations': 'affectations',
+  'Affectation': 'Affectation',
+  'affectation': 'affectation',
   
   'Créneaux': 'Créneaux',
-  'créneaux': 'créneaux',
+  'slots': 'slots',
   'Créneau': 'Créneau',
-  'créneau': 'créneau',
+  'slot': 'slot',
   
   'Organisateur de planning': 'Organisateur de planning',
   'organisateur de planning': 'organisateur de planning',
@@ -306,17 +306,17 @@ export const medicalTerminology = {
   'organisateur': 'organisateur',
   
   'Modèles': 'Modèles',
-  'modèles': 'modèles',
+  'templates': 'templates',
   'Modèle': 'Modèle',
-  'modèle': 'modèle',
+  'template': 'template',
   
   'Attributions': 'Attributions',
   'attributions': 'attributions',
   'Attribution': 'Attribution',
   'attribution': 'attribution',
   
-  'Planning médical': 'Planning médical',
-  'planning médical': 'planning médical',
+  'PlanningMedical': 'PlanningMedical',
+  'planningMedical': 'planningMedical',
   'Planification': 'Planification',
   'planification': 'planification'
 };
@@ -343,8 +343,8 @@ export const getBreadcrumbs = (pathname: string, userRole: string): BreadcrumbIt
     'utilisateurs': 'Personnel Médical',
     'chirurgiens': 'Chirurgiens',
     'bloc-operatoire': 'Bloc Opératoire',
-    'tableaux de service': 'Tableaux de Service',
-    'gardes/vacations': 'Gardes/Vacations',
+    'trameModeles': 'Tableaux de Service',
+    'affectations': 'Affectations',
     'rapports': 'Rapports',
     'dashboard': 'Tableau de Bord'
   };

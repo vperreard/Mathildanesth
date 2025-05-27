@@ -1,0 +1,37 @@
+{
+  "users": [
+    {
+      "id": "user-1",
+      "email": "admin@example.com",
+      "password": "Test123!",
+      "name": "Admin Test",
+      "nom": "Admin Test",
+      "prenom": "Test",
+      "role": "ADMIN_TOTAL",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "user-2", 
+      "email": "medecin@example.com",
+      "password": "Test123!",
+      "name": "Dr Martin",
+      "nom": "Martin",
+      "prenom": "Jean",
+      "role": "MEDECIN",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "user-3",
+      "email": "chirurgien@example.com",
+      "password": "Test123!",
+      "name": "Dr Dupont",
+      "nom": "Dupont",
+      "prenom": "Pierre",
+      "role": "CHIRURGIEN",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}

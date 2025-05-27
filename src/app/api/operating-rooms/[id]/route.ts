@@ -5,9 +5,6 @@ import { verifyAuthToken } from '@/lib/auth-utils';
 import { OperatingRoomSchema } from '@/modules/planning/bloc-operatoire/models/BlocModels';
 import { BlocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 
-jest.mock('@/lib/prisma');
-
-
 // Contexte pour les paramètres d'URL
 interface Context {
     params: {
@@ -15,7 +12,6 @@ interface Context {
     };
 }
 
-const prisma = prisma;
 const planningService = new BlocPlanningService();
 
 // Fonction utilitaire pour normaliser les noms de secteurs (identique à route.ts)

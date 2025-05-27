@@ -91,7 +91,7 @@ module.exports = defineConfig({
                     const usersFixturePath = path.join(__dirname, 'cypress/fixtures/utilisateurs.json');
                     try {
                         const usersJson = fs.readFileSync(usersFixturePath, 'utf-8');
-                        const usersData = JSON.parse(usersJson);
+                        const usersData = JSON.parse(usersJson).users || JSON.parse(usersJson);
                         const saltRounds = 10;
 
                         // Retourner une promesse pour créer tous les utilisateurs de manière asynchrone
@@ -102,7 +102,10 @@ module.exports = defineConfig({
                                     ...user,
                                     password: hashedPassword,
                                     role: user.role,
-                                    professionalRole: user.professionalRole
+                                    professionalRole: user.professionalRole,
+                                    prenom: user.prenom || '',
+                                    nom: user.nom || user.name,
+                                    login: user.email.split('@')[0]
                                 };
 
                                 // Vérifier d'abord si l'utilisateur existe

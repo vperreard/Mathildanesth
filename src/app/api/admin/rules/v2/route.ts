@@ -7,9 +7,6 @@ import { RuleVersioningService } from '@/modules/dynamicRules/v2/services/RuleVe
 import { ConflictDetector } from '@/modules/dynamicRules/v2/services/ConflictDetector';
 import { z } from 'zod';
 
-jest.mock('@/lib/prisma');
-
-
 // Validation schemas
 const createRuleSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),

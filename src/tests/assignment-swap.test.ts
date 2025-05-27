@@ -7,7 +7,7 @@ const prisma = prisma;
 
 jest.mock('@/lib/prisma');
 
-describe('Tests d\'intégration des échanges d\'gardes/vacations avec notifications', () => {
+describe('Tests d\'intégration des échanges d\'assignments avec notifications', () => {
     // Configuration de test
     let initiatorUserId: number;
     let targetUserId: number;
@@ -41,7 +41,7 @@ describe('Tests d\'intégration des échanges d\'gardes/vacations avec notificat
         initiatorUserId = user1.id;
         targetUserId = user2.id;
 
-        // Créer deux gardes/vacations
+        // Créer deux assignments
         const assignment1 = await prisma.attribution.create({
             data: {
                 userId: initiatorUserId,

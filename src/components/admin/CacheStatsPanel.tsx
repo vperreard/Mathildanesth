@@ -96,7 +96,7 @@ export default function CacheStatsPanel() {
         }
     };
 
-    // Invalider le cache (tout, un modèle ou une clé)
+    // Invalider le cache (tout, un template ou une clé)
     const invalidateCache = async (action: 'invalidateAll' | 'invalidateModel' | 'invalidateKey') => {
         setLoading(true);
         try {
@@ -258,7 +258,7 @@ export default function CacheStatsPanel() {
 
                     <TabsContent value="model" className="py-4 space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="modelName">Nom du modèle</Label>
+                            <Label htmlFor="modelName">Nom du template</Label>
                             <Input
                                 id="modelName"
                                 placeholder="Ex: User, ActivityType, Attribution"
@@ -266,7 +266,7 @@ export default function CacheStatsPanel() {
                                 onChange={(e) => setModelName(e.target.value)}
                             />
                             <p className="text-xs text-gray-500">
-                                Entrez le nom exact du modèle Prisma dont vous souhaitez invalider le cache.
+                                Entrez le nom exact du template Prisma dont vous souhaitez invalider le cache.
                             </p>
                         </div>
 
@@ -277,7 +277,7 @@ export default function CacheStatsPanel() {
                             disabled={loading || !modelName}
                         >
                             <Database className="h-4 w-4 mr-2" />
-                            Vider le cache du modèle
+                            Vider le cache du template
                         </Button>
                     </TabsContent>
 

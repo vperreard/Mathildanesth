@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { templateService, FullActivityType } from '../services/templateService';
-import { PlanningTemplate, RoleType } from '../types/modèle';
+import { PlanningTemplate, RoleType } from '../types/template';
 import BlocPlanningTemplateEditor, { BlocPlanningTemplateEditorHandle } from './BlocPlanningTemplateEditor';
 import { useRouter, usePathname } from 'next/navigation';
 import { DndProvider } from 'react-dnd';
@@ -23,14 +23,14 @@ import { useSession } from 'next-auth/react';
 import SimpleDropdownMenu from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-// Importer le modal de création de tableau de service unifié
+// Importer le modal de création de trameModele unifié
 import dynamic from 'next/dynamic';
 
 // Import dynamique du NewTrameModal pour éviter les problèmes SSR
-const NewTrameModal = dynamic(() => import('@/components/tableaux de service/grid-view/NewTrameModal'), { ssr: false });
+const NewTrameModal = dynamic(() => import('@/components/trames/grid-view/NewTrameModal'), { ssr: false });
 
 // Import du type TrameModele pour la conversion
-import type { TrameModele } from '@/components/tableaux de service/grid-view/TrameGridView';
+import type { TrameModele } from '@/components/trames/grid-view/TrameGridView';
 
 export interface TemplateManagerProps {
     initialTemplatesParam?: PlanningTemplate[]; // Renommé pour éviter confusion avec l'état
@@ -53,20 +53,20 @@ const convertPlanningTemplateToTrameModele = (modèle: PlanningTemplate): TrameM
             modèle.dateDebutEffet ? new Date(modèle.dateDebutEffet) : new Date(),
         effectiveEndDate: modèle.dateFinEffet instanceof Date ? modèle.dateFinEffet :
             modèle.dateFinEffet ? new Date(modèle.dateFinEffet) : undefined,
-        gardes/vacations: [] // Pour l'instant, on ne convertit pas les gardes/vacations complexes
+        affectations: [] // Pour l'instant, on ne convertit pas les gardes/vacations complexes
     };
 };
 
 // Fonction de conversion TrameModele vers PlanningTemplate
-const convertTrameModeleToPartialPlanningTemplate = (tableau de service: TrameModele): Partial<PlanningTemplate> => {
+const convertTrameModeleToPartialPlanningTemplate = (trameModele: TrameModele): Partial<PlanningTemplate> => {
     return {
-        nom: tableau de service.name,
-        description: tableau de service.description,
-        typeSemaine: tableau de service.weekType === 'EVEN' ? 'PAIRES' :
-            tableau de service.weekType === 'ODD' ? 'IMPAIRES' : 'TOUTES',
-        joursSemaineActifs: tableau de service.activeDays,
-        dateDebutEffet: tableau de service.effectiveStartDate,
-        dateFinEffet: tableau de service.effectiveEndDate
+        nom: trameModele.name,
+        description: trameModele.description,
+        typeSemaine: trameModele.weekType === 'EVEN' ? 'PAIRES' :
+            trameModele.weekType === 'ODD' ? 'IMPAIRES' : 'TOUTES',
+        joursSemaineActifs: trameModele.activeDays,
+        dateDebutEffet: trameModele.effectiveStartDate,
+        dateFinEffet: trameModele.effectiveEndDate
     };
 };
 
@@ -199,7 +199,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 
             const sanitizedNewTemplates = fetchedTemplatesSource.map(modèle => ({
                 ...modèle,
-                gardes/vacations: Array.isArray(modèle.gardes/vacations) ? modèle.gardes/vacations : [],
+                affectations: Array.isArray(modèle.affectations) ? modèle.affectations: [],
                 variations: Array.isArray(modèle.variations) ? modèle.variations : [],
             }));
 
@@ -220,8 +220,8 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 
         } catch (err) {
             console.error("Error fetching modèles:", err);
-            setError("Erreur lors du chargement des tableaux de service.");
-            toast.error("Impossible de charger les tableaux de service.");
+            setError("Erreur lors du chargement des trameModeles.");
+            toast.error("Impossible de charger les trameModeles.");
         } finally {
             setIsLoading(false);
         }
@@ -233,7 +233,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
             setAvailableTypes(types);
         } catch (err) {
             console.error("Error fetching available types:", err);
-            toast.error("Impossible de charger les types d'garde/vacation.");
+            toast.error("Impossible de charger les types d'affectation.");
         }
     }, [setAvailableTypes]);
 
@@ -245,7 +245,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 console.log("[TemplateManager] Closing dialog: save operation has initiated this.");
                 setIsEditorOpen(false);
             } else if (editorRef.current?.isDirty()) {
-                if (confirm("Vous avez des modifications non sauvegardées dans l'éditeur de tableau de service. Êtes-vous sûr de vouloir fermer ?")) {
+                if (confirm("Vous avez des modifications non sauvegardées dans l'éditeur de trameModele. Êtes-vous sûr de vouloir fermer ?")) {
                     console.log("[TemplateManager] Closing dialog: user confirmed to close with unsaved changes.");
                     setIsEditorOpen(false);
                     setEditingTemplate(null);
@@ -293,14 +293,14 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
             toast.success(`Tableau de service "${duplicatedTemplate.nom}" dupliquée.`);
             loadTemplates();
 
-            if (confirm("Voulez-vous ouvrir la tableau de service dupliquée pour l'éditer?")) {
+            if (confirm("Voulez-vous ouvrir la trameModele dupliquée pour l'éditer?")) {
                 setEditingTemplate(duplicatedTemplate);
                 setIsEditorOpen(true);
             }
         } catch (err) {
             console.error("Error duplicating modèle:", err);
-            setError("Erreur lors de la duplication de la tableau de service.");
-            toast.error("Impossible de dupliquer la tableau de service.");
+            setError("Erreur lors de la duplication de la trameModele.");
+            toast.error("Impossible de dupliquer la trameModele.");
         }
     }, [modèles, loadTemplates, availableTypes, setError]);
 
@@ -314,8 +314,8 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 loadTemplates();
             } catch (err) {
                 console.error("Error deleting modèle:", err);
-                setError("Erreur lors de la suppression de la tableau de service.");
-                toast.error("Impossible de supprimer la tableau de service.");
+                setError("Erreur lors de la suppression de la trameModele.");
+                toast.error("Impossible de supprimer la trameModele.");
             } finally {
                 toast.dismiss(confirmationToastId);
             }
@@ -325,7 +325,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
             ({ closeToast }) => (
                 <div>
                     <p className="font-bold mb-2">Confirmation de suppression</p>
-                    <p>Êtes-vous sûr de vouloir supprimer la tableau de service "{name}" ?</p>
+                    <p>Êtes-vous sûr de vouloir supprimer la trameModele "{name}" ?</p>
                     <p className="text-sm text-gray-600 mt-1">Cette action est irréversible.</p>
                     <div className="flex gap-2 mt-3">
                         <button
@@ -359,16 +359,16 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
             const templateWithRoles = {
                 ...templateToSave,
                 roles: editingTemplateRoles,
-                gardes/vacations: templateToSave.gardes/vacations || [],
+                affectations: templateToSave.affectations || [],
                 variations: templateToSave.variations || []
             };
 
             console.log(
                 '[TemplateManager] Contenu de templateWithRoles AVANT appel à templateService.saveTemplate:',
                 JSON.parse(JSON.stringify(templateWithRoles)),
-                `Nombre d'gardes/vacations: ${templateWithRoles.gardes/vacations?.length || 0}`,
+                `Nombre d'affectations: ${templateWithRoles.affectations?.length || 0}`,
                 'Gardes/Vacations:',
-                JSON.stringify(templateWithRoles.gardes/vacations, null, 2)
+                JSON.stringify(templateWithRoles.affectations, null, 2)
             );
             const saved = await templateService.saveTemplate(templateWithRoles, availableTypes);
             toast.success(`Tableau de service "${saved.nom}" sauvegardée.`);
@@ -378,10 +378,10 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
             setSaveProcessCompleted(true);
         } catch (err: any) {
             console.error("Error saving modèle:", err);
-            if (err instanceof Error && err.message && err.message.includes("Un modèle de tableau de service avec ce nom existe déjà")) {
+            if (err instanceof Error && err.message && err.message.includes("Un modèle de trameModele avec ce nom existe déjà")) {
                 toast.error(err.message);
             } else {
-                toast.error("Impossible de sauvegarder la tableau de service. Vérifiez la console pour plus de détails.");
+                toast.error("Impossible de sauvegarder la trameModele. Vérifiez la console pour plus de détails.");
             }
             isSavingRef.current = false;
             setSaveProcessCompleted(false);
@@ -413,15 +413,15 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
         }
     }, []);
 
-    // Fonction pour gérer le succès de création de tableau de service via le modal unifié
+    // Fonction pour gérer le succès de création de trameModele via le modal unifié
     const handleCreateTrameSuccess = useCallback((newTrameId: string) => {
-        console.log('[DEBUG TemplateManager] New tableau de service created with ID:', newTrameId);
+        console.log('[DEBUG TemplateManager] New trameModele created with ID:', newTrameId);
         setIsNewTrameModalOpen(false);
-        loadTemplates(); // Recharger la liste des tableaux de service
-        toast.success('Nouvelle tableau de service créée avec succès');
+        loadTemplates(); // Recharger la liste des trameModeles
+        toast.success('Nouvelle trameModele créée avec succès');
     }, [loadTemplates]);
 
-    // Fonction pour gérer le succès d'édition de tableau de service via le modal unifié
+    // Fonction pour gérer le succès d'édition de trameModele via le modal unifié
     const handleEditTrameSuccess = useCallback((updatedTrameId: string) => {
         console.log('🎯🎯🎯 [DEBUG TemplateManager] EDIT SUCCESS CALLED!!! Tableau de service updated with ID:', updatedTrameId);
         setIsEditTrameModalOpen(false);
@@ -464,7 +464,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 
     console.log('[TemplateManager RENDER] modèles:', modèles);
     if (modèles.length === 0) {
-        console.warn('[TemplateManager] Aucune tableau de service reçue du service.');
+        console.warn('[TemplateManager] Aucune trameModele reçue du service.');
     } else {
         modèles.forEach((t, i) => {
             if (!t.nom) {
@@ -477,7 +477,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
         return (
             <div className="flex justify-center items-center h-64">
                 <Loader2 className="mr-2 h-16 w-16 animate-spin" />
-                Chargement des tableaux de service...
+                Chargement des trameModeles...
             </div>
         );
     }
@@ -489,10 +489,10 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     if (modèles.length === 0) {
         return (
             <div className="p-8 text-center flex flex-col items-center justify-center space-y-4">
-                <div className="text-orange-600 mb-4">Aucune tableau de service disponible dans le système.</div>
-                <p className="text-muted-foreground">Vous pouvez créer votre première tableau de service dès maintenant.</p>
+                <div className="text-orange-600 mb-4">Aucune trameModele disponible dans le système.</div>
+                <p className="text-muted-foreground">Vous pouvez créer votre première trameModele dès maintenant.</p>
                 <Button onClick={handleCreateNew} className="mt-2">
-                    <Plus className="h-4 w-4 mr-2" /> Créer une nouvelle tableau de service
+                    <Plus className="h-4 w-4 mr-2" /> Créer une nouvelle trameModele
                 </Button>
             </div>
         );
@@ -513,7 +513,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                         <Plus className="h-5 w-5 text-purple-600" />
                     </div>
                     <p className="text-gray-700">
-                        Pour créer une nouvelle tableau de service, utilisez le bouton violet en bas à droite de l'écran. Le formulaire de création est maintenant unifié avec la vue grille.
+                        Pour créer une nouvelle trameModele, utilisez le bouton violet en bas à droite de l'écran. Le formulaire de création est maintenant unifié avec la vue grille.
                     </p>
                 </div>
 
@@ -530,7 +530,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                     <TableBody>
                         {modèles.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center py-8">Aucune tableau de service trouvée.</TableCell>
+                                <TableCell colSpan={5} className="text-center py-8">Aucune trameModele trouvée.</TableCell>
                             </TableRow>
                         ) : (
                             modèles.map((modèle) => (
@@ -597,7 +597,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                                     {editingTemplate ? "Modifier la Tableau de service de Bloc" : "Créer une Nouvelle Tableau de service de Bloc"}
                                 </DialogTitle>
                                 <DialogDescription className="sr-only">
-                                    {editingTemplate ? "Modifiez les détails de la tableau de service de bloc existante et ses gardes/vacations." : "Configurez les détails pour une nouvelle tableau de service de bloc et ses gardes/vacations."}
+                                    {editingTemplate ? "Modifiez les détails de la trameModele de bloc existante et ses gardes/vacations." : "Configurez les détails pour une nouvelle trameModele de bloc et ses gardes/vacations."}
                                 </DialogDescription>
                             </DialogHeader>
                             {isEditorOpen && (
@@ -633,7 +633,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                     </DialogPortal>
                 </Dialog>
 
-                {/* Bouton flottant pour ajouter une nouvelle tableau de service */}
+                {/* Bouton flottant pour ajouter une nouvelle trameModele */}
                 <div className="fixed bottom-6 right-6">
                     <TooltipProvider>
                         <Tooltip>
@@ -644,17 +644,17 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                                     className="rounded-full shadow-lg h-16 w-16 p-0 bg-purple-600 hover:bg-purple-700 transition-all duration-200 ease-in-out hover:scale-105"
                                 >
                                     <Plus className="h-8 w-8" />
-                                    <span className="sr-only">Nouvelle tableau de service</span>
+                                    <span className="sr-only">Nouvelle trameModele</span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>Créer une nouvelle tableau de service</p>
+                                <p>Créer une nouvelle trameModele</p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
                 </div>
 
-                {/* Modal de création de nouvelle tableau de service unifié */}
+                {/* Modal de création de nouvelle trameModele unifié */}
                 {isNewTrameModalOpen && (
                     <NewTrameModal
                         isOpen={isNewTrameModalOpen}
@@ -664,7 +664,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                     />
                 )}
 
-                {/* Modal d'édition de tableau de service unifié */}
+                {/* Modal d'édition de trameModele unifié */}
                 {isEditTrameModalOpen && trameToEdit && (
                     <NewTrameModal
                         isOpen={isEditTrameModalOpen}

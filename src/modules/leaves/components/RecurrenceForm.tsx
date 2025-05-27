@@ -28,7 +28,7 @@ const WEEKDAYS = [
 ];
 
 /**
- * Composant pour configurer un modèle de récurrence de congés
+ * Composant pour configurer un template de récurrence de congés
  */
 export const RecurrenceForm: React.FC<RecurrenceFormProps> = ({
     value,
@@ -131,7 +131,7 @@ export const RecurrenceForm: React.FC<RecurrenceFormProps> = ({
         <div className="recurrence-form">
             <h3>Configuration de la récurrence</h3>
 
-            {/* Prévisualisation du modèle */}
+            {/* Prévisualisation du template */}
             <div className="recurrence-preview">
                 <p>
                     <strong>Résumé :</strong> {formatRecurrencePattern(pattern)}

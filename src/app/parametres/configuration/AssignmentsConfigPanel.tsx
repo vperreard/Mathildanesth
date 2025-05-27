@@ -87,7 +87,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
     const [isDeleteErrorModalOpen, setIsDeleteErrorModalOpen] = useState(false);
     const [deleteErrorDetails, setDeleteErrorDetails] = useState<{
         activityName?: string;
-        tableaux de service?: Array<{ id: number, name: string }>;
+        trames: Array<{ id: number, name: string }>;
         errorMessage?: string;
     }>({});
 
@@ -276,7 +276,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                     // Préparer les détails pour la boîte de dialogue modale
                     setDeleteErrorDetails({
                         activityName: activityType?.name || 'Ce type d\'activité',
-                        tableaux de service: details?.tableaux de service || [],
+                        trames: details?.trames || [],
                         errorMessage: error.response.data.error
                     });
 
@@ -318,7 +318,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                         <div>
                             <h3 className="font-medium text-gray-800 mb-2">Guide des types d'activité</h3>
                             <p className="text-gray-600 mb-3">
-                                Les types d'activité définissent les différentes gardes/vacations possibles dans le planning.
+                                Les types d'activité définissent les différentes affectations possibles dans le planning.
                                 Configurez-les correctement pour faciliter la planification.
                             </p>
 
@@ -332,7 +332,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                                 <div className="bg-gray-50 p-3 rounded-md">
                                     <h4 className="font-medium text-gray-700 mb-1">Consultations</h4>
                                     <p className="text-sm text-gray-600">
-                                        Pour les créneaux de consultation. Généralement configurés par demi-journée (MATIN ou APRES_MIDI) selon le planning des médecins.
+                                        Pour les slots de consultation. Généralement configurés par demi-journée (MATIN ou APRES_MIDI) selon le planning des médecins.
                                     </p>
                                 </div>
                                 <div className="bg-gray-50 p-3 rounded-md">
@@ -349,7 +349,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                                 </summary>
                                 <div className="mt-2 pl-2 border-l-2 border-blue-200">
                                     <p className="mb-2 text-gray-600">
-                                        Les types d'activité sont utilisés dans les tableaux de service et les plannings pour définir les gardes/vacations possibles.
+                                        Les types d'activité sont utilisés dans les trameModeles et les plannings pour définir les affectations possibles.
                                         Chaque type d'activité peut avoir sa propre période par défaut et sa durée.
                                     </p>
                                     <p className="mb-2 text-gray-600">
@@ -359,7 +359,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                                         <strong>Pour les consultations :</strong> Vous pouvez créer des types par spécialité ou par médecin.
                                     </p>
                                     <p className="text-gray-600">
-                                        Dans les tableaux de service, vous pourrez ensuite associer les types d'activité aux périodes de la journée correspondantes.
+                                        Dans les trameModeles, vous pourrez ensuite associer les types d'activité aux périodes de la journée correspondantes.
                                     </p>
                                 </div>
                             </details>
@@ -534,8 +534,8 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                                             La configuration des périodes et durées varie selon le type d'activité :
                                         </p>
                                         <ul className="space-y-2 text-sm text-blue-700 pl-6 list-disc">
-                                            <li><span className="font-semibold">Consultations</span> : Choisissez MATIN ou APRES_MIDI pour créer des créneaux spécifiques sur la tableau de service.</li>
-                                            <li><span className="font-semibold">Bloc Opératoire</span> : Utilisez JOURNEE_ENTIERE pour un chirurgien opérant toute la journée ou MATIN/APRES_MIDI pour des créneaux distincts.</li>
+                                            <li><span className="font-semibold">Consultations</span> : Choisissez MATIN ou APRES_MIDI pour créer des slots spécifiques sur la trameModele.</li>
+                                            <li><span className="font-semibold">Bloc Opératoire</span> : Utilisez JOURNEE_ENTIERE pour un chirurgien opérant toute la journée ou MATIN/APRES_MIDI pour des slots distincts.</li>
                                             <li><span className="font-semibold">Gardes et Astreintes</span> : Utilisez JOURNEE_ENTIERE, ces activités durent généralement 24h avec relève le lendemain.</li>
                                         </ul>
                                     </div>
@@ -543,7 +543,7 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                                         <div>
                                             <Label htmlFor="defaultPeriod" className="flex items-center justify-between">
                                                 <span>Période par défaut</span>
-                                                <span className="text-xs text-gray-500 italic">Détermine le créneau horaire</span>
+                                                <span className="text-xs text-gray-500 italic">Détermine le slot horaire</span>
                                             </Label>
                                             <Select
                                                 value={formData.defaultPeriod || "__NULL_PERIOD__"}
@@ -613,25 +613,25 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                             <div className="py-4 space-y-4">
                                 <div className="bg-red-50 border border-red-200 rounded-md p-4">
                                     <p className="text-sm text-red-800 font-medium">
-                                        <strong>{deleteErrorDetails.activityName}</strong> est actuellement utilisé dans une ou plusieurs tableaux de service.
+                                        <strong>{deleteErrorDetails.activityName}</strong> est actuellement utilisé dans une ou plusieurs trameModeles.
                                     </p>
 
                                     <p className="text-sm text-gray-700 mt-2">
-                                        Avant de pouvoir supprimer ce type d'activité, vous devez d'abord le retirer de toutes les tableaux de service qui l'utilisent.
+                                        Avant de pouvoir supprimer ce type d'activité, vous devez d'abord le retirer de toutes les trameModeles qui l'utilisent.
                                     </p>
                                 </div>
 
-                                {deleteErrorDetails.tableaux de service && deleteErrorDetails.tableaux de service.length > 0 && (
+                                {deleteErrorDetails.trames && deleteErrorDetails.trames.length > 0 && (
                                     <div>
                                         <h3 className="text-sm font-medium text-gray-700 mb-2">
-                                            Ce type d'activité est utilisé dans les tableaux de service suivantes:
+                                            Ce type d'activité est utilisé dans les trameModeles suivantes:
                                         </h3>
                                         <ul className="space-y-2 max-h-40 overflow-y-auto text-sm bg-gray-50 rounded p-3">
-                                            {deleteErrorDetails.tableaux de service.map((tableau de service) => (
-                                                <li key={tableau de service.id} className="flex items-center">
+                                            {deleteErrorDetails.trames.map((trameModele) => (
+                                                <li key={trameModele.id} className="flex items-center">
                                                     <FileText className="w-4 h-4 text-blue-500 mr-2" />
-                                                    <span>{tableau de service.name}</span>
-                                                    {/* On pourrait ajouter un lien vers la tableau de service ici si on a l'URL */}
+                                                    <span>{trameModele.name}</span>
+                                                    {/* On pourrait ajouter un lien vers la trameModele ici si on a l'URL */}
                                                 </li>
                                             ))}
                                         </ul>
@@ -643,8 +643,8 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                                         <Info className="w-4 h-4 mr-2" /> Comment procéder ?
                                     </h3>
                                     <ul className="space-y-2 text-sm text-gray-700 list-disc pl-5">
-                                        <li>Accédez à la section <strong>Tableaux de service</strong> dans le menu</li>
-                                        <li>Modifiez chaque tableau de service listée ci-dessus</li>
+                                        <li>Accédez à la section <strong>TrameModeles</strong> dans le menu</li>
+                                        <li>Modifiez chaque trameModele listée ci-dessus</li>
                                         <li>Remplacez ou supprimez l'activité <strong>{deleteErrorDetails.activityName}</strong></li>
                                         <li>Retournez sur cette page pour supprimer le type d'activité</li>
                                     </ul>
@@ -661,10 +661,10 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                                 <Button
                                     onClick={() => {
                                         setIsDeleteErrorModalOpen(false);
-                                        window.location.href = '/parametres/tableaux de service?tab=vue-classique';
+                                        window.location.href = '/parametres/trameModeles?tab=vue-classique';
                                     }}
                                 >
-                                    Aller aux tableaux de service <ArrowRight className="ml-2 w-4 h-4" />
+                                    Aller aux trameModeles <ArrowRight className="ml-2 w-4 h-4" />
                                 </Button>
                             </DialogFooter>
                         </DialogContent>

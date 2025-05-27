@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { createTemplate } from '@/services/simulationTemplateService';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-// Catégories communes pour les modèles
+// Catégories communes pour les templates
 const TEMPLATE_CATEGORIES = [
     'Vacances scolaires',
     'Effectif réduit',
@@ -83,7 +83,7 @@ export default function NewTemplatePage() {
         e.preventDefault();
 
         if (!formData.name.trim()) {
-            toast.error('Le nom du modèle est requis');
+            toast.error('Le nom du template est requis');
             return;
         }
 
@@ -99,9 +99,9 @@ export default function NewTemplatePage() {
             });
 
             toast.success('Modèle créé avec succès');
-            router.push('/admin/simulations/modèles');
+            router.push('/admin/simulations/templates');
         } catch (error: any) {
-            toast.error(`Erreur lors de la création du modèle: ${error.message}`);
+            toast.error(`Erreur lors de la création du template: ${error.message}`);
         } finally {
             setIsSubmitting(false);
         }
@@ -109,9 +109,9 @@ export default function NewTemplatePage() {
 
     return (
         <div className="container p-4 mx-auto max-w-4xl">
-            <Link href="/admin/simulations/modèles" className="inline-flex items-center text-sm text-primary hover:underline mb-4">
+            <Link href="/admin/simulations/templates" className="inline-flex items-center text-sm text-primary hover:underline mb-4">
                 <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                Retour à la liste des modèles
+                Retour à la liste des templates
             </Link>
 
             <form onSubmit={handleSubmit}>
@@ -119,12 +119,12 @@ export default function NewTemplatePage() {
                     <CardHeader>
                         <CardTitle>Nouveau Modèle de Simulation</CardTitle>
                         <CardDescription>
-                            Créez un modèle réutilisable pour vos scénarios de simulation de planning
+                            Créez un template réutilisable pour vos scénarios de simulation de planning
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Nom du modèle *</Label>
+                            <Label htmlFor="name">Nom du template *</Label>
                             <Input
                                 id="name"
                                 name="name"
@@ -142,7 +142,7 @@ export default function NewTemplatePage() {
                                 name="description"
                                 value={formData.description}
                                 onChange={handleChange}
-                                placeholder="Décrivez le but et les caractéristiques de ce modèle"
+                                placeholder="Décrivez le but et les caractéristiques de ce template"
                                 rows={3}
                             />
                         </div>
@@ -171,7 +171,7 @@ export default function NewTemplatePage() {
                                     onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPublic: !!checked }))}
                                 />
                                 <Label htmlFor="isPublic" className="text-sm font-normal">
-                                    Rendre ce modèle public (visible et utilisable par tous les utilisateurs)
+                                    Rendre ce template public (visible et utilisable par tous les utilisateurs)
                                 </Label>
                             </div>
                         </div>
@@ -221,7 +221,7 @@ export default function NewTemplatePage() {
                                                 onCheckedChange={(checked) => handleOptionsChange('prioritizeExistingAssignments', !!checked)}
                                             />
                                             <Label htmlFor="prioritizeExistingAssignments" className="text-sm font-normal">
-                                                Prioriser les gardes/vacations existantes
+                                                Prioriser les affectations existantes
                                             </Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
@@ -240,7 +240,7 @@ export default function NewTemplatePage() {
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-between">
-                        <Button variant="outline" type="button" onClick={() => router.push('/admin/simulations/modèles')}>
+                        <Button variant="outline" type="button" onClick={() => router.push('/admin/simulations/templates')}>
                             Annuler
                         </Button>
                         <Button type="submit" disabled={isSubmitting}>
@@ -250,7 +250,7 @@ export default function NewTemplatePage() {
                                 </>
                             ) : (
                                 <>
-                                    <SaveIcon className="mr-2 h-4 w-4" /> Créer le modèle
+                                    <SaveIcon className="mr-2 h-4 w-4" /> Créer le template
                                 </>
                             )}
                         </Button>

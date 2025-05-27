@@ -224,11 +224,11 @@ describe('BlocPlanningCalendar', () => {
             });
         });
 
-        it('should show empty créneaux for unassigned rooms', async () => {
+        it('should show empty slots for unassigned rooms', async () => {
             render(<BlocPlanningCalendar {...defaultProps} />);
 
             await waitFor(() => {
-                const room2Slot = screen.getByTestId('room-room-2-créneau');
+                const room2Slot = screen.getByTestId('room-room-2-slot');
                 expect(room2Slot).toHaveTextContent('Libre');
             });
         });
@@ -337,7 +337,7 @@ describe('BlocPlanningCalendar', () => {
     });
 
     describe('supervisor management', () => {
-        it('should display en garde/vacation supervisors', async () => {
+        it('should display en affectation supervisors', async () => {
             render(<BlocPlanningCalendar {...defaultProps} />);
 
             await waitFor(() => {
@@ -357,18 +357,18 @@ describe('BlocPlanningCalendar', () => {
         });
     });
 
-    describe('time créneau management', () => {
-        it('should display time créneaux based on period', async () => {
+    describe('time slot management', () => {
+        it('should display time slots based on period', async () => {
             render(<BlocPlanningCalendar {...defaultProps} />);
 
             await waitFor(() => {
-                // Morning créneaux
+                // Morning slots
                 expect(screen.getByText('08:00')).toBeInTheDocument();
                 expect(screen.getByText('12:00')).toBeInTheDocument();
             });
         });
 
-        it('should display afternoon créneaux for AFTERNOON period', async () => {
+        it('should display afternoon slots for AFTERNOON period', async () => {
             render(<BlocPlanningCalendar {...defaultProps} period={BlocPeriod.AFTERNOON} />);
 
             await waitFor(() => {
@@ -377,7 +377,7 @@ describe('BlocPlanningCalendar', () => {
             });
         });
 
-        it('should display all day créneaux for ALL_DAY period', async () => {
+        it('should display all day slots for ALL_DAY period', async () => {
             render(<BlocPlanningCalendar {...defaultProps} period={BlocPeriod.ALL_DAY} />);
 
             await waitFor(() => {
@@ -505,7 +505,7 @@ describe('BlocPlanningCalendar', () => {
         });
 
         it('should check surgeon availability', async () => {
-            // Mock surgeon already en garde/vacation elsewhere
+            // Mock surgeon already en affectation elsewhere
             mockFetch.mockImplementation((url) => {
                 if (url.toString().includes('/api/chirurgiens/surgeon-1/availability')) {
                     return Promise.resolve({

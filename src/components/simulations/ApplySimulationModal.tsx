@@ -113,7 +113,7 @@ export function ApplySimulationModal({
                     <DialogTitle>Appliquer la simulation au planning réel</DialogTitle>
                     <DialogDescription>
                         Vous êtes sur le point d'appliquer les résultats de la simulation au planning réel.
-                        Cette action aura un impact direct sur les gardes/vacations visibles par les utilisateurs.
+                        Cette action aura un impact direct sur les affectations visibles par les utilisateurs.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -140,7 +140,7 @@ export function ApplySimulationModal({
                                 }
                             />
                             <Label htmlFor="clearExisting" className="cursor-pointer">
-                                Supprimer les gardes/vacations existantes dans la période
+                                Supprimer les affectations existantes dans la période
                             </Label>
                         </div>
 

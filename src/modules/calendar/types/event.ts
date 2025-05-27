@@ -33,7 +33,7 @@ export interface BaseCalendarEvent {
     color?: string;
 }
 
-// Événement d'garde/vacation
+// Événement d'affectation
 export interface AssignmentEvent extends BaseCalendarEvent {
     type: CalendarEventType.ASSIGNMENT;
     locationId?: string;

@@ -276,10 +276,10 @@ describe('RuleValidator', () => {
 
   describe('validateTemplate', () => {
     const validTemplate: RuleTemplate = {
-      id: 'test-modèle',
+      id: 'test-template',
       name: 'Test Modèle',
       category: 'Test',
-      description: 'A test modèle',
+      description: 'A test template',
       baseRule: {
         name: 'Rule from {param1}',
         description: 'Description with {param2}',
@@ -313,7 +313,7 @@ describe('RuleValidator', () => {
       ]
     };
 
-    it('should validate a correct modèle', async () => {
+    it('should validate a correct template', async () => {
       const result = await validator.validateTemplate(validTemplate);
       
       expect(result.isValid).toBe(true);
@@ -321,21 +321,21 @@ describe('RuleValidator', () => {
     });
 
     it('should detect unused parameters', async () => {
-      const modèle = {
+      const template = {
         ...validTemplate,
         parameters: [
           ...validTemplate.parameters,
           { name: 'unused', type: 'string', label: 'Unused', required: false }
         ]
       };
-      const result = await validator.validateTemplate(modèle);
+      const result = await validator.validateTemplate(template);
       
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Paramètre unused non utilisé dans la règle');
     });
 
     it('should detect missing required parameters in examples', async () => {
-      const modèle = {
+      const template = {
         ...validTemplate,
         examples: [
           {
@@ -346,7 +346,7 @@ describe('RuleValidator', () => {
           }
         ]
       };
-      const result = await validator.validateTemplate(modèle);
+      const result = await validator.validateTemplate(template);
       
       expect(result.isValid).toBe(false);
       expect(result.errors[0]).toContain('manque les paramètres: param1');

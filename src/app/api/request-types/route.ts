@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAuthToken, getAuthToken } from '@/lib/auth-utils';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 // Récupérer tous les types de requêtes
 export async function GET(req: NextRequest) {

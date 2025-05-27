@@ -10,9 +10,6 @@ import {
 } from '@/modules/dynamicRules/permissions';
 import { getRuleNotificationService } from '@/modules/dynamicRules/services/RuleNotificationService';
 
-jest.mock('@/lib/prisma');
-
-
 // Schémas de validation
 const QuerySchema = z.object({
     page: z.coerce.number().min(1).default(1),

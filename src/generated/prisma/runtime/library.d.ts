@@ -3376,7 +3376,7 @@ declare interface SqlResultSet {
 }
 
 /**
- * Create a SQL object from a modèle string.
+ * Create a SQL object from a template string.
  */
 export declare function sqltag(strings: readonly string[], ...values: readonly RawValue[]): Sql;
 

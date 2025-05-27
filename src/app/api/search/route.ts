@@ -3,9 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-jest.mock('@/lib/prisma');
-
-
 interface SearchResult {
   id: string;
   type: 'user' | 'leave' | 'planning' | 'surgeon' | 'site';

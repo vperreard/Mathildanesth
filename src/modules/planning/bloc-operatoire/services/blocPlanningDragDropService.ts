@@ -170,7 +170,7 @@ class BlocPlanningDragDropService {
             },
             planning: {
                 existingAssignments: planning.salles.flatMap(s => 
-                    s.gardes/vacations.map(a => ({
+                    s.affectations.map(a => ({
                         userId: a.superviseurId,
                         shiftType: ShiftType.JOURNEE,
                         startDate: planning.date,
@@ -369,7 +369,7 @@ class BlocPlanningDragDropService {
     }
 
     /**
-     * Gère le drop d'une tableau de service sur un planning
+     * Gère le drop d'une trameModele sur un planning
      */
     async handleTemplateToPlanningDrop(
         item: DragItem,
@@ -386,23 +386,23 @@ class BlocPlanningDragDropService {
                 };
             }
 
-            // Pour chaque garde/vacation de la tableau de service, créer une garde/vacation dans le planning
-            for (const garde/vacation of item.gardes/vacations) {
+            // Pour chaque affectation de la trameModele, créer une affectation dans le planning
+            for (const affectation of item.affectations) {
                 // Vérifier si la salle existe déjà dans le planning
-                let roomAssignment = planning.salles.find(salle => salle.salleId === garde/vacation.salleId);
+                let roomAssignment = planning.salles.find(salle => salle.salleId === affectation.salleId);
 
                 // Si la salle n'existe pas, la créer
                 if (!roomAssignment) {
                     roomAssignment = {
                         id: uuidv4(),
-                        salleId: garde/vacation.salleId,
+                        salleId: affectation.salleId,
                         superviseurs: []
                     };
                     planning.salles.push(roomAssignment);
                 }
 
                 // Ajouter chaque superviseur à la salle
-                for (const supervisorTemplate of garde/vacation.superviseurs) {
+                for (const supervisorTemplate of affectation.superviseurs) {
                     // Créer un nouveau superviseur
                     const newSupervisor: BlocSupervisor = {
                         id: uuidv4(),
@@ -425,7 +425,7 @@ class BlocPlanningDragDropService {
             };
         } catch (error) {
             logError({
-                message: 'Erreur lors de l\'application d\'une tableau de service',
+                message: 'Erreur lors de l\'application d\'une trameModele',
                 context: { item, target, error }
             });
 
@@ -433,7 +433,7 @@ class BlocPlanningDragDropService {
                 success: false,
                 item,
                 target,
-                error: `Erreur lors de l'application de la tableau de service: ${(error as Error).message}`
+                error: `Erreur lors de l'application de la trameModele: ${(error as Error).message}`
             };
         }
     }

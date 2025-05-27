@@ -92,28 +92,28 @@ export default function OptimizedBlocPlanning() {
         // Open edit modal or navigate to detail view
     }, []);
 
-    // Handle time créneau click for new attribution
+    // Handle time slot click for new attribution
     const handleTimeSlotClick = useCallback((date: Date, period: any, roomId: number) => {
-        console.log('Time créneau clicked:', { date, period, roomId });
+        console.log('Time slot clicked:', { date, period, roomId });
         // Open attribution creation modal
     }, []);
 
-    // Handle tableau de service selection
+    // Handle trameModele selection
     const handleTrameSelect = useCallback((trameId: number) => {
         setSelectedTrameId(trameId);
         setActiveTab('editor');
     }, []);
 
-    // Handle tableau de service save with optimistic update
-    const handleTrameSave = useCallback((gardes/vacations: any[]) => {
+    // Handle trameModele save with optimistic update
+    const handleTrameSave = useCallback((affectations: any[]) => {
         // Optimistic update
         optimisticUpdate((data) => ({
             ...data,
-            attributions: [...data.attributions, ...gardes/vacations]
+            attributions: [...data.attributions, ...affectations]
         }));
 
         // Actual save
-        updatePlanning(gardes/vacations);
+        updatePlanning(affectations);
         setActiveTab('planning');
     }, [optimisticUpdate, updatePlanning]);
 
@@ -140,7 +140,7 @@ export default function OptimizedBlocPlanning() {
                         disabled={isUpdating}
                     >
                         <Plus className="h-4 w-4 mr-2" />
-                        Nouvelle tableau de service
+                        Nouvelle trameModele
                     </Button>
                 </div>
 
@@ -166,7 +166,7 @@ export default function OptimizedBlocPlanning() {
                         Éditeur
                     </TabsTrigger>
                     <TabsTrigger value="attributions">
-                        Gardes/Vacations
+                        Affectations
                     </TabsTrigger>
                 </TabsList>
 
@@ -198,7 +198,7 @@ export default function OptimizedBlocPlanning() {
                 <TabsContent value="editor" className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Éditeur de Tableau de service</CardTitle>
+                            <CardTitle>Éditeur de TrameModele</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <Suspense fallback={<LoadingFallback />}>
@@ -215,7 +215,7 @@ export default function OptimizedBlocPlanning() {
                 <TabsContent value="attributions" className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Gestion des Gardes/Vacations</CardTitle>
+                            <CardTitle>Gestion des Affectations</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <Suspense fallback={<LoadingFallback />}>

@@ -49,7 +49,7 @@ const OptimizedLoginPage: React.FC = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || 'Erreur de connexion');
+                throw new Error(data.error || 'Identifiants invalides');
             }
 
             // Redirect on success
@@ -74,7 +74,7 @@ const OptimizedLoginPage: React.FC = () => {
                 <h1 className={styles.title}>Connexion</h1>
 
                 {error && (
-                    <div className={styles.error} data-testid="login-error-message">
+                    <div className={styles.error} data-testid="login-error-message" data-cy="error-message">
                         <p className={styles.errorText}>{error}</p>
                     </div>
                 )}
@@ -89,6 +89,7 @@ const OptimizedLoginPage: React.FC = () => {
                             id="login"
                             name="login"
                             data-testid="login-email-input"
+                            data-cy="email-input"
                             value={loginData.login}
                             onChange={handleChange}
                             required
@@ -106,6 +107,7 @@ const OptimizedLoginPage: React.FC = () => {
                             id="password"
                             name="password"
                             data-testid="login-password-input"
+                            data-cy="password-input"
                             value={loginData.password}
                             onChange={handleChange}
                             required
@@ -117,6 +119,7 @@ const OptimizedLoginPage: React.FC = () => {
                     <button
                         type="submit"
                         data-testid="login-submit-button"
+                        data-cy="submit-button"
                         disabled={isLoading || !loginData.login.trim() || !loginData.password.trim()}
                         className={styles.button}
                     >
@@ -132,7 +135,10 @@ const OptimizedLoginPage: React.FC = () => {
                 </form>
 
                 <div className="mt-4 text-center text-sm text-gray-600">
-                    <p>Pour toute assistance, veuillez contacter l'administrateur.</p>
+                    <a href="/auth/reset-password" data-cy="forgot-password-link" className="text-blue-600 hover:underline">
+                        Mot de passe oublié ?
+                    </a>
+                    <p className="mt-2">Pour toute assistance, veuillez contacter l'administrateur.</p>
                 </div>
             </div>
         </div>

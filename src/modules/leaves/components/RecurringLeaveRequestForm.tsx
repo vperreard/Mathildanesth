@@ -102,9 +102,9 @@ const RecurringLeaveRequestForm: React.FC<RecurringLeaveRequestFormProps> = ({
             newErrors.patternEndDate = 'La date de fin doit être postérieure à la date de début';
         }
 
-        // Vérifier que le modèle de récurrence est valide
+        // Vérifier que le template de récurrence est valide
         if (!formData.recurrencePattern) {
-            newErrors.recurrencePattern = 'Le modèle de récurrence est requis';
+            newErrors.recurrencePattern = 'Le template de récurrence est requis';
         } else {
             // Validation spécifique selon la fréquence
             if (formData.recurrencePattern.frequency === RecurrenceFrequency.WEEKLY &&

@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { RuleConflict, RuleSeverity } from '../../../../modules/rules/types/rule';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 /**
  * GET /api/rules/conflicts

@@ -99,7 +99,7 @@ export default function NotificationPreferencesPage() {
             <div className="bg-white shadow-md rounded-lg p-6 mb-8">
                 <Section title="Types de notifications">
                     <Toggle
-                        label="Rappels d'gardes/vacations"
+                        label="Rappels d'affectations"
                         checked={preferences.assignmentReminders}
                         onChange={(value) => handlePreferenceChange('assignmentReminders', value)}
                     />

@@ -4,10 +4,7 @@ import { PrismaClient, User } from '@prisma/client';
 import { getServerSession } from "next-auth"; // Nouvel import
 // import { authOptions } from '@/lib/auth'; // <--- Chemin potentiellement incorrect, commenté temporairement
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
+import { prisma } from "@/lib/prisma";
 
 // Fonction pour vérifier si l'utilisateur est admin (copiée depuis l'autre route)
 const isAdmin = (user: User | null): boolean => {

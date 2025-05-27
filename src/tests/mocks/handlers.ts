@@ -114,8 +114,8 @@ export const handlers = [
         ]);
     }),
 
-    // API GET /api/gardes/vacations
-    http.get('/api/gardes/vacations', () => {
+    // API GET /api/affectations
+    http.get('/api/affectations', () => {
         return HttpResponse.json([
             {
                 id: '1',
@@ -291,10 +291,10 @@ export const handlers = [
         ]);
     }),
 
-    // Mock POST /api/gardes/vacations/batch
-    http.post('/api/gardes/vacations/batch', async ({ request }) => {
+    // Mock POST /api/affectations/batch
+    http.post('/api/affectations/batch', async ({ request }) => {
         const attributions = await request.json();
-        console.log(">>> MSW: Mocking POST /api/gardes/vacations/batch", attributions);
+        console.log(">>> MSW: Mocking POST /api/affectations/batch", attributions);
         return HttpResponse.json({ success: true, updatedCount: Array.isArray(attributions) ? attributions.length : 0 });
     }),
 ]; 

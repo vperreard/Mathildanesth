@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation';
 import { ApiService } from '../../../services/api';
 import PlanningValidator from '../../../components/PlanningValidator';
 import {
-    Attribution,
+    Assignment,
     AssignmentType,
     GenerationParameters,
     RuleViolation,
     ValidationResult
-} from '../../../types/attribution';
+} from '../../../types/assignment';
 import { RulesConfiguration, defaultRulesConfiguration, FatigueConfig, defaultFatigueConfig } from '../../../types/rules';
 import { User } from '../../../types/user';
 
@@ -83,7 +83,7 @@ const PlanningGeneratorPage: React.FC = () => {
 
         try {
             const api = ApiService.getInstance();
-            // L'API de validation devrait retourner le nouvel état de validation et potentiellement les gardes/vacations mises à jour
+            // L'API de validation devrait retourner le nouvel état de validation et potentiellement les affectations mises à jour
             const validationResponse = await api.validatePlanning(attributions);
             // Supposons que validatePlanning retourne { attributions: Attribution[], validationResult: ValidationResult }
             setAssignments(validationResponse.attributions); // Mettre à jour si l'API modifie les assignations
@@ -233,7 +233,7 @@ const PlanningGeneratorPage: React.FC = () => {
                                 })}
                                 className="rounded text-blue-600"
                             />
-                            <span>Conserver les gardes/vacations existantes</span>
+                            <span>Conserver les affectations existantes</span>
                         </label>
                     </div>
 
@@ -288,7 +288,7 @@ const PlanningGeneratorPage: React.FC = () => {
                     />
 
                     <div className="mt-8">
-                        <h3 className="text-lg font-semibold mb-4">Gardes/Vacations générées ({attributions.length})</h3>
+                        <h3 className="text-lg font-semibold mb-4">Affectations générées ({attributions.length})</h3>
                         <div className="overflow-x-auto max-h-96">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50 sticky top-0">
@@ -303,7 +303,7 @@ const PlanningGeneratorPage: React.FC = () => {
                                     {attributions.length === 0 && (
                                         <tr>
                                             <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
-                                                Aucune garde/vacation générée.
+                                                Aucune affectation générée.
                                             </td>
                                         </tr>
                                     )}

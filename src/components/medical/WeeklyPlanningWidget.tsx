@@ -21,7 +21,7 @@ import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { toast } from '@/components/ui/use-toast';
 
-// Types pour le planning médical
+// Types pour le planningMedical
 interface ShiftType {
     id: string;
     type: 'GARDE_24H' | 'ASTREINTE' | 'VACATION' | 'BLOC' | 'CONSULTATION' | 'REPOS' | 'CONGE';
@@ -43,12 +43,32 @@ interface DayPlanning {
     dayName: string;
 }
 
+interface MedicalShift {
+    id: string;
+    type: 'GARDE_24H' | 'ASTREINTE' | 'VACATION' | 'BLOC' | 'CONSULTATION' | 'REPOS' | 'CONGE';
+    date: string;
+    startTime: string;
+    endTime: string;
+    location?: string;
+    room?: string;
+    supervisor?: string;
+    status: 'CONFIRME' | 'EN_ATTENTE' | 'URGENT' | 'REMPLACE';
+    replacementNeeded: boolean;
+}
+
 interface WeeklyPlanningWidgetProps {
     userId?: string;
     className?: string;
+    mockData?: {
+        weekStart: string;
+        weekEnd: string;
+        shifts: MedicalShift[];
+        stats: any;
+        notifications: any[];
+    };
 }
 
-// Configuration des couleurs par type d'garde/vacation
+// Configuration des couleurs par type d'affectation
 const shiftColors = {
     GARDE_24H: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-800 dark:text-red-200', icon: Moon },
     ASTREINTE: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-800 dark:text-orange-200', icon: AlertCircle },
@@ -70,7 +90,7 @@ const shiftLabels = {
     CONGE: 'Congé'
 };
 
-export default function WeeklyPlanningWidget({ userId, className }: WeeklyPlanningWidgetProps) {
+export default function WeeklyPlanningWidget({ userId, className, mockData }: WeeklyPlanningWidgetProps) {
     const [loading, setLoading] = useState(true);
     const [weekData, setWeekData] = useState<DayPlanning[]>([]);
     const [currentWeek, setCurrentWeek] = useState(new Date());
@@ -78,7 +98,7 @@ export default function WeeklyPlanningWidget({ userId, className }: WeeklyPlanni
 
     useEffect(() => {
         loadWeeklyPlanning();
-    }, [currentWeek, userId]);
+    }, [currentWeek, userId, mockData]);
 
     const loadWeeklyPlanning = async () => {
         try {
@@ -86,18 +106,25 @@ export default function WeeklyPlanningWidget({ userId, className }: WeeklyPlanni
             const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
             const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 1 });
 
-            const response = await fetch('/api/mon-planning/semaine', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+            let data;
+            
+            // Utiliser les données mockées si fournies
+            if (mockData) {
+                data = mockData;
+            } else {
+                const response = await fetch('http://localhost:3000/api/mon-planning/semaine', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
 
-            if (!response.ok) {
-                throw new Error('Erreur lors du chargement du planning');
+                if (!response.ok) {
+                    throw new Error('Erreur lors du chargement du planning');
+                }
+
+                data = await response.json();
             }
-
-            const data = await response.json();
 
             // Transformer les données pour l'affichage
             const formattedWeek = [];
@@ -119,7 +146,7 @@ export default function WeeklyPlanningWidget({ userId, className }: WeeklyPlanni
 
             setWeekData(formattedWeek);
 
-            // Identifier la prochaine garde/vacation
+            // Identifier la prochaine affectation
             const upcoming = data.shifts
                 .filter((shift: any) => new Date(shift.date) >= new Date())
                 .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
@@ -254,7 +281,7 @@ export default function WeeklyPlanningWidget({ userId, className }: WeeklyPlanni
                     <div className="mb-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
                         <div className="flex items-center gap-2">
                             <AlertCircle className="h-5 w-5 text-primary" />
-                            <p className="font-medium">Prochaine garde/vacation</p>
+                            <p className="font-medium">Prochaine affectation</p>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
                             {shiftLabels[nextShift.type]} - {format(new Date(nextShift.startTime), 'EEEE d MMMM à HH:mm', { locale: fr })}
@@ -302,7 +329,7 @@ export default function WeeklyPlanningWidget({ userId, className }: WeeklyPlanni
                                 </div>
                             ) : (
                                 <p className="text-sm text-muted-foreground italic">
-                                    Aucune garde/vacation
+                                    Aucune affectation
                                 </p>
                             )}
                         </div>

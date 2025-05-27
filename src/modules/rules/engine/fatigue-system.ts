@@ -29,7 +29,7 @@ export enum OffPeriodType {
  */
 export interface FatigueConfig {
     points: {
-        // Points de fatigue par type d'garde/vacation
+        // Points de fatigue par type d'affectation
         garde: number;
         astreinte: number;
         supervisionMultiple: number;
@@ -53,7 +53,7 @@ export interface FatigueConfig {
 }
 
 /**
- * Représentation d'une garde/vacation
+ * Représentation d'une affectation
  */
 export interface Attribution {
     id: string;
@@ -114,7 +114,7 @@ export class FatigueSystem {
     }
 
     /**
-     * Calculer les points de fatigue pour une garde/vacation
+     * Calculer les points de fatigue pour une affectation
      */
     calculateFatiguePoints(attribution: Attribution): number {
         let points = 0;
@@ -135,7 +135,7 @@ export class FatigueSystem {
                 points += this.config.points.pediatrie;
                 break;
             default:
-                // Si l'garde/vacation a une propriété "specialite" qui correspond à une spécialité lourde
+                // Si l'affectation a une propriété "specialite" qui correspond à une spécialité lourde
                 if (attribution.specialite && this.isSpecialiteLourde(attribution.specialite)) {
                     points += this.config.points.specialiteLourde;
                 }
@@ -177,7 +177,7 @@ export class FatigueSystem {
     }
 
     /**
-     * Vérifier si un médecin peut prendre une garde/vacation sans dépasser les seuils de fatigue
+     * Vérifier si un médecin peut prendre une affectation sans dépasser les seuils de fatigue
      */
     canTakeAssignment(medecin: Medecin, attribution: Attribution): boolean {
         const currentFatigue = medecin.fatigue.score;
@@ -197,7 +197,7 @@ export class FatigueSystem {
     }
 
     /**
-     * Mettre à jour le score de fatigue d'un médecin après une garde/vacation
+     * Mettre à jour le score de fatigue d'un médecin après une affectation
      */
     updateFatigueAfterAssignment(medecin: Medecin, attribution: Attribution): Medecin {
         const additionalFatigue = this.calculateFatiguePoints(attribution);
@@ -256,10 +256,10 @@ export class FatigueSystem {
     }
 
     /**
-     * Vérifier si une garde/vacation est une garde de nuit
+     * Vérifier si une affectation est une garde de nuit
      */
     private isNightShift(attribution: Attribution): boolean {
-        // Considérer comme garde de nuit si l'garde/vacation commence après 18h et finit avant 8h
+        // Considérer comme garde de nuit si l'affectation commence après 18h et finit avant 8h
         const startHour = attribution.startDate.getHours();
         const endHour = attribution.endDate.getHours();
 
@@ -271,7 +271,7 @@ export class FatigueSystem {
      */
     private hasCompensatoryMeasures(medecin: Medecin, attribution: Attribution): boolean {
         // Cette méthode est une implémentation simplifiée
-        // Dans un système réel, elle vérifierait si des jours de repos sont planifiés après l'garde/vacation
+        // Dans un système réel, elle vérifierait si des jours de repos sont planifiés après l'affectation
         return false;
     }
 

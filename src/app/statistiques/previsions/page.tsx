@@ -136,7 +136,7 @@ export default function PredictiveAnalyticsPage() {
                                 <div className="bg-card p-4 rounded-md">
                                     <h4 className="font-medium mb-1">Modèle prédictif</h4>
                                     <p className="text-sm text-muted-foreground">
-                                        Notre modèle s'améliore avec le temps en apprenant des données collectées.
+                                        Notre template s'améliore avec le temps en apprenant des données collectées.
                                         Plus vous utilisez le système, plus les prédictions seront précises.
                                     </p>
                                 </div>

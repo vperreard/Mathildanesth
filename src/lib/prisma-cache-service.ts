@@ -56,7 +56,7 @@ export class PrismaCacheService {
     }
 
     /**
-     * Invalide le cache pour un modèle spécifique
+     * Invalide le cache pour un template spécifique
      */
     static async invalidateModelCache(model: string): Promise<void> {
         try {

@@ -2,9 +2,6 @@ import { RuleV2, RuleConflict, ConflictResolution } from '../types/ruleV2.types'
 import { RuleCondition, RuleAction } from '../../types/rule';
 import { prisma } from '@/lib/prisma';
 
-jest.mock('@/lib/prisma');
-
-
 export class ConflictDetector {
   private static instance: ConflictDetector;
 
@@ -205,7 +202,7 @@ export class ConflictDetector {
   }
 
   private analyzeResourceConflict(rule1: RuleV2, rule2: RuleV2): RuleConflict | null {
-    // Check if rules compete for same resources (e.g., same users, same time créneaux)
+    // Check if rules compete for same resources (e.g., same users, same time slots)
     const resources1 = this.extractResourceTargets(rule1);
     const resources2 = this.extractResourceTargets(rule2);
 

@@ -5,10 +5,6 @@ import { DisplayConfig } from '@/app/planning/hebdomadaire/types';
 import { verifyAuthToken, getAuthTokenServer } from '@/lib/auth-server-utils';
 import type { AuthResult } from '@/lib/auth-client-utils';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 async function updateUserPreferences(userId: number, preferences: any) {
     // ... (implémentation existante)

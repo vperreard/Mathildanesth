@@ -3,9 +3,6 @@ import { prisma } from '@/lib/prisma';
 import { CalendarEventType, CalendarEvent } from '@/modules/calendrier/types/event';
 import { formatISO } from 'date-fns';
 
-jest.mock('@/lib/prisma');
-
-
 // Helper function to parse and convert IDs to numbers
 const parseIds = (ids: string | string[] | undefined): number[] | number | undefined => {
     if (!ids) return undefined;
@@ -235,7 +232,7 @@ export async function GET(request: NextRequest) {
                 }
             }
 
-            // 3. Récupérer les gardes/vacations
+            // 3. Récupérer les affectations
             if (requestedEventTypes.includes(CalendarEventType.ASSIGNMENT)) {
                 try {
                     const assignmentFilter: any = {
@@ -273,10 +270,10 @@ export async function GET(request: NextRequest) {
                         }
                     });
 
-                    // Convertir les gardes/vacations en événements de calendrier
+                    // Convertir les affectations en événements de calendrier
                     const assignmentEvents = attributions.map(attribution => ({
                         id: `attribution-${attribution.id}`,
-                        title: `${attribution.user.prenom} ${attribution.user.nom} - ${attribution.operatingRoom?.name || 'Garde/Vacation'}`,
+                        title: `${attribution.user.prenom} ${attribution.user.nom} - ${attribution.operatingRoom?.name || 'Affectation'}`,
                         start: formatISO(attribution.startDate),
                         end: formatISO(attribution.endDate),
                         allDay: false,
@@ -290,8 +287,8 @@ export async function GET(request: NextRequest) {
 
                     events.push(...assignmentEvents);
                 } catch (assignmentsError) {
-                    console.error('Erreur lors de la récupération des gardes/vacations:', assignmentsError);
-                    // Continuer sans ajouter d'événements d'gardes/vacations
+                    console.error('Erreur lors de la récupération des affectations:', assignmentsError);
+                    // Continuer sans ajouter d'événements d'affectations
                 }
             }
 

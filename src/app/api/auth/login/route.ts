@@ -5,9 +5,6 @@ import bcrypt from 'bcrypt';
 import { withAuthRateLimit } from '@/lib/rateLimit';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
-jest.mock('@/lib/prisma');
-
-
 async function loginHandler(req: NextRequest) {
     const startTime = Date.now();
 
@@ -52,7 +49,7 @@ async function loginHandler(req: NextRequest) {
                 metadata: { login }
             });
             return NextResponse.json(
-                { message: 'Login ou mot de passe incorrect' },
+                { error: 'Identifiants invalides' },
                 { status: 401 }
             );
         }
@@ -68,7 +65,7 @@ async function loginHandler(req: NextRequest) {
                 metadata: { login: user.login }
             });
             return NextResponse.json(
-                { message: 'Login ou mot de passe incorrect' },
+                { error: 'Identifiants invalides' },
                 { status: 401 }
             );
         }
@@ -99,7 +96,8 @@ async function loginHandler(req: NextRequest) {
         // Créer la réponse avec le cookie
         const response = NextResponse.json({
             user: userWithoutPassword,
-            token: token
+            token: token,
+            redirectUrl: '/tableau-de-bord'
         });
 
         // Définir le cookie d'authentification
@@ -115,7 +113,7 @@ async function loginHandler(req: NextRequest) {
     } catch (error) {
         console.error('API LOGIN ERROR:', error);
         return NextResponse.json(
-            { message: 'Erreur serveur lors de la connexion' },
+            { error: 'Erreur serveur lors de la connexion' },
             { status: 500 }
         );
     }

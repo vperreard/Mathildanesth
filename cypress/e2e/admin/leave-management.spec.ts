@@ -2,7 +2,6 @@
 
 describe('Admin - Gestion des Congés', () => {
     beforeEach(() => {
-    jest.clearAllMocks();
         cy.login('admin@mathildanesth.fr', 'AdminSecure123!');
         cy.visit('/admin/conges');
     });
@@ -80,7 +79,6 @@ describe('Admin - Gestion des Congés', () => {
 
     describe('Gestion des quotas', () => {
         beforeEach(() => {
-    jest.clearAllMocks();
             cy.get('[data-testid="quotas-tab"]').click();
         });
 
@@ -127,7 +125,6 @@ describe('Admin - Gestion des Congés', () => {
 
     describe('Types de congés', () => {
         beforeEach(() => {
-    jest.clearAllMocks();
             cy.get('[data-testid="leave-types-tab"]').click();
         });
 
@@ -174,7 +171,6 @@ describe('Admin - Gestion des Congés', () => {
 
     describe('Analyse et rapports', () => {
         beforeEach(() => {
-    jest.clearAllMocks();
             cy.get('[data-testid="analytics-tab"]').click();
         });
 

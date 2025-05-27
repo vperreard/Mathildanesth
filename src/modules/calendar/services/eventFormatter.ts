@@ -109,7 +109,7 @@ export const formatEventTitle = (event: AnyCalendarEvent): string => {
             return `Astreinte${onCallEvent.locationName ? ` - ${onCallEvent.locationName}` : ''}`;
         case CalendarEventType.ASSIGNMENT:
             const assignmentEvent = event as any;
-            return `Garde/Vacation${assignmentEvent.specialtyName ? ` - ${assignmentEvent.specialtyName}` : ''}`;
+            return `Affectation${assignmentEvent.specialtyName ? ` - ${assignmentEvent.specialtyName}` : ''}`;
         default:
             return 'Événement';
     }

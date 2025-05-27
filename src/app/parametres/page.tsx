@@ -168,9 +168,9 @@ export default function ParametresPage() {
                                     <Settings className="h-4 w-4 mr-2" />
                                     Accéder au panneau de configuration
                                 </Link>
-                                <Link href="/parametres/tableaux de service" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-secondary-600 hover:bg-secondary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500">
+                                <Link href="/parametres/trameModeles" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-secondary-600 hover:bg-secondary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500">
                                     <Clock className="h-4 w-4 mr-2" />
-                                    Gestion des tableaux de service
+                                    Gestion des trameModeles
                                 </Link>
                             </div>
                         </div>

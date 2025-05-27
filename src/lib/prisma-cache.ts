@@ -47,7 +47,7 @@ export class PrismaCacheClient extends PrismaClient {
                 params.action === 'deleteMany' ||
                 params.action === 'upsert'
             ) {
-                // Invalider le cache pour ce modèle lors des mutations
+                // Invalider le cache pour ce template lors des mutations
                 if (params.model) {
                     this.invalidateCache(params.model);
                 }
@@ -87,9 +87,9 @@ export class PrismaCacheClient extends PrismaClient {
         });
     }
 
-    // Méthode pour invalider le cache pour un modèle spécifique
+    // Méthode pour invalider le cache pour un template spécifique
     public invalidateCache(modelName: string) {
-        // Invalider uniquement les clés associées à ce modèle
+        // Invalider uniquement les clés associées à ce template
         const keys = prismaCache.keys().filter((key) => key.startsWith(`${modelName}:`));
         console.log(`[PrismaCache] Invalidating ${keys.length} keys for model ${modelName}`);
         keys.forEach((key: string) => prismaCache.del(key));
@@ -266,7 +266,7 @@ export function createCachedPrismaClient() {
                     // Exécuter la mutation
                     const result = await originalMutation.call(this, params);
 
-                    // Invalider toutes les entrées liées à ce modèle
+                    // Invalider toutes les entrées liées à ce template
                     cache.invalidateCache(modelName);
 
                     return result;

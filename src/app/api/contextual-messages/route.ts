@@ -13,9 +13,6 @@ import {
     AuthenticationError
 } from '@/lib/auth/authorization';
 
-jest.mock('@/lib/prisma');
-
-
 // const prisma = prisma; // Supprimé, on utilise l'instance importée
 
 interface ContextualMessageInput {
@@ -38,13 +35,13 @@ async function verifyContextPermissions(
         // 🔐 CORRECTION DES TODO CRITIQUES : Vérifications de permissions fines
 
         if (assignmentId) {
-            // Vérifier si l'utilisateur peut commenter cette garde/vacation
+            // Vérifier si l'utilisateur peut commenter cette affectation
             const attribution = await prisma.attribution.findUnique({
                 where: { id: assignmentId },
                 select: { userId: true }
             });
 
-            // L'utilisateur peut commenter ses propres gardes/vacations ou les admins peuvent tout commenter
+            // L'utilisateur peut commenter ses propres affectations ou les admins peuvent tout commenter
             return attribution?.userId === userId;
         }
 
@@ -167,19 +164,19 @@ export async function POST(req: NextRequest) {
             // Construction prudente de l'aperçu du message pour les messages racines
             const rootMessagePreview = message.content.substring(0, 50) + (message.content.length > 50 ? '...' : '');
 
-            // 1. Gérer les notifications pour les messages racines liés à une garde/vacation
+            // 1. Gérer les notifications pour les messages racines liés à une affectation
             if (message.assignmentId) {
                 const attribution = await prisma.attribution.findUnique({
                     where: { id: message.assignmentId },
                     select: {
                         userId: true,
-                        // Possibilité d'inclure d'autres champs/relations pour identifier tous les participants d'une garde/vacation
+                        // Possibilité d'inclure d'autres champs/relations pour identifier tous les participants d'une affectation
                     }
                 });
 
                 if (attribution && attribution.userId && attribution.userId !== userId) {
                     const linkToMessage = `/planning?assignmentId=${message.assignmentId}&contextMessageId=${message.id}`;
-                    const notificationMsg = `${authorName} a posté un message sur une garde/vacation : "${rootMessagePreview}"`;
+                    const notificationMsg = `${authorName} a posté un message sur une affectation: "${rootMessagePreview}"`;
                     await createNotification({
                         userId: attribution.userId,
                         type: NotificationType.NEW_CONTEXTUAL_MESSAGE,
@@ -191,7 +188,7 @@ export async function POST(req: NextRequest) {
                     });
                     notificationSent = true;
                 }
-                // Logique étendue pour notifier d'autres membres de l'équipe/garde/vacation si nécessaire
+                // Logique étendue pour notifier d'autres membres de l'équipe/affectation si nécessaire
             }
 
             // 2. Gérer les notifications pour les messages racines liés à une requête utilisateur
@@ -332,7 +329,7 @@ interface NotificationCreationArgs {
     // Champs de relation spécifiques (optionnels)
     relatedLeaveId?: number;
     relatedAssignmentId?: string;
-    // relatedRequestId?: string; // UserRequest.id est String, le modèle Notification a relatedRequestId: Int?
+    // relatedRequestId?: string; // UserRequest.id est String, le template Notification a relatedRequestId: Int?
 }
 
 export async function createNotification(args: NotificationCreationArgs) {

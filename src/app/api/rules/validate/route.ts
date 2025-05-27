@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { AnyRule, RuleConflict, RuleSeverity, RuleType, RuleValidationResult } from '../../../../modules/rules/types/rule';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 
 /**
  * POST /api/rules/validate
@@ -300,7 +296,7 @@ async function validateSupervisionRule(rule: any, existingRules: any[], conflict
 }
 
 /**
- * Validation spécifique pour les règles d'garde/vacation
+ * Validation spécifique pour les règles d'affectation
  */
 async function validateAssignmentRule(rule: any, existingRules: any[], conflicts: RuleConflict[]): Promise<void> {
     const assignmentRules = existingRules.filter(r => r.type === RuleType.ASSIGNMENT && r.id !== rule.id);

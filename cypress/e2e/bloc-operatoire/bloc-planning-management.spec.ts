@@ -7,7 +7,6 @@ describe('Gestion des plannings bloc opératoire', () => {
     };
 
     beforeEach(() => {
-    jest.clearAllMocks();
         // Réinitialiser et préparer les données de test
         cy.task('resetTestDatabase');
         cy.task('seedTestData', {

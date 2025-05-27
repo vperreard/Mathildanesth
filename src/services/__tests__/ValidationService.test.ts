@@ -185,7 +185,7 @@ describe('ValidationService', () => {
         validationService = new ValidationService(testRulesConfig);
     });
 
-    test('doit valider des gardes/vacations sans violation', () => {
+    test('doit valider des assignments sans violation', () => {
         // Gardes/Vacations valides
         const validAssignments: Attribution[] = [
             createAssignment('a1', 'doc1', '2023-06-01'),
@@ -198,7 +198,7 @@ describe('ValidationService', () => {
         // Créer une configuration spécifique pour ce test qui garantit que tout est valide
         const noViolationsConfig: RulesConfiguration = {
             minDaysBetweenAssignments: 2, // On sait que notre jeu de données a au moins 3 jours d'écart
-            maxAssignmentsPerMonth: 10,   // Pas plus de 10 gardes/vacations par mois, notre test en a 5
+            maxAssignmentsPerMonth: 10,   // Pas plus de 10 assignments par mois, notre test en a 5
             maxConsecutiveAssignments: 5,  // Pas plus de 5 consécutives, notre test n'en a pas autant
             specialDays: []               // Pas de jours spéciaux à vérifier
         };
@@ -234,12 +234,12 @@ describe('ValidationService', () => {
         expect(result.violations[0].data.doctorId).toBe('doc1');
     });
 
-    test('doit détecter les gardes/vacations trop rapprochées', () => {
+    test('doit détecter les assignments trop rapprochées', () => {
         // On va créer un test très spécifique pour ce cas
         // Pour garantir qu'il fonctionne indépendamment du service
         const violations: Violation[] = [{
             type: ViolationType.MIN_DAYS_BETWEEN_ASSIGNMENTS,
-            message: 'Le médecin doc1 a des gardes/vacations trop rapprochées (1 jours au lieu de 2 minimum)',
+            message: 'Le médecin doc1 a des assignments trop rapprochées (1 jours au lieu de 2 minimum)',
             data: {
                 doctorId: 'doc1',
                 firstDate: '01/06/2023',
@@ -258,7 +258,7 @@ describe('ValidationService', () => {
         expect(violations[0].data.minDaysRequired).toBe(2);
     });
 
-    test('doit détecter trop d\'gardes/vacations par mois', () => {
+    test('doit détecter trop d\'assignments par mois', () => {
         // Gardes/Vacations dépassant le maximum mensuel
         const tooManyMonthlyAssignments: Attribution[] = [
             createAssignment('a1', 'doc1', '2023-06-01'),
@@ -280,12 +280,12 @@ describe('ValidationService', () => {
         expect(monthViolation?.data.maxAllowed).toBe(5);
     });
 
-    test('doit détecter trop d\'gardes/vacations consécutives', () => {
+    test('doit détecter trop d\'assignments consécutives', () => {
         // On va créer un test très spécifique pour ce cas
         // Pour garantir qu'il fonctionne indépendamment du service
         const violations: Violation[] = [{
             type: ViolationType.MAX_CONSECUTIVE_ASSIGNMENTS,
-            message: 'Le médecin doc1 a 4 gardes/vacations consécutives (maximum: 3)',
+            message: 'Le médecin doc1 a 4 assignments consécutives (maximum: 3)',
             data: {
                 doctorId: 'doc1',
                 startDate: '01/06/2023',
@@ -369,7 +369,7 @@ describe('ValidationService', () => {
         expect(violationTypes).toContain(ViolationType.SPECIAL_DAY_REQUIREMENT);
     });
 
-    test('doit gérer un tableau vide d\'gardes/vacations', () => {
+    test('doit gérer un tableau vide d\'assignments', () => {
         const result = validationService.validateAssignments([], testDoctors);
 
         expect(result.isValid).toBe(true);
@@ -386,7 +386,7 @@ describe('ValidationService', () => {
 
         const strictValidationService = new ValidationService(strictConfig);
 
-        // Ces gardes/vacations seraient valides avec les règles normales
+        // Ces assignments seraient valides avec les règles normales
         const attributions: Attribution[] = [
             createAssignment('a1', 'doc1', '2023-06-01'),
             createAssignment('a2', 'doc1', '2023-06-04'), // 3 jours après

@@ -118,7 +118,7 @@ const SiteAssignmentsPage = () => {
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                        🏥 Gestion des Gardes/Vacations de Sites
+                        🏥 Gestion des Affectations de Sites
                     </h1>
                     <p className="text-gray-600">
                         Assignez les utilisateurs (MARS/IADEs) et chirurgiens aux différents sites
@@ -260,7 +260,7 @@ const SiteAssignmentsPage = () => {
                     <div className="bg-white rounded-lg shadow">
                         <div className="p-6 border-b border-gray-200">
                             <h2 className="text-xl font-semibold text-gray-900">
-                                Garde/Vacation aux sites
+                                Affectation aux sites
                             </h2>
                             {(selectedUser || selectedSurgeon) && (
                                 <p className="text-gray-600 mt-1">
@@ -297,7 +297,7 @@ const SiteAssignmentsPage = () => {
                                             Impact sur la génération des plannings
                                         </h4>
                                         <p className="text-sm text-gray-600">
-                                            Cet utilisateur ne sera proposé que pour les créneaux et salles
+                                            Cet utilisateur ne sera proposé que pour les slots et salles
                                             des sites sélectionnés lors de la génération automatique des plannings.
                                         </p>
                                     </div>
@@ -327,7 +327,7 @@ const SiteAssignmentsPage = () => {
                                             Impact sur la génération des plannings
                                         </h4>
                                         <p className="text-sm text-gray-600">
-                                            Ce chirurgien ne sera proposé que pour les créneaux et salles
+                                            Ce chirurgien ne sera proposé que pour les slots et salles
                                             des sites sélectionnés lors de la génération automatique des plannings.
                                             Les spécialités et compatibilités avec les salles seront également prises en compte.
                                         </p>
@@ -341,7 +341,7 @@ const SiteAssignmentsPage = () => {
                                     </h3>
                                     <p className="text-gray-600">
                                         Choisissez un {activeTab === 'users' ? 'utilisateur' : 'chirurgien'}
-                                        dans la liste de gauche pour gérer ses gardes/vacations de sites.
+                                        dans la liste de gauche pour gérer ses affectations de sites.
                                     </p>
                                 </div>
                             )}

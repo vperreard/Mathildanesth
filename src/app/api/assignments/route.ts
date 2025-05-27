@@ -5,9 +5,6 @@ import { BusinessRulesValidator } from '@/services/businessRulesValidator';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { logger } from '@/lib/logger';
 
-jest.mock('@/lib/prisma');
-
-
 // Schéma de validation pour les paramètres de requête
 const querySchema = z.object({
     start: z.string().datetime({ message: 'La date de début doit être une date ISO valide' }),
@@ -36,7 +33,7 @@ export async function GET(request: NextRequest) {
         const startDate = new Date(start);
         const endDate = new Date(end);
 
-        // Récupérer les gardes/vacations depuis la base de données
+        // Récupérer les affectations depuis la base de données
         const attributions = await prisma.attribution.findMany({
             where: {
                 date: {
@@ -54,15 +51,15 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ attributions });
 
     } catch (error: any) {
-        console.error('Erreur API [GET /api/gardes/vacations]:', error);
+        console.error('Erreur API [GET /api/affectations]:', error);
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la récupération des gardes/vacations.', details: error.message },
+            { error: 'Erreur serveur lors de la récupération des affectations.', details: error.message },
             { status: 500 }
         );
     }
 }
 
-// Schéma de validation pour créer une garde/vacation
+// Schéma de validation pour créer une affectation
 const createAssignmentSchema = z.object({
     userId: z.string(),
     operatingRoomId: z.string(),
@@ -72,8 +69,8 @@ const createAssignmentSchema = z.object({
 });
 
 /**
- * POST /api/gardes/vacations
- * Crée une nouvelle garde/vacation avec validation des règles métier
+ * POST /api/affectations
+ * Crée une nouvelle affectation avec validation des règles métier
  */
 export async function POST(request: NextRequest) {
     try {
@@ -82,13 +79,13 @@ export async function POST(request: NextRequest) {
         const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
         
         if (!token) {
-            logger.warn('Tentative de création d\'garde/vacation sans token', { path: '/api/gardes/vacations' });
+            logger.warn('Tentative de création d\'affectation sans token', { path: '/api/affectations' });
             return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
         }
 
         const authResult = await verifyAuthToken(token);
         if (!authResult.authenticated) {
-            logger.warn('Token invalide pour création d\'garde/vacation', { path: '/api/gardes/vacations' });
+            logger.warn('Token invalide pour création d\'affectation', { path: '/api/affectations' });
             return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
         }
 
@@ -119,11 +116,11 @@ export async function POST(request: NextRequest) {
         if (authenticatedUser.role !== 'ADMIN_TOTAL' && 
             authenticatedUser.role !== 'ADMIN_PARTIEL' &&
             authenticatedUser.role !== 'MANAGER') {
-            logger.warn('Tentative non autorisée de création d\'garde/vacation', { 
+            logger.warn('Tentative non autorisée de création d\'affectation', { 
                 authenticatedUserId: authenticatedUser.id,
                 role: authenticatedUser.role 
             });
-            return NextResponse.json({ error: 'Forbidden - Seuls les administrateurs peuvent créer des gardes/vacations' }, { status: 403 });
+            return NextResponse.json({ error: 'Forbidden - Seuls les administrateurs peuvent créer des affectations' }, { status: 403 });
         }
 
         // 🔐 VALIDATION DES RÈGLES MÉTIER
@@ -136,19 +133,19 @@ export async function POST(request: NextRequest) {
         });
 
         if (!businessValidation.valid) {
-            logger.warn('Validation des règles métier échouée pour garde/vacation', {
+            logger.warn('Validation des règles métier échouée pour affectation', {
                 userId,
                 errors: businessValidation.errors,
                 assignmentDetails: { operatingRoomId, date, shiftType }
             });
             return NextResponse.json({ 
-                error: 'L\'garde/vacation ne respecte pas les règles métier',
+                error: 'L\'affectation ne respecte pas les règles métier',
                 details: businessValidation.errors
             }, { status: 400 });
         }
 
         // Logger l'action
-        logger.info('Création d\'garde/vacation', {
+        logger.info('Création d\'affectation', {
             action: 'CREATE_ASSIGNMENT',
             authenticatedUserId: authenticatedUser.id,
             targetUserId: userId,
@@ -156,7 +153,7 @@ export async function POST(request: NextRequest) {
             details: { operatingRoomId, date, shiftType }
         });
 
-        // Créer l'garde/vacation en base de données
+        // Créer l'affectation en base de données
         const newAssignment = await prisma.attribution.create({
             data: {
                 userId: parseInt(userId, 10),
@@ -189,10 +186,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(newAssignment, { status: 201 });
 
     } catch (error: any) {
-        console.error('Erreur API [POST /api/gardes/vacations]:', error);
-        logger.error('Erreur lors de la création de l\'garde/vacation', { error: error.message });
+        console.error('Erreur API [POST /api/affectations]:', error);
+        logger.error('Erreur lors de la création de l\'affectation', { error: error.message });
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la création de l\'garde/vacation.', details: error.message },
+            { error: 'Erreur serveur lors de la création de l\'affectation.', details: error.message },
             { status: 500 }
         );
     }

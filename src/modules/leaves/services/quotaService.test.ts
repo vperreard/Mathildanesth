@@ -25,6 +25,7 @@ jest.mock('./leaveService', () => ({
 describe('quotaService', () => {
     // Réinitialiser les mocks entre les tests
     beforeEach(() => {
+    jest.clearAllMocks();
         jest.resetAllMocks();
 
         // Mock par défaut pour fetchLeaveBalance

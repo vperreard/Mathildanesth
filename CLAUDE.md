@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Mathildanesth is a medical planning application for anesthesia teams (MARs and IADEs), managing schedules, leave requests, and work time. Built with Next.js 14, TypeScript, PostgreSQL, and Prisma.
 
-## 📚 Documentation Structure (Updated January 2025)
+## 📚 Documentation Structure (Updated Mai 2025)
 
 **Primary Documentation Location**: `/docs/` (consolidated from 4 previous folders)
 
@@ -42,6 +42,7 @@ Mathildanesth is a medical planning application for anesthesia teams (MARs and I
 ### Quick Reference Documentation
 - **Planning**: [Consolidated ROADMAP](docs/04_roadmap/ROADMAP.md) - All project planning in one place
 - **Issues**: [Known Issues](docs/04_roadmap/KNOWN_ISSUES.md) - Current bugs and problems
+- **Navigation**: [Medical Navigation Architecture](docs/technical/medical-navigation-architecture.md) - Complete navigation refactor documentation
 - **User Guides**: [User Guides](docs/user-guides/) - End-user documentation
 - **Technical Details**: [Technical Docs](docs/technical/) - Algorithms, architecture, API design
 
@@ -106,6 +107,7 @@ npm run quality:full       # Full quality analysis
 4. **Error Handling**: Centralized error handling with proper logging
 5. **Performance**: Built-in caching layer, performance monitoring, and optimization utilities
 6. **Security**: 95% of critical security TODOs resolved (see [Security Report](docs/01_architecture/TECHNICAL_DEBT_REDUCTION_REPORT.md))
+7. **Medical Navigation (Updated 27/05/2025)**: Role-based navigation with medical terminology
 
 ### Critical Modules
 
@@ -124,6 +126,34 @@ npm run quality:full       # Full quality analysis
 3. **Templates Module** (`/src/modules/templates/`)
    - Reusable planning templates
    - Variation management
+
+### Medical Navigation Architecture (Added 27/05/2025)
+
+**Complete navigation refactor with medical terminology adaptation**
+
+#### Navigation Components
+- **`MedicalNavigation.tsx`**: Role-based responsive navigation with medical hierarchy
+- **`MedicalBreadcrumbs.tsx`**: Contextual breadcrumbs with medical terminology
+- **`QuickActions.tsx`**: Role-specific quick access buttons with healthcare focus
+- **`navigationConfig.ts`**: Centralized navigation configuration with medical roles
+
+#### Medical Terminology Mapping
+**318 files updated** with complete terminology transformation:
+- "Trames" → "Tableaux de service"
+- "Affectations" → "Gardes/Vacations"
+- "Slots" → "Créneaux"
+- "Planning Generator" → "Organisateur de planning"
+
+#### Role-Based Navigation
+- **User Navigation** (5 links max): Mon Planning, Mes Congés, Messages, Mon Profil, Aide
+- **Admin Navigation** (4 categories): Tableaux de Bord, Équipes, Rapports, Configuration
+- **Medical Hierarchy**: MAR, IADE, ADMIN_TOTAL, ADMIN_PARTIEL, CHIRURGIEN
+
+#### Medical Branding
+- **Stethoscope icon** in header for medical context
+- **"Planning Médical" subtitle** for clear healthcare identification
+- **Medical color scheme** with healthcare-focused gradients (blue/teal/cyan)
+- **Responsive design** optimized for medical professionals
 
 ### Security Considerations (Updated)
 
@@ -145,18 +175,26 @@ npm run quality:full       # Full quality analysis
 - Bundle analysis and optimization
 - Critical performance issues identified and documented
 
-### Testing Strategy (Enhanced)
+### Testing Strategy (Updated 27/05/2025 - 23h00)
 
 1. **Unit Tests**: For utilities and pure functions (target: 70% coverage)
 2. **Integration Tests**: For API routes and services (target: 80% for critical modules)
-3. **E2E Tests**: Critical user flows with Cypress and Puppeteer
+3. **E2E Tests**: Critical user flows with Cypress and Puppeteer ✅ OPERATIONAL
 4. **Performance Tests**: Load testing and benchmarking
 
 **Testing Infrastructure**:
 - Jest configuration with coverage thresholds
 - Factory functions for test data
 - Mock strategies for external dependencies
-- E2E infrastructure with Puppeteer and Cypress
+- E2E infrastructure with Puppeteer and Cypress ✅ FIXED
+
+**E2E Tests Status (27/05/2025)**:
+- ✅ Cypress fixtures created: `utilisateurs.json` with required fields (nom, prenom)
+- ✅ Selectors standardized: data-testid → data-cy migration complete
+- ✅ API routes unified: `/api/auth/login` working
+- ✅ Missing pages created: `/auth/reset-password` for password recovery
+- ✅ Jest references removed from Cypress tests
+- ✅ Authentication tests ready to run
 
 Run tests for specific modules:
 ```bash
@@ -258,7 +296,12 @@ See **[CONSOLIDATED ROADMAP](docs/04_roadmap/ROADMAP.md)** for detailed planning
 - **Integrations**: Calendar sync, HR systems, automation opportunities
 - **Performance**: Caching strategies, lazy loading, optimistic updates
 
-**Last Updated**: May 2025 - Autonomy guidelines added
+**Last Updated**: 27 Mai 2025 - Medical Navigation Architecture
+- Complete navigation refactor with medical terminology (318 files updated)
+- New medical navigation components: MedicalNavigation, MedicalBreadcrumbs, QuickActions
+- Medical branding with stethoscope icon and "Planning Médical" subtitle
+- Role-based navigation for MAR, IADE, ADMIN_TOTAL, ADMIN_PARTIEL, CHIRURGIEN
+- User navigation simplified (5 links max), Admin navigation organized (4 categories)
 - All TODO/NEXT_STEPS files consolidated into single ROADMAP.md
 - Established rule: Only maintain ROADMAP.md and KNOWN_ISSUES.md for project planning
 - Added requirement to update documentation immediately after completing tasks

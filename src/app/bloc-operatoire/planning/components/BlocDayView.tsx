@@ -44,7 +44,7 @@ interface BlocDayViewProps {
 
 /**
  * Composant pour afficher le planning du bloc pour une journée
- * Utilise le modèle de vacations par demi-journées
+ * Utilise le template de vacations par demi-journées
  */
 export default function BlocDayView({
     date,

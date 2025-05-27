@@ -107,7 +107,7 @@ export default function OptimizedCalendarPage() {
         }
     };
 
-    // Charger les gardes/vacations uniquement pour l'onglet allocation
+    // Charger les affectations uniquement pour l'onglet allocation
     useEffect(() => {
         if (activeTab === 'allocation' && isAdmin) {
             fetchAssignments();
@@ -121,8 +121,7 @@ export default function OptimizedCalendarPage() {
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-            const response = await fetch(
-                `/api/gardes/vacations?start=${startOfMonth.toISOString()}&end=${endOfMonth.toISOString()}`
+            const response = await fetch(`http://localhost:3000/api/affectations?start=${startOfMonth.toISOString()}&end=${endOfMonth.toISOString()}`
             );
 
             if (!response.ok) {
@@ -139,8 +138,8 @@ export default function OptimizedCalendarPage() {
             }));
             setAssignments(fetchedAssignments);
         } catch (error) {
-            console.error("Erreur lors du chargement des gardes/vacations:", error);
-            toast.error("Impossible de charger les gardes/vacations.");
+            console.error("Erreur lors du chargement des affectations:", error);
+            toast.error("Impossible de charger les affectations.");
             setAssignments([]);
         } finally {
             setIsLoadingAssignments(false);
@@ -149,7 +148,7 @@ export default function OptimizedCalendarPage() {
 
     const handleSave = async (updatedAssignments: Attribution[]) => {
         try {
-            const response = await fetch('http://localhost:3000/api/gardes/vacations', {
+            const response = await fetch('http://localhost:3000/api/affectations', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ attributions: updatedAssignments })
@@ -159,11 +158,11 @@ export default function OptimizedCalendarPage() {
                 throw new Error(`Erreur HTTP ${response.status}`);
             }
 
-            toast.success('Gardes/Vacations sauvegardées avec succès.');
+            toast.success('Affectations sauvegardées avec succès.');
             setAssignments(updatedAssignments);
         } catch (error) {
             console.error("Erreur lors de la sauvegarde:", error);
-            toast.error('Échec de la sauvegarde des gardes/vacations.');
+            toast.error('Échec de la sauvegarde des affectations.');
         }
     };
 

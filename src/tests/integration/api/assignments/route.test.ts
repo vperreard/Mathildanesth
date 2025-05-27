@@ -27,17 +27,17 @@ jest.mock('next/server', () => ({
     }
 }));
 
-describe('/api/gardes/vacations', () => {
+describe('/api/assignments', () => {
     let handlers: any;
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        const route = await import('@/app/api/gardes/vacations/route');
+        const route = await import('@/app/api/assignments/route');
         handlers = route;
     });
 
     const createRequest = (method: string, body?: any, params?: URLSearchParams) => {
-        const url = new URL('http://localhost:3000/api/gardes/vacations');
+        const url = new URL('http://localhost:3000/api/assignments');
         if (params) {
             url.search = params.toString();
         }
@@ -52,7 +52,7 @@ describe('/api/gardes/vacations', () => {
         });
     };
 
-    describe('GET /api/gardes/vacations', () => {
+    describe('GET /api/assignments', () => {
         it('should return user attributions', async () => {
             const mockUser = { id: 1, role: Role.USER };
             const mockAssignments = [
@@ -174,7 +174,7 @@ describe('/api/gardes/vacations', () => {
         });
     });
 
-    describe('POST /api/gardes/vacations', () => {
+    describe('POST /api/assignments', () => {
         it('should create attribution for admin', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             const assignmentData = {
@@ -281,7 +281,7 @@ describe('/api/gardes/vacations', () => {
         });
     });
 
-    describe('PUT /api/gardes/vacations/[id]', () => {
+    describe('PUT /api/assignments/[id]', () => {
         it('should update attribution', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             const updateData = {
@@ -335,7 +335,7 @@ describe('/api/gardes/vacations', () => {
         });
     });
 
-    describe('DELETE /api/gardes/vacations/[id]', () => {
+    describe('DELETE /api/assignments/[id]', () => {
         it('should delete attribution', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             mockedGetUserFromCookie.mockResolvedValue(mockAdmin as any);

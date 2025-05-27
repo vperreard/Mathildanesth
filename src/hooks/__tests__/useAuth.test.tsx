@@ -409,7 +409,7 @@ describe('useAuth Hook', () => {
             expect(modifiedConfig.url).toMatch(/\/api\/auth\/me\?_t=\d+/);
         });
 
-        it('devrait nettoyer le cache sur erreur 401', () => {
+        it('devrait nettoyer le cache sur erreur 401', async () => {
             // Arrange
             renderHook(() => useAuth(), { wrapper: createWrapper() });
 
@@ -421,7 +421,7 @@ describe('useAuth Hook', () => {
                 response: { status: 401 }
             };
 
-            expect(() => responseInterceptor(error)).rejects.toEqual(error);
+            await expect(() => responseInterceptor(error)).rejects.toEqual(error);
 
             // Assert
             expect(mockedRemoveClientAuthToken).toHaveBeenCalled();

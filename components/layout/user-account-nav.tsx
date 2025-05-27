@@ -11,7 +11,7 @@ interface UserAccountNavProps {
 
 export const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
     return (
-        <span className="hidden text-sm font-medium lg:block">
+        <span className="hidden text-sm font-medium lg:block" data-cy="user-name">
             Connecté : {user.name} {user.lastName}
         </span>
     );

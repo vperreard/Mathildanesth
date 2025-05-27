@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
 
-jest.mock('@/lib/prisma');
-
-
 export async function POST(req: NextRequest) {
     try {
         const token = req.cookies.get('auth_token')?.value;

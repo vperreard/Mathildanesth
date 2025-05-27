@@ -211,7 +211,7 @@ export default function SimulationResultPage() {
 
                 // Ajouter des statistiques basées sur le JSON reçu
                 if (stats.totalAssignments) formattedStats.push({
-                    name: 'Nombre total d\'gardes/vacations',
+                    name: 'Nombre total d\'affectations',
                     value: stats.totalAssignments,
                     category: 'Général'
                 });
@@ -294,7 +294,7 @@ export default function SimulationResultPage() {
                     ? JSON.parse(data.generatedPlanningData)
                     : data.generatedPlanningData;
 
-                // Extraction des données d'garde/vacation des utilisateurs à partir du planning généré
+                // Extraction des données d'affectation des utilisateurs à partir du planning généré
                 // Format fictif - à adapter en fonction de la structure réelle des données
                 if (planningData.userAssignments) {
                     setUserAssignments(planningData.userAssignments);
@@ -706,7 +706,7 @@ export default function SimulationResultPage() {
                     <TabsContent value="users" className="space-y-4">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Gardes/Vacations par utilisateur</CardTitle>
+                                <CardTitle>Affectations par utilisateur</CardTitle>
                                 <CardDescription>Répartition et statistiques par participant</CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -715,7 +715,7 @@ export default function SimulationResultPage() {
                                         <TableHeader>
                                             <TableRow>
                                                 <TableHead>Nom</TableHead>
-                                                <TableHead className="text-right">Gardes/Vacations</TableHead>
+                                                <TableHead className="text-right">Affectations</TableHead>
                                                 <TableHead className="text-right">Heures</TableHead>
                                                 <TableHead className="text-right">Conflits</TableHead>
                                             </TableRow>
@@ -741,7 +741,7 @@ export default function SimulationResultPage() {
                                     <div className="text-center py-8">
                                         <UserIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                                         <p className="text-gray-500">
-                                            Aucune donnée d'garde/vacation des utilisateurs disponible.
+                                            Aucune donnée d'affectation des utilisateurs disponible.
                                         </p>
                                     </div>
                                 )}
@@ -885,7 +885,7 @@ export default function SimulationResultPage() {
                         enabled: true
                     }}
                     categoryOptions={{
-                        label: 'Catégories d\'garde/vacation',
+                        label: 'Catégories d\'affectation',
                         enabled: true,
                         options: [
                             { id: 'morning', label: 'Matin', value: 'morning' },

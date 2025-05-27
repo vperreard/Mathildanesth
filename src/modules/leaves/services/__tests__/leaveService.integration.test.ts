@@ -127,7 +127,7 @@ describe('Leave Workflow Integration Tests', () => {
 
             // Act - Simuler la génération d'occurrences
             const occurrences = [];
-            let currentDate = new Date(recurringPattern.startDate);
+            const currentDate = new Date(recurringPattern.startDate);
 
             while (currentDate <= recurringPattern.endDate) {
                 if (currentDate.getDay() === 1) { // Lundi
@@ -157,7 +157,7 @@ describe('Leave Workflow Integration Tests', () => {
 
             // Act - Calculer les jours ouvrés
             let workingDays = 0;
-            let currentDate = new Date(startDate);
+            const currentDate = new Date(startDate);
 
             while (currentDate <= endDate) {
                 const dayOfWeek = currentDate.getDay();
@@ -183,7 +183,7 @@ describe('Leave Workflow Integration Tests', () => {
 
             // Act - Calculer en excluant les jours fériés
             let workingDays = 0;
-            let currentDate = new Date(startDate);
+            const currentDate = new Date(startDate);
 
             while (currentDate <= endDate) {
                 const dayOfWeek = currentDate.getDay();

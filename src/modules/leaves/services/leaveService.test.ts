@@ -394,7 +394,7 @@ describe('leaveService', () => {
   });
 
   describe('calculateLeaveDays', () => {
-    it('should calculate leave days based on planning médical', () => {
+    it('should calculate leave days based on schedule', () => {
       const result = calculateLeaveDays(
         new Date('2024-08-19'),
         new Date('2024-08-23'),

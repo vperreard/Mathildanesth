@@ -430,7 +430,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList>
-                    <TabsTrigger value="attributions">Gardes/Vacations</TabsTrigger>
+                    <TabsTrigger value="attributions">Affectations</TabsTrigger>
                     <TabsTrigger value="conflicts">
                         Conflits
                         {planning.conflicts.filter(c => !c.isResolved).length > 0 && (
@@ -471,7 +471,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                                                         {!attribution && (
                                                             <Button variant="outline" size="sm">
                                                                 <Plus className="h-3 w-3 mr-1" />
-                                                                Ajouter garde/vacation
+                                                                Ajouter affectation
                                                             </Button>
                                                         )}
                                                     </div>

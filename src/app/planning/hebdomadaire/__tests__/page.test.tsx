@@ -204,13 +204,13 @@ describe('Planning Hebdomadaire Page - Tests DND', () => {
             if (urlString.includes('/api/operating-rooms')) {
                 return Promise.resolve({ ok: true, json: () => Promise.resolve({ rooms: mockRooms }) });
             }
-            if (urlString.includes('/api/gardes/vacations/validate')) {
+            if (urlString.includes('/api/assignments/validate')) {
                 return Promise.resolve({ ok: true, json: () => Promise.resolve({ isValid: true, violations: [], warnings: [] }) });
             }
-            if (urlString.includes('/api/gardes/vacations/batch')) {
+            if (urlString.includes('/api/assignments/batch')) {
                 return Promise.resolve({ ok: true, json: () => Promise.resolve({ message: 'Changements sauvegardés avec succès' }) });
             }
-            if (urlString.includes('/api/gardes/vacations')) {
+            if (urlString.includes('/api/assignments')) {
                 return Promise.resolve({ ok: true, json: () => Promise.resolve({ attributions: mockAssignments }) });
             }
             return Promise.resolve({ ok: true, json: () => Promise.resolve({}) }); // Fallback
@@ -246,14 +246,14 @@ describe('Planning Hebdomadaire Page - Tests DND', () => {
         // On vérifie juste que fetchMock a été appelé avec les bons arguments par le composant.
         // Si le composant mocké ne fait pas l'appel, alors cet appel manuel est une simulation de l'effet attendu.
         // Pour ce test, on simule que l'appel a lieu comme si le composant l'avait fait.
-        await fetchMock('/api/gardes/vacations/validate', {
+        await fetchMock('/api/assignments/validate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ attributions: mockAssignments }) // mockAssignments est maintenant accessible
         });
 
         expect(fetchMock).toHaveBeenCalledWith(
-            '/api/gardes/vacations/validate',
+            '/api/assignments/validate',
             expect.objectContaining({
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -271,14 +271,14 @@ describe('Planning Hebdomadaire Page - Tests DND', () => {
         const confirmButton = screen.getByTestId('confirm-save-button');
         fireEvent.click(confirmButton);
 
-        await fetchMock('/api/gardes/vacations/batch', {
+        await fetchMock('/api/assignments/batch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ attributions: mockAssignments }) // mockAssignments est maintenant accessible
         });
 
         expect(fetchMock).toHaveBeenCalledWith(
-            '/api/gardes/vacations/batch',
+            '/api/assignments/batch',
             expect.objectContaining({
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

@@ -30,7 +30,7 @@ describe('BlocPlanningService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        // Essayer les noms de modèles en CamelCase tels que définis dans le schéma Prisma
+        // Essayer les noms de templates en CamelCase tels que définis dans le schéma Prisma
         prismaMock.OperatingRoom.findMany.mockResolvedValue([
             { id: 'salle1', nom: 'Salle 1', specialites: ['generale'], secteurId: 'secteurA' }
         ] as OperatingRoom[]);

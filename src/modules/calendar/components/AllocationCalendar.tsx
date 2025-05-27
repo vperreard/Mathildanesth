@@ -19,7 +19,7 @@ export const AllocationCalendar: React.FC<AllocationCalendarProps> = ({
     const [selectedEvent, setSelectedEvent] = useState<AnyCalendarEvent | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-    // Filtres par défaut pour le calendrier d'gardes/vacations (uniquement les événements d'garde/vacation)
+    // Filtres par défaut pour le calendrier d'affectations (uniquement les événements d'affectation)
     const defaultFilters = {
         eventTypes: [CalendarEventType.ASSIGNMENT],
     };
@@ -96,7 +96,7 @@ export const AllocationCalendar: React.FC<AllocationCalendarProps> = ({
             <div className="bg-white shadow rounded-lg p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <h2 className="text-xl font-semibold text-gray-900 mb-2 sm:mb-0">
-                        Calendrier des gardes/vacations
+                        Calendrier des affectations
                     </h2>
 
                     <div className="flex flex-wrap gap-2 justify-end">

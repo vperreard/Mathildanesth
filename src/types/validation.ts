@@ -4,11 +4,11 @@
 export enum ViolationType {
     /** Conflit d'horaire (médecin affecté plusieurs fois le même jour) */
     SCHEDULING_CONFLICT = 'SCHEDULING_CONFLICT',
-    /** Repos minimum entre gardes/vacations non respecté */
+    /** Repos minimum entre affectations non respecté */
     MIN_DAYS_BETWEEN_ASSIGNMENTS = 'MIN_DAYS_BETWEEN_ASSIGNMENTS',
-    /** Nombre maximum d'gardes/vacations par mois dépassé */
+    /** Nombre maximum d'affectations par mois dépassé */
     MAX_ASSIGNMENTS_PER_MONTH = 'MAX_ASSIGNMENTS_PER_MONTH',
-    /** Nombre maximum d'gardes/vacations consécutives dépassé */
+    /** Nombre maximum d'affectations consécutives dépassé */
     MAX_CONSECUTIVE_ASSIGNMENTS = 'MAX_CONSECUTIVE_ASSIGNMENTS',
     /** Exigence pour jour spécial non respectée */
     SPECIAL_DAY_REQUIREMENT = 'SPECIAL_DAY_REQUIREMENT'
@@ -32,7 +32,7 @@ export interface Violation {
  * Résultat de la validation
  */
 export interface ValidationResult {
-    /** Indique si les gardes/vacations sont valides */
+    /** Indique si les affectations sont valides */
     isValid: boolean;
 
     /** Liste des violations détectées */

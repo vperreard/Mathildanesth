@@ -6,7 +6,7 @@ import {
     ValidationResult,
     UserCounter,
     AssignmentStatus
-} from '../types/attribution';
+} from '../types/assignment';
 import { ShiftType } from '../types/common';
 import { User, WeekType, Leave } from '../types/user';
 import { RulesConfiguration, FatigueConfig, defaultRulesConfiguration, defaultFatigueConfig, RuleSeverity } from '../types/rules';

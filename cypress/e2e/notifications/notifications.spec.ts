@@ -31,7 +31,6 @@ const simulateUpdatePreferences = () => {
 
 describe('Système de notifications', () => {
     beforeEach(() => {
-    jest.clearAllMocks();
         // Se connecter en tant qu'utilisateur test
         cy.loginByApi('user.test@example.com', 'password123');
 
@@ -205,7 +204,6 @@ describe('Système de notifications', () => {
 
 describe('Préférences de notifications', () => {
     beforeEach(() => {
-    jest.clearAllMocks();
         // Se connecter en tant qu'utilisateur test
         cy.loginByApi('user.test@example.com', 'password123');
 

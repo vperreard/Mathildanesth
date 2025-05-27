@@ -1,6 +1,5 @@
 describe('Module Bloc Opératoire', () => {
     beforeEach(() => {
-    jest.clearAllMocks();
         // Se connecter en tant qu'admin
         cy.login('admin@example.com', 'password');
         cy.visit('/bloc-operatoire');
@@ -44,7 +43,6 @@ describe('Module Bloc Opératoire', () => {
 
     describe('Planning et drag & drop', () => {
         beforeEach(() => {
-    jest.clearAllMocks();
             cy.contains('[role="tab"]', 'Planning').click();
         });
 
@@ -108,7 +106,6 @@ describe('Module Bloc Opératoire', () => {
 
     describe('Gestion des salles', () => {
         beforeEach(() => {
-    jest.clearAllMocks();
             cy.contains('[role="tab"]', 'Salles').click();
         });
 
@@ -153,7 +150,6 @@ describe('Module Bloc Opératoire', () => {
 
     describe('Gestion des secteurs', () => {
         beforeEach(() => {
-    jest.clearAllMocks();
             cy.contains('[role="tab"]', 'Secteurs').click();
         });
 
@@ -191,7 +187,6 @@ describe('Module Bloc Opératoire', () => {
 
     describe('Validation des règles métier', () => {
         beforeEach(() => {
-    jest.clearAllMocks();
             cy.contains('[role="tab"]', 'Planning').click();
             cy.get('[data-testid="editor-tab"]').click();
         });

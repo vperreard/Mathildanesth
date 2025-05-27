@@ -15,7 +15,7 @@ import {
     ContrainteType,
     PeriodeVariation,
     RoleType
-} from "../types/modèle";
+} from "../types/template";
 
 // Ajout d'un type pour les informations complètes d'ActivityType
 export interface FullActivityType {
@@ -52,7 +52,7 @@ type DayOfWeekValue = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY'
 
 import { getClientAuthToken } from "@/lib/auth-client-utils"; // Pour l'authentification
 
-const API_BASE_URL = '/api/tableau de service-modeles'; // Nouvelle URL de base pour l'API
+const API_BASE_URL = '/api/trameModele-modeles'; // Nouvelle URL de base pour l'API
 
 // --- Mock Data Store ---
 // const mockTemplates: PlanningTemplate[] = [ ... ]; // S'assurer que c'est bien commenté ou vide
@@ -95,7 +95,7 @@ const availablePostes = [
 //     // ... ancienne logique ... 
 // };
 
-// DTO pour la création d'une AffectationModele (POST /api/tableau de service-modeles/{id}/gardes/vacations)
+// DTO pour la création d'une AffectationModele (POST /api/trameModele-modeles/{id}/gardes/vacations)
 interface AffectationModeleCreateDto {
     activityTypeId: string;
     jourSemaine: DayOfWeekValue; // Utilise notre type alias pour les valeurs de l'enum Prisma
@@ -119,7 +119,7 @@ interface AffectationModeleCreateDto {
     }>;
 }
 
-// Helper pour mapper AffectationModeleDTO (de l'API GET /tableau de service-modeles?includeAffectations=true)
+// Helper pour mapper AffectationModeleDTO (de l'API GET /trameModele-modeles?includeAffectations=true)
 // vers TemplateAffectation (frontend)
 const mapAffectationModeleDtoToTemplateAffectation = (affectationDto: any): TemplateAffectation => {
     const typeAffectation = affectationDto.activityType?.code || affectationDto.activityType?.name || 'INCONNU';
@@ -189,7 +189,7 @@ const mapAffectationModeleDtoToTemplateAffectation = (affectationDto: any): Temp
 const mapTrameModeleDtoToPlanningTemplate = (dto: any): PlanningTemplate => {
     const variations = dto.detailsJson?.frontendVariations || [];
     if (variations.length) {
-        console.log(`[Modèle Service] ${variations.length} variations trouvées dans detailsJson pour la tableau de service ${dto.id}`);
+        console.log(`[Modèle Service] ${variations.length} variations trouvées dans detailsJson pour la trameModele ${dto.id}`);
     }
 
     return {
@@ -204,8 +204,8 @@ const mapTrameModeleDtoToPlanningTemplate = (dto: any): PlanningTemplate => {
         joursSemaineActifs: dto.joursSemaineActifs || [],
         typeSemaine: dto.typeSemaine,
         roles: dto.roles || [RoleType.TOUS], // Mapper les rôles
-        gardes/vacations: Array.isArray(dto.gardes/vacations)
-            ? dto.gardes/vacations.map(mapAffectationModeleDtoToTemplateAffectation)
+        affectations: Array.isArray(dto.affectations)
+            ? dto.affectations.map(mapAffectationModeleDtoToTemplateAffectation)
             : [],
         // Récupérer les variations depuis detailsJson si elles existent
         variations: variations,
@@ -219,7 +219,7 @@ const mapTrameModeleDtoToPlanningTemplate = (dto: any): PlanningTemplate => {
 // --- Service API --- 
 export const templateService = {
     async getTemplates(): Promise<PlanningTemplate[]> {
-        console.log("[Modèle Service] Appel de getTemplates via API /api/tableau de service-modeles?includeAffectations=true...");
+        console.log("[Modèle Service] Appel de getTemplates via API /api/trameModele-modeles?includeAffectations=true...");
         try {
             const token = await getClientAuthToken();
             // Ajouter un timestamp pour éviter le cache
@@ -233,7 +233,7 @@ export const templateService = {
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: response.statusText }));
                 console.error("[Modèle Service] Erreur API lors de getTemplates:", response.status, errorData);
-                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de récupérer les tableaux de service'}`);
+                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de récupérer les trameModeles'}`);
             }
             const dtos: any[] = await response.json(); // Supposer que l'API retourne un tableau de TrameModele
             console.log("--- Modèle Service --- GET --- DTOs bruts reçus de l'API ---");
@@ -254,13 +254,13 @@ export const templateService = {
                 throw error; // Rethrow pour que le composant puisse gérer
             } else {
                 console.error("Une erreur inconnue est survenue dans getTemplates.");
-                throw new Error("Une erreur inconnue est survenue lors de la récupération des tableaux de service.");
+                throw new Error("Une erreur inconnue est survenue lors de la récupération des trameModeles.");
             }
         }
     },
 
     async getTemplateById(id: string): Promise<PlanningTemplate | null> {
-        console.log(`[Modèle Service] Fetching modèle by ID: ${id} via API /api/tableau de service-modeles/${id}?includeAffectations=true...`);
+        console.log(`[Modèle Service] Fetching modèle by ID: ${id} via API /api/trameModele-modeles/${id}?includeAffectations=true...`);
         try {
             const token = await getClientAuthToken();
             const response = await fetch(`${API_BASE_URL}/${id}?includeAffectations=true`, {
@@ -273,7 +273,7 @@ export const templateService = {
                 if (response.status === 404) return null;
                 const errorData = await response.json().catch(() => ({ error: response.statusText }));
                 console.error("[Modèle Service] Erreur API lors de getTemplateById:", response.status, errorData);
-                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de récupérer la tableau de service'}`);
+                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de récupérer la trameModele'}`);
             }
             const dto: any = await response.json(); // Supposer que l'API retourne un TrameModele
             return mapTrameModeleDtoToPlanningTemplate(dto);
@@ -284,7 +284,7 @@ export const templateService = {
                 throw error;
             } else {
                 console.error("Une erreur inconnue est survenue dans getTemplateById.");
-                throw new Error("Une erreur inconnue est survenue lors de la récupération de la tableau de service.");
+                throw new Error("Une erreur inconnue est survenue lors de la récupération de la trameModele.");
             }
         }
     },
@@ -293,7 +293,7 @@ export const templateService = {
         templateData: PlanningTemplate,
         availableFullActivityTypes: FullActivityType[] // Nécessaire pour trouver activityTypeId
     ): Promise<PlanningTemplate> {
-        console.log(`[Modèle Service] Appel de saveTemplate pour: ${templateData.nom} via API /api/tableau de service-modeles...`);
+        console.log(`[Modèle Service] Appel de saveTemplate pour: ${templateData.nom} via API /api/trameModele-modeles...`);
         const isCreating = !templateData.id || templateData.id === 'new';
         let trameModeleId = isCreating ? null : templateData.id;
         let savedOrUpdatedTrameModeleDto: any;
@@ -367,11 +367,11 @@ export const templateService = {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: response.statusText }));
-                throw new Error(errorData.error || `Erreur API (${response.status}): Impossible de sauvegarder les métadonnées de la tableau de service.`);
+                throw new Error(errorData.error || `Erreur API (${response.status}): Impossible de sauvegarder les métadonnées de la trameModele.`);
             }
             savedOrUpdatedTrameModeleDto = await response.json();
             trameModeleId = String(savedOrUpdatedTrameModeleDto.id); // Obtenir l'ID réel
-            console.log(`[Modèle Service] Métadonnées de la tableau de service ${isCreating ? 'créées' : 'mises à jour'} avec succès. ID: ${trameModeleId}`);
+            console.log(`[Modèle Service] Métadonnées de la trameModele ${isCreating ? 'créées' : 'mises à jour'} avec succès. ID: ${trameModeleId}`);
 
         } catch (error) {
             console.error(`[Modèle Service] Erreur lors de la sauvegarde des métadonnées de la tableau de service:`, error);
@@ -393,36 +393,36 @@ export const templateService = {
             if (!existingAffectationsResponse.ok) throw new Error("Impossible de récupérer les gardes/vacations existantes.");
             const existingAffectations: any[] = await existingAffectationsResponse.json();
 
-            // 2b. Supprimer chaque garde/vacation existante
+            // 2b. Supprimer chaque affectation existante
             // Les appels DELETE doivent être séquentiels ou gérés avec Promise.all
             const deletePromises = existingAffectations.map(aff =>
-                fetch(`${API_BASE_URL}/../garde/vacation-modeles/${aff.id}`, { // Note: L'URL de suppression est différente
+                fetch(`${API_BASE_URL}/../affectation-modeles/${aff.id}`, { // Note: L'URL de suppression est différente
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => {
                     if (!res.ok && res.status !== 404) { // Ignorer 404 si déjà supprimé
-                        console.warn(`Échec de la suppression de l'garde/vacation ${aff.id}: ${res.status}`);
+                        console.warn(`Échec de la suppression de l'affectation ${aff.id}: ${res.status}`);
                         // Gérer l'erreur ou la logguer, mais ne pas forcément bloquer tout le processus
                     }
                     return res;
                 })
             );
             await Promise.all(deletePromises);
-            console.log(`[Modèle Service] ${existingAffectations.length} gardes/vacations existantes supprimées pour la tableau de service ${trameModeleId}.`);
+            console.log(`[Modèle Service] ${existingAffectations.length} gardes/vacations existantes supprimées pour la trameModele ${trameModeleId}.`);
 
             // 3. Créer les nouvelles gardes/vacations
-            console.log(`[Modèle Service] Tentative de création de ${templateData.gardes/vacations.length} nouvelles gardes/vacations pour la tableau de service ${trameModeleId}...`);
+            console.log(`[Modèle Service] Tentative de création de ${templateData.affectations.length} nouvelles gardes/vacations pour la trameModele ${trameModeleId}...`);
             const createdAffectations: any[] = [];
-            for (const garde/vacation of templateData.gardes/vacations) {
+            for (const affectation of templateData.affectations) {
                 // Utiliser la nouvelle fonction de mapping
                 const affectationDto = mapTemplateAffectationToApiDto(
-                    garde/vacation,
-                    templateData.typeSemaine as TypeSemaineTrameValue, // typeSemaine de la tableau de service parente
+                    affectation,
+                    templateData.typeSemaine as TypeSemaineTrameValue, // typeSemaine de la trameModele parente
                     availableFullActivityTypes // Passer les types d'activité disponibles
                 );
 
                 if (!affectationDto) {
-                    console.warn(`[Modèle Service] Impossible de mapper l'garde/vacation (jour: ${garde/vacation.jour}, type: ${garde/vacation.type}), elle sera ignorée.`);
+                    console.warn(`[Modèle Service] Impossible de mapper l'affectation (jour: ${affectation.jour}, type: ${affectation.type}), elle sera ignorée.`);
                     continue;
                 }
 
@@ -437,8 +437,8 @@ export const templateService = {
 
                 if (!createResponse.ok) {
                     const errBody = await createResponse.json().catch(() => ({}));
-                    console.error(`Échec de la création de l'garde/vacation pour type '${garde/vacation.type}': ${createResponse.status}`, errBody);
-                    // Lancer une erreur ici pourrait être trop strict si une seule garde/vacation échoue
+                    console.error(`Échec de la création de l'affectation pour type '${affectation.type}': ${createResponse.status}`, errBody);
+                    // Lancer une erreur ici pourrait être trop strict si une seule affectation échoue
                     // Pourrait collecter les erreurs et les retourner
                     continue;
                 }
@@ -447,14 +447,14 @@ export const templateService = {
                 createdAffectations.push(createdAffectation);
             }
 
-            console.log(`[Modèle Service] ${createdAffectations.length} nouvelles gardes/vacations créées pour la tableau de service ${trameModeleId}.`);
+            console.log(`[Modèle Service] ${createdAffectations.length} nouvelles gardes/vacations créées pour la trameModele ${trameModeleId}.`);
 
             // Log pour débugage des gardes/vacations et postes
             console.log(`[Modèle Service DEBUG] Gardes/Vacations sauvegardées:`, createdAffectations.length);
-            console.log(`[Modèle Service DEBUG] Exemple première garde/vacation si existe:`,
-                createdAffectations.length > 0 ? JSON.stringify(createdAffectations[0], null, 2) : 'aucune garde/vacation');
+            console.log(`[Modèle Service DEBUG] Exemple première affectation si existe:`,
+                createdAffectations.length > 0 ? JSON.stringify(createdAffectations[0], null, 2) : 'aucune affectation');
 
-            // Créer un mappage entre les anciens IDs d'garde/vacation (frontendAffectationId) et les nouveaux IDs
+            // Créer un mappage entre les anciens IDs d'affectation (frontendAffectationId) et les nouveaux IDs
             const affectationIdMapping: Record<string, string> = {};
             createdAffectations.forEach(aff => {
                 const frontendId = aff.detailsJson?.frontendAffectationId;
@@ -463,7 +463,7 @@ export const templateService = {
                 }
             });
 
-            console.log(`[Modèle Service] Mappage des IDs d'garde/vacation créé:`, affectationIdMapping);
+            console.log(`[Modèle Service] Mappage des IDs d'affectation créé:`, affectationIdMapping);
 
             // Si des variations existent, mettre à jour leurs références d'affectationId
             if (templateData.variations && templateData.variations.length > 0 && Object.keys(affectationIdMapping).length > 0) {
@@ -471,7 +471,7 @@ export const templateService = {
 
                 // Créer un nouvel objet detailsJson avec les variations mises à jour
                 const updatedVariations = templateData.variations.map(v => {
-                    // Si l'ancien ID d'garde/vacation a été mappé à un nouvel ID, utiliser ce dernier
+                    // Si l'ancien ID d'affectation a été mappé à un nouvel ID, utiliser ce dernier
                     const newAffectationId = affectationIdMapping[v.affectationId] || v.affectationId;
                     return {
                         ...v,
@@ -479,7 +479,7 @@ export const templateService = {
                     };
                 });
 
-                // Récupérer d'abord la tableau de service complète pour obtenir le detailsJson actuel
+                // Récupérer d'abord la trameModele complète pour obtenir le detailsJson actuel
                 const trameResponse = await fetch(`${API_BASE_URL}/${trameModeleId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -487,7 +487,7 @@ export const templateService = {
                 });
 
                 if (!trameResponse.ok) {
-                    console.error(`[Modèle Service] Erreur lors de la récupération de la tableau de service pour mise à jour des variations:`, await trameResponse.text());
+                    console.error(`[Modèle Service] Erreur lors de la récupération de la trameModele pour mise à jour des variations:`, await trameResponse.text());
                 } else {
                     const trameData = await trameResponse.json();
                     // Préserver les autres données dans detailsJson tout en mettant à jour frontendVariations
@@ -517,14 +517,14 @@ export const templateService = {
             }
 
         } catch (error) {
-            console.error(`[Modèle Service] Erreur lors de la gestion des gardes/vacations pour la tableau de service ${trameModeleId}:`, error);
-            // Que faire ici? La tableau de service a été sauvegardée, mais les gardes/vacations ont échoué.
-            // Peut-être retourner la tableau de service avec un avertissement ou relancer une erreur spécifique.
-            throw new Error(`Erreur lors de la sauvegarde des gardes/vacations : ${error instanceof Error ? error.message : String(error)}`);
+            console.error(`[Modèle Service] Erreur lors de la gestion des gardes/vacations pour la trameModele ${trameModeleId}:`, error);
+            // Que faire ici? La trameModele a été sauvegardée, mais les gardes/vacations ont échoué.
+            // Peut-être retourner la trameModele avec un avertissement ou relancer une erreur spécifique.
+            throw new Error(`Erreur lors de la sauvegarde des affectations: ${error instanceof Error ? error.message : String(error)}`);
         }
 
         // --- Étape 3: Sauvegarder les variations (extensions des gardes/vacations) ---
-        console.log(`[Modèle Service] ${templateData.variations?.length || 0} variations incluses dans le payload initial de la tableau de service ${trameModeleId}.`);
+        console.log(`[Modèle Service] ${templateData.variations?.length || 0} variations incluses dans le payload initial de la trameModele ${trameModeleId}.`);
 
         // Note: Les variations sont maintenant sauvegardées dans le detailsJson dès la création/mise à jour initiale
         // Nous n'avons donc pas besoin de faire une mise à jour séparée ici.
@@ -532,26 +532,26 @@ export const templateService = {
         // Si pour une raison quelconque les variations n'ont pas été correctement sauvegardées,
         // nous pourrions ajouter un mécanisme de vérification et correction ici.
 
-        // Pour une meilleure UX, on recharge la tableau de service complète après toutes les opérations.
-        console.log(`[Modèle Service DEBUG] Chargement de la tableau de service complète après sauvegarde...`);
+        // Pour une meilleure UX, on recharge la trameModele complète après toutes les opérations.
+        console.log(`[Modèle Service DEBUG] Chargement de la trameModele complète après sauvegarde...`);
         const finalTrame = await this.getTemplateById(trameModeleId as string);
 
         if (!finalTrame) {
             // Cela ne devrait pas arriver si tout s'est bien passé.
-            console.error(`[Modèle Service] CRITICAL: La tableau de service ${trameModeleId} sauvegardée n'a pas pu être récupérée après la gestion des gardes/vacations.`);
+            console.error(`[Modèle Service] CRITICAL: La trameModele ${trameModeleId} sauvegardée n'a pas pu être récupérée après la gestion des gardes/vacations.`);
             // Retourner au moins ce qui a été sauvegardé au niveau des métadonnées, avec les gardes/vacations locales pour éviter un crash total
             const fallbackTrame = mapTrameModeleDtoToPlanningTemplate(savedOrUpdatedTrameModeleDto);
-            fallbackTrame.gardes/vacations = templateData.gardes/vacations; // Garder les gardes/vacations du frontend en dernier recours
+            fallbackTrame.affectations = templateData.affectations; // Garder les gardes/vacations du frontend en dernier recours
             return fallbackTrame;
         }
 
-        console.log(`[Modèle Service DEBUG] Tableau de service chargée avec ${finalTrame.gardes/vacations.length || 0} gardes/vacations.`);
-        console.log(`[Modèle Service DEBUG] Exemple première garde/vacation si existe:`, finalTrame.gardes/vacations.length ? JSON.stringify(finalTrame.gardes/vacations[0], null, 2) : 'aucune garde/vacation');
+        console.log(`[Modèle Service DEBUG] Tableau de service chargée avec ${finalTrame.affectations.length || 0} gardes/vacations.`);
+        console.log(`[Modèle Service DEBUG] Exemple première affectation si existe:`, finalTrame.affectations.length ? JSON.stringify(finalTrame.affectations[0], null, 2) : 'aucune affectation');
         return finalTrame;
     },
 
     async deleteTemplate(id: string): Promise<void> {
-        console.log(`[Modèle Service] Appel de deleteTemplate pour ID: ${id} via API /api/tableau de service-modeles...`);
+        console.log(`[Modèle Service] Appel de deleteTemplate pour ID: ${id} via API /api/trameModele-modeles...`);
         try {
             const token = await getClientAuthToken();
             const response = await fetch(`${API_BASE_URL}/${id}`, {
@@ -563,7 +563,7 @@ export const templateService = {
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: response.statusText }));
                 console.error("[Modèle Service] Erreur API lors de deleteTemplate:", response.status, errorData);
-                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de supprimer la tableau de service'}`);
+                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de supprimer la trameModele'}`);
             }
             // Pas de contenu à retourner pour un DELETE réussi (200 ou 204)
         } catch (error) {
@@ -573,7 +573,7 @@ export const templateService = {
                 throw error;
             } else {
                 console.error("Une erreur inconnue est survenue dans deleteTemplate.");
-                throw new Error("Une erreur inconnue est survenue lors de la suppression de la tableau de service.");
+                throw new Error("Une erreur inconnue est survenue lors de la suppression de la trameModele.");
             }
         }
     },
@@ -593,7 +593,7 @@ export const templateService = {
             ...originalTemplate,
             id: 'new',
             nom: `${originalTemplate.nom} (copie)`,
-            gardes/vacations: [],
+            affectations: [],
             variations: [],
         };
         delete duplicatedMetaData.createdAt;
@@ -601,7 +601,7 @@ export const templateService = {
 
         const trameAvecAffectationsDupliquees: PlanningTemplate = {
             ...duplicatedMetaData,
-            gardes/vacations: (originalTemplate.gardes/vacations || []).map(aff => ({ ...aff, id: `temp_dup_${Date.now()}_${Math.random()}` })),
+            affectations: (originalTemplate.affectations || []).map(aff => ({ ...aff, id: `temp_dup_${Date.now()}_${Math.random()}` })),
             variations: (originalTemplate.variations || []).map(v => ({ ...v, id: `temp_var_dup_${Date.now()}_${Math.random()}` })),
         };
 
@@ -643,7 +643,7 @@ export const templateService = {
                 return [];
             } else {
                 console.error("Une erreur inconnue est survenue dans getAvailableAffectationTypes.");
-                throw new Error("Une erreur inconnue est survenue lors de la récupération des types d'garde/vacation disponibles.");
+                throw new Error("Une erreur inconnue est survenue lors de la récupération des types d'affectation disponibles.");
             }
         }
     },
@@ -662,34 +662,34 @@ export const templateService = {
 };
 
 /**
- * Mapper une garde/vacation modèle côté client (TemplateAffectation) vers le format API
- * @param garde/vacation - L'garde/vacation à mapper
- * @param trameTypeSemaine - Le type de semaine de la tableau de service parente (TOUTES, PAIRES, IMPAIRES)
+ * Mapper une affectation modèle côté client (TemplateAffectation) vers le format API
+ * @param affectation - L'affectation à mapper
+ * @param trameTypeSemaine - Le type de semaine de la trameModele parente (TOUTES, PAIRES, IMPAIRES)
  * @returns L'objet DTO prêt à être envoyé à l'API
  */
 const mapTemplateAffectationToApiDto = (
-    garde/vacation: TemplateAffectation,
+    affectation: TemplateAffectation,
     trameTypeSemaine: TypeSemaineTrameValue,
     availableActivityTypes: FullActivityType[]
 ): AffectationModeleCreateDto | null => {
-    const activityType = availableActivityTypes.find((at: FullActivityType) => at.code === garde/vacation.type);
+    const activityType = availableActivityTypes.find((at: FullActivityType) => at.code === affectation.type);
     if (!activityType) {
-        console.error(`[Modèle Service] mapTemplateAffectationToApiDto: ActivityType avec le code '${garde/vacation.type}' non trouvé.`);
+        console.error(`[Modèle Service] mapTemplateAffectationToApiDto: ActivityType avec le code '${affectation.type}' non trouvé.`);
         return null;
     }
 
-    const mappedJourSemaine = dayOfWeekMapping[garde/vacation.jour.toUpperCase() as keyof typeof dayOfWeekMapping];
+    const mappedJourSemaine = dayOfWeekMapping[affectation.jour.toUpperCase() as keyof typeof dayOfWeekMapping];
     if (!mappedJourSemaine) {
-        console.error(`[Modèle Service] mapTemplateAffectationToApiDto: Jour de la semaine invalide ou non mappé: '${garde/vacation.jour}'`);
+        console.error(`[Modèle Service] mapTemplateAffectationToApiDto: Jour de la semaine invalide ou non mappé: '${affectation.jour}'`);
         return null;
     }
 
     // Calculer le nombre total de postes requis
-    const totalPostesRequis = garde/vacation.configuration?.postes
+    const totalPostesRequis = affectation.configuration?.postes
         ?.filter(p => p.quantite > 0 && p.status !== 'INDISPONIBLE')
         .reduce((total, poste) => total + poste.quantite, 0) || 0;
 
-    const nombrePostesRequis = (totalPostesRequis > 0) ? totalPostesRequis : (garde/vacation.ouvert ? garde/vacation.postesRequis : 0);
+    const nombrePostesRequis = (totalPostesRequis > 0) ? totalPostesRequis : (affectation.ouvert ? affectation.postesRequis : 0);
 
     // Simple array of personnelRequis objects (not nested with 'create')
     let personnelRequis: Array<{
@@ -700,9 +700,9 @@ const mapTemplateAffectationToApiDto = (
 
     if (nombrePostesRequis > 0) {
         personnelRequis = [{
-            roleGenerique: garde/vacation.type || "Poste par défaut",
+            roleGenerique: affectation.type || "Poste par défaut",
             nombreRequis: nombrePostesRequis,
-            notes: `Postes créés automatiquement pour l'garde/vacation de type ${garde/vacation.type}`
+            notes: `Postes créés automatiquement pour l'affectation de type ${affectation.type}`
         }];
     }
 
@@ -710,10 +710,10 @@ const mapTemplateAffectationToApiDto = (
     console.log(`[Modèle Service DEBUG] Nombre total de postes requis calculé: ${nombrePostesRequis}`);
 
     let periode: PeriodValue = 'JOURNEE_ENTIERE'; // Valeur par défaut
-    if (garde/vacation.configuration?.heureDebut && garde/vacation.configuration?.heureFin) {
+    if (affectation.configuration?.heureDebut && affectation.configuration?.heureFin) {
         // Logique simple pour déduire MATIN/APRES_MIDI (à affiner)
-        const debut = parseInt(garde/vacation.configuration.heureDebut.split(':')[0]);
-        // const fin = parseInt(garde/vacation.configuration.heureFin.split(':')[0]);
+        const debut = parseInt(affectation.configuration.heureDebut.split(':')[0]);
+        // const fin = parseInt(affectation.configuration.heureFin.split(':')[0]);
         if (debut < 12) {
             periode = 'MATIN'; // Simple supposition, pourrait être JOURNEE_ENTIERE si ça finit tard
         } else {
@@ -722,8 +722,8 @@ const mapTemplateAffectationToApiDto = (
         // Pour une logique plus robuste, il faudrait des heures de coupure claires (ex: avant 12h = MATIN, après 14h = APM)
         // Et gérer le cas où ça couvre toute la journée.
     }
-    // Si une garde/vacation est de type 'GARDE_JOUR' ou 'GARDE_NUIT', la période est implicitement 'JOURNEE_ENTIERE' (ou NUIT)
-    if (garde/vacation.type === 'GARDE_JOUR' || garde/vacation.type === 'GARDE_NUIT') {
+    // Si une affectation est de type 'GARDE_JOUR' ou 'GARDE_NUIT', la période est implicitement 'JOURNEE_ENTIERE' (ou NUIT)
+    if (affectation.type === 'GARDE_JOUR' || affectation.type === 'GARDE_NUIT') {
         periode = 'JOURNEE_ENTIERE';
     }
 
@@ -732,28 +732,28 @@ const mapTemplateAffectationToApiDto = (
         jourSemaine: mappedJourSemaine,
         periode: periode, // Utiliser la période déterminée
         typeSemaine: trameTypeSemaine,
-        operatingRoomId: garde/vacation.configuration?.emplacementPhysique ? parseInt(garde/vacation.configuration.emplacementPhysique, 10) : undefined, // Supposant que salleId est dans emplacementPhysique
-        priorite: garde/vacation.ordre !== undefined ? garde/vacation.ordre : 5,
-        isActive: garde/vacation.ouvert !== undefined ? garde/vacation.ouvert : true,
+        operatingRoomId: affectation.configuration?.emplacementPhysique ? parseInt(affectation.configuration.emplacementPhysique, 10) : undefined, // Supposant que salleId est dans emplacementPhysique
+        priorite: affectation.ordre !== undefined ? affectation.ordre : 5,
+        isActive: affectation.ouvert !== undefined ? affectation.ouvert : true,
         detailsJson: {
-            frontendAffectationId: garde/vacation.id,
-            frontendConfigId: garde/vacation.configuration?.id,
-            frontendConfigNom: garde/vacation.configuration?.nom,
-            heureDebut: garde/vacation.configuration?.heureDebut,
-            heureFin: garde/vacation.configuration?.heureFin,
+            frontendAffectationId: affectation.id,
+            frontendConfigId: affectation.configuration?.id,
+            frontendConfigNom: affectation.configuration?.nom,
+            heureDebut: affectation.configuration?.heureDebut,
+            heureFin: affectation.configuration?.heureFin,
             // Sauvegarder les postes complets dans detailsJson pour restauration
-            frontendPostes: garde/vacation.configuration?.postes,
-            frontendPostesRequis: garde/vacation.postesRequis,
+            frontendPostes: affectation.configuration?.postes,
+            frontendPostesRequis: affectation.postesRequis,
             // Sauvegarder les autres détails de la configuration
-            notes: garde/vacation.configuration?.notes,
-            emplacementPhysique: garde/vacation.configuration?.emplacementPhysique,
-            equipementsRequis: garde/vacation.configuration?.equipementsRequis,
-            dureePreparation: garde/vacation.configuration?.dureePreparation,
-            dureeNettoyage: garde/vacation.configuration?.dureeNettoyage,
-            parametres: garde/vacation.configuration?.parametres,
-            priorite: garde/vacation.configuration?.priorite,
-            couleur: garde/vacation.configuration?.couleur,
-            contraintes: garde/vacation.configuration?.contraintes
+            notes: affectation.configuration?.notes,
+            emplacementPhysique: affectation.configuration?.emplacementPhysique,
+            equipementsRequis: affectation.configuration?.equipementsRequis,
+            dureePreparation: affectation.configuration?.dureePreparation,
+            dureeNettoyage: affectation.configuration?.dureeNettoyage,
+            parametres: affectation.configuration?.parametres,
+            priorite: affectation.configuration?.priorite,
+            couleur: affectation.configuration?.couleur,
+            contraintes: affectation.configuration?.contraintes
         },
         // L'API attend directement un tableau de personnel requis
         personnelRequis: personnelRequis.length > 0 ? personnelRequis : undefined,
@@ -770,7 +770,7 @@ const mapVariationToApiDto = (
     variation: ConfigurationVariation,
     trameId: string
 ): any => {
-    // Pour l'instant, nous allons stocker la variation comme une extension de l'garde/vacation
+    // Pour l'instant, nous allons stocker la variation comme une extension de l'affectation
     // via son champ detailsJson
     return {
         affectationId: variation.affectationId,

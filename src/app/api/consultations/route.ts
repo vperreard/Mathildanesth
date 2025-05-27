@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { PrismaClient, Period } from '@prisma/client';
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
+import { prisma } from "@/lib/prisma";
 
 // Schéma de validation pour les paramètres de requête GET
 const getQuerySchema = z.object({

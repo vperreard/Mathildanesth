@@ -4,10 +4,6 @@ import { prisma } from '@/lib/prisma';
 import { RuleEvaluationContext } from '@/modules/rules/types/rule';
 import { Attribution as AppAssignment } from '@/types/attribution'; // Renommer pour clarté
 
-jest.mock('@/lib/prisma');
-
-
-const prisma = prisma;
 const ruleEngine = new RuleEngine();
 
 // Type interne pour la validation, s'assurer qu'il a les champs nécessaires
@@ -29,7 +25,7 @@ export async function POST(request: NextRequest) {
 
         const validAssignments = assignmentsToValidate.filter(a => a.date && a.userId);
         if (validAssignments.length === 0) {
-            return NextResponse.json({ error: 'Aucune garde/vacation valide à traiter.' }, { status: 400 });
+            return NextResponse.json({ error: 'Aucune affectation valide à traiter.' }, { status: 400 });
         }
 
         const startDate = validAssignments.reduce((min, a) => (new Date(a.date) < min ? new Date(a.date) : min), new Date());
@@ -43,7 +39,7 @@ export async function POST(request: NextRequest) {
         const rooms = await prisma.operatingRoom.findMany({ where: { id: { in: roomIds } } });
 
         const context: RuleEvaluationContext = {
-            attributions: validAssignments, // Utiliser les gardes/vacations filtrées
+            attributions: validAssignments, // Utiliser les affectations filtrées
             startDate: startDate,
             endDate: endDate,
             medecins: users.map(u => ({
@@ -69,9 +65,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(validationResult);
 
     } catch (error: any) {
-        console.error('Erreur API [POST /api/gardes/vacations/validate]:', error);
+        console.error('Erreur API [POST /api/affectations/validate]:', error);
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la validation des gardes/vacations.', details: error.message },
+            { error: 'Erreur serveur lors de la validation des affectations.', details: error.message },
             { status: 500 }
         );
     }

@@ -83,7 +83,7 @@ export default function PlanningValidationPage() {
 
         const { draggableId, source, destination } = result;
         
-        // Mettre à jour l'garde/vacation
+        // Mettre à jour l'affectation
         const updatedAssignments = [...attributions];
         const assignmentIndex = updatedAssignments.findIndex(a => a.id === draggableId);
         
@@ -366,7 +366,7 @@ export default function PlanningValidationPage() {
                         <CardHeader>
                             <CardTitle>Vue Liste</CardTitle>
                             <CardDescription>
-                                Gardes/Vacations par utilisateur avec possibilité de modification
+                                Affectations par utilisateur avec possibilité de modification
                             </CardDescription>
                         </CardHeader>
                         <CardContent>

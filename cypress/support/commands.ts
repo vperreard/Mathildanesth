@@ -124,9 +124,9 @@ declare global {
 // Commande pour se connecter via l'interface utilisateur
 Cypress.Commands.add('login', (email: string, password: string) => {
     cy.visit('/auth/connexion');
-    cy.get('[data-testid=login-email-input]').type(email);
-    cy.get('[data-testid=login-password-input]').type(password);
-    cy.get('[data-testid=login-submit-button]').click();
+    cy.get('[data-cy=email-input]').type(email);
+    cy.get('[data-cy=password-input]').type(password);
+    cy.get('[data-cy=submit-button]').click();
 
     // Vérification d'authentification réussie
     cy.url().should('not.include', '/auth/connexion');

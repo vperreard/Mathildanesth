@@ -5,9 +5,6 @@ import { ConflictDetector } from '@/modules/dynamicRules/v2/services/ConflictDet
 import { RuleV2 } from '@/modules/dynamicRules/v2/types/ruleV2.types';
 import { z } from 'zod';
 
-jest.mock('@/lib/prisma');
-
-
 const conflictCheckSchema = z.object({
   rule: z.object({
     id: z.string().optional(),

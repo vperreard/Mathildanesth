@@ -6,9 +6,6 @@ import { headers } from 'next/headers';
 import { v4 as uuidv4 } from 'uuid';
 import { TrameAffectation, TramePeriod, TrameAssignment, TramePost } from '@prisma/client';
 
-jest.mock('@/lib/prisma');
-
-
 // Interface type pour le corps de la requête PUT, reflétant la structure imbriquée attendue.
 // Ceci est une supposition, à ajuster en fonction de ce que le client envoie réellement.
 interface TramePutRequestBody {
@@ -53,7 +50,7 @@ async function parseRequestBody(request: NextRequest) {
     }
 }
 
-// GET /api/tableaux de service/[id] - Récupérer une tableau de service spécifique
+// GET /api/trameModeles/[id] - Récupérer une trameModele spécifique
 export async function GET(
     request: NextRequest,
     { params }: { params: { id: string } }
@@ -68,10 +65,10 @@ export async function GET(
             if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
                 return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
             }
-            console.log(`[DEV MODE] Authentification par en-tête uniquement pour GET /api/tableaux de service/${id}`);
+            console.log(`[DEV MODE] Authentification par en-tête uniquement pour GET /api/trameModeles/${id}`);
         }
 
-        const tableau de service = await prisma.trameAffectation.findUnique({
+        const trameModele = await prisma.trameAffectation.findUnique({
             where: { id },
             include: {
                 periods: {
@@ -92,21 +89,21 @@ export async function GET(
             }
         });
 
-        if (!tableau de service) {
-            return NextResponse.json({ error: 'Tableau de service non trouvée' }, { status: 404 });
+        if (!trameModele) {
+            return NextResponse.json({ error: 'TrameModele non trouvée' }, { status: 404 });
         }
-        return NextResponse.json(tableau de service);
+        return NextResponse.json(trameModele);
 
     } catch (error) {
-        console.error(`Erreur lors de la récupération de la tableau de service ${id}:`, error);
+        console.error(`Erreur lors de la récupération de la trameModele ${id}:`, error);
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la récupération de la tableau de service' },
+            { error: 'Erreur serveur lors de la récupération de la trameModele' },
             { status: 500 }
         );
     }
 }
 
-// PUT /api/tableaux de service/[id] - Mettre à jour une tableau de service spécifique
+// PUT /api/trameModeles/[id] - Mettre à jour une trameModele spécifique
 export async function PUT(
     request: NextRequest,
     { params }: { params: { id: string } }
@@ -120,7 +117,7 @@ export async function PUT(
             if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
                 return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
             }
-            console.log(`[DEV MODE] Authentification par en-tête pour PUT /api/tableaux de service/${trameIdToUpdate}`);
+            console.log(`[DEV MODE] Authentification par en-tête pour PUT /api/trameModeles/${trameIdToUpdate}`);
         }
 
         const body = await parseRequestBody(request) as TramePutRequestBody | null;
@@ -128,7 +125,7 @@ export async function PUT(
             return NextResponse.json({ error: 'Corps de la requête invalide ou vide' }, { status: 400 });
         }
 
-        console.log(`[API PUT /api/tableaux de service/${trameIdToUpdate}] Body reçu:`, JSON.stringify(body, null, 2));
+        console.log(`[API PUT /api/trameModeles/${trameIdToUpdate}] Body reçu:`, JSON.stringify(body, null, 2));
 
         const updatedTrame = await prisma.$transaction(async (tx) => {
             // Exclure les champs non modifiables directement et le champ version qui n'existe pas
@@ -140,13 +137,13 @@ export async function PUT(
             if (body.startDate !== undefined) trameUpdateData.startDate = new Date(body.startDate);
             if (body.endDate !== undefined) trameUpdateData.endDate = body.endDate ? new Date(body.endDate) : null;
 
-            // 1. Mettre à jour les champs de base de la tableau de service
+            // 1. Mettre à jour les champs de base de la trameModele
             await tx.trameAffectation.update({
                 where: { id: trameIdToUpdate },
                 data: trameUpdateData,
             });
 
-            // Récupérer la tableau de service actuelle avec toutes ses relations
+            // Récupérer la trameModele actuelle avec toutes ses relations
             const existingTrameWithRelations = await tx.trameAffectation.findUnique({
                 where: { id: trameIdToUpdate },
                 include: {
@@ -155,7 +152,7 @@ export async function PUT(
             });
 
             if (!existingTrameWithRelations) {
-                throw new Error('Tableau de service non trouvée après la mise à jour initiale.');
+                throw new Error('TrameModele non trouvée après la mise à jour initiale.');
             }
 
             // 2. Gérer les périodes
@@ -342,7 +339,7 @@ export async function PUT(
                 }
             }
 
-            // Retourner la tableau de service mise à jour avec toutes ses relations
+            // Retourner la trameModele mise à jour avec toutes ses relations
             return tx.trameAffectation.findUnique({
                 where: { id: trameIdToUpdate },
                 include: {
@@ -353,29 +350,29 @@ export async function PUT(
         });
 
         if (!updatedTrame) {
-            return NextResponse.json({ error: 'Échec de la mise à jour de la tableau de service ou tableau de service non trouvée après transaction' }, { status: 404 });
+            return NextResponse.json({ error: 'Échec de la mise à jour de la trameModele ou trameModele non trouvée après transaction' }, { status: 404 });
         }
 
-        console.log(`[API PUT /api/tableaux de service/${trameIdToUpdate}] Mise à jour effectuée.`);
+        console.log(`[API PUT /api/trameModeles/${trameIdToUpdate}] Mise à jour effectuée.`);
         return NextResponse.json(updatedTrame);
 
     } catch (error: any) {
         if (error.code === 'P2025') {
-            return NextResponse.json({ error: `Tableau de service avec ID ${trameIdToUpdate} non trouvée.` }, { status: 404 });
+            return NextResponse.json({ error: `TrameModele avec ID ${trameIdToUpdate} non trouvée.` }, { status: 404 });
         }
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            console.error(`Erreur Prisma lors de la mise à jour de la tableau de service ${trameIdToUpdate}:`, error.message, error.code, error.meta);
+            console.error(`Erreur Prisma lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error.message, error.code, error.meta);
             return NextResponse.json({ error: 'Erreur base de données lors de la mise à jour.', details: error.message }, { status: 500 });
         }
-        console.error(`Erreur générique lors de la mise à jour de la tableau de service ${trameIdToUpdate}:`, error);
+        console.error(`Erreur générique lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error);
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la mise à jour de la tableau de service.', details: error.message || 'Erreur inconnue' },
+            { error: 'Erreur serveur lors de la mise à jour de la trameModele.', details: error.message || 'Erreur inconnue' },
             { status: 500 }
         );
     }
 }
 
-// DELETE /api/tableaux de service/[id] - Supprimer une tableau de service spécifique
+// DELETE /api/trameModeles/[id] - Supprimer une trameModele spécifique
 export async function DELETE(
     request: NextRequest,
     { params }: { params: { id: string } }
@@ -389,27 +386,27 @@ export async function DELETE(
             if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
                 return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
             }
-            console.log(`[DEV MODE] Authentification par en-tête uniquement pour DELETE /api/tableaux de service/${id}`);
+            console.log(`[DEV MODE] Authentification par en-tête uniquement pour DELETE /api/trameModeles/${id}`);
         }
 
         const existingTrame = await prisma.trameAffectation.findUnique({ where: { id } });
         if (!existingTrame) {
-            return NextResponse.json({ error: 'Tableau de service non trouvée pour la suppression' }, { status: 404 });
+            return NextResponse.json({ error: 'TrameModele non trouvée pour la suppression' }, { status: 404 });
         }
 
         await prisma.trameAffectation.delete({
             where: { id },
         });
 
-        return NextResponse.json({ message: 'Tableau de service supprimée avec succès' }, { status: 200 });
+        return NextResponse.json({ message: 'TrameModele supprimée avec succès' }, { status: 200 });
 
     } catch (error: any) {
         if (error.code === 'P2025') {
-            return NextResponse.json({ error: 'Tableau de service non trouvée pour la suppression' }, { status: 404 });
+            return NextResponse.json({ error: 'TrameModele non trouvée pour la suppression' }, { status: 404 });
         }
-        console.error(`Erreur lors de la suppression de la tableau de service ${id}:`, error);
+        console.error(`Erreur lors de la suppression de la trameModele ${id}:`, error);
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la suppression de la tableau de service' },
+            { error: 'Erreur serveur lors de la suppression de la trameModele' },
             { status: 500 }
         );
     }

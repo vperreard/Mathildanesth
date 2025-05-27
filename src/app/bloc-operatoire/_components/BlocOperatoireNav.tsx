@@ -41,8 +41,8 @@ const navigation = [
     requiredRole: 'ADMIN'
   },
   { 
-    name: 'Tableaux de service', 
-    href: '/bloc-operatoire/tableaux de service', 
+    name: 'TrameModeles', 
+    href: '/bloc-operatoire/trameModeles', 
     icon: Grid3X3,
     requiresAuth: false 
   },

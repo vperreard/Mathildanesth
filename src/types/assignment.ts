@@ -3,7 +3,7 @@
 import { RuleSeverity } from './rules';
 import { ShiftType } from './common';
 
-// Type d'garde/vacation
+// Type d'affectation
 export enum AssignmentType {
     GARDE = 'GARDE',
     ASTREINTE = 'ASTREINTE',
@@ -12,10 +12,10 @@ export enum AssignmentType {
 }
 
 /**
- * Représente une garde/vacation de garde pour un médecin
+ * Représente une affectation de garde pour un médecin
  */
 export interface Attribution {
-    /** Identifiant unique de l'garde/vacation */
+    /** Identifiant unique de l'affectation */
     id: string;
     /** ID du médecin assigné */
     userId: string;
@@ -25,26 +25,26 @@ export interface Attribution {
     startDate: Date;
     /** Date de fin de la garde */
     endDate: Date;
-    /** État de l'garde/vacation */
+    /** État de l'affectation */
     status: AssignmentStatus;
-    /** Date de création de l'garde/vacation */
+    /** Date de création de l'affectation */
     createdAt: Date;
-    /** Date de dernière mise à jour de l'garde/vacation */
+    /** Date de dernière mise à jour de l'affectation */
     updatedAt: Date;
     /** Commentaires supplémentaires */
     notes?: string;
-    /** ID de l'utilisateur qui a validé l'garde/vacation */
+    /** ID de l'utilisateur qui a validé l'affectation */
     validatedBy?: string;
-    /** Date de validation de l'garde/vacation */
+    /** Date de validation de l'affectation */
     validatedAt?: Date;
-    /** Raison de rejet de l'garde/vacation */
+    /** Raison de rejet de l'affectation */
     rejectionReason?: string;
-    /** Raison de annulation de l'garde/vacation */
+    /** Raison de annulation de l'affectation */
     cancellationReason?: string;
 }
 
 /**
- * États possibles d'une garde/vacation
+ * États possibles d'une affectation
  */
 export enum AssignmentStatus {
     PENDING = 'PENDING',
@@ -54,9 +54,9 @@ export enum AssignmentStatus {
 }
 
 /**
- * Représente un planning complet d'gardes/vacations
+ * Représente un planning complet d'affectations
  */
-export interface Planning médical {
+export interface PlanningMedical {
     /** Identifiant unique du planning */
     id: string;
     /** Période couverte par le planning */
@@ -66,7 +66,7 @@ export interface Planning médical {
         /** Date de fin */
         endDate: Date;
     };
-    /** Liste des gardes/vacations */
+    /** Liste des affectations */
     attributions: Attribution[];
     /** Version du planning */
     version: number;
@@ -82,7 +82,7 @@ export interface RuleViolation {
     type: string;
     severity: RuleSeverity;
     message: string;
-    affectedAssignments: string[]; // IDs des gardes/vacations concernées
+    affectedAssignments: string[]; // IDs des affectations concernées
     resolutionOptions?: ResolutionOption[];
 }
 

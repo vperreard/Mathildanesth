@@ -2,7 +2,6 @@
 
 describe('Simulateur de Planning', () => {
     beforeEach(() => {
-    jest.clearAllMocks();
         cy.login('admin@mathildanesth.fr', 'AdminSecure123!');
         cy.visit('/admin/simulations');
     });
@@ -27,7 +26,6 @@ describe('Simulateur de Planning', () => {
 
     describe('Création de simulation', () => {
         beforeEach(() => {
-    jest.clearAllMocks();
             cy.get('[data-testid="create-simulation-btn"]').click();
         });
 
@@ -170,7 +168,6 @@ describe('Simulateur de Planning', () => {
 
     describe('Templates de simulation', () => {
         beforeEach(() => {
-    jest.clearAllMocks();
             cy.get('[data-testid="templates-tab"]').click();
         });
 

@@ -8,9 +8,6 @@ import {
 } from '@/lib/auth/authorization';
 import { auditService } from '@/services/auditService';
 
-jest.mock('@/lib/prisma');
-
-
 /**
  * GET /api/admin/leave-types
  * Récupère la liste de tous les paramètres de types de congés.

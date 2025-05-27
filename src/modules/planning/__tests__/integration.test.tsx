@@ -173,7 +173,7 @@ describe('Intégration Planning', () => {
     const endDate = new Date('2024-03-07');
     const mockOnSave = jest.fn();
 
-    // Créer un mock des assignations respectant les règles d'garde/vacation
+    // Créer un mock des assignations respectant les règles d'affectation
     const generateMockAssignments = (): Attribution[] => {
         const attributions: Attribution[] = [];
         let currentDate = new Date(startDate);
@@ -192,7 +192,7 @@ describe('Intégration Planning', () => {
             const userId = mockUsers[userIndex % mockUsers.length].id;
             userIndex++;
 
-            // Garde/Vacation de la garde principale (un seul médecin de garde par jour)
+            // Affectation de la garde principale (un seul médecin de garde par jour)
             if (isWeekend) {
                 // Garde de weekend
                 attributions.push({
@@ -348,7 +348,7 @@ describe('Intégration Planning', () => {
             expect(toast.success).toHaveBeenCalledWith('Planning généré avec succès');
         });
 
-        // 5. Vérifier que les règles d'garde/vacation sont respectées
+        // 5. Vérifier que les règles d'affectation sont respectées
         const gardeAssignments = attributions.filter(a =>
             a.shiftType === ShiftType.GARDE_24H || a.shiftType === ShiftType.GARDE_WEEKEND
         );

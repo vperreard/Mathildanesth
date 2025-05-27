@@ -86,7 +86,7 @@ export default function OptimizedDraggableCalendar({
         if (attributions.length === 0) {
             violations.push({
                 type: 'error',
-                message: 'Aucune garde/vacation à sauvegarder',
+                message: 'Aucune affectation à sauvegarder',
                 assignmentIds: []
             });
         }
