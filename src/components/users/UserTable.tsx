@@ -4,8 +4,8 @@ import React, { useMemo } from 'react';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable, getSortedRowModel, getFilteredRowModel } from '@tanstack/react-table';
 import { User } from '@/types/user';
 import { Badge } from '@/components/ui/badge';
-import Button from '@/components/ui/button';
-import Input from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pencil, Trash, LockOpen, Search } from 'lucide-react';
 

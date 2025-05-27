@@ -1,8 +1,11 @@
 import { AssignmentSwapEventType, sendAssignmentSwapNotification } from '@/lib/assignment-notification-utils';
 import { PrismaClient, AssignmentSwapStatus } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+const prisma = prisma;
+
+jest.mock('@/lib/prisma');
 
 describe('Tests d\'intégration des échanges d\'affectations avec notifications', () => {
     // Configuration de test

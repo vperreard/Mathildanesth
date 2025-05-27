@@ -12,6 +12,77 @@ import {
 } from '@prisma/client';
 
 export class TestFactory {
+    static Leave = {
+        create: (overrides: any = {}) => ({
+            id: overrides.id || '1',
+            userId: overrides.userId || 1,
+            type: overrides.type || 'ANNUAL',
+            status: overrides.status || 'PENDING',
+            startDate: overrides.startDate || new Date('2024-06-01'),
+            endDate: overrides.endDate || new Date('2024-06-05'),
+            reason: overrides.reason || 'Congés annuels',
+            comment: overrides.comment || null,
+            approvedBy: overrides.approvedBy || null,
+            approvedAt: overrides.approvedAt || null,
+            rejectedBy: overrides.rejectedBy || null,
+            rejectedAt: overrides.rejectedAt || null,
+            createdAt: overrides.createdAt || new Date(),
+            updatedAt: overrides.updatedAt || new Date(),
+            ...overrides
+        }),
+        
+        createBatch: (count: number, userId?: number, overrides: any = {}) => {
+            return Array.from({ length: count }, (_, i) => 
+                TestFactory.Leave.create({
+                    id: `leave-${i + 1}`,
+                    userId: userId || i + 1,
+                    ...overrides
+                })
+            );
+        }
+    };
+
+    static User = {
+        create: (overrides: any = {}) => ({
+            id: overrides.id || 1,
+            email: overrides.email || 'test@example.com',
+            name: overrides.name || 'Test User',
+            role: overrides.role || 'USER',
+            status: overrides.status || 'ACTIF',
+            professionalRole: overrides.professionalRole || 'MAR',
+            password: overrides.password || 'hashedPassword',
+            createdAt: overrides.createdAt || new Date(),
+            updatedAt: overrides.updatedAt || new Date(),
+            ...overrides
+        }),
+        
+        createBatch: (count: number, overrides: any = {}) => {
+            return Array.from({ length: count }, (_, i) => 
+                TestFactory.User.create({
+                    id: i + 1,
+                    email: `user${i + 1}@example.com`,
+                    name: `User ${i + 1}`,
+                    ...overrides
+                })
+            );
+        }
+    };
+
+    static LeaveBalance = {
+        create: (overrides: any = {}) => ({
+            id: overrides.id || 1,
+            userId: overrides.userId || 1,
+            leaveType: overrides.leaveType || 'ANNUAL',
+            year: overrides.year || new Date().getFullYear(),
+            total: overrides.total || 30,
+            used: overrides.used || 0,
+            pending: overrides.pending || 0,
+            remaining: overrides.remaining || 30,
+            createdAt: overrides.createdAt || new Date(),
+            updatedAt: overrides.updatedAt || new Date(),
+            ...overrides
+        })
+    };
     static createSite(overrides: any = {}) {
         return {
             id: '1',

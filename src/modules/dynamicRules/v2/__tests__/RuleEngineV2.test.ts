@@ -12,10 +12,14 @@ jest.mock('@/lib/prisma', () => ({
   }
 }));
 
+jest.mock('@/lib/prisma');
+
 describe('RuleEngineV2', () => {
   let ruleEngine: RuleEngineV2;
 
   beforeEach(() => {
+    jest.clearAllMocks();
+    
     ruleEngine = RuleEngineV2.getInstance();
     jest.clearAllMocks();
     ruleEngine.clearCache();

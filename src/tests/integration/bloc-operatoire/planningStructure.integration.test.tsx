@@ -5,7 +5,7 @@ import { userEvent } from '@testing-library/user-event';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { BlocDayPlanning, OperatingRoom, BlocSector } from '@/types/bloc-planning-types';
-import { blocPlanningService } from '@/services/blocPlanningService';
+import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 import { MockBlocPlanning, MockBlocPlanningDay } from '@/tests/mocks/componentMocks';
 
 // Mocks pour les composants

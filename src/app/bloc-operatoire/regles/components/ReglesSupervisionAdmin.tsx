@@ -52,7 +52,7 @@ import {
 } from 'lucide-react';
 
 import { SupervisionRule, BlocSector } from '@/types/bloc-planning-types';
-import { blocPlanningService } from '@/services/blocPlanningService';
+import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 
 // Interface pour le formulaire de règle de supervision
 interface RegleFormData {

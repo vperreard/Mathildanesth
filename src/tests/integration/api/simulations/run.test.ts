@@ -12,7 +12,7 @@ import { AssignmentStatus } from '@/types/assignment';
 jest.mock('@/modules/dynamicRules/services/ruleEngineService');
 jest.mock('@/modules/rules/services/RuleBasedPlanningGeneratorService');
 
-const prisma = new PrismaClient();
+const prisma = prisma;
 
 const mockUserEmail = 'simrun.user@example.com';
 
@@ -79,6 +79,8 @@ const mockOptimizationResult: OptimizationResult = {
 };
 
 
+jest.mock('@/lib/prisma');
+
 describe('POST /api/simulations/{scenarioId}/run', () => {
     let testUser: User;
     let testScenario: SimulationScenario;
@@ -91,6 +93,8 @@ describe('POST /api/simulations/{scenarioId}/run', () => {
     });
 
     beforeEach(async () => {
+    jest.clearAllMocks();
+    
         await cleanDatabase();
         testUser = await createUserForTest();
 

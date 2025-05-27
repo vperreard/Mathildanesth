@@ -8,7 +8,7 @@ import {
     ConflictType,
     ConflictSeverity,
     LeaveConflict
-} from '@/modules/conges/types/conflict';
+} from '@/modules/leaves/types/conflict';
 
 export interface UseGlobalConflictDetectionProps {
     userId?: string;

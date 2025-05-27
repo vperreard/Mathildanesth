@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useOperatingRoomData } from '../useOperatingRoomData';
-import { blocPlanningService } from '@/services/blocPlanningService';
+import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 
 // Mock du service blocPlanningService
 jest.mock('@/services/blocPlanningService', () => ({

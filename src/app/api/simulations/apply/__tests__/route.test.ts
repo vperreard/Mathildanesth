@@ -25,8 +25,12 @@ const createMockRequest = (body: any) => {
     } as unknown as NextRequest;
 };
 
+jest.mock('@/lib/prisma');
+
 describe('API POST /api/simulations/apply', () => {
     beforeEach(() => {
+    jest.clearAllMocks();
+    
         jest.clearAllMocks();
     });
 

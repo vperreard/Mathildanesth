@@ -3,6 +3,7 @@ import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { Role } from '@prisma/client';
+import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
 export interface AuthContext {
     userId: number;
@@ -25,7 +26,8 @@ async function logUnauthorizedAccess(
     userId: number | null,
     path: string,
     reason: string,
-    ipAddress?: string
+    ipAddress?: string,
+    userAgent?: string
 ) {
     logger.warn('Unauthorized access attempt', {
         userId,
@@ -35,20 +37,16 @@ async function logUnauthorizedAccess(
         timestamp: new Date().toISOString()
     });
 
-    try {
-        await prisma.auditSecurityLog.create({
-            data: {
-                userId,
-                action: 'UNAUTHORIZED_ACCESS',
-                resource: path,
-                details: { reason, ipAddress },
-                severity: 'HIGH',
-                timestamp: new Date()
-            }
-        });
-    } catch (error) {
-        logger.error('Failed to log security event', error);
-    }
+    await auditService.logAccessDenied(
+        userId || undefined,
+        path,
+        {
+            reason,
+            ipAddress,
+            userAgent,
+            timestamp: new Date().toISOString()
+        }
+    );
 }
 
 /**
@@ -84,7 +82,13 @@ export function withAuth(config: SecurityConfig = {}) {
             : null;
 
         if (!token) {
-            await logUnauthorizedAccess(null, req.url, 'Missing token', ipAddress);
+            await logUnauthorizedAccess(
+                null, 
+                req.url, 
+                'Missing token', 
+                ipAddress,
+                req.headers.get('user-agent') || 'unknown'
+            );
             return NextResponse.json(
                 { error: 'Authentication required' },
                 { status: 401 }
@@ -94,7 +98,13 @@ export function withAuth(config: SecurityConfig = {}) {
         // Vérifier la validité du token
         const authResult = await verifyAuthToken(token);
         if (!authResult.authenticated) {
-            await logUnauthorizedAccess(null, req.url, 'Invalid token', ipAddress);
+            await logUnauthorizedAccess(
+                null, 
+                req.url, 
+                'Invalid token', 
+                ipAddress,
+                req.headers.get('user-agent') || 'unknown'
+            );
             return NextResponse.json(
                 { error: authResult.error || 'Invalid token' },
                 { status: 401 }
@@ -120,7 +130,8 @@ export function withAuth(config: SecurityConfig = {}) {
                 authResult.userId,
                 req.url,
                 'User not found or inactive',
-                ipAddress
+                ipAddress,
+                req.headers.get('user-agent') || 'unknown'
             );
             return NextResponse.json(
                 { error: 'User not found or inactive' },
@@ -140,7 +151,8 @@ export function withAuth(config: SecurityConfig = {}) {
                 user.id,
                 req.url,
                 `Role '${user.role}' not allowed. Required: ${allowedRoles.join(', ')}`,
-                ipAddress
+                ipAddress,
+                req.headers.get('user-agent') || 'unknown'
             );
             return NextResponse.json(
                 { error: 'Insufficient permissions' },
@@ -156,7 +168,8 @@ export function withAuth(config: SecurityConfig = {}) {
                     user.id,
                     req.url,
                     'Custom check failed',
-                    ipAddress
+                    ipAddress,
+                    req.headers.get('user-agent') || 'unknown'
                 );
                 return NextResponse.json(
                     { error: 'Access denied' },
@@ -167,23 +180,25 @@ export function withAuth(config: SecurityConfig = {}) {
 
         // Logger l'accès autorisé pour les actions sensibles
         if (resourceType && action) {
-            try {
-                await prisma.auditSecurityLog.create({
-                    data: {
-                        userId: user.id,
-                        action: `${action.toUpperCase()}_${resourceType.toUpperCase()}`,
-                        resource: req.url,
-                        details: {
+            // Log d'audit pour les actions sensibles uniquement
+            const sensitiveActions = ['create', 'update', 'delete', 'approve', 'reject'];
+            if (sensitiveActions.includes(action.toLowerCase())) {
+                await auditService.logAction({
+                    action: AuditAction.PERMISSION_GRANTED,
+                    entityId: req.url,
+                    entityType: resourceType,
+                    userId: user.id,
+                    details: {
+                        ipAddress,
+                        userAgent: req.headers.get('user-agent') || 'unknown',
+                        metadata: {
                             method: req.method,
+                            action,
                             params: context?.params,
-                            ipAddress
-                        },
-                        severity: 'INFO',
-                        timestamp: new Date()
+                            role: user.role
+                        }
                     }
                 });
-            } catch (error) {
-                logger.error('Failed to log authorized access', error);
             }
         }
 

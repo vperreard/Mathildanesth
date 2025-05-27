@@ -50,7 +50,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { blocPlanningService } from '@/services/blocPlanningService';
+import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 import { User as UserType } from '@/types/user';
 
 interface BlocPlanningEditorProps {

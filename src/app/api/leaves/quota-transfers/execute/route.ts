@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/prisma';
-import { LeaveType } from '@/modules/conges/types/leave';
+import { LeaveType } from '@/modules/leaves/types/leave';
 import { z } from 'zod';
 import { AuditAction } from '@/services/AuditService';
 import { auditService } from '@/lib/auditService';

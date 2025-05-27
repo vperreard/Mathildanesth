@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { leavePerformanceTestService } from '@/modules/conges/services/LeavePerformanceTestService';
-import { LeaveQueryCacheService } from '@/modules/conges/services/LeaveQueryCacheService';
+import { leavePerformanceTestService } from '@/modules/leaves/services/LeavePerformanceTestService';
+import { LeaveQueryCacheService } from '@/modules/leaves/services/LeaveQueryCacheService';
 import { logger } from '@/lib/logger';
 
 const cacheService = LeaveQueryCacheService.getInstance();

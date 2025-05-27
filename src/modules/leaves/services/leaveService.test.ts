@@ -206,6 +206,8 @@ const mockLeaveBalance: LeaveBalance = {
   lastUpdated: new Date(),
 };
 
+jest.mock('@/lib/prisma');
+
 describe('leaveService', () => {
   let mockFetch: jest.MockedFunction<typeof fetch>;
   let MockedPrismaClient: jest.MockedClass<typeof RealPrismaClient>;

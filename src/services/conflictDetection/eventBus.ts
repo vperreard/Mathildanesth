@@ -1,4 +1,4 @@
-import { ConflictType, ConflictSeverity, LeaveConflict } from '@/modules/conges/types/conflict';
+import { ConflictType, ConflictSeverity, LeaveConflict } from '@/modules/leaves/types/conflict';
 
 // Types d'événements
 export enum ConflictEventType {

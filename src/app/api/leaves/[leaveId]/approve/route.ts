@@ -3,12 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { withAuth, SecurityChecks } from '@/middleware/authorization';
 import { LeaveStatus } from '@prisma/client';
 import { logger } from '@/lib/logger';
+import { withSensitiveRateLimit } from '@/lib/rateLimit';
+import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
 /**
  * POST /api/conges/[leaveId]/approve
  * Approuver une demande de congé - ADMIN uniquement
  */
-export const POST = withAuth({
+const postHandler = withAuth({
     requireAuth: true,
     allowedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
     resourceType: 'leave',
@@ -66,6 +68,27 @@ export const POST = withAuth({
             approvedBy: userId
         });
 
+        // Log d'audit pour l'approbation
+        await auditService.logDataModification(
+            AuditAction.LEAVE_APPROVED,
+            'Leave',
+            leaveId,
+            userId,
+            { status: leave.status },
+            { status: LeaveStatus.APPROVED },
+            {
+                ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+                userAgent: req.headers.get('user-agent') || 'unknown',
+                targetUserId: leave.userId,
+                metadata: {
+                    startDate: leave.startDate.toISOString(),
+                    endDate: leave.endDate.toISOString(),
+                    type: leave.type,
+                    duration: `${Math.ceil((leave.endDate.getTime() - leave.startDate.getTime()) / (1000 * 60 * 60 * 24))} jours`
+                }
+            }
+        );
+
         // Créer une notification pour l'utilisateur
         await prisma.notification.create({
             data: {
@@ -85,9 +108,28 @@ export const POST = withAuth({
 
     } catch (error) {
         logger.error('Error approving leave', error);
+        
+        // Log d'audit pour l'échec
+        await auditService.logAction({
+            action: AuditAction.ERROR_OCCURRED,
+            entityId: context.params.leaveId,
+            entityType: 'Leave',
+            userId,
+            severity: 'ERROR',
+            success: false,
+            details: {
+                errorMessage: error instanceof Error ? error.message : 'Unknown error',
+                action: 'leave_approval',
+                metadata: { leaveId: context.params.leaveId }
+            }
+        });
+        
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
         );
     }
 });
+
+// Export avec rate limiting
+export const POST = withSensitiveRateLimit(postHandler);

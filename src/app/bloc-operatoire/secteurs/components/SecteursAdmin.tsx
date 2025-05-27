@@ -39,7 +39,7 @@ import {
 } from 'lucide-react';
 
 import { BlocSector, OperatingRoom } from '@/types/bloc-planning-types';
-import { blocPlanningService } from '@/services/blocPlanningService';
+import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 
 // Interface pour le formulaire de secteur
 interface SecteurFormData {

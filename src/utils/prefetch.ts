@@ -47,8 +47,9 @@ export function prefetchCommonData() {
     Promise.allSettled([
         prefetchData('/api/utilisateurs'),
         prefetchData('/api/skills'),
-        prefetchData('/api/conges/types'),
-        prefetchData('/api/notifications/preferences')
+        // TODO: Réactiver quand ces routes seront implémentées
+        // prefetchData('/api/conges/types'),
+        // prefetchData('/api/notifications/preferences')
     ]).then(results => {
         // Journaliser les succès et échecs pour le débogage
         results.forEach((result, index) => {
@@ -105,9 +106,10 @@ export function prefetchUserData(userId: string) {
 
     Promise.allSettled([
         prefetchData(`/api/utilisateurs/${userId}`),
-        prefetchData(`/api/utilisateurs/${userId}/skills`),
-        prefetchData(`/api/utilisateurs/${userId}/conges`),
-        prefetchData(`/api/utilisateurs/${userId}/calendrier-settings`)
+        // TODO: Réactiver quand ces routes seront implémentées
+        // prefetchData(`/api/utilisateurs/${userId}/skills`),
+        // prefetchData(`/api/utilisateurs/${userId}/conges`),
+        // prefetchData(`/api/utilisateurs/${userId}/calendrier-settings`)
     ]).catch(() => { });
 }
 

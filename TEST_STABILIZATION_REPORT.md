@@ -1,100 +1,100 @@
-# Test Stabilization Report
+# Rapport de Stabilisation des Tests
+Date: 27/05/2025
 
-## Initial State
-- **Total Tests**: 1,572
-- **Failing Tests**: 388 (24.7% failure rate)
-- **Main Issues**:
-  - Response.json is not a function
-  - JWT verification errors (ERR_JWS_SIGNATURE_VERIFICATION_FAILED)
-  - Missing polyfills for performance API
-  - Module mocking issues with PrismaClient
+## Contexte
+Suite à la migration des routes françaises qui a impacté 705 fichiers avec 13,947 changements, environ 285+ tests sont en échec. Cette stabilisation est critique pour maintenir la qualité du code.
 
-## Actions Taken
+## Actions Réalisées
 
-### 1. Fixed Response.json Polyfill
-- Created comprehensive ResponseWrapper in jest.polyfills.js
-- Ensured all Response objects have a proper json() method
-- Made fetch a jest function to allow mocking in tests
+### 1. Correction du Mock PublicHolidayService ✅
+- **Problème**: `jest.setup.js` essayait de mocker `@/modules/conges/services/publicHolidayService`
+- **Solution**: Corrigé vers `@/modules/leaves/services/publicHolidayService` (les modules restent en anglais)
+- **Impact**: Résolu l'erreur "Cannot locate module" qui bloquait tous les tests
 
-### 2. Fixed JWT Verification Issues
-- Updated auth.ts to suppress console errors in test environment
-- Fixed error message consistency
-- Properly propagated specific JWT errors (expired vs invalid)
+### 2. Script de Migration des Routes dans les Tests ✅
+- **Créé**: `scripts/fix-test-routes.ts`
+- **Action**: Remplace automatiquement les anciennes routes par les nouvelles
+- **Résultat**: 33 fichiers de test modifiés avec succès
 
-### 3. Added NextResponse Mock
-- Created complete mock for next/server module
-- Ensured NextResponse.json() returns proper Response objects
-- Added redirect() and next() method mocks
+### 3. Script de Correction des Imports ✅
+- **Créé**: `scripts/fix-test-imports.ts`
+- **Action**: Corrige les imports et références aux routes
+- **Résultat**: 11 fichiers supplémentaires corrigés
 
-### 4. Added Performance API Polyfill
-- Mocked performance.mark, measure, and related methods
-- Fixed "performance.mark is not a function" errors
+### 4. Amélioration des Mocks Prisma ✅
+- **Problème**: TestFactory incomplet et mocks Prisma manquants
+- **Solutions**:
+  - Ajout de `Leave`, `User`, et `LeaveBalance` dans `TestFactory`
+  - Ajout de `leave` et `leaveBalance` dans `serviceMocks.ts`
+  - Amélioration du mock `@prisma/client` avec `$transaction`
 
-### 5. Auth Test Improvements
-- Rewrote auth.test.ts with dynamic imports
-- Fixed module loading order issues
-- Reduced auth test failures from multiple to just 1 (skipped due to module mocking complexity)
+### 5. Script de Correction des Mocks ✅
+- **Créé**: `scripts/fix-test-mocks.ts`
+- **Actions**:
+  - Ajoute les imports de mocks manquants
+  - Corrige les problèmes d'URLs absolues
+  - Fixe les imports Prisma
+- **Résultat**: 18 fichiers corrigés
 
-## Current State
-- **Total Tests**: 1,572
-- **Failing Tests**: 368 (23.4% failure rate)
-- **Tests Fixed**: 20 tests
-- **Improvement**: 5.2% reduction in failing tests
+## État Actuel
 
-## Remaining Issues
+### Progression Globale
+- **Avant**: ~285+ tests en échec
+- **Maintenant**: Amélioration significative mais travail restant
 
-### High Priority
-1. **Module Import Errors** (Multiple occurrences):
-   - Cannot find module '../utils/sectorRulesParser'
-   - Cannot find module '../../profiles/services/workScheduleService'
-   - Cannot find module '../../../utils/apiClient'
+### Exemple de Progression (LeaveService)
+- **Avant**: 28/28 tests en échec (TypeError: Cannot read properties of undefined)
+- **Après**: 10/28 tests passent (35% de succès)
 
-2. **Type/Enum Errors** (10+ occurrences each):
-   - Cannot read properties of undefined (reading 'HEBDOMADAIRE')
-   - Cannot read properties of undefined (reading 'COMPLETED')
+### Erreurs Restantes Principales
+1. **URLs Absolues**: `TypeError: Only absolute URLs are supported`
+   - Solution: Ajouter `http://localhost:3000` devant les URLs relatives dans les tests
 
-3. **Response Property Errors** (20 occurrences):
-   - Cannot set property status of #<Response> which has only a getter
+2. **Mocks Incomplets**: Certains services/méthodes ne sont pas encore mockés
 
-### Medium Priority
-1. **D3.js Related Errors** (10 occurrences):
-   - linkGroup.selectAll is not a function
+3. **Routes Non Migrées**: Certains tests utilisent encore les anciennes routes
 
-2. **Theme Provider Errors** (10 occurrences):
-   - useTheme must be used within a ThemeProvider
+## Prochaines Étapes
 
-3. **Database Mock Issues** (9 occurrences):
-   - Cannot read properties of undefined (reading 'findUnique')
+### Court Terme (Priorité Haute)
+1. ✅ Exécuter un test global pour identifier tous les patterns d'erreur
+2. ⏳ Créer un script unifié qui corrige tous les problèmes connus
+3. ⏳ Focus sur les modules critiques: auth, leaves, planning
 
-## Recommendations for Next Steps
+### Moyen Terme
+1. ⏳ Stabiliser les tests E2E Cypress
+2. ⏳ Mettre à jour les fixtures et données de test
+3. ⏳ Vérifier la couverture de code
 
-1. **Fix Module Import Paths**:
-   - Audit all test files for correct import paths
-   - Create missing mock files or update paths
-   - Consider using path aliases consistently
+## Scripts Utiles Créés
 
-2. **Fix Enum Imports**:
-   - Ensure all enum types are properly imported in test files
-   - Consider creating a central test constants file
+```bash
+# Corriger les routes dans les tests
+npx tsx scripts/fix-test-routes.ts
 
-3. **Fix Response Mock**:
-   - Update Response mock to allow property modification
-   - Or update code to not modify Response properties directly
+# Corriger les imports
+npx tsx scripts/fix-test-imports.ts  
 
-4. **Add Missing Provider Wrappers**:
-   - Create test utilities that wrap components with required providers
-   - Ensure ThemeProvider is included in all component tests
+# Corriger les mocks
+npx tsx scripts/fix-test-mocks.ts
 
-5. **Improve Database Mocking**:
-   - Create comprehensive Prisma mock that includes all used methods
-   - Consider using a factory pattern for database mocks
+# Lancer les tests d'un module spécifique
+npm test -- --no-coverage --testPathPattern="leaves"
+```
 
-## Performance Metrics
-- Auth page load time: Optimized with multi-level caching
-- Test execution time: Reasonable for 1,572 tests
-- Memory usage: Within acceptable limits
+## Recommandations
 
-## Coverage Goals
-- Current: Not measured in this session
-- Target: > 80% on critical modules
-- Next step: Run coverage report after fixing remaining tests
+1. **Approche Incrémentale**: Stabiliser module par module plutôt que tout d'un coup
+2. **Priorité aux Tests Critiques**: auth, leaves, planning d'abord
+3. **Documentation**: Mettre à jour les guides de test avec les nouvelles conventions
+4. **CI/CD**: Ne pas merger sur main tant que les tests critiques ne passent pas
+
+## Métriques de Succès
+- [ ] 100% des tests auth passent
+- [ ] 100% des tests leaves passent  
+- [ ] 100% des tests planning passent
+- [ ] 80% de couverture sur modules critiques
+- [ ] Tests E2E Cypress fonctionnels
+
+---
+*Ce rapport sera mis à jour au fur et à mesure de la progression*

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import { PlanningGenerator } from '@/services/planningGenerator';
 import TrameIntegrationService from '@/services/TrameIntegrationService';
 import { performanceMonitor } from '@/services/PerformanceMonitoringService';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
 // Mock PerformanceMonitoringService
 jest.mock('@/services/PerformanceMonitoringService', () => ({
@@ -68,13 +68,17 @@ jest.mock('@prisma/client', () => {
   };
 });
 
+jest.mock('@/lib/prisma');
+
 describe('Module de Planning - Tests d\'intégration', () => {
   let integrationService: TrameIntegrationService;
   let prisma: any;
 
   beforeEach(() => {
+    jest.clearAllMocks();
+    
     integrationService = new TrameIntegrationService();
-    prisma = new PrismaClient();
+    prisma = prisma;
     jest.clearAllMocks();
   });
 

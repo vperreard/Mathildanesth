@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { withAuth, SecurityChecks } from '@/middleware/authorization';
 import { LeaveStatus } from '@prisma/client';
 import { logger } from '@/lib/logger';
+import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
 /**
  * POST /api/conges/[leaveId]/reject
@@ -77,6 +78,28 @@ export const POST = withAuth({
             reason
         });
 
+        // Log d'audit pour le rejet
+        await auditService.logDataModification(
+            AuditAction.LEAVE_REJECTED,
+            'Leave',
+            leaveId,
+            userId,
+            { status: leave.status },
+            { status: LeaveStatus.REJECTED, rejectionReason: reason },
+            {
+                ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+                userAgent: req.headers.get('user-agent') || 'unknown',
+                targetUserId: leave.userId,
+                reason,
+                metadata: {
+                    startDate: leave.startDate.toISOString(),
+                    endDate: leave.endDate.toISOString(),
+                    type: leave.type,
+                    duration: `${Math.ceil((leave.endDate.getTime() - leave.startDate.getTime()) / (1000 * 60 * 60 * 24))} jours`
+                }
+            }
+        );
+
         // Créer une notification pour l'utilisateur
         await prisma.notification.create({
             data: {
@@ -96,6 +119,22 @@ export const POST = withAuth({
 
     } catch (error) {
         logger.error('Error rejecting leave', error);
+        
+        // Log d'audit pour l'échec
+        await auditService.logAction({
+            action: AuditAction.ERROR_OCCURRED,
+            entityId: context.params.leaveId,
+            entityType: 'Leave',
+            userId,
+            severity: 'ERROR',
+            success: false,
+            details: {
+                errorMessage: error instanceof Error ? error.message : 'Unknown error',
+                action: 'leave_rejection',
+                metadata: { leaveId: context.params.leaveId }
+            }
+        });
+        
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

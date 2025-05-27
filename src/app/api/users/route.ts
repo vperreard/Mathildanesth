@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createPaginator, createPaginationResponse } from '@/lib/pagination';
 import { User } from '@prisma/client';
+import { withUserRateLimit, withSensitiveRateLimit } from '@/lib/rateLimit';
+import { auditService, AuditAction } from '@/services/OptimizedAuditService';
+import { verifyAuthToken } from '@/lib/auth-server-utils';
+import bcrypt from 'bcrypt';
 
 // Créer un paginateur optimisé pour les utilisateurs avec cache de 10 minutes
 const userPaginator = createPaginator<User>(prisma, 'user', 10 * 60 * 1000);
@@ -14,7 +18,7 @@ const userInclude = {
     // }
 };
 
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
     const startTime = performance.now();
 
     try {
@@ -105,7 +109,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Endpoint HEAD pour comptage rapide avec cache
-export async function HEAD(request: NextRequest) {
+async function headHandler(request: NextRequest) {
     const startTime = performance.now();
 
     try {
@@ -153,7 +157,7 @@ export async function HEAD(request: NextRequest) {
 }
 
 // Endpoint OPTIONS pour suggestions de recherche ultra-rapides
-export async function OPTIONS(request: NextRequest) {
+async function optionsHandler(request: NextRequest) {
     const startTime = performance.now();
 
     try {
@@ -194,8 +198,19 @@ export async function OPTIONS(request: NextRequest) {
 }
 
 // Endpoint POST pour créer un utilisateur
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
     try {
+        // Vérifier l'authentification et récupérer l'utilisateur actuel
+        const authHeader = request.headers.get('authorization');
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        let currentUserId: number | undefined;
+        
+        if (token) {
+            const authResult = await verifyAuthToken(token);
+            if (authResult.authenticated) {
+                currentUserId = authResult.userId;
+            }
+        }
         const body = await request.json();
 
         // Validation basique
@@ -223,6 +238,12 @@ export async function POST(request: NextRequest) {
             }, { status: 409 });
         }
 
+        // Hash du mot de passe si fourni
+        let hashedPassword;
+        if (body.password) {
+            hashedPassword = await bcrypt.hash(body.password, 10);
+        }
+
         // Créer l'utilisateur
         const newUser = await prisma.user.create({
             data: {
@@ -231,10 +252,31 @@ export async function POST(request: NextRequest) {
                 email: body.email,
                 login: body.login,
                 role: body.role || 'USER',
+                password: hashedPassword,
+                actif: body.actif !== false,
                 // Ajoutez d'autres champs selon votre modèle
             },
             include: userInclude
         });
+
+        // Log d'audit pour la création
+        await auditService.logDataModification(
+            AuditAction.USER_CREATED,
+            'User',
+            newUser.id,
+            currentUserId || 0,
+            null,
+            { ...newUser, password: undefined }, // Exclure le mot de passe
+            {
+                ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+                userAgent: request.headers.get('user-agent') || 'unknown',
+                metadata: {
+                    role: newUser.role,
+                    email: newUser.email,
+                    login: newUser.login
+                }
+            }
+        );
 
         // Invalider le cache des utilisateurs
         userPaginator.invalidateCache();
@@ -254,8 +296,19 @@ export async function POST(request: NextRequest) {
 }
 
 // Endpoint PUT pour mise à jour en lot
-export async function PUT(request: NextRequest) {
+async function putHandler(request: NextRequest) {
     try {
+        // Vérifier l'authentification
+        const authHeader = request.headers.get('authorization');
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        let currentUserId: number | undefined;
+        
+        if (token) {
+            const authResult = await verifyAuthToken(token);
+            if (authResult.authenticated) {
+                currentUserId = authResult.userId;
+            }
+        }
         const body = await request.json();
         const { ids, updates } = body;
 
@@ -266,6 +319,18 @@ export async function PUT(request: NextRequest) {
             }, { status: 400 });
         }
 
+        // Récupérer les utilisateurs avant modification pour l'audit
+        const usersBeforeUpdate = await prisma.user.findMany({
+            where: {
+                id: { in: ids }
+            }
+        });
+
+        // Hash du mot de passe si fourni
+        if (updates.password) {
+            updates.password = await bcrypt.hash(updates.password, 10);
+        }
+
         // Mise à jour en lot
         const result = await prisma.user.updateMany({
             where: {
@@ -273,6 +338,26 @@ export async function PUT(request: NextRequest) {
             },
             data: updates
         });
+
+        // Log d'audit pour chaque utilisateur modifié
+        for (const userBefore of usersBeforeUpdate) {
+            await auditService.logDataModification(
+                AuditAction.USER_UPDATED,
+                'User',
+                userBefore.id,
+                currentUserId || 0,
+                { ...userBefore, password: undefined },
+                { ...userBefore, ...updates, password: undefined },
+                {
+                    ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+                    userAgent: request.headers.get('user-agent') || 'unknown',
+                    metadata: {
+                        batchUpdate: true,
+                        totalUpdated: result.count
+                    }
+                }
+            );
+        }
 
         // Invalider le cache
         userPaginator.invalidateCache();
@@ -292,8 +377,19 @@ export async function PUT(request: NextRequest) {
 }
 
 // Endpoint DELETE pour suppression en lot
-export async function DELETE(request: NextRequest) {
+async function deleteHandler(request: NextRequest) {
     try {
+        // Vérifier l'authentification
+        const authHeader = request.headers.get('authorization');
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        let currentUserId: number | undefined;
+        
+        if (token) {
+            const authResult = await verifyAuthToken(token);
+            if (authResult.authenticated) {
+                currentUserId = authResult.userId;
+            }
+        }
         const url = new URL(request.url);
         const idsParam = url.searchParams.get('ids');
 
@@ -306,12 +402,42 @@ export async function DELETE(request: NextRequest) {
 
         const ids = idsParam.split(',').map(id => parseInt(id.trim()));
 
+        // Récupérer les utilisateurs avant suppression pour l'audit
+        const usersToDelete = await prisma.user.findMany({
+            where: {
+                id: { in: ids }
+            }
+        });
+
         // Suppression en lot
         const result = await prisma.user.deleteMany({
             where: {
                 id: { in: ids }
             }
         });
+
+        // Log d'audit pour chaque utilisateur supprimé
+        for (const user of usersToDelete) {
+            await auditService.logDataModification(
+                AuditAction.USER_DELETED,
+                'User',
+                user.id,
+                currentUserId || 0,
+                { ...user, password: undefined },
+                null,
+                {
+                    ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+                    userAgent: request.headers.get('user-agent') || 'unknown',
+                    metadata: {
+                        email: user.email,
+                        login: user.login,
+                        role: user.role,
+                        batchDelete: true,
+                        totalDeleted: result.count
+                    }
+                }
+            );
+        }
 
         // Invalider le cache
         userPaginator.invalidateCache();
@@ -328,4 +454,12 @@ export async function DELETE(request: NextRequest) {
             error: 'Erreur lors de la suppression'
         }, { status: 500 });
     }
-} 
+}
+
+// Export des handlers avec rate limiting approprié
+export const GET = withUserRateLimit(getHandler);
+export const HEAD = withUserRateLimit(headHandler);
+export const OPTIONS = withUserRateLimit(optionsHandler);
+export const POST = withSensitiveRateLimit(postHandler);
+export const PUT = withSensitiveRateLimit(putHandler);
+export const DELETE = withSensitiveRateLimit(deleteHandler); 

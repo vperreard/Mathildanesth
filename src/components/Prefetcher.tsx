@@ -69,18 +69,18 @@ export default function Prefetcher() {
                 case 'calendar':
                 case 'planning':
                     // Pour la planification, précharger les congés et utilisateurs
-                    fetch('/api/conges', { headers }).catch(() => { });
+                    fetch('/api/leaves', { headers }).catch(() => { });
                     fetch('/api/utilisateurs', { headers }).catch(() => { });
                     break;
 
                 case 'leaves':
                     // Pour les congés, précharger les types de congés
-                    fetch('/api/conges/types', { headers }).catch(() => { });
+                    fetch('/api/leaves/types', { headers }).catch(() => { });
                     break;
 
                 case 'parametres':
                     // Pour les paramètres, précharger les configurations
-                    fetch('/api/parametres', { headers }).catch(() => { });
+                    fetch('/api/admin/configuration', { headers }).catch(() => { });
                     break;
 
                 case '':

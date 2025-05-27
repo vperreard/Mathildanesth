@@ -3,12 +3,13 @@ import { prisma } from '@/lib/prisma';
 import { withAuth, SecurityChecks } from '@/middleware/authorization';
 import { logger } from '@/lib/logger';
 import bcrypt from 'bcrypt';
+import { withUserRateLimit, withSensitiveRateLimit } from '@/lib/rateLimit';
 
 /**
  * GET /api/utilisateurs/[userId]
  * Récupérer les informations d'un utilisateur
  */
-export const GET = withAuth({
+const getHandler = withAuth({
     requireAuth: true,
     customCheck: async (context, req) => {
         const userId = parseInt(req.nextUrl.pathname.split('/').pop() || '0');
@@ -59,7 +60,7 @@ export const GET = withAuth({
  * PUT /api/utilisateurs/[userId]
  * Mettre à jour un utilisateur
  */
-export const PUT = withAuth({
+const putHandler = withAuth({
     requireAuth: true,
     resourceType: 'user',
     action: 'update',
@@ -168,7 +169,7 @@ export const PUT = withAuth({
  * DELETE /api/utilisateurs/[userId]
  * Désactiver un utilisateur (soft delete) - ADMIN TOTAL uniquement
  */
-export const DELETE = withAuth({
+const deleteHandler = withAuth({
     requireAuth: true,
     allowedRoles: ['ADMIN_TOTAL'],
     resourceType: 'user',
@@ -216,3 +217,8 @@ export const DELETE = withAuth({
         );
     }
 });
+
+// Export des handlers avec rate limiting
+export const GET = withUserRateLimit(getHandler);
+export const PUT = withSensitiveRateLimit(putHandler);
+export const DELETE = withSensitiveRateLimit(deleteHandler);

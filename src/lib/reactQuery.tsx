@@ -1,7 +1,7 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { prefetchFrequentLeaveData } from '@/modules/conges/hooks/useLeaveQueries';
+import { prefetchFrequentLeaveData } from '@/modules/leaves/hooks/useLeaveQueries';
 import { useAuth } from '@/context/AuthContext';
 
 // Configuration optimisée du client React Query

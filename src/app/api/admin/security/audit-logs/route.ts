@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/middleware/authorization';
 import { logger } from '@/lib/logger';
+import { withAdminRateLimit } from '@/lib/rateLimit';
 
 /**
  * GET /api/admin/security/audit-logs
  * Récupérer les logs de sécurité - ADMIN uniquement
  */
-export const GET = withAuth({
+const getHandler = withAuth({
     requireAuth: true,
     allowedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
 })(async (req: NextRequest) => {
@@ -92,7 +93,7 @@ export const GET = withAuth({
  * POST /api/admin/security/audit-logs/export
  * Exporter les logs de sécurité - ADMIN TOTAL uniquement
  */
-export const POST = withAuth({
+const postHandler = withAuth({
     requireAuth: true,
     allowedRoles: ['ADMIN_TOTAL'],
     resourceType: 'audit_logs',
@@ -192,3 +193,7 @@ function convertToCSV(logs: any[]): string {
     
     return csvContent;
 }
+
+// Export des handlers avec rate limiting
+export const GET = withAdminRateLimit(getHandler);
+export const POST = withAdminRateLimit(postHandler);

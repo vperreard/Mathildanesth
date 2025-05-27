@@ -1,6 +1,6 @@
 import { API_ENDPOINTS } from '@/config/api';
 import { fetchWithAuth } from '@/lib/fetch';
-import { LeaveStatus, LeaveType } from '@/modules/conges/types/leave';
+import { LeaveStatus, LeaveType } from '@/modules/leaves/types/leave';
 import { Department } from '@/modules/organization/types';
 
 export interface LeaveStatistics {

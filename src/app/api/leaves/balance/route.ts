@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { LeaveQueryCacheService } from '@/modules/conges/services/LeaveQueryCacheService';
+import { LeaveQueryCacheService } from '@/modules/leaves/services/LeaveQueryCacheService';
 import { logger } from '@/lib/logger';
 import { Prisma, LeaveType as PrismaLeaveType, LeaveStatus as PrismaLeaveStatus } from '@prisma/client';
 

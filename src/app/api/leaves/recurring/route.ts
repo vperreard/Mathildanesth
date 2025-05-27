@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateRecurringDates } from '@/modules/conges/utils/recurrentsLeavesUtils';
-import { getPublicHolidays } from '@/services/calendrierService';
+import { generateRecurringDates } from '@/modules/leaves/utils/recurringLeavesUtils';
+import { getPublicHolidays } from '@/modules/calendar/services/calendarService';
 import { v4 as uuidv4 } from 'uuid';
 
 /**

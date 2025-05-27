@@ -6,6 +6,8 @@ import { logger } from '@/lib/logger';
 import { auth } from '@/lib/auth';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { BusinessRulesValidator } from '@/services/businessRulesValidator';
+import { withSensitiveRateLimit } from '@/lib/rateLimit';
+import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
 // Interface attendue par le frontend (similaire à celle dans page.tsx)
 interface UserFrontend {
@@ -50,7 +52,7 @@ const mapCodeToLeaveType = (code: string): PrismaLeaveType => {
  * GET /api/conges?userId=123
  * Récupère les congés d'un utilisateur.
  */
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const userId = searchParams.get('userId');
@@ -197,7 +199,7 @@ export async function GET(request: NextRequest) {
  * POST /api/conges
  * Crée une nouvelle demande de congé.
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
     try {
         // 🔐 Vérifier les permissions de création de congé
         const authHeader = request.headers.get('authorization');
@@ -390,10 +392,45 @@ export async function POST(request: NextRequest) {
                 }
             };
 
+            // Log d'audit pour la création du congé
+            await auditService.logDataModification(
+                AuditAction.LEAVE_REQUESTED,
+                'Leave',
+                newLeave.id,
+                authenticatedUser.id,
+                null, // Pas de valeur précédente pour une création
+                formattedLeave,
+                {
+                    ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+                    userAgent: request.headers.get('user-agent') || 'unknown',
+                    targetUserId: targetUserId !== authenticatedUser.id ? targetUserId : undefined,
+                    metadata: {
+                        typeCode,
+                        duration: `${Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))} jours`,
+                        createdBy: authenticatedUser.role === 'ADMIN_TOTAL' || authenticatedUser.role === 'ADMIN_PARTIEL' ? 'admin' : 'user'
+                    }
+                }
+            );
+
             console.log('[API /conges POST] Congé créé avec succès:', JSON.stringify(formattedLeave, null, 2));
             return NextResponse.json(formattedLeave, { status: 201 }); // 201 Created
         } catch (error) {
             console.error('[API /conges POST] Erreur lors de la création du congé:', error);
+            
+            // Log d'audit pour l'échec
+            await auditService.logAction({
+                action: AuditAction.ERROR_OCCURRED,
+                entityId: 'leave_creation',
+                entityType: 'Leave',
+                userId: authenticatedUser.id,
+                severity: 'ERROR',
+                success: false,
+                details: {
+                    errorMessage: error instanceof Error ? error.message : 'Unknown error',
+                    metadata: { typeCode, startDate, endDate, targetUserId }
+                }
+            });
+            
             return NextResponse.json({ error: "Erreur lors de la création du congé dans la base de données." }, { status: 500 });
         }
 
@@ -402,6 +439,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Erreur serveur lors de la création de la demande de congé.' }, { status: 500 });
     }
 }
+
+// Export des handlers avec rate limiting
+export const GET = withSensitiveRateLimit(getHandler);
+export const POST = withSensitiveRateLimit(postHandler);
 
 // Ajouter d'autres méthodes (PUT, DELETE) si nécessaire pour modifier/annuler
 // export async function PUT(request: NextRequest) { ... } // ou /api/conges/[id]

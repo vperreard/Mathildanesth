@@ -4,7 +4,7 @@ import { userEvent } from '@testing-library/user-event';
 import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { BlocDayPlanning, OperatingRoom, BlocSector, BlocRoomAssignment } from '@/types/bloc-planning-types';
-import { blocPlanningService } from '@/services/blocPlanningService';
+import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 import BlocPlanningEditor from '@/app/bloc-operatoire/components/BlocPlanningEditor';
 import CreateBlocPlanningPage from '@/app/bloc-operatoire/create/[date]/page';
 import EditBlocPlanningPage from '@/app/bloc-operatoire/edit/[date]/page';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
-import ConflictRulesManager from '@/modules/conges/components/ConflictRulesManager';
+import ConflictRulesManager from '@/modules/leaves/components/ConflictRulesManager';
 import AdminLayout from '@/components/layouts/AdminLayout';
 import { Box, Breadcrumbs, Typography, Link, Paper } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';

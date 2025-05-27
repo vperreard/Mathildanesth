@@ -115,11 +115,11 @@
 - [x] Fusionner les règles de supervision
 - [x] Implémenter les vérifications de permissions (PermissionGuard)
 
-### Phase 4: Unification Services (2 jours)
-- [ ] Pointer tous les imports vers `/modules/planning/bloc-operatoire/services/`
-- [ ] Supprimer les services dupliqués
-- [ ] Mettre à jour tous les hooks
-- [ ] Valider les appels API
+### Phase 4: Unification Services (2 jours) ✅ COMPLÉTÉ
+- [x] Pointer tous les imports vers `/modules/planning/bloc-operatoire/services/`
+- [x] Supprimer les services dupliqués
+- [x] Mettre à jour tous les hooks
+- [x] Valider les appels API
 
 ### Phase 5: Optimisations (1 jour)
 - [ ] Implémenter lazy loading pour les vues admin

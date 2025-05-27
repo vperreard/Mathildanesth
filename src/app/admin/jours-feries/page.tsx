@@ -11,8 +11,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Plus, Trash, Edit, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { PublicHoliday, CreatePublicHolidayDTO, UpdatePublicHolidayDTO } from '@/modules/conges/types/public-holiday';
-import { publicHolidayService } from '@/modules/conges/services/publicHolidayService';
+import { PublicHoliday, CreatePublicHolidayDTO, UpdatePublicHolidayDTO } from '@/modules/leaves/types/public-holiday';
+import { publicHolidayService } from '@/modules/leaves/services/publicHolidayService';
 
 export default function PublicHolidaysPage() {
     const [holidays, setHolidays] = useState<PublicHoliday[]>([]);

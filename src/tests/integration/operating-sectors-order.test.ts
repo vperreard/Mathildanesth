@@ -1,6 +1,7 @@
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { mockDeep, mockReset } from 'jest-mock-extended';
+import { prisma } from '@/lib/prisma';
 
 // Mock de Prisma
 const prisma = mockDeep<PrismaClient>();
@@ -23,6 +24,8 @@ global.Response = jest.fn().mockImplementation((body, init) => ({
     headers: init?.headers || {},
     json: async () => JSON.parse(body as string)
 })) as any;
+
+jest.mock('@/lib/prisma');
 
 describe('Test du tri des secteurs opératoires', () => {
     beforeEach(() => {

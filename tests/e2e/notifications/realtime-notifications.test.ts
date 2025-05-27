@@ -195,7 +195,7 @@ describe('Real-time Notifications E2E Tests', () => {
     for (let i = 0; i < 3; i++) {
       notificationPromises.push(
         senderPage.evaluate(async (receiverEmail, index) => {
-          const response = await fetch('/api/notifications', {
+          const response = await fetch('http://localhost:3000/api/notifications', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -333,7 +333,7 @@ describe('Real-time Notifications E2E Tests', () => {
 
     // Verify notifications still work after reconnection
     await senderPage.evaluate(async (receiverEmail) => {
-      const response = await fetch('/api/notifications', {
+      const response = await fetch('http://localhost:3000/api/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

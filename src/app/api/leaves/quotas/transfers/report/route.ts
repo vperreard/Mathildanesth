@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { QuotaTransferReportOptions, QuotaTransferReportResult } from '@/modules/conges/types/quota';
+import { QuotaTransferReportOptions, QuotaTransferReportResult } from '@/modules/leaves/types/quota';
 import { formatDate } from '@/utils/dateUtils';
 import { format, parse, parseISO, isWithinInterval, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';

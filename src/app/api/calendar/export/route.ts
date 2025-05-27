@@ -8,6 +8,9 @@ import { exportSimulationResults, exportLeaveData, exportPlanningData } from '@/
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import ical from 'ical-generator';
+import { auditService, AuditAction } from '@/services/OptimizedAuditService';
+import { verifyAuthToken } from '@/lib/auth-server-utils';
+import * as XLSX from 'xlsx';
 
 // Fonction pour obtenir un chemin de fichier temporaire
 const getTempFilePath = (extension: string): string => {
@@ -30,6 +33,18 @@ export async function POST(request: NextRequest) {
         await ensureTempDir();
 
         const options = await request.json();
+
+        // Vérifier l'authentification pour l'audit
+        const authHeader = request.headers.get('authorization');
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        let currentUserId: number | undefined;
+        
+        if (token) {
+            const authResult = await verifyAuthToken(token);
+            if (authResult.authenticated) {
+                currentUserId = authResult.userId;
+            }
+        }
 
         // Réutiliser la logique de récupération des événements de l'API /api/calendrier
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || request.nextUrl.origin;
@@ -115,6 +130,29 @@ export async function POST(request: NextRequest) {
             console.warn('Impossible de supprimer le fichier temporaire:', unlinkError);
         }
 
+        // Log d'audit pour l'export
+        await auditService.logAction({
+            action: AuditAction.DATA_EXPORTED,
+            entityId: 'calendar_export',
+            entityType: 'Calendar',
+            userId: currentUserId,
+            details: {
+                ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+                userAgent: request.headers.get('user-agent') || 'unknown',
+                metadata: {
+                    format: options.format,
+                    fileName,
+                    eventCount: filteredEvents.length,
+                    dateRange: options.dateRange ? {
+                        start: options.dateRange.start,
+                        end: options.dateRange.end
+                    } : null,
+                    eventTypes: options.eventTypes || [],
+                    includeAllEvents: options.includeAllEvents || false
+                }
+            }
+        });
+
         // Retourner le fichier
         return new NextResponse(fileBuffer, {
             status: 200,
@@ -125,6 +163,24 @@ export async function POST(request: NextRequest) {
         });
     } catch (error) {
         console.error('Erreur lors de l\'export du calendrier:', error);
+        
+        // Log d'audit pour l'échec
+        await auditService.logAction({
+            action: AuditAction.ERROR_OCCURRED,
+            entityId: 'calendar_export',
+            entityType: 'Calendar',
+            userId: currentUserId,
+            severity: 'ERROR',
+            success: false,
+            details: {
+                errorMessage: error instanceof Error ? error.message : 'Unknown error',
+                action: 'calendar_export',
+                metadata: {
+                    format: options?.format
+                }
+            }
+        });
+        
         return NextResponse.json(
             { error: 'Erreur lors de l\'export du calendrier' },
             { status: 500 }

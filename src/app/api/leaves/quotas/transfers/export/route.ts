@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { QuotaTransferReportOptions } from '@/modules/conges/types/quota';
+import { QuotaTransferReportOptions } from '@/modules/leaves/types/quota';
 import ExcelJS from 'exceljs';
 import { PDFDocument, rgb } from 'pdf-lib';
 import { parse as csvParse, stringify as csvStringify } from 'csv-string';

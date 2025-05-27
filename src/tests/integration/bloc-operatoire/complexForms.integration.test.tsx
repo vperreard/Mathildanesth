@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import BlocPlanningEditor from '@/app/bloc-operatoire/components/BlocPlanningEditor';
-import { blocPlanningService } from '@/services/blocPlanningService';
+import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 import { expect, describe, it, beforeEach, afterEach, jest as vi } from '@jest/globals';
 import '@testing-library/jest-dom';
 import { BlocDayPlanning, OperatingRoom, BlocSector, SupervisionRule } from '@/types/bloc-planning-types';

@@ -80,6 +80,22 @@ export const mockPrismaClient = {
         update: jest.fn(),
         delete: jest.fn()
     },
+    leave: {
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+        count: jest.fn()
+    },
+    leaveBalance: {
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+        count: jest.fn()
+    },
     $transaction: jest.fn((fn) => fn(mockPrismaClient)),
     $disconnect: jest.fn(),
     $connect: jest.fn()

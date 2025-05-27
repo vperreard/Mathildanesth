@@ -13,7 +13,7 @@ import {
     Box,
     CircularProgress
 } from '@mui/material';
-import { LeaveStatus, LeaveType, LeaveWithUser } from '@/modules/conges/types/leave';
+import { LeaveStatus, LeaveType, LeaveWithUser } from '@/modules/leaves/types/leave';
 import { User } from '@/types/user';
 import {
     useLeaveListFilteringSorting,

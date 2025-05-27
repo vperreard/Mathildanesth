@@ -133,8 +133,8 @@ export function useNotificationsWebSocket(options: UseNotificationsOptions = {})
         // Désactiver temporairement les WebSockets en développement
         if (process.env.NODE_ENV === 'development') {
             console.log('[WebSocket] Désactivé en développement - serveur Socket.IO non configuré');
-            // Charger quand même les notifications via API REST
-            fetchNotifications();
+            // TODO: Réactiver quand l'API notifications sera implémentée
+            // fetchNotifications();
             return;
         }
 

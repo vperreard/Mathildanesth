@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 // Importer depuis le service existant
-import { publicHolidayService } from '@/modules/conges/services/publicHolidayService';
-import { PublicHoliday } from '@/modules/conges/types/public-holiday'; // Assurez-vous que ce type est correct
+import { publicHolidayService } from '@/modules/leaves/services/publicHolidayService';
+import { PublicHoliday } from '@/modules/leaves/types/public-holiday'; // Assurez-vous que ce type est correct
 import { z } from 'zod';
 
 // Schéma de validation pour l'année

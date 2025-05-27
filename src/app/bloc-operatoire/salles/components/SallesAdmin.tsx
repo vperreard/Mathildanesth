@@ -41,7 +41,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { blocPlanningService } from '@/services/blocPlanningService';
+import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 import { OperatingRoom, BlocSector } from '@/types/bloc-planning-types';
 
 // Schéma de validation pour le formulaire de salle

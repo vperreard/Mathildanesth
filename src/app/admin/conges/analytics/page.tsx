@@ -1,6 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
-import LeaveConflictDashboard from '@/modules/conges/components/LeaveConflictDashboard';
+import LeaveConflictDashboard from '@/modules/leaves/components/LeaveConflictDashboard';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 

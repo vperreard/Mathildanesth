@@ -47,14 +47,18 @@ jest.mock('../notificationService', () => ({
     }
 }));
 
+jest.mock('@/lib/prisma');
+
 describe('ApplySimulationService', () => {
     let service: ApplySimulationService;
     let prisma: PrismaClient;
 
     beforeEach(() => {
+    jest.clearAllMocks();
+    
         jest.clearAllMocks();
         service = new ApplySimulationService();
-        prisma = new PrismaClient();
+        prisma = prisma;
     });
 
     describe('applySimulationToPlanning', () => {

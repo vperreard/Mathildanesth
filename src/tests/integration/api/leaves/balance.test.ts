@@ -91,7 +91,7 @@ const mockLeaveQueryCacheService = {
     })
 };
 
-jest.mock('@/modules/conges/services/LeaveQueryCacheService', () => ({
+jest.mock('@/modules/leaves/services/LeaveQueryCacheService', () => ({
     LeaveQueryCacheService: mockLeaveQueryCacheService
 }));
 

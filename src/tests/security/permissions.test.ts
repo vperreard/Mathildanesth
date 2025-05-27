@@ -59,10 +59,14 @@ jest.mock('@/lib/prisma', () => ({
     }
 }));
 
+jest.mock('@/lib/prisma');
+
 describe('Permission System Tests', () => {
     const mockVerifyAuthToken = verifyAuthToken as jest.MockedFunction<typeof verifyAuthToken>;
 
     beforeEach(() => {
+    jest.clearAllMocks();
+    
         jest.clearAllMocks();
     });
 

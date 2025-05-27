@@ -187,7 +187,7 @@
     "@vercel/analytics": "^1.5.0",
     "antd": "^5.24.8",
     "axios": "^1.6.7",
-    "bcrypt": "5.1.1",
+    "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "bufferutil": "^4.0.9",
     "chart.js": "^4.4.9",

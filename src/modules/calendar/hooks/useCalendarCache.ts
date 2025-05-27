@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { calendarCache } from '../services/calendarCache';
-import { calendarService } from '../services/calendarService';
+import { calendarCache } from '../services/calendrierCache';
+import { calendarService } from '../services/calendrierService';
 import { AnyCalendarEvent, CalendarFilters } from '../types/event';
 
 interface UseCalendarCacheOptions {

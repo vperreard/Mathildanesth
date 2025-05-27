@@ -144,7 +144,7 @@ describe('Tests de régression - Authentification', () => {
     });
 
     try {
-      const response = await fetch('/api/auth/me');
+      const response = await fetch('http://localhost:3000/api/auth/me');
       const data = await response.json();
       expect(data.error).toBe('Token invalide');
       expect(response.status).toBe(401);

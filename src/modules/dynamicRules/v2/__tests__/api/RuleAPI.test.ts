@@ -21,6 +21,8 @@ jest.mock('@/lib/prisma', () => ({
   }
 }));
 
+jest.mock('@/lib/prisma');
+
 describe('Rule API v2', () => {
   const mockSession = {
     user: {
@@ -32,6 +34,8 @@ describe('Rule API v2', () => {
   };
 
   beforeEach(() => {
+    jest.clearAllMocks();
+    
     jest.clearAllMocks();
     (getServerSession as jest.Mock).mockResolvedValue(mockSession);
   });

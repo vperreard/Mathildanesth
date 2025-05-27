@@ -9,16 +9,16 @@ import { QuotaAdvancedService, quotaAdvancedService } from '../QuotaAdvancedServ
 
 import AuditService from '@/services/AuditService';
 import EventBusService from '@/services/eventBusService';
-import { LeaveType, LeaveBalance } from '@/modules/conges/types/leave';
+import { LeaveType, LeaveBalance } from '@/modules/leaves/types/leave';
 import {
     QuotaTransferRule,
     QuotaCarryOverRule,
     QuotaTransferRuleType,
     QuotaCarryOverRuleType
-} from '@/modules/conges/types/quota';
+} from '@/modules/leaves/types/quota';
 import { addMonths } from '@/utils/dateUtils';
-import { QuotaTransactionStatus } from '@/modules/conges/types/quota';
-import { QuotaCarryOverCalculationResult } from '@/modules/conges/types/quota';
+import { QuotaTransactionStatus } from '@/modules/leaves/types/quota';
+import { QuotaCarryOverCalculationResult } from '@/modules/leaves/types/quota';
 
 // --- Mocks manuels --- 
 // Pour leaveService

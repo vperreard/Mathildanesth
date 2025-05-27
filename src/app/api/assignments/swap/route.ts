@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient, AssignmentSwapStatus } from '@prisma/client';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { AssignmentSwapEventType, sendAssignmentSwapNotification } from '@/lib/assignment-notification-utils';
+import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
 const prisma = new PrismaClient();
 
@@ -247,6 +248,26 @@ export async function POST(request: NextRequest) {
                 initiatorUserId
             );
 
+            // Log d'audit pour la demande d'échange
+            await auditService.logAction({
+                action: AuditAction.ASSIGNMENT_SWAP_REQUESTED,
+                entityId: swapRequest.id,
+                entityType: 'AssignmentSwapRequest',
+                userId: initiatorUserId,
+                details: {
+                    ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+                    userAgent: request.headers.get('user-agent') || 'unknown',
+                    targetUserId,
+                    metadata: {
+                        proposedAssignmentId,
+                        requestedAssignmentId,
+                        proposedDate: proposedAssignment.date?.toISOString(),
+                        requestedDate: result.swapRequest.requestedAssignment?.date?.toISOString(),
+                        message
+                    }
+                }
+            });
+
             return { swapRequest, notification };
         });
 
@@ -258,6 +279,25 @@ export async function POST(request: NextRequest) {
 
     } catch (error: any) {
         console.error("POST /api/affectations/echange: Erreur serveur", error);
+        
+        // Log d'audit pour l'échec
+        await auditService.logAction({
+            action: AuditAction.ERROR_OCCURRED,
+            entityId: 'assignment_swap_creation',
+            entityType: 'AssignmentSwapRequest',
+            userId: initiatorUserId,
+            severity: 'ERROR',
+            success: false,
+            details: {
+                errorMessage: error.message,
+                metadata: {
+                    proposedAssignmentId,
+                    targetUserId,
+                    requestedAssignmentId
+                }
+            }
+        });
+        
         return NextResponse.json({
             error: 'Erreur lors de la création de la demande d\'échange',
             details: error.message

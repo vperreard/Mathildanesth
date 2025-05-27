@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Button from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { useLeaveQuota, UseLeaveQuotaReturn, LeaveTypeQuota } from '@/modules/conges/hooks/useLeaveQuota';
+import { useLeaveQuota, UseLeaveQuotaReturn, LeaveTypeQuota } from '@/modules/leaves/hooks/useLeaveQuota';
 import { useToast } from '@/components/ui/use-toast';
 import AvailableQuotaDisplay from "./quotas/AvailableQuotaDisplay";
 import QuotaTransferForm from "./QuotaTransferForm";

@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { jest, expect, describe, test, beforeEach } from '@jest/globals';
 import { format, addDays } from 'date-fns';
-import { LeaveType, LeaveStatus } from '@/modules/conges/types/leave'; // Import seulement les types/enums
+import { LeaveType, LeaveStatus } from '@/modules/leaves/types/leave'; // Import seulement les types/enums
 
 // Définir des constantes locales adaptées aux vraies valeurs d'enum
 const LEAVE_TYPE = {
@@ -42,17 +42,17 @@ interface ConflictCheckResult {
 }
 
 // Mocks pour les hooks
-jest.mock('@/modules/conges/hooks/useLeaveQuota', () => ({
+jest.mock('@/modules/leaves/hooks/useLeaveQuota', () => ({
     __esModule: true,
     useLeaveQuota: jest.fn()
 }));
 
-jest.mock('@/modules/conges/hooks/useLeaveValidation', () => ({
+jest.mock('@/modules/leaves/hooks/useLeaveValidation', () => ({
     __esModule: true,
     useLeaveValidation: jest.fn()
 }));
 
-jest.mock('@/modules/conges/hooks/useConflictDetection', () => ({
+jest.mock('@/modules/leaves/hooks/useConflictDetection', () => ({
     __esModule: true,
     useConflictDetection: jest.fn()
 }));
@@ -109,9 +109,9 @@ jest.mock('../LeaveRequestForm', () => {
 });
 
 // Récupérer les fonctions mockées pour les tests
-const { useLeaveQuota } = require('@/modules/conges/hooks/useLeaveQuota');
-const { useLeaveValidation } = require('@/modules/conges/hooks/useLeaveValidation');
-const { useConflictDetection } = require('@/modules/conges/hooks/useConflictDetection');
+const { useLeaveQuota } = require('@/modules/leaves/hooks/useLeaveQuota');
+const { useLeaveValidation } = require('@/modules/leaves/hooks/useLeaveValidation');
+const { useConflictDetection } = require('@/modules/leaves/hooks/useConflictDetection');
 const { LeaveRequestForm } = require('../LeaveRequestForm');
 
 describe('LeaveRequestForm Component', () => {

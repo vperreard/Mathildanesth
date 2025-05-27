@@ -7,8 +7,9 @@ import { BusinessRulesValidator } from '@/services/businessRulesValidator';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
+import { withSensitiveRateLimit } from '@/lib/rateLimit';
 
-export async function POST(request: Request) {
+async function postHandler(request: Request) {
     try {
         // 🔐 Vérifier l'authentification
         const authHeader = request.headers.get('authorization');
@@ -123,4 +124,7 @@ export async function POST(request: Request) {
             { status: 500 }
         );
     }
-} 
+}
+
+// Export avec rate limiting
+export const POST = withSensitiveRateLimit(postHandler); 

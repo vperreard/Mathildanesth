@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken, getAuthTokenServer } from '@/lib/auth-server-utils';
 import { prisma } from '@/lib/prisma';
+import { withUserRateLimit } from '@/lib/rateLimit';
 
-export async function GET(req: NextRequest) {
+async function handler(req: NextRequest) {
     try {
         // Récupérer le token depuis les cookies ou headers
         let token: string | null = null;
@@ -66,3 +67,5 @@ export async function GET(req: NextRequest) {
         );
     }
 }
+
+export const GET = withUserRateLimit(handler);

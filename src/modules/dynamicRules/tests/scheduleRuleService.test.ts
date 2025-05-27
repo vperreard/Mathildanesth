@@ -8,7 +8,7 @@ import {
     ScheduleRuleField,
     ConditionOperator
 } from '../models/ScheduleRule';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
 // Mock du client Prisma
 jest.mock('@prisma/client', () => {
@@ -27,6 +27,8 @@ jest.mock('@prisma/client', () => {
         PrismaClient: jest.fn(() => mockPrismaClient)
     };
 });
+
+jest.mock('@/lib/prisma');
 
 describe('ScheduleRuleService', () => {
     let service: ScheduleRuleService;
@@ -75,12 +77,14 @@ describe('ScheduleRuleService', () => {
     };
 
     beforeEach(() => {
+    jest.clearAllMocks();
+    
         // Réinitialiser les mocks entre les tests
         jest.clearAllMocks();
 
         // Initialiser le service
         service = new ScheduleRuleService();
-        prisma = new PrismaClient();
+        prisma = prisma;
     });
 
     describe('getAllRules', () => {

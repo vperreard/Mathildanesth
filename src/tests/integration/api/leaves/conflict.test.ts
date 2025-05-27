@@ -2,8 +2,9 @@ import { PrismaClient, User, Leave, LeaveTypeSetting, Role, LeaveStatus } from '
 // Assumons que createLeave est la fonction/handler ou un service qui gère la création via POST /api/conges
 // import { createLeaveHandler } from '../../../../pages/api/conges'; // Ajuster le chemin
 import { createMocks } from 'node-mocks-http';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+const prisma = prisma;
 
 async function cleanLeaveConflictTestDatabase() {
     await prisma.leave.deleteMany({});
@@ -52,10 +53,14 @@ async function seedLeaveConflictTestData() {
     return { testUser, leaveTypeForConflict, existingLeave };
 }
 
+jest.mock('@/lib/prisma');
+
 describe('Leave Conflict Detection (e.g., POST /api/conges or /api/conges/batch)', () => {
     beforeAll(async () => { });
 
     beforeEach(async () => {
+    jest.clearAllMocks();
+    
         await cleanLeaveConflictTestDatabase();
         await seedLeaveConflictTestData();
     });

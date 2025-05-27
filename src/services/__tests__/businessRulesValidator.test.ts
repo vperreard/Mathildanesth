@@ -28,8 +28,12 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
+jest.mock('@/lib/prisma');
+
 describe('BusinessRulesValidator', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+    
     jest.clearAllMocks();
   });
 

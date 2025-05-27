@@ -10,10 +10,22 @@ type PrismaClientMock = {
     user: any;
     quotaCarryOver: any;
     quotaTransfer: any;
+    notification: any;
+    notificationSetting: any;
+    planningRule: any;
+    planningRuleV2: any;
+    auditLog: any;
+    assignment: any;
+    blocPlanning: any;
+    operatingRoom: any;
+    operatingSector: any;
+    surgeon: any;
+    site: any;
     $disconnect: () => Promise<void>;
     $queryRawUnsafe: <T = any>(query: string, ...values: any[]) => Promise<T>;
     $use: (middleware: any) => void;
     $extends: (extension: any) => any;
+    $transaction: (fn: any) => Promise<any>;
 };
 
 // Créer un mock deep du client Prisma
@@ -21,6 +33,12 @@ export const prisma = mockDeep<PrismaClientMock>();
 
 // Add mock for $use method
 prisma.$use = jest.fn();
+prisma.$transaction = jest.fn().mockImplementation(async (fn) => {
+    if (typeof fn === 'function') {
+        return await fn(prisma);
+    }
+    return Promise.resolve(fn);
+});
 
 // Mock pour PrismaClient spécifique pour les tests
 export const PrismaClient = jest.fn().mockImplementation(() => {

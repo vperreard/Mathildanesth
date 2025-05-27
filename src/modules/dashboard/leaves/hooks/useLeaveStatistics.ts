@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { leaveStatisticsService, LeaveStatistics, LeaveStatisticsFilters } from '../services/leaveStatisticsService';
 import { Department } from '@/modules/organization/types';
-import { LeaveType, LeaveStatus } from '@/modules/conges/types/leave';
+import { LeaveType, LeaveStatus } from '@/modules/leaves/types/leave';
 import { useEventListener } from '@/core/events/useEvents';
 import { EventType } from '@/core/events/EventTypes';
 

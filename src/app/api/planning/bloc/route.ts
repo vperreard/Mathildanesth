@@ -10,6 +10,8 @@ import {
 } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 import { ZodError } from 'zod';
 import { BlocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
+import { auditService, AuditAction } from '@/services/OptimizedAuditService';
+import { verifyAuthToken } from '@/lib/auth-server-utils';
 
 const prisma = new PrismaClient();
 const planningService = new BlocPlanningService();
@@ -84,12 +86,24 @@ export async function GET(request: Request) {
     }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
         if (!session) {
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+        }
+
+        // Récupérer l'ID de l'utilisateur pour l'audit
+        const authHeader = request.headers.get('authorization');
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        let currentUserId: number | undefined;
+        
+        if (token) {
+            const authResult = await verifyAuthToken(token);
+            if (authResult.authenticated) {
+                currentUserId = authResult.userId;
+            }
         }
 
         const data = await request.json();
@@ -112,7 +126,27 @@ export async function POST(request: Request) {
             startDate: start,
             endDate: end,
             trameIds: trameIds || [],
-            initiatorUserId: initiatorUserId || 1, // Utiliser un ID par défaut si non fourni
+            initiatorUserId: initiatorUserId || currentUserId || 1,
+        });
+
+        // Log d'audit pour la création de planning
+        await auditService.logAction({
+            action: AuditAction.PLANNING_CREATED,
+            entityId: `bloc_planning_${siteId}_${startDate}_${endDate}`,
+            entityType: 'BlocPlanning',
+            userId: currentUserId || initiatorUserId || 1,
+            details: {
+                ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+                userAgent: request.headers.get('user-agent') || 'unknown',
+                metadata: {
+                    siteId,
+                    startDate,
+                    endDate,
+                    trameIds,
+                    generatedCount: generatedPlannings.length,
+                    dateRange: `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`
+                }
+            }
         });
 
         return NextResponse.json({
@@ -122,6 +156,22 @@ export async function POST(request: Request) {
         });
     } catch (error) {
         console.error('Erreur lors de la création des plannings:', error);
+        
+        // Log d'audit pour l'échec
+        await auditService.logAction({
+            action: AuditAction.ERROR_OCCURRED,
+            entityId: 'bloc_planning_creation',
+            entityType: 'BlocPlanning',
+            userId: currentUserId || 0,
+            severity: 'ERROR',
+            success: false,
+            details: {
+                errorMessage: error instanceof Error ? error.message : 'Unknown error',
+                action: 'planning_creation',
+                metadata: { siteId, startDate, endDate }
+            }
+        });
+        
         return NextResponse.json({
             error: 'Erreur lors de la création des plannings',
             details: error instanceof Error ? error.message : 'Erreur inconnue'

@@ -18,7 +18,7 @@ import {
     Alert,
     Paper
 } from '@mui/material';
-import { LeaveStatus, LeaveType } from '@/modules/conges/types/leave';
+import { LeaveStatus, LeaveType } from '@/modules/leaves/types/leave';
 import { useDebounceFilters } from '../hooks/useDebounceFilters';
 import { useLeavesList } from '../hooks/useLeaveQueries';
 import { formatDateForDisplay } from '@/utils/dateUtils';

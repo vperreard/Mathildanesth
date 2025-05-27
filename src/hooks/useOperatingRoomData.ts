@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { OperatingRoom, BlocSector } from '@/types/bloc-planning-types';
-import { blocPlanningService } from '@/services/blocPlanningService';
+import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 
 export interface OperatingRoomDataState {
     rooms: OperatingRoom[];

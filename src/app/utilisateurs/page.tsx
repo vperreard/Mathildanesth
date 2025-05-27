@@ -13,8 +13,7 @@ import ProtectedRoute from '@/components/ProtectedRoute'; // Importer ProtectedR
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 import { Label } from "@/components/ui/label"; // Import Label
 import { useToast } from "@/components/ui/use-toast"; // Ajout pour les notifications
-// import UserTable from '@/components/utilisateurs/UserTable'; // Import de notre tableau virtualisé
-// TODO: Créer le composant UserTable
+import UserTable from '@/components/users/UserTable'; // Import de notre tableau virtualisé
 
 // Type Role et Interface User déplacés vers src/types/user.ts
 

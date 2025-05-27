@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import RecurringLeaveRequestForm from '@/modules/conges/components/RecurringLeaveRequestForm';
-import { RecurringLeaveRequest } from '@/modules/conges/types/leave';
-import { createRecurringLeaveRequest } from '@/modules/conges/services/leaveService';
+import RecurringLeaveRequestForm from '@/modules/leaves/components/RecurringLeaveRequestForm';
+import { RecurringLeaveRequest } from '@/modules/leaves/types/leave';
+import { createRecurringLeaveRequest } from '@/modules/leaves/services/leaveService';
 
 /**
  * Page de demande de congés récurrents

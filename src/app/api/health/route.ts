@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { healthCheckService } from '@/lib/monitoring/healthCheck';
+import { withPublicRateLimit } from '@/lib/rateLimit';
 
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
     try {
         const metrics = await healthCheckService.getMetrics();
         
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Endpoint simple pour les load balancers
-export async function HEAD(request: NextRequest) {
+async function headHandler(request: NextRequest) {
     try {
         const healthCheck = await healthCheckService.performHealthCheck();
         
@@ -50,3 +51,7 @@ export async function HEAD(request: NextRequest) {
         return new NextResponse(null, { status: 503 });
     }
 }
+
+// Export avec rate limiting
+export const GET = withPublicRateLimit(getHandler);
+export const HEAD = withPublicRateLimit(headHandler);

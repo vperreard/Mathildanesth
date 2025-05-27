@@ -14,10 +14,14 @@ jest.mock('@/lib/prisma', () => ({
   }
 }));
 
+jest.mock('@/lib/prisma');
+
 describe('ConflictDetector', () => {
   let detector: ConflictDetector;
 
   beforeEach(() => {
+    jest.clearAllMocks();
+    
     detector = ConflictDetector.getInstance();
     jest.clearAllMocks();
   });

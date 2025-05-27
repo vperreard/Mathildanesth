@@ -2,7 +2,7 @@
 /*
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
-import { blocPlanningService } from '../services/blocPlanningService';
+import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 import {
     BlocDayPlanning,
     Assignment,

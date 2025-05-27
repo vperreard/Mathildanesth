@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateAuthTokenServer, setAuthTokenServer } from '@/lib/auth-server-utils';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
+import { withAuthRateLimit } from '@/lib/rateLimit';
+import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
-export async function POST(req: NextRequest) {
+async function loginHandler(req: NextRequest) {
     const startTime = Date.now();
 
     try {
@@ -39,6 +41,13 @@ export async function POST(req: NextRequest) {
         });
 
         if (!user || !user.password) {
+            // Log tentative de connexion échouée
+            await auditService.logLogin(0, false, {
+                ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+                userAgent: req.headers.get('user-agent') || 'unknown',
+                reason: 'User not found',
+                metadata: { login }
+            });
             return NextResponse.json(
                 { message: 'Login ou mot de passe incorrect' },
                 { status: 401 }
@@ -48,6 +57,13 @@ export async function POST(req: NextRequest) {
         // Vérification du mot de passe
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
+            // Log tentative de connexion échouée
+            await auditService.logLogin(user.id, false, {
+                ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+                userAgent: req.headers.get('user-agent') || 'unknown',
+                reason: 'Invalid password',
+                metadata: { login: user.login }
+            });
             return NextResponse.json(
                 { message: 'Login ou mot de passe incorrect' },
                 { status: 401 }
@@ -63,6 +79,14 @@ export async function POST(req: NextRequest) {
 
         // Exclure le mot de passe de la réponse
         const { password: _, ...userWithoutPassword } = user;
+
+        // Log connexion réussie
+        await auditService.logLogin(user.id, true, {
+            ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+            userAgent: req.headers.get('user-agent') || 'unknown',
+            duration: Date.now() - startTime,
+            metadata: { login: user.login, role: user.role }
+        });
 
         // Log de performance en développement
         if (process.env.NODE_ENV === 'development') {
@@ -93,4 +117,7 @@ export async function POST(req: NextRequest) {
         );
     }
     // Note: Pas de déconnexion Prisma car on utilise un cache
-} 
+}
+
+// Export avec rate limiting (5 requêtes par minute)
+export const POST = withAuthRateLimit(loginHandler); 

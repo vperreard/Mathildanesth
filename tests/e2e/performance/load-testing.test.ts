@@ -191,7 +191,7 @@ describe('Load Testing - 50+ Concurrent Users', () => {
       const requestPromise = page.evaluate(async (token) => {
         const startTime = performance.now();
         try {
-          const response = await fetch('/api/utilisateurs/profile', {
+          const response = await fetch('http://localhost:3000/api/utilisateurs/profile', {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
