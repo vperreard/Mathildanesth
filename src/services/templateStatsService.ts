@@ -1,4 +1,4 @@
-// Service pour les statistiques des templates de simulation
+// Service pour les statistiques des modèles de simulation
 
 export interface TemplateUsageStats {
     templateId: string;
@@ -22,11 +22,11 @@ export interface TemplateStats {
 }
 
 /**
- * Récupère les statistiques d'utilisation des templates
+ * Récupère les statistiques d'utilisation des modèles
  */
 export async function fetchTemplateStats(): Promise<TemplateStats> {
     try {
-        const response = await fetch('http://localhost:3000/api/simulations/templates/stats');
+        const response = await fetch('http://localhost:3000/api/simulations/modèles/stats');
 
         if (!response.ok) {
             throw new Error('Erreur lors de la récupération des statistiques');
@@ -83,10 +83,10 @@ export function exportStatsAsCSV(stats: TemplateStats): string {
 
     csv += '\nTemplate,Utilisations,Dernière utilisation\n';
 
-    // Ajouter les données des templates les plus utilisés
-    stats.mostUsedTemplates.forEach(template => {
-        const lastUsedDate = new Date(template.lastUsed).toLocaleDateString();
-        csv += `"${template.templateName}",${template.usageCount},"${lastUsedDate}"\n`;
+    // Ajouter les données des modèles les plus utilisés
+    stats.mostUsedTemplates.forEach(modèle => {
+        const lastUsedDate = new Date(modèle.lastUsed).toLocaleDateString();
+        csv += `"${modèle.templateName}",${modèle.usageCount},"${lastUsedDate}"\n`;
     });
 
     return csv;
@@ -95,7 +95,7 @@ export function exportStatsAsCSV(stats: TemplateStats): string {
 /**
  * Télécharge les statistiques sous forme de fichier CSV
  */
-export function downloadStatsAsCSV(stats: TemplateStats, filename: string = 'template-stats.csv'): void {
+export function downloadStatsAsCSV(stats: TemplateStats, filename: string = 'modèle-stats.csv'): void {
     const csv = exportStatsAsCSV(stats);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

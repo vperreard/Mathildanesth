@@ -11,7 +11,7 @@ jest.mock('@/lib/prisma', () => ({
     leaveQuota: {
       findUnique: jest.fn(),
     },
-    assignment: {
+    attribution: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
       create: jest.fn(),
@@ -168,8 +168,8 @@ describe('BusinessRulesValidator', () => {
     beforeEach(() => {
     jest.clearAllMocks();
       // Reset all mocks
-      (prisma.assignment.findMany as jest.Mock).mockResolvedValue([]);
-      (prisma.assignment.findFirst as jest.Mock).mockResolvedValue(null);
+      (prisma.attribution.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.attribution.findFirst as jest.Mock).mockResolvedValue(null);
       (prisma.operatingRoom.findUnique as jest.Mock).mockResolvedValue({
         id: mockRoomId,
         name: 'Salle 1',
@@ -184,7 +184,7 @@ describe('BusinessRulesValidator', () => {
       });
     });
 
-    it('devrait valider une affectation valide', async () => {
+    it('devrait valider une garde/vacation valide', async () => {
       const result = await BusinessRulesValidator.validateAssignment({
         userId: mockUserId,
         operatingRoomId: mockRoomId,
@@ -197,8 +197,8 @@ describe('BusinessRulesValidator', () => {
     });
 
     it('devrait détecter les conflits horaires', async () => {
-      // Mock une affectation existante le même jour
-      (prisma.assignment.findMany as jest.Mock).mockResolvedValueOnce([
+      // Mock une garde/vacation existante le même jour
+      (prisma.attribution.findMany as jest.Mock).mockResolvedValueOnce([
         {
           id: 1,
           userId: mockUserId,
@@ -215,7 +215,7 @@ describe('BusinessRulesValidator', () => {
       });
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Une affectation existe déjà pour cette date');
+      expect(result.errors).toContain('Une garde/vacation existe déjà pour cette date');
     });
 
     it('devrait vérifier les compétences pour les salles spécialisées', async () => {
@@ -248,7 +248,7 @@ describe('BusinessRulesValidator', () => {
 
     it('devrait vérifier l\'intervalle minimum entre gardes', async () => {
       // Mock des gardes récentes
-      (prisma.assignment.findMany as jest.Mock)
+      (prisma.attribution.findMany as jest.Mock)
         .mockResolvedValueOnce([]) // Pas de conflit le jour même
         .mockResolvedValueOnce([
           {
@@ -279,7 +279,7 @@ describe('BusinessRulesValidator', () => {
         shiftType: 'GARDE',
       }));
 
-      (prisma.assignment.findMany as jest.Mock)
+      (prisma.attribution.findMany as jest.Mock)
         .mockResolvedValueOnce([]) // Pas de conflit le jour même
         .mockResolvedValueOnce([]) // Pas de garde récente
         .mockResolvedValueOnce(gardesThisMonth); // 4 gardes ce mois
@@ -305,7 +305,7 @@ describe('BusinessRulesValidator', () => {
         shiftType: 'JOUR',
       }));
 
-      (prisma.assignment.findMany as jest.Mock)
+      (prisma.attribution.findMany as jest.Mock)
         .mockResolvedValueOnce([]) // Pas de conflit le jour même
         .mockResolvedValueOnce(weekAssignments); // 40h cette semaine
 

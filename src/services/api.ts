@@ -1,15 +1,15 @@
 import { User } from '../types/user';
-import { Assignment, ValidationResult } from '../types/assignment';
+import { Attribution, ValidationResult } from '../types/attribution';
 import { apiConfig } from '../config/api';
 
 // Définir un type pour la réponse de l'API de génération
 interface GeneratePlanningResponse {
-    assignments: Assignment[];
+    attributions: Attribution[];
     validationResult: ValidationResult;
 }
 
 /**
- * Service API pour les opérations liées aux utilisateurs et aux affectations
+ * Service API pour les opérations liées aux utilisateurs et aux gardes/vacations
  */
 export class ApiService {
     private static instance: ApiService;
@@ -43,12 +43,12 @@ export class ApiService {
     }
 
     /**
-     * Récupère les affectations existantes pour une période donnée
+     * Récupère les gardes/vacations existantes pour une période donnée
      */
-    async getExistingAssignments(startDate: Date, endDate: Date): Promise<Assignment[]> {
+    async getExistingAssignments(startDate: Date, endDate: Date): Promise<Attribution[]> {
         try {
             const response = await fetch(
-                `${apiConfig.baseUrl}${apiConfig.endpoints.assignments.byDateRange(
+                `${apiConfig.baseUrl}${apiConfig.endpoints.attributions.byDateRange(
                     startDate.toISOString(),
                     endDate.toISOString()
                 )}`,
@@ -58,7 +58,7 @@ export class ApiService {
                 }
             );
             if (!response.ok) {
-                throw new Error('Erreur lors de la récupération des affectations');
+                throw new Error('Erreur lors de la récupération des gardes/vacations');
             }
             return await response.json();
         } catch (error) {
@@ -68,18 +68,18 @@ export class ApiService {
     }
 
     /**
-     * Sauvegarde les affectations générées
+     * Sauvegarde les gardes/vacations générées
      */
-    async saveAssignments(assignments: Assignment[]): Promise<void> {
+    async saveAssignments(attributions: Attribution[]): Promise<void> {
         try {
-            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.assignments.create}`, {
+            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.attributions.create}`, {
                 method: 'POST',
                 headers: apiConfig.headers,
-                body: JSON.stringify(assignments),
+                body: JSON.stringify(attributions),
                 credentials: 'include'
             });
             if (!response.ok) {
-                throw new Error('Erreur lors de la sauvegarde des affectations');
+                throw new Error('Erreur lors de la sauvegarde des gardes/vacations');
             }
         } catch (error) {
             console.error('Erreur API:', error);
@@ -120,12 +120,12 @@ export class ApiService {
     /**
      * Valide un planning
      */
-    async validatePlanning(assignments: Assignment[]): Promise<any> {
+    async validatePlanning(attributions: Attribution[]): Promise<any> {
         try {
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.planning.validate}`, {
                 method: 'POST',
                 headers: apiConfig.headers,
-                body: JSON.stringify(assignments),
+                body: JSON.stringify(attributions),
                 credentials: 'include'
             });
             if (!response.ok) {
@@ -141,12 +141,12 @@ export class ApiService {
     /**
      * Approuve un planning
      */
-    async approvePlanning(assignments: Assignment[]): Promise<void> {
+    async approvePlanning(attributions: Attribution[]): Promise<void> {
         try {
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.planning.approve}`, {
                 method: 'POST',
                 headers: apiConfig.headers,
-                body: JSON.stringify(assignments),
+                body: JSON.stringify(attributions),
                 credentials: 'include'
             });
             if (!response.ok) {
@@ -203,19 +203,19 @@ export class ApiService {
 
     /**
      * Sauvegarde un lot d'assignations (création/mise à jour)
-     * @param assignments Tableau des assignations à sauvegarder
+     * @param attributions Tableau des assignations à sauvegarder
      * @returns Résultat du traitement par lot
      */
-    async saveAssignmentsBatch(assignments: Assignment[]): Promise<{ message: string; count?: number; errors?: any[]; successCount?: number }> {
+    async saveAssignmentsBatch(attributions: Attribution[]): Promise<{ message: string; count?: number; errors?: any[]; successCount?: number }> {
         try {
-            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.assignments.batch}`, {
+            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.attributions.batch}`, {
                 method: 'POST',
                 headers: apiConfig.headers,
-                body: JSON.stringify({ assignments }),
+                body: JSON.stringify({ attributions }),
                 credentials: 'include'
             });
             if (!response.ok) {
-                throw new Error('Erreur lors de la sauvegarde des affectations par lots');
+                throw new Error('Erreur lors de la sauvegarde des gardes/vacations par lots');
             }
             return await response.json();
         } catch (error) {

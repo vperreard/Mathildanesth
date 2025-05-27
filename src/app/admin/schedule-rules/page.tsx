@@ -47,12 +47,12 @@ export default function ScheduleRulesPage() {
 
     // Naviguer vers la page de création
     const handleCreateRule = () => {
-        router.push('/admin/schedule-rules/nouveau');
+        router.push('/admin/planning médical-rules/nouveau');
     };
 
     // Naviguer vers la page d'édition
     const handleEditRule = (rule: ScheduleRule) => {
-        router.push(`/admin/schedule-rules/edit/${rule.id}`);
+        router.push(`/admin/planning médical-rules/edit/${rule.id}`);
     };
 
     // Ouvrir la boîte de dialogue de confirmation de suppression

@@ -10,7 +10,7 @@ jest.mock('@/lib/prisma');
 
 const ALLOWED_ROLES_TRAMES: AuthUserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL']; // SUPER_ADMIN retiré
 
-// GET /api/trames - Récupérer toutes les trames
+// GET /api/tableaux de service - Récupérer toutes les tableaux de service
 export async function GET(request: NextRequest) {
     try {
         const token = await getAuthTokenServer();
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
                 const headersList = await headers();
                 const devUserRole = headersList.get('x-user-role');
                 if (devUserRole && ALLOWED_ROLES_TRAMES.includes(devUserRole as AuthUserRole)) {
-                    console.log('[DEV MODE] Authentification par en-tête pour GET /api/trames après échec du token');
+                    console.log('[DEV MODE] Authentification par en-tête pour GET /api/tableaux de service après échec du token');
                 } else {
                     return NextResponse.json({ error: authError || 'Non autorisé' }, { status: 401 });
                 }
@@ -30,12 +30,12 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        const trames = await prisma.trameAffectation.findMany({
+        const tableaux de service = await prisma.trameAffectation.findMany({
             orderBy: { updatedAt: 'desc' },
             include: {
                 periods: {
                     include: {
-                        assignments: {
+                        attributions: {
                             include: {
                                 posts: true
                             }
@@ -52,17 +52,17 @@ export async function GET(request: NextRequest) {
             }
         });
 
-        return NextResponse.json(trames);
+        return NextResponse.json(tableaux de service);
     } catch (error) {
-        console.error('Erreur lors de la récupération des trames:', error);
+        console.error('Erreur lors de la récupération des tableaux de service:', error);
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la récupération des trames' },
+            { error: 'Erreur serveur lors de la récupération des tableaux de service' },
             { status: 500 }
         );
     }
 }
 
-// POST /api/trames - Créer une nouvelle trame
+// POST /api/tableaux de service - Créer une nouvelle tableau de service
 export async function POST(request: NextRequest) {
     try {
         const token = await getAuthTokenServer();
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
                 const headersList = await headers();
                 const devUserRole = headersList.get('x-user-role');
                 if (devUserRole && ALLOWED_ROLES_TRAMES.includes(devUserRole as AuthUserRole)) {
-                    console.log('[DEV MODE] Authentification par en-tête pour POST /api/trames après échec du token');
+                    console.log('[DEV MODE] Authentification par en-tête pour POST /api/tableaux de service après échec du token');
                 } else {
                     return NextResponse.json({ error: authError || 'Non autorisé' }, { status: 401 });
                 }
@@ -115,17 +115,17 @@ export async function POST(request: NextRequest) {
                         color: period.color,
                         isActive: period.isActive,
                         // isLocked: period.isLocked, // isLocked n'est pas sur TramePeriod d'après le schéma récent
-                        assignments: {
-                            create: period.assignments.map((assignment: any) => {
+                        attributions: {
+                            create: period.attributions.map((attribution: any) => {
                                 const assignmentId = uuidv4();
                                 return {
                                     id: assignmentId,
-                                    type: assignment.type, // Assumant que 'type' est correct pour TrameAssignment
-                                    name: assignment.name, // Assumant que 'name' est correct pour TrameAssignment
-                                    duration: assignment.duration,
-                                    isActive: assignment.isActive,
+                                    type: attribution.type, // Assumant que 'type' est correct pour TrameAssignment
+                                    name: attribution.name, // Assumant que 'name' est correct pour TrameAssignment
+                                    duration: attribution.duration,
+                                    isActive: attribution.isActive,
                                     posts: {
-                                        create: assignment.posts.map((post: any) => {
+                                        create: attribution.posts.map((post: any) => {
                                             const postId = uuidv4();
                                             return {
                                                 id: postId,
@@ -158,12 +158,12 @@ export async function POST(request: NextRequest) {
             // Le schéma actuel montre `createdBy   Int?` donc c'est optionnel.
         }
 
-        const trame = await prisma.trameAffectation.create({
+        const tableau de service = await prisma.trameAffectation.create({
             data: createData,
             include: {
                 periods: {
                     include: {
-                        assignments: {
+                        attributions: {
                             include: {
                                 posts: true
                             }
@@ -180,11 +180,11 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        return NextResponse.json(trame, { status: 201 });
+        return NextResponse.json(tableau de service, { status: 201 });
     } catch (error) {
-        console.error('Erreur lors de la création de la trame:', error);
+        console.error('Erreur lors de la création de la tableau de service:', error);
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la création de la trame' },
+            { error: 'Erreur serveur lors de la création de la tableau de service' },
             { status: 500 }
         );
     }

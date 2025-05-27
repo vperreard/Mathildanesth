@@ -385,7 +385,7 @@ function getEventTypeLabel(type: CalendarEventType): string {
         case CalendarEventType.ON_CALL:
             return 'Astreintes';
         case CalendarEventType.ASSIGNMENT:
-            return 'Affectations';
+            return 'Gardes/Vacations';
         case CalendarEventType.MEETING:
             return 'Rendez-vous';
         case CalendarEventType.TRAINING:

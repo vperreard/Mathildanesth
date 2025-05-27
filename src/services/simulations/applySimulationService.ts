@@ -1,4 +1,4 @@
-import { PrismaClient, SimulationStatus, Assignment, Leave } from '@prisma/client';
+import { PrismaClient, SimulationStatus, Attribution, Leave } from '@prisma/client';
 import { simulationNotificationService } from './notificationService';
 
 jest.mock('@/lib/prisma');
@@ -10,11 +10,11 @@ const prisma = prisma;
  * Options pour l'application d'une simulation au planning réel
  */
 export interface ApplySimulationOptions {
-    /** Si vrai, supprime toutes les affectations existantes dans la période avant d'appliquer les nouvelles */
+    /** Si vrai, supprime toutes les gardes/vacations existantes dans la période avant d'appliquer les nouvelles */
     clearExistingAssignments?: boolean;
     /** Si vrai, crée également les congés validés de la simulation */
     includeLeaves?: boolean;
-    /** Si vrai, inclut les affectations de garde/astreinte */
+    /** Si vrai, inclut les gardes/vacations de garde/astreinte */
     includeOnCall?: boolean;
     /** ID utilisateur qui effectue l'opération */
     userId: string;
@@ -74,26 +74,26 @@ export class ApplySimulationService {
             const startDate = new Date(resultData.simulatedPeriod.from);
             const endDate = new Date(resultData.simulatedPeriod.to);
 
-            // 3. Si demandé, supprimer toutes les affectations existantes dans cette période
+            // 3. Si demandé, supprimer toutes les gardes/vacations existantes dans cette période
             if (options.clearExistingAssignments) {
                 await this.clearExistingAssignments(startDate, endDate);
             }
 
             // 4. Convertir et appliquer les résultats
-            const assignments = await this.extractAssignmentsFromSimulation(resultData, simulationResult.scenario.id);
+            const attributions = await this.extractAssignmentsFromSimulation(resultData, simulationResult.scenario.id);
             const leaves = options.includeLeaves ? await this.extractLeavesFromSimulation(resultData) : [];
 
             // 5. Journaliser l'application
             const log = await this.logSimulationApplication(
                 simulationResultId,
                 options.userId,
-                assignments.length,
+                attributions.length,
                 leaves.length,
                 options.notes
             );
 
-            // 6. Créer les affectations extraites
-            const assignmentResults = await this.createAssignments(assignments);
+            // 6. Créer les gardes/vacations extraites
+            const assignmentResults = await this.createAssignments(attributions);
 
             // 7. Créer les congés si demandé
             let leaveResults = { created: 0, conflicts: [] };
@@ -109,7 +109,7 @@ export class ApplySimulationService {
                 leavesCreated: leaveResults.created,
                 conflicts: [...assignmentResults.conflicts, ...leaveResults.conflicts],
                 date: new Date().toISOString(),
-                message: `Simulation appliquée avec succès. ${assignmentResults.created} affectations créées, ${assignmentResults.updated} mises à jour, ${leaveResults.created} congés créés.`
+                message: `Simulation appliquée avec succès. ${assignmentResults.created} gardes/vacations créées, ${assignmentResults.updated} mises à jour, ${leaveResults.created} congés créés.`
             };
 
             // 9. Notifier l'utilisateur
@@ -145,11 +145,11 @@ export class ApplySimulationService {
     }
 
     /**
-     * Efface les affectations existantes dans la période spécifiée
+     * Efface les gardes/vacations existantes dans la période spécifiée
      */
     private async clearExistingAssignments(startDate: Date, endDate: Date): Promise<number> {
-        // Supprimer les affectations existantes dans la période
-        const { count } = await prisma.assignment.deleteMany({
+        // Supprimer les gardes/vacations existantes dans la période
+        const { count } = await prisma.attribution.deleteMany({
             where: {
                 date: {
                     gte: startDate,
@@ -162,20 +162,20 @@ export class ApplySimulationService {
     }
 
     /**
-     * Extrait les affectations à partir des résultats de simulation
+     * Extrait les gardes/vacations à partir des résultats de simulation
      */
     private async extractAssignmentsFromSimulation(
         resultData: any,
         scenarioId: string
-    ): Promise<Partial<Assignment>[]> {
-        // Vérifier si les données de simulation contiennent des affectations
-        if (!resultData.assignments || !Array.isArray(resultData.assignments)) {
+    ): Promise<Partial<Attribution>[]> {
+        // Vérifier si les données de simulation contiennent des gardes/vacations
+        if (!resultData.attributions || !Array.isArray(resultData.attributions)) {
             // Si les données ne sont pas dans le format attendu, on utilise un format alternatif
             return this.extractAssignmentsAlternative(resultData, scenarioId);
         }
 
-        // Conversion des affectations simulées en affectations réelles
-        return resultData.assignments.map((simAssignment: any) => {
+        // Conversion des gardes/vacations simulées en gardes/vacations réelles
+        return resultData.attributions.map((simAssignment: any) => {
             return {
                 userId: simAssignment.userId,
                 date: new Date(simAssignment.date),
@@ -185,17 +185,17 @@ export class ApplySimulationService {
                 notes: `Créé depuis simulation: ${scenarioId}`,
                 createdFromSimulation: true,
                 simulationScenarioId: scenarioId,
-                // Autres champs selon le modèle Assignment
+                // Autres champs selon le modèle Attribution
             };
         });
     }
 
     /**
-     * Méthode alternative d'extraction des affectations
+     * Méthode alternative d'extraction des gardes/vacations
      * pour les formats de données différents
      */
-    private extractAssignmentsAlternative(resultData: any, scenarioId: string): Partial<Assignment>[] {
-        const assignments: Partial<Assignment>[] = [];
+    private extractAssignmentsAlternative(resultData: any, scenarioId: string): Partial<Attribution>[] {
+        const attributions: Partial<Attribution>[] = [];
 
         // Extraire à partir de la distribution des postes si disponible
         if (resultData.shiftDistribution && Array.isArray(resultData.shiftDistribution)) {
@@ -210,13 +210,13 @@ export class ApplySimulationService {
                 // Note: cette partie devrait être remplacée par une requête réelle
                 const userId = 1; // placeholder, à remplacer par une recherche d'utilisateur
 
-                // Générer des affectations basées sur la distribution
+                // Générer des gardes/vacations basées sur la distribution
                 for (let i = 0; i < userShift.morningShifts; i++) {
                     const dayOffset = Math.floor(Math.random() * days);
                     const assignmentDate = new Date(startDate);
                     assignmentDate.setDate(assignmentDate.getDate() + dayOffset);
 
-                    assignments.push({
+                    attributions.push({
                         userId,
                         date: assignmentDate,
                         periode: 'MATIN',
@@ -233,7 +233,7 @@ export class ApplySimulationService {
                     const assignmentDate = new Date(startDate);
                     assignmentDate.setDate(assignmentDate.getDate() + dayOffset);
 
-                    assignments.push({
+                    attributions.push({
                         userId,
                         date: assignmentDate,
                         periode: 'APRES_MIDI',
@@ -246,7 +246,7 @@ export class ApplySimulationService {
             });
         }
 
-        return assignments;
+        return attributions;
     }
 
     /**
@@ -289,9 +289,9 @@ export class ApplySimulationService {
     }
 
     /**
-     * Crée les affectations dans la base de données
+     * Crée les gardes/vacations dans la base de données
      */
-    private async createAssignments(assignments: Partial<Assignment>[]): Promise<{
+    private async createAssignments(attributions: Partial<Attribution>[]): Promise<{
         created: number;
         updated: number;
         conflicts: any[];
@@ -300,39 +300,39 @@ export class ApplySimulationService {
         let updated = 0;
         const conflicts: any[] = [];
 
-        for (const assignment of assignments) {
+        for (const attribution of attributions) {
             try {
-                // Vérifier si une affectation existe déjà pour cet utilisateur à cette date et période
-                const existing = await prisma.assignment.findFirst({
+                // Vérifier si une garde/vacation existe déjà pour cet utilisateur à cette date et période
+                const existing = await prisma.attribution.findFirst({
                     where: {
-                        userId: assignment.userId,
-                        date: assignment.date,
-                        periode: assignment.periode
+                        userId: attribution.userId,
+                        date: attribution.date,
+                        periode: attribution.periode
                     }
                 });
 
                 if (existing) {
                     // Mettre à jour l'existant
-                    await prisma.assignment.update({
+                    await prisma.attribution.update({
                         where: { id: existing.id },
                         data: {
-                            ...assignment,
+                            ...attribution,
                             updatedAt: new Date()
                         }
                     });
                     updated++;
                 } else {
-                    // Créer une nouvelle affectation
-                    await prisma.assignment.create({
-                        data: assignment as any
+                    // Créer une nouvelle garde/vacation
+                    await prisma.attribution.create({
+                        data: attribution as any
                     });
                     created++;
                 }
             } catch (error) {
-                console.error('Erreur lors de la création d\'une affectation:', error);
+                console.error('Erreur lors de la création d\'une garde/vacation:', error);
                 conflicts.push({
                     type: 'ASSIGNMENT_CREATION_ERROR',
-                    assignment,
+                    attribution,
                     error: error instanceof Error ? error.message : 'Erreur inconnue'
                 });
             }

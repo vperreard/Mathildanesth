@@ -285,40 +285,40 @@ export const getQuickLinks = (userRole: string): NavigationItem[] => {
 // Terminologie médicale - mapping pour les remplacements
 export const medicalTerminology = {
   // Ancien → Nouveau
-  'Trames': 'Tableaux de service',
-  'trames': 'tableaux de service',
-  'Trame': 'Tableau de service',
-  'trame': 'tableau de service',
+  'Tableaux de service': 'Tableaux de service',
+  'tableaux de service': 'tableaux de service',
+  'Tableau de service': 'Tableau de service',
+  'tableau de service': 'tableau de service',
   
-  'Affectations': 'Gardes/Vacations',
-  'affectations': 'gardes/vacations',
-  'Affectation': 'Garde/Vacation',
-  'affectation': 'garde/vacation',
+  'Gardes/Vacations': 'Gardes/Vacations',
+  'gardes/vacations': 'gardes/vacations',
+  'Garde/Vacation': 'Garde/Vacation',
+  'garde/vacation': 'garde/vacation',
   
-  'Slots': 'Créneaux',
-  'slots': 'créneaux',
-  'Slot': 'Créneau',
-  'slot': 'créneau',
+  'Créneaux': 'Créneaux',
+  'créneaux': 'créneaux',
+  'Créneau': 'Créneau',
+  'créneau': 'créneau',
   
-  'Planning Generator': 'Organisateur de planning',
-  'planning generator': 'organisateur de planning',
-  'Generator': 'Organisateur',
-  'generator': 'organisateur',
+  'Organisateur de planning': 'Organisateur de planning',
+  'organisateur de planning': 'organisateur de planning',
+  'Organisateur': 'Organisateur',
+  'organisateur': 'organisateur',
   
-  'Templates': 'Modèles',
-  'templates': 'modèles',
-  'Template': 'Modèle',
-  'template': 'modèle',
+  'Modèles': 'Modèles',
+  'modèles': 'modèles',
+  'Modèle': 'Modèle',
+  'modèle': 'modèle',
   
-  'Assignments': 'Attributions',
-  'assignments': 'attributions',
-  'Assignment': 'Attribution',
-  'assignment': 'attribution',
+  'Attributions': 'Attributions',
+  'attributions': 'attributions',
+  'Attribution': 'Attribution',
+  'attribution': 'attribution',
   
-  'Schedule': 'Planning médical',
-  'schedule': 'planning médical',
-  'Scheduling': 'Planification',
-  'scheduling': 'planification'
+  'Planning médical': 'Planning médical',
+  'planning médical': 'planning médical',
+  'Planification': 'Planification',
+  'planification': 'planification'
 };
 
 // Breadcrumbs contextuels
@@ -343,8 +343,8 @@ export const getBreadcrumbs = (pathname: string, userRole: string): BreadcrumbIt
     'utilisateurs': 'Personnel Médical',
     'chirurgiens': 'Chirurgiens',
     'bloc-operatoire': 'Bloc Opératoire',
-    'trames': 'Tableaux de Service',
-    'affectations': 'Gardes/Vacations',
+    'tableaux de service': 'Tableaux de Service',
+    'gardes/vacations': 'Gardes/Vacations',
     'rapports': 'Rapports',
     'dashboard': 'Tableau de Bord'
   };

@@ -458,7 +458,7 @@ export const RuleDebugger: React.FC<RuleDebuggerProps> = ({
 
         .rule-debugger-layout {
           display: grid;
-          grid-template-columns: 300px 1fr;
+          grid-modèle-columns: 300px 1fr;
           gap: 1rem;
           height: calc(100vh - 120px);
           overflow: hidden;
@@ -572,7 +572,7 @@ export const RuleDebugger: React.FC<RuleDebuggerProps> = ({
 
         .options-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          grid-modèle-columns: repeat(auto-fill, minmax(200px, 1fr));
           gap: 1rem;
           margin-top: 0.5rem;
         }
@@ -731,7 +731,7 @@ export const RuleDebugger: React.FC<RuleDebuggerProps> = ({
 
         .metrics-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          grid-modèle-columns: repeat(auto-fill, minmax(200px, 1fr));
           gap: 1rem;
           margin-top: 0.5rem;
         }

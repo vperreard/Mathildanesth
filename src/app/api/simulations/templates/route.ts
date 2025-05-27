@@ -26,8 +26,8 @@ export async function GET(req: Request) {
             filters.category = categoryFilter;
         }
 
-        // Si publicOnly est vrai, on ne récupère que les templates publics
-        // Sinon, on récupère les templates publics et ceux créés par l'utilisateur
+        // Si publicOnly est vrai, on ne récupère que les modèles publics
+        // Sinon, on récupère les modèles publics et ceux créés par l'utilisateur
         if (publicOnly) {
             filters.isPublic = true;
         } else {
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
             ];
         }
 
-        const templates = await prisma.simulationTemplate.findMany({
+        const modèles = await prisma.simulationTemplate.findMany({
             where: filters,
             orderBy: { updatedAt: 'desc' },
             include: {
@@ -51,9 +51,9 @@ export async function GET(req: Request) {
             }
         });
 
-        return NextResponse.json(templates);
+        return NextResponse.json(modèles);
     } catch (error) {
-        console.error('Erreur lors de la récupération des templates de simulation:', error);
+        console.error('Erreur lors de la récupération des modèles de simulation:', error);
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }
@@ -79,15 +79,15 @@ export async function POST(req: Request) {
             );
         }
 
-        // Vérifier si l'utilisateur est admin pour créer un template public
+        // Vérifier si l'utilisateur est admin pour créer un modèle public
         if (isPublic && session.user.role !== Role.ADMIN_TOTAL && session.user.role !== Role.ADMIN_PARTIEL) {
             return NextResponse.json(
-                { error: 'Seuls les administrateurs peuvent créer des templates publics' },
+                { error: 'Seuls les administrateurs peuvent créer des modèles publics' },
                 { status: 403 }
             );
         }
 
-        const template = await prisma.simulationTemplate.create({
+        const modèle = await prisma.simulationTemplate.create({
             data: {
                 name,
                 description,
@@ -98,9 +98,9 @@ export async function POST(req: Request) {
             }
         });
 
-        return NextResponse.json(template, { status: 201 });
+        return NextResponse.json(modèle, { status: 201 });
     } catch (error) {
-        console.error('Erreur lors de la création du template de simulation:', error);
+        console.error('Erreur lors de la création du modèle de simulation:', error);
         return NextResponse.json(
             { error: 'Erreur serveur' },
             { status: 500 }

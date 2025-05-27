@@ -147,7 +147,7 @@ export function handleLegacyRedirect(pathname: string): void {
     '/bloc-operatoire': '/bloc-operatoire',
     '/bloc-operatoire/planning': '/bloc-operatoire/planning',
     '/bloc-operatoire/salles': '/bloc-operatoire/salles',
-    '/bloc-operatoire/trames': '/bloc-operatoire/trames',
+    '/bloc-operatoire/tableaux de service': '/bloc-operatoire/tableaux de service',
     '/bloc-operatoire/regles-supervision': '/bloc-operatoire/regles',
     '/admin/bloc-operatoire': '/bloc-operatoire',
     '/admin/bloc-operatoire/salles': '/bloc-operatoire/salles',

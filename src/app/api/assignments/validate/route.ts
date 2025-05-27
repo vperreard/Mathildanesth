@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RuleEngine } from '@/modules/rules/engine/rule-engine';
 import { prisma } from '@/lib/prisma';
 import { RuleEvaluationContext } from '@/modules/rules/types/rule';
-import { Assignment as AppAssignment } from '@/types/assignment'; // Renommer pour clarté
+import { Attribution as AppAssignment } from '@/types/attribution'; // Renommer pour clarté
 
 jest.mock('@/lib/prisma');
 
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         // Utiliser le type interne avec les champs requis
-        const assignmentsToValidate: AssignmentForValidation[] = body.assignments;
+        const assignmentsToValidate: AssignmentForValidation[] = body.attributions;
 
         if (!assignmentsToValidate || !Array.isArray(assignmentsToValidate)) {
             return NextResponse.json({ error: 'Format de données invalide.' }, { status: 400 });
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
         const validAssignments = assignmentsToValidate.filter(a => a.date && a.userId);
         if (validAssignments.length === 0) {
-            return NextResponse.json({ error: 'Aucune affectation valide à traiter.' }, { status: 400 });
+            return NextResponse.json({ error: 'Aucune garde/vacation valide à traiter.' }, { status: 400 });
         }
 
         const startDate = validAssignments.reduce((min, a) => (new Date(a.date) < min ? new Date(a.date) : min), new Date());
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         const rooms = await prisma.operatingRoom.findMany({ where: { id: { in: roomIds } } });
 
         const context: RuleEvaluationContext = {
-            assignments: validAssignments, // Utiliser les affectations filtrées
+            attributions: validAssignments, // Utiliser les gardes/vacations filtrées
             startDate: startDate,
             endDate: endDate,
             medecins: users.map(u => ({
@@ -69,9 +69,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(validationResult);
 
     } catch (error: any) {
-        console.error('Erreur API [POST /api/affectations/validate]:', error);
+        console.error('Erreur API [POST /api/gardes/vacations/validate]:', error);
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la validation des affectations.', details: error.message },
+            { error: 'Erreur serveur lors de la validation des gardes/vacations.', details: error.message },
             { status: 500 }
         );
     }

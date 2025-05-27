@@ -39,7 +39,7 @@ interface SimulationScenario {
         name: string;
     };
     templateId?: string;
-    template?: {
+    modèle?: {
         id: string;
         name: string;
     };
@@ -361,17 +361,17 @@ export default function ScenarioDetailsPage({ params }: { params: { scenarioId: 
                                         <dd className="mt-1">{dateRange}</dd>
                                     </div>
                                     <div>
-                                        <dt className="text-sm font-medium text-muted-foreground">Template utilisé</dt>
+                                        <dt className="text-sm font-medium text-muted-foreground">Modèle utilisé</dt>
                                         <dd className="mt-1">
-                                            {scenario.template ? (
+                                            {scenario.modèle ? (
                                                 <Link
-                                                    href={`/admin/simulations/templates/${scenario.template.id}`}
+                                                    href={`/admin/simulations/modèles/${scenario.modèle.id}`}
                                                     className="text-primary hover:underline"
                                                 >
-                                                    {scenario.template.name}
+                                                    {scenario.modèle.name}
                                                 </Link>
                                             ) : (
-                                                <span className="text-muted-foreground italic">Aucun template</span>
+                                                <span className="text-muted-foreground italic">Aucun modèle</span>
                                             )}
                                         </dd>
                                     </div>
@@ -602,17 +602,17 @@ export default function ScenarioDetailsPage({ params }: { params: { scenarioId: 
                                 <Separator />
 
                                 <div>
-                                    <h3 className="text-lg font-medium mb-2">Template</h3>
+                                    <h3 className="text-lg font-medium mb-2">Modèle</h3>
                                     <p className="mb-2">
-                                        {scenario.template ? (
+                                        {scenario.modèle ? (
                                             <Link
-                                                href={`/admin/simulations/templates/${scenario.template.id}`}
+                                                href={`/admin/simulations/modèles/${scenario.modèle.id}`}
                                                 className="text-primary hover:underline"
                                             >
-                                                {scenario.template.name}
+                                                {scenario.modèle.name}
                                             </Link>
                                         ) : (
-                                            <span className="text-muted-foreground italic">Aucun template</span>
+                                            <span className="text-muted-foreground italic">Aucun modèle</span>
                                         )}
                                     </p>
                                 </div>

@@ -6,11 +6,11 @@ import { BlocRoomAssignment } from '@/modules/planning/bloc-operatoire/models/Bl
 import { User, Users, Pencil, CheckCircle, XCircle, AlertTriangle, Clock } from 'lucide-react';
 
 interface ManualEditToolsProps {
-    assignments: BlocRoomAssignment[];
+    attributions: BlocRoomAssignment[];
     rooms: Array<{ id: string; name: string; number: string; sectorId: string }>;
     surgeons: Array<{ id: string; name: string; specialty?: string }>;
-    onAssignmentChange: (assignment: BlocRoomAssignment, action: 'add' | 'update' | 'delete') => Promise<void>;
-    onValidateAssignment: (assignment: BlocRoomAssignment) => Promise<{
+    onAssignmentChange: (attribution: BlocRoomAssignment, action: 'add' | 'update' | 'delete') => Promise<void>;
+    onValidateAssignment: (attribution: BlocRoomAssignment) => Promise<{
         isValid: boolean;
         conflicts: Array<{
             type: string;
@@ -22,7 +22,7 @@ interface ManualEditToolsProps {
 }
 
 export default function ManualEditTools({
-    assignments,
+    attributions,
     rooms,
     surgeons,
     onAssignmentChange,
@@ -40,7 +40,7 @@ export default function ManualEditTools({
             severity: 'warning' | 'error';
         }>;
     } | null>(null);
-    const [activeTab, setActiveTab] = useState<'assignment' | 'validation'>('assignment');
+    const [activeTab, setActiveTab] = useState<'attribution' | 'validation'>('attribution');
 
     const handleAssignmentChange = async (action: 'add' | 'update' | 'delete') => {
         if (!selectedRoom || (action !== 'delete' && !selectedSurgeon)) return;
@@ -50,17 +50,17 @@ export default function ManualEditTools({
             const roomId = selectedRoom;
             const surgeonId = selectedSurgeon;
 
-            const assignment: BlocRoomAssignment = {
+            const attribution: BlocRoomAssignment = {
                 roomId,
                 surgeonId: surgeonId || undefined,
                 // Ces valeurs devraient être déjà définies pour les mises à jour/suppressions
-                // ou fournies par le parent pour les nouvelles affectations
-                ...assignments.find(a => a.roomId === roomId)
+                // ou fournies par le parent pour les nouvelles gardes/vacations
+                ...attributions.find(a => a.roomId === roomId)
             };
 
             // Vérifier la validité avant d'effectuer le changement
             if (action !== 'delete') {
-                const validation = await onValidateAssignment(assignment);
+                const validation = await onValidateAssignment(attribution);
                 setValidationResult(validation);
                 setActiveTab('validation');
 
@@ -69,7 +69,7 @@ export default function ManualEditTools({
                 }
             }
 
-            await onAssignmentChange(assignment, action);
+            await onAssignmentChange(attribution, action);
 
             // Réinitialiser après succès
             if (action === 'add' || action === 'delete') {
@@ -77,9 +77,9 @@ export default function ManualEditTools({
                 setSelectedSurgeon(null);
             }
             setValidationResult(null);
-            setActiveTab('assignment');
+            setActiveTab('attribution');
         } catch (error) {
-            console.error('Erreur lors de la modification de l\'affectation:', error);
+            console.error('Erreur lors de la modification de l\'garde/vacation:', error);
         } finally {
             setIsLoading(false);
         }
@@ -87,7 +87,7 @@ export default function ManualEditTools({
 
     const getCurrentAssignment = () => {
         if (!selectedRoom) return null;
-        return assignments.find(a => a.roomId === selectedRoom);
+        return attributions.find(a => a.roomId === selectedRoom);
     };
 
     const currentAssignment = getCurrentAssignment();
@@ -96,13 +96,13 @@ export default function ManualEditTools({
         <Card className="p-5">
             <h2 className="text-xl font-semibold mb-4">Outils d'édition manuelle</h2>
 
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'assignment' | 'validation')} className="w-full mb-4">
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'attribution' | 'validation')} className="w-full mb-4">
                 <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="assignment">Affectation</TabsTrigger>
+                    <TabsTrigger value="attribution">Garde/Vacation</TabsTrigger>
                     <TabsTrigger value="validation" disabled={!validationResult}>Validation</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="assignment" className="space-y-4 mt-4">
+                <TabsContent value="attribution" className="space-y-4 mt-4">
                     <div className="space-y-3">
                         <div>
                             <label className="block text-sm font-medium mb-1">Salle</label>
@@ -157,7 +157,7 @@ export default function ManualEditTools({
                                 className="flex gap-2 items-center"
                             >
                                 <Pencil size={16} />
-                                Ajouter l'affectation
+                                Ajouter l'garde/vacation
                             </Button>
                         ) : (
                             <>
@@ -184,7 +184,7 @@ export default function ManualEditTools({
 
                     {currentAssignment && (
                         <div className="mt-4 p-3 bg-blue-50 rounded-md">
-                            <h3 className="text-sm font-medium text-blue-800">Affectation actuelle</h3>
+                            <h3 className="text-sm font-medium text-blue-800">Garde/Vacation actuelle</h3>
                             <p className="text-sm mt-1">
                                 Salle: {rooms.find(r => r.id === currentAssignment.roomId)?.name || 'Inconnue'}
                                 <br />
@@ -206,10 +206,10 @@ export default function ManualEditTools({
                                     )}
                                     <h3 className={`font-medium ${validationResult.isValid ? 'text-green-800' : 'text-yellow-800'}`}>
                                         {validationResult.isValid
-                                            ? 'Affectation valide'
+                                            ? 'Garde/Vacation valide'
                                             : validationResult.conflicts.some(c => c.severity === 'error')
-                                                ? 'Affectation invalide'
-                                                : 'Affectation avec avertissements'}
+                                                ? 'Garde/Vacation invalide'
+                                                : 'Garde/Vacation avec avertissements'}
                                     </h3>
                                 </div>
                             </div>
@@ -242,7 +242,7 @@ export default function ManualEditTools({
                                 <Button
                                     variant="outline"
                                     onClick={() => {
-                                        setActiveTab('assignment');
+                                        setActiveTab('attribution');
                                         setValidationResult(null);
                                     }}
                                 >
@@ -267,7 +267,7 @@ export default function ManualEditTools({
                                         ) : (
                                             <>
                                                 <CheckCircle size={16} />
-                                                Confirmer l'affectation
+                                                Confirmer l'garde/vacation
                                             </>
                                         )}
                                     </Button>

@@ -1,22 +1,22 @@
 import { useState, useCallback } from 'react';
-import { PlanningTemplate, ValidationResult, ValidationError } from '../types/template';
+import { PlanningTemplate, ValidationResult, ValidationError } from '../types/modèle';
 import { templateValidationService } from '../services/templateValidationService';
 
 /**
- * Hook pour valider une trame de planning
- * Permet de valider une trame et de récupérer les erreurs/avertissements
+ * Hook pour valider une tableau de service de planning
+ * Permet de valider une tableau de service et de récupérer les erreurs/avertissements
  */
 export function useTemplateValidation() {
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
     const [isValidating, setIsValidating] = useState<boolean>(false);
 
     /**
-     * Valide une trame complète
+     * Valide une tableau de service complète
      */
-    const validateTemplate = useCallback((template: PlanningTemplate): ValidationResult => {
+    const validateTemplate = useCallback((modèle: PlanningTemplate): ValidationResult => {
         setIsValidating(true);
         try {
-            const result = templateValidationService.validateTemplate(template);
+            const result = templateValidationService.validateTemplate(modèle);
             setValidationResult(result);
             return result;
         } finally {
@@ -47,7 +47,7 @@ export function useTemplateValidation() {
     }, [validationResult]);
 
     /**
-     * Vérifie si la trame est valide (sans erreurs bloquantes)
+     * Vérifie si la tableau de service est valide (sans erreurs bloquantes)
      */
     const isValid = useCallback((): boolean => {
         return validationResult ? validationResult.isValid : true;

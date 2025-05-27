@@ -18,8 +18,8 @@ describe('DashboardService', () => {
             const currentDate = new Date();
             const year = currentDate.getFullYear();
 
-            // Mock assignments
-            mockedPrisma.assignment = {
+            // Mock attributions
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([
                     { id: 1, date: new Date(), period: 'AM' },
                     { id: 2, date: new Date(Date.now() + 86400000), period: 'PM' },
@@ -64,7 +64,7 @@ describe('DashboardService', () => {
                 unreadNotifications: 5,
             });
 
-            expect(mockedPrisma.assignment.findMany).toHaveBeenCalledWith({
+            expect(mockedPrisma.attribution.findMany).toHaveBeenCalledWith({
                 where: {
                     userId,
                     date: { gte: expect.any(Date) },
@@ -79,7 +79,7 @@ describe('DashboardService', () => {
             const userId = 1;
 
             // Mock empty responses
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([]),
                 count: jest.fn().mockResolvedValue(0),
             } as any;
@@ -127,7 +127,7 @@ describe('DashboardService', () => {
                     .mockResolvedValueOnce(95), // active users
             } as any;
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 count: jest.fn().mockResolvedValue(200),
                 groupBy: jest.fn().mockResolvedValue([
                     { status: 'ASSIGNED', _count: { _all: 150 } },
@@ -169,7 +169,7 @@ describe('DashboardService', () => {
                 count: jest.fn().mockResolvedValue(30),
             } as any;
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 count: jest.fn().mockResolvedValue(50),
                 groupBy: jest.fn().mockResolvedValue([]),
             } as any;
@@ -204,8 +204,8 @@ describe('DashboardService', () => {
                 ]),
             } as any;
 
-            // Mock assignments
-            mockedPrisma.assignment = {
+            // Mock attributions
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([
                     { userId: 1, date: startDate, period: 'AM' },
                     { userId: 2, date: startDate, period: 'PM' },
@@ -226,7 +226,7 @@ describe('DashboardService', () => {
                     expect.objectContaining({ id: 1 }),
                     expect.objectContaining({ id: 2 }),
                 ]),
-                assignments: expect.any(Array),
+                attributions: expect.any(Array),
                 leaves: expect.any(Array),
                 statistics: expect.objectContaining({
                     totalMembers: 2,
@@ -242,7 +242,7 @@ describe('DashboardService', () => {
             const userId = 1;
             const year = new Date().getFullYear();
 
-            // Mock monthly assignments
+            // Mock monthly attributions
             mockedPrisma.$queryRaw = jest.fn().mockResolvedValue([
                 { month: 1, count: 20 },
                 { month: 2, count: 18 },

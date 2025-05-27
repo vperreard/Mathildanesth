@@ -60,22 +60,22 @@ describe('RuleBuilder Integration', () => {
       });
     });
 
-    it('should create a rule from template', async () => {
-      const template: RuleTemplate = {
-        id: 'test-template',
-        name: 'Test Template',
+    it('should create a rule from modèle', async () => {
+      const modèle: RuleTemplate = {
+        id: 'test-modèle',
+        name: 'Test Modèle',
         category: 'Test',
-        description: 'Template description',
+        description: 'Modèle description',
         baseRule: {
-          name: 'Rule from template',
-          description: 'Template rule',
+          name: 'Rule from modèle',
+          description: 'Modèle rule',
           type: 'PLANNING',
           priority: 10,
           conditions: [
             { field: 'user.role', operator: 'EQUALS', value: 'IADE' }
           ],
           actions: [
-            { type: 'PREVENT', target: 'assignment', message: 'Not allowed' }
+            { type: 'PREVENT', target: 'attribution', message: 'Not allowed' }
           ]
         },
         parameters: [],
@@ -84,18 +84,18 @@ describe('RuleBuilder Integration', () => {
 
       render(
         <RuleBuilder 
-          template={template}
+          modèle={modèle}
           onSave={mockOnSave}
           onCancel={mockOnCancel}
         />
       );
 
-      // Template info should be displayed
-      expect(screen.getByText('Basé sur le template : Test Template')).toBeInTheDocument();
+      // Modèle info should be displayed
+      expect(screen.getByText('Basé sur le modèle : Test Modèle')).toBeInTheDocument();
 
       // Fields should be pre-filled
-      expect(screen.getByDisplayValue('Rule from template')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('Template rule')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Rule from modèle')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Modèle rule')).toBeInTheDocument();
     });
   });
 

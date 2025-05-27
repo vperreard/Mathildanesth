@@ -1,6 +1,6 @@
 import { PlanningGeneratorService } from '@/modules/planning/services/PlanningGeneratorService';
 import { User } from '@/types/user';
-import { Assignment } from '@/types/assignment';
+import { Attribution } from '@/types/attribution';
 import { Rule, RuleType } from '@/modules/dynamicRules/types/rule';
 import { RuleEngineService } from '@/modules/dynamicRules/services/ruleEngineService';
 import { RuleConflictDetectionService } from '@/modules/dynamicRules/services/RuleConflictDetectionService';
@@ -13,7 +13,7 @@ import { RulesConfiguration } from '@/types/rules';
  */
 export interface OptimizationResult {
     score: number;
-    validAssignments: Assignment[];
+    validAssignments: Attribution[];
     violatedRules: {
         ruleId: string;
         ruleName: string;
@@ -87,7 +87,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
      * Génère un planning en respectant les règles dynamiques
      * @override
      */
-    public async generatePlanning(): Promise<Assignment[]> {
+    public async generatePlanning(): Promise<Attribution[]> {
         console.log('Début de la génération de planning basée sur les règles...');
 
         if (this.dynamicRules.length === 0) {
@@ -98,13 +98,13 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
         this.optimizationScores = [];
 
         const initialAssignments = await super.generatePlanning();
-        console.log(`Planning initial généré avec ${initialAssignments.length} affectations.`);
+        console.log(`Planning initial généré avec ${initialAssignments.length} gardes/vacations.`);
 
         const optimizedResult = await this.optimizePlanning(initialAssignments);
 
         console.log(
             `Génération terminée. Score final: ${optimizedResult.score.toFixed(2)}. ` +
-            `${optimizedResult.validAssignments.length} affectations valides. ` +
+            `${optimizedResult.validAssignments.length} gardes/vacations valides. ` +
             `${optimizedResult.violatedRules.length} règles violées.`
         );
         this.eventBus.emit({
@@ -133,13 +133,13 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
         this.optimizationScores = [];
 
         const initialAssignments = await super.generatePlanning();
-        console.log(`Planning initial généré (pour détails) avec ${initialAssignments.length} affectations.`);
+        console.log(`Planning initial généré (pour détails) avec ${initialAssignments.length} gardes/vacations.`);
 
         const optimizedResult = await this.optimizePlanning(initialAssignments);
 
         console.log(
             `Génération détaillée terminée. Score final: ${optimizedResult.score.toFixed(2)}. ` +
-            `${optimizedResult.validAssignments.length} affectations valides. ` +
+            `${optimizedResult.validAssignments.length} gardes/vacations valides. ` +
             `${optimizedResult.violatedRules.length} règles violées.`
         );
         this.eventBus.emit({
@@ -157,9 +157,9 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
     /**
      * Optimise un planning existant en appliquant les règles dynamiques
      */
-    private async optimizePlanning(assignments: Assignment[]): Promise<OptimizationResult> {
+    private async optimizePlanning(attributions: Attribution[]): Promise<OptimizationResult> {
         console.log("Début de l'optimisation du planning...");
-        let currentAssignments = [...assignments];
+        let currentAssignments = [...attributions];
         let bestResult: OptimizationResult = this.evaluatePlanningQuality(currentAssignments);
         console.log(`Score initial: ${bestResult.score.toFixed(2)}, Règles violées: ${bestResult.violatedRules.length}`);
 
@@ -176,10 +176,10 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
 
             const problematicAssignments = this.identifyProblematicAssignments(currentAssignments, violatedRuleIds);
             if (problematicAssignments.length === 0) {
-                console.log('Aucune affectation problématique identifiée pour les règles violées, arrêt.');
+                console.log('Aucune garde/vacation problématique identifiée pour les règles violées, arrêt.');
                 break;
             }
-            console.log(`${problematicAssignments.length} affectations problématiques identifiées.`);
+            console.log(`${problematicAssignments.length} gardes/vacations problématiques identifiées.`);
 
             const improvedAssignments = await this.generateAlternativeAssignments(
                 currentAssignments,
@@ -212,10 +212,10 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
      * Évalue la qualité d'un planning en fonction des règles
      * Remplace l'ancienne méthode qui simulait l'évaluation.
      */
-    private evaluatePlanningQuality(assignments: Assignment[]): OptimizationResult {
-        console.log(`Évaluation de la qualité du planning avec ${assignments.length} affectations.`);
+    private evaluatePlanningQuality(attributions: Attribution[]): OptimizationResult {
+        console.log(`Évaluation de la qualité du planning avec ${attributions.length} gardes/vacations.`);
         const context = {
-            assignments,
+            attributions,
             users: this.users,
             startDate: this.startDate,
             endDate: this.endDate,
@@ -247,15 +247,15 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
 
         // Calculer les scores
         const ruleComplianceScore = this.calculateRuleComplianceScore(violatedRules.length, evaluationResults.length);
-        const equityScore = this.calculateEquityScore(assignments);
-        const satisfactionScore = this.calculateSatisfactionScore(assignments);
+        const equityScore = this.calculateEquityScore(attributions);
+        const satisfactionScore = this.calculateSatisfactionScore(attributions);
 
         // Score global pondéré (exemple)
         const totalScore = (ruleComplianceScore * 0.6) + (equityScore * 0.2) + (satisfactionScore * 0.2);
 
         return {
             score: totalScore,
-            validAssignments: assignments,
+            validAssignments: attributions,
             violatedRules: violatedRules,
             metrics: {
                 equityScore,
@@ -266,38 +266,38 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
     }
 
     /**
-     * Identifie les affectations problématiques liées aux règles violées.
+     * Identifie les gardes/vacations problématiques liées aux règles violées.
      */
-    private identifyProblematicAssignments(assignments: Assignment[], violatedRuleIds: Set<string>): Assignment[] {
-        // Implémentation simplifiée : retourne toutes les affectations pour l'instant.
+    private identifyProblematicAssignments(attributions: Attribution[], violatedRuleIds: Set<string>): Attribution[] {
+        // Implémentation simplifiée : retourne toutes les gardes/vacations pour l'instant.
         // Une meilleure implémentation analyserait le contexte de chaque règle violée
-        // pour identifier les affectations spécifiques qui causent la violation.
-        console.log(`Identification des affectations problématiques pour ${violatedRuleIds.size} règles violées... (Simplifié)`);
-        // TODO: Implémenter une logique plus fine pour lier violations et affectations.
-        return assignments.filter((assignment, index) => index < 5); // Limiter pour tester
+        // pour identifier les gardes/vacations spécifiques qui causent la violation.
+        console.log(`Identification des gardes/vacations problématiques pour ${violatedRuleIds.size} règles violées... (Simplifié)`);
+        // TODO: Implémenter une logique plus fine pour lier violations et gardes/vacations.
+        return attributions.filter((attribution, index) => index < 5); // Limiter pour tester
     }
 
     /**
-     * Génère des alternatives pour les affectations problématiques.
-     * Essaye de trouver de meilleures affectations qui respectent davantage les règles.
+     * Génère des alternatives pour les gardes/vacations problématiques.
+     * Essaye de trouver de meilleures gardes/vacations qui respectent davantage les règles.
      */
     private async generateAlternativeAssignments(
-        currentAssignments: Assignment[],
-        problematicAssignments: Assignment[]
-    ): Promise<Assignment[]> {
-        console.log(`Génération d'alternatives pour ${problematicAssignments.length} affectations...`);
+        currentAssignments: Attribution[],
+        problematicAssignments: Attribution[]
+    ): Promise<Attribution[]> {
+        console.log(`Génération d'alternatives pour ${problematicAssignments.length} gardes/vacations...`);
         let newAssignments = [...currentAssignments];
         let changesMade = 0;
 
         for (const problematicAssignment of problematicAssignments) {
             const alternative = await this.findBetterAssignment(problematicAssignment, newAssignments);
             if (alternative) {
-                // Remplacer l'affectation problématique par l'alternative
+                // Remplacer l'garde/vacation problématique par l'alternative
                 newAssignments = newAssignments.map(assign =>
                     assign.id === problematicAssignment.id ? alternative : assign
                 );
                 changesMade++;
-                console.log(`Alternative trouvée pour l'affectation ${problematicAssignment.id}`);
+                console.log(`Alternative trouvée pour l'garde/vacation ${problematicAssignment.id}`);
             }
         }
         console.log(`${changesMade} alternatives appliquées.`);
@@ -305,13 +305,13 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
     }
 
     /**
-     * Cherche une meilleure affectation (utilisateur différent ou shift différent)
-     * pour remplacer une affectation problématique.
+     * Cherche une meilleure garde/vacation (utilisateur différent ou shift différent)
+     * pour remplacer une garde/vacation problématique.
      */
     private async findBetterAssignment(
-        problematicAssignment: Assignment,
-        currentAssignments: Assignment[]
-    ): Promise<Assignment | null> {
+        problematicAssignment: Attribution,
+        currentAssignments: Attribution[]
+    ): Promise<Attribution | null> {
         const date = problematicAssignment.startDate; // Utiliser la date de début
         const shiftType = problematicAssignment.shiftType;
         const currentUser = this.users.find(u => u.id === problematicAssignment.userId);
@@ -325,7 +325,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
         console.log(`Recherche d'alternative pour ${currentUser.email} le ${formatDate(date, 'yyyy-MM-dd')} (${shiftType}). ${availableUsers.length} autres utilisateurs disponibles.`);
 
         for (const potentialUser of availableUsers) {
-            const potentialAssignment: Assignment = {
+            const potentialAssignment: Attribution = {
                 ...problematicAssignment,
                 id: `alt-${problematicAssignment.id}-${potentialUser.id}`,
                 userId: potentialUser.id,
@@ -339,11 +339,11 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
             );
             const tempEvaluation = this.evaluatePlanningQuality(tempAssignments);
 
-            // Comparer avec une évaluation où l'affectation problématique est simplement retirée
+            // Comparer avec une évaluation où l'garde/vacation problématique est simplement retirée
             const assignmentsWithoutProblem = currentAssignments.filter(a => a.id !== problematicAssignment.id);
             const evalWithoutProblem = this.evaluatePlanningQuality(assignmentsWithoutProblem);
 
-            // Si l'alternative est meilleure que de simplement supprimer l'affectation problématique
+            // Si l'alternative est meilleure que de simplement supprimer l'garde/vacation problématique
             if (tempEvaluation.score > evalWithoutProblem.score) {
                 console.log(`  -> Utilisateur alternatif ${potentialUser.email} améliore le score.`);
                 // Retourner une copie propre de l'alternative
@@ -354,7 +354,7 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
         // 2. Si aucun utilisateur alternatif n'améliore, envisager d'autres stratégies
         //    (changer le type de shift, laisser vacant, etc.) - Non implémenté ici
 
-        console.log(`  -> Aucune alternative trouvée pour l'affectation ${problematicAssignment.id}.`);
+        console.log(`  -> Aucune alternative trouvée pour l'garde/vacation ${problematicAssignment.id}.`);
         return null;
     }
 
@@ -366,23 +366,23 @@ export class RuleBasedPlanningGeneratorService extends PlanningGeneratorService 
         return Math.max(0, complianceRatio * 100);
     }
 
-    private calculateEquityScore(assignments: Assignment[]): number {
+    private calculateEquityScore(attributions: Attribution[]): number {
         // Logique d'équité simplifiée
-        const counts = this.users.map(user => assignments.filter(a => a.userId === user.id).length);
+        const counts = this.users.map(user => attributions.filter(a => a.userId === user.id).length);
         if (counts.length < 2) return 100;
         const min = Math.min(...counts);
         const max = Math.max(...counts);
         return max === 0 ? 100 : Math.max(0, (1 - (max - min) / max) * 100);
     }
 
-    private calculateSatisfactionScore(assignments: Assignment[]): number {
+    private calculateSatisfactionScore(attributions: Attribution[]): number {
         // Logique de satisfaction simplifiée (pourrait utiliser les préférences utilisateur)
         return 80; // Placeholder
     }
 
     // Supprimer ou remplacer l'ancienne méthode de simulation
     /*
-    private simulateRuleEvaluation(rule: Rule, assignments: Assignment[]): boolean {
+    private simulateRuleEvaluation(rule: Rule, attributions: Attribution[]): boolean {
         // ... ancienne logique ...
         console.warn("Utilisation de simulateRuleEvaluation - à remplacer par le vrai moteur de règles.");
         // Simulation simple : échoue aléatoirement avec une probabilité basée sur la priorité

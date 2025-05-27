@@ -197,7 +197,7 @@ export const useValidationRules = () => {
             });
 
         if (supervisedSectorTypes.size === 0) {
-            return result; // Première affectation
+            return result; // Première garde/vacation
         }
 
         // Vérifier la compatibilité selon les règles
@@ -227,7 +227,7 @@ export const useValidationRules = () => {
         return result;
     }, []);
 
-    // Vérifier les conflits avec d'autres affectations
+    // Vérifier les conflits avec d'autres gardes/vacations
     const validateNoConflicts = useCallback((
         context: ValidationContext,
         roleType: 'ANESTHESIA' | 'SUPERVISION',
@@ -241,7 +241,7 @@ export const useValidationRules = () => {
             warnings: []
         };
 
-        // Vérifier si le superviseur a déjà une affectation incompatible
+        // Vérifier si le superviseur a déjà une garde/vacation incompatible
         const existingAssignments = context.existingAssignments.filter(
             a => a.supervisorId === context.supervisorId &&
                  a.day === day &&
@@ -287,7 +287,7 @@ export const useValidationRules = () => {
     // Validation globale
     const validateAssignment = useCallback((
         context: ValidationContext,
-        assignment: {
+        attribution: {
             roomId: number;
             roleType: 'ANESTHESIA' | 'SUPERVISION';
             day: DayOfWeek;
@@ -295,10 +295,10 @@ export const useValidationRules = () => {
         }
     ): ValidationResult => {
         const results: ValidationResult[] = [
-            validateMaxRooms(context, assignment.roomId, assignment.day, assignment.period),
-            validateRoomContiguity(context, assignment.roomId, assignment.day, assignment.period),
-            validateSectorCompatibility(context, assignment.roomId, assignment.day, assignment.period),
-            validateNoConflicts(context, assignment.roleType, assignment.roomId, assignment.day, assignment.period)
+            validateMaxRooms(context, attribution.roomId, attribution.day, attribution.period),
+            validateRoomContiguity(context, attribution.roomId, attribution.day, attribution.period),
+            validateSectorCompatibility(context, attribution.roomId, attribution.day, attribution.period),
+            validateNoConflicts(context, attribution.roleType, attribution.roomId, attribution.day, attribution.period)
         ];
 
         // Fusionner tous les résultats

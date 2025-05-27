@@ -1,25 +1,25 @@
 /**
- * Types pour les trames de planning du bloc opératoire
+ * Types pour les tableaux de service de planning du bloc opératoire
  */
 import { BlocSupervisor } from './bloc-planning-types';
 
 /**
- * Statut d'une trame
+ * Statut d'une tableau de service
  */
 export type TemplateStatus = 'BROUILLON' | 'PUBLIE' | 'ARCHIVE';
 
 /**
- * Type de trame
+ * Type de tableau de service
  */
 export type TemplateType = 'STANDARD' | 'VACANCES' | 'WEEKEND' | 'PERSONNALISE';
 
 /**
- * Pattern d'application de la trame
+ * Pattern d'application de la tableau de service
  */
 export type TemplatePattern = 'QUOTIDIEN' | 'HEBDOMADAIRE' | 'MENSUEL' | 'SPECIFIQUE';
 
 /**
- * Affectation de superviseur dans une trame
+ * Garde/Vacation de superviseur dans une tableau de service
  */
 export interface TemplateSupervisorAssignment {
     role: string;
@@ -31,7 +31,7 @@ export interface TemplateSupervisorAssignment {
 }
 
 /**
- * Affectation de salle dans une trame
+ * Garde/Vacation de salle dans une tableau de service
  */
 export interface TemplateRoomAssignment {
     salleId: string;
@@ -39,7 +39,7 @@ export interface TemplateRoomAssignment {
 }
 
 /**
- * Trame de planning pour le bloc opératoire
+ * Tableau de service de planning pour le bloc opératoire
  */
 export interface BlocPlanningTemplate {
     id: string;
@@ -52,13 +52,13 @@ export interface BlocPlanningTemplate {
     updatedAt: Date;
     createdBy: string;
     salles: TemplateRoomAssignment[];
-    jours?: number[]; // Jours de la semaine (1-7) pour les trames hebdomadaires
-    dates?: string[]; // Dates spécifiques pour les trames de type SPECIFIQUE
+    jours?: number[]; // Jours de la semaine (1-7) pour les tableaux de service hebdomadaires
+    dates?: string[]; // Dates spécifiques pour les tableaux de service de type SPECIFIQUE
     estActif: boolean;
 }
 
 /**
- * Application d'une trame à un planning
+ * Application d'une tableau de service à un planning
  */
 export interface TemplateApplication {
     templateId: string;
@@ -69,7 +69,7 @@ export interface TemplateApplication {
 }
 
 /**
- * Résultat de l'application d'une trame
+ * Résultat de l'application d'une tableau de service
  */
 export interface TemplateApplicationResult {
     success: boolean;

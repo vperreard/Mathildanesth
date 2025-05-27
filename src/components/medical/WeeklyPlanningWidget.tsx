@@ -48,7 +48,7 @@ interface WeeklyPlanningWidgetProps {
     className?: string;
 }
 
-// Configuration des couleurs par type d'affectation
+// Configuration des couleurs par type d'garde/vacation
 const shiftColors = {
     GARDE_24H: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-800 dark:text-red-200', icon: Moon },
     ASTREINTE: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-800 dark:text-orange-200', icon: AlertCircle },
@@ -254,7 +254,7 @@ export default function WeeklyPlanningWidget({ userId, className }: WeeklyPlanni
                     <div className="mb-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
                         <div className="flex items-center gap-2">
                             <AlertCircle className="h-5 w-5 text-primary" />
-                            <p className="font-medium">Prochaine affectation</p>
+                            <p className="font-medium">Prochaine garde/vacation</p>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
                             {shiftLabels[nextShift.type]} - {format(new Date(nextShift.startTime), 'EEEE d MMMM à HH:mm', { locale: fr })}
@@ -302,7 +302,7 @@ export default function WeeklyPlanningWidget({ userId, className }: WeeklyPlanni
                                 </div>
                             ) : (
                                 <p className="text-sm text-muted-foreground italic">
-                                    Aucune affectation
+                                    Aucune garde/vacation
                                 </p>
                             )}
                         </div>

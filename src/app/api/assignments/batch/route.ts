@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { Assignment } from '@/types/assignment';
+import { Attribution } from '@/types/attribution';
 
 jest.mock('@/lib/prisma');
 
@@ -10,8 +10,8 @@ jest.mock('@/lib/prisma');
 const prisma = prisma;
 
 /**
- * POST /api/affectations/batch
- * Traite un lot d'affectations (création ou mise à jour)
+ * POST /api/gardes/vacations/batch
+ * Traite un lot d'gardes/vacations (création ou mise à jour)
  */
 export async function POST(req: NextRequest) {
     try {
@@ -35,46 +35,46 @@ export async function POST(req: NextRequest) {
 
         // Récupération des données
         const body = await req.json();
-        const { assignments } = body as { assignments: Assignment[] };
+        const { attributions } = body as { attributions: Attribution[] };
 
-        if (!assignments || !Array.isArray(assignments) || assignments.length === 0) {
+        if (!attributions || !Array.isArray(attributions) || attributions.length === 0) {
             return NextResponse.json(
-                { error: 'Aucune affectation valide n\'a été fournie' },
+                { error: 'Aucune garde/vacation valide n\'a été fournie' },
                 { status: 400 }
             );
         }
 
-        // Traitement par lots des affectations
+        // Traitement par lots des gardes/vacations
         const results = await Promise.all(
-            assignments.map(async (assignment) => {
+            attributions.map(async (attribution) => {
                 try {
                     // Préparation des données pour Prisma
                     const assignmentData = {
-                        userId: assignment.userId,
-                        date: new Date(assignment.date),
-                        type: assignment.type,
-                        shift: assignment.shift || null,
-                        secteur: assignment.secteur || null,
-                        salle: assignment.salle || null,
-                        confirmed: assignment.confirmed || false,
+                        userId: attribution.userId,
+                        date: new Date(attribution.date),
+                        type: attribution.type,
+                        shift: attribution.shift || null,
+                        secteur: attribution.secteur || null,
+                        salle: attribution.salle || null,
+                        confirmed: attribution.confirmed || false,
                     };
 
-                    // Si l'assignment a un ID, mise à jour, sinon création
-                    if (assignment.id && assignment.id !== 'new') {
-                        // Mise à jour d'une affectation existante
-                        return await prisma.assignment.update({
-                            where: { id: assignment.id },
+                    // Si l'attribution a un ID, mise à jour, sinon création
+                    if (attribution.id && attribution.id !== 'new') {
+                        // Mise à jour d'une garde/vacation existante
+                        return await prisma.attribution.update({
+                            where: { id: attribution.id },
                             data: assignmentData,
                         });
                     } else {
-                        // Création d'une nouvelle affectation
-                        return await prisma.assignment.create({
+                        // Création d'une nouvelle garde/vacation
+                        return await prisma.attribution.create({
                             data: assignmentData,
                         });
                     }
                 } catch (error) {
-                    console.error(`Erreur lors du traitement de l'affectation: ${error}`);
-                    return { error: `Échec pour l'affectation de l'utilisateur ${assignment.userId}` };
+                    console.error(`Erreur lors du traitement de l'garde/vacation: ${error}`);
+                    return { error: `Échec pour l'garde/vacation de l'utilisateur ${attribution.userId}` };
                 }
             })
         );
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
         if (errors.length > 0) {
             return NextResponse.json(
                 {
-                    message: 'Certaines affectations n\'ont pas pu être traitées',
+                    message: 'Certaines gardes/vacations n\'ont pas pu être traitées',
                     errors,
                     successCount: results.length - errors.length
                 },
@@ -94,15 +94,15 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(
             {
-                message: 'Toutes les affectations ont été traitées avec succès',
+                message: 'Toutes les gardes/vacations ont été traitées avec succès',
                 count: results.length
             },
             { status: 200 }
         );
     } catch (error) {
-        console.error('Erreur lors du traitement des affectations par lots:', error);
+        console.error('Erreur lors du traitement des gardes/vacations par lots:', error);
         return NextResponse.json(
-            { error: 'Une erreur est survenue lors du traitement des affectations' },
+            { error: 'Une erreur est survenue lors du traitement des gardes/vacations' },
             { status: 500 }
         );
     }

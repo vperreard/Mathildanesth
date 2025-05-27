@@ -61,7 +61,7 @@ describe('TrameModelesConfigPanel', () => {
 
     // Mock par défaut pour les appels API (listes vides au départ)
     mockedAxios.get.mockImplementation(url => {
-      if (url === '/api/trame-modeles?includeAffectations=true') {
+      if (url === '/api/tableau de service-modeles?includeAffectations=true') {
         return Promise.resolve({ data: [] });
       }
       if (url === '/api/sites') {
@@ -87,12 +87,12 @@ describe('TrameModelesConfigPanel', () => {
     render(<TrameModelesConfigPanel />);
 
     // Vérifier le titre
-    expect(screen.getByText('Gestion des Modèles de Trame')).toBeInTheDocument();
+    expect(screen.getByText('Gestion des Modèles de Tableau de service')).toBeInTheDocument();
 
     // Attendre que l'état de chargement initial soit résolu
     // Le bouton "Ajouter un modèle" ne s'affiche que si !isLoading et isAuthenticated
     await waitFor(() => {
-      expect(screen.queryByText('Chargement des modèles de trame...')).not.toBeInTheDocument();
+      expect(screen.queryByText('Chargement des modèles de tableau de service...')).not.toBeInTheDocument();
     });
 
     // Vérifier la présence du bouton "Ajouter un modèle"
@@ -113,24 +113,24 @@ describe('TrameModelesConfigPanel', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Vous devez être connecté pour gérer les modèles de trame.')
+        screen.getByText('Vous devez être connecté pour gérer les modèles de tableau de service.')
       ).toBeInTheDocument();
     });
     expect(screen.queryByRole('button', { name: /Ajouter un modèle/i })).not.toBeInTheDocument();
   });
 
-  test('devrait afficher "Aucun modèle de trame" si la liste est vide après chargement', async () => {
+  test('devrait afficher "Aucun modèle de tableau de service" si la liste est vide après chargement', async () => {
     // Les mocks par défaut retournent déjà des listes vides
     render(<TrameModelesConfigPanel />);
 
     await waitFor(() => {
-      expect(screen.getByText('Aucun modèle de trame')).toBeInTheDocument();
+      expect(screen.getByText('Aucun modèle de tableau de service')).toBeInTheDocument();
     });
-    expect(screen.getByText('Commencez par créer un nouveau modèle de trame.')).toBeInTheDocument();
+    expect(screen.getByText('Commencez par créer un nouveau modèle de tableau de service.')).toBeInTheDocument();
   });
 
   // D'autres tests suivront :
-  // - Affichage des modèles de trame dans le tableau
+  // - Affichage des modèles de tableau de service dans le tableau
   // - Ouverture de la modale de création/édition
   // - Soumission du formulaire de TrameModele (création et édition)
   // - Suppression d'un TrameModele
@@ -155,7 +155,7 @@ const mockTrameModele = (id: number, name: string, siteName?: string): any => ({
   recurrenceType: 'HEBDOMADAIRE', // Assurez-vous que cela correspond à RecurrenceTypeTrame
   joursSemaineActifs: [1, 2, 3, 4, 5],
   typeSemaine: 'TOUTES', // Assurez-vous que cela correspond à TypeSemaineTrame
-  affectations: [],
+  gardes/vacations: [],
   // Ajoutez d'autres champs de TrameModele si nécessaire pour les tests
 });
 
@@ -180,13 +180,13 @@ describe('TrameModelesConfigPanel - Affichage des données', () => {
     // Configuration par défaut des mocks axios pour ce describe block si différent
   });
 
-  test('devrait afficher les modèles de trame dans le tableau', async () => {
+  test('devrait afficher les modèles de tableau de service dans le tableau', async () => {
     const tramesMock = [
-      mockTrameModele(1, 'Trame Alpha', 'Site A'),
-      mockTrameModele(2, 'Trame Beta', 'Site B'),
+      mockTrameModele(1, 'Tableau de service Alpha', 'Site A'),
+      mockTrameModele(2, 'Tableau de service Beta', 'Site B'),
     ];
     mockedAxios.get.mockImplementation(url => {
-      if (url === '/api/trame-modeles?includeAffectations=true') {
+      if (url === '/api/tableau de service-modeles?includeAffectations=true') {
         return Promise.resolve({ data: tramesMock });
       }
       if (url === '/api/sites')
@@ -207,9 +207,9 @@ describe('TrameModelesConfigPanel - Affichage des données', () => {
 
     // Attendre que les données soient chargées et affichées
     await waitFor(() => {
-      expect(screen.getByText('Trame Alpha')).toBeInTheDocument();
+      expect(screen.getByText('Tableau de service Alpha')).toBeInTheDocument();
       expect(screen.getByText('Site A')).toBeInTheDocument();
-      expect(screen.getByText('Trame Beta')).toBeInTheDocument();
+      expect(screen.getByText('Tableau de service Beta')).toBeInTheDocument();
       expect(screen.getByText('Site B')).toBeInTheDocument();
     });
 
@@ -246,7 +246,7 @@ describe('TrameModelesConfigPanel - Modale TrameModele', () => {
 
     // Mocks API par défaut pour ce bloc de tests
     mockedAxios.get.mockImplementation(url => {
-      if (url === '/api/trame-modeles?includeAffectations=true')
+      if (url === '/api/tableau de service-modeles?includeAffectations=true')
         return Promise.resolve({ data: [] });
       if (url === '/api/sites')
         return Promise.resolve({ data: [{ id: 'site-1', name: 'Site Test' }] }); // Fournir un site pour le select
@@ -266,7 +266,7 @@ describe('TrameModelesConfigPanel - Modale TrameModele', () => {
     fireEvent.click(addButton);
 
     // Vérifier que la modale est ouverte (par son titre)
-    expect(await screen.findByText('Ajouter un Modèle de Trame')).toBeInTheDocument();
+    expect(await screen.findByText('Ajouter un Modèle de Tableau de service')).toBeInTheDocument();
 
     // Vérifier que les champs principaux sont présents et vides ou avec valeur par défaut
     const nameInput = screen.getByLabelText(/Nom du modèle/i) as HTMLInputElement;

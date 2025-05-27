@@ -5,7 +5,7 @@ import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
 import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 import {
     BlocDayPlanning,
-    Assignment,
+    Attribution,
     ValidationResult,
     OperatingRoom,
     BlocSector,
@@ -74,7 +74,7 @@ describe('BlocPlanningService', () => {
         it('devrait retourner un planning existant', async () => {
             const mockDate = '2023-10-27';
             const mockDateObj = new Date(mockDate);
-            const mockSallePlanning: SallePlanning[] = [{ roomId: 'salle1', assignments: [] }];
+            const mockSallePlanning: SallePlanning[] = [{ roomId: 'salle1', attributions: [] }];
             const mockDbPlanning = {
                 id: 'plan1',
                 date: mockDateObj,
@@ -106,7 +106,7 @@ describe('BlocPlanningService', () => {
         it('devrait créer un nouveau planning s\'il n\'existe pas', async () => {
             const mockDate = '2023-10-29';
             const mockDateObj = new Date(mockDate);
-            const mockSallePlanning: SallePlanning[] = [{ roomId: 'salle1', assignments: [] }];
+            const mockSallePlanning: SallePlanning[] = [{ roomId: 'salle1', attributions: [] }];
             const newPlanning: BlocDayPlanning = {
                 date: mockDateObj,
                 sallesPlanning: mockSallePlanning
@@ -137,9 +137,9 @@ describe('BlocPlanningService', () => {
         it('devrait mettre à jour un planning existant', async () => {
             const mockDate = '2023-10-29';
             const mockDateObj = new Date(mockDate);
-            const existingSallePlanning: SallePlanning[] = [{ roomId: 'salle1', assignments: [] }];
+            const existingSallePlanning: SallePlanning[] = [{ roomId: 'salle1', attributions: [] }];
             const updatedSallePlanning: SallePlanning[] = [
-                { roomId: 'salle1', assignments: [{ id: 'assign1', startTime: '08:00', endTime: '12:00', surgeonId: 'dr1', procedure: 'Test', sectorId: 'secteurA', supervisionId: 'sup1' } as Assignment] }
+                { roomId: 'salle1', attributions: [{ id: 'assign1', startTime: '08:00', endTime: '12:00', surgeonId: 'dr1', procedure: 'Test', sectorId: 'secteurA', supervisionId: 'sup1' } as Attribution] }
             ];
 
             const existingPlanningDB = {

@@ -33,7 +33,7 @@ interface RoomAssignment {
 
 interface BlocDayViewProps {
     date: Date;
-    assignments: RoomAssignment[];
+    attributions: RoomAssignment[];
     onVacationClick?: (
         roomId: string,
         period: 'morning' | 'afternoon',
@@ -48,7 +48,7 @@ interface BlocDayViewProps {
  */
 export default function BlocDayView({
     date,
-    assignments,
+    attributions,
     onVacationClick,
     isLoading = false
 }: BlocDayViewProps) {
@@ -69,7 +69,7 @@ export default function BlocDayView({
                         <p className="text-muted-foreground">Chargement du planning...</p>
                     </div>
                 </div>
-            ) : assignments.length === 0 ? (
+            ) : attributions.length === 0 ? (
                 <div className="h-96 flex items-center justify-center">
                     <div className="text-center">
                         <p className="text-muted-foreground">Aucune salle programmée pour cette journée</p>
@@ -77,46 +77,46 @@ export default function BlocDayView({
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {assignments.map((assignment) => (
-                        <Card key={assignment.roomId} className="overflow-hidden border">
+                    {attributions.map((attribution) => (
+                        <Card key={attribution.roomId} className="overflow-hidden border">
                             <CardHeader
                                 className="py-3 px-4"
-                                style={{ backgroundColor: assignment.sectorColor + '20' }}
+                                style={{ backgroundColor: attribution.sectorColor + '20' }}
                             >
                                 <div className="flex items-center justify-between">
                                     <CardTitle className="text-md font-semibold flex items-center">
-                                        <span className="mr-2">{assignment.roomNumber}</span>
-                                        <span>{assignment.roomName}</span>
+                                        <span className="mr-2">{attribution.roomNumber}</span>
+                                        <span>{attribution.roomName}</span>
                                     </CardTitle>
                                     <span
                                         className="h-3 w-3 rounded-full"
-                                        style={{ backgroundColor: assignment.sectorColor }}
+                                        style={{ backgroundColor: attribution.sectorColor }}
                                     ></span>
                                 </div>
-                                <div className="text-xs text-muted-foreground">{assignment.sectorName}</div>
+                                <div className="text-xs text-muted-foreground">{attribution.sectorName}</div>
                             </CardHeader>
 
                             <CardContent className="p-4 grid grid-cols-1 gap-3">
                                 <div>
                                     <div className="text-xs text-muted-foreground mb-1">Matin</div>
-                                    {assignment.morningVacation ? (
+                                    {attribution.morningVacation ? (
                                         <BlocVacation
                                             title="Vacation matin"
-                                            status={assignment.morningVacation.status}
-                                            surgeon={assignment.morningVacation.surgeon}
-                                            mar={assignment.morningVacation.mar}
-                                            iade={assignment.morningVacation.iade}
-                                            notes={assignment.morningVacation.notes}
+                                            status={attribution.morningVacation.status}
+                                            surgeon={attribution.morningVacation.surgeon}
+                                            mar={attribution.morningVacation.mar}
+                                            iade={attribution.morningVacation.iade}
+                                            notes={attribution.morningVacation.notes}
                                             onClick={() => onVacationClick?.(
-                                                assignment.roomId,
+                                                attribution.roomId,
                                                 'morning',
-                                                assignment.morningVacation?.id
+                                                attribution.morningVacation?.id
                                             )}
                                         />
                                     ) : (
                                         <div
                                             className="h-24 border rounded-md flex items-center justify-center cursor-pointer hover:bg-muted/50"
-                                            onClick={() => onVacationClick?.(assignment.roomId, 'morning')}
+                                            onClick={() => onVacationClick?.(attribution.roomId, 'morning')}
                                         >
                                             <span className="text-xs text-muted-foreground">+ Ajouter vacation</span>
                                         </div>
@@ -125,24 +125,24 @@ export default function BlocDayView({
 
                                 <div>
                                     <div className="text-xs text-muted-foreground mb-1">Après-midi</div>
-                                    {assignment.afternoonVacation ? (
+                                    {attribution.afternoonVacation ? (
                                         <BlocVacation
                                             title="Vacation après-midi"
-                                            status={assignment.afternoonVacation.status}
-                                            surgeon={assignment.afternoonVacation.surgeon}
-                                            mar={assignment.afternoonVacation.mar}
-                                            iade={assignment.afternoonVacation.iade}
-                                            notes={assignment.afternoonVacation.notes}
+                                            status={attribution.afternoonVacation.status}
+                                            surgeon={attribution.afternoonVacation.surgeon}
+                                            mar={attribution.afternoonVacation.mar}
+                                            iade={attribution.afternoonVacation.iade}
+                                            notes={attribution.afternoonVacation.notes}
                                             onClick={() => onVacationClick?.(
-                                                assignment.roomId,
+                                                attribution.roomId,
                                                 'afternoon',
-                                                assignment.afternoonVacation?.id
+                                                attribution.afternoonVacation?.id
                                             )}
                                         />
                                     ) : (
                                         <div
                                             className="h-24 border rounded-md flex items-center justify-center cursor-pointer hover:bg-muted/50"
-                                            onClick={() => onVacationClick?.(assignment.roomId, 'afternoon')}
+                                            onClick={() => onVacationClick?.(attribution.roomId, 'afternoon')}
                                         >
                                             <span className="text-xs text-muted-foreground">+ Ajouter vacation</span>
                                         </div>

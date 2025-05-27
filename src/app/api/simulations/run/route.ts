@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
             where: { id: scenarioId },
             include: {
                 results: true,
-                template: true
+                modèle: true
             }
         });
 

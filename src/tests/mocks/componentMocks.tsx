@@ -95,7 +95,7 @@ export const MockBlocPlanningDay = ({ planning }: any) => (
 
 // Mock pour AssignmentConfigPanel
 export const MockAssignmentConfigPanel = () => (
-    <div data-testid="mock-assignment-config">
+    <div data-testid="mock-attribution-config">
         Configuration mockée
     </div>
 );

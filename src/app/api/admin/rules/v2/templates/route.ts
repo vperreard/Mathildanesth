@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { RuleTemplate } from '@/modules/dynamicRules/v2/types/ruleV2.types';
 
-// Predefined templates
+// Predefined modèles
 const RULE_TEMPLATES: RuleTemplate[] = [
   {
     id: 'max-guards-week',
@@ -38,7 +38,7 @@ const RULE_TEMPLATES: RuleTemplate[] = [
       actions: [
         {
           type: 'PREVENT',
-          target: 'assignment',
+          target: 'attribution',
           message: 'Limite de {maxGuards} garde(s) par semaine dépassée'
         },
         {
@@ -74,7 +74,7 @@ const RULE_TEMPLATES: RuleTemplate[] = [
         title: 'IADE - 2 gardes max',
         description: 'Limite les IADEs à 2 gardes par semaine',
         parameters: { role: 'IADE', maxGuards: 2 },
-        expectedBehavior: 'Empêche l\'affectation d\'une 3ème garde dans la semaine'
+        expectedBehavior: 'Empêche l\'garde/vacation d\'une 3ème garde dans la semaine'
       }
     ]
   },
@@ -106,7 +106,7 @@ const RULE_TEMPLATES: RuleTemplate[] = [
       actions: [
         {
           type: 'PREVENT',
-          target: 'assignment',
+          target: 'attribution',
           message: 'Repos de {restHours}h requis après une garde'
         }
       ]
@@ -126,7 +126,7 @@ const RULE_TEMPLATES: RuleTemplate[] = [
         title: 'Repos 48h standard',
         description: 'Impose 48h de repos après chaque garde',
         parameters: { restHours: 48 },
-        expectedBehavior: 'Bloque toute affectation dans les 48h suivant une garde'
+        expectedBehavior: 'Bloque toute garde/vacation dans les 48h suivant une garde'
       }
     ]
   },
@@ -145,7 +145,7 @@ const RULE_TEMPLATES: RuleTemplate[] = [
       status: 'draft',
       conditions: [
         {
-          field: 'assignment.sector',
+          field: 'attribution.sector',
           operator: 'EQUALS',
           value: '{sector}'
         },
@@ -158,7 +158,7 @@ const RULE_TEMPLATES: RuleTemplate[] = [
       actions: [
         {
           type: 'SUGGEST',
-          target: 'assignment',
+          target: 'attribution',
           message: 'Ajouter un MAR senior dans ce secteur'
         },
         {
@@ -321,7 +321,7 @@ const RULE_TEMPLATES: RuleTemplate[] = [
   }
 ];
 
-// GET /api/admin/rules/v2/templates - Get available templates
+// GET /api/admin/rules/v2/modèles - Get available modèles
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -332,30 +332,30 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get('category');
 
-    let templates = RULE_TEMPLATES;
+    let modèles = RULE_TEMPLATES;
     
     if (category) {
-      templates = templates.filter(t => t.category === category);
+      modèles = modèles.filter(t => t.category === category);
     }
 
     const categories = [...new Set(RULE_TEMPLATES.map(t => t.category))];
 
     return NextResponse.json({
-      templates,
+      modèles,
       categories,
-      total: templates.length
+      total: modèles.length
     });
 
   } catch (error) {
-    console.error('Error fetching templates:', error);
+    console.error('Error fetching modèles:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération des templates' },
+      { error: 'Erreur lors de la récupération des modèles' },
       { status: 500 }
     );
   }
 }
 
-// POST /api/admin/rules/v2/templates - Create rule from template
+// POST /api/admin/rules/v2/modèles - Create rule from modèle
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -365,16 +365,16 @@ export async function POST(request: NextRequest) {
 
     const { templateId, parameters } = await request.json();
 
-    const template = RULE_TEMPLATES.find(t => t.id === templateId);
-    if (!template) {
+    const modèle = RULE_TEMPLATES.find(t => t.id === templateId);
+    if (!modèle) {
       return NextResponse.json(
-        { error: 'Template non trouvé' },
+        { error: 'Modèle non trouvé' },
         { status: 404 }
       );
     }
 
     // Validate parameters
-    for (const param of template.parameters) {
+    for (const param of modèle.parameters) {
       if (param.required && !(param.name in parameters)) {
         return NextResponse.json(
           { error: `Paramètre requis manquant: ${param.label}` },
@@ -399,8 +399,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Apply parameters to template
-    const rule = JSON.parse(JSON.stringify(template.baseRule));
+    // Apply parameters to modèle
+    const rule = JSON.parse(JSON.stringify(modèle.baseRule));
     
     // Replace placeholders in all string fields
     const replacePlaceholders = (obj: any): any => {
@@ -424,17 +424,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       rule: processedRule,
-      template: {
-        id: template.id,
-        name: template.name
+      modèle: {
+        id: modèle.id,
+        name: modèle.name
       },
       parameters
     });
 
   } catch (error) {
-    console.error('Error creating from template:', error);
+    console.error('Error creating from modèle:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la création depuis le template' },
+      { error: 'Erreur lors de la création depuis le modèle' },
       { status: 500 }
     );
   }

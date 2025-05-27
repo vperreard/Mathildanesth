@@ -205,7 +205,7 @@ export class ConflictDetector {
   }
 
   private analyzeResourceConflict(rule1: RuleV2, rule2: RuleV2): RuleConflict | null {
-    // Check if rules compete for same resources (e.g., same users, same time slots)
+    // Check if rules compete for same resources (e.g., same users, same time créneaux)
     const resources1 = this.extractResourceTargets(rule1);
     const resources2 = this.extractResourceTargets(rule2);
 
@@ -237,7 +237,7 @@ export class ConflictDetector {
 
     // Extract from conditions
     rule.conditions?.forEach(c => {
-      if (c.field.includes('user.') || c.field.includes('assignment.')) {
+      if (c.field.includes('user.') || c.field.includes('attribution.')) {
         resources.push(c.field);
       }
     });

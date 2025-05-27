@@ -1,5 +1,5 @@
 import { RuleEvaluationContext, RuleEvaluationResult, Rule, RuleSeverity } from '../types/rule';
-import { Assignment, OffPeriodType } from './fatigue-system';
+import { Attribution, OffPeriodType } from './fatigue-system';
 
 /**
  * Configuration des règles temporelles
@@ -31,9 +31,9 @@ export interface TemporalRulesConfig {
 
     // Règles d'incompatibilité
     incompatibilities: {
-        // Types d'affectations incompatibles
+        // Types d'gardes/vacations incompatibles
         shiftTypes: string[][];
-        // Durée minimale entre deux types d'affectations incompatibles (en heures)
+        // Durée minimale entre deux types d'gardes/vacations incompatibles (en heures)
         minTimeBetween: {
             [key: string]: {
                 [key: string]: number;
@@ -55,7 +55,7 @@ export class TemporalRulesService {
     }
 
     /**
-     * Vérifie si une affectation respecte les règles d'espacement des gardes
+     * Vérifie si une garde/vacation respecte les règles d'espacement des gardes
      */
     validateShiftSpacing(rule: Rule, context: RuleEvaluationContext): RuleEvaluationResult {
         const { proposedShift, existingShifts, doctor } = context;
@@ -130,7 +130,7 @@ export class TemporalRulesService {
     }
 
     /**
-     * Vérifie si une affectation respecte les règles de repos obligatoire
+     * Vérifie si une garde/vacation respecte les règles de repos obligatoire
      */
     validateMandatoryRest(rule: Rule, context: RuleEvaluationContext): RuleEvaluationResult {
         const { proposedShift, doctor, existingShifts } = context;
@@ -221,7 +221,7 @@ export class TemporalRulesService {
     }
 
     /**
-     * Vérifie si une affectation respecte les règles d'incompatibilité
+     * Vérifie si une garde/vacation respecte les règles d'incompatibilité
      */
     validateIncompatibilities(rule: Rule, context: RuleEvaluationContext): RuleEvaluationResult {
         const { proposedShift, doctor, existingShifts } = context;
@@ -240,15 +240,15 @@ export class TemporalRulesService {
         const proposedStartDate = new Date(proposedShift.startTime);
         const proposedEndDate = new Date(proposedShift.endTime);
 
-        // Filtrer les affectations du même médecin
+        // Filtrer les gardes/vacations du même médecin
         const doctorShifts = existingShifts.filter(
             shift => shift.doctorId === doctor.id
         );
 
-        // Vérifier les incompatibilités de types d'affectation
+        // Vérifier les incompatibilités de types d'garde/vacation
         for (const incompatibleTypes of this.config.incompatibilities.shiftTypes) {
             if (incompatibleTypes.includes(proposedShift.type)) {
-                // Trouver toutes les affectations incompatibles
+                // Trouver toutes les gardes/vacations incompatibles
                 const incompatibleShifts = doctorShifts.filter(
                     shift => incompatibleTypes.includes(shift.type)
                 );
@@ -256,7 +256,7 @@ export class TemporalRulesService {
                 for (const incompatibleShift of incompatibleShifts) {
                     const incompatibleEndDate = new Date(incompatibleShift.endTime);
 
-                    // Vérifier si le temps minimum entre affectations incompatibles est respecté
+                    // Vérifier si le temps minimum entre gardes/vacations incompatibles est respecté
                     const minHoursBetween = this.getMinHoursBetweenTypes(
                         incompatibleShift.type,
                         proposedShift.type
@@ -289,7 +289,7 @@ export class TemporalRulesService {
         if (proposedShift.service) {
             for (const incompatibleServices of this.config.incompatibilities.services) {
                 if (incompatibleServices.includes(proposedShift.service)) {
-                    // Trouver toutes les affectations dans des services incompatibles
+                    // Trouver toutes les gardes/vacations dans des services incompatibles
                     const incompatibleShifts = doctorShifts.filter(
                         shift => shift.service && incompatibleServices.includes(shift.service)
                     );
@@ -339,7 +339,7 @@ export class TemporalRulesService {
     }
 
     /**
-     * Récupère le temps minimum requis entre deux types d'affectations
+     * Récupère le temps minimum requis entre deux types d'gardes/vacations
      */
     private getMinHoursBetweenTypes(type1: string, type2: string): number {
         const minHoursByType = this.config.incompatibilities.minTimeBetween;

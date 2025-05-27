@@ -3,14 +3,14 @@
 import React, { useCallback, useMemo, memo } from 'react';
 import { VariableSizeGrid as Grid } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import { Assignment } from '@/types/assignment';
+import { Attribution } from '@/types/attribution';
 import { User } from '@/types/user';
 import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 interface VirtualizedPlanningGridProps {
-    assignments: Assignment[];
+    attributions: Attribution[];
     users: User[];
     startDate: Date;
     endDate: Date;
@@ -19,7 +19,7 @@ interface VirtualizedPlanningGridProps {
 }
 
 interface CellData {
-    assignments: Assignment[];
+    attributions: Attribution[];
     users: User[];
     startDate: Date;
     onCellClick?: (userId: string, date: Date) => void;
@@ -37,7 +37,7 @@ const PlanningCell = memo(({
     style: React.CSSProperties;
     data: CellData;
 }) => {
-    const { assignments, users, startDate, onCellClick } = data;
+    const { attributions, users, startDate, onCellClick } = data;
     
     // Header row
     if (rowIndex === 0) {
@@ -70,13 +70,13 @@ const PlanningCell = memo(({
         );
     }
     
-    // Assignment cells
+    // Attribution cells
     const user = users[rowIndex - 1];
     const date = addDays(startDate, columnIndex - 1);
     
     if (!user) return null;
     
-    const cellAssignments = assignments.filter(a => 
+    const cellAssignments = attributions.filter(a => 
         a.userId === user.id && 
         isSameDay(new Date(a.startDate), date)
     );
@@ -97,16 +97,16 @@ const PlanningCell = memo(({
             onClick={handleClick}
         >
             <div className="h-full w-full flex flex-col gap-1">
-                {cellAssignments.map(assignment => (
+                {cellAssignments.map(attribution => (
                     <div
-                        key={assignment.id}
+                        key={attribution.id}
                         className={cn(
                             "text-xs px-2 py-1 rounded truncate",
-                            getAssignmentColor(assignment.shiftType)
+                            getAssignmentColor(attribution.shiftType)
                         )}
-                        title={`${assignment.shiftType} - ${format(new Date(assignment.startDate), 'HH:mm')}`}
+                        title={`${attribution.shiftType} - ${format(new Date(attribution.startDate), 'HH:mm')}`}
                     >
-                        {getShiftAbbreviation(assignment.shiftType)}
+                        {getShiftAbbreviation(attribution.shiftType)}
                     </div>
                 ))}
             </div>
@@ -146,7 +146,7 @@ function getShiftAbbreviation(shiftType: string): string {
 }
 
 export function VirtualizedPlanningGrid({
-    assignments,
+    attributions,
     users,
     startDate,
     endDate,
@@ -169,11 +169,11 @@ export function VirtualizedPlanningGrid({
 
     // Données pour les cellules
     const itemData = useMemo(() => ({
-        assignments,
+        attributions,
         users,
         startDate,
         onCellClick
-    }), [assignments, users, startDate, onCellClick]);
+    }), [attributions, users, startDate, onCellClick]);
 
     return (
         <div className="w-full h-full border rounded-lg overflow-hidden bg-background">

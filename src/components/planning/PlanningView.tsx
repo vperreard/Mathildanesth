@@ -49,7 +49,7 @@ export const PlanningView: React.FC<PlanningViewProps> = ({ userId }) => {
     return (
         <Card className="w-full">
             <CardHeader>
-                <CardTitle>Planning des affectations</CardTitle>
+                <CardTitle>Planning des gardes/vacations</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
@@ -67,22 +67,22 @@ export const PlanningView: React.FC<PlanningViewProps> = ({ userId }) => {
                     </div>
 
                     <div className="mt-4">
-                        <h3 className="text-lg font-semibold mb-2">Affectations</h3>
+                        <h3 className="text-lg font-semibold mb-2">Gardes/Vacations</h3>
                         <div className="space-y-2">
-                            {planning.map((slot, index) => (
+                            {planning.map((créneau, index) => (
                                 <div
                                     key={index}
                                     className="p-3 bg-gray-100 rounded-lg flex justify-between items-center"
                                 >
                                     <div>
                                         <p className="font-medium">
-                                            {format(new Date(slot.date), 'EEEE d MMMM yyyy', { locale: fr })}
+                                            {format(new Date(créneau.date), 'EEEE d MMMM yyyy', { locale: fr })}
                                         </p>
                                         <p className="text-sm text-gray-600">
-                                            {slot.user ? `${slot.user.firstName} ${slot.user.lastName}` : `Utilisateur ${slot.userId}`}
+                                            {créneau.user ? `${créneau.user.firstName} ${créneau.user.lastName}` : `Utilisateur ${créneau.userId}`}
                                         </p>
                                         <p className="text-sm text-gray-600">
-                                            Période: {slot.periodeType} - Motif: {slot.motif}
+                                            Période: {créneau.periodeType} - Motif: {créneau.motif}
                                         </p>
                                     </div>
                                 </div>

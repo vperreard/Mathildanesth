@@ -35,7 +35,7 @@ describe('POST /api/planning/generate', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         
-        // Mock planning generator
+        // Mock organisateur de planning
         jest.doMock('@/services/planningGenerator', () => ({
             generatePlanning: jest.fn(),
         }));
@@ -72,7 +72,7 @@ describe('POST /api/planning/generate', () => {
         };
 
         const mockGeneratedPlanning = {
-            assignments: [
+            attributions: [
                 {
                     id: 1,
                     date: '2024-01-01',
@@ -188,7 +188,7 @@ describe('POST /api/planning/generate', () => {
             ]),
         } as any;
 
-        mockPlanningGenerator.mockResolvedValue({ assignments: [] });
+        mockPlanningGenerator.mockResolvedValue({ attributions: [] });
 
         const request = createRequest({
             startDate: '2024-01-01',

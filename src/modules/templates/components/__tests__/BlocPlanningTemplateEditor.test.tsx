@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import BlocPlanningTemplateEditor from '../BlocPlanningTemplateEditor';
-import { AffectationType, PlanningTemplate, ConfigurationVariation } from '../../types/template';
+import { AffectationType, PlanningTemplate, ConfigurationVariation } from '../../types/modèle';
 
 // Mock de react-dnd
 jest.mock('react-dnd', () => ({
@@ -18,7 +18,7 @@ jest.mock('react-dnd-html5-backend', () => ({
 // Mock pour le composant AssignmentConfigPanel
 jest.mock('../AssignmentConfigPanel', () => ({
     __esModule: true,
-    default: () => <div data-testid="mock-assignment-config">Configuration mockée</div>,
+    default: () => <div data-testid="mock-attribution-config">Configuration mockée</div>,
 }));
 
 // Mock pour le composant VariationConfigPanel
@@ -62,8 +62,8 @@ describe('BlocPlanningTemplateEditor', () => {
 
     const mockTemplate: PlanningTemplate = {
         id: 'test-123',
-        nom: 'Trame Test',
-        affectations: [
+        nom: 'Tableau de service Test',
+        gardes/vacations: [
             {
                 id: 'aff-1',
                 jour: 'LUNDI',
@@ -89,7 +89,7 @@ describe('BlocPlanningTemplateEditor', () => {
         jest.clearAllMocks();
     });
 
-    it('renders correctly with initial template', () => {
+    it('renders correctly with initial modèle', () => {
         render(
             <BlocPlanningTemplateEditor
                 initialTemplate={mockTemplate}
@@ -100,14 +100,14 @@ describe('BlocPlanningTemplateEditor', () => {
         );
 
         // Vérifier le champ de nom
-        const nameInput = screen.getByDisplayValue('Trame Test');
+        const nameInput = screen.getByDisplayValue('Tableau de service Test');
         expect(nameInput).toBeInTheDocument();
 
         // Vérifier les jours affichés
         expect(screen.getByRole('tab', { name: /lundi/i })).toBeInTheDocument();
         expect(screen.getByRole('tab', { name: /mardi/i })).toBeInTheDocument();
 
-        // Vérifier les affectations (plusieurs peuvent exister)
+        // Vérifier les gardes/vacations (plusieurs peuvent exister)
         const consultations = screen.getAllByText('CONSULTATION');
         expect(consultations.length).toBeGreaterThan(0);
     });
@@ -132,7 +132,7 @@ describe('BlocPlanningTemplateEditor', () => {
         });
     });
 
-    it('allows adding a new affectation', () => {
+    it('allows adding a new garde/vacation', () => {
         render(
             <BlocPlanningTemplateEditor
                 initialTemplate={mockTemplate}
@@ -142,7 +142,7 @@ describe('BlocPlanningTemplateEditor', () => {
             />
         );
 
-        // Sélectionner un type d'affectation par role
+        // Sélectionner un type d'garde/vacation par role
         const typeSelect = screen.getByRole('combobox');
         fireEvent.mouseDown(typeSelect);
         const gardeOption = screen.getByRole('option', { name: /garde_jour/i });
@@ -152,7 +152,7 @@ describe('BlocPlanningTemplateEditor', () => {
         const addButton = screen.getByRole('button', { name: /^Ajouter$/i });
         fireEvent.click(addButton);
 
-        // Vérifier que la nouvelle affectation apparaît
+        // Vérifier que la nouvelle garde/vacation apparaît
         expect(screen.getAllByText(/ouvert/i)).toHaveLength(2);
     });
 
@@ -247,7 +247,7 @@ describe('BlocPlanningTemplateEditor', () => {
         }));
     });
 
-    it('validates template before saving', async () => {
+    it('validates modèle before saving', async () => {
         const invalidTemplate = {
             ...mockTemplate,
             nom: '' // Nom invalide (vide)
@@ -262,14 +262,14 @@ describe('BlocPlanningTemplateEditor', () => {
             />
         );
 
-        // Le composant devrait valider le template automatiquement
+        // Le composant devrait valider le modèle automatiquement
         // et afficher des erreurs si le nom est vide
         
         // Vérifier qu'une erreur est affichée pour le nom vide
         const nameInput = screen.getByLabelText(/nom/i);
         expect(nameInput).toHaveValue('');
         
-        // Le onSave ne devrait pas être appelé avec un template invalide
+        // Le onSave ne devrait pas être appelé avec un modèle invalide
         expect(mockSave).not.toHaveBeenCalled();
     });
 }); 

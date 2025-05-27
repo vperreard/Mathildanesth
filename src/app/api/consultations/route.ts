@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Récupérer les consultations depuis la base de données
-        const consultations = await prisma.assignment.findMany({
+        const consultations = await prisma.attribution.findMany({
             where: whereConditions,
             include: {
                 user: true,
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
         const date = new Date(consultationData.date);
 
         // Création de la consultation
-        const consultation = await prisma.assignment.create({
+        const consultation = await prisma.attribution.create({
             data: {
                 date,
                 userId: consultationData.userId,
@@ -189,7 +189,7 @@ export async function PATCH(request: NextRequest) {
         const { id, ...updateData } = validationResult.data;
 
         // Vérifier si la consultation existe et est de type CONSULTATION
-        const existingConsultation = await prisma.assignment.findFirst({
+        const existingConsultation = await prisma.attribution.findFirst({
             where: {
                 id,
                 type: 'CONSULTATION'
@@ -204,7 +204,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         // Mise à jour de la consultation
-        const updatedConsultation = await prisma.assignment.update({
+        const updatedConsultation = await prisma.attribution.update({
             where: { id },
             data: updateData,
             include: {
@@ -241,7 +241,7 @@ export async function DELETE(request: NextRequest) {
 
     try {
         // Vérifier si la consultation existe et est de type CONSULTATION
-        const existingConsultation = await prisma.assignment.findFirst({
+        const existingConsultation = await prisma.attribution.findFirst({
             where: {
                 id,
                 type: 'CONSULTATION'
@@ -256,7 +256,7 @@ export async function DELETE(request: NextRequest) {
         }
 
         // Suppression de la consultation
-        await prisma.assignment.delete({
+        await prisma.attribution.delete({
             where: { id }
         });
 

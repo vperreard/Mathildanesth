@@ -40,7 +40,7 @@ export const CalendarLegend: React.FC<CalendarLegendProps> = ({
         {
             id: CalendarEventType.ASSIGNMENT,
             color: 'bg-emerald-500',
-            label: 'Affectations',
+            label: 'Gardes/Vacations',
             show: showAssignments
         },
         {

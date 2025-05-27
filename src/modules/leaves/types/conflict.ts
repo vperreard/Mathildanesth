@@ -20,7 +20,7 @@ export enum ConflictType {
     // Conflits liés aux plannings et responsabilités
     DUTY_CONFLICT = 'DUTY_CONFLICT',                   // Conflit avec une garde
     ON_CALL_CONFLICT = 'ON_CALL_CONFLICT',             // Conflit avec une astreinte
-    ASSIGNMENT_CONFLICT = 'ASSIGNMENT_CONFLICT',       // Conflit avec une affectation
+    ASSIGNMENT_CONFLICT = 'ASSIGNMENT_CONFLICT',       // Conflit avec une garde/vacation
     RECURRING_MEETING = 'RECURRING_MEETING',           // Conflit avec réunion importante récurrente
 
     // Conflits liés aux contraintes temporelles

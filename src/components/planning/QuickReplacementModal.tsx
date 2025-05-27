@@ -41,7 +41,7 @@ import { fr } from 'date-fns/locale';
 interface QuickReplacementModalProps {
     isOpen: boolean;
     onClose: () => void;
-    assignment: {
+    attribution: {
         id: string;
         userId: string;
         userName: string;
@@ -76,7 +76,7 @@ interface ReplacementCandidate {
 export function QuickReplacementModal({
     isOpen,
     onClose,
-    assignment,
+    attribution,
     onReplace
 }: QuickReplacementModalProps) {
     const [isLoading, setIsLoading] = useState(true);
@@ -86,10 +86,10 @@ export function QuickReplacementModal({
     const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
-        if (isOpen && assignment) {
+        if (isOpen && attribution) {
             findReplacementCandidates();
         }
-    }, [isOpen, assignment]);
+    }, [isOpen, attribution]);
 
     const findReplacementCandidates = async () => {
         setIsLoading(true);
@@ -98,11 +98,11 @@ export function QuickReplacementModal({
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    assignmentId: assignment.id,
-                    shiftType: assignment.shiftType,
-                    startDate: assignment.startDate,
-                    endDate: assignment.endDate,
-                    currentUserId: assignment.userId
+                    assignmentId: attribution.id,
+                    shiftType: attribution.shiftType,
+                    startDate: attribution.startDate,
+                    endDate: attribution.endDate,
+                    currentUserId: attribution.userId
                 })
             });
 
@@ -171,27 +171,27 @@ export function QuickReplacementModal({
                         Remplacement Rapide
                     </DialogTitle>
                     <DialogDescription>
-                        Trouvez rapidement un remplaçant pour {assignment.userName}
+                        Trouvez rapidement un remplaçant pour {attribution.userName}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4">
-                    {/* Détails de l'affectation */}
+                    {/* Détails de l'garde/vacation */}
                     <Card>
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-sm">Affectation à remplacer</CardTitle>
+                            <CardTitle className="text-sm">Garde/Vacation à remplacer</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div className="flex items-center gap-2">
                                     <Calendar className="h-4 w-4 text-muted-foreground" />
                                     <span>
-                                        {format(new Date(assignment.startDate), 'dd MMM yyyy', { locale: fr })}
+                                        {format(new Date(attribution.startDate), 'dd MMM yyyy', { locale: fr })}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Clock className="h-4 w-4 text-muted-foreground" />
-                                    <span>{assignment.shiftType}</span>
+                                    <span>{attribution.shiftType}</span>
                                 </div>
                             </div>
                         </CardContent>

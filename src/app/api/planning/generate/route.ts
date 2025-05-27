@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { PlanningGenerator } from '@/services/planningGenerator';
 import { ApiService } from '@/services/api'; // Supposons que l'ApiService peut aussi être utilisé côté serveur si nécessaire
-import { GenerationParameters } from '@/types/assignment';
+import { GenerationParameters } from '@/types/attribution';
 import { defaultRulesConfiguration, defaultFatigueConfig } from '@/types/rules';
 import { BusinessRulesValidator } from '@/services/businessRulesValidator';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
@@ -88,10 +88,10 @@ async function postHandler(request: Request) {
             }
         });
 
-        // Ici, idéalement, on récupère les données réelles (users, assignments) via un accès direct DB ou un service interne
+        // Ici, idéalement, on récupère les données réelles (users, attributions) via un accès direct DB ou un service interne
         // Pour l'exemple, utilisons une méthode fictive ou supposons un accès DB via Prisma/autre ORM
         // const users = await db.user.findMany({ where: { actif: true } });
-        // const existingAssignments = await db.assignment.findMany({ where: { date: { gte: params.dateDebut, lte: params.dateFin } } });
+        // const existingAssignments = await db.attribution.findMany({ where: { date: { gte: params.dateDebut, lte: params.dateFin } } });
         // Remplacer par la vraie logique de récupération de données
         const api = ApiService.getInstance(); // Attention: l'ApiService fetch peut ne pas être idéal ici.
         const users = await api.getActiveUsers(); // Préférer un accès direct à la base de données
@@ -102,11 +102,11 @@ async function postHandler(request: Request) {
         const fatigueConfig = defaultFatigueConfig;
 
         // Initialiser et exécuter le générateur
-        const generator = new PlanningGenerator(params, rulesConfig, fatigueConfig);
-        await generator.initialize(users, existingAssignments);
-        const generationResult = await generator.generateFullPlanning();
+        const organisateur = new PlanningGenerator(params, rulesConfig, fatigueConfig);
+        await organisateur.initialize(users, existingAssignments);
+        const generationResult = await organisateur.generateFullPlanning();
 
-        const results = generator.getResults();
+        const results = organisateur.getResults();
         const allAssignments = [
             ...results.gardes,
             ...results.astreintes,
@@ -116,7 +116,7 @@ async function postHandler(request: Request) {
 
         // Retourner le résultat complet
         return NextResponse.json({
-            assignments: allAssignments,
+            attributions: allAssignments,
             validationResult: generationResult
         });
 

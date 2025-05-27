@@ -15,16 +15,16 @@ import { toast } from 'react-toastify';
 import { Badge } from '@/components/ui/badge';
 
 // Import du modal de création
-const NewTrameModal = dynamic(() => import('@/components/trames/grid-view/NewTrameModal'), { ssr: false });
+const NewTrameModal = dynamic(() => import('@/components/tableaux de service/grid-view/NewTrameModal'), { ssr: false });
 
 // Import dynamique pour éviter les problèmes SSR avec react-beautiful-dnd
 const TrameGridView = dynamic(
-    () => import('@/components/trames/grid-view/TrameGridView'),
+    () => import('@/components/tableaux de service/grid-view/TrameGridView'),
     { ssr: false }
 );
 
 // Importer uniquement les types
-import type { TrameModele, AffectationModele } from '@/components/trames/grid-view/TrameGridView';
+import type { TrameModele, AffectationModele } from '@/components/tableaux de service/grid-view/TrameGridView';
 
 // Utilitaire pour des toasts plus sûrs
 const safeToast = {
@@ -89,7 +89,7 @@ interface OperatingSector {
 
 // Fonction pour convertir les données du back-end vers le format attendu par TrameGridView
 const mapTrameFromApi = (apiTrame: any): TrameModele => {
-    console.log('[MAPPING] API Trame before mapping:', apiTrame);
+    console.log('[MAPPING] API Tableau de service before mapping:', apiTrame);
 
     // Mapping du type de semaine
     let weekType: 'ALL' | 'EVEN' | 'ODD' = 'ALL';
@@ -99,8 +99,8 @@ const mapTrameFromApi = (apiTrame: any): TrameModele => {
 
     console.log(`[MAPPING] typeSemaine "${apiTrame.typeSemaine}" mapped to weekType "${weekType}"`);
 
-    // Mapping des affectations
-    const affectations: AffectationModele[] = apiTrame.affectations?.map((aff: any) => {
+    // Mapping des gardes/vacations
+    const gardes/vacations: AffectationModele[] = apiTrame.gardes/vacations?.map((aff: any) => {
         // Mapping du type de période
         let period: 'MORNING' | 'AFTERNOON' | 'FULL_DAY' = 'FULL_DAY';
         if (aff.periode === 'MATIN') period = 'MORNING';
@@ -138,7 +138,7 @@ const mapTrameFromApi = (apiTrame: any): TrameModele => {
         activeDays: apiTrame.joursSemaineActifs || [1, 2, 3, 4, 5],
         effectiveStartDate: new Date(apiTrame.dateDebutEffet),
         effectiveEndDate: apiTrame.dateFinEffet ? new Date(apiTrame.dateFinEffet) : undefined,
-        affectations: affectations
+        gardes/vacations: gardes/vacations
     };
 
     console.log('[MAPPING] Final mapped TrameModele:', mappedTrame);
@@ -167,22 +167,22 @@ const mapWeekTypeFromApi = (typeSemaine: string): 'ALL' | 'EVEN' | 'ODD' => {
 };
 
 // Fonction pour mapper de TrameModele vers le format API
-const mapTrameToApi = (trame: TrameModele): any => {
+const mapTrameToApi = (tableau de service: TrameModele): any => {
     // Mapping inverse du type de semaine
     let typeSemaine: 'TOUTES' | 'PAIRES' | 'IMPAIRES' = 'TOUTES';
-    if (trame.weekType === 'EVEN') typeSemaine = 'PAIRES';
-    if (trame.weekType === 'ODD') typeSemaine = 'IMPAIRES';
-    if (trame.weekType === 'ALL') typeSemaine = 'TOUTES';
+    if (tableau de service.weekType === 'EVEN') typeSemaine = 'PAIRES';
+    if (tableau de service.weekType === 'ODD') typeSemaine = 'IMPAIRES';
+    if (tableau de service.weekType === 'ALL') typeSemaine = 'TOUTES';
 
     return {
-        name: trame.name,
-        description: trame.description,
-        siteId: trame.siteId,
+        name: tableau de service.name,
+        description: tableau de service.description,
+        siteId: tableau de service.siteId,
         isActive: true,
-        dateDebutEffet: trame.effectiveStartDate,
-        dateFinEffet: trame.effectiveEndDate,
+        dateDebutEffet: tableau de service.effectiveStartDate,
+        dateFinEffet: tableau de service.effectiveEndDate,
         recurrenceType: 'HEBDOMADAIRE',
-        joursSemaineActifs: trame.activeDays,
+        joursSemaineActifs: tableau de service.activeDays,
         typeSemaine: typeSemaine,
         roles: ['TOUS']
     };
@@ -190,7 +190,7 @@ const mapTrameToApi = (trame: TrameModele): any => {
 
 const TrameGridEditor: React.FC = () => {
     const { user } = useAuth();
-    const [trames, setTrames] = useState<TrameModele[]>([]);
+    const [tableaux de service, setTrames] = useState<TrameModele[]>([]);
     const [selectedTrameId, setSelectedTrameId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -207,30 +207,30 @@ const TrameGridEditor: React.FC = () => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await axios.get('http://localhost:3000/api/trame-modeles?includeAffectations=true');
+            const response = await axios.get('http://localhost:3000/api/tableau de service-modeles?includeAffectations=true');
 
             if (response.status === 200) {
                 // Mapper les données de l'API au format attendu par TrameGridView
                 const mappedTrames = response.data.map(mapTrameFromApi);
                 setTrames(mappedTrames);
 
-                // Sélectionner la première trame par défaut s'il y en a
+                // Sélectionner la première tableau de service par défaut s'il y en a
                 if (mappedTrames.length > 0 && !selectedTrameId) {
                     setSelectedTrameId(mappedTrames[0].id);
 
-                    // Si la trame a un siteId, on le sélectionne pour charger les salles/secteurs
+                    // Si la tableau de service a un siteId, on le sélectionne pour charger les salles/secteurs
                     if (mappedTrames[0].siteId) {
                         setSelectedSiteId(mappedTrames[0].siteId);
                     }
                 }
             }
         } catch (err: any) {
-            console.error('Erreur lors du chargement des trames:', err);
+            console.error('Erreur lors du chargement des tableaux de service:', err);
 
             if (err.response && err.response.status === 401) {
                 setError("Erreur d'authentification. Votre session a peut-être expiré.");
             } else {
-                setError("Une erreur est survenue lors du chargement des trames. Veuillez réessayer.");
+                setError("Une erreur est survenue lors du chargement des tableaux de service. Veuillez réessayer.");
             }
         } finally {
             setIsLoading(false);
@@ -265,8 +265,8 @@ const TrameGridEditor: React.FC = () => {
                     setRooms(roomsResponse.data);
                 }
             } else {
-                // Trame globale (siteId null) : charger tous les secteurs et salles
-                console.log("📍 Trame globale détectée - chargement de tous les secteurs et salles");
+                // Tableau de service globale (siteId null) : charger tous les secteurs et salles
+                console.log("📍 Tableau de service globale détectée - chargement de tous les secteurs et salles");
 
                 const sectorsResponse = await axios.get('http://localhost:3000/api/operating-sectors');
                 if (sectorsResponse.status === 200) {
@@ -307,15 +307,15 @@ const TrameGridEditor: React.FC = () => {
     // Quand selectedTrameId change, mettre à jour selectedSiteId
     useEffect(() => {
         if (selectedTrameId) {
-            const trame = trames.find(t => t.id === selectedTrameId);
-            if (trame) {
-                console.log(`📍 Sélection de la trame "${trame.name}" avec siteId: ${trame.siteId}`);
+            const tableau de service = tableaux de service.find(t => t.id === selectedTrameId);
+            if (tableau de service) {
+                console.log(`📍 Sélection de la tableau de service "${tableau de service.name}" avec siteId: ${tableau de service.siteId}`);
 
-                if (trame.siteId) {
-                    // Trame liée à un site spécifique : forcer ce site
-                    setSelectedSiteId(trame.siteId);
+                if (tableau de service.siteId) {
+                    // Tableau de service liée à un site spécifique : forcer ce site
+                    setSelectedSiteId(tableau de service.siteId);
                 } else {
-                    // Trame globale : garder le site actuellement sélectionné ou mettre null (tous les sites)
+                    // Tableau de service globale : garder le site actuellement sélectionné ou mettre null (tous les sites)
                     if (selectedSiteId === undefined) {
                         setSelectedSiteId(null); // Par défaut : tous les sites
                     }
@@ -323,15 +323,15 @@ const TrameGridEditor: React.FC = () => {
                 }
             }
         }
-    }, [selectedTrameId, trames]);
+    }, [selectedTrameId, tableaux de service]);
 
-    // Actualisation automatique des données quand on change de trame OU de site
+    // Actualisation automatique des données quand on change de tableau de service OU de site
     useEffect(() => {
         if (selectedTrameId && selectedSiteId !== undefined) {
-            console.log(`🔄 Actualisation automatique pour la trame ${selectedTrameId} (site: ${selectedSiteId || 'global'})`);
+            console.log(`🔄 Actualisation automatique pour la tableau de service ${selectedTrameId} (site: ${selectedSiteId || 'global'})`);
             fetchRoomsAndSectors(selectedSiteId);
         }
-    }, [selectedTrameId, selectedSiteId, trames, sites]);
+    }, [selectedTrameId, selectedSiteId, tableaux de service, sites]);
 
     const handleTrameChange = async (updatedTrame: TrameModele) => {
         try {
@@ -339,19 +339,19 @@ const TrameGridEditor: React.FC = () => {
             const apiTrame = mapTrameToApi(updatedTrame);
 
             // Envoi au serveur
-            const response = await axios.put(`http://localhost:3000/api/trame-modeles/${updatedTrame.id}`, apiTrame);
+            const response = await axios.put(`http://localhost:3000/api/tableau de service-modeles/${updatedTrame.id}`, apiTrame);
 
             // Mapper la réponse de l'API et mettre à jour l'état
             if (response.status === 200) {
                 const mappedUpdatedTrame = mapTrameFromApi(response.data);
                 setTrames(prevTrames =>
-                    prevTrames.map(trame =>
-                        trame.id === updatedTrame.id ? mappedUpdatedTrame : trame
+                    prevTrames.map(tableau de service =>
+                        tableau de service.id === updatedTrame.id ? mappedUpdatedTrame : tableau de service
                     )
                 );
             }
         } catch (err) {
-            console.error('Erreur lors de la mise à jour de la trame:', err);
+            console.error('Erreur lors de la mise à jour de la tableau de service:', err);
             setError("Erreur lors de la sauvegarde des modifications. Veuillez réessayer.");
 
             // En cas d'erreur, on recharge les données
@@ -360,9 +360,9 @@ const TrameGridEditor: React.FC = () => {
     };
 
     const handleCreateTrameSuccess = (newTrameId: string) => {
-        // Recharger les trames pour avoir les données complètes avec mapping
+        // Recharger les tableaux de service pour avoir les données complètes avec mapping
         fetchTrames().then(() => {
-            // Sélectionner la nouvelle trame
+            // Sélectionner la nouvelle tableau de service
             setSelectedTrameId(newTrameId);
         });
         setIsModalOpen(false);
@@ -375,22 +375,22 @@ const TrameGridEditor: React.FC = () => {
         }
     };
 
-    const handleEditTrame = (trame: TrameModele) => {
-        setTrameToEdit(trame);
+    const handleEditTrame = (tableau de service: TrameModele) => {
+        setTrameToEdit(tableau de service);
         setIsEditModalOpen(true);
     };
 
     const handleEditTrameSuccess = (updatedTrameId: string) => {
-        // Recharger les trames pour avoir les données mises à jour avec mapping
+        // Recharger les tableaux de service pour avoir les données mises à jour avec mapping
         fetchTrames().then(() => {
-            // Garder la trame sélectionnée actuelle
+            // Garder la tableau de service sélectionnée actuelle
             setSelectedTrameId(updatedTrameId);
         });
         setIsEditModalOpen(false);
         setTrameToEdit(null);
     };
 
-    const selectedTrame = trames.find(trame => trame.id === selectedTrameId);
+    const selectedTrame = tableaux de service.find(tableau de service => tableau de service.id === selectedTrameId);
 
     // Rendu du composant
     return (
@@ -409,30 +409,30 @@ const TrameGridEditor: React.FC = () => {
                 </Alert>
             )}
 
-            {/* Sélection de trame et actions */}
+            {/* Sélection de tableau de service et actions */}
             <div className="flex flex-wrap justify-between items-center gap-2">
                 <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium">Sélectionner une trame:</span>
+                        <span className="text-sm font-medium">Sélectionner une tableau de service:</span>
                         <div className="flex items-center space-x-2">
                             <Select
                                 value={selectedTrameId || ''}
                                 onValueChange={(value) => setSelectedTrameId(value)}
-                                disabled={isLoading || trames.length === 0}
+                                disabled={isLoading || tableaux de service.length === 0}
                             >
                                 <SelectTrigger className="w-[280px]">
-                                    <SelectValue placeholder="Sélectionner une trame" />
+                                    <SelectValue placeholder="Sélectionner une tableau de service" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {trames.map(trame => {
-                                        const site = sites.find(s => s.id === trame.siteId);
+                                    {tableaux de service.map(tableau de service => {
+                                        const site = sites.find(s => s.id === tableau de service.siteId);
                                         return (
-                                            <SelectItem key={trame.id} value={trame.id}>
+                                            <SelectItem key={tableau de service.id} value={tableau de service.id}>
                                                 <div className="flex items-center gap-2">
-                                                    <span>{trame.name}</span>
-                                                    {trame.siteId ? (
+                                                    <span>{tableau de service.name}</span>
+                                                    {tableau de service.siteId ? (
                                                         <Badge variant="secondary" className="text-xs">
-                                                            {site ? site.name : `Site ${trame.siteId}`}
+                                                            {site ? site.name : `Site ${tableau de service.siteId}`}
                                                         </Badge>
                                                     ) : (
                                                         <Badge variant="outline" className="text-xs">Global</Badge>
@@ -452,7 +452,7 @@ const TrameGridEditor: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Indicateur permanent du site de la trame sélectionnée */}
+                    {/* Indicateur permanent du site de la tableau de service sélectionnée */}
                     {selectedTrame && (
                         <div className="flex items-center space-x-2 bg-blue-50 dark:bg-blue-950 px-3 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800">
                             <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Site actuel:</span>
@@ -462,13 +462,13 @@ const TrameGridEditor: React.FC = () => {
                                 </span>
                             ) : (
                                 <span className="text-xs font-semibold text-blue-800 dark:text-blue-200">
-                                    Trame globale
+                                    Tableau de service globale
                                 </span>
                             )}
                         </div>
                     )}
 
-                    {/* Sélecteur de site - affiché seulement pour les trames globales */}
+                    {/* Sélecteur de site - affiché seulement pour les tableaux de service globales */}
                     {selectedTrame && !selectedTrame.siteId && (
                         <div className="flex items-center space-x-2">
                             <span className="text-sm font-medium">Vue site:</span>
@@ -528,7 +528,7 @@ const TrameGridEditor: React.FC = () => {
                         🚫 Fermer toasts
                     </Button>
 
-                    {/* Bouton de modification de la trame sélectionnée */}
+                    {/* Bouton de modification de la tableau de service sélectionnée */}
                     {selectedTrame && (
                         <Button
                             variant="outline"
@@ -537,7 +537,7 @@ const TrameGridEditor: React.FC = () => {
                             disabled={isLoading}
                             className="hover:bg-blue-50 hover:border-blue-300 transition-colors"
                         >
-                            <Settings className="h-4 w-4 mr-2" /> Modifier la trame
+                            <Settings className="h-4 w-4 mr-2" /> Modifier la tableau de service
                         </Button>
                     )}
                 </div>
@@ -546,7 +546,7 @@ const TrameGridEditor: React.FC = () => {
                     onClick={() => setIsModalOpen(true)}
                     disabled={isLoading}
                 >
-                    <PlusIcon className="h-4 w-4 mr-2" /> Nouvelle trame
+                    <PlusIcon className="h-4 w-4 mr-2" /> Nouvelle tableau de service
                 </Button>
             </div>
 
@@ -558,11 +558,11 @@ const TrameGridEditor: React.FC = () => {
                 </div>
             ) : (
                 <>
-                    {/* Affichage des trames */}
+                    {/* Affichage des tableaux de service */}
                     {selectedTrame ? (
                         <TrameGridView
                             key={`${selectedTrame.id}-${rooms.length}-${sectors.length}`}
-                            trame={selectedTrame}
+                            tableau de service={selectedTrame}
                             onTrameChange={handleTrameChange}
                             rooms={rooms}
                             sectors={sectors}
@@ -572,18 +572,18 @@ const TrameGridEditor: React.FC = () => {
                     ) : (
                         <Card>
                             <CardContent className="flex flex-col items-center justify-center p-6">
-                                {trames.length === 0 ? (
+                                {tableaux de service.length === 0 ? (
                                     <>
                                         <p className="text-center text-muted-foreground mb-4">
-                                            Aucune trame disponible. Créez votre première trame pour commencer.
+                                            Aucune tableau de service disponible. Créez votre première tableau de service pour commencer.
                                         </p>
                                         <Button onClick={() => setIsModalOpen(true)}>
-                                            <PlusIcon className="h-4 w-4 mr-2" /> Créer une trame
+                                            <PlusIcon className="h-4 w-4 mr-2" /> Créer une tableau de service
                                         </Button>
                                     </>
                                 ) : (
                                     <p className="text-center text-muted-foreground">
-                                        Sélectionnez une trame dans la liste déroulante ci-dessus.
+                                        Sélectionnez une tableau de service dans la liste déroulante ci-dessus.
                                     </p>
                                 )}
                             </CardContent>
@@ -592,7 +592,7 @@ const TrameGridEditor: React.FC = () => {
                 </>
             )}
 
-            {/* Modal de création de trame */}
+            {/* Modal de création de tableau de service */}
             {isModalOpen && (
                 <NewTrameModal
                     isOpen={isModalOpen}
@@ -602,7 +602,7 @@ const TrameGridEditor: React.FC = () => {
                 />
             )}
 
-            {/* Modal de modification de trame */}
+            {/* Modal de modification de tableau de service */}
             {isEditModalOpen && trameToEdit && (
                 <NewTrameModal
                     isOpen={isEditModalOpen}

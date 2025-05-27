@@ -1094,13 +1094,13 @@ const SectorsConfigPanel: React.FC = () => {
             <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
                 <h3 className="text-lg font-semibold text-blue-800 mb-2">Important : Ordre d'affichage</h3>
                 <p className="text-blue-700">
-                    L'ordre dans lequel vous organisez les secteurs et sites ici sera utilisé pour l'affichage des salles dans les trames et plannings.
+                    L'ordre dans lequel vous organisez les secteurs et sites ici sera utilisé pour l'affichage des salles dans les tableaux de service et plannings.
                 </p>
                 <p className="text-blue-700 mt-2">
                     <strong>Pour réorganiser :</strong> Cliquez sur le bouton "Réorganiser Secteurs", glissez-déposez les secteurs dans l'ordre souhaité, puis cliquez sur "Terminer Réorganisation" pour sauvegarder vos modifications.
                 </p>
                 <p className="text-blue-700 mt-2">
-                    <strong>Remarque :</strong> Après avoir modifié l'ordre, il peut être nécessaire de rafraîchir la page des trames pour voir les changements.
+                    <strong>Remarque :</strong> Après avoir modifié l'ordre, il peut être nécessaire de rafraîchir la page des tableaux de service pour voir les changements.
                 </p>
             </div>
 

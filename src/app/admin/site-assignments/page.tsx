@@ -39,7 +39,7 @@ const SiteAssignmentsPage = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'users' | 'surgeons'>('users');
 
-    // Hooks pour les assignments
+    // Hooks pour les attributions
     const userAssignments = useUserSiteAssignments(selectedUser?.id || 0);
     const surgeonAssignments = useSurgeonSiteAssignments(selectedSurgeon?.id || 0);
 
@@ -118,7 +118,7 @@ const SiteAssignmentsPage = () => {
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                        🏥 Gestion des Affectations de Sites
+                        🏥 Gestion des Gardes/Vacations de Sites
                     </h1>
                     <p className="text-gray-600">
                         Assignez les utilisateurs (MARS/IADEs) et chirurgiens aux différents sites
@@ -260,7 +260,7 @@ const SiteAssignmentsPage = () => {
                     <div className="bg-white rounded-lg shadow">
                         <div className="p-6 border-b border-gray-200">
                             <h2 className="text-xl font-semibold text-gray-900">
-                                Affectation aux sites
+                                Garde/Vacation aux sites
                             </h2>
                             {(selectedUser || selectedSurgeon) && (
                                 <p className="text-gray-600 mt-1">
@@ -341,7 +341,7 @@ const SiteAssignmentsPage = () => {
                                     </h3>
                                     <p className="text-gray-600">
                                         Choisissez un {activeTab === 'users' ? 'utilisateur' : 'chirurgien'}
-                                        dans la liste de gauche pour gérer ses affectations de sites.
+                                        dans la liste de gauche pour gérer ses gardes/vacations de sites.
                                     </p>
                                 </div>
                             )}

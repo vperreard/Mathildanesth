@@ -45,7 +45,7 @@ export async function POST(request: Request) {
                 role: { in: ['MAR', 'IADE'] }
             },
             include: {
-                assignments: {
+                attributions: {
                     where: {
                         startDate: {
                             gte: new Date(new Date().setDate(new Date().getDate() - 30))
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
                 );
 
                 // Calculer les métriques
-                const currentMonthAssignments = user.assignments.filter(a => {
+                const currentMonthAssignments = user.attributions.filter(a => {
                     const assignmentDate = new Date(a.startDate);
                     return assignmentDate.getMonth() === new Date().getMonth();
                 });
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
                 const workloadAverage = 15; // TODO: Calculer la vraie moyenne
 
                 // Calculer le score de fatigue
-                const fatigueScore = calculateFatigueScore(user.assignments);
+                const fatigueScore = calculateFatigueScore(user.attributions);
 
                 return {
                     id: user.id,
@@ -107,10 +107,10 @@ export async function POST(request: Request) {
                         average: workloadAverage
                     },
                     competencies: user.competencies?.map(c => c.name) || [],
-                    lastReplacement: getLastReplacementDate(user.assignments),
+                    lastReplacement: getLastReplacementDate(user.attributions),
                     fatigueScore,
                     metrics: {
-                        replacementsThisMonth: countReplacementsThisMonth(user.assignments),
+                        replacementsThisMonth: countReplacementsThisMonth(user.attributions),
                         averageResponseTime: 2, // TODO: Calculer depuis l'historique
                         reliability: 95 // TODO: Calculer depuis l'historique
                     }
@@ -143,7 +143,7 @@ async function calculateReplacementScore(
     let score = 100;
 
     // 1. Disponibilité (40 points)
-    const hasConflict = user.assignments.some((a: any) => {
+    const hasConflict = user.attributions.some((a: any) => {
         return isWithinInterval(new Date(a.startDate), { start: startDate, end: endDate });
     });
     
@@ -159,7 +159,7 @@ async function calculateReplacementScore(
     }
 
     // 2. Charge de travail (30 points)
-    const workloadRatio = user.assignments.length / 15; // Supposons 15 comme moyenne
+    const workloadRatio = user.attributions.length / 15; // Supposons 15 comme moyenne
     score -= Math.min(30, workloadRatio * 30);
 
     // 3. Compétences (20 points)
@@ -169,7 +169,7 @@ async function calculateReplacementScore(
     }
 
     // 4. Historique de remplacement (10 points)
-    const recentReplacements = countRecentReplacements(user.assignments);
+    const recentReplacements = countRecentReplacements(user.attributions);
     score -= Math.min(10, recentReplacements * 2);
 
     return Math.max(0, Math.round(score));
@@ -180,13 +180,13 @@ function determineAvailability(
     startDate: Date,
     endDate: Date
 ): 'available' | 'partial' | 'busy' {
-    const hasDirectConflict = user.assignments.some((a: any) => {
+    const hasDirectConflict = user.attributions.some((a: any) => {
         return isWithinInterval(new Date(a.startDate), { start: startDate, end: endDate });
     });
 
     if (hasDirectConflict) return 'busy';
 
-    const hasNearbyAssignment = user.assignments.some((a: any) => {
+    const hasNearbyAssignment = user.attributions.some((a: any) => {
         const daysDiff = Math.abs(differenceInDays(new Date(a.startDate), startDate));
         return daysDiff <= 1;
     });
@@ -196,9 +196,9 @@ function determineAvailability(
     return 'available';
 }
 
-function calculateFatigueScore(assignments: any[]): number {
-    // Calculer un score de fatigue basé sur les affectations récentes
-    const recentAssignments = assignments.filter(a => {
+function calculateFatigueScore(attributions: any[]): number {
+    // Calculer un score de fatigue basé sur les gardes/vacations récentes
+    const recentAssignments = attributions.filter(a => {
         const daysSince = differenceInDays(new Date(), new Date(a.startDate));
         return daysSince >= 0 && daysSince <= 7;
     });
@@ -212,24 +212,24 @@ function checkRequiredSkills(competencies: any[], shiftType: string): boolean {
     return true;
 }
 
-function countRecentReplacements(assignments: any[]): number {
-    return assignments.filter(a => {
+function countRecentReplacements(attributions: any[]): number {
+    return attributions.filter(a => {
         const daysSince = differenceInDays(new Date(), new Date(a.startDate));
         return daysSince >= 0 && daysSince <= 30 && a.isReplacement;
     }).length;
 }
 
-function getLastReplacementDate(assignments: any[]): Date | undefined {
-    const replacements = assignments
+function getLastReplacementDate(attributions: any[]): Date | undefined {
+    const replacements = attributions
         .filter(a => a.isReplacement)
         .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
     
     return replacements[0] ? new Date(replacements[0].startDate) : undefined;
 }
 
-function countReplacementsThisMonth(assignments: any[]): number {
+function countReplacementsThisMonth(attributions: any[]): number {
     const currentMonth = new Date().getMonth();
-    return assignments.filter(a => 
+    return attributions.filter(a => 
         new Date(a.startDate).getMonth() === currentMonth && a.isReplacement
     ).length;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { RuleViolation } from '@/types/assignment';
+import { RuleViolation } from '@/types/attribution';
 import { RuleSeverity } from '@/types/rules';
 import { AlertCircle, AlertTriangle, Info, X, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -224,7 +224,7 @@ function ViolationCard({
                             {violation.affectedAssignments.length > 0 && (
                                 <>
                                     <br />
-                                    <span className="font-medium">Affectations concernées:</span>{' '}
+                                    <span className="font-medium">Gardes/Vacations concernées:</span>{' '}
                                     {violation.affectedAssignments.length}
                                 </>
                             )}

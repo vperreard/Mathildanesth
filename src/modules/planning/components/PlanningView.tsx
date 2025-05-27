@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Assignment, AssignmentStatus } from '@/types/assignment';
+import { Attribution, AssignmentStatus } from '@/types/attribution';
 import { ShiftType } from '@/types/common';
 import { User } from '@/types/user';
 import { RulesConfiguration } from '@/types/rules';
@@ -14,7 +14,7 @@ interface PlanningViewProps {
     rules: RulesConfiguration;
     startDate: Date;
     endDate: Date;
-    onSave?: (assignments: Assignment[]) => void;
+    onSave?: (attributions: Attribution[]) => void;
 }
 
 export const PlanningView: React.FC<PlanningViewProps> = ({
@@ -24,7 +24,7 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
     endDate,
     onSave
 }) => {
-    const [assignments, setAssignments] = useState<Assignment[]>([]);
+    const [attributions, setAssignments] = useState<Attribution[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -34,9 +34,9 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
     const generatePlanning = useCallback(async () => {
         setLoading(true);
         try {
-            const generator = new PlanningGeneratorService(users, rules, startDate, endDate);
-            const newAssignments = generator.generatePlanning();
-            const validation = generator.validatePlanning();
+            const organisateur = new PlanningGeneratorService(users, rules, startDate, endDate);
+            const newAssignments = organisateur.generatePlanning();
+            const validation = organisateur.validatePlanning();
 
             if (!validation.isValid) {
                 setValidationErrors(validation.errors);
@@ -58,28 +58,28 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
     // Sauvegarder le planning
     const handleSave = useCallback(() => {
         if (onSave) {
-            onSave(assignments);
+            onSave(attributions);
             toast.success('Planning sauvegardé avec succès');
         }
-    }, [assignments, onSave]);
+    }, [attributions, onSave]);
 
-    // Filtrer les affectations par date
+    // Filtrer les gardes/vacations par date
     const getAssignmentsForDate = useCallback((date: Date) => {
-        // S'assurer que assignments est bien un tableau
-        if (!Array.isArray(assignments)) return [];
+        // S'assurer que attributions est bien un tableau
+        if (!Array.isArray(attributions)) return [];
 
-        return assignments.filter(assignment =>
-            format(new Date(assignment.startDate), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+        return attributions.filter(attribution =>
+            format(new Date(attribution.startDate), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
         );
-    }, [assignments]);
+    }, [attributions]);
 
-    // Filtrer les affectations par utilisateur
+    // Filtrer les gardes/vacations par utilisateur
     const getAssignmentsForUser = useCallback((user: User) => {
-        // S'assurer que assignments est bien un tableau
-        if (!Array.isArray(assignments)) return [];
+        // S'assurer que attributions est bien un tableau
+        if (!Array.isArray(attributions)) return [];
 
-        return assignments.filter(assignment => assignment.userId === user.id);
-    }, [assignments]);
+        return attributions.filter(attribution => attribution.userId === user.id);
+    }, [attributions]);
 
     // Rendre le planning
     const renderPlanning = () => {
@@ -111,12 +111,12 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
                         </div>
 
                         <div className="space-y-2">
-                            {getAssignmentsForUser(user).map(assignment => (
+                            {getAssignmentsForUser(user).map(attribution => (
                                 <motion.div
-                                    key={assignment.id}
-                                    className={`p-2 rounded ${assignment.status === AssignmentStatus.APPROVED
+                                    key={attribution.id}
+                                    className={`p-2 rounded ${attribution.status === AssignmentStatus.APPROVED
                                         ? 'bg-green-100'
-                                        : assignment.status === AssignmentStatus.REJECTED
+                                        : attribution.status === AssignmentStatus.REJECTED
                                             ? 'bg-red-100'
                                             : 'bg-gray-100'
                                         }`}
@@ -126,14 +126,14 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
                                 >
                                     <div className="flex items-center justify-between">
                                         <span className="font-medium">
-                                            {format(new Date(assignment.startDate), 'HH:mm')} - {format(new Date(assignment.endDate), 'HH:mm')}
+                                            {format(new Date(attribution.startDate), 'HH:mm')} - {format(new Date(attribution.endDate), 'HH:mm')}
                                         </span>
                                         <span className="text-sm text-gray-600">
-                                            {assignment.shiftType}
+                                            {attribution.shiftType}
                                         </span>
                                     </div>
                                     <div className="text-sm text-gray-500">
-                                        {format(new Date(assignment.startDate), 'EEEE d MMMM', { locale: fr })}
+                                        {format(new Date(attribution.startDate), 'EEEE d MMMM', { locale: fr })}
                                     </div>
                                 </motion.div>
                             ))}
@@ -182,7 +182,7 @@ export const PlanningView: React.FC<PlanningViewProps> = ({
                     <button
                         onClick={handleSave}
                         className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-                        disabled={loading || assignments.length === 0}
+                        disabled={loading || attributions.length === 0}
                     >
                         Sauvegarder
                     </button>

@@ -228,8 +228,8 @@ export class RuleNotificationService extends EventEmitter {
             context: {
                 userId: context.user?.id,
                 userName: context.user?.name,
-                assignmentType: context.assignment?.type,
-                location: context.assignment?.location,
+                assignmentType: context.attribution?.type,
+                location: context.attribution?.location,
                 date: context.date
             }
         };

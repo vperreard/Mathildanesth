@@ -30,7 +30,7 @@ import { OptimizedCalendarCell } from '@/components/optimized/OptimizedCalendarC
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 // Types
-import { Assignment, ValidationResult, RuleViolation } from '@/types/assignment';
+import { Attribution, ValidationResult, RuleViolation } from '@/types/attribution';
 import { User } from '@/types/user';
 
 /**
@@ -45,7 +45,7 @@ export default function PlanningValidationPage() {
     const [view, setView] = useState<'calendar' | 'list' | 'conflicts'>('calendar');
     
     // État du planning
-    const [assignments, setAssignments] = useState<Assignment[]>([]);
+    const [attributions, setAssignments] = useState<Attribution[]>([]);
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
     const [users, setUsers] = useState<User[]>([]);
     const [modifiedAssignments, setModifiedAssignments] = useState<Set<string>>(new Set());
@@ -62,7 +62,7 @@ export default function PlanningValidationPage() {
             const response = await fetch('http://localhost:3000/api/planning/current');
             const data = await response.json();
             
-            setAssignments(data.assignments || []);
+            setAssignments(data.attributions || []);
             setValidationResult(data.validation || null);
             setUsers(data.users || []);
         } catch (error) {
@@ -83,8 +83,8 @@ export default function PlanningValidationPage() {
 
         const { draggableId, source, destination } = result;
         
-        // Mettre à jour l'affectation
-        const updatedAssignments = [...assignments];
+        // Mettre à jour l'garde/vacation
+        const updatedAssignments = [...attributions];
         const assignmentIndex = updatedAssignments.findIndex(a => a.id === draggableId);
         
         if (assignmentIndex !== -1) {
@@ -104,12 +104,12 @@ export default function PlanningValidationPage() {
     };
 
     // Valider le planning
-    const validatePlanning = async (planningData: Assignment[] = assignments) => {
+    const validatePlanning = async (planningData: Attribution[] = attributions) => {
         try {
             const response = await fetch('http://localhost:3000/api/planning/validate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ assignments: planningData })
+                body: JSON.stringify({ attributions: planningData })
             });
             
             const result = await response.json();
@@ -136,7 +136,7 @@ export default function PlanningValidationPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    assignments,
+                    attributions,
                     month: format(selectedMonth, 'yyyy-MM')
                 })
             });
@@ -170,7 +170,7 @@ export default function PlanningValidationPage() {
             const response = await fetch('http://localhost:3000/api/planning/export/pdf', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ assignments, month: format(selectedMonth, 'yyyy-MM') })
+                body: JSON.stringify({ attributions, month: format(selectedMonth, 'yyyy-MM') })
             });
             
             const blob = await response.blob();
@@ -366,7 +366,7 @@ export default function PlanningValidationPage() {
                         <CardHeader>
                             <CardTitle>Vue Liste</CardTitle>
                             <CardDescription>
-                                Affectations par utilisateur avec possibilité de modification
+                                Gardes/Vacations par utilisateur avec possibilité de modification
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -385,7 +385,7 @@ export default function PlanningValidationPage() {
                     {validationResult && (
                         <PlanningValidator
                             validationResult={validationResult}
-                            assignments={assignments}
+                            attributions={attributions}
                             users={users}
                             onResolveViolation={handleResolveViolation}
                             onApprove={handleApprove}

@@ -1,4 +1,4 @@
-import { Assignment } from '../types/assignment';
+import { Attribution } from '../types/attribution';
 import { ValidationResult, Violation, ViolationType } from '../types/validation';
 
 interface SyncResult {
@@ -14,18 +14,18 @@ export class SyncService {
     // Plus besoin de stocker rulesConfig ou doctors ici, le serveur s'en chargera
 
     /**
-     * Synchronise les affectations en appelant l'API serveur
-     * @param assignments Affectations à synchroniser
+     * Synchronise les gardes/vacations en appelant l'API serveur
+     * @param attributions Gardes/Vacations à synchroniser
      * @returns Résultat de la synchronisation
      */
-    async syncAssignments(assignments: Assignment[]): Promise<SyncResult> {
+    async syncAssignments(attributions: Attribution[]): Promise<SyncResult> {
         try {
             // Appel à l'API pour sauvegarder (validation incluse côté serveur idéalement)
-            // Supposons une route unique /api/affectations pour PATCH/POST qui valide et sauve
-            const response = await fetch('http://localhost:3000/api/affectations', {
+            // Supposons une route unique /api/gardes/vacations pour PATCH/POST qui valide et sauve
+            const response = await fetch('http://localhost:3000/api/gardes/vacations', {
                 method: 'PATCH', // ou POST
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ assignments }),
+                body: JSON.stringify({ attributions }),
             });
 
             const responseData = await response.json();
@@ -40,7 +40,7 @@ export class SyncService {
             }
 
             // Enregistrement de l'historique de modification (peut se faire côté serveur)
-            // this.logSync(assignments);
+            // this.logSync(attributions);
 
             return {
                 success: true,
@@ -56,16 +56,16 @@ export class SyncService {
     }
 
     /**
-     * Valide les affectations sans les sauvegarder (via API)
-     * @param assignments Affectations à valider
+     * Valide les gardes/vacations sans les sauvegarder (via API)
+     * @param attributions Gardes/Vacations à valider
      * @returns Résultat de la validation
      */
-    async validateOnly(assignments: Assignment[]): Promise<ValidationResult> { // Utiliser ValidationResult
+    async validateOnly(attributions: Attribution[]): Promise<ValidationResult> { // Utiliser ValidationResult
         try {
-            const response = await fetch('http://localhost:3000/api/affectations/validate', { // Utiliser l'API de validation dédiée
+            const response = await fetch('http://localhost:3000/api/gardes/vacations/validate', { // Utiliser l'API de validation dédiée
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ assignments }),
+                body: JSON.stringify({ attributions }),
             });
 
             const responseData = await response.json();
@@ -104,19 +104,19 @@ export class SyncService {
     }
 
     /**
-     * Identifie les modifications entre deux ensembles d'affectations
-     * @param original Affectations originales
-     * @param updated Affectations mises à jour
+     * Identifie les modifications entre deux ensembles d'gardes/vacations
+     * @param original Gardes/Vacations originales
+     * @param updated Gardes/Vacations mises à jour
      * @returns Liste des modifications
      */
-    getDiff(original: Assignment[], updated: Assignment[]): {
-        added: Assignment[];
-        removed: Assignment[];
-        modified: { original: Assignment; updated: Assignment }[];
+    getDiff(original: Attribution[], updated: Attribution[]): {
+        added: Attribution[];
+        removed: Attribution[];
+        modified: { original: Attribution; updated: Attribution }[];
     } {
-        const added: Assignment[] = [];
-        const removed: Assignment[] = [];
-        const modified: { original: Assignment; updated: Assignment }[] = [];
+        const added: Attribution[] = [];
+        const removed: Attribution[] = [];
+        const modified: { original: Attribution; updated: Attribution }[] = [];
         const originalMap = new Map(original.map(a => [a.id, a]));
         const updatedMap = new Map(updated.map(a => [a.id, a]));
 
@@ -141,10 +141,10 @@ export class SyncService {
     }
 
     /**
-     * Détermine si une affectation a changé
+     * Détermine si une garde/vacation a changé
      */
-    private hasChanged(a: Assignment, b: Assignment): boolean {
-        // Correction : Utiliser les propriétés startDate/endDate de Assignment
+    private hasChanged(a: Attribution, b: Attribution): boolean {
+        // Correction : Utiliser les propriétés startDate/endDate de Attribution
         const dateA = a.startDate instanceof Date ? a.startDate.toISOString().split('T')[0] : undefined;
         const dateB = b.startDate instanceof Date ? b.startDate.toISOString().split('T')[0] : undefined;
         const endDateA = a.endDate instanceof Date ? a.endDate.toISOString().split('T')[0] : undefined;
@@ -162,8 +162,8 @@ export class SyncService {
 
     // La méthode logSync n'est plus pertinente côté client
     /*
-    private logSync(assignments: Assignment[]): void {
-        console.log(`Synchronisation: ${assignments.length} affectations mises à jour à ${new Date().toISOString()}`);
+    private logSync(attributions: Attribution[]): void {
+        console.log(`Synchronisation: ${attributions.length} gardes/vacations mises à jour à ${new Date().toISOString()}`);
     }
     */
 } 

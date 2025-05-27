@@ -1,13 +1,13 @@
 import { templateValidationService } from '../templateValidationService';
-import { PlanningTemplate, DayOfWeek, AffectationType } from '../../types/template';
+import { PlanningTemplate, DayOfWeek, AffectationType } from '../../types/modèle';
 
 describe('templateValidationService', () => {
-    // Template de base pour les tests
+    // Modèle de base pour les tests
     const createValidTemplate = (): PlanningTemplate => ({
         id: 'tmpl_test',
-        nom: 'Trame Test',
+        nom: 'Tableau de service Test',
         departementId: 'dept_1',
-        affectations: [
+        gardes/vacations: [
             {
                 id: 'aff_1',
                 jour: 'LUNDI' as DayOfWeek,
@@ -41,24 +41,24 @@ describe('templateValidationService', () => {
         estActif: true
     });
 
-    test('devrait valider une trame correcte sans erreurs', () => {
-        const template = createValidTemplate();
-        const result = templateValidationService.validateTemplate(template);
+    test('devrait valider une tableau de service correcte sans erreurs', () => {
+        const modèle = createValidTemplate();
+        const result = templateValidationService.validateTemplate(modèle);
 
         // Vérifier qu'il n'y a pas d'erreurs bloquantes
         expect(result.isValid).toBe(true);
         expect(result.errors.filter(e => e.severity === 'ERROR').length).toBe(0);
 
-        // Vérifier qu'il y a bien 6 avertissements (pour les jours sans affectation ouverte)
+        // Vérifier qu'il y a bien 6 avertissements (pour les jours sans garde/vacation ouverte)
         expect(result.warnings.length).toBe(6);
         expect(result.warnings.every(w => w.severity === 'WARNING' && w.type === 'BUSINESS_RULE')).toBe(true);
     });
 
-    test('devrait détecter un nom de trame manquant', () => {
-        const template = createValidTemplate();
-        template.nom = '';
+    test('devrait détecter un nom de tableau de service manquant', () => {
+        const modèle = createValidTemplate();
+        modèle.nom = '';
 
-        const result = templateValidationService.validateTemplate(template);
+        const result = templateValidationService.validateTemplate(modèle);
 
         expect(result.isValid).toBe(false);
         expect(result.errors.length).toBeGreaterThan(0);
@@ -66,11 +66,11 @@ describe('templateValidationService', () => {
         expect(result.errors[0].field).toBe('nom');
     });
 
-    test('devrait détecter un nom de trame trop court', () => {
-        const template = createValidTemplate();
-        template.nom = 'AB';
+    test('devrait détecter un nom de tableau de service trop court', () => {
+        const modèle = createValidTemplate();
+        modèle.nom = 'AB';
 
-        const result = templateValidationService.validateTemplate(template);
+        const result = templateValidationService.validateTemplate(modèle);
 
         expect(result.isValid).toBe(false);
         expect(result.errors.length).toBeGreaterThan(0);
@@ -79,10 +79,10 @@ describe('templateValidationService', () => {
     });
 
     test('devrait avertir si département manquant', () => {
-        const template = createValidTemplate();
-        template.departementId = undefined;
+        const modèle = createValidTemplate();
+        modèle.departementId = undefined;
 
-        const result = templateValidationService.validateTemplate(template);
+        const result = templateValidationService.validateTemplate(modèle);
 
         expect(result.isValid).toBe(true); // Avertissement, pas une erreur
         expect(result.warnings.length).toBeGreaterThan(0);
@@ -90,9 +90,9 @@ describe('templateValidationService', () => {
         expect(result.warnings[0].field).toBe('departementId');
     });
 
-    test('devrait détecter une affectation sans postes requis mais ouverte', () => {
-        const template = createValidTemplate();
-        template.affectations.push({
+    test('devrait détecter une garde/vacation sans postes requis mais ouverte', () => {
+        const modèle = createValidTemplate();
+        modèle.gardes/vacations.push({
             id: 'aff_invalid',
             jour: 'MARDI',
             type: 'CONSULTATION',
@@ -100,7 +100,7 @@ describe('templateValidationService', () => {
             postesRequis: 0
         });
 
-        const result = templateValidationService.validateTemplate(template);
+        const result = templateValidationService.validateTemplate(modèle);
 
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e =>
@@ -109,9 +109,9 @@ describe('templateValidationService', () => {
         )).toBe(true);
     });
 
-    test('devrait détecter une affectation dupliquée', () => {
-        const template = createValidTemplate();
-        template.affectations.push({
+    test('devrait détecter une garde/vacation dupliquée', () => {
+        const modèle = createValidTemplate();
+        modèle.gardes/vacations.push({
             id: 'aff_duplicate',
             jour: 'LUNDI',
             type: 'CONSULTATION',
@@ -119,7 +119,7 @@ describe('templateValidationService', () => {
             postesRequis: 1
         });
 
-        const result = templateValidationService.validateTemplate(template);
+        const result = templateValidationService.validateTemplate(modèle);
 
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e =>
@@ -130,10 +130,10 @@ describe('templateValidationService', () => {
     });
 
     test('devrait détecter un format d\'heure invalide', () => {
-        const template = createValidTemplate();
-        template.affectations[0].configuration!.heureDebut = '8h30';
+        const modèle = createValidTemplate();
+        modèle.gardes/vacations[0].configuration!.heureDebut = '8h30';
 
-        const result = templateValidationService.validateTemplate(template);
+        const result = templateValidationService.validateTemplate(modèle);
 
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e =>
@@ -143,11 +143,11 @@ describe('templateValidationService', () => {
     });
 
     test('devrait détecter une heure de fin antérieure à l\'heure de début', () => {
-        const template = createValidTemplate();
-        template.affectations[0].configuration!.heureDebut = '14:00';
-        template.affectations[0].configuration!.heureFin = '12:00';
+        const modèle = createValidTemplate();
+        modèle.gardes/vacations[0].configuration!.heureDebut = '14:00';
+        modèle.gardes/vacations[0].configuration!.heureFin = '12:00';
 
-        const result = templateValidationService.validateTemplate(template);
+        const result = templateValidationService.validateTemplate(modèle);
 
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e =>
@@ -157,10 +157,10 @@ describe('templateValidationService', () => {
     });
 
     test('devrait détecter un poste sans nom', () => {
-        const template = createValidTemplate();
-        template.affectations[0].configuration!.postes[0].nom = '';
+        const modèle = createValidTemplate();
+        modèle.gardes/vacations[0].configuration!.postes[0].nom = '';
 
-        const result = templateValidationService.validateTemplate(template);
+        const result = templateValidationService.validateTemplate(modèle);
 
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e =>
@@ -171,10 +171,10 @@ describe('templateValidationService', () => {
     });
 
     test('devrait détecter un poste requis avec quantité 0', () => {
-        const template = createValidTemplate();
-        template.affectations[0].configuration!.postes[0].quantite = 0;
+        const modèle = createValidTemplate();
+        modèle.gardes/vacations[0].configuration!.postes[0].quantite = 0;
 
-        const result = templateValidationService.validateTemplate(template);
+        const result = templateValidationService.validateTemplate(modèle);
 
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e =>
@@ -184,12 +184,12 @@ describe('templateValidationService', () => {
     });
 
     test('devrait détecter une incohérence entre postes requis et configuration', () => {
-        const template = createValidTemplate();
+        const modèle = createValidTemplate();
         // La configuration a 2 postes avec quantité 1 chacun (total: 2)
-        // Mais l'affectation déclare 3 postes requis
-        template.affectations[0].postesRequis = 3;
+        // Mais l'garde/vacation déclare 3 postes requis
+        modèle.gardes/vacations[0].postesRequis = 3;
 
-        const result = templateValidationService.validateTemplate(template);
+        const result = templateValidationService.validateTemplate(modèle);
 
         expect(result.warnings.some(w =>
             w.type === 'INCONSISTENCY' &&
@@ -197,22 +197,22 @@ describe('templateValidationService', () => {
         )).toBe(true);
     });
 
-    test('devrait détecter un jour sans affectations ouvertes', () => {
-        const template = createValidTemplate();
-        // Assurer que seul le lundi a une affectation ouverte
+    test('devrait détecter un jour sans gardes/vacations ouvertes', () => {
+        const modèle = createValidTemplate();
+        // Assurer que seul le lundi a une garde/vacation ouverte
         // Les autres jours n'en ont pas
 
-        const result = templateValidationService.validateTemplate(template);
+        const result = templateValidationService.validateTemplate(modèle);
 
         expect(result.warnings.some(w =>
             w.type === 'BUSINESS_RULE' &&
-            w.message.includes('Aucune affectation ouverte')
+            w.message.includes('Aucune garde/vacation ouverte')
         )).toBe(true);
 
-        // Il devrait y avoir 6 jours sans affectations (tous sauf lundi)
+        // Il devrait y avoir 6 jours sans gardes/vacations (tous sauf lundi)
         const daysWithoutAffectations = result.warnings.filter(w =>
             w.type === 'BUSINESS_RULE' &&
-            w.message.includes('Aucune affectation ouverte')
+            w.message.includes('Aucune garde/vacation ouverte')
         );
 
         expect(daysWithoutAffectations.length).toBe(6);

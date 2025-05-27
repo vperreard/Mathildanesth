@@ -1,4 +1,4 @@
-import { Assignment, Room, User, UserRole, Shift } from './types';
+import { Attribution, Room, User, UserRole, Shift } from './types';
 
 // Fonction pour générer des utilisateurs mock
 export function getMockUsers(): User[] {
@@ -81,15 +81,15 @@ export async function fetchRooms(): Promise<Room[]> {
     }
 }
 
-// Fonction pour générer des affectations mock
-export function getMockAssignments(): Assignment[] {
+// Fonction pour générer des gardes/vacations mock
+export function getMockAssignments(): Attribution[] {
     const users = getMockUsers();
     const rooms = getMockRooms();
     const surgeons = users.filter(u => u.role === 'SURGEON');
     const mars = users.filter(u => u.role === 'MAR');
     const iades = users.filter(u => u.role === 'IADE');
 
-    const assignments: Assignment[] = [];
+    const attributions: Attribution[] = [];
     const startDate = new Date(); // Commence aujourd'hui
     startDate.setDate(startDate.getDate() - startDate.getDay() + 1); // Aller au lundi de cette semaine
 
@@ -104,7 +104,7 @@ export function getMockAssignments(): Assignment[] {
             const iadeIndex = (roomIndex + day) % iades.length;
 
             // Assignation du matin
-            assignments.push({
+            attributions.push({
                 id: `${currentDate.toISOString()}-${room.id}-morning`,
                 roomId: room.id,
                 userId: surgeons[surgeonIndex].id, // Pour compatibilité
@@ -119,7 +119,7 @@ export function getMockAssignments(): Assignment[] {
 
             // Assignation de l'après-midi (pas dans toutes les salles)
             if (Math.random() > 0.3) { // 70% de chance d'avoir une assignation l'après-midi
-                assignments.push({
+                attributions.push({
                     id: `${currentDate.toISOString()}-${room.id}-afternoon`,
                     roomId: room.id,
                     userId: surgeons[(surgeonIndex + 1) % surgeons.length].id, // Utiliser un chirurgien différent
@@ -135,7 +135,7 @@ export function getMockAssignments(): Assignment[] {
         });
     }
 
-    return assignments;
+    return attributions;
 }
 
 export const mockUsers = getMockUsers();

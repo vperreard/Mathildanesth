@@ -317,7 +317,7 @@ describe('useValidationRules', () => {
     });
 
     describe('validateAssignment', () => {
-        it('devrait valider une affectation complète', () => {
+        it('devrait valider une garde/vacation complète', () => {
             const context = TestFactory.createValidationContext();
 
             const validation = result.current.validateAssignment(context, {

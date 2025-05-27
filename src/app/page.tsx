@@ -3,9 +3,13 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Calendar, BarChart3, Settings, Users, ClipboardList } from 'lucide-react';
+import { Calendar, BarChart3, Settings, Users, ClipboardList, Stethoscope, AlertCircle } from 'lucide-react';
 import AdminRequestsDashboard from '@/components/AdminRequestsDashboard';
+import WeeklyPlanningWidget from '@/components/medical/WeeklyPlanningWidget';
 import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function HomePage() {
     const [mounted, setMounted] = useState(false);
@@ -40,35 +44,35 @@ export default function HomePage() {
 
     const featureCards = [
         {
-            title: "Planning",
-            description: "Organisez et visualisez le planning des anesthésistes",
+            title: "Mon Planning",
+            description: "Organisez vos gardes et vacations d'anesthésie",
             icon: <Calendar className="w-6 h-6 text-white" />,
-            href: "/planning/hebdomadaire",
+            href: "/planning",
             gradient: "from-primary-500 to-secondary-500",
             color: "text-primary-600",
             delay: 0.1
         },
         {
-            title: "Statistiques",
-            description: "Analysez les données et les tendances d'activité",
-            icon: <BarChart3 className="w-6 h-6 text-white" />,
-            href: "/statistiques/utilisation-bloc",
+            title: "Mes Congés",
+            description: "Gérez vos demandes de congés et absences",
+            icon: <ClipboardList className="w-6 h-6 text-white" />,
+            href: "/conges",
             gradient: "from-secondary-500 to-tertiary-500",
             color: "text-secondary-600",
             delay: 0.2
         },
         {
-            title: "Paramètres",
-            description: "Personnalisez les paramètres du système selon vos besoins",
-            icon: <Settings className="w-6 h-6 text-white" />,
-            href: "/parametres",
+            title: "Bloc Opératoire",
+            description: "Gestion des salles et tableaux de service",
+            icon: <Stethoscope className="w-6 h-6 text-white" />,
+            href: "/bloc-operatoire",
             gradient: "from-tertiary-500 to-rose-500",
             color: "text-tertiary-600",
             delay: 0.3
         },
         {
-            title: "Utilisateurs",
-            description: "Gérez les utilisateurs et leurs permissions",
+            title: "Personnel Médical",
+            description: "Gérez les équipes MARs, IADEs et chirurgiens",
             icon: <Users className="w-6 h-6 text-white" />,
             href: "/utilisateurs",
             gradient: "from-rose-500 to-orange-500",
@@ -79,16 +83,156 @@ export default function HomePage() {
 
     const otherFeatures = [
         {
-            title: "Congés",
-            description: "Gérez les congés et les absences",
-            icon: <ClipboardList className="w-5 h-5" />,
-            href: "/conges",
+            title: "Organisateur Planning",
+            description: "Génération automatique des plannings",
+            icon: <Settings className="w-5 h-5" />,
+            href: "/planning/generation",
             delay: 0.3
+        },
+        {
+            title: "Rapports Médicaux",
+            description: "Analyses et statistiques d'activité",
+            icon: <BarChart3 className="w-5 h-5" />,
+            href: "/admin/rapports",
+            delay: 0.4
         }
     ];
 
     if (!mounted) return null;
 
+    // Si l'utilisateur est connecté, afficher directement son planning
+    if (user && !isLoading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 dark:bg-gray-900">
+                <div className="container mx-auto px-4 py-8">
+                    {/* En-tête personnalisé */}
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="mb-8"
+                    >
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                            Bonjour Dr. {user.prenom || user.firstName} {user.nom || user.lastName}
+                        </h1>
+                        <p className="text-gray-600 dark:text-gray-400">
+                            Voici votre planning de la semaine
+                        </p>
+                    </motion.div>
+
+                    {/* Layout principal */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Planning de la semaine - Colonne principale */}
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            className="lg:col-span-2"
+                        >
+                            <WeeklyPlanningWidget userId={user.id?.toString()} />
+                        </motion.div>
+
+                        {/* Colonne latérale */}
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className="space-y-6"
+                        >
+                            {/* Actions rapides */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <Stethoscope className="h-5 w-5" />
+                                        Actions rapides
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    <Button 
+                                        variant="default" 
+                                        className="w-full justify-start"
+                                        onClick={() => window.location.href = '/conges/nouveau'}
+                                    >
+                                        <Calendar className="h-4 w-4 mr-2" />
+                                        Nouvelle demande de congé
+                                    </Button>
+                                    <Button 
+                                        variant="outline" 
+                                        className="w-full justify-start"
+                                        onClick={() => window.location.href = '/requetes/echange-garde'}
+                                    >
+                                        <Users className="h-4 w-4 mr-2" />
+                                        Échanger une garde
+                                    </Button>
+                                    <Button 
+                                        variant="outline" 
+                                        className="w-full justify-start"
+                                        onClick={() => window.location.href = '/planning/equipe'}
+                                    >
+                                        <BarChart3 className="h-4 w-4 mr-2" />
+                                        Planning de l'équipe
+                                    </Button>
+                                    {isAdmin && (
+                                        <Button 
+                                            variant="secondary" 
+                                            className="w-full justify-start"
+                                            onClick={() => window.location.href = '/admin'}
+                                        >
+                                            <Settings className="h-4 w-4 mr-2" />
+                                            Administration
+                                        </Button>
+                                    )}
+                                </CardContent>
+                            </Card>
+
+                            {/* Notifications importantes */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <AlertCircle className="h-5 w-5" />
+                                        Notifications
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-3">
+                                        <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                                            <p className="text-sm font-medium text-orange-800 dark:text-orange-200">
+                                                Rappel: Garde ce weekend
+                                            </p>
+                                            <p className="text-xs text-orange-600 dark:text-orange-300 mt-1">
+                                                Samedi 1er février - 24h
+                                            </p>
+                                        </div>
+                                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                            <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                                Formation obligatoire
+                                            </p>
+                                            <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                                                Jeudi 6 février - 14h00
+                                            </p>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Widget admin si applicable */}
+                            {isAdmin && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.3 }}
+                                >
+                                    <AdminRequestsDashboard />
+                                </motion.div>
+                            )}
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Page d'accueil pour les visiteurs non connectés
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 dark:bg-slate-900">
             {/* Hero Section - Afficher uniquement si l'utilisateur n'est pas connecté */}

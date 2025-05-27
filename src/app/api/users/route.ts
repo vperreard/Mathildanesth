@@ -16,7 +16,7 @@ const userPaginator = createPaginator<User>(prisma, 'user', 10 * 60 * 1000);
 // Champs à inclure dans les requêtes utilisateurs
 const userInclude = {
     // Ajoutez ici les relations nécessaires selon vos besoins
-    // assignments: {
+    // attributions: {
     //   select: { id: true, startDate: true, endDate: true }
     // }
 };

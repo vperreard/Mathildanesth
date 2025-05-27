@@ -6,7 +6,7 @@ import {
     PlanningSimulation,
     SimulationMetrics
 } from '../services/planningSimulator';
-import { Assignment, GenerationParameters, ValidationResult, AssignmentType } from '../types/assignment';
+import { Attribution, GenerationParameters, ValidationResult, AssignmentType } from '../types/attribution';
 import { User } from '../types/user';
 import { RulesConfiguration, FatigueConfig } from '../types/rules';
 import { Card } from './ui/card';
@@ -113,8 +113,8 @@ const simulationPresets = [
 interface PlanningSimulatorProps {
     initialParameters: GenerationParameters;
     personnel: User[];
-    existingAssignments: Assignment[];
-    onSimulationApplied: (assignments: Assignment[]) => void;
+    existingAssignments: Attribution[];
+    onSimulationApplied: (attributions: Attribution[]) => void;
 }
 
 export const PlanningSimulatorComponent: React.FC<PlanningSimulatorProps> = ({
@@ -243,9 +243,9 @@ export const PlanningSimulatorComponent: React.FC<PlanningSimulatorProps> = ({
     // Applique une simulation comme planning définitif
     const handleApplySimulation = (simulationId: string) => {
         try {
-            const assignments = simulator.applySimulation(simulationId);
-            if (assignments) {
-                onSimulationApplied(assignments);
+            const attributions = simulator.applySimulation(simulationId);
+            if (attributions) {
+                onSimulationApplied(attributions);
             } else {
                 setError('Simulation introuvable');
             }
@@ -358,7 +358,7 @@ export const PlanningSimulatorComponent: React.FC<PlanningSimulatorProps> = ({
                                                 <p className="text-lg">{metrics?.satisfactionScore.toFixed(2)}</p>
                                             </div>
                                             <div className="bg-gray-50 p-2 rounded">
-                                                <span className="text-sm font-medium">Total affectations</span>
+                                                <span className="text-sm font-medium">Total gardes/vacations</span>
                                                 <p className="text-lg">{metrics?.assignmentCounts.total}</p>
                                             </div>
                                         </div>

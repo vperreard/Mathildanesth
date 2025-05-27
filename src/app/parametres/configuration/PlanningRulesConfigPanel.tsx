@@ -156,14 +156,14 @@ const PlanningRulesConfigPanel: React.FC = () => {
         }
     };
 
-    // Récupérer les types d'affectations depuis l'API
+    // Récupérer les types d'gardes/vacations depuis l'API
     const fetchAssignmentTypes = async () => {
         try {
-            const response = await axios.get<{ assignmentTypes: AssignmentType[] }>('/api/assignment-types');
+            const response = await axios.get<{ assignmentTypes: AssignmentType[] }>('/api/attribution-types');
             setAssignmentTypes(response.data.assignmentTypes);
         } catch (err: any) {
-            console.error("Erreur détaillée assignment-types:", err);
-            setError(prevError => prevError ? `${prevError}\nImpossible de charger les types d'affectation: ${err.message}.` : `Impossible de charger les types d'affectation: ${err.message}.`);
+            console.error("Erreur détaillée attribution-types:", err);
+            setError(prevError => prevError ? `${prevError}\nImpossible de charger les types d'garde/vacation: ${err.message}.` : `Impossible de charger les types d'garde/vacation: ${err.message}.`);
             setAssignmentTypes(MOCK_ASSIGNMENT_TYPES);
         }
     };
@@ -356,7 +356,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
         }
     };
 
-    // Obtenir les détails d'un type d'affectation
+    // Obtenir les détails d'un type d'garde/vacation
     const getAssignmentType = (code: string) => {
         return assignmentTypes.find(type => type.code === code);
     };
@@ -492,7 +492,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Type d'affectation
+                                            Type d'garde/vacation
                                         </label>
                                         <select
                                             value={formData.type}

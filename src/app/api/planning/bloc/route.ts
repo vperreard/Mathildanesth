@@ -52,7 +52,7 @@ export async function GET(request: Request) {
                 },
                 include: {
                     site: true,
-                    assignments: {
+                    attributions: {
                         include: {
                             operatingRoom: { include: { operatingSector: true } },
                             surgeon: true,
@@ -72,7 +72,7 @@ export async function GET(request: Request) {
                 },
                 include: {
                     site: true,
-                    assignments: {
+                    attributions: {
                         include: {
                             operatingRoom: { include: { operatingSector: true } },
                             surgeon: true,
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Format de date invalide' }, { status: 400 });
         }
 
-        // Utiliser le service pour créer les plannings à partir des trames
+        // Utiliser le service pour créer les plannings à partir des tableaux de service
         const generatedPlannings = await planningService.createOrUpdateBlocDayPlanningsFromTrames({
             siteId,
             startDate: start,

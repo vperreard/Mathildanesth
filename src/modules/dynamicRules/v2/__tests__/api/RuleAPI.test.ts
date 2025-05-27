@@ -131,7 +131,7 @@ describe('Rule API v2', () => {
         { field: 'user.role', operator: 'EQUALS', value: 'IADE' }
       ],
       actions: [
-        { type: 'PREVENT', target: 'assignment', message: 'Not allowed' }
+        { type: 'PREVENT', target: 'attribution', message: 'Not allowed' }
       ],
       effectiveDate: '2024-01-01T00:00:00Z'
     };
@@ -168,7 +168,7 @@ describe('Rule API v2', () => {
           { field: 'user.role', operator: 'EQUALS', value: 'IADE' }
         ],
         actions: [
-          { type: 'ALLOW', target: 'assignment' }
+          { type: 'ALLOW', target: 'attribution' }
         ]
       };
 

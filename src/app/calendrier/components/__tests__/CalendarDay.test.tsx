@@ -31,21 +31,21 @@ const testEvents: TestCalendarEvent[] = [
         title: 'Événement 1',
         start: '2023-01-15T09:00:00',
         end: '2023-01-15T10:00:00',
-        extendedProps: { type: 'assignment', color: '#4299e1' }
+        extendedProps: { type: 'attribution', color: '#4299e1' }
     },
     {
         id: '2',
         title: 'Événement 2',
         start: '2023-01-15T11:00:00',
         end: '2023-01-15T12:00:00',
-        extendedProps: { type: 'assignment', color: '#48bb78' }
+        extendedProps: { type: 'attribution', color: '#48bb78' }
     },
     {
         id: '3',
         title: 'Événement 3 caché',
         start: '2023-01-15T14:00:00',
         end: '2023-01-15T15:00:00',
-        extendedProps: { type: 'assignment', color: '#ecc94b' }
+        extendedProps: { type: 'attribution', color: '#ecc94b' }
     },
 ];
 

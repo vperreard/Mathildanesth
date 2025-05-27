@@ -6,7 +6,7 @@ import { OptimizationResult } from '@/modules/rules/services/RuleBasedPlanningGe
 import { RuleEngineService } from '@/modules/dynamicRules/services/ruleEngineService';
 import { RuleBasedPlanningGeneratorService } from '@/modules/rules/services/RuleBasedPlanningGeneratorService';
 import { ShiftType } from '@/types/common';
-import { AssignmentStatus } from '@/types/assignment';
+import { AssignmentStatus } from '@/types/attribution';
 
 // Mock des services
 jest.mock('@/modules/dynamicRules/services/ruleEngineService');

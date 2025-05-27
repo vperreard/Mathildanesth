@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PlanningView } from '../components/PlanningView';
 import { PlanningGeneratorService } from '../services/PlanningGeneratorService';
 import { User, UserRole, ExperienceLevel, LeaveStatus } from '@/types/user';
-import { AssignmentStatus, Assignment } from '@/types/assignment';
+import { AssignmentStatus, Attribution } from '@/types/attribution';
 import { ShiftType } from '@/types/common';
 import { RulesConfiguration } from '@/types/rules';
 import { toast } from 'react-toastify';
@@ -173,13 +173,13 @@ describe('Intégration Planning', () => {
     const endDate = new Date('2024-03-07');
     const mockOnSave = jest.fn();
 
-    // Créer un mock des assignations respectant les règles d'affectation
-    const generateMockAssignments = (): Assignment[] => {
-        const assignments: Assignment[] = [];
+    // Créer un mock des assignations respectant les règles d'garde/vacation
+    const generateMockAssignments = (): Attribution[] => {
+        const attributions: Attribution[] = [];
         let currentDate = new Date(startDate);
 
         // Fonction pour générer des ID uniques
-        const generateId = () => `assignment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        const generateId = () => `attribution-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
         // Assignation des gardes sur la période (une personne différente chaque jour)
         let userIndex = 0;
@@ -192,10 +192,10 @@ describe('Intégration Planning', () => {
             const userId = mockUsers[userIndex % mockUsers.length].id;
             userIndex++;
 
-            // Affectation de la garde principale (un seul médecin de garde par jour)
+            // Garde/Vacation de la garde principale (un seul médecin de garde par jour)
             if (isWeekend) {
                 // Garde de weekend
-                assignments.push({
+                attributions.push({
                     id: generateId(),
                     userId: userId,
                     shiftType: ShiftType.GARDE_WEEKEND,
@@ -208,7 +208,7 @@ describe('Intégration Planning', () => {
 
                 // Astreinte weekend (médecin différent de celui de garde)
                 const astreinteUserId = mockUsers[(userIndex + 1) % mockUsers.length].id;
-                assignments.push({
+                attributions.push({
                     id: generateId(),
                     userId: astreinteUserId,
                     shiftType: ShiftType.ASTREINTE_WEEKEND,
@@ -220,7 +220,7 @@ describe('Intégration Planning', () => {
                 });
             } else {
                 // Garde de 24h en semaine
-                assignments.push({
+                attributions.push({
                     id: generateId(),
                     userId: userId,
                     shiftType: ShiftType.GARDE_24H,
@@ -237,7 +237,7 @@ describe('Intégration Planning', () => {
 
                 // Consultation matin (utilisateur 1 disponible)
                 if (availableUsers.length > 0) {
-                    assignments.push({
+                    attributions.push({
                         id: generateId(),
                         userId: availableUsers[0].id,
                         shiftType: ShiftType.MATIN, // Consultation matin
@@ -249,7 +249,7 @@ describe('Intégration Planning', () => {
                     });
 
                     // Le même utilisateur peut avoir un bloc l'après-midi
-                    assignments.push({
+                    attributions.push({
                         id: generateId(),
                         userId: availableUsers[0].id,
                         shiftType: ShiftType.APRES_MIDI, // Bloc après-midi
@@ -265,7 +265,7 @@ describe('Intégration Planning', () => {
                 if (availableUsers.length > 1) {
                     // Type bloc matin
                     const blocMatinType = "BLOC_MATIN"; // On simule un type de bloc opératoire
-                    assignments.push({
+                    attributions.push({
                         id: generateId(),
                         userId: availableUsers[1].id,
                         shiftType: blocMatinType as ShiftType,
@@ -277,7 +277,7 @@ describe('Intégration Planning', () => {
                     });
 
                     // Type consultation après-midi
-                    assignments.push({
+                    attributions.push({
                         id: generateId(),
                         userId: availableUsers[1].id,
                         shiftType: ShiftType.APRES_MIDI,
@@ -293,7 +293,7 @@ describe('Intégration Planning', () => {
             currentDate = addDays(currentDate, 1);
         }
 
-        return assignments;
+        return attributions;
     };
 
     beforeEach(() => {
@@ -316,13 +316,13 @@ describe('Intégration Planning', () => {
     it('devrait générer et valider un planning complet', async () => {
         // 1. Générer le planning avec le service mocké
         const service = new PlanningGeneratorService(mockUsers, mockRules, startDate, endDate);
-        const assignments = service.generatePlanning();
+        const attributions = service.generatePlanning();
 
         // Vérifier que le mock a été appelé
         expect(PlanningGeneratorService.prototype.generatePlanning).toHaveBeenCalled();
 
-        // Vérifier que nous avons bien reçu les assignments
-        expect(assignments.length).toBeGreaterThan(0);
+        // Vérifier que nous avons bien reçu les attributions
+        expect(attributions.length).toBeGreaterThan(0);
 
         const validation = service.validatePlanning();
         // 2. Vérifier que le planning est valide
@@ -348,8 +348,8 @@ describe('Intégration Planning', () => {
             expect(toast.success).toHaveBeenCalledWith('Planning généré avec succès');
         });
 
-        // 5. Vérifier que les règles d'affectation sont respectées
-        const gardeAssignments = assignments.filter(a =>
+        // 5. Vérifier que les règles d'garde/vacation sont respectées
+        const gardeAssignments = attributions.filter(a =>
             a.shiftType === ShiftType.GARDE_24H || a.shiftType === ShiftType.GARDE_WEEKEND
         );
 
@@ -443,10 +443,10 @@ describe('Intégration Planning', () => {
 
         // 3. Vérifier l'assignation
         const service = new PlanningGeneratorService(usersWithInvalidSpecialty, mockRules, startDate, endDate);
-        const assignments = service.generatePlanning();
+        const attributions = service.generatePlanning();
 
         // Vérifier que l'utilisateur sans spécialité n'est pas assigné à des shifts nécessitant Anesthésie
-        const invalidUserAssignments = assignments.filter(a => a.userId === userWithoutSpecialty.id);
+        const invalidUserAssignments = attributions.filter(a => a.userId === userWithoutSpecialty.id);
         expect(invalidUserAssignments.length).toBe(0);
 
         // 4. Rendre le composant

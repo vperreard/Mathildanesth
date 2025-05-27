@@ -74,7 +74,7 @@ describe("Tests d'intégration des hooks de planification du bloc opératoire", 
         date: formattedDate,
         salles: [
             {
-                id: 'assignment-1',
+                id: 'attribution-1',
                 salleId: 'salle-1',
                 superviseurs: []
             }
@@ -147,7 +147,7 @@ describe("Tests d'intégration des hooks de planification du bloc opératoire", 
             await waitFor(() => expect(result.current.dayPlanning).not.toBeNull());
             const updatedPlanning: BlocDayPlanning = {
                 ...result.current.dayPlanning!,
-                salles: [...result.current.dayPlanning!.salles, { id: 'assignment-2', salleId: 'salle-2', superviseurs: [] }],
+                salles: [...result.current.dayPlanning!.salles, { id: 'attribution-2', salleId: 'salle-2', superviseurs: [] }],
                 validationStatus: 'VALIDE'
             };
             await act(async () => { await result.current.saveDayPlanning(updatedPlanning); });

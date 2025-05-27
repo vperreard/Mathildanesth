@@ -300,7 +300,7 @@ async function validateSupervisionRule(rule: any, existingRules: any[], conflict
 }
 
 /**
- * Validation spécifique pour les règles d'affectation
+ * Validation spécifique pour les règles d'garde/vacation
  */
 async function validateAssignmentRule(rule: any, existingRules: any[], conflicts: RuleConflict[]): Promise<void> {
     const assignmentRules = existingRules.filter(r => r.type === RuleType.ASSIGNMENT && r.id !== rule.id);

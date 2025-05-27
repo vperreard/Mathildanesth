@@ -36,9 +36,9 @@ const FIELD_OPTIONS = [
   { value: 'planning.hoursWorked', label: 'Heures travaillées' },
   { value: 'leave.type', label: 'Type de congé' },
   { value: 'leave.duration', label: 'Durée du congé' },
-  { value: 'assignment.type', label: 'Type d\'affectation' },
-  { value: 'assignment.sector', label: 'Secteur' },
-  { value: 'assignment.room', label: 'Salle' }
+  { value: 'attribution.type', label: 'Type d\'garde/vacation' },
+  { value: 'attribution.sector', label: 'Secteur' },
+  { value: 'attribution.room', label: 'Salle' }
 ];
 
 const OPERATORS: Record<ConditionOperator, string> = {

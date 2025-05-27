@@ -64,7 +64,7 @@ describe('ApplySimulationModal', () => {
 
         // Assert
         expect(screen.getByText('Appliquer la simulation au planning réel')).toBeInTheDocument();
-        expect(screen.getByText('Supprimer les affectations existantes dans la période')).toBeInTheDocument();
+        expect(screen.getByText('Supprimer les gardes/vacations existantes dans la période')).toBeInTheDocument();
         expect(screen.getByText('Inclure les congés validés de la simulation')).toBeInTheDocument();
         expect(screen.getByText('Inclure les gardes et astreintes')).toBeInTheDocument();
         expect(screen.getByText('Appliquer au planning')).toBeInTheDocument();
@@ -87,7 +87,7 @@ describe('ApplySimulationModal', () => {
         render(<ApplySimulationModal {...mockProps} />);
 
         // Les cases à cocher devraient être initialement non cochées ou cochées selon les valeurs par défaut
-        const clearExistingCheckbox = screen.getByLabelText('Supprimer les affectations existantes dans la période');
+        const clearExistingCheckbox = screen.getByLabelText('Supprimer les gardes/vacations existantes dans la période');
         const includeLeavesCheckbox = screen.getByLabelText('Inclure les congés validés de la simulation');
         const includeOnCallCheckbox = screen.getByLabelText('Inclure les gardes et astreintes');
 
@@ -111,7 +111,7 @@ describe('ApplySimulationModal', () => {
         render(<ApplySimulationModal {...mockProps} />);
 
         // Cocher certaines options
-        fireEvent.click(screen.getByLabelText('Supprimer les affectations existantes dans la période'));
+        fireEvent.click(screen.getByLabelText('Supprimer les gardes/vacations existantes dans la période'));
 
         // Ajouter des notes
         fireEvent.change(screen.getByPlaceholderText('Raisons de l\'application, notes pour l\'équipe, etc.'), {

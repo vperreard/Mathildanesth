@@ -29,7 +29,7 @@ export const WeeklyGridSkeleton: React.FC = () => (
     </div>
 );
 
-// Composant de chargement pour les cartes d'affectation
+// Composant de chargement pour les cartes d'garde/vacation
 export const AffectationCardSkeleton: React.FC = () => (
     <Card className="w-full">
         <CardHeader className="pb-2">
@@ -89,7 +89,7 @@ export const SpinnerWithMessage: React.FC<{
     );
 };
 
-// Composant de chargement pour l'éditeur de trames
+// Composant de chargement pour l'éditeur de tableaux de service
 export const TrameEditorSkeleton: React.FC = () => (
     <div className="space-y-6">
         {/* Barre d'outils */}

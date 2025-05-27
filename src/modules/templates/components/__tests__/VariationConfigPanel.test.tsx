@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import VariationConfigPanel from '../VariationConfigPanel';
-import { ConfigurationVariation } from '../../types/template';
+import { ConfigurationVariation } from '../../types/modèle';
 
 // Mock pour les Date Pickers
 jest.mock('@mui/x-date-pickers/DatePicker', () => {
@@ -27,7 +27,7 @@ jest.mock('../AssignmentConfigPanel', () => {
     const React = jest.requireActual('react');
     return {
         __esModule: true,
-        default: () => React.createElement('div', { 'data-testid': 'mock-assignment-config' }, "Configuration d'affectation mockée")
+        default: () => React.createElement('div', { 'data-testid': 'mock-attribution-config' }, "Configuration d'garde/vacation mockée")
     };
 });
 

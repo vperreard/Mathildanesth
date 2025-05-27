@@ -16,7 +16,7 @@ export type {
 export { FatigueSystem } from './fatigue-system';
 export type {
     FatigueConfig,
-    Assignment,
+    Attribution,
     AssignmentType,
     OffPeriod,
     OffPeriodType,

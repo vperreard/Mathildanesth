@@ -54,10 +54,10 @@ const features = [
     adminOnly: true,
   },
   {
-    title: 'Trames',
+    title: 'Tableaux de service',
     description: 'Créez des modèles de planning réutilisables',
     icon: Grid3X3,
-    href: '/bloc-operatoire/trames',
+    href: '/bloc-operatoire/tableaux de service',
     color: 'text-indigo-600',
     bgColor: 'bg-indigo-50',
   },
@@ -157,10 +157,10 @@ export default function BlocOperatoirePage() {
                 Ajouter une salle
               </Button>
             </Link>
-            <Link href="/bloc-operatoire/trames/nouveau">
+            <Link href="/bloc-operatoire/tableaux de service/nouveau">
               <Button variant="outline" size="sm">
                 <Grid3X3 className="mr-2 h-4 w-4" />
-                Créer une trame
+                Créer une tableau de service
               </Button>
             </Link>
           </div>

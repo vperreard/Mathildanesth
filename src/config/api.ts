@@ -14,15 +14,15 @@ export const apiConfig = {
         user: {
             preferences: '/user/preferences'
         },
-        assignments: {
-            list: '/affectations',
-            byId: (id: string) => `/affectations/${id}`,
-            create: '/affectations',
-            update: (id: string) => `/affectations/${id}`,
-            delete: (id: string) => `/affectations/${id}`,
+        attributions: {
+            list: '/gardes/vacations',
+            byId: (id: string) => `/gardes/vacations/${id}`,
+            create: '/gardes/vacations',
+            update: (id: string) => `/gardes/vacations/${id}`,
+            delete: (id: string) => `/gardes/vacations/${id}`,
             byDateRange: (startDate: string, endDate: string) =>
-                `/affectations?startDate=${startDate}&endDate=${endDate}`,
-            batch: '/affectations/batch'
+                `/gardes/vacations?startDate=${startDate}&endDate=${endDate}`,
+            batch: '/gardes/vacations/batch'
         },
         planning: {
             generate: '/planning/generate',

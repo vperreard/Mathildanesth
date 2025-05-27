@@ -1,5 +1,5 @@
 /**
- * Règles d'affectation pour le bloc opératoire
+ * Règles d'garde/vacation pour le bloc opératoire
  * Basé sur le document REGLES_AFFECTATION.md
  */
 
@@ -49,7 +49,7 @@ export const REGLES_AFFECTATION = {
         }
     },
 
-    // Temps minimum entre affectations
+    // Temps minimum entre gardes/vacations
     tempsRepos: {
         entreGardes: 7 * 24 * 60 * 60 * 1000, // 7 jours en millisecondes
         apresGarde: 24 * 60 * 60 * 1000, // 24h minimum

@@ -24,7 +24,7 @@ const WORKER_TIMEOUT = 120000; // 2 minutes de timeout pour les workers
 
 // 🔧 CORRECTION TYPES ANY : Définition des types pour les résultats de simulation
 interface SimulationResult {
-    assignments: Assignment[];
+    attributions: Attribution[];
     shiftDistribution: UserShiftDistribution[];
     dailyStaffingCoverage: DailyStaffingCoverage[];
     conflicts: ConflictAlert[];
@@ -32,7 +32,7 @@ interface SimulationResult {
     metadata: SimulationMetadata;
 }
 
-interface Assignment {
+interface Attribution {
     id: string;
     userId: string;
     date: string;
@@ -55,7 +55,7 @@ interface DailyStaffingCoverage {
     coverage: {
         [shiftType: string]: {
             required: number;
-            assigned: number;
+            en garde/vacation: number;
             coverage: number;
         };
     };

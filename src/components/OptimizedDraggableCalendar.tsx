@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useMemo, lazy, Suspense } from 'react';
-import { Assignment } from '@/types/assignment';
+import { Attribution } from '@/types/attribution';
 import { User } from '@/types/user';
 import { RulesConfiguration } from '@/types/rules';
 import { Violation } from '@/types/validation';
@@ -18,10 +18,10 @@ const Draggable = lazy(() =>
 );
 
 interface OptimizedDraggableCalendarProps {
-    initialAssignments: Assignment[];
+    initialAssignments: Attribution[];
     users: User[];
     rules: RulesConfiguration;
-    onSave: (assignments: Assignment[]) => void;
+    onSave: (attributions: Attribution[]) => void;
     onValidationError: (violations: Violation[]) => void;
     onSyncComplete: (success: boolean) => void;
 }
@@ -40,21 +40,21 @@ export default function OptimizedDraggableCalendar({
     onValidationError,
     onSyncComplete
 }: OptimizedDraggableCalendarProps) {
-    const [assignments, setAssignments] = useState(initialAssignments);
+    const [attributions, setAssignments] = useState(initialAssignments);
     const [isDragging, setIsDragging] = useState(false);
 
     // Memoize expensive calculations
     const assignmentsByUser = useMemo(() => {
-        const map = new Map<string, Assignment[]>();
-        assignments.forEach(assignment => {
-            const userId = assignment.userId;
+        const map = new Map<string, Attribution[]>();
+        attributions.forEach(attribution => {
+            const userId = attribution.userId;
             if (!map.has(userId)) {
                 map.set(userId, []);
             }
-            map.get(userId)!.push(assignment);
+            map.get(userId)!.push(attribution);
         });
         return map;
-    }, [assignments]);
+    }, [attributions]);
 
     const handleDragStart = useCallback(() => {
         setIsDragging(true);
@@ -67,26 +67,26 @@ export default function OptimizedDraggableCalendar({
 
         const { source, destination, draggableId } = result;
         
-        // Simple implementation - update assignment
-        const newAssignments = [...assignments];
+        // Simple implementation - update attribution
+        const newAssignments = [...attributions];
         const assignmentIndex = newAssignments.findIndex(a => a.id === draggableId);
         
         if (assignmentIndex !== -1) {
-            // Update assignment based on destination
+            // Update attribution based on destination
             // This is a simplified version - implement your business logic
             setAssignments(newAssignments);
         }
-    }, [assignments]);
+    }, [attributions]);
 
     const handleSaveClick = useCallback(() => {
         // Validate before saving
         const violations: Violation[] = [];
         
         // Simple validation example
-        if (assignments.length === 0) {
+        if (attributions.length === 0) {
             violations.push({
                 type: 'error',
-                message: 'Aucune affectation à sauvegarder',
+                message: 'Aucune garde/vacation à sauvegarder',
                 assignmentIds: []
             });
         }
@@ -96,9 +96,9 @@ export default function OptimizedDraggableCalendar({
             return;
         }
 
-        onSave(assignments);
+        onSave(attributions);
         onSyncComplete(true);
-    }, [assignments, onSave, onValidationError, onSyncComplete]);
+    }, [attributions, onSave, onValidationError, onSyncComplete]);
 
     return (
         <div className="space-y-4">
@@ -132,10 +132,10 @@ export default function OptimizedDraggableCalendar({
                                                 {user.prenom} {user.nom}
                                             </h3>
                                             <div className="space-y-2 min-h-[50px]">
-                                                {(assignmentsByUser.get(user.id) || []).map((assignment, index) => (
+                                                {(assignmentsByUser.get(user.id) || []).map((attribution, index) => (
                                                     <Draggable
-                                                        key={assignment.id}
-                                                        draggableId={assignment.id}
+                                                        key={attribution.id}
+                                                        draggableId={attribution.id}
                                                         index={index}
                                                     >
                                                         {(provided, snapshot) => (
@@ -148,11 +148,11 @@ export default function OptimizedDraggableCalendar({
                                                                 }`}
                                                             >
                                                                 <div className="text-sm">
-                                                                    {assignment.startDate.toLocaleDateString()} - 
-                                                                    {assignment.endDate.toLocaleDateString()}
+                                                                    {attribution.startDate.toLocaleDateString()} - 
+                                                                    {attribution.endDate.toLocaleDateString()}
                                                                 </div>
                                                                 <div className="text-xs text-gray-500">
-                                                                    {assignment.type}
+                                                                    {attribution.type}
                                                                 </div>
                                                             </div>
                                                         )}

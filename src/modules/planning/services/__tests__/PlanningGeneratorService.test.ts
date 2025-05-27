@@ -1,6 +1,6 @@
 import { PlanningGeneratorService } from '../PlanningGeneratorService';
 import { User, UserRole, ExperienceLevel, LeaveType, LeaveStatus } from '@/types/user';
-import { AssignmentStatus } from '@/types/assignment';
+import { AssignmentStatus } from '@/types/attribution';
 import { ShiftType } from '@/types/common';
 import { RulesConfiguration } from '@/types/rules';
 import { Specialty } from '@/types/specialty';
@@ -90,9 +90,9 @@ describe('PlanningGeneratorService', () => {
 
     describe('generatePlanning', () => {
         it('devrait générer un planning valide', () => {
-            const assignments = service.generatePlanning();
-            expect(assignments).toBeDefined();
-            expect(assignments.length).toBeGreaterThan(0);
+            const attributions = service.generatePlanning();
+            expect(attributions).toBeDefined();
+            expect(attributions.length).toBeGreaterThan(0);
         });
 
         it('devrait respecter les périodes de repos', () => {
@@ -103,10 +103,10 @@ describe('PlanningGeneratorService', () => {
         });
 
         it('devrait respecter les spécialités requises', () => {
-            const assignments = service.generatePlanning();
-            assignments.forEach(assignment => {
-                const user = currentTestUsers.find(u => u.id === assignment.userId); // Utiliser les users du test courant
-                const requiredSpecialties = adjustedRules.shiftSpecialties[assignment.shiftType];
+            const attributions = service.generatePlanning();
+            attributions.forEach(attribution => {
+                const user = currentTestUsers.find(u => u.id === attribution.userId); // Utiliser les users du test courant
+                const requiredSpecialties = adjustedRules.shiftSpecialties[attribution.shiftType];
                 expect(user).toBeDefined();
                 const userSpecialties = user?.specialties || [];
                 const hasRequiredSpecialty = userSpecialties.some(specialty =>
@@ -138,22 +138,22 @@ describe('PlanningGeneratorService', () => {
             );
 
             // Le planning devrait être généré grâce au système de fallback
-            const assignments = serviceWithPartiallyAvailableUsers.generatePlanning();
-            expect(assignments).toBeDefined();
-            expect(assignments.length).toBeGreaterThan(0);
+            const attributions = serviceWithPartiallyAvailableUsers.generatePlanning();
+            expect(attributions).toBeDefined();
+            expect(attributions.length).toBeGreaterThan(0);
             
-            // Vérifier que le fallback a été utilisé (Marie devrait avoir plus d'affectations)
-            const marieAssignments = assignments.filter(a => a.userId === '2');
-            const jeanAssignments = assignments.filter(a => a.userId === '1');
+            // Vérifier que le fallback a été utilisé (Marie devrait avoir plus d'gardes/vacations)
+            const marieAssignments = attributions.filter(a => a.userId === '2');
+            const jeanAssignments = attributions.filter(a => a.userId === '1');
             expect(marieAssignments.length).toBeGreaterThan(jeanAssignments.length);
         });
     });
 
     describe('validatePlanning', () => {
         it('devrait détecter les périodes de repos insuffisantes', () => {
-            const assignments = service.generatePlanning();
-            if (assignments.length >= 2) {
-                assignments[1].startDate = addDays(assignments[0].endDate, 1);
+            const attributions = service.generatePlanning();
+            if (attributions.length >= 2) {
+                attributions[1].startDate = addDays(attributions[0].endDate, 1);
             }
             const validation = service.validatePlanning();
             expect(validation.isValid).toBe(false);
@@ -161,8 +161,8 @@ describe('PlanningGeneratorService', () => {
         });
 
         it('devrait détecter les shifts non couverts', () => {
-            const assignments = service.generatePlanning();
-            assignments.pop();
+            const attributions = service.generatePlanning();
+            attributions.pop();
             const validation = service.validatePlanning();
             expect(validation.isValid).toBe(false);
             expect(validation.errors.some(e => e.includes('non couvert'))).toBe(true);
@@ -170,10 +170,10 @@ describe('PlanningGeneratorService', () => {
 
         /* // TODO: Réactiver et ajuster la logique/règle d'équité
         it('devrait détecter les problèmes d\'équité', () => {
-            const assignments = service.generatePlanning();
-            assignments.forEach((assignment, index) => {
+            const attributions = service.generatePlanning();
+            attributions.forEach((attribution, index) => {
                 if (index % 2 === 0) {
-                    assignment.userId = currentTestUsers[0].id;
+                    attribution.userId = currentTestUsers[0].id;
                 }
             });
             const validation = service.validatePlanning();

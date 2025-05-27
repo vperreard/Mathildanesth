@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { LeaveRequest } from '@/types/leave';
-import { Assignment } from '@/types/assignment';
+import { Attribution } from '@/types/attribution';
 import { startOfDay, endOfDay, differenceInDays, addDays, subDays } from 'date-fns';
 
 jest.mock('@/lib/prisma');
@@ -162,7 +162,7 @@ export class BusinessRulesValidator {
   }
 
   /**
-   * Valide une affectation
+   * Valide une garde/vacation
    */
   static async validateAssignment(input: AssignmentValidationInput): Promise<ValidationResult> {
     const errors: string[] = [];
@@ -173,7 +173,7 @@ export class BusinessRulesValidator {
       const dayStart = startOfDay(date);
       const dayEnd = endOfDay(date);
       
-      const existingAssignments = await prisma.assignment.findMany({
+      const existingAssignments = await prisma.attribution.findMany({
         where: {
           userId,
           date: { gte: dayStart, lte: dayEnd }
@@ -181,7 +181,7 @@ export class BusinessRulesValidator {
       });
 
       if (existingAssignments.length > 0) {
-        errors.push('Une affectation existe déjà pour cette date');
+        errors.push('Une garde/vacation existe déjà pour cette date');
       }
 
       // 2. Vérifier les compétences requises pour la salle
@@ -219,7 +219,7 @@ export class BusinessRulesValidator {
       // 3. Vérifier les règles de garde
       if (shiftType === 'GARDE') {
         // Vérifier l'intervalle entre gardes
-        const recentGuards = await prisma.assignment.findMany({
+        const recentGuards = await prisma.attribution.findMany({
           where: {
             userId,
             shiftType: 'GARDE',
@@ -238,7 +238,7 @@ export class BusinessRulesValidator {
         const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
         const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
         
-        const monthGuards = await prisma.assignment.findMany({
+        const monthGuards = await prisma.attribution.findMany({
           where: {
             userId,
             shiftType: 'GARDE',
@@ -257,15 +257,15 @@ export class BusinessRulesValidator {
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
 
-      const weekAssignments = await prisma.assignment.findMany({
+      const weekAssignments = await prisma.attribution.findMany({
         where: {
           userId,
           date: { gte: weekStart, lte: weekEnd }
         }
       });
 
-      const totalHours = weekAssignments.reduce((sum, assignment) => 
-        sum + (assignment.duration || 8), 0
+      const totalHours = weekAssignments.reduce((sum, attribution) => 
+        sum + (attribution.duration || 8), 0
       ) + duration;
 
       if (totalHours > this.MAX_HOURS_PER_WEEK) {
@@ -283,7 +283,7 @@ export class BusinessRulesValidator {
         errors
       };
     } catch (error) {
-      errors.push('Erreur lors de la validation de l\'affectation');
+      errors.push('Erreur lors de la validation de l\'garde/vacation');
       return { valid: false, errors };
     }
   }
@@ -409,7 +409,7 @@ export class BusinessRulesValidator {
     // Vérifier les jours précédents
     for (let i = 1; i <= this.MAX_CONSECUTIVE_WORKING_DAYS; i++) {
       checkDate.setDate(checkDate.getDate() - 1);
-      const assignment = await prisma.assignment.findFirst({
+      const attribution = await prisma.attribution.findFirst({
         where: {
           userId,
           date: {
@@ -419,7 +419,7 @@ export class BusinessRulesValidator {
         }
       });
 
-      if (assignment) {
+      if (attribution) {
         consecutiveDays++;
       } else {
         break;
@@ -430,7 +430,7 @@ export class BusinessRulesValidator {
     checkDate = new Date(date);
     for (let i = 1; i <= this.MAX_CONSECUTIVE_WORKING_DAYS - consecutiveDays + 1; i++) {
       checkDate.setDate(checkDate.getDate() + 1);
-      const assignment = await prisma.assignment.findFirst({
+      const attribution = await prisma.attribution.findFirst({
         where: {
           userId,
           date: {
@@ -440,7 +440,7 @@ export class BusinessRulesValidator {
         }
       });
 
-      if (assignment) {
+      if (attribution) {
         consecutiveDays++;
       } else {
         break;

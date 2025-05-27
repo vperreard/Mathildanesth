@@ -20,7 +20,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 // Interface étendue pour TrameModele si elle inclut des relations chargées
 interface TrameModeleWithRelations extends TrameModele {
     site?: Site | null;
-    affectations?: AffectationModeleWithRelations[];
+    gardes/vacations?: AffectationModeleWithRelations[];
 }
 
 interface AffectationModeleWithRelations extends AffectationModele {
@@ -112,7 +112,7 @@ const TrameModelesConfigPanel: React.FC = () => {
 
     const fetchTrameModeles = useCallback(async () => {
         if (!isAuthenticated && !authIsLoading) {
-            setError('Vous devez être connecté pour voir les modèles de trame.');
+            setError('Vous devez être connecté pour voir les modèles de tableau de service.');
             setIsLoading(false);
             setTrameModeles([]);
             return;
@@ -124,12 +124,12 @@ const TrameModelesConfigPanel: React.FC = () => {
         setIsLoading(true);
         setError(null);
         try {
-            // Inclure les affectations pour un affichage plus riche si nécessaire plus tard
-            const response = await axios.get<TrameModeleWithRelations[]>('/api/trame-modeles?includeAffectations=true');
+            // Inclure les gardes/vacations pour un affichage plus riche si nécessaire plus tard
+            const response = await axios.get<TrameModeleWithRelations[]>('/api/tableau de service-modeles?includeAffectations=true');
             setTrameModeles(response.data);
         } catch (err: any) {
-            console.error('Erreur lors du chargement des modèles de trame:', err);
-            setError(err.response?.data?.error || err.message || 'Impossible de charger les modèles de trame.');
+            console.error('Erreur lors du chargement des modèles de tableau de service:', err);
+            setError(err.response?.data?.error || err.message || 'Impossible de charger les modèles de tableau de service.');
             setTrameModeles([]); // Vider en cas d'erreur
         } finally {
             setIsLoading(false);
@@ -233,7 +233,7 @@ const TrameModelesConfigPanel: React.FC = () => {
         if (isAuthenticated && !authIsLoading) {
             fetchActivityTypes();
             fetchOperatingRooms();
-            // Appeler ici le chargement d'autres données nécessaires pour les affectations
+            // Appeler ici le chargement d'autres données nécessaires pour les gardes/vacations
             fetchProfessionalRoles();
             fetchSpecialties();
         }
@@ -272,19 +272,19 @@ const TrameModelesConfigPanel: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleOpenEditModal = (trame: TrameModeleWithRelations) => {
-        setCurrentTrame(trame);
+    const handleOpenEditModal = (tableau de service: TrameModeleWithRelations) => {
+        setCurrentTrame(tableau de service);
         setFormData({
-            name: trame.name || '',
-            description: trame.description || '',
-            siteId: trame.siteId || undefined,
-            isActive: trame.isActive !== undefined ? trame.isActive : true,
+            name: tableau de service.name || '',
+            description: tableau de service.description || '',
+            siteId: tableau de service.siteId || undefined,
+            isActive: tableau de service.isActive !== undefined ? tableau de service.isActive : true,
             // Assurer que les dates sont au format YYYY-MM-DD pour les inputs de type date
-            dateDebutEffet: trame.dateDebutEffet ? new Date(trame.dateDebutEffet).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            dateFinEffet: trame.dateFinEffet ? new Date(trame.dateFinEffet).toISOString().split('T')[0] : undefined,
-            recurrenceType: trame.recurrenceType,
-            joursSemaineActifs: trame.joursSemaineActifs || [],
-            typeSemaine: trame.typeSemaine,
+            dateDebutEffet: tableau de service.dateDebutEffet ? new Date(tableau de service.dateDebutEffet).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            dateFinEffet: tableau de service.dateFinEffet ? new Date(tableau de service.dateFinEffet).toISOString().split('T')[0] : undefined,
+            recurrenceType: tableau de service.recurrenceType,
+            joursSemaineActifs: tableau de service.joursSemaineActifs || [],
+            typeSemaine: tableau de service.typeSemaine,
         });
         setIsModalOpen(true);
     };
@@ -298,7 +298,7 @@ const TrameModelesConfigPanel: React.FC = () => {
 
         // Validation simple côté client (des validations plus robustes peuvent être ajoutées avec Zod, etc.)
         if (!formData.name || formData.name.trim() === '') {
-            toast.error("Le nom du modèle de trame est requis.");
+            toast.error("Le nom du modèle de tableau de service est requis.");
             return;
         }
         if (!formData.dateDebutEffet) {
@@ -331,18 +331,18 @@ const TrameModelesConfigPanel: React.FC = () => {
             let response;
             if (currentTrame && currentTrame.id) {
                 // Logique de mise à jour (PUT)
-                response = await axios.put(`http://localhost:3000/api/trame-modeles/${currentTrame.id}`, dataToSubmit);
-                toast.success('Modèle de trame mis à jour avec succès!');
+                response = await axios.put(`http://localhost:3000/api/tableau de service-modeles/${currentTrame.id}`, dataToSubmit);
+                toast.success('Modèle de tableau de service mis à jour avec succès!');
             } else {
                 // Logique de création (POST)
-                response = await axios.post('http://localhost:3000/api/trame-modeles', dataToSubmit);
-                toast.success('Modèle de trame créé avec succès!');
+                response = await axios.post('http://localhost:3000/api/tableau de service-modeles', dataToSubmit);
+                toast.success('Modèle de tableau de service créé avec succès!');
             }
 
             setIsModalOpen(false);
             fetchTrameModeles(); // Recharger la liste
         } catch (err: any) {
-            console.error("Erreur lors de la soumission du modèle de trame:", err);
+            console.error("Erreur lors de la soumission du modèle de tableau de service:", err);
             const apiError = err.response?.data?.error || err.message || "Une erreur est survenue.";
             setError(apiError); // Afficher l'erreur potentiellement dans la modale ou globalement
             toast.error(`Erreur: ${apiError}`);
@@ -357,15 +357,15 @@ const TrameModelesConfigPanel: React.FC = () => {
             return;
         }
 
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce modèle de trame ? Cette action est irréversible.")) {
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce modèle de tableau de service ? Cette action est irréversible.")) {
             setIsLoading(true); // Indiquer une opération en cours
             setError(null);
             try {
-                await axios.delete(`http://localhost:3000/api/trame-modeles/${trameId}`);
-                toast.success("Modèle de trame supprimé avec succès!");
+                await axios.delete(`http://localhost:3000/api/tableau de service-modeles/${trameId}`);
+                toast.success("Modèle de tableau de service supprimé avec succès!");
                 fetchTrameModeles(); // Recharger la liste
             } catch (err: any) {
-                console.error("Erreur lors de la suppression du modèle de trame:", err);
+                console.error("Erreur lors de la suppression du modèle de tableau de service:", err);
                 const apiError = err.response?.data?.error || err.message || "Une erreur est survenue lors de la suppression.";
                 setError(apiError);
                 toast.error(`Erreur: ${apiError}`);
@@ -382,7 +382,7 @@ const TrameModelesConfigPanel: React.FC = () => {
         setAffectationFormData({
             jourSemaine: DayOfWeek.MONDAY,
             periode: PeriodeJournee.MATIN,
-            typeSemaine: TypeSemaineTrame.TOUTES, // ou une enum spécifique pour affectation si différente
+            typeSemaine: TypeSemaineTrame.TOUTES, // ou une enum spécifique pour garde/vacation si différente
             isActive: true,
             priorite: 5,
             personnelRequis: []
@@ -390,24 +390,24 @@ const TrameModelesConfigPanel: React.FC = () => {
         setIsAffectationModalOpen(true);
     };
 
-    const handleOpenEditAffectationModal = (affectation: AffectationModeleWithRelations) => {
-        setCurrentAffectation(affectation);
-        setAffectationFormData({ ...affectation }); // Copier l'affectation existante dans le formulaire
+    const handleOpenEditAffectationModal = (garde/vacation: AffectationModeleWithRelations) => {
+        setCurrentAffectation(garde/vacation);
+        setAffectationFormData({ ...garde/vacation }); // Copier l'garde/vacation existante dans le formulaire
         setIsAffectationModalOpen(true);
     };
 
     const handleAffectationSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!isAuthenticated || !currentTrame) {
-            toast.error("Non authentifié ou aucun modèle de trame sélectionné.");
+            toast.error("Non authentifié ou aucun modèle de tableau de service sélectionné.");
             return;
         }
-        // ✅ Validation du formulaire d'affectation avec Zod (TODO complété)
+        // ✅ Validation du formulaire d'garde/vacation avec Zod (TODO complété)
         setAffectationFormErrors(null); // Réinitialiser les erreurs
         const validationResult = affectationModeleSchema.safeParse(affectationFormData);
 
         if (!validationResult.success) {
-            console.error("Erreurs de validation du formulaire d'affectation:", validationResult.error.flatten());
+            console.error("Erreurs de validation du formulaire d'garde/vacation:", validationResult.error.flatten());
             setAffectationFormErrors(validationResult.error);
             toast.error("Le formulaire contient des erreurs. Veuillez vérifier les champs.");
             // Afficher les erreurs plus en détail si nécessaire
@@ -422,43 +422,43 @@ const TrameModelesConfigPanel: React.FC = () => {
         // Utiliser validationResult.data qui contient les données parsées et potentiellement transformées
         const dataToSubmit = validationResult.data;
 
-        setIsLoading(true); // Peut-être un loader spécifique pour la modale d'affectation
+        setIsLoading(true); // Peut-être un loader spécifique pour la modale d'garde/vacation
         try {
             if (currentAffectation && currentAffectation.id) {
                 // Mise à jour
-                const response = await axios.put<AffectationModeleWithRelations>(`/api/affectation-modeles/${currentAffectation.id}`, dataToSubmit);
-                toast.success("Affectation mise à jour.");
+                const response = await axios.put<AffectationModeleWithRelations>(`/api/garde/vacation-modeles/${currentAffectation.id}`, dataToSubmit);
+                toast.success("Garde/Vacation mise à jour.");
                 // Mettre à jour l'état local
-                if (currentTrame && currentTrame.affectations) {
-                    const updatedAffectations = currentTrame.affectations.map(aff =>
+                if (currentTrame && currentTrame.gardes/vacations) {
+                    const updatedAffectations = currentTrame.gardes/vacations.map(aff =>
                         aff.id === response.data.id ? response.data : aff
                     );
-                    setCurrentTrame(prevTrame => prevTrame ? ({ ...prevTrame, affectations: updatedAffectations }) : null);
+                    setCurrentTrame(prevTrame => prevTrame ? ({ ...prevTrame, gardes/vacations: updatedAffectations }) : null);
                     // Mettre aussi à jour la liste principale des trameModeles si currentTrame en fait partie
                     setTrameModeles(prevModeles => prevModeles.map(tm =>
-                        tm.id === currentTrame.id ? ({ ...tm, affectations: updatedAffectations }) : tm
+                        tm.id === currentTrame.id ? ({ ...tm, gardes/vacations: updatedAffectations }) : tm
                     ));
                 }
             } else {
                 // Création
-                const response = await axios.post<AffectationModeleWithRelations>(`/api/trame-modeles/${currentTrame.id}/affectations`, dataToSubmit);
-                toast.success("Affectation ajoutée.");
+                const response = await axios.post<AffectationModeleWithRelations>(`/api/tableau de service-modeles/${currentTrame.id}/gardes/vacations`, dataToSubmit);
+                toast.success("Garde/Vacation ajoutée.");
                 // Mettre à jour l'état local
                 if (currentTrame) {
                     const newAffectation = response.data;
-                    const updatedAffectations = [...(currentTrame.affectations || []), newAffectation];
-                    setCurrentTrame(prevTrame => prevTrame ? ({ ...prevTrame, affectations: updatedAffectations }) : null);
+                    const updatedAffectations = [...(currentTrame.gardes/vacations || []), newAffectation];
+                    setCurrentTrame(prevTrame => prevTrame ? ({ ...prevTrame, gardes/vacations: updatedAffectations }) : null);
                     // Mettre aussi à jour la liste principale des trameModeles
                     setTrameModeles(prevModeles => prevModeles.map(tm =>
-                        tm.id === currentTrame.id ? ({ ...tm, affectations: updatedAffectations }) : tm
+                        tm.id === currentTrame.id ? ({ ...tm, gardes/vacations: updatedAffectations }) : tm
                     ));
                 }
             }
             setIsAffectationModalOpen(false);
             // fetchTrameModeles(); // Rechargement global désactivé pour mise à jour locale
         } catch (err: any) {
-            console.error("Erreur soumission affectation:", err);
-            toast.error(err.response?.data?.error || "Erreur lors de la sauvegarde de l'affectation.");
+            console.error("Erreur soumission garde/vacation:", err);
+            toast.error(err.response?.data?.error || "Erreur lors de la sauvegarde de l'garde/vacation.");
         } finally {
             setIsLoading(false);
         }
@@ -469,23 +469,23 @@ const TrameModelesConfigPanel: React.FC = () => {
             toast.error("Non authentifié.");
             return;
         }
-        if (window.confirm("Supprimer cette affectation ?")) {
+        if (window.confirm("Supprimer cette garde/vacation ?")) {
             setIsLoading(true);
             try {
-                await axios.delete(`http://localhost:3000/api/affectation-modeles/${affectationId}`);
-                toast.success("Affectation supprimée.");
+                await axios.delete(`http://localhost:3000/api/garde/vacation-modeles/${affectationId}`);
+                toast.success("Garde/Vacation supprimée.");
                 // Mettre à jour l'état local
-                if (currentTrame && currentTrame.affectations) {
-                    const updatedAffectations = currentTrame.affectations.filter(aff => aff.id !== affectationId);
-                    setCurrentTrame(prevTrame => prevTrame ? ({ ...prevTrame, affectations: updatedAffectations }) : null);
+                if (currentTrame && currentTrame.gardes/vacations) {
+                    const updatedAffectations = currentTrame.gardes/vacations.filter(aff => aff.id !== affectationId);
+                    setCurrentTrame(prevTrame => prevTrame ? ({ ...prevTrame, gardes/vacations: updatedAffectations }) : null);
                     // Mettre aussi à jour la liste principale des trameModeles
                     setTrameModeles(prevModeles => prevModeles.map(tm =>
-                        tm.id === currentTrame.id ? ({ ...tm, affectations: updatedAffectations }) : tm
+                        tm.id === currentTrame.id ? ({ ...tm, gardes/vacations: updatedAffectations }) : tm
                     ));
                 }
                 // fetchTrameModeles(); // Rechargement global désactivé pour mise à jour locale
             } catch (err: any) {
-                console.error("Erreur suppression affectation:", err);
+                console.error("Erreur suppression garde/vacation:", err);
                 toast.error(err.response?.data?.error || "Erreur suppression.");
             } finally {
                 setIsLoading(false);
@@ -497,7 +497,7 @@ const TrameModelesConfigPanel: React.FC = () => {
         return (
             <div className="flex justify-center items-center h-32">
                 <Loader2 className="animate-spin h-8 w-8 text-gray-500" />
-                <p className="ml-2 text-gray-600">Chargement des modèles de trame...</p>
+                <p className="ml-2 text-gray-600">Chargement des modèles de tableau de service...</p>
             </div>
         );
     }
@@ -505,7 +505,7 @@ const TrameModelesConfigPanel: React.FC = () => {
     return (
         <div className="p-4 md:p-6">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold text-gray-700">Gestion des Modèles de Trame</h2>
+                <h2 className="text-2xl font-semibold text-gray-700">Gestion des Modèles de Tableau de service</h2>
                 {isAuthenticated && (
                     <Button onClick={handleOpenNewModal}>
                         <Plus className="mr-2 h-5 w-5" /> Ajouter un modèle
@@ -516,7 +516,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             {!isAuthenticated && !authIsLoading && (
                 <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
                     <p className="font-bold">Non authentifié</p>
-                    <p>{error || 'Vous devez être connecté pour gérer les modèles de trame.'}</p>
+                    <p>{error || 'Vous devez être connecté pour gérer les modèles de tableau de service.'}</p>
                 </div>
             )}
 
@@ -535,8 +535,8 @@ const TrameModelesConfigPanel: React.FC = () => {
             {isAuthenticated && !isLoading && !error && trameModeles.length === 0 && (
                 <div className="text-center py-8">
                     <Eye className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">Aucun modèle de trame</h3>
-                    <p className="mt-1 text-sm text-gray-500">Commencez par créer un nouveau modèle de trame.</p>
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">Aucun modèle de tableau de service</h3>
+                    <p className="mt-1 text-sm text-gray-500">Commencez par créer un nouveau modèle de tableau de service.</p>
                     {/* Bouton ici aussi si on veut faciliter la création depuis cet état vide */}
                 </div>
             )}
@@ -558,25 +558,25 @@ const TrameModelesConfigPanel: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {trameModeles.map((trame) => (
-                                <tr key={trame.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{trame.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{trame.site?.name || 'N/A'}</td>
+                            {trameModeles.map((tableau de service) => (
+                                <tr key={tableau de service.id}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tableau de service.name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tableau de service.site?.name || 'N/A'}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {trame.isActive ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />}
+                                        {tableau de service.isActive ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(trame.dateDebutEffet).toLocaleDateString()}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(tableau de service.dateDebutEffet).toLocaleDateString()}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {trame.dateFinEffet ? new Date(trame.dateFinEffet).toLocaleDateString() : '-'}
+                                        {tableau de service.dateFinEffet ? new Date(tableau de service.dateFinEffet).toLocaleDateString() : '-'}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{trame.recurrenceType}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{joursSemaineToString(trame.joursSemaineActifs)}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{trame.typeSemaine}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tableau de service.recurrenceType}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{joursSemaineToString(tableau de service.joursSemaineActifs)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tableau de service.typeSemaine}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <Button variant="ghost" size="sm" onClick={() => handleOpenEditModal(trame)} className="text-indigo-600 hover:text-indigo-900">
+                                        <Button variant="ghost" size="sm" onClick={() => handleOpenEditModal(tableau de service)} className="text-indigo-600 hover:text-indigo-900">
                                             <Edit className="h-4 w-4 mr-1" /> Modifier
                                         </Button>
-                                        <Button variant="ghost" size="sm" onClick={() => handleDelete(trame.id)} className="text-red-600 hover:text-red-900 ml-2">
+                                        <Button variant="ghost" size="sm" onClick={() => handleDelete(tableau de service.id)} className="text-red-600 hover:text-red-900 ml-2">
                                             <Trash2 className="h-4 w-4 mr-1" /> Supprimer
                                         </Button>
                                     </td>
@@ -591,7 +591,7 @@ const TrameModelesConfigPanel: React.FC = () => {
                 <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) setIsModalOpen(false); else setIsModalOpen(true); }}>
                     <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
                         <DialogHeader>
-                            <DialogTitle>{currentTrame ? "Modifier le Modèle de Trame" : "Ajouter un Modèle de Trame"}</DialogTitle>
+                            <DialogTitle>{currentTrame ? "Modifier le Modèle de Tableau de service" : "Ajouter un Modèle de Tableau de service"}</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="flex-grow overflow-y-auto pr-2">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-1">
@@ -688,29 +688,29 @@ const TrameModelesConfigPanel: React.FC = () => {
                             {currentTrame && currentTrame.id && (
                                 <div className="mt-6 pt-4 border-t">
                                     <div className="flex justify-between items-center mb-3">
-                                        <h3 className="text-lg font-medium text-gray-800">Affectations du Modèle</h3>
+                                        <h3 className="text-lg font-medium text-gray-800">Gardes/Vacations du Modèle</h3>
                                         <Button type="button" variant="outline" size="sm" onClick={handleOpenNewAffectationModal}>
-                                            <ListPlus className="mr-2 h-4 w-4" /> Ajouter une affectation
+                                            <ListPlus className="mr-2 h-4 w-4" /> Ajouter une garde/vacation
                                         </Button>
                                     </div>
-                                    {currentTrame.affectations && currentTrame.affectations.length > 0 ? (
+                                    {currentTrame.gardes/vacations && currentTrame.gardes/vacations.length > 0 ? (
                                         <ul className="space-y-2">
-                                            {currentTrame.affectations.map(affectation => (
-                                                <li key={affectation.id} className="p-3 bg-gray-50 rounded-md border flex justify-between items-center">
+                                            {currentTrame.gardes/vacations.map(garde/vacation => (
+                                                <li key={garde/vacation.id} className="p-3 bg-gray-50 rounded-md border flex justify-between items-center">
                                                     <div>
                                                         <p className="font-medium text-sm text-gray-700">
-                                                            {affectation.activityType?.name || 'Activité non définie'} - {affectation.jourSemaine} - {affectation.periode}
+                                                            {garde/vacation.activityType?.name || 'Activité non définie'} - {garde/vacation.jourSemaine} - {garde/vacation.periode}
                                                         </p>
                                                         <p className="text-xs text-gray-500">
-                                                            Salle: {affectation.operatingRoom?.name || 'N/A'} | Priorité: {affectation.priorite}
+                                                            Salle: {garde/vacation.operatingRoom?.name || 'N/A'} | Priorité: {garde/vacation.priorite}
                                                             {/* Afficher plus de détails sur personnelRequis si nécessaire */}
                                                         </p>
                                                     </div>
                                                     <div className="space-x-2">
-                                                        <Button variant="ghost" size="icon" className="text-blue-600 hover:text-blue-800" onClick={() => handleOpenEditAffectationModal(affectation)}>
+                                                        <Button variant="ghost" size="icon" className="text-blue-600 hover:text-blue-800" onClick={() => handleOpenEditAffectationModal(garde/vacation)}>
                                                             <Edit3 className="h-4 w-4" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-800" onClick={() => handleAffectationDelete(affectation.id)}>
+                                                        <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-800" onClick={() => handleAffectationDelete(garde/vacation.id)}>
                                                             <Trash className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -718,7 +718,7 @@ const TrameModelesConfigPanel: React.FC = () => {
                                             ))}
                                         </ul>
                                     ) : (
-                                        <p className="text-sm text-gray-500 text-center py-4">Aucune affectation définie pour ce modèle.</p>
+                                        <p className="text-sm text-gray-500 text-center py-4">Aucune garde/vacation définie pour ce modèle.</p>
                                     )}
                                 </div>
                             )}
@@ -739,7 +739,7 @@ const TrameModelesConfigPanel: React.FC = () => {
                     <DialogContent className="sm:max-w-lg">
                         <DialogHeader>
                             <DialogTitle>
-                                {currentAffectation ? "Modifier l'Affectation" : "Ajouter une Affectation"} au modèle "{currentTrame.name}"
+                                {currentAffectation ? "Modifier l'Garde/Vacation" : "Ajouter une Garde/Vacation"} au modèle "{currentTrame.name}"
                             </DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleAffectationSubmit} id="affectationForm" className="space-y-4 py-4">
@@ -864,7 +864,7 @@ const TrameModelesConfigPanel: React.FC = () => {
                                     checked={affectationFormData.isActive === undefined ? true : affectationFormData.isActive}
                                     onCheckedChange={(checked) => setAffectationFormData(fd => ({ ...fd, isActive: !!checked }))}
                                 />
-                                <Label htmlFor="affectationIsActive">Affectation active</Label>
+                                <Label htmlFor="affectationIsActive">Garde/Vacation active</Label>
                             </div>
 
                             {/* Section Personnel Requis */}
@@ -1042,7 +1042,7 @@ const TrameModelesConfigPanel: React.FC = () => {
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-sm text-gray-500 text-center py-3">Aucun personnel requis pour cette affectation. Cliquez sur "Ajouter Personnel".</p>
+                                    <p className="text-sm text-gray-500 text-center py-3">Aucun personnel requis pour cette garde/vacation. Cliquez sur "Ajouter Personnel".</p>
                                 )}
                             </div>
                         </form>
@@ -1050,7 +1050,7 @@ const TrameModelesConfigPanel: React.FC = () => {
                             <DialogClose asChild><Button type="button" variant="outline" onClick={() => setIsAffectationModalOpen(false)}>Annuler</Button></DialogClose>
                             <Button type="submit" form="affectationForm" disabled={isLoading}>
                                 {isLoading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />}
-                                {currentAffectation ? "Sauvegarder les modifications" : "Ajouter l'affectation"}
+                                {currentAffectation ? "Sauvegarder les modifications" : "Ajouter l'garde/vacation"}
                             </Button>
                         </DialogFooter>
                     </DialogContent>

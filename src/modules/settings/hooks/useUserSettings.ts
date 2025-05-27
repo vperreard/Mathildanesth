@@ -24,7 +24,7 @@ export function useUserSettings(userId?: string): UseUserSettingsReturn {
             leave: '#4F46E5',
             duty: '#10B981',
             onCall: '#FBBF24',
-            assignment: '#EC4899',
+            attribution: '#EC4899',
             holiday: '#6B7280',
             default: '#2563EB',
             textColor: '#FFFFFF',

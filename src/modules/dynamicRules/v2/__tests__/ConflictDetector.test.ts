@@ -44,7 +44,7 @@ describe('ConflictDetector', () => {
         { field: 'planning.guardCount', operator: 'GREATER_THAN', value: 2 }
       ],
       actions: [
-        { type: 'PREVENT', target: 'assignment', message: 'Limit reached' }
+        { type: 'PREVENT', target: 'attribution', message: 'Limit reached' }
       ]
     };
 
@@ -177,7 +177,7 @@ describe('ConflictDetector', () => {
             { field: 'user.id', operator: 'EQUALS', value: 'user-1' }
           ],
           actions: [
-            { type: 'MODIFY', target: 'assignment.room', value: 'A' }
+            { type: 'MODIFY', target: 'attribution.room', value: 'A' }
           ]
         };
 
@@ -188,7 +188,7 @@ describe('ConflictDetector', () => {
             { field: 'user.id', operator: 'EQUALS', value: 'user-1' }
           ],
           actions: [
-            { type: 'MODIFY', target: 'assignment.room', value: 'B' }
+            { type: 'MODIFY', target: 'attribution.room', value: 'B' }
           ]
         };
 

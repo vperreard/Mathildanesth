@@ -38,7 +38,7 @@ export default function UseTemplatePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [template, setTemplate] = useState<SimulationTemplate | null>(null);
+    const [modèle, setTemplate] = useState<SimulationTemplate | null>(null);
 
     // Utilisateurs et chirurgiens
     const [users, setUsers] = useState<User[]>([]);
@@ -64,11 +64,11 @@ export default function UseTemplatePage() {
         }
     });
 
-    // Charger les données du template
+    // Charger les données du modèle
     useEffect(() => {
         const loadTemplate = async () => {
             if (!templateId) {
-                setError('ID du template manquant');
+                setError('ID du modèle manquant');
                 setIsLoading(false);
                 return;
             }
@@ -76,9 +76,9 @@ export default function UseTemplatePage() {
             try {
                 setIsLoading(true);
                 const data = await prepareTemplateForScenario(templateId);
-                setTemplate(data.template);
+                setTemplate(data.modèle);
 
-                // Initialiser le formulaire avec les données du template
+                // Initialiser le formulaire avec les données du modèle
                 setFormData({
                     name: data.baseScenarioData.name,
                     description: data.baseScenarioData.description || '',
@@ -100,9 +100,9 @@ export default function UseTemplatePage() {
                 // Charger les utilisateurs et chirurgiens
                 loadUsersAndSurgeons();
             } catch (err: any) {
-                console.error('Erreur lors du chargement du template:', err);
-                setError(err.message || 'Erreur lors du chargement du template');
-                toast.error('Erreur lors du chargement du template');
+                console.error('Erreur lors du chargement du modèle:', err);
+                setError(err.message || 'Erreur lors du chargement du modèle');
+                toast.error('Erreur lors du chargement du modèle');
             } finally {
                 setIsLoading(false);
             }
@@ -189,7 +189,7 @@ export default function UseTemplatePage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!templateId || !template) return;
+        if (!templateId || !modèle) return;
 
         if (!formData.name.trim()) {
             toast.error('Le nom du scénario est requis');
@@ -227,19 +227,19 @@ export default function UseTemplatePage() {
         return (
             <div className="container p-4 mx-auto flex flex-col items-center justify-center min-h-[60vh]">
                 <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-                <p>Chargement du template...</p>
+                <p>Chargement du modèle...</p>
             </div>
         );
     }
 
-    if (error || !template) {
+    if (error || !modèle) {
         return (
             <div className="container p-4 mx-auto flex flex-col items-center justify-center min-h-[60vh]">
                 <AlertTriangleIcon className="h-10 w-10 text-red-500 mb-4" />
                 <h2 className="text-xl font-bold mb-2">Erreur</h2>
-                <p className="text-red-500 mb-4">{error || 'Template non trouvé'}</p>
-                <Button onClick={() => router.push('/admin/simulations/templates')}>
-                    Retour à la liste des templates
+                <p className="text-red-500 mb-4">{error || 'Modèle non trouvé'}</p>
+                <Button onClick={() => router.push('/admin/simulations/modèles')}>
+                    Retour à la liste des modèles
                 </Button>
             </div>
         );
@@ -247,9 +247,9 @@ export default function UseTemplatePage() {
 
     return (
         <div className="container p-4 mx-auto max-w-4xl">
-            <Link href="/admin/simulations/templates" className="inline-flex items-center text-sm text-primary hover:underline mb-4">
+            <Link href="/admin/simulations/modèles" className="inline-flex items-center text-sm text-primary hover:underline mb-4">
                 <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                Retour à la liste des templates
+                Retour à la liste des modèles
             </Link>
 
             <form onSubmit={handleSubmit}>
@@ -257,7 +257,7 @@ export default function UseTemplatePage() {
                     <CardHeader>
                         <CardTitle>Personnaliser le Scénario</CardTitle>
                         <CardDescription>
-                            Créez un scénario à partir du template <strong>{template.name}</strong>
+                            Créez un scénario à partir du modèle <strong>{modèle.name}</strong>
                         </CardDescription>
                     </CardHeader>
 
@@ -371,7 +371,7 @@ export default function UseTemplatePage() {
                                             {formData.absences.userIds.length + formData.absences.surgeonIds.length} personne(s) marquée(s) comme absente(s)
                                         </AlertTitle>
                                         <AlertDescription className="text-blue-700">
-                                            La simulation tiendra compte de ces absences lors du calcul des affectations
+                                            La simulation tiendra compte de ces absences lors du calcul des gardes/vacations
                                         </AlertDescription>
                                     </Alert>
                                 )}
@@ -399,7 +399,7 @@ export default function UseTemplatePage() {
                                                 onCheckedChange={(checked) => handleOptionChange('prioritizeExistingAssignments', !!checked)}
                                             />
                                             <Label htmlFor="prioritizeExistingAssignments" className="font-normal">
-                                                Prioriser les affectations existantes
+                                                Prioriser les gardes/vacations existantes
                                             </Label>
                                         </div>
 
@@ -423,7 +423,7 @@ export default function UseTemplatePage() {
                         <Button
                             variant="outline"
                             type="button"
-                            onClick={() => router.push('/admin/simulations/templates')}
+                            onClick={() => router.push('/admin/simulations/modèles')}
                             disabled={isSubmitting}
                         >
                             Annuler

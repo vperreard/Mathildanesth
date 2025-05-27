@@ -13,10 +13,16 @@ Ce guide explique comment gérer les affectations du bloc opératoire dans l'app
 
 Les trames de planning sont des modèles d'affectation que vous pouvez réutiliser pour automatiser la création de plannings hebdomadaires.
 
-### Accéder à la page des trames
+### Accéder au module bloc opératoire
 
 1. Connectez-vous à l'application
-2. Accédez à `/bloc-operatoire/trames` dans votre navigateur
+2. Cliquez sur "Bloc Opératoire" dans le menu principal
+3. Utilisez les onglets en haut de la page pour naviguer entre :
+   - **Planning** : Vue hebdomadaire des affectations
+   - **Salles** : Gestion des salles d'opération (administrateurs)
+   - **Secteurs** : Gestion des secteurs opératoires (administrateurs)
+   - **Modèles** : Modèles de planning réutilisables (administrateurs)
+   - **Trames** : Trames d'affectation (administrateurs)
 
 ### Créer une trame
 

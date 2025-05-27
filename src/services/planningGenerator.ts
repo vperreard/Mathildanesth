@@ -1,12 +1,12 @@
 import {
-    Assignment,
+    Attribution,
     AssignmentType,
     GenerationParameters,
     RuleViolation,
     ValidationResult,
     UserCounter,
     AssignmentStatus
-} from '../types/assignment';
+} from '../types/attribution';
 import { ShiftType } from '../types/common';
 import { User, WeekType, Leave } from '../types/user';
 import { RulesConfiguration, FatigueConfig, defaultRulesConfiguration, defaultFatigueConfig, RuleSeverity } from '../types/rules';
@@ -42,15 +42,15 @@ export class PlanningGenerator {
     private personnel: User[] = [];
     private rulesConfig: RulesConfiguration;
     private fatigueConfig: FatigueConfig;
-    private existingAssignments: Assignment[] = [];
+    private existingAssignments: Attribution[] = [];
     private userCounters: Map<string, UserCounter> = new Map();
     private isInitialized: boolean = false;
     private ruleEngine: RuleEngineV2;
     private results: {
-        gardes: Assignment[];
-        astreintes: Assignment[];
-        consultations: Assignment[];
-        blocs: Assignment[];
+        gardes: Attribution[];
+        astreintes: Attribution[];
+        consultations: Attribution[];
+        blocs: Attribution[];
     };
 
     constructor(
@@ -74,7 +74,7 @@ export class PlanningGenerator {
      * Initialiser le générateur en chargeant les données nécessaires
      * y compris la configuration dynamique de la fatigue.
      */
-    async initialize(personnel: User[], existingAssignments: Assignment[] = []): Promise<void> {
+    async initialize(personnel: User[], existingAssignments: Attribution[] = []): Promise<void> {
         this.personnel = personnel;
         this.existingAssignments = existingAssignments;
         
@@ -101,23 +101,23 @@ export class PlanningGenerator {
                 fatigue: { score: 0, lastUpdate: new Date() }
             });
         });
-        this.existingAssignments.forEach(assignment => {
-            const counter = this.userCounters.get(String(assignment.userId));
+        this.existingAssignments.forEach(attribution => {
+            const counter = this.userCounters.get(String(attribution.userId));
             if (counter) {
-                this.updateCounterForAssignment(counter, assignment, true);
+                this.updateCounterForAssignment(counter, attribution, true);
             }
         });
     }
 
-    private updateCounterForAssignment(counter: UserCounter, assignment: Assignment, isExisting: boolean = false): void {
-        const date = parseDate(assignment.startDate);
+    private updateCounterForAssignment(counter: UserCounter, attribution: Attribution, isExisting: boolean = false): void {
+        const date = parseDate(attribution.startDate);
         if (!date) return;
 
         const isWeekendDay = date.getDay() === 0 || date.getDay() === 6;
         const isHolidayDay = false;
         const isWeekendOrHoliday = isWeekendDay || isHolidayDay;
 
-        switch (assignment.shiftType) {
+        switch (attribution.shiftType) {
             case ShiftType.GARDE_24H:
                 counter.gardes.total++;
                 if (isWeekendDay) counter.gardes.weekends++;
@@ -140,7 +140,7 @@ export class PlanningGenerator {
 
         if (!isExisting && this.fatigueConfig && this.fatigueConfig.enabled) {
             let fatiguePoints = 0;
-            switch (assignment.shiftType) {
+            switch (attribution.shiftType) {
                 case ShiftType.GARDE_24H:
                     fatiguePoints += this.fatigueConfig.points?.garde || 0;
                     break;
@@ -154,7 +154,7 @@ export class PlanningGenerator {
         }
     }
 
-    private createRuleContext(date: Date, user?: User, assignment?: Partial<Assignment>): RuleContext {
+    private createRuleContext(date: Date, user?: User, attribution?: Partial<Attribution>): RuleContext {
         return {
             date,
             user: user ? {
@@ -165,12 +165,12 @@ export class PlanningGenerator {
                 specialty: user.specialty,
                 yearsOfExperience: user.yearsOfExperience || 0
             } : undefined,
-            assignment: assignment ? {
-                type: assignment.shiftType,
-                startDate: assignment.startDate,
-                endDate: assignment.endDate,
-                userId: assignment.userId,
-                location: assignment.notes
+            attribution: attribution ? {
+                type: attribution.shiftType,
+                startDate: attribution.startDate,
+                endDate: attribution.endDate,
+                userId: attribution.userId,
+                location: attribution.notes
             } : undefined,
             planning: {
                 existingAssignments: this.existingAssignments,
@@ -190,9 +190,9 @@ export class PlanningGenerator {
         };
     }
 
-    private async applyGenerationRules(context: RuleContext): Promise<Assignment[]> {
+    private async applyGenerationRules(context: RuleContext): Promise<Attribution[]> {
         const ruleResults = await this.ruleEngine.evaluate(context, 'generation');
-        const generatedAssignments: Assignment[] = [];
+        const generatedAssignments: Attribution[] = [];
 
         for (const result of ruleResults) {
             if (result.actions) {
@@ -200,14 +200,14 @@ export class PlanningGenerator {
                     if (action.type === 'assign' && action.parameters.userId && action.parameters.shiftType) {
                         const user = this.personnel.find(u => String(u.id) === action.parameters.userId);
                         if (user) {
-                            const assignment = this.createAssignment(
+                            const attribution = this.createAssignment(
                                 user,
                                 context.date,
                                 action.parameters.shiftType as ShiftType,
                                 action.parameters.assignmentType as AssignmentType,
                                 action.parameters.notes
                             );
-                            generatedAssignments.push(assignment);
+                            generatedAssignments.push(attribution);
                         }
                     }
                 }
@@ -217,9 +217,9 @@ export class PlanningGenerator {
         return generatedAssignments;
     }
 
-    private async applyValidationRules(assignment: Assignment): Promise<RuleViolation[]> {
-        const user = this.personnel.find(u => String(u.id) === assignment.userId);
-        const context = this.createRuleContext(assignment.startDate, user, assignment);
+    private async applyValidationRules(attribution: Attribution): Promise<RuleViolation[]> {
+        const user = this.personnel.find(u => String(u.id) === attribution.userId);
+        const context = this.createRuleContext(attribution.startDate, user, attribution);
         const ruleResults = await this.ruleEngine.evaluate(context, 'validation');
         const violations: RuleViolation[] = [];
 
@@ -232,7 +232,7 @@ export class PlanningGenerator {
                             type: action.parameters.violationType || 'RULE_VIOLATION',
                             severity: action.parameters.severity as RuleSeverity,
                             message: action.parameters.message || `Règle ${result.ruleName} non respectée`,
-                            affectedAssignments: [assignment.id]
+                            affectedAssignments: [attribution.id]
                         });
                     }
                 }
@@ -270,7 +270,7 @@ export class PlanningGenerator {
             if (!existingStartDate) continue;
 
             if (areDatesSameDay(date, existingStartDate)) {
-                logger.log(`${logPrefix} REJECTED due to existing assignment on the same day.`);
+                logger.log(`${logPrefix} REJECTED due to existing attribution on the same day.`);
                 return false;
             }
 
@@ -301,7 +301,7 @@ export class PlanningGenerator {
     }
 
     public async generate(): Promise<{
-        assignments: Assignment[];
+        attributions: Attribution[];
         validation: ValidationResult;
         metrics: {
             totalAssignments: number;
@@ -311,7 +311,7 @@ export class PlanningGenerator {
         };
     }> {
         if (!this.isInitialized) {
-            throw new Error("Generator not initialized. Call initialize() first.");
+            throw new Error("Organisateur not initialized. Call initialize() first.");
         }
         logger.log("Starting planning generation...");
 
@@ -342,7 +342,7 @@ export class PlanningGenerator {
             const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
             const isHoliday = this.isHoliday(currentDate);
 
-            // Générer les affectations pour chaque type d'activité activé
+            // Générer les gardes/vacations pour chaque type d'activité activé
             if (this.parameters.etapesActives.includes(AssignmentType.GARDE)) {
                 await this.generateGardes(currentDate, isWeekend || isHoliday);
             }
@@ -392,10 +392,10 @@ export class PlanningGenerator {
             conflictsDetected: validationResult.violations.length
         };
 
-        logger.log(`Planning generation completed: ${metrics.totalAssignments} assignments, ${metrics.conflictsDetected} conflicts`);
+        logger.log(`Planning generation completed: ${metrics.totalAssignments} attributions, ${metrics.conflictsDetected} conflicts`);
 
         return {
-            assignments: allAssignments,
+            attributions: allAssignments,
             validation: validationResult,
             metrics
         };
@@ -406,20 +406,20 @@ export class PlanningGenerator {
         const context = this.createRuleContext(date);
         const generatedByRules = await this.applyGenerationRules(context);
         
-        // Ajouter les affectations générées par les règles
-        for (const assignment of generatedByRules) {
-            if (assignment.shiftType === ShiftType.GARDE_24H) {
-                // Valider l'affectation avec les règles
-                const violations = await this.applyValidationRules(assignment);
+        // Ajouter les gardes/vacations générées par les règles
+        for (const attribution of generatedByRules) {
+            if (attribution.shiftType === ShiftType.GARDE_24H) {
+                // Valider l'garde/vacation avec les règles
+                const violations = await this.applyValidationRules(attribution);
                 
                 if (violations.length === 0) {
-                    this.results.gardes.push(assignment);
+                    this.results.gardes.push(attribution);
                     this.updateCounterForAssignment(
-                        this.userCounters.get(String(assignment.userId))!, 
-                        assignment
+                        this.userCounters.get(String(attribution.userId))!, 
+                        attribution
                     );
                 } else {
-                    logger.warn(`Rule violations for garde assignment: ${violations.map(v => v.message).join(', ')}`);
+                    logger.warn(`Rule violations for garde attribution: ${violations.map(v => v.message).join(', ')}`);
                 }
             }
         }
@@ -439,7 +439,7 @@ export class PlanningGenerator {
             }
 
             const selectedUser = this.selectBestCandidateForGarde(eligibleUsers, date);
-            const assignment = this.createAssignment(
+            const attribution = this.createAssignment(
                 selectedUser,
                 date,
                 ShiftType.GARDE_24H,
@@ -447,11 +447,11 @@ export class PlanningGenerator {
             );
             
             // Valider avec les règles V2
-            const violations = await this.applyValidationRules(assignment);
+            const violations = await this.applyValidationRules(attribution);
             
             if (violations.length === 0) {
-                this.results.gardes.push(assignment);
-                this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, assignment);
+                this.results.gardes.push(attribution);
+                this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, attribution);
             } else {
                 logger.warn(`Cannot assign garde due to rule violations: ${violations.map(v => v.message).join(', ')}`);
             }
@@ -468,15 +468,15 @@ export class PlanningGenerator {
         }
 
         const selectedUser = this.selectBestCandidateForAstreinte(eligibleUsers, date);
-        const assignment = this.createAssignment(
+        const attribution = this.createAssignment(
             selectedUser,
             date,
             shiftType,
             AssignmentType.ASTREINTE
         );
 
-        this.results.astreintes.push(assignment);
-        this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, assignment);
+        this.results.astreintes.push(attribution);
+        this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, attribution);
     }
 
     private async generateConsultations(date: Date): Promise<void> {
@@ -486,14 +486,14 @@ export class PlanningGenerator {
             const eligibleUsers = this.findEligibleUsersForConsultation(date, ShiftType.MATIN);
             if (eligibleUsers.length > 0) {
                 const selectedUser = this.selectBestCandidateForConsultation(eligibleUsers, date, ShiftType.MATIN);
-                const assignment = this.createAssignment(
+                const attribution = this.createAssignment(
                     selectedUser,
                     date,
                     ShiftType.MATIN,
                     AssignmentType.CONSULTATION
                 );
-                this.results.consultations.push(assignment);
-                this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, assignment);
+                this.results.consultations.push(attribution);
+                this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, attribution);
             }
         }
 
@@ -503,14 +503,14 @@ export class PlanningGenerator {
             const eligibleUsers = this.findEligibleUsersForConsultation(date, ShiftType.APRES_MIDI);
             if (eligibleUsers.length > 0) {
                 const selectedUser = this.selectBestCandidateForConsultation(eligibleUsers, date, ShiftType.APRES_MIDI);
-                const assignment = this.createAssignment(
+                const attribution = this.createAssignment(
                     selectedUser,
                     date,
                     ShiftType.APRES_MIDI,
                     AssignmentType.CONSULTATION
                 );
-                this.results.consultations.push(assignment);
-                this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, assignment);
+                this.results.consultations.push(attribution);
+                this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, attribution);
             }
         }
     }
@@ -523,15 +523,15 @@ export class PlanningGenerator {
             const eligibleUsers = this.findEligibleUsersForBloc(date, isWeekend);
             if (eligibleUsers.length > 0) {
                 const selectedUser = this.selectBestCandidateForBloc(eligibleUsers, date, isWeekend);
-                const assignment = this.createAssignment(
+                const attribution = this.createAssignment(
                     selectedUser,
                     date,
                     ShiftType.JOURNEE,
                     AssignmentType.BLOC,
                     `Salle ${i + 1}`
                 );
-                this.results.blocs.push(assignment);
-                this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, assignment);
+                this.results.blocs.push(attribution);
+                this.updateCounterForAssignment(this.userCounters.get(String(selectedUser.id))!, attribution);
             }
         }
     }
@@ -542,7 +542,7 @@ export class PlanningGenerator {
         shiftType: ShiftType,
         assignmentType: AssignmentType,
         notes?: string
-    ): Assignment {
+    ): Attribution {
         const startDate = new Date(date);
         const endDate = new Date(date);
 
@@ -575,7 +575,7 @@ export class PlanningGenerator {
         }
 
         return {
-            id: `assignment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `attribution-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             userId: String(user.id),
             shiftType,
             startDate,
@@ -596,7 +596,7 @@ export class PlanningGenerator {
             this.userCounters
         );
 
-        // Optimiser chaque type d'affectation
+        // Optimiser chaque type d'garde/vacation
         this.results.gardes = optimizer.optimizePlanning(this.results.gardes);
         this.results.astreintes = optimizer.optimizePlanning(this.results.astreintes);
         this.results.consultations = optimizer.optimizePlanning(this.results.consultations);
@@ -742,7 +742,7 @@ export class PlanningGenerator {
             }
         }
 
-        // 3. Pénalité pour affectations consécutives récentes (0-20 points)
+        // 3. Pénalité pour gardes/vacations consécutives récentes (0-20 points)
         const recentAssignments = this.findUserAssignments(String(user.id))
             .filter(a => {
                 const assignmentDate = parseDate(a.startDate);
@@ -808,8 +808,8 @@ export class PlanningGenerator {
             ...this.results.blocs
         ];
         
-        for (const assignment of allAssignments) {
-            const ruleViolations = await this.applyValidationRules(assignment);
+        for (const attribution of allAssignments) {
+            const ruleViolations = await this.applyValidationRules(attribution);
             violations.push(...ruleViolations);
         }
     }
@@ -817,19 +817,19 @@ export class PlanningGenerator {
     private checkMinimumGardeIntervals(violations: RuleViolation[]): void {
         this.personnel.forEach(user => {
             const userAssignments = this.findUserAssignments(String(user.id));
-            userAssignments.forEach(assignment => {
+            userAssignments.forEach(attribution => {
                 const nextAssignment = userAssignments.find(a =>
-                    a.startDate > assignment.startDate
+                    a.startDate > attribution.startDate
                 );
                 if (nextAssignment) {
-                    const daysBetween = getDifferenceInDays(parseDate(nextAssignment.startDate)!, parseDate(assignment.startDate)!);
+                    const daysBetween = getDifferenceInDays(parseDate(nextAssignment.startDate)!, parseDate(attribution.startDate)!);
                     if (daysBetween !== null && daysBetween < this.rulesConfig.intervalle.minJoursEntreGardes) {
                         violations.push({
-                            id: `min-interval-${assignment.id}-${nextAssignment.id}`,
+                            id: `min-interval-${attribution.id}-${nextAssignment.id}`,
                             type: 'MIN_INTERVAL',
                             severity: RuleSeverity.ERROR,
                             message: `Intervalle minimum de ${this.rulesConfig.intervalle.minJoursEntreGardes} jours non respecté entre les gardes`,
-                            affectedAssignments: [assignment.id, nextAssignment.id]
+                            affectedAssignments: [attribution.id, nextAssignment.id]
                         });
                     }
                 }
@@ -866,18 +866,18 @@ export class PlanningGenerator {
                 return dateA.getTime() - dateB.getTime();
             });
 
-            sortedAssignments.forEach((assignment, index) => {
+            sortedAssignments.forEach((attribution, index) => {
                 if (index > 0) {
                     const previousAssignment = sortedAssignments[index - 1];
-                    if (areDatesSameDay(previousAssignment.endDate, assignment.startDate)) {
+                    if (areDatesSameDay(previousAssignment.endDate, attribution.startDate)) {
                         consecutiveCount++;
                         if (consecutiveCount + 1 > this.rulesConfig.intervalle.maxGardesConsecutives) {
                             violations.push({
-                                id: `consecutive-${previousAssignment.id}-${assignment.id}`,
+                                id: `consecutive-${previousAssignment.id}-${attribution.id}`,
                                 type: 'CONSECUTIVE_ASSIGNMENTS',
                                 severity: RuleSeverity.WARNING,
-                                message: `Nombre maximum d'affectations consécutives (${this.rulesConfig.intervalle.maxGardesConsecutives}) dépassé`,
-                                affectedAssignments: [previousAssignment.id, assignment.id]
+                                message: `Nombre maximum d'gardes/vacations consécutives (${this.rulesConfig.intervalle.maxGardesConsecutives}) dépassé`,
+                                affectedAssignments: [previousAssignment.id, attribution.id]
                             });
                         }
                     } else {
@@ -967,15 +967,15 @@ export class PlanningGenerator {
     }
 
     private getResults(): {
-        gardes: Assignment[];
-        astreintes: Assignment[];
-        consultations: Assignment[];
-        blocs: Assignment[];
+        gardes: Attribution[];
+        astreintes: Attribution[];
+        consultations: Attribution[];
+        blocs: Attribution[];
     } {
         return this.results;
     }
 
-    private findUserAssignments(userId: string): Assignment[] {
+    private findUserAssignments(userId: string): Attribution[] {
         const generatedAssignments = [
             ...this.results.gardes,
             ...this.results.astreintes,
@@ -994,8 +994,8 @@ export class PlanningGenerator {
 
     private hasConsecutiveAssignments(user: User, targetDate: Date): boolean {
         const userAssignments = this.findUserAssignments(String(user.id));
-        return userAssignments.some(assignment => {
-            const assignmentStartDate = parseDate(assignment.startDate);
+        return userAssignments.some(attribution => {
+            const assignmentStartDate = parseDate(attribution.startDate);
             if (assignmentStartDate) {
                 const dayBeforeTarget = addDaysToDate(targetDate, -1);
                 if (dayBeforeTarget && areDatesSameDay(assignmentStartDate, dayBeforeTarget)) {

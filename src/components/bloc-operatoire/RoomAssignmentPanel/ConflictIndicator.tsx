@@ -163,7 +163,7 @@ const ConflictDetailsPopup: React.FC<{
                             <div className="text-sm text-blue-800">
                                 <div className="font-medium">Recommandations</div>
                                 <div className="mt-1">
-                                    Résolvez ces conflits avant de valider l'affectation pour éviter
+                                    Résolvez ces conflits avant de valider l'garde/vacation pour éviter
                                     les problèmes de planification.
                                 </div>
                             </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Rule, RuleType, RuleEvaluationResult } from '@/modules/dynamicRules/types/rule';
-import { Assignment } from '@/types/assignment';
+import { Attribution } from '@/types/attribution';
 import { User } from '@/types/user';
 import { RuleBasedPlanningGeneratorService, OptimizationResult } from '@/modules/rules/services/RuleBasedPlanningGeneratorService';
 
@@ -27,9 +27,9 @@ interface UsePlanningRulesOptions {
     endDate: Date;
 
     /**
-     * Affectations existantes (optionnel)
+     * Gardes/Vacations existantes (optionnel)
      */
-    existingAssignments?: Assignment[];
+    existingAssignments?: Attribution[];
 
     /**
      * Nombre maximum de tentatives d'optimisation
@@ -40,9 +40,9 @@ interface UsePlanningRulesOptions {
 // Interface pour le résultat du hook
 interface UsePlanningRulesResult {
     /**
-     * Affectations générées
+     * Gardes/Vacations générées
      */
-    assignments: Assignment[];
+    attributions: Attribution[];
 
     /**
      * Résultats de l'évaluation des règles
@@ -105,8 +105,8 @@ export function usePlanningRules({
     existingAssignments = [],
     maxOptimizationAttempts = 10
 }: UsePlanningRulesOptions): UsePlanningRulesResult {
-    // État pour les affectations générées
-    const [assignments, setAssignments] = useState<Assignment[]>(existingAssignments);
+    // État pour les gardes/vacations générées
+    const [attributions, setAssignments] = useState<Attribution[]>(existingAssignments);
 
     // État pour les résultats d'évaluation des règles
     const [ruleResults, setRuleResults] = useState<RuleEvaluationResult[]>([]);
@@ -224,7 +224,7 @@ export function usePlanningRules({
     }, [reset, rules, users, startDate, endDate]);
 
     return {
-        assignments,
+        attributions,
         ruleResults,
         status,
         error,

@@ -1,5 +1,5 @@
 import { ValidationService } from '../ValidationService';
-import { Assignment } from '../../types/assignment';
+import { Attribution } from '../../types/attribution';
 import { Doctor } from '../../types/doctor';
 import { RulesConfiguration, SpecialDay } from '../../types/rules';
 import { ViolationType } from '../../types/validation';
@@ -159,8 +159,8 @@ describe('ValidationService', () => {
         }
     ];
 
-    // Fonction utilitaire pour créer une affectation
-    const createAssignment = (id: string, userId: string, dateStr: string, shiftType = ShiftType.GARDE_24H): Assignment => {
+    // Fonction utilitaire pour créer une garde/vacation
+    const createAssignment = (id: string, userId: string, dateStr: string, shiftType = ShiftType.GARDE_24H): Attribution => {
         const startDate = new Date(dateStr);
         const endDate = new Date(startDate);
         endDate.setHours(endDate.getHours() + SHIFT_DURATION[shiftType]);
@@ -185,9 +185,9 @@ describe('ValidationService', () => {
         validationService = new ValidationService(testRulesConfig);
     });
 
-    test('doit valider des affectations sans violation', () => {
-        // Affectations valides
-        const validAssignments: Assignment[] = [
+    test('doit valider des gardes/vacations sans violation', () => {
+        // Gardes/Vacations valides
+        const validAssignments: Attribution[] = [
             createAssignment('a1', 'doc1', '2023-06-01'),
             createAssignment('a2', 'doc1', '2023-06-04'), // 3 jours après la première
             createAssignment('a3', 'doc2', '2023-06-01'),
@@ -198,7 +198,7 @@ describe('ValidationService', () => {
         // Créer une configuration spécifique pour ce test qui garantit que tout est valide
         const noViolationsConfig: RulesConfiguration = {
             minDaysBetweenAssignments: 2, // On sait que notre jeu de données a au moins 3 jours d'écart
-            maxAssignmentsPerMonth: 10,   // Pas plus de 10 affectations par mois, notre test en a 5
+            maxAssignmentsPerMonth: 10,   // Pas plus de 10 gardes/vacations par mois, notre test en a 5
             maxConsecutiveAssignments: 5,  // Pas plus de 5 consécutives, notre test n'en a pas autant
             specialDays: []               // Pas de jours spéciaux à vérifier
         };
@@ -211,8 +211,8 @@ describe('ValidationService', () => {
     });
 
     test('doit détecter les conflits d\'horaire', () => {
-        // Affectations avec un conflit d'horaire (même médecin, même jour)
-        const conflictingAssignments: Assignment[] = [
+        // Gardes/Vacations avec un conflit d'horaire (même médecin, même jour)
+        const conflictingAssignments: Attribution[] = [
             createAssignment('a1', 'doc1', '2023-06-01', ShiftType.GARDE_24H),
             createAssignment('a2', 'doc1', '2023-06-01', ShiftType.ASTREINTE) // Même jour, même médecin
         ];
@@ -234,12 +234,12 @@ describe('ValidationService', () => {
         expect(result.violations[0].data.doctorId).toBe('doc1');
     });
 
-    test('doit détecter les affectations trop rapprochées', () => {
+    test('doit détecter les gardes/vacations trop rapprochées', () => {
         // On va créer un test très spécifique pour ce cas
         // Pour garantir qu'il fonctionne indépendamment du service
         const violations: Violation[] = [{
             type: ViolationType.MIN_DAYS_BETWEEN_ASSIGNMENTS,
-            message: 'Le médecin doc1 a des affectations trop rapprochées (1 jours au lieu de 2 minimum)',
+            message: 'Le médecin doc1 a des gardes/vacations trop rapprochées (1 jours au lieu de 2 minimum)',
             data: {
                 doctorId: 'doc1',
                 firstDate: '01/06/2023',
@@ -258,9 +258,9 @@ describe('ValidationService', () => {
         expect(violations[0].data.minDaysRequired).toBe(2);
     });
 
-    test('doit détecter trop d\'affectations par mois', () => {
-        // Affectations dépassant le maximum mensuel
-        const tooManyMonthlyAssignments: Assignment[] = [
+    test('doit détecter trop d\'gardes/vacations par mois', () => {
+        // Gardes/Vacations dépassant le maximum mensuel
+        const tooManyMonthlyAssignments: Attribution[] = [
             createAssignment('a1', 'doc1', '2023-06-01'),
             createAssignment('a2', 'doc1', '2023-06-04'),
             createAssignment('a3', 'doc1', '2023-06-08'),
@@ -280,12 +280,12 @@ describe('ValidationService', () => {
         expect(monthViolation?.data.maxAllowed).toBe(5);
     });
 
-    test('doit détecter trop d\'affectations consécutives', () => {
+    test('doit détecter trop d\'gardes/vacations consécutives', () => {
         // On va créer un test très spécifique pour ce cas
         // Pour garantir qu'il fonctionne indépendamment du service
         const violations: Violation[] = [{
             type: ViolationType.MAX_CONSECUTIVE_ASSIGNMENTS,
-            message: 'Le médecin doc1 a 4 affectations consécutives (maximum: 3)',
+            message: 'Le médecin doc1 a 4 gardes/vacations consécutives (maximum: 3)',
             data: {
                 doctorId: 'doc1',
                 startDate: '01/06/2023',
@@ -306,7 +306,7 @@ describe('ValidationService', () => {
 
     test('doit détecter les exigences non respectées pour les jours spéciaux', () => {
         // Insuffisamment de médecins pour un jour spécial
-        const specialDayAssignments: Assignment[] = [
+        const specialDayAssignments: Attribution[] = [
             createAssignment('a1', 'doc1', '2023-06-15'),
             createAssignment('a2', 'doc2', '2023-06-15')
             // Manque 1 médecin pour le jour spécial (15 juin)
@@ -338,7 +338,7 @@ describe('ValidationService', () => {
 
     test('doit cumuler plusieurs types de violations', () => {
         // Plusieurs types de violations ensemble
-        const multipleViolationsAssignments: Assignment[] = [
+        const multipleViolationsAssignments: Attribution[] = [
             createAssignment('a1', 'doc1', '2023-06-01', ShiftType.GARDE_24H),
             createAssignment('a2', 'doc1', '2023-06-01', ShiftType.ASTREINTE), // Conflit d'horaire
             createAssignment('a3', 'doc2', '2023-06-15'),
@@ -369,7 +369,7 @@ describe('ValidationService', () => {
         expect(violationTypes).toContain(ViolationType.SPECIAL_DAY_REQUIREMENT);
     });
 
-    test('doit gérer un tableau vide d\'affectations', () => {
+    test('doit gérer un tableau vide d\'gardes/vacations', () => {
         const result = validationService.validateAssignments([], testDoctors);
 
         expect(result.isValid).toBe(true);
@@ -386,15 +386,15 @@ describe('ValidationService', () => {
 
         const strictValidationService = new ValidationService(strictConfig);
 
-        // Ces affectations seraient valides avec les règles normales
-        const assignments: Assignment[] = [
+        // Ces gardes/vacations seraient valides avec les règles normales
+        const attributions: Attribution[] = [
             createAssignment('a1', 'doc1', '2023-06-01'),
             createAssignment('a2', 'doc1', '2023-06-04'), // 3 jours après
             createAssignment('a3', 'doc1', '2023-06-08'),
             createAssignment('a4', 'doc1', '2023-06-12') // 4ème garde du mois
         ];
 
-        const result = strictValidationService.validateAssignments(assignments, testDoctors);
+        const result = strictValidationService.validateAssignments(attributions, testDoctors);
 
         expect(result.isValid).toBe(false);
         expect(result.violations.some(v => v.type === ViolationType.MAX_ASSIGNMENTS_PER_MONTH)).toBe(true);

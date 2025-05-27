@@ -359,34 +359,34 @@ export class RuleValidator {
     return validPattern.test(field);
   }
 
-  async validateTemplate(template: RuleTemplate): Promise<{
+  async validateTemplate(modèle: RuleTemplate): Promise<{
     isValid: boolean;
     errors: string[];
   }> {
     const errors: string[] = [];
 
-    // Validate template structure
-    if (!template.id || !template.name || !template.baseRule) {
-      errors.push('Template incomplet');
+    // Validate modèle structure
+    if (!modèle.id || !modèle.name || !modèle.baseRule) {
+      errors.push('Modèle incomplet');
     }
 
     // Validate parameters
-    template.parameters.forEach((param, index) => {
+    modèle.parameters.forEach((param, index) => {
       if (!param.name || !param.type || !param.label) {
         errors.push(`Paramètre ${index + 1} incomplet`);
       }
 
       // Check parameter references in base rule
       const paramRegex = new RegExp(`\\{${param.name}\\}`, 'g');
-      const ruleString = JSON.stringify(template.baseRule);
+      const ruleString = JSON.stringify(modèle.baseRule);
       if (!paramRegex.test(ruleString)) {
         errors.push(`Paramètre ${param.name} non utilisé dans la règle`);
       }
     });
 
     // Validate examples
-    template.examples.forEach((example, index) => {
-      const missingParams = template.parameters
+    modèle.examples.forEach((example, index) => {
+      const missingParams = modèle.parameters
         .filter(p => p.required && !(p.name in example.parameters))
         .map(p => p.name);
 

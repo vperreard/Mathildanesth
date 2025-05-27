@@ -75,7 +75,7 @@ describe('BlocPlanningCalendar', () => {
 
     const mockAssignments = [
         {
-            id: 'assignment-1',
+            id: 'attribution-1',
             roomId: 'room-1',
             surgeonId: 'surgeon-1',
             startTime: '08:00',
@@ -118,7 +118,7 @@ describe('BlocPlanningCalendar', () => {
                 return Promise.resolve({
                     ok: true,
                     json: async () => ({
-                        assignments: mockAssignments,
+                        attributions: mockAssignments,
                         supervisors: mockSupervisors
                     })
                 } as Response);
@@ -214,8 +214,8 @@ describe('BlocPlanningCalendar', () => {
         });
     });
 
-    describe('assignments display', () => {
-        it('should display existing assignments', async () => {
+    describe('attributions display', () => {
+        it('should display existing attributions', async () => {
             render(<BlocPlanningCalendar {...defaultProps} />);
 
             await waitFor(() => {
@@ -224,11 +224,11 @@ describe('BlocPlanningCalendar', () => {
             });
         });
 
-        it('should show empty slots for unassigned rooms', async () => {
+        it('should show empty créneaux for unassigned rooms', async () => {
             render(<BlocPlanningCalendar {...defaultProps} />);
 
             await waitFor(() => {
-                const room2Slot = screen.getByTestId('room-room-2-slot');
+                const room2Slot = screen.getByTestId('room-room-2-créneau');
                 expect(room2Slot).toHaveTextContent('Libre');
             });
         });
@@ -286,7 +286,7 @@ describe('BlocPlanningCalendar', () => {
             expect(screen.getByText('Cette salle n\'est pas disponible')).toBeInTheDocument();
         });
 
-        it('should allow reordering assignments between rooms', async () => {
+        it('should allow reordering attributions between rooms', async () => {
             render(<BlocPlanningCalendar {...defaultProps} />);
 
             await waitFor(() => {
@@ -294,7 +294,7 @@ describe('BlocPlanningCalendar', () => {
             });
 
             const dragResult = {
-                draggableId: 'assignment-1',
+                draggableId: 'attribution-1',
                 source: { droppableId: 'room-1', index: 0 },
                 destination: { droppableId: 'room-2', index: 0 }
             };
@@ -307,7 +307,7 @@ describe('BlocPlanningCalendar', () => {
                 expect(mockOnAssignmentChange).toHaveBeenCalledWith(
                     expect.arrayContaining([
                         expect.objectContaining({
-                            id: 'assignment-1',
+                            id: 'attribution-1',
                             roomId: 'room-2'
                         })
                     ])
@@ -337,7 +337,7 @@ describe('BlocPlanningCalendar', () => {
     });
 
     describe('supervisor management', () => {
-        it('should display assigned supervisors', async () => {
+        it('should display en garde/vacation supervisors', async () => {
             render(<BlocPlanningCalendar {...defaultProps} />);
 
             await waitFor(() => {
@@ -357,18 +357,18 @@ describe('BlocPlanningCalendar', () => {
         });
     });
 
-    describe('time slot management', () => {
-        it('should display time slots based on period', async () => {
+    describe('time créneau management', () => {
+        it('should display time créneaux based on period', async () => {
             render(<BlocPlanningCalendar {...defaultProps} />);
 
             await waitFor(() => {
-                // Morning slots
+                // Morning créneaux
                 expect(screen.getByText('08:00')).toBeInTheDocument();
                 expect(screen.getByText('12:00')).toBeInTheDocument();
             });
         });
 
-        it('should display afternoon slots for AFTERNOON period', async () => {
+        it('should display afternoon créneaux for AFTERNOON period', async () => {
             render(<BlocPlanningCalendar {...defaultProps} period={BlocPeriod.AFTERNOON} />);
 
             await waitFor(() => {
@@ -377,7 +377,7 @@ describe('BlocPlanningCalendar', () => {
             });
         });
 
-        it('should display all day slots for ALL_DAY period', async () => {
+        it('should display all day créneaux for ALL_DAY period', async () => {
             render(<BlocPlanningCalendar {...defaultProps} period={BlocPeriod.ALL_DAY} />);
 
             await waitFor(() => {
@@ -387,23 +387,23 @@ describe('BlocPlanningCalendar', () => {
         });
     });
 
-    describe('assignment actions', () => {
-        it('should allow editing assignments', async () => {
+    describe('attribution actions', () => {
+        it('should allow editing attributions', async () => {
             render(<BlocPlanningCalendar {...defaultProps} />);
 
             await waitFor(() => {
-                const editButton = screen.getByTestId('edit-assignment-1');
+                const editButton = screen.getByTestId('edit-attribution-1');
                 fireEvent.click(editButton);
             });
 
-            expect(screen.getByTestId('assignment-edit-modal')).toBeInTheDocument();
+            expect(screen.getByTestId('attribution-edit-modal')).toBeInTheDocument();
         });
 
-        it('should allow deleting assignments', async () => {
+        it('should allow deleting attributions', async () => {
             render(<BlocPlanningCalendar {...defaultProps} />);
 
             await waitFor(() => {
-                const deleteButton = screen.getByTestId('delete-assignment-1');
+                const deleteButton = screen.getByTestId('delete-attribution-1');
                 fireEvent.click(deleteButton);
             });
 
@@ -414,7 +414,7 @@ describe('BlocPlanningCalendar', () => {
             await waitFor(() => {
                 expect(mockOnAssignmentChange).toHaveBeenCalledWith(
                     expect.not.arrayContaining([
-                        expect.objectContaining({ id: 'assignment-1' })
+                        expect.objectContaining({ id: 'attribution-1' })
                     ])
                 );
             });
@@ -449,7 +449,7 @@ describe('BlocPlanningCalendar', () => {
                     expect.objectContaining({
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: expect.stringContaining('assignments')
+                        body: expect.stringContaining('attributions')
                     })
                 );
             });
@@ -485,14 +485,14 @@ describe('BlocPlanningCalendar', () => {
     });
 
     describe('validation', () => {
-        it('should validate assignments before saving', async () => {
+        it('should validate attributions before saving', async () => {
             render(<BlocPlanningCalendar {...defaultProps} />);
 
-            // Add conflicting assignment
+            // Add conflicting attribution
             const dragResult = {
                 draggableId: 'surgeon-3',
                 source: { droppableId: 'surgeons', index: 2 },
-                destination: { droppableId: 'room-1', index: 0 } // Already has assignment
+                destination: { droppableId: 'room-1', index: 0 } // Already has attribution
             };
 
             act(() => {
@@ -505,7 +505,7 @@ describe('BlocPlanningCalendar', () => {
         });
 
         it('should check surgeon availability', async () => {
-            // Mock surgeon already assigned elsewhere
+            // Mock surgeon already en garde/vacation elsewhere
             mockFetch.mockImplementation((url) => {
                 if (url.toString().includes('/api/chirurgiens/surgeon-1/availability')) {
                     return Promise.resolve({

@@ -18,7 +18,7 @@ describe('CalendarService', () => {
             const startDate = new Date('2024-01-01');
             const endDate = new Date('2024-01-31');
 
-            // Mock assignments
+            // Mock attributions
             const mockAssignments = [
                 {
                     id: 1,
@@ -45,7 +45,7 @@ describe('CalendarService', () => {
                 },
             ];
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue(mockAssignments),
             } as any;
 
@@ -55,10 +55,10 @@ describe('CalendarService', () => {
 
             const result = await calendarService.getEvents(userId, startDate, endDate);
 
-            expect(result).toHaveLength(3); // 2 assignments + 1 leave
+            expect(result).toHaveLength(3); // 2 attributions + 1 leave
             expect(result).toContainEqual(
                 expect.objectContaining({
-                    type: 'assignment',
+                    type: 'attribution',
                     title: 'Salle 1 - Matin',
                     date: new Date('2024-01-15'),
                 })
@@ -72,7 +72,7 @@ describe('CalendarService', () => {
                 })
             );
 
-            expect(mockedPrisma.assignment.findMany).toHaveBeenCalledWith({
+            expect(mockedPrisma.attribution.findMany).toHaveBeenCalledWith({
                 where: {
                     userId,
                     date: {
@@ -115,7 +115,7 @@ describe('CalendarService', () => {
             const startDate = new Date('2024-01-01');
             const endDate = new Date('2024-01-31');
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([]),
             } as any;
 
@@ -155,7 +155,7 @@ describe('CalendarService', () => {
         });
 
         it('should return empty array when no events', async () => {
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([]),
             } as any;
 
@@ -181,7 +181,7 @@ describe('CalendarService', () => {
                 { id: 2, nom: 'Smith', prenom: 'Jane' },
             ];
 
-            // Mock assignments
+            // Mock attributions
             const mockAssignments = [
                 {
                     id: 1,
@@ -210,7 +210,7 @@ describe('CalendarService', () => {
                 findMany: jest.fn().mockResolvedValue(mockUsers),
             } as any;
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue(mockAssignments),
             } as any;
 
@@ -224,7 +224,7 @@ describe('CalendarService', () => {
                 teamMembers: mockUsers,
                 events: expect.arrayContaining([
                     expect.objectContaining({
-                        type: 'assignment',
+                        type: 'attribution',
                         userId: 1,
                         userName: 'Doe John',
                     }),
@@ -274,7 +274,7 @@ describe('CalendarService', () => {
                 },
             ];
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue(mockEvents),
             } as any;
 
@@ -295,7 +295,7 @@ describe('CalendarService', () => {
             const userId = 1;
             const year = 2024;
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([]),
             } as any;
 

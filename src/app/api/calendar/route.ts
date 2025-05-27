@@ -235,7 +235,7 @@ export async function GET(request: NextRequest) {
                 }
             }
 
-            // 3. Récupérer les affectations
+            // 3. Récupérer les gardes/vacations
             if (requestedEventTypes.includes(CalendarEventType.ASSIGNMENT)) {
                 try {
                     const assignmentFilter: any = {
@@ -249,7 +249,7 @@ export async function GET(request: NextRequest) {
                         assignmentFilter.userId = userIdFilterCondition;
                     }
 
-                    const assignments = await prisma.assignment.findMany({
+                    const attributions = await prisma.attribution.findMany({
                         where: assignmentFilter,
                         include: {
                             user: {
@@ -273,25 +273,25 @@ export async function GET(request: NextRequest) {
                         }
                     });
 
-                    // Convertir les affectations en événements de calendrier
-                    const assignmentEvents = assignments.map(assignment => ({
-                        id: `assignment-${assignment.id}`,
-                        title: `${assignment.user.prenom} ${assignment.user.nom} - ${assignment.operatingRoom?.name || 'Affectation'}`,
-                        start: formatISO(assignment.startDate),
-                        end: formatISO(assignment.endDate),
+                    // Convertir les gardes/vacations en événements de calendrier
+                    const assignmentEvents = attributions.map(attribution => ({
+                        id: `attribution-${attribution.id}`,
+                        title: `${attribution.user.prenom} ${attribution.user.nom} - ${attribution.operatingRoom?.name || 'Garde/Vacation'}`,
+                        start: formatISO(attribution.startDate),
+                        end: formatISO(attribution.endDate),
                         allDay: false,
-                        userId: assignment.userId,
-                        user: assignment.user,
+                        userId: attribution.userId,
+                        user: attribution.user,
                         type: CalendarEventType.ASSIGNMENT,
-                        assignmentId: assignment.id,
-                        operatingRoom: assignment.operatingRoom,
-                        description: assignment.notes || ''
+                        assignmentId: attribution.id,
+                        operatingRoom: attribution.operatingRoom,
+                        description: attribution.notes || ''
                     }));
 
                     events.push(...assignmentEvents);
                 } catch (assignmentsError) {
-                    console.error('Erreur lors de la récupération des affectations:', assignmentsError);
-                    // Continuer sans ajouter d'événements d'affectations
+                    console.error('Erreur lors de la récupération des gardes/vacations:', assignmentsError);
+                    // Continuer sans ajouter d'événements d'gardes/vacations
                 }
             }
 

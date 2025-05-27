@@ -40,7 +40,7 @@ export interface PredictiveInsight {
 export async function getGuardDutyDistributionStats(): Promise<GuardDutyDistribution[]> {
     try {
         // Dans une implémentation réelle, nous interrogerions la base de données
-        // pour obtenir ces statistiques à partir des affectations et des gardes
+        // pour obtenir ces statistiques à partir des gardes/vacations et des gardes
 
         // Exemple de code qui pourrait être utilisé:
         /*
@@ -61,7 +61,7 @@ export async function getGuardDutyDistributionStats(): Promise<GuardDutyDistribu
           FROM 
             users u
           LEFT JOIN 
-            assignments a ON u.id = a.userId
+            attributions a ON u.id = a.userId
           WHERE 
             a.startTime >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
             AND (a.type = 'GUARD' OR a.type = 'ON_CALL')

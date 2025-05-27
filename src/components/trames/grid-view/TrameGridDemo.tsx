@@ -42,7 +42,7 @@ interface TrameModele {
     isActive: boolean;
     effectiveStartDate: Date;
     effectiveEndDate?: Date;
-    affectations: AffectationModele[];
+    gardes/vacations: AffectationModele[];
 }
 
 const TrameGridDemo: React.FC = () => {
@@ -50,7 +50,7 @@ const TrameGridDemo: React.FC = () => {
     const demoData: TrameModele[] = [
         {
             id: 'demo-1',
-            name: 'Trame Bloc A - Semaine Standard',
+            name: 'Tableau de service Bloc A - Semaine Standard',
             description: 'Planning hebdomadaire standard pour le bloc A',
             siteId: 'site-1',
             weekType: 'ALL',
@@ -58,7 +58,7 @@ const TrameGridDemo: React.FC = () => {
             isActive: true,
             effectiveStartDate: new Date('2025-01-01'),
             effectiveEndDate: new Date('2025-12-31'),
-            affectations: [
+            gardes/vacations: [
                 {
                     id: 'aff-1',
                     trameId: 'demo-1',
@@ -113,7 +113,7 @@ const TrameGridDemo: React.FC = () => {
         },
         {
             id: 'demo-2',
-            name: 'Trame Bloc B - Semaines Paires',
+            name: 'Tableau de service Bloc B - Semaines Paires',
             description: 'Planning pour les semaines paires du bloc B',
             siteId: 'site-1',
             weekType: 'EVEN',
@@ -121,7 +121,7 @@ const TrameGridDemo: React.FC = () => {
             isActive: true,
             effectiveStartDate: new Date('2025-01-01'),
             effectiveEndDate: new Date('2025-12-31'),
-            affectations: [
+            gardes/vacations: [
                 {
                     id: 'aff-3',
                     trameId: 'demo-2',
@@ -175,12 +175,12 @@ const TrameGridDemo: React.FC = () => {
                             onValueChange={setSelectedTrameId}
                         >
                             <SelectTrigger className="w-[250px]">
-                                <SelectValue placeholder="Sélectionner une trame" />
+                                <SelectValue placeholder="Sélectionner une tableau de service" />
                             </SelectTrigger>
                             <SelectContent>
-                                {demoData.map(trame => (
-                                    <SelectItem key={trame.id} value={trame.id}>
-                                        {trame.name}
+                                {demoData.map(tableau de service => (
+                                    <SelectItem key={tableau de service.id} value={tableau de service.id}>
+                                        {tableau de service.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -191,15 +191,15 @@ const TrameGridDemo: React.FC = () => {
                             variant="default"
                         >
                             <PlusIcon className="h-4 w-4 mr-2" />
-                            Nouvelle Trame
+                            Nouvelle Tableau de service
                         </Button>
                     </div>
 
                     {demoData.length > 0 ? (
                         <TrameGridView
-                            trame={demoData.find(t => t.id === selectedTrameId) || demoData[0]}
+                            tableau de service={demoData.find(t => t.id === selectedTrameId) || demoData[0]}
                             readOnly={false}
-                            onTrameChange={(updatedTrame) => console.log('Trame mise à jour:', updatedTrame)}
+                            onTrameChange={(updatedTrame) => console.log('Tableau de service mise à jour:', updatedTrame)}
                         />
                     ) : (
                         <div className="text-center p-8">
@@ -215,8 +215,8 @@ const TrameGridDemo: React.FC = () => {
                         onSuccess={(newTrameId) => {
                             setShowNewTrameModal(false);
                             toast({
-                                title: "Nouvelle trame créée",
-                                description: "La trame a été ajoutée avec succès (simulation)",
+                                title: "Nouvelle tableau de service créée",
+                                description: "La tableau de service a été ajoutée avec succès (simulation)",
                             });
                         }}
                         sites={demoSites}

@@ -102,8 +102,8 @@ export default function BlocPlanning() {
         setActiveTab('editor');
     };
 
-    const handleTrameSave = (affectations: any[]) => {
-        console.log('Trame sauvegardée:', affectations);
+    const handleTrameSave = (gardes/vacations: any[]) => {
+        console.log('Tableau de service sauvegardée:', gardes/vacations);
         setActiveTab('planning');
     };
 
@@ -141,7 +141,7 @@ export default function BlocPlanning() {
                         onClick={() => setActiveTab('editor')}
                     >
                         <Plus className="h-4 w-4 mr-2" />
-                        Nouvelle trame
+                        Nouvelle tableau de service
                     </Button>
                 </div>
 
@@ -166,9 +166,9 @@ export default function BlocPlanning() {
                         <Settings className="h-4 w-4 mr-2" />
                         Éditeur
                     </TabsTrigger>
-                    <TabsTrigger value="assignment">
+                    <TabsTrigger value="attribution">
                         <Plus className="h-4 w-4 mr-2" />
-                        Affectation
+                        Garde/Vacation
                     </TabsTrigger>
                 </TabsList>
 
@@ -203,7 +203,7 @@ export default function BlocPlanning() {
                 <TabsContent value="editor" className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Éditeur de Trames</CardTitle>
+                            <CardTitle>Éditeur de Tableaux de service</CardTitle>
                         </CardHeader>
                         <CardContent className="p-0">
                             <Suspense fallback={<LoadingFallback />}>
@@ -218,11 +218,11 @@ export default function BlocPlanning() {
                     </Card>
                 </TabsContent>
 
-                {/* Onglet Affectation - Panel intelligent */}
-                <TabsContent value="assignment" className="space-y-6">
+                {/* Onglet Garde/Vacation - Panel intelligent */}
+                <TabsContent value="attribution" className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Panel d'Affectation</CardTitle>
+                            <CardTitle>Panel d'Garde/Vacation</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <Suspense fallback={<LoadingFallback />}>

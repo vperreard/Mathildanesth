@@ -1,35 +1,35 @@
 'use client';
 
 import React from 'react';
-import { TrameAffectation, Affectation } from '@/components/trames/TrameAffectation';
+import { TrameAffectation, Garde/Vacation } from '@/components/tableaux de service/TrameAffectation';
 import { toast } from 'sonner';
 
 export default function TramesPage() {
-    const handleSaveTrame = async (trames: Affectation[]) => {
+    const handleSaveTrame = async (tableaux de service: Garde/Vacation[]) => {
         try {
             // Import dynamique pour éviter les problèmes de build avec Sequelize
             const { TrameAffectationService } = await import('@/services/trameAffectationService');
 
-            for (const trame of trames) {
+            for (const tableau de service of tableaux de service) {
                 await TrameAffectationService.create({
-                    userId: trame.userId,
-                    periodeType: trame.periodeType,
-                    dateDebut: trame.dateDebut,
-                    dateFin: trame.dateFin,
-                    motif: trame.motif,
-                    isRecurrent: trame.isRecurrent,
+                    userId: tableau de service.userId,
+                    periodeType: tableau de service.periodeType,
+                    dateDebut: tableau de service.dateDebut,
+                    dateFin: tableau de service.dateFin,
+                    motif: tableau de service.motif,
+                    isRecurrent: tableau de service.isRecurrent,
                 });
             }
-            toast.success('Trames d\'affectation sauvegardées avec succès');
+            toast.success('Tableaux de service d\'garde/vacation sauvegardées avec succès');
         } catch (error) {
-            toast.error('Erreur lors de la sauvegarde des trames d\'affectation');
+            toast.error('Erreur lors de la sauvegarde des tableaux de service d\'garde/vacation');
             console.error(error);
         }
     };
 
     return (
         <div className="container mx-auto py-8">
-            <h1 className="text-2xl font-bold mb-6">Gestion des trames d'affectation</h1>
+            <h1 className="text-2xl font-bold mb-6">Gestion des tableaux de service d'garde/vacation</h1>
             <TrameAffectation onSave={handleSaveTrame} />
         </div>
     );

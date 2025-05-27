@@ -16,7 +16,7 @@ import { motion } from "framer-motion";
 import apiClient from "@/utils/apiClient";
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
-    Assignment,
+    Attribution,
     DisplayConfig,
     Room,
     RoomOrderConfig,
@@ -30,7 +30,7 @@ import Button from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { RuleEngine, RuleEvaluationSummary } from '@/modules/rules/engine/rule-engine';
 import { RuleEvaluationResult, RuleEvaluationContext, RuleSeverity as RuleEngineSeverity } from '@/modules/rules/types/rule';
-import { AssignmentType } from '@/types/assignment';
+import { AssignmentType } from '@/types/attribution';
 import { ShiftType } from '@/types/common';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -91,12 +91,12 @@ interface ValidationResult {
     };
 }
 
-// Memoized Assignment Card component (or representation)
-const MemoizedAssignment = memo(({ assignment, users }: { assignment: Assignment; users: User[] }) => {
-    const user = users.find(u => u.id === assignment.userId);
+// Memoized Attribution Card component (or representation)
+const MemoizedAssignment = memo(({ attribution, users }: { attribution: Attribution; users: User[] }) => {
+    const user = users.find(u => u.id === attribution.userId);
     return (
         <div className="p-1 mb-1 border rounded bg-gray-100 text-xs shadow-sm">
-            {user ? `${user.firstName} ${user.lastName}` : `Utilisateur ID: ${assignment.userId}`}
+            {user ? `${user.firstName} ${user.lastName}` : `Utilisateur ID: ${attribution.userId}`}
             {/* Ajouter d'autres détails si nécessaire */}
         </div>
     );
@@ -134,8 +134,8 @@ export default function WeeklyPlanningPage() {
 
     const [rooms, setRooms] = useState<Room[]>([]);
     const [users, setUsers] = useState<User[]>([]);
-    const [assignments, setAssignments] = useState<Assignment[]>([]);
-    const [tempAssignments, setTempAssignments] = useState<Assignment[]>([]);
+    const [attributions, setAssignments] = useState<Attribution[]>([]);
+    const [tempAssignments, setTempAssignments] = useState<Attribution[]>([]);
     const [hasPendingChanges, setHasPendingChanges] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
@@ -195,7 +195,7 @@ export default function WeeklyPlanningPage() {
             return tempAssignments; // Pas de filtre si aucun site n'est sélectionné
         }
         const currentFilteredRoomIds = new Set(filteredRooms.map(room => room.id));
-        return tempAssignments.filter(assignment => currentFilteredRoomIds.has(assignment.roomId));
+        return tempAssignments.filter(attribution => currentFilteredRoomIds.has(attribution.roomId));
     }, [tempAssignments, filteredRooms, selectedSiteId]);
 
     // Fonction de chargement des données, appelée manuellement
@@ -230,7 +230,7 @@ export default function WeeklyPlanningPage() {
             ] = await Promise.all([
                 apiClient.get('/api/utilisateurs'),
                 apiClient.get('/api/operating-rooms'), // Temporairement sans siteId pour tout récupérer
-                apiClient.get(`/api/affectations?start=${startDate.toISOString()}&end=${endDate.toISOString()}`),
+                apiClient.get(`/api/gardes/vacations?start=${startDate.toISOString()}&end=${endDate.toISOString()}`),
                 apiClient.get('/api/sites')
             ]);
 
@@ -252,7 +252,7 @@ export default function WeeklyPlanningPage() {
                 (roomsResponseData && Array.isArray(roomsResponseData.rooms) ? roomsResponseData.rooms : []);
 
             const assignmentsData = Array.isArray(assignmentsResponseData) ? assignmentsResponseData :
-                (assignmentsResponseData && Array.isArray(assignmentsResponseData.assignments) ? assignmentsResponseData.assignments : []);
+                (assignmentsResponseData && Array.isArray(assignmentsResponseData.attributions) ? assignmentsResponseData.attributions : []);
 
             const sitesDataList = Array.isArray(sitesResponseData) ? sitesResponseData :
                 (sitesResponseData && Array.isArray(sitesResponseData.sites) ? sitesResponseData.sites : []);
@@ -350,7 +350,7 @@ export default function WeeklyPlanningPage() {
             const fetchedAssignments = assignmentsData;
             setAssignments(fetchedAssignments);
             setTempAssignments(fetchedAssignments);
-            console.log("[WeeklyPlanningPage] état assignments mis à jour avec:", fetchedAssignments.length, "assignations");
+            console.log("[WeeklyPlanningPage] état attributions mis à jour avec:", fetchedAssignments.length, "assignations");
 
             if (usersData.length === 0 && roomsData.length === 0 && assignmentsData.length === 0) {
                 console.warn("[WeeklyPlanningPage] Toutes les listes de données (utilisateurs, salles, assignations) sont vides après le fetch initial.");
@@ -481,9 +481,9 @@ export default function WeeklyPlanningPage() {
             return matchesSearch && isVisibleByConfig;
         });
 
-    const filteredTempAssignments = tempAssignments.filter(assignment => {
-        const roomVisible = !displayConfig || !displayConfig.hiddenRoomIds || !displayConfig.hiddenRoomIds.includes(String(assignment.roomId));
-        const surgeonVisible = !displayConfig || !displayConfig.hiddenPersonnelIds || !displayConfig.hiddenPersonnelIds.includes(String(assignment.surgeonId));
+    const filteredTempAssignments = tempAssignments.filter(attribution => {
+        const roomVisible = !displayConfig || !displayConfig.hiddenRoomIds || !displayConfig.hiddenRoomIds.includes(String(attribution.roomId));
+        const surgeonVisible = !displayConfig || !displayConfig.hiddenPersonnelIds || !displayConfig.hiddenPersonnelIds.includes(String(attribution.surgeonId));
         return roomVisible && surgeonVisible;
     });
 
@@ -569,15 +569,15 @@ export default function WeeklyPlanningPage() {
         return luminance > 0.5 ? '#000000' : '#ffffff';
     };
 
-    const getStyleWithConfig = (assignment: Assignment | null | undefined): React.CSSProperties => {
-        if (!assignment) {
+    const getStyleWithConfig = (attribution: Attribution | null | undefined): React.CSSProperties => {
+        if (!attribution) {
             return {
                 backgroundColor: "#e5e7eb",
                 color: "#374151"
             };
         }
 
-        const surgeonId = assignment.surgeonId;
+        const surgeonId = attribution.surgeonId;
         if (!surgeonId || !displayConfig || !displayConfig.couleurs || !displayConfig.couleurs.chirurgiens) {
             return {
                 backgroundColor: "#e5e7eb",
@@ -653,23 +653,23 @@ export default function WeeklyPlanningPage() {
         );
     };
 
-    const renderAssignment = (assignment: Assignment, index: number = 0) => {
-        const surgeon = assignment.surgeonId != null ? getUserById(assignment.surgeonId) : undefined;
-        const mar = assignment.marId != null ? getUserById(assignment.marId) : undefined;
-        const iade = assignment.iadeId != null ? getUserById(assignment.iadeId) : undefined;
-        const room = assignment.roomId != null ? getRoomById(assignment.roomId) : undefined;
+    const renderAssignment = (attribution: Attribution, index: number = 0) => {
+        const surgeon = attribution.surgeonId != null ? getUserById(attribution.surgeonId) : undefined;
+        const mar = attribution.marId != null ? getUserById(attribution.marId) : undefined;
+        const iade = attribution.iadeId != null ? getUserById(attribution.iadeId) : undefined;
+        const room = attribution.roomId != null ? getRoomById(attribution.roomId) : undefined;
 
         if (!surgeon || !room) return null;
 
-        const surgeonStyle = getStyleWithConfig(assignment);
-        const marStyle = mar ? getStyleWithConfig(assignment) : {};
-        const iadeStyle = iade ? getStyleWithConfig(assignment) : {};
+        const surgeonStyle = getStyleWithConfig(attribution);
+        const marStyle = mar ? getStyleWithConfig(attribution) : {};
+        const iadeStyle = iade ? getStyleWithConfig(attribution) : {};
 
         const sectorColorMatch = room.sector ? sectors[room.sector]?.match(/(bg-\w+-\d+)/) : null;
         const sectorColor = sectorColorMatch ? sectorColorMatch[1] : 'bg-gray-100';
 
         const opacityValue = displayConfig?.backgroundOpacity ? Math.round(displayConfig.backgroundOpacity * 100) : 50;
-        const cardBgStyle = assignment.period === "MORNING"
+        const cardBgStyle = attribution.period === "MORNING"
             ? (room.sector ? sectors[room.sector] : sectors['default'])
             : `${sectorColor} bg-opacity-${opacityValue} dark:bg-opacity-${opacityValue}`;
 
@@ -699,7 +699,7 @@ export default function WeeklyPlanningPage() {
         );
 
         return (
-            <Draggable draggableId={`assignment-${assignment.id}`} index={index}>
+            <Draggable draggableId={`attribution-${attribution.id}`} index={index}>
                 {(provided, snapshot) => (
                     <div
                         ref={provided.innerRef}
@@ -849,7 +849,7 @@ export default function WeeklyPlanningPage() {
                                                                         {...provided.droppableProps}
                                                                         className={`w-full h-full p-0.5 rounded-sm ${snapshot.isDraggingOver ? 'bg-blue-100 dark:bg-blue-600/30' : 'hover:bg-gray-50/50 dark:hover:bg-slate-700/20'}`}
                                                                     >
-                                                                        {morningAssignments.map((assignment, index) => renderAssignment(assignment, index))}
+                                                                        {morningAssignments.map((attribution, index) => renderAssignment(attribution, index))}
                                                                         {provided.placeholder}
                                                                     </div>
                                                                 )}
@@ -863,7 +863,7 @@ export default function WeeklyPlanningPage() {
                                                                         {...provided.droppableProps}
                                                                         className={`w-full h-full p-0.5 rounded-sm ${snapshot.isDraggingOver ? 'bg-amber-100 dark:bg-amber-600/30' : 'hover:bg-gray-50/50 dark:hover:bg-slate-700/20'}`}
                                                                     >
-                                                                        {afternoonAssignments.map((assignment, index) => renderAssignment(assignment, index))}
+                                                                        {afternoonAssignments.map((attribution, index) => renderAssignment(attribution, index))}
                                                                         {provided.placeholder}
                                                                     </div>
                                                                 )}
@@ -1036,7 +1036,7 @@ export default function WeeklyPlanningPage() {
             return;
         }
 
-        const assignmentId = draggableId.replace('assignment-', '');
+        const assignmentId = draggableId.replace('attribution-', '');
 
         const movedAssignmentIndex = tempAssignments.findIndex(a => String(a.id) === assignmentId);
         if (movedAssignmentIndex === -1) {
@@ -1070,14 +1070,14 @@ export default function WeeklyPlanningPage() {
 
     const calculateDiff = () => {
         const diffMessages: string[] = [];
-        const originalMap = new Map(assignments.map(a => [a.id, a]));
+        const originalMap = new Map(attributions.map(a => [a.id, a]));
         const tempMap = new Map(tempAssignments.map(a => [a.id, a]));
 
         tempMap.forEach((tempAssign, id) => {
             const originalAssign = originalMap.get(id);
             if (!originalAssign) {
                 // Nouvelle assignation (pas géré par DND actuel, mais pourrait l'être)
-                // diffMessages.push(`Nouvelle affectation: ...`);
+                // diffMessages.push(`Nouvelle garde/vacation: ...`);
             } else if (
                 tempAssign.roomId !== originalAssign.roomId ||
                 tempAssign.date !== originalAssign.date ||
@@ -1107,7 +1107,7 @@ export default function WeeklyPlanningPage() {
         setPendingChangesDiff(diffMessages);
     };
 
-    const validateChanges = useCallback(async (assignmentsToValidate: Assignment[]) => {
+    const validateChanges = useCallback(async (assignmentsToValidate: Attribution[]) => {
         setIsLoading(true);
         let clientValidationResult: ValidationResult | null = null;
         let serverValidationResult: RuleEvaluationSummary | null = null;
@@ -1115,7 +1115,7 @@ export default function WeeklyPlanningPage() {
         // --- Validation Client (avec RuleEngine local) ---
         try {
             const context: RuleEvaluationContext = {
-                assignments: assignmentsToValidate,
+                attributions: assignmentsToValidate,
                 startDate: currentWeekStart,
                 endDate: endOfWeek(currentWeekStart, { weekStartsOn: 1 }),
                 medecins: users.filter(u => u.role === 'SURGEON' || u.role === 'MAR' || u.role === 'IADE').map(u => ({
@@ -1193,10 +1193,10 @@ export default function WeeklyPlanningPage() {
 
         // --- Validation Serveur (optionnelle ou complémentaire) ---
         try {
-            const response = await fetch('http://localhost:3000/api/affectations/validate', {
+            const response = await fetch('http://localhost:3000/api/gardes/vacations/validate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ assignments: assignmentsToValidate }),
+                body: JSON.stringify({ attributions: assignmentsToValidate }),
             });
             if (!response.ok) {
                 throw new Error(`Erreur serveur validation: ${response.statusText}`);
@@ -1240,7 +1240,7 @@ export default function WeeklyPlanningPage() {
             return;
         }
         setIsSaving(true);
-        // const originalAssignments = assignments; // Plus besoin si on ne restaure pas
+        // const originalAssignments = attributions; // Plus besoin si on ne restaure pas
 
         try {
             const assignmentsToSave = tempAssignments.map(tempAssign => ({
@@ -1250,10 +1250,10 @@ export default function WeeklyPlanningPage() {
                 roomId: tempAssign.roomId ? Number(tempAssign.roomId) : null,
             }));
 
-            console.log("Assignations envoyées à /api/affectations/batch (via apiClient):", assignmentsToSave);
+            console.log("Assignations envoyées à /api/gardes/vacations/batch (via apiClient):", assignmentsToSave);
 
             // Utiliser apiClient pour la sauvegarde aussi
-            const response = await apiClient.post('/api/affectations/batch', { assignments: assignmentsToSave });
+            const response = await apiClient.post('/api/gardes/vacations/batch', { attributions: assignmentsToSave });
 
             // Avec axios, le résultat est dans response.data
             const result = response.data;
@@ -1261,7 +1261,7 @@ export default function WeeklyPlanningPage() {
             // La vérification de response.ok n'est plus nécessaire comme avec fetch, axios lève une erreur pour les status non-2xx
             // Gérer les erreurs spécifiques si l'API batch retourne des erreurs dans le corps même avec un statut 2xx (si c'est le cas)
             // if (response.status === 207 && result.errors) { // Exemple si 207 est possible et géré comme ça
-            //     toast.error(`Erreur partielle: ${result.errors.length} affectation(s) non enregistrée(s).`);
+            //     toast.error(`Erreur partielle: ${result.errors.length} garde/vacation(s) non enregistrée(s).`);
             //     // Potentiellement throw new Error pour aller au catch, ou gérer différemment
             // } else if (result.error) { // Si l'API retourne un champ "error" dans un 2xx
             //    toast.error(result.error);
@@ -1289,14 +1289,14 @@ export default function WeeklyPlanningPage() {
         } finally {
             setIsSaving(false);
         }
-    }, [tempAssignments, /* assignments, */ hasPendingChanges, validationResult]);
+    }, [tempAssignments, /* attributions, */ hasPendingChanges, validationResult]);
 
     const handleCancelChanges = useCallback(() => {
-        setTempAssignments(assignments);
+        setTempAssignments(attributions);
         setHasPendingChanges(false);
         setValidationResult(null);
         setIsConfirmationDialogOpen(false);
-    }, [assignments, setTempAssignments, setHasPendingChanges, setValidationResult, setIsConfirmationDialogOpen]);
+    }, [attributions, setTempAssignments, setHasPendingChanges, setValidationResult, setIsConfirmationDialogOpen]);
 
     // Fonction pour ouvrir le panneau de configuration
     const openConfigPanel = () => setShowConfigPanel(true);

@@ -4,7 +4,7 @@ import TrameApplicationService from './TrameApplicationService';
 import { performanceMonitor } from './PerformanceMonitoringService';
 import { format, startOfWeek, endOfWeek, addWeeks } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { AssignmentType } from '@/types/assignment';
+import { AssignmentType } from '@/types/attribution';
 
 jest.mock('@/lib/prisma');
 
@@ -19,7 +19,7 @@ interface IntegrationResult {
 }
 
 /**
- * Service d'intégration entre le système de trames et le générateur de planning
+ * Service d'intégration entre le système de tableaux de service et le générateur de planning
  * Combine les deux systèmes pour une génération optimale
  */
 export class TrameIntegrationService {
@@ -33,7 +33,7 @@ export class TrameIntegrationService {
   }
 
   /**
-   * Génère un planning complet en utilisant les trames comme base
+   * Génère un planning complet en utilisant les tableaux de service comme base
    * et le générateur pour optimiser et compléter
    */
   async generatePlanningWithTrames(
@@ -61,7 +61,7 @@ export class TrameIntegrationService {
     };
 
     try {
-      // 1. Appliquer les trames de base si demandé
+      // 1. Appliquer les tableaux de service de base si demandé
       if (options.useTrames !== false) {
         const trameResult = await this.applyTrames(
           siteId,
@@ -74,7 +74,7 @@ export class TrameIntegrationService {
         result.warnings.push(...trameResult.warnings);
       }
 
-      // 2. Récupérer le personnel et les affectations existantes
+      // 2. Récupérer le personnel et les gardes/vacations existantes
       const personnel = await this.getPersonnel(siteId);
       const existingAssignments = await this.getExistingAssignments(
         siteId,
@@ -106,9 +106,9 @@ export class TrameIntegrationService {
         const generationResult = await this.planningGenerator.generate();
         
         if (generationResult.validation.valid) {
-          // 5. Sauvegarder les affectations générées
+          // 5. Sauvegarder les gardes/vacations générées
           const saveResult = await this.saveGeneratedAssignments(
-            generationResult.assignments,
+            generationResult.attributions,
             siteId
           );
 
@@ -142,7 +142,7 @@ export class TrameIntegrationService {
 
       result.success = result.conflicts.length === 0;
       result.message = result.success
-        ? `Planning généré avec succès : ${result.assignmentsCreated} affectations créées`
+        ? `Planning généré avec succès : ${result.assignmentsCreated} gardes/vacations créées`
         : `Planning généré avec ${result.conflicts.length} conflits`;
 
       performanceMonitor.endMeasure('trame_integration_generate');
@@ -156,7 +156,7 @@ export class TrameIntegrationService {
   }
 
   /**
-   * Applique les trames configurées pour la période
+   * Applique les tableaux de service configurées pour la période
    */
   private async applyTrames(
     siteId: string,
@@ -170,8 +170,8 @@ export class TrameIntegrationService {
     let totalAssignments = 0;
     const warnings: string[] = [];
 
-    // Récupérer les trames actives pour le site
-    const trames = await this.prisma.trameModele.findMany({
+    // Récupérer les tableaux de service actives pour le site
+    const tableaux de service = await this.prisma.trameModele.findMany({
       where: {
         isActive: true,
         siteId,
@@ -185,11 +185,11 @@ export class TrameIntegrationService {
       orderBy: { priorite: 'desc' }
     });
 
-    // Appliquer chaque trame
-    for (const trame of trames) {
+    // Appliquer chaque tableau de service
+    for (const tableau de service of tableaux de service) {
       try {
         const result = await this.trameService.applyTrameToDateRange(
-          trame.id,
+          tableau de service.id,
           startDate,
           endDate,
           siteId,
@@ -201,7 +201,7 @@ export class TrameIntegrationService {
 
       } catch (error) {
         warnings.push(
-          `Erreur lors de l'application de la trame ${trame.name}: ${
+          `Erreur lors de l'application de la tableau de service ${tableau de service.name}: ${
             error instanceof Error ? error.message : String(error)
           }`
         );
@@ -256,14 +256,14 @@ export class TrameIntegrationService {
   }
 
   /**
-   * Récupère les affectations existantes
+   * Récupère les gardes/vacations existantes
    */
   private async getExistingAssignments(
     siteId: string,
     startDate: Date,
     endDate: Date
   ): Promise<any[]> {
-    const assignments = await this.prisma.assignment.findMany({
+    const attributions = await this.prisma.attribution.findMany({
       where: {
         siteId,
         date: {
@@ -277,7 +277,7 @@ export class TrameIntegrationService {
       }
     });
 
-    return assignments.map(a => ({
+    return attributions.map(a => ({
       id: a.id,
       userId: a.userId,
       startDate: a.date,
@@ -290,31 +290,31 @@ export class TrameIntegrationService {
   }
 
   /**
-   * Sauvegarde les affectations générées
+   * Sauvegarde les gardes/vacations générées
    */
   private async saveGeneratedAssignments(
-    assignments: any[],
+    attributions: any[],
     siteId: string
   ): Promise<{ count: number }> {
     let count = 0;
 
-    for (const assignment of assignments) {
+    for (const attribution of attributions) {
       try {
-        await this.prisma.assignment.create({
+        await this.prisma.attribution.create({
           data: {
-            date: new Date(assignment.startDate),
-            userId: assignment.userId,
-            type: assignment.type,
+            date: new Date(attribution.startDate),
+            userId: attribution.userId,
+            type: attribution.type,
             statut: 'PLANIFIE',
             siteId,
-            heureDebut: assignment.startTime,
-            heureFin: assignment.endTime,
+            heureDebut: attribution.startTime,
+            heureFin: attribution.endTime,
             notes: `Généré automatiquement le ${format(new Date(), 'dd/MM/yyyy HH:mm')}`
           }
         });
         count++;
       } catch (error) {
-        console.error('Erreur lors de la sauvegarde de l\'affectation:', error);
+        console.error('Erreur lors de la sauvegarde de l\'garde/vacation:', error);
       }
     }
 
@@ -322,7 +322,7 @@ export class TrameIntegrationService {
   }
 
   /**
-   * Optimise la distribution des affectations
+   * Optimise la distribution des gardes/vacations
    */
   private async optimizeDistribution(
     siteId: string,
@@ -357,7 +357,7 @@ export class TrameIntegrationService {
     startDate: Date,
     endDate: Date
   ): Promise<number> {
-    const assignments = await this.prisma.assignment.groupBy({
+    const attributions = await this.prisma.attribution.groupBy({
       by: ['userId'],
       where: {
         siteId,
@@ -369,10 +369,10 @@ export class TrameIntegrationService {
       _count: true
     });
 
-    if (assignments.length === 0) return 100;
+    if (attributions.length === 0) return 100;
 
     // Calculer l'écart-type de la distribution
-    const counts = assignments.map(a => a._count);
+    const counts = attributions.map(a => a._count);
     const mean = counts.reduce((a, b) => a + b, 0) / counts.length;
     const variance = counts.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / counts.length;
     const stdDev = Math.sqrt(variance);
@@ -438,7 +438,7 @@ export class TrameIntegrationService {
       SELECT DISTINCT date::date as date
       FROM generate_series(${startDate}::date, ${endDate}::date, '1 day'::interval) as date
       WHERE NOT EXISTS (
-        SELECT 1 FROM assignments
+        SELECT 1 FROM attributions
         WHERE site_id = ${siteId}
         AND date::date = date.date::date
         AND type = 'GARDE'
@@ -457,7 +457,7 @@ export class TrameIntegrationService {
   }
 
   /**
-   * Vérifie les conflits d'affectations
+   * Vérifie les conflits d'gardes/vacations
    */
   private async checkConflicts(
     siteId: string,
@@ -468,14 +468,14 @@ export class TrameIntegrationService {
   }> {
     const errors: string[] = [];
 
-    // Rechercher les conflits (même personne, même moment, affectations différentes)
+    // Rechercher les conflits (même personne, même moment, gardes/vacations différentes)
     const conflicts = await this.prisma.$queryRaw<any[]>`
       SELECT 
         a1.user_id,
         a1.date,
         COUNT(*) as conflict_count
-      FROM assignments a1
-      JOIN assignments a2 ON 
+      FROM attributions a1
+      JOIN attributions a2 ON 
         a1.user_id = a2.user_id AND
         a1.date = a2.date AND
         a1.id != a2.id
@@ -517,7 +517,7 @@ export class TrameIntegrationService {
           user_id,
           date,
           LAG(date) OVER (PARTITION BY user_id ORDER BY date) as prev_date
-        FROM assignments
+        FROM attributions
         WHERE 
           site_id = ${siteId} AND
           date >= ${startDate} AND

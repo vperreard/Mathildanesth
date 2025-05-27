@@ -111,9 +111,9 @@ describe('LeaveCalculator', () => {
         mockedPublicHolidayService.getPublicHolidaysInRange.mockResolvedValue([]);
 
         // Mock isWorkingDay par défaut (basé sur les patterns)
-        mockedIsWorkingDay.mockImplementation((date: Date, schedule: WorkSchedule) => {
+        mockedIsWorkingDay.mockImplementation((date: Date, planning médical: WorkSchedule) => {
             const dayOfWeek = date.getDay();
-            const pattern = schedule.patterns.find(p => p.dayOfWeek === dayOfWeek);
+            const pattern = planning médical.patterns.find(p => p.dayOfWeek === dayOfWeek);
             return pattern ? pattern.isWorking : false;
         });
     });

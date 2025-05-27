@@ -107,28 +107,28 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
             let response;
             if (isEditMode && initialTrame) {
                 // Mode modification - PUT
-                response = await axios.put(`http://localhost:3000/api/trame-modeles/${initialTrame.id}`, apiData);
-                console.log('Trame modifiée avec succès:', response.data);
+                response = await axios.put(`http://localhost:3000/api/tableau de service-modeles/${initialTrame.id}`, apiData);
+                console.log('Tableau de service modifiée avec succès:', response.data);
             } else {
                 // Mode création - POST
-                response = await axios.post('http://localhost:3000/api/trame-modeles', apiData);
-                console.log('Trame créée avec succès:', response.data);
+                response = await axios.post('http://localhost:3000/api/tableau de service-modeles', apiData);
+                console.log('Tableau de service créée avec succès:', response.data);
             }
             form.reset();
             onSuccess(response.data.id.toString());
             onClose();
         } catch (err: any) {
-            console.error(`Erreur lors de ${isEditMode ? 'la modification' : 'la création'} de la trame:`, err);
-            setError(err.response?.data?.error || `Erreur lors de ${isEditMode ? 'la modification' : 'la création'} de la trame`);
+            console.error(`Erreur lors de ${isEditMode ? 'la modification' : 'la création'} de la tableau de service:`, err);
+            setError(err.response?.data?.error || `Erreur lors de ${isEditMode ? 'la modification' : 'la création'} de la tableau de service`);
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Prévisualisation de la trame
+    // Prévisualisation de la tableau de service
     const previewTrame: TrameModele = {
         id: 'preview',
-        name: form.watch('name') || 'Nouvelle Trame',
+        name: form.watch('name') || 'Nouvelle Tableau de service',
         description: form.watch('description'),
         siteId: form.watch('siteId') || 'site-default',
         weekType: form.watch('typeSemaine') === 'TOUTES' ? 'ALL' :
@@ -136,7 +136,7 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
         activeDays: form.watch('joursSemaineActifs') || [1, 2, 3, 4, 5],
         effectiveStartDate: form.watch('dateDebutEffet') || new Date(),
         effectiveEndDate: form.watch('dateFinEffet'),
-        affectations: [],
+        gardes/vacations: [],
     };
 
     return (
@@ -144,12 +144,12 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
             <DialogContent className="sm:max-w-[70vw] lg:max-w-[60vw] xl:max-w-[55vw] max-h-[85vh] overflow-hidden flex flex-col bg-white dark:bg-gray-900">
                 <DialogHeader className="pb-2">
                     <DialogTitle className="text-lg">
-                        {isEditMode ? 'Modifier la trame' : 'Créer une nouvelle trame'}
+                        {isEditMode ? 'Modifier la tableau de service' : 'Créer une nouvelle tableau de service'}
                     </DialogTitle>
                     <DialogDescription className="text-sm">
                         {isEditMode
-                            ? 'Modifiez les propriétés de la trame. Les affectations existantes seront conservées.'
-                            : 'Définissez les propriétés de base de la trame. Vous pourrez ajouter des affectations après sa création.'
+                            ? 'Modifiez les propriétés de la tableau de service. Les gardes/vacations existantes seront conservées.'
+                            : 'Définissez les propriétés de base de la tableau de service. Vous pourrez ajouter des gardes/vacations après sa création.'
                         }
                     </DialogDescription>
                 </DialogHeader>
@@ -172,7 +172,7 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
                                                 <FormItem>
                                                     <FormLabel className="text-sm font-medium">Nom*</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="Nom de la trame" {...field} className="h-9" />
+                                                        <Input placeholder="Nom de la tableau de service" {...field} className="h-9" />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -339,7 +339,7 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
                                                                     {/* En-tête du calendrier */}
                                                                     <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900 dark:to-green-900">
                                                                         <h4 className="font-semibold text-lg text-gray-900 dark:text-gray-100 mb-1">
-                                                                            Période d'effet de la trame
+                                                                            Période d'effet de la tableau de service
                                                                         </h4>
                                                                         <p className="text-sm text-gray-600 dark:text-gray-400">
                                                                             1. Sélectionnez la date de début (obligatoire)
@@ -400,7 +400,7 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
                                                                                     Date de fin (optionnelle)
                                                                                 </h5>
                                                                                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                                                                                    Laissez vide pour une trame permanente
+                                                                                    Laissez vide pour une tableau de service permanente
                                                                                 </p>
                                                                             </div>
 
@@ -498,7 +498,7 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
                                                     <div className="mb-2">
                                                         <FormLabel className="text-sm font-medium">Jours actifs*</FormLabel>
                                                         <FormDescription className="text-xs">
-                                                            Sélectionnez les jours de la semaine où cette trame est active
+                                                            Sélectionnez les jours de la semaine où cette tableau de service est active
                                                         </FormDescription>
                                                     </div>
                                                     <div className="grid grid-cols-3 lg:grid-cols-7 gap-2">
@@ -560,7 +560,7 @@ const NewTrameModal: React.FC<NewTrameModalProps> = ({ isOpen, onClose, onSucces
                                 <TabsContent value="preview" className="space-y-3 mt-0 px-1">
                                     <div className="border rounded p-3">
                                         <h3 className="text-base font-medium mb-3">Aperçu de la grille</h3>
-                                        <TrameGridView trame={previewTrame} readOnly={true} />
+                                        <TrameGridView tableau de service={previewTrame} readOnly={true} />
                                     </div>
 
                                     <div className="flex justify-end space-x-2 pt-2">

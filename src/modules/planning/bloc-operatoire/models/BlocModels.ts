@@ -151,7 +151,7 @@ export const BlocDayPlanningSchema = z.object({
     id: z.string().uuid().optional(),
     date: z.date(),
     status: z.nativeEnum(BlocPlanningStatus).default(BlocPlanningStatus.DRAFT),
-    assignments: z.array(BlocRoomAssignmentSchema),
+    attributions: z.array(BlocRoomAssignmentSchema),
     createdById: z.number().int().positive(),
     updatedById: z.number().int().positive().optional(),
     validatedById: z.number().int().positive().optional(),

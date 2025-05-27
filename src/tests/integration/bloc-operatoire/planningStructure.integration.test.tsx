@@ -130,7 +130,7 @@ describe("Tests d'intégration de la structure et navigation du bloc opératoire
                 date: formattedToday,
                 salles: [
                     {
-                        id: 'assignment-1',
+                        id: 'attribution-1',
                         salleId: 'salle-1',
                         superviseurs: [
                             {
@@ -186,7 +186,7 @@ describe("Tests d'intégration de la structure et navigation du bloc opératoire
                 date: formattedToday,
                 salles: [
                     {
-                        id: 'assignment-1',
+                        id: 'attribution-1',
                         salleId: 'salle-1',
                         superviseurs: [
                             {
@@ -198,7 +198,7 @@ describe("Tests d'intégration de la structure et navigation du bloc opératoire
                         ]
                     },
                     {
-                        id: 'assignment-2',
+                        id: 'attribution-2',
                         salleId: 'salle-2',
                         superviseurs: []
                     }
@@ -235,7 +235,7 @@ describe("Tests d'intégration de la structure et navigation du bloc opératoire
                 date: formattedToday,
                 salles: [
                     {
-                        id: 'assignment-1',
+                        id: 'attribution-1',
                         salleId: 'salle-1',
                         superviseurs: []
                     }

@@ -149,9 +149,9 @@ export interface PlanningRule extends Rule {
     type: RuleType.PLANNING;
     planningConfig: {
         planningType: string;      // Type de planning (HEBDOMADAIRE, MENSUEL, JOURNALIER, etc.)
-        maxLimit?: number;         // Limite maximale d'affectations
+        maxLimit?: number;         // Limite maximale d'gardes/vacations
         periodType?: string;       // Type de période pour la limite maximale (DAY, WEEK, MONTH, etc.)
-        minLimit?: number;         // Limite minimale d'affectations
+        minLimit?: number;         // Limite minimale d'gardes/vacations
         minPeriodType?: string;    // Type de période pour la limite minimale
         applyToAllUsers?: boolean; // Si la règle s'applique à tous les utilisateurs
         exceptions?: string;       // Exceptions (utilisateurs ou groupes)

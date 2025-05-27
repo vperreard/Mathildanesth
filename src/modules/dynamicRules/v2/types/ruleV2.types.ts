@@ -166,7 +166,7 @@ export interface RuleEvaluationContext {
   date: Date;
   planning?: any;
   leaves?: any;
-  assignments?: any;
+  attributions?: any;
   metadata?: Record<string, any>;
 }
 

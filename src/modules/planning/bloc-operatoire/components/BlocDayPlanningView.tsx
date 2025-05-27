@@ -48,7 +48,7 @@ type FullRoomAssignment = BlocRoomAssignment & {
 
 type FullBlocDayPlanning = BlocDayPlanning & {
     site: FullSite;
-    assignments: FullRoomAssignment[];
+    attributions: FullRoomAssignment[];
     conflicts: PrismaBlocPlanningConflict[];
 };
 
@@ -193,23 +193,23 @@ const BlocDayPlanningView: React.FC<BlocDayPlanningViewProps> = ({
         );
     }
 
-    // Regrouper les assignments par secteur pour l'affichage
-    const assignmentsBySector = planning.assignments.reduce((acc: Record<number, { sector: { id: number, name: string, colorCode?: string | null }, assignments: FullRoomAssignment[] }>, assignment: FullRoomAssignment) => {
-        const sectorId = assignment.operatingRoom.sector?.id || 0;
-        const sectorData = assignment.operatingRoom.sector || { id: sectorId, name: 'Sans secteur', colorCode: null };
+    // Regrouper les attributions par secteur pour l'affichage
+    const assignmentsBySector = planning.attributions.reduce((acc: Record<number, { sector: { id: number, name: string, colorCode?: string | null }, attributions: FullRoomAssignment[] }>, attribution: FullRoomAssignment) => {
+        const sectorId = attribution.operatingRoom.sector?.id || 0;
+        const sectorData = attribution.operatingRoom.sector || { id: sectorId, name: 'Sans secteur', colorCode: null };
 
         if (!acc[sectorId]) {
             acc[sectorId] = {
                 sector: sectorData,
-                assignments: []
+                attributions: []
             };
         }
-        acc[sectorId].assignments.push(assignment);
+        acc[sectorId].attributions.push(attribution);
         return acc;
-    }, {} as Record<number, { sector: { id: number, name: string, colorCode?: string | null }, assignments: FullRoomAssignment[] }>);
+    }, {} as Record<number, { sector: { id: number, name: string, colorCode?: string | null }, attributions: FullRoomAssignment[] }>);
 
     // Trier les secteurs par nom
-    const sortedSectors: Array<{ sector: { id: number, name: string, colorCode?: string | null }, assignments: FullRoomAssignment[] }> = Object.values(assignmentsBySector).sort((a, b) =>
+    const sortedSectors: Array<{ sector: { id: number, name: string, colorCode?: string | null }, attributions: FullRoomAssignment[] }> = Object.values(assignmentsBySector).sort((a, b) =>
         a.sector.name.localeCompare(b.sector.name)
     );
 
@@ -262,45 +262,45 @@ const BlocDayPlanningView: React.FC<BlocDayPlanningViewProps> = ({
             )}
 
             <div className="space-y-6">
-                {sortedSectors.map(({ sector, assignments }) => (
+                {sortedSectors.map(({ sector, attributions }) => (
                     <Card key={sector.id} className={`border-l-4 ${sector.colorCode ? `border-l-[${sector.colorCode}]` : 'border-l-transparent'}`}>
                         <CardHeader className="pb-2">
                             <CardTitle className="text-lg">{sector.name}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            {assignments
+                            {attributions
                                 .sort((a: FullRoomAssignment, b: FullRoomAssignment) => a.operatingRoom.name.localeCompare(b.operatingRoom.name))
-                                .map((assignment: FullRoomAssignment) => (
-                                    <div key={assignment.id} className="p-3 border rounded-md">
+                                .map((attribution: FullRoomAssignment) => (
+                                    <div key={attribution.id} className="p-3 border rounded-md">
                                         <div className="flex justify-between items-start">
                                             <div className="font-medium">
-                                                {assignment.operatingRoom.name}
-                                                {assignment.period && (
+                                                {attribution.operatingRoom.name}
+                                                {attribution.period && (
                                                     <span className="ml-2 text-sm text-muted-foreground">
-                                                        ({assignment.period === 'MATIN' ? 'Matin' :
-                                                            assignment.period === 'APRES_MIDI' ? 'Après-midi' :
+                                                        ({attribution.period === 'MATIN' ? 'Matin' :
+                                                            attribution.period === 'APRES_MIDI' ? 'Après-midi' :
                                                                 'Journée entière'})
                                                     </span>
                                                 )}
                                             </div>
-                                            {assignment.surgeon && (
+                                            {attribution.surgeon && (
                                                 <Badge variant="outline">
-                                                    {assignment.surgeon.prenom} {assignment.surgeon.nom}
+                                                    {attribution.surgeon.prenom} {attribution.surgeon.nom}
                                                 </Badge>
                                             )}
                                         </div>
 
-                                        {assignment.staffAssignments.length > 0 && (
+                                        {attribution.staffAssignments.length > 0 && (
                                             <div className="mt-2 flex flex-wrap gap-1">
-                                                {assignment.staffAssignments.map((staffMember: FullStaffAssignment) => renderStaffMember(staffMember))}
+                                                {attribution.staffAssignments.map((staffMember: FullStaffAssignment) => renderStaffMember(staffMember))}
                                             </div>
                                         )}
 
                                         {/* Conflits spécifiques à cette salle */}
-                                        {planning.conflicts.some((c: PrismaBlocPlanningConflict) => c.relatedRoomAssignmentId === assignment.id && !c.isResolved) && (
+                                        {planning.conflicts.some((c: PrismaBlocPlanningConflict) => c.relatedRoomAssignmentId === attribution.id && !c.isResolved) && (
                                             <div className="mt-2 text-xs text-red-600">
                                                 {planning.conflicts
-                                                    .filter((c: PrismaBlocPlanningConflict) => c.relatedRoomAssignmentId === assignment.id && !c.isResolved)
+                                                    .filter((c: PrismaBlocPlanningConflict) => c.relatedRoomAssignmentId === attribution.id && !c.isResolved)
                                                     .map((conflict: PrismaBlocPlanningConflict) => (
                                                         <div key={conflict.id} className="flex items-start gap-1">
                                                             <AlertCircle className="h-3 w-3 mt-0.5" />

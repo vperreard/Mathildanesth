@@ -8,7 +8,7 @@ jest.mock('@/lib/prisma');
 
 const prisma = prisma;
 
-// POST: Créer un nouveau modèle de trame
+// POST: Créer un nouveau modèle de tableau de service
 export async function POST(req: NextRequest) {
     try {
         const authToken = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -22,11 +22,11 @@ export async function POST(req: NextRequest) {
         }
 
         const data = await req.json();
-        console.log("[API /api/trame-modeles POST] Received data:", JSON.stringify(data, null, 2));
+        console.log("[API /api/tableau de service-modeles POST] Received data:", JSON.stringify(data, null, 2));
 
         // Validation des données requises
         if (!data.name || !data.dateDebutEffet || !data.joursSemaineActifs || !data.recurrenceType || !data.typeSemaine) {
-            console.error("[API /api/trame-modeles POST] Validation failed. Missing required fields. Name:", data.name, "dateDebutEffet:", data.dateDebutEffet, "joursSemaineActifs:", data.joursSemaineActifs, "recurrenceType:", data.recurrenceType, "typeSemaine:", data.typeSemaine);
+            console.error("[API /api/tableau de service-modeles POST] Validation failed. Missing required fields. Name:", data.name, "dateDebutEffet:", data.dateDebutEffet, "joursSemaineActifs:", data.joursSemaineActifs, "recurrenceType:", data.recurrenceType, "typeSemaine:", data.typeSemaine);
             return NextResponse.json(
                 { error: 'Les champs name, dateDebutEffet, joursSemaineActifs, recurrenceType et typeSemaine sont requis.' },
                 { status: 400 }
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Validation pour le champ roles (optionnel, mais si fourni, doit être correct)
-        /* console.log("[API /api/trame-modeles POST] Validating roles. PrismaTrameRoleType:", PrismaTrameRoleType); // Ajout du log
+        /* console.log("[API /api/tableau de service-modeles POST] Validating roles. PrismaTrameRoleType:", PrismaTrameRoleType); // Ajout du log
         if (data.roles) {
             if (!Array.isArray(data.roles)) {
                 return NextResponse.json({ error: 'Le champ roles doit être un tableau.' }, { status: 400 });
@@ -58,19 +58,19 @@ export async function POST(req: NextRequest) {
             } else {
                 // Si PrismaTrameRoleType n'est pas disponible comme attendu, logguer une erreur et potentiellement rejeter la requête
                 // ou la traiter avec une validation plus souple si c'est un cas connu (mais dangereux).
-                console.error("[API /api/trame-modeles POST] PrismaTrameRoleType n'est pas défini ou est vide. Impossible de valider les rôles correctement.");
+                console.error("[API /api/tableau de service-modeles POST] PrismaTrameRoleType n'est pas défini ou est vide. Impossible de valider les rôles correctement.");
                 // Pour l'instant, on va retourner une erreur pour indiquer ce problème.
                 return NextResponse.json({ error: "Erreur interne: Impossible de valider les types de rôles." }, { status: 500 });
             }
         } */
 
-        // Vérifier l'unicité du nom de la trame
+        // Vérifier l'unicité du nom de la tableau de service
         const existingTrame = await prisma.trameModele.findUnique({
             where: { name: data.name },
         });
         if (existingTrame) {
-            console.error(`[API /api/trame-modeles POST] Trame with name '${data.name}' already exists.`);
-            return NextResponse.json({ error: 'Un modèle de trame avec ce nom existe déjà.' }, { status: 409 });
+            console.error(`[API /api/tableau de service-modeles POST] Tableau de service with name '${data.name}' already exists.`);
+            return NextResponse.json({ error: 'Un modèle de tableau de service avec ce nom existe déjà.' }, { status: 409 });
         }
 
         // Traitement du champ detailsJson
@@ -90,9 +90,9 @@ export async function POST(req: NextRequest) {
                     processedDetailsJson = JSON.parse(JSON.stringify(data.detailsJson));
                 }
 
-                console.log(`[API /api/trame-modeles POST] detailsJson traité:`, JSON.stringify(processedDetailsJson, null, 2));
+                console.log(`[API /api/tableau de service-modeles POST] detailsJson traité:`, JSON.stringify(processedDetailsJson, null, 2));
             } catch (jsonError) {
-                console.error(`[API /api/trame-modeles POST] Erreur lors du traitement de detailsJson:`, jsonError);
+                console.error(`[API /api/tableau de service-modeles POST] Erreur lors du traitement de detailsJson:`, jsonError);
                 return NextResponse.json({ error: 'Le champ detailsJson doit être un objet JSON valide.' }, { status: 400 });
             }
         }
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
             // Utiliser la version traitée de detailsJson
             detailsJson: processedDetailsJson,
         };
-        console.log("[API /api/trame-modeles POST] Prisma create payload (sans roles pour test):", JSON.stringify(createPayload, null, 2));
+        console.log("[API /api/tableau de service-modeles POST] Prisma create payload (sans roles pour test):", JSON.stringify(createPayload, null, 2));
 
         const trameModele = await prisma.trameModele.create({
             data: createPayload,
@@ -123,15 +123,15 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(trameModele, { status: 201 });
     } catch (error: any) {
-        console.error('[API /api/trame-modeles POST] Erreur lors de la création du modèle de trame:', error);
+        console.error('[API /api/tableau de service-modeles POST] Erreur lors de la création du modèle de tableau de service:', error);
 
         // Afficher la stack trace pour plus de détails
         if (error.stack) {
-            console.error('[API /api/trame-modeles POST] Stack trace:', error.stack);
+            console.error('[API /api/tableau de service-modeles POST] Stack trace:', error.stack);
         }
 
         if (error.code === 'P2002' && error.meta?.target?.includes('name')) {
-            return NextResponse.json({ error: 'Un modèle de trame avec ce nom existe déjà.' }, { status: 409 });
+            return NextResponse.json({ error: 'Un modèle de tableau de service avec ce nom existe déjà.' }, { status: 409 });
         }
 
         // Détails supplémentaires pour le client dans la réponse
@@ -142,16 +142,16 @@ export async function POST(req: NextRequest) {
         };
 
         // Log plus détaillé de l'erreur originale si possible
-        console.error("[API /api/trame-modeles POST] Détails de l'erreur:", errorDetails);
+        console.error("[API /api/tableau de service-modeles POST] Détails de l'erreur:", errorDetails);
 
         return NextResponse.json({
-            error: 'Erreur interne du serveur lors de la création du modèle de trame.',
+            error: 'Erreur interne du serveur lors de la création du modèle de tableau de service.',
             details: errorDetails
         }, { status: 500 });
     }
 }
 
-// GET: Lister tous les modèles de trame
+// GET: Lister tous les modèles de tableau de service
 export async function GET(req: NextRequest) {
     try {
         const authToken = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -182,7 +182,7 @@ export async function GET(req: NextRequest) {
             where,
             include: {
                 site: true, // Toujours inclure le site pour l'affichage du nom
-                affectations: includeAffectations ? {
+                gardes/vacations: includeAffectations ? {
                     include: {
                         activityType: true,
                         operatingRoom: true,
@@ -204,7 +204,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(trameModeles);
     } catch (error: any) {
-        console.error('Erreur lors de la récupération des modèles de trame:', error);
-        return NextResponse.json({ error: 'Erreur interne du serveur lors de la récupération des modèles de trame.', details: error.message }, { status: 500 });
+        console.error('Erreur lors de la récupération des modèles de tableau de service:', error);
+        return NextResponse.json({ error: 'Erreur interne du serveur lors de la récupération des modèles de tableau de service.', details: error.message }, { status: 500 });
     }
 } 

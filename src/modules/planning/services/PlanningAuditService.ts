@@ -12,7 +12,7 @@ export interface AuditLogEntry {
     userId: string;
     userName: string;
     action: 'create' | 'update' | 'delete' | 'statusChange' | 'comment';
-    targetType: 'assignment' | 'planning' | 'supervisor' | 'annotation';
+    targetType: 'attribution' | 'planning' | 'supervisor' | 'annotation';
     targetId: string;
     planningId: string;
     details: any;
@@ -36,7 +36,7 @@ export class PlanningAuditService {
      */
     static async logAction(
         action: 'create' | 'update' | 'delete' | 'statusChange' | 'comment',
-        targetType: 'assignment' | 'planning' | 'supervisor' | 'annotation',
+        targetType: 'attribution' | 'planning' | 'supervisor' | 'annotation',
         targetId: string,
         planningId: string,
         details: any,
@@ -229,13 +229,13 @@ export class PlanningAuditService {
 
         switch (action) {
             case 'create':
-                return `Nouvelle ${targetType === 'assignment' ? 'affectation' : targetType === 'planning' ? 'planification' : targetType === 'supervisor' ? 'supervision' : 'annotation'} créée pour le planning du ${date} (${period}).`;
+                return `Nouvelle ${targetType === 'attribution' ? 'garde/vacation' : targetType === 'planning' ? 'planification' : targetType === 'supervisor' ? 'supervision' : 'annotation'} créée pour le planning du ${date} (${period}).`;
 
             case 'update':
-                return `Modification d'${targetType === 'assignment' ? 'une affectation' : targetType === 'planning' ? 'un planning' : targetType === 'supervisor' ? 'une supervision' : 'une annotation'} pour le ${date} (${period}).`;
+                return `Modification d'${targetType === 'attribution' ? 'une garde/vacation' : targetType === 'planning' ? 'un planning' : targetType === 'supervisor' ? 'une supervision' : 'une annotation'} pour le ${date} (${period}).`;
 
             case 'delete':
-                return `Suppression d'${targetType === 'assignment' ? 'une affectation' : targetType === 'planning' ? 'un planning' : targetType === 'supervisor' ? 'une supervision' : 'une annotation'} pour le ${date} (${period}).`;
+                return `Suppression d'${targetType === 'attribution' ? 'une garde/vacation' : targetType === 'planning' ? 'un planning' : targetType === 'supervisor' ? 'une supervision' : 'une annotation'} pour le ${date} (${period}).`;
 
             case 'statusChange':
                 const statusLabel = planning.status === BlocPlanningStatus.APPROVED

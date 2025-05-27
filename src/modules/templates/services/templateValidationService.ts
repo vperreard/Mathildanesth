@@ -9,34 +9,34 @@ import {
     ValidationSeverity,
     ValidationErrorType,
     DayOfWeek
-} from "../types/template";
+} from "../types/modèle";
 
 /**
- * Service de validation des trames de planning
- * Effectue des vérifications de contraintes métier sur les trames
+ * Service de validation des tableaux de service de planning
+ * Effectue des vérifications de contraintes métier sur les tableaux de service
  */
 export const templateValidationService = {
     /**
-     * Valide une trame de planning complète
-     * @param template Trame à valider
+     * Valide une tableau de service de planning complète
+     * @param modèle Tableau de service à valider
      * @returns Résultat de validation avec erreurs éventuelles
      */
-    validateTemplate(template: PlanningTemplate): ValidationResult {
+    validateTemplate(modèle: PlanningTemplate): ValidationResult {
         const errors: ValidationError[] = [];
 
         // Vérification des métadonnées de base
-        this.validateBasicMetadata(template, errors);
+        this.validateBasicMetadata(modèle, errors);
 
-        // Vérification des affectations
-        this.validateAffectations(template.affectations, errors);
+        // Vérification des gardes/vacations
+        this.validateAffectations(modèle.gardes/vacations, errors);
 
         // Vérification des variations
-        if (template.variations && template.variations.length > 0) {
-            this.validateVariations(template.variations, template.affectations, errors);
+        if (modèle.variations && modèle.variations.length > 0) {
+            this.validateVariations(modèle.variations, modèle.gardes/vacations, errors);
         }
 
         // Vérification des contraintes métier globales
-        this.validateBusinessRules(template, errors);
+        this.validateBusinessRules(modèle, errors);
 
         return {
             isValid: errors.filter(e => e.severity === 'ERROR').length === 0,
@@ -46,47 +46,47 @@ export const templateValidationService = {
     },
 
     /**
-     * Valide les métadonnées de base d'une trame
+     * Valide les métadonnées de base d'une tableau de service
      */
-    validateBasicMetadata(template: PlanningTemplate, errors: ValidationError[]): void {
+    validateBasicMetadata(modèle: PlanningTemplate, errors: ValidationError[]): void {
         // Vérification du nom
-        if (!template.nom || template.nom.trim() === '') {
+        if (!modèle.nom || modèle.nom.trim() === '') {
             errors.push({
                 type: 'MISSING_REQUIRED_FIELD',
                 field: 'nom',
-                message: 'Le nom de la trame est obligatoire',
+                message: 'Le nom de la tableau de service est obligatoire',
                 severity: 'ERROR'
             });
-        } else if (template.nom.length < 3) {
+        } else if (modèle.nom.length < 3) {
             errors.push({
                 type: 'VALIDATION_ERROR',
                 field: 'nom',
-                message: 'Le nom de la trame doit contenir au moins 3 caractères',
+                message: 'Le nom de la tableau de service doit contenir au moins 3 caractères',
                 severity: 'ERROR'
             });
         }
 
         // Vérification du département
-        if (!template.departementId) {
+        if (!modèle.departementId) {
             errors.push({
                 type: 'MISSING_REQUIRED_FIELD',
                 field: 'departementId',
-                message: 'Un département doit être associé à la trame',
+                message: 'Un département doit être associé à la tableau de service',
                 severity: 'WARNING'
             });
         }
     },
 
     /**
-     * Valide les affectations d'une trame
+     * Valide les gardes/vacations d'une tableau de service
      */
-    validateAffectations(affectations: TemplateAffectation[], errors: ValidationError[]): void {
-        // Vérification de la présence d'au moins une affectation
-        if (!affectations || affectations.length === 0) {
+    validateAffectations(gardes/vacations: TemplateAffectation[], errors: ValidationError[]): void {
+        // Vérification de la présence d'au moins une garde/vacation
+        if (!gardes/vacations || gardes/vacations.length === 0) {
             errors.push({
                 type: 'VALIDATION_ERROR',
-                field: 'affectations',
-                message: 'La trame doit contenir au moins une affectation',
+                field: 'gardes/vacations',
+                message: 'La tableau de service doit contenir au moins une garde/vacation',
                 severity: 'ERROR'
             });
             return;
@@ -95,42 +95,42 @@ export const templateValidationService = {
         // Map pour vérifier l'unicité des combinaisons jour/type
         const affectationMap = new Map<string, TemplateAffectation>();
 
-        affectations.forEach((affectation, index) => {
-            const affectationKey = `${affectation.jour}_${affectation.type}`;
+        gardes/vacations.forEach((garde/vacation, index) => {
+            const affectationKey = `${garde/vacation.jour}_${garde/vacation.type}`;
 
             // Vérification de la duplication
             if (affectationMap.has(affectationKey)) {
                 errors.push({
                     type: 'DUPLICATE_ENTRY',
-                    field: `affectations[${index}]`,
-                    message: `Affectation dupliquée pour ${affectation.jour} / ${affectation.type}`,
+                    field: `gardes/vacations[${index}]`,
+                    message: `Garde/Vacation dupliquée pour ${garde/vacation.jour} / ${garde/vacation.type}`,
                     severity: 'ERROR',
-                    metadata: { index, jour: affectation.jour, type: affectation.type }
+                    metadata: { index, jour: garde/vacation.jour, type: garde/vacation.type }
                 });
             } else {
-                affectationMap.set(affectationKey, affectation);
+                affectationMap.set(affectationKey, garde/vacation);
             }
 
-            // Vérification des postes requis pour les affectations ouvertes
-            if (affectation.ouvert && affectation.postesRequis <= 0) {
+            // Vérification des postes requis pour les gardes/vacations ouvertes
+            if (garde/vacation.ouvert && garde/vacation.postesRequis <= 0) {
                 errors.push({
                     type: 'VALIDATION_ERROR',
-                    field: `affectations[${index}].postesRequis`,
-                    message: `Une affectation ouverte doit avoir au moins un poste requis (${affectation.jour} / ${affectation.type})`,
+                    field: `gardes/vacations[${index}].postesRequis`,
+                    message: `Une garde/vacation ouverte doit avoir au moins un poste requis (${garde/vacation.jour} / ${garde/vacation.type})`,
                     severity: 'ERROR',
-                    metadata: { index, jour: affectation.jour, type: affectation.type }
+                    metadata: { index, jour: garde/vacation.jour, type: garde/vacation.type }
                 });
             }
 
             // Validation de la configuration si présente
-            if (affectation.configuration) {
-                this.validateAffectationConfiguration(affectation.configuration, index, errors);
+            if (garde/vacation.configuration) {
+                this.validateAffectationConfiguration(garde/vacation.configuration, index, errors);
             }
         });
     },
 
     /**
-     * Valide une configuration d'affectation
+     * Valide une configuration d'garde/vacation
      */
     validateAffectationConfiguration(
         config: AffectationConfiguration,
@@ -145,7 +145,7 @@ export const templateValidationService = {
             if (debut === null) {
                 errors.push({
                     type: 'INVALID_FORMAT',
-                    field: `affectations[${affectationIndex}].configuration.heureDebut`,
+                    field: `gardes/vacations[${affectationIndex}].configuration.heureDebut`,
                     message: `Format d'heure invalide : ${config.heureDebut} (format attendu: HH:MM)`,
                     severity: 'ERROR'
                 });
@@ -154,7 +154,7 @@ export const templateValidationService = {
             if (fin === null) {
                 errors.push({
                     type: 'INVALID_FORMAT',
-                    field: `affectations[${affectationIndex}].configuration.heureFin`,
+                    field: `gardes/vacations[${affectationIndex}].configuration.heureFin`,
                     message: `Format d'heure invalide : ${config.heureFin} (format attendu: HH:MM)`,
                     severity: 'ERROR'
                 });
@@ -163,7 +163,7 @@ export const templateValidationService = {
             if (debut !== null && fin !== null && debut >= fin) {
                 errors.push({
                     type: 'VALIDATION_ERROR',
-                    field: `affectations[${affectationIndex}].configuration`,
+                    field: `gardes/vacations[${affectationIndex}].configuration`,
                     message: `L'heure de fin doit être postérieure à l'heure de début`,
                     severity: 'ERROR'
                 });
@@ -171,14 +171,14 @@ export const templateValidationService = {
         } else if (config.heureDebut && !config.heureFin) {
             errors.push({
                 type: 'MISSING_REQUIRED_FIELD',
-                field: `affectations[${affectationIndex}].configuration.heureFin`,
+                field: `gardes/vacations[${affectationIndex}].configuration.heureFin`,
                 message: `L'heure de fin est requise si l'heure de début est spécifiée`,
                 severity: 'WARNING'
             });
         } else if (!config.heureDebut && config.heureFin) {
             errors.push({
                 type: 'MISSING_REQUIRED_FIELD',
-                field: `affectations[${affectationIndex}].configuration.heureDebut`,
+                field: `gardes/vacations[${affectationIndex}].configuration.heureDebut`,
                 message: `L'heure de début est requise si l'heure de fin est spécifiée`,
                 severity: 'WARNING'
             });
@@ -188,7 +188,7 @@ export const templateValidationService = {
         if (!config.postes || config.postes.length === 0) {
             errors.push({
                 type: 'VALIDATION_ERROR',
-                field: `affectations[${affectationIndex}].configuration.postes`,
+                field: `gardes/vacations[${affectationIndex}].configuration.postes`,
                 message: `Une configuration doit avoir au moins un poste défini`,
                 severity: 'ERROR'
             });
@@ -213,7 +213,7 @@ export const templateValidationService = {
         if (!poste.nom || poste.nom.trim() === '') {
             errors.push({
                 type: 'MISSING_REQUIRED_FIELD',
-                field: `affectations[${affectationIndex}].configuration.postes[${posteIndex}].nom`,
+                field: `gardes/vacations[${affectationIndex}].configuration.postes[${posteIndex}].nom`,
                 message: `Le nom du poste est obligatoire`,
                 severity: 'ERROR'
             });
@@ -223,7 +223,7 @@ export const templateValidationService = {
         if (poste.quantite < 0) {
             errors.push({
                 type: 'VALIDATION_ERROR',
-                field: `affectations[${affectationIndex}].configuration.postes[${posteIndex}].quantite`,
+                field: `gardes/vacations[${affectationIndex}].configuration.postes[${posteIndex}].quantite`,
                 message: `La quantité ne peut pas être négative`,
                 severity: 'ERROR'
             });
@@ -233,7 +233,7 @@ export const templateValidationService = {
         if (poste.status === 'REQUIS' && poste.quantite === 0) {
             errors.push({
                 type: 'VALIDATION_ERROR',
-                field: `affectations[${affectationIndex}].configuration.postes[${posteIndex}]`,
+                field: `gardes/vacations[${affectationIndex}].configuration.postes[${posteIndex}]`,
                 message: `Un poste requis doit avoir une quantité supérieure à 0`,
                 severity: 'ERROR'
             });
@@ -241,23 +241,23 @@ export const templateValidationService = {
     },
 
     /**
-     * Valide les variations d'une trame
+     * Valide les variations d'une tableau de service
      */
     validateVariations(
         variations: ConfigurationVariation[],
-        affectations: TemplateAffectation[],
+        gardes/vacations: TemplateAffectation[],
         errors: ValidationError[]
     ): void {
-        // Créer un ensemble des IDs d'affectation valides
-        const validAffectationIds = new Set(affectations.map(a => a.id));
+        // Créer un ensemble des IDs d'garde/vacation valides
+        const validAffectationIds = new Set(gardes/vacations.map(a => a.id));
 
         variations.forEach((variation, index) => {
-            // Vérifier que l'affectation référencée existe
+            // Vérifier que l'garde/vacation référencée existe
             if (!validAffectationIds.has(variation.affectationId)) {
                 errors.push({
                     type: 'REFERENCE_ERROR',
                     field: `variations[${index}].affectationId`,
-                    message: `L'affectation référencée n'existe pas (ID: ${variation.affectationId})`,
+                    message: `L'garde/vacation référencée n'existe pas (ID: ${variation.affectationId})`,
                     severity: 'ERROR'
                 });
             }
@@ -318,13 +318,13 @@ export const templateValidationService = {
             // Valider la configuration de la variation
             this.validateAffectationConfiguration(variation.configuration, -1 * (index + 1), errors);
 
-            // Vérifier les chevauchements de variations pour la même affectation
+            // Vérifier les chevauchements de variations pour la même garde/vacation
             this.checkVariationOverlaps(variation, variations, index, errors);
         });
     },
 
     /**
-     * Vérifie les chevauchements de variations pour une même affectation
+     * Vérifie les chevauchements de variations pour une même garde/vacation
      */
     checkVariationOverlaps(
         variation: ConfigurationVariation,
@@ -345,7 +345,7 @@ export const templateValidationService = {
         }
 
         allVariations.forEach((otherVar, otherIndex) => {
-            // Ne pas comparer avec soi-même et vérifier uniquement les variations pour la même affectation
+            // Ne pas comparer avec soi-même et vérifier uniquement les variations pour la même garde/vacation
             if (otherIndex !== currentIndex && otherVar.affectationId === variation.affectationId &&
                 otherVar.typeVariation === 'PERSONNALISEE' && otherVar.dateDebut && otherVar.dateFin) {
 
@@ -358,7 +358,7 @@ export const templateValidationService = {
                         errors.push({
                             type: 'OVERLAP_ERROR',
                             field: `variations[${currentIndex}]`,
-                            message: `Cette variation chevauche une autre variation pour la même affectation (${otherVar.nom})`,
+                            message: `Cette variation chevauche une autre variation pour la même garde/vacation (${otherVar.nom})`,
                             severity: 'ERROR',
                             metadata: {
                                 affectationId: variation.affectationId,
@@ -372,10 +372,10 @@ export const templateValidationService = {
     },
 
     /**
-     * Valide les règles métier globales sur la trame
+     * Valide les règles métier globales sur la tableau de service
      */
-    validateBusinessRules(template: PlanningTemplate, errors: ValidationError[]): void {
-        // Vérifier la répartition des affectations par jour
+    validateBusinessRules(modèle: PlanningTemplate, errors: ValidationError[]): void {
+        // Vérifier la répartition des gardes/vacations par jour
         const affectationsByDay = new Map<DayOfWeek, number>();
 
         // Initialiser le compteur pour chaque jour
@@ -383,21 +383,21 @@ export const templateValidationService = {
             affectationsByDay.set(day, 0);
         });
 
-        // Compter les affectations ouvertes par jour
-        template.affectations.forEach(aff => {
+        // Compter les gardes/vacations ouvertes par jour
+        modèle.gardes/vacations.forEach(aff => {
             if (aff.ouvert) {
                 const count = affectationsByDay.get(aff.jour) || 0;
                 affectationsByDay.set(aff.jour, count + 1);
             }
         });
 
-        // Vérifier s'il y a des jours sans affectations
+        // Vérifier s'il y a des jours sans gardes/vacations
         affectationsByDay.forEach((count, day) => {
             if (count === 0) {
                 errors.push({
                     type: 'BUSINESS_RULE',
-                    field: 'affectations',
-                    message: `Aucune affectation ouverte pour ${day}`,
+                    field: 'gardes/vacations',
+                    message: `Aucune garde/vacation ouverte pour ${day}`,
                     severity: 'WARNING',
                     metadata: { jour: day }
                 });
@@ -405,31 +405,31 @@ export const templateValidationService = {
         });
 
         // Vérification de la cohérence des postes requis
-        this.validatePostesCoherence(template, errors);
+        this.validatePostesCoherence(modèle, errors);
     },
 
     /**
-     * Vérifie la cohérence des postes requis dans les affectations et configurations
+     * Vérifie la cohérence des postes requis dans les gardes/vacations et configurations
      */
-    validatePostesCoherence(template: PlanningTemplate, errors: ValidationError[]): void {
-        template.affectations.forEach((affectation, index) => {
-            if (affectation.configuration && affectation.ouvert) {
+    validatePostesCoherence(modèle: PlanningTemplate, errors: ValidationError[]): void {
+        modèle.gardes/vacations.forEach((garde/vacation, index) => {
+            if (garde/vacation.configuration && garde/vacation.ouvert) {
                 // Calculer la somme des postes requis dans la configuration
-                const totalPostesConfig = affectation.configuration.postes
+                const totalPostesConfig = garde/vacation.configuration.postes
                     .filter(p => p.status === 'REQUIS')
                     .reduce((sum, poste) => sum + poste.quantite, 0);
 
                 // Vérifier la cohérence avec le nombre de postes requis déclaré
-                if (totalPostesConfig !== affectation.postesRequis) {
+                if (totalPostesConfig !== garde/vacation.postesRequis) {
                     errors.push({
                         type: 'INCONSISTENCY',
-                        field: `affectations[${index}]`,
-                        message: `Le nombre de postes requis (${affectation.postesRequis}) ne correspond pas à la somme des postes dans la configuration (${totalPostesConfig})`,
+                        field: `gardes/vacations[${index}]`,
+                        message: `Le nombre de postes requis (${garde/vacation.postesRequis}) ne correspond pas à la somme des postes dans la configuration (${totalPostesConfig})`,
                         severity: 'WARNING',
                         metadata: {
-                            jour: affectation.jour,
-                            type: affectation.type,
-                            declaredPostes: affectation.postesRequis,
+                            jour: garde/vacation.jour,
+                            type: garde/vacation.type,
+                            declaredPostes: garde/vacation.postesRequis,
                             configPostes: totalPostesConfig
                         }
                     });

@@ -45,7 +45,7 @@ import {
     PeriodeVariation,
     RoleType,
     AffectationConfiguration
-} from '../types/template';
+} from '../types/modèle';
 import { FullActivityType } from '../services/templateService';
 import AssignmentConfigPanel from './AssignmentConfigPanel';
 import VariationConfigPanel from './VariationConfigPanel';
@@ -84,10 +84,10 @@ import {
 export interface BlocPlanningTemplateEditorProps {
     initialTemplate?: PlanningTemplate;
     selectedTemplateId?: string;
-    onSave: (template: PlanningTemplate) => Promise<void>;
+    onSave: (modèle: PlanningTemplate) => Promise<void>;
     onCancel?: () => void;
     availableAffectationTypes: FullActivityType[];
-    templates?: PlanningTemplate[];
+    modèles?: PlanningTemplate[];
     isLoading?: boolean;
     availablePostes?: string[];
     readOnly?: boolean;
@@ -103,9 +103,9 @@ export interface BlocPlanningTemplateEditorHandle {
 // Définition de EMPTY_TEMPLATE
 const EMPTY_TEMPLATE: PlanningTemplate = {
     id: '', // ou un ID temporaire comme `temp_${Date.now()}` si nécessaire avant sauvegarde
-    nom: 'Nouvelle Trame',
+    nom: 'Nouvelle Tableau de service',
     description: '',
-    affectations: [],
+    gardes/vacations: [],
     variations: [],
     roles: [RoleType.TOUS],
     joursSemaineActifs: [1, 2, 3, 4, 5], // Lundi à vendredi par défaut
@@ -138,16 +138,16 @@ const PERIOD_LABEL: Record<PeriodeVariation, string> = {
 };
 
 // Type d'élément pour le drag and drop
-const AFFECTATION_TYPE = 'affectation';
+const AFFECTATION_TYPE = 'garde/vacation';
 
 /**
- * Composant d'élément déplaçable pour une affectation
+ * Composant d'élément déplaçable pour une garde/vacation
  */
 interface DraggableAffectationProps {
-    affectation: TemplateAffectation;
+    garde/vacation: TemplateAffectation;
     onToggle: (id: string, isOpen: boolean) => void;
     onPostesChange: (id: string, count: number) => void;
-    onEdit: (affectation: TemplateAffectation) => void;
+    onEdit: (garde/vacation: TemplateAffectation) => void;
     onDelete: (id: string) => void;
     onAddVariation: (affectationId: string) => void;
     variations: ConfigurationVariation[];
@@ -158,7 +158,7 @@ interface DraggableAffectationProps {
 }
 
 const DraggableAffectation: React.FC<DraggableAffectationProps> = ({
-    affectation,
+    garde/vacation,
     onToggle,
     onPostesChange,
     onEdit,
@@ -195,8 +195,8 @@ const DraggableAffectation: React.FC<DraggableAffectationProps> = ({
         dropRef(node);
     };
 
-    // Filtrer les variations pour cette affectation
-    const affectationVariations = variations.filter(v => v.affectationId === affectation.id);
+    // Filtrer les variations pour cette garde/vacation
+    const affectationVariations = variations.filter(v => v.affectationId === garde/vacation.id);
 
     return (
         <div
@@ -211,8 +211,8 @@ const DraggableAffectation: React.FC<DraggableAffectationProps> = ({
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                            {affectation.type}
-                            {affectation.configuration?.nom && ` - ${affectation.configuration.nom}`}
+                            {garde/vacation.type}
+                            {garde/vacation.configuration?.nom && ` - ${garde/vacation.configuration.nom}`}
                         </Typography>
                         {affectationVariations.length > 0 && (
                             <Chip
@@ -228,7 +228,7 @@ const DraggableAffectation: React.FC<DraggableAffectationProps> = ({
                             <IconButton
                                 size="small"
                                 color="secondary"
-                                onClick={() => onAddVariation(affectation.id)}
+                                onClick={() => onAddVariation(garde/vacation.id)}
                                 sx={{ mr: 1 }}
                             >
                                 <CalendarIcon size={16} />
@@ -239,8 +239,8 @@ const DraggableAffectation: React.FC<DraggableAffectationProps> = ({
                                 size="small"
                                 color="primary"
                                 onClick={() => {
-                                    console.log(`[DraggableAffectation] Crayon cliqué pour affectation ID: ${affectation.id}, Type: ${affectation.type}, Jour: ${affectation.jour}`);
-                                    onEdit(affectation);
+                                    console.log(`[DraggableAffectation] Crayon cliqué pour garde/vacation ID: ${garde/vacation.id}, Type: ${garde/vacation.type}, Jour: ${garde/vacation.jour}`);
+                                    onEdit(garde/vacation);
                                 }}
                                 sx={{ mr: 1 }}
                             >
@@ -251,7 +251,7 @@ const DraggableAffectation: React.FC<DraggableAffectationProps> = ({
                             <IconButton
                                 size="small"
                                 color="error"
-                                onClick={() => onDelete(affectation.id)}
+                                onClick={() => onDelete(garde/vacation.id)}
                             >
                                 <TrashIcon size={16} />
                             </IconButton>
@@ -262,36 +262,36 @@ const DraggableAffectation: React.FC<DraggableAffectationProps> = ({
                     <FormControlLabel
                         control={
                             <Switch
-                                checked={affectation.ouvert}
-                                onChange={(e) => onToggle(affectation.id, e.target.checked)}
+                                checked={garde/vacation.ouvert}
+                                onChange={(e) => onToggle(garde/vacation.id, e.target.checked)}
                                 size="small"
                             />
                         }
-                        label={affectation.ouvert ? "Ouvert" : "Fermé"}
+                        label={garde/vacation.ouvert ? "Ouvert" : "Fermé"}
                     />
-                    {affectation.ouvert && (
+                    {garde/vacation.ouvert && (
                         <TextField
                             label="Postes"
                             type="number"
                             size="small"
-                            value={affectation.postesRequis}
-                            onChange={(e) => onPostesChange(affectation.id, parseInt(e.target.value, 10) || 0)}
+                            value={garde/vacation.postesRequis}
+                            onChange={(e) => onPostesChange(garde/vacation.id, parseInt(e.target.value, 10) || 0)}
                             inputProps={{ min: 0, style: { width: '60px' } }}
                             sx={{ ml: 2 }}
                         />
                     )}
                 </Box>
-                {affectation.configuration && (
+                {garde/vacation.configuration && (
                     <Box sx={{ mt: 1 }}>
                         <Typography variant="caption" color="text.secondary">
-                            {Array.isArray(affectation.configuration.postes) ? affectation.configuration.postes.length : 0} poste(s) configuré(s)
-                            {affectation.configuration.heureDebut && affectation.configuration.heureFin &&
-                                ` • ${affectation.configuration.heureDebut} - ${affectation.configuration.heureFin}`}
+                            {Array.isArray(garde/vacation.configuration.postes) ? garde/vacation.configuration.postes.length : 0} poste(s) configuré(s)
+                            {garde/vacation.configuration.heureDebut && garde/vacation.configuration.heureFin &&
+                                ` • ${garde/vacation.configuration.heureDebut} - ${garde/vacation.configuration.heureFin}`}
                         </Typography>
                     </Box>
                 )}
 
-                {/* Afficher la liste des variations pour cette affectation */}
+                {/* Afficher la liste des variations pour cette garde/vacation */}
                 {affectationVariations.length > 0 && (
                     <Accordion sx={{ mt: 1, boxShadow: 'none', '&:before': { display: 'none' } }}>
                         <AccordionSummary
@@ -321,18 +321,18 @@ const DraggableAffectation: React.FC<DraggableAffectationProps> = ({
     );
 };
 
-// Ajout d'un composant de résumé des affectations
-const TemplateAffectationsSummary = ({ template }: { template: PlanningTemplate }) => {
+// Ajout d'un composant de résumé des gardes/vacations
+const TemplateAffectationsSummary = ({ modèle }: { modèle: PlanningTemplate }) => {
     const days = Object.keys(DAYS_LABEL) as DayOfWeek[];
-    const types = Array.from(new Set(template.affectations.map(a => a.type)));
+    const types = Array.from(new Set(modèle.gardes/vacations.map(a => a.type)));
 
     const countVariationsForDay = (day: DayOfWeek) => {
-        const affectationIdsForDay = template.affectations
+        const affectationIdsForDay = modèle.gardes/vacations
             .filter(a => a.jour === day)
             .map(a => a.id);
 
-        return template.variations
-            ? template.variations.filter(v =>
+        return modèle.variations
+            ? modèle.variations.filter(v =>
                 affectationIdsForDay.includes(v.affectationId)).length
             : 0;
     };
@@ -358,15 +358,15 @@ const TemplateAffectationsSummary = ({ template }: { template: PlanningTemplate 
                                 {DAYS_LABEL[day]}
                             </TableCell>
                             {types.map(type => {
-                                const affectation = template.affectations.find(
+                                const garde/vacation = modèle.gardes/vacations.find(
                                     a => a.jour === day && a.type === type
                                 );
                                 return (
                                     <TableCell key={`${day}_${type}`} align="center">
-                                        {affectation ? (
+                                        {garde/vacation ? (
                                             <Chip
-                                                label={affectation.ouvert ? `${affectation.postesRequis} poste(s)` : 'Fermé'}
-                                                color={affectation.ouvert ? "success" : "default"}
+                                                label={garde/vacation.ouvert ? `${garde/vacation.postesRequis} poste(s)` : 'Fermé'}
+                                                color={garde/vacation.ouvert ? "success" : "default"}
                                                 size="small"
                                             />
                                         ) : (
@@ -393,7 +393,7 @@ const TemplateAffectationsSummary = ({ template }: { template: PlanningTemplate 
 };
 
 /**
- * Composant d'éditeur principal pour les trames de planning
+ * Composant d'éditeur principal pour les tableaux de service de planning
  */
 const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHandle, BlocPlanningTemplateEditorProps>((
     {
@@ -402,22 +402,22 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
         onSave,
         onCancel,
         availableAffectationTypes,
-        templates: templatesFromProps,
+        modèles: templatesFromProps,
         isLoading: isLoadingProp = false,
         availablePostes = [],
         readOnly = false,
         onMuiModalOpenChange
     }, ref) => {
-    // État pour la trame en cours d'édition
-    const [template, setTemplate] = useState<PlanningTemplate>(() => {
+    // État pour la tableau de service en cours d'édition
+    const [modèle, setTemplate] = useState<PlanningTemplate>(() => {
         const initial = initialTemplate && initialTemplate.id && initialTemplate.id !== 'new'
             ? initialTemplate
             : (initialTemplate && initialTemplate.id === 'new'
-                ? initialTemplate // Cas d'un nouveau template avec des valeurs pré-remplies (nom, rôles)
+                ? initialTemplate // Cas d'un nouveau modèle avec des valeurs pré-remplies (nom, rôles)
                 : EMPTY_TEMPLATE);
         return {
             ...initial,
-            affectations: initial.affectations || [],
+            gardes/vacations: initial.gardes/vacations || [],
             variations: initial.variations || [],
             roles: initial.roles || [RoleType.TOUS] // S'assurer que les rôles sont initialisés
         };
@@ -429,10 +429,10 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
     // État pour le jour sélectionné dans les onglets (pour l'affichage)
     const [currentViewingDay, setCurrentViewingDay] = useState<DayOfWeek>('LUNDI');
 
-    // Nouvel état pour les jours sélectionnés lors de l'ajout d'une affectation
+    // Nouvel état pour les jours sélectionnés lors de l'ajout d'une garde/vacation
     const [joursSelectionnesPourAjout, setJoursSelectionnesPourAjout] = useState<DayOfWeek[]>(['LUNDI']);
 
-    // État pour la nouvelle affectation à ajouter
+    // État pour la nouvelle garde/vacation à ajouter
     const [newAffectationType, setNewAffectationType] = useState<string>('');
 
     // États pour les dialogues
@@ -444,28 +444,28 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
     const [selectedAffectationId, setSelectedAffectationId] = useState<string | null>(null);
 
     // État pour les variations
-    const [activeTab, setActiveTab] = useState<'affectations' | 'variations'>('affectations');
+    const [activeTab, setActiveTab] = useState<'gardes/vacations' | 'variations'>('gardes/vacations');
 
     // État pour les erreurs de validation
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    // Helper pour mettre à jour le template et marquer comme modifié
+    // Helper pour mettre à jour le modèle et marquer comme modifié
     const updateTemplate = useCallback((updater: (prev: PlanningTemplate) => PlanningTemplate) => {
         setTemplate(updater);
         setIsModified(true);
     }, [setTemplate, setIsModified]);
 
-    // Filtrer les affectations pour le jour sélectionné (pour l'affichage dans l'onglet)
-    const filteredAffectations = Array.isArray(template.affectations)
-        ? template.affectations
+    // Filtrer les gardes/vacations pour le jour sélectionné (pour l'affichage dans l'onglet)
+    const filteredAffectations = Array.isArray(modèle.gardes/vacations)
+        ? modèle.gardes/vacations
             .filter(a => a.jour === currentViewingDay)
             .sort((a, b) => (a.ordre || 0) - (b.ordre || 0))
         : [];
 
-    // Ajouter une nouvelle affectation (modifié pour multi-jours)
+    // Ajouter une nouvelle garde/vacation (modifié pour multi-jours)
     const handleAddAffectation = () => {
         if (!newAffectationType || newAffectationType === 'no-options') {
-            setErrors(prev => ({ ...prev, newAffectation: 'Veuillez sélectionner un type d\'affectation valide' }));
+            setErrors(prev => ({ ...prev, newAffectation: 'Veuillez sélectionner un type d\'garde/vacation valide' }));
             return;
         }
         if (joursSelectionnesPourAjout.length === 0) {
@@ -478,15 +478,15 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
         const erreursMessages: string[] = [];
 
         joursSelectionnesPourAjout.forEach(jour => {
-            const exists = template.affectations.some(
+            const exists = modèle.gardes/vacations.some(
                 a => a.jour === jour && a.type === newAffectationType
             );
 
             if (exists) {
-                erreursMessages.push(`Le type d'affectation '${newAffectationType}' existe déjà pour ${DAYS_LABEL[jour]}.`);
+                erreursMessages.push(`Le type d'garde/vacation '${newAffectationType}' existe déjà pour ${DAYS_LABEL[jour]}.`);
                 erreurCreation = true;
             } else {
-                const affectationsCeJour = template.affectations.filter(a => a.jour === jour);
+                const affectationsCeJour = modèle.gardes/vacations.filter(a => a.jour === jour);
                 nouvellesAffectations.push({
                     id: `affect_${Date.now()}_${jour}_${Math.random().toString(36).substring(2, 9)}`,
                     jour: jour,
@@ -506,7 +506,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
         if (nouvellesAffectations.length > 0) {
             updateTemplate(prev => ({
                 ...prev,
-                affectations: [...prev.affectations, ...nouvellesAffectations]
+                gardes/vacations: [...prev.gardes/vacations, ...nouvellesAffectations]
             }));
         }
 
@@ -515,21 +515,21 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
         setErrors(prev => ({ ...prev, newAffectation: '', joursSelectionnesPourAjout: '' }));
     };
 
-    // Supprimer une affectation
+    // Supprimer une garde/vacation
     const handleDeleteAffectation = (id: string) => {
         updateTemplate(prev => ({
             ...prev,
-            affectations: prev.affectations.filter(a => a.id !== id),
+            gardes/vacations: prev.gardes/vacations.filter(a => a.id !== id),
             // Supprimer aussi toutes les variations associées
             variations: prev.variations?.filter(v => v.affectationId !== id) || []
         }));
     };
 
-    // Activer/désactiver une affectation
+    // Activer/désactiver une garde/vacation
     const handleToggleAffectation = (id: string, isOpen: boolean) => {
         updateTemplate(prev => ({
             ...prev,
-            affectations: prev.affectations.map(a =>
+            gardes/vacations: prev.gardes/vacations.map(a =>
                 a.id === id
                     ? { ...a, ouvert: isOpen, postesRequis: isOpen ? a.postesRequis || 1 : 0 }
                     : a
@@ -541,13 +541,13 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
     const handlePostesChange = (id: string, count: number) => {
         updateTemplate(prev => ({
             ...prev,
-            affectations: prev.affectations.map(a =>
+            gardes/vacations: prev.gardes/vacations.map(a =>
                 a.id === id ? { ...a, postesRequis: count } : a
             )
         }));
     };
 
-    // Déplacer une affectation (drag and drop)
+    // Déplacer une garde/vacation (drag and drop)
     const moveAffectation = useCallback((dragIndex: number, hoverIndex: number) => {
         const draggedAffectations = [...filteredAffectations];
         const draggedItem = draggedAffectations[dragIndex];
@@ -562,25 +562,25 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
             ordre: index
         }));
 
-        // Mettre à jour le template
+        // Mettre à jour le modèle
         updateTemplate(prev => ({
             ...prev,
-            affectations: prev.affectations
+            gardes/vacations: prev.gardes/vacations
                 .filter(a => a.jour !== currentViewingDay) // Utiliser currentViewingDay ici car move se fait dans le contexte d'un seul jour
                 .concat(updatedAffectations)
         }));
     }, [filteredAffectations, currentViewingDay, updateTemplate]);
 
-    // Ouvrir le panel de configuration pour une affectation
-    const handleEditAffectation = (affectation: TemplateAffectation) => {
-        console.log(`[BlocPlanningTemplateEditor] DEBUT handleEditAffectation pour affectation ID: ${affectation.id}, Type: ${affectation.type}, Jour: ${affectation.jour}`);
-        console.log('[BlocEditor DEBUG] handleEditAffectation - Affectation sélectionnée (avant setState):', JSON.parse(JSON.stringify(affectation)));
+    // Ouvrir le panel de configuration pour une garde/vacation
+    const handleEditAffectation = (garde/vacation: TemplateAffectation) => {
+        console.log(`[BlocPlanningTemplateEditor] DEBUT handleEditAffectation pour garde/vacation ID: ${garde/vacation.id}, Type: ${garde/vacation.type}, Jour: ${garde/vacation.jour}`);
+        console.log('[BlocEditor DEBUG] handleEditAffectation - Garde/Vacation sélectionnée (avant setState):', JSON.parse(JSON.stringify(garde/vacation)));
         console.log('[BlocEditor DEBUG] État actuel de configPanelOpen (avant setState):', configPanelOpen);
-        setSelectedAffectation(affectation);
+        setSelectedAffectation(garde/vacation);
         setConfigPanelOpen(true);
         onMuiModalOpenChange?.(true); // Notifie le parent que le modal MUI est ouvert
         console.log('[BlocEditor DEBUG] État de configPanelOpen (après setState): true (attendu)');
-        console.log('[BlocEditor DEBUG] selectedAffectation (après setState):', JSON.parse(JSON.stringify(affectation)));
+        console.log('[BlocEditor DEBUG] selectedAffectation (après setState):', JSON.parse(JSON.stringify(garde/vacation)));
     };
 
     // Fermer le panel de configuration
@@ -591,13 +591,13 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
         onMuiModalOpenChange?.(false);
     };
 
-    // Gérer la modification de la configuration d'une affectation (appelé par AssignmentConfigPanel)
+    // Gérer la modification de la configuration d'une garde/vacation (appelé par AssignmentConfigPanel)
     const handleConfigurationChange = (updatedConfig: AffectationConfiguration) => {
         console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - updatedConfig reçue:', JSON.parse(JSON.stringify(updatedConfig)));
 
         if (!selectedAffectation) {
             console.error("[BlocPlanningTemplateEditor] handleConfigurationChange - selectedAffectation est null. Impossible de mettre à jour la configuration.");
-            toast.error("Erreur: Aucune affectation sélectionnée pour la mise à jour de la configuration.");
+            toast.error("Erreur: Aucune garde/vacation sélectionnée pour la mise à jour de la configuration.");
             setConfigPanelOpen(false);
             onMuiModalOpenChange?.(false);
             return;
@@ -616,9 +616,9 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
             console.log('[BlocPlanningTemplateEditor] handleConfigurationChange - finalPostesRequis basé sur selectedAffectation.postesRequis car updatedConfig.postes est vide/nul:', finalPostesRequis);
         }
 
-        // Créer une nouvelle affectation mise à jour
+        // Créer une nouvelle garde/vacation mise à jour
         const affectationToUpdate: TemplateAffectation = {
-            ...selectedAffectation, // Garde les propriétés de base de l'affectation (id, type, jour, ouvert)
+            ...selectedAffectation, // Garde les propriétés de base de l'garde/vacation (id, type, jour, ouvert)
             configuration: updatedConfig, // Met à jour la configuration
             postesRequis: finalPostesRequis, // Met à jour le nombre de postes requis
         };
@@ -641,20 +641,20 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
     // Ouvrir le panel pour ajouter une variation
     const handleAddVariation = (affectationId: string) => {
-        const affectation = template.affectations.find(a => a.id === affectationId);
-        if (!affectation) return;
+        const garde/vacation = modèle.gardes/vacations.find(a => a.id === affectationId);
+        if (!garde/vacation) return;
 
         // Créer une nouvelle variation
         const newVariation: ConfigurationVariation = {
             id: `var_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
             affectationId: affectationId,
-            nom: `Variation de ${affectation.type}`,
+            nom: `Variation de ${garde/vacation.type}`,
             priorite: 5,
             configuration: {
                 id: `conf_var_${Date.now()}`,
-                postes: affectation.configuration?.postes.map(p => ({ ...p, id: `poste_var_${Date.now()}_${Math.random().toString(36).substring(2, 9)}` })) || [],
-                heureDebut: affectation.configuration?.heureDebut,
-                heureFin: affectation.configuration?.heureFin
+                postes: garde/vacation.configuration?.postes.map(p => ({ ...p, id: `poste_var_${Date.now()}_${Math.random().toString(36).substring(2, 9)}` })) || [],
+                heureDebut: garde/vacation.configuration?.heureDebut,
+                heureFin: garde/vacation.configuration?.heureFin
             },
             typeVariation: 'PERSONNALISEE',
             actif: true
@@ -688,7 +688,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
     // Sauvegarder une variation
     const handleSaveVariation = (updatedVariation: ConfigurationVariation) => {
         console.log(`[BlocPlanningTemplateEditor] handleSaveVariation appelée avec:`, JSON.parse(JSON.stringify(updatedVariation)));
-        const variationIndex = (template.variations || []).findIndex(v => v.id === updatedVariation.id);
+        const variationIndex = (modèle.variations || []).findIndex(v => v.id === updatedVariation.id);
 
         if (variationIndex >= 0) {
             updateTemplate(prev => ({
@@ -720,40 +720,40 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
         }
     };
 
-    // Mettre à jour une affectation après configuration
+    // Mettre à jour une garde/vacation après configuration
     const handleUpdateAffectation = (updatedAffectation: TemplateAffectation) => {
-        console.log('[BlocEditor DEBUG] handleUpdateAffectation - Affectation reçue pour mise à jour:', JSON.stringify(updatedAffectation, null, 2));
+        console.log('[BlocEditor DEBUG] handleUpdateAffectation - Garde/Vacation reçue pour mise à jour:', JSON.stringify(updatedAffectation, null, 2));
         console.log('[BlocEditor DEBUG] handleUpdateAffectation - Postes dans updatedAffectation.configuration:', JSON.stringify(updatedAffectation.configuration?.postes, null, 2));
         updateTemplate(prev => ({
             ...prev,
-            affectations: prev.affectations.map(a =>
+            gardes/vacations: prev.gardes/vacations.map(a =>
                 a.id === updatedAffectation.id ? updatedAffectation : a
             )
         }));
         // Ne pas fermer le panel ici, laisser AssignmentConfigPanel le faire via onSave/onClose
     };
 
-    // Valider la trame avant sauvegarde
+    // Valider la tableau de service avant sauvegarde
     const validateTemplate = (): boolean => {
         const newErrors: Record<string, string> = {};
-        console.log("[validateTemplate] Validation en cours pour la trame:", JSON.parse(JSON.stringify(template)));
+        console.log("[validateTemplate] Validation en cours pour la tableau de service:", JSON.parse(JSON.stringify(modèle)));
 
-        if (!template.nom.trim()) {
-            newErrors.nom = 'Le nom de la trame est requis';
-            console.log("[validateTemplate] Erreur: Nom de trame vide.");
+        if (!modèle.nom.trim()) {
+            newErrors.nom = 'Le nom de la tableau de service est requis';
+            console.log("[validateTemplate] Erreur: Nom de tableau de service vide.");
         }
 
-        // Vérifier que les affectations ouvertes ont au moins un poste requis
-        // const invalidAffectation = template.affectations.find(a => a.ouvert && a.postesRequis < 1);
-        const invalidAffectation = template.affectations.find(a => a.ouvert && (!a.postesRequis || a.postesRequis < 1));
+        // Vérifier que les gardes/vacations ouvertes ont au moins un poste requis
+        // const invalidAffectation = modèle.gardes/vacations.find(a => a.ouvert && a.postesRequis < 1);
+        const invalidAffectation = modèle.gardes/vacations.find(a => a.ouvert && (!a.postesRequis || a.postesRequis < 1));
         if (invalidAffectation) {
-            // newErrors.affectations = `L'affectation ${invalidAffectation.type} du ${DAYS_LABEL[invalidAffectation.jour]} doit avoir au moins un poste requis`;
-            newErrors.affectations = `L'affectation ${invalidAffectation.type} du ${DAYS_LABEL[invalidAffectation.jour]} (ID: ${invalidAffectation.id}) doit avoir au moins un poste requis (actuel: ${invalidAffectation.postesRequis}, ouvert: ${invalidAffectation.ouvert})`;
-            console.log("[validateTemplate] Erreur: Affectation invalide trouvée:", JSON.parse(JSON.stringify(invalidAffectation)));
+            // newErrors.gardes/vacations = `L'garde/vacation ${invalidAffectation.type} du ${DAYS_LABEL[invalidAffectation.jour]} doit avoir au moins un poste requis`;
+            newErrors.gardes/vacations = `L'garde/vacation ${invalidAffectation.type} du ${DAYS_LABEL[invalidAffectation.jour]} (ID: ${invalidAffectation.id}) doit avoir au moins un poste requis (actuel: ${invalidAffectation.postesRequis}, ouvert: ${invalidAffectation.ouvert})`;
+            console.log("[validateTemplate] Erreur: Garde/Vacation invalide trouvée:", JSON.parse(JSON.stringify(invalidAffectation)));
         }
 
         // Vérifier que les variations ont un nom
-        const invalidVariation = template.variations?.find(v => !v.nom.trim());
+        const invalidVariation = modèle.variations?.find(v => !v.nom.trim());
         if (invalidVariation) {
             newErrors.variations = `Toutes les variations doivent avoir un nom`;
             console.log("[validateTemplate] Erreur: Variation avec nom vide trouvée.");
@@ -766,33 +766,33 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
         return isValid;
     };
 
-    // Sauvegarder la trame
+    // Sauvegarder la tableau de service
     const handleSaveTemplate = async () => {
         if (!validateTemplate()) {
-            toast.error("Veuillez corriger les erreurs dans la trame avant de sauvegarder.");
+            toast.error("Veuillez corriger les erreurs dans la tableau de service avant de sauvegarder.");
             return;
         }
         setIsLoading(true);
         try {
-            // Assurer que le template final a les rôles corrects (ceux de initialTemplate, car cet éditeur ne les modifie pas)
+            // Assurer que le modèle final a les rôles corrects (ceux de initialTemplate, car cet éditeur ne les modifie pas)
             const templateToSave = {
-                ...template,
-                roles: initialTemplate?.roles || template.roles || [RoleType.TOUS]
+                ...modèle,
+                roles: initialTemplate?.roles || modèle.roles || [RoleType.TOUS]
             };
-            // Log amélioré pour voir les affectations
+            // Log amélioré pour voir les gardes/vacations
             console.log(
                 '[BlocPlanningTemplateEditor] Contenu de templateToSave AVANT appel à props.onSave:',
                 JSON.parse(JSON.stringify(templateToSave)), // Pour un affichage propre de l'objet
-                `Nombre d\'affectations: ${templateToSave.affectations?.length || 0}`,
-                'Affectations:',
-                JSON.stringify(templateToSave.affectations, null, 2) // Affiche les affectations en détail
+                `Nombre d\'gardes/vacations: ${templateToSave.gardes/vacations?.length || 0}`,
+                'Gardes/Vacations:',
+                JSON.stringify(templateToSave.gardes/vacations, null, 2) // Affiche les gardes/vacations en détail
             );
             await onSave(templateToSave);
-            toast.success("Trame sauvegardée avec succès !");
+            toast.success("Tableau de service sauvegardée avec succès !");
             setIsModified(false);
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde de la trame:', error);
-            setErrors({ save: 'Erreur lors de la sauvegarde de la trame' });
+            console.error('Erreur lors de la sauvegarde de la tableau de service:', error);
+            setErrors({ save: 'Erreur lors de la sauvegarde de la tableau de service' });
         } finally {
             setIsLoading(false);
         }
@@ -804,7 +804,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
         isDirty: () => isModified
     }));
 
-    // Chargement des types d'affectations disponibles
+    // Chargement des types d'gardes/vacations disponibles
     useEffect(() => {
         if (!availableAffectationTypes || availableAffectationTypes.length === 0) {
             // Le chargement initial des types est maintenant géré par TemplateManager
@@ -814,14 +814,14 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
         }
     }, [availableAffectationTypes]);
 
-    // Nettoyage des variations qui référencent des affectations inexistantes
+    // Nettoyage des variations qui référencent des gardes/vacations inexistantes
     useEffect(() => {
-        if (template && Array.isArray(template.variations) && template.variations.length > 0) {
-            const validAffectationIds = new Set(template.affectations.map(a => a.id));
-            const invalidVariations = template.variations.filter(v => !validAffectationIds.has(v.affectationId));
+        if (modèle && Array.isArray(modèle.variations) && modèle.variations.length > 0) {
+            const validAffectationIds = new Set(modèle.gardes/vacations.map(a => a.id));
+            const invalidVariations = modèle.variations.filter(v => !validAffectationIds.has(v.affectationId));
 
             if (invalidVariations.length > 0) {
-                console.warn(`[BlocPlanningTemplateEditor] ${invalidVariations.length} variations référencent des affectations inexistantes et seront supprimées.`,
+                console.warn(`[BlocPlanningTemplateEditor] ${invalidVariations.length} variations référencent des gardes/vacations inexistantes et seront supprimées.`,
                     invalidVariations.map(v => ({ id: v.id, affectationId: v.affectationId })));
 
                 updateTemplate(prev => ({
@@ -830,39 +830,39 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                 }));
             }
         }
-    }, [template.affectations, template.variations, updateTemplate]);
+    }, [modèle.gardes/vacations, modèle.variations, updateTemplate]);
 
-    // Sécurisation des données du template
+    // Sécurisation des données du modèle
     useEffect(() => {
-        // LOGS AJOUTÉS ICI pour déboguer template.affectations
-        if (template) {
-            console.log(`[BlocEditor debug] ID trame: ${template.id}`);
-            console.log('[BlocEditor debug] Template état: ', JSON.parse(JSON.stringify(template || {})));
+        // LOGS AJOUTÉS ICI pour déboguer modèle.gardes/vacations
+        if (modèle) {
+            console.log(`[BlocEditor debug] ID tableau de service: ${modèle.id}`);
+            console.log('[BlocEditor debug] Modèle état: ', JSON.parse(JSON.stringify(modèle || {})));
 
-            // Validation et correction du template
-            if (!template.affectations) {
-                console.warn('[BlocEditor debug] template.affectations est undefined, initialisation avec []');
+            // Validation et correction du modèle
+            if (!modèle.gardes/vacations) {
+                console.warn('[BlocEditor debug] modèle.gardes/vacations est undefined, initialisation avec []');
                 updateTemplate(prev => ({
                     ...prev,
-                    affectations: []
+                    gardes/vacations: []
                 }));
-            } else if (!Array.isArray(template.affectations)) {
-                console.warn('[BlocEditor debug] template.affectations n\'est pas un array, conversion en []');
+            } else if (!Array.isArray(modèle.gardes/vacations)) {
+                console.warn('[BlocEditor debug] modèle.gardes/vacations n\'est pas un array, conversion en []');
                 updateTemplate(prev => ({
                     ...prev,
-                    affectations: []
+                    gardes/vacations: []
                 }));
             }
 
             // Validation des variations
-            if (!template.variations) {
+            if (!modèle.variations) {
                 updateTemplate(prev => ({
                     ...prev,
                     variations: []
                 }));
             }
         }
-    }, [template, updateTemplate]);
+    }, [modèle, updateTemplate]);
 
     const loadTrames = useCallback(async (id: string) => {
         if (!id) return;
@@ -871,36 +871,36 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
         try {
             // console.log(`[BlocEditor loadTrames] ID reçu: ${id}`);
 
-            // Recherche de la trame dans les templates fournis par les props
+            // Recherche de la tableau de service dans les modèles fournis par les props
             const tramePourEdition = templatesFromProps?.find(t => String(t.id) === String(id));
 
             if (tramePourEdition) {
                 // console.log(`[BlocEditor loadTrames] tramePourEdition (avant typeof check): `, tramePourEdition);
 
-                // Vérification et normalisation des affectations et variations
-                const affectations = Array.isArray(tramePourEdition.affectations) ? tramePourEdition.affectations : [];
+                // Vérification et normalisation des gardes/vacations et variations
+                const gardes/vacations = Array.isArray(tramePourEdition.gardes/vacations) ? tramePourEdition.gardes/vacations : [];
                 const variations = Array.isArray(tramePourEdition.variations) ? tramePourEdition.variations : [];
 
-                // Vérifier si le template actuel est déjà identique à tramePourEdition (pour éviter les mises à jour inutiles)
-                if (template.id !== tramePourEdition.id ||
-                    template.nom !== tramePourEdition.nom ||
-                    template.description !== tramePourEdition.description ||
-                    JSON.stringify(template.affectations || []) !== JSON.stringify(affectations) ||
-                    JSON.stringify(template.variations || []) !== JSON.stringify(variations)) {
+                // Vérifier si le modèle actuel est déjà identique à tramePourEdition (pour éviter les mises à jour inutiles)
+                if (modèle.id !== tramePourEdition.id ||
+                    modèle.nom !== tramePourEdition.nom ||
+                    modèle.description !== tramePourEdition.description ||
+                    JSON.stringify(modèle.gardes/vacations || []) !== JSON.stringify(gardes/vacations) ||
+                    JSON.stringify(modèle.variations || []) !== JSON.stringify(variations)) {
 
-                    // Mise à jour du template uniquement si différent
-                    // console.log(`[BlocEditor loadTrames] Mise à jour du template avec la trame trouvée.`);
+                    // Mise à jour du modèle uniquement si différent
+                    // console.log(`[BlocEditor loadTrames] Mise à jour du modèle avec la tableau de service trouvée.`);
                     setTemplate({
                         ...tramePourEdition,
-                        affectations,
+                        gardes/vacations,
                         variations,
                     });
                     setIsModified(false);
                 } else {
-                    // console.log(`[BlocEditor loadTrames] Template déjà à jour, pas de setTemplate.`);
+                    // console.log(`[BlocEditor loadTrames] Modèle déjà à jour, pas de setTemplate.`);
                 }
             } else {
-                setError(`Trame avec id ${id} non trouvée.`);
+                setError(`Tableau de service avec id ${id} non trouvée.`);
             }
         } catch (err) {
             console.error(`[BlocEditor loadTrames] Erreur:`, err);
@@ -910,13 +910,13 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
         }
     }, [templatesFromProps, setTemplate, setIsLoading, setError, setIsModified]);
 
-    // useEffect principal pour gérer le chargement et l'initialisation du template
-    // Dépendances : uniquement les props et les callbacks stables, pas template
+    // useEffect principal pour gérer le chargement et l'initialisation du modèle
+    // Dépendances : uniquement les props et les callbacks stables, pas modèle
     useEffect(() => {
-        // console.log("[BlocEditor useEffect]", { initialTplId: initialTemplate?.id, selectedId: selectedTemplateId, currentTplId: template.id });
+        // console.log("[BlocEditor useEffect]", { initialTplId: initialTemplate?.id, selectedId: selectedTemplateId, currentTplId: modèle.id });
 
-        // Si un ID est sélectionné et qu'il est différent du template actuel, charger la trame
-        if (selectedTemplateId && selectedTemplateId !== template.id) {
+        // Si un ID est sélectionné et qu'il est différent du modèle actuel, charger la tableau de service
+        if (selectedTemplateId && selectedTemplateId !== modèle.id) {
             // console.log(`[BlocEditor useEffect] Chargement via selectedTemplateId: ${selectedTemplateId}`);
             loadTrames(selectedTemplateId);
             return; // Sortir pour éviter d'exécuter les autres branches
@@ -924,21 +924,21 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
 
         // Si pas d'ID sélectionné mais un initialTemplate fourni, l'utiliser si différent
         if (!selectedTemplateId && initialTemplate) {
-            const currentAffectations = template.affectations || [];
-            const initialAffectations = initialTemplate.affectations || [];
-            const currentVariations = template.variations || [];
+            const currentAffectations = modèle.gardes/vacations || [];
+            const initialAffectations = initialTemplate.gardes/vacations || [];
+            const currentVariations = modèle.variations || [];
             const initialVariations = initialTemplate.variations || [];
 
-            // Vérifier si le template actuel est déjà identique à initialTemplate
-            if (template.id !== initialTemplate.id ||
-                template.nom !== initialTemplate.nom ||
+            // Vérifier si le modèle actuel est déjà identique à initialTemplate
+            if (modèle.id !== initialTemplate.id ||
+                modèle.nom !== initialTemplate.nom ||
                 JSON.stringify(currentAffectations) !== JSON.stringify(initialAffectations) ||
                 JSON.stringify(currentVariations) !== JSON.stringify(initialVariations)) {
 
                 // console.log("[BlocEditor useEffect] Application de initialTemplate");
                 setTemplate({
                     ...initialTemplate,
-                    affectations: initialAffectations,
+                    gardes/vacations: initialAffectations,
                     variations: initialVariations,
                 });
                 setIsModified(false);
@@ -946,38 +946,38 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
             return; // Sortir pour éviter d'exécuter les autres branches
         }
 
-        // Si ni ID sélectionné ni initialTemplate, et que le template n'est pas vide, le réinitialiser
-        if (!selectedTemplateId && !initialTemplate && template.id !== EMPTY_TEMPLATE.id) {
+        // Si ni ID sélectionné ni initialTemplate, et que le modèle n'est pas vide, le réinitialiser
+        if (!selectedTemplateId && !initialTemplate && modèle.id !== EMPTY_TEMPLATE.id) {
             // console.log("[BlocEditor useEffect] Reset vers EMPTY_TEMPLATE");
             setTemplate(EMPTY_TEMPLATE);
             setIsModified(false);
             return;
         }
 
-        // Cas où selectedTemplateId est égal à template.id mais initialTemplate a changé et a le même ID
+        // Cas où selectedTemplateId est égal à modèle.id mais initialTemplate a changé et a le même ID
         // (synchronisation avec initialTemplate si son contenu a changé)
-        if (selectedTemplateId && selectedTemplateId === template.id &&
+        if (selectedTemplateId && selectedTemplateId === modèle.id &&
             initialTemplate && initialTemplate.id === selectedTemplateId) {
 
-            const currentAffectations = template.affectations || [];
-            const initialAffectations = initialTemplate.affectations || [];
-            const currentVariations = template.variations || [];
+            const currentAffectations = modèle.gardes/vacations || [];
+            const initialAffectations = initialTemplate.gardes/vacations || [];
+            const currentVariations = modèle.variations || [];
             const initialVariations = initialTemplate.variations || [];
 
-            if (template.nom !== initialTemplate.nom ||
+            if (modèle.nom !== initialTemplate.nom ||
                 JSON.stringify(currentAffectations) !== JSON.stringify(initialAffectations) ||
                 JSON.stringify(currentVariations) !== JSON.stringify(initialVariations)) {
 
                 // console.log("[BlocEditor useEffect] Synchronisation avec initialTemplate (même ID)");
                 setTemplate({
                     ...initialTemplate,
-                    affectations: initialAffectations,
+                    gardes/vacations: initialAffectations,
                     variations: initialVariations,
                 });
                 setIsModified(false);
             }
         }
-    }, [initialTemplate, selectedTemplateId, loadTrames, template.id, setIsModified]);
+    }, [initialTemplate, selectedTemplateId, loadTrames, modèle.id, setIsModified]);
 
     // Gestion du changement de `isLoadingProp` venant du parent
     useEffect(() => {
@@ -985,10 +985,10 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
     }, [isLoadingProp]);
 
     // Si initialTemplate est undefined et qu'on est en mode création (pas d'ID sélectionné)
-    // s'assurer que le template local est EMPTY_TEMPLATE ou celui passé pour un nouveau template.
+    // s'assurer que le modèle local est EMPTY_TEMPLATE ou celui passé pour un nouveau modèle.
     // (Cette logique a été déplacée dans l'initialisation de useState et le useEffect principal)
 
-    if (isLoading && !template) { // Afficher le chargement seulement si template n'est pas encore défini
+    if (isLoading && !modèle) { // Afficher le chargement seulement si modèle n'est pas encore défini
         return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}><CircularProgress /></Box>;
     }
 
@@ -1004,8 +1004,8 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                 <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', backgroundColor: 'grey.50', display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'flex-start' }}>
                     <Box sx={{ flexGrow: 1, minWidth: { md: '300px' } }}>
                         <TextField
-                            label="Nom de la trame"
-                            value={template.nom}
+                            label="Nom de la tableau de service"
+                            value={modèle.nom}
                             onChange={(e) => {
                                 updateTemplate(prev => ({ ...prev, nom: e.target.value }));
                                 if (errors.nom) setErrors(prev => ({ ...prev, nom: '' }));
@@ -1023,7 +1023,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                     <Box sx={{ flexGrow: 1, minWidth: { md: '250px' } }}>
                         <TextField
                             label="Description"
-                            value={template.description || ''}
+                            value={modèle.description || ''}
                             onChange={(e) => updateTemplate(prev => ({ ...prev, description: e.target.value }))}
                             fullWidth
                             multiline
@@ -1035,10 +1035,10 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                         />
                     </Box>
                     <Box sx={{ flexShrink: 0, pt: { xs: 0, md: '6px' }, minWidth: { xs: '100%', md: 'auto' } }}> {/* Ajustement pour rôles */}
-                        {(template.roles && template.roles.length > 0) && (
+                        {(modèle.roles && modèle.roles.length > 0) && (
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
                                 <Typography variant="body2" sx={{ fontWeight: 'medium', mr: 0.5, color: 'text.secondary' }}>Rôles :</Typography>
-                                {template.roles.map(role => (
+                                {modèle.roles.map(role => (
                                     <Chip key={role} label={role} size="small" color="info" variant="filled" sx={{ borderRadius: '6px', fontWeight: 'medium' }} />
                                 ))}
                             </Box>
@@ -1046,13 +1046,13 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                     </Box>
                 </Box>
 
-                {/* Nouvelle section pour sélectionner les jours actifs de la trame */}
+                {/* Nouvelle section pour sélectionner les jours actifs de la tableau de service */}
                 <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', backgroundColor: 'rgba(0, 0, 0, 0.02)' }}>
                     <Typography variant="subtitle2" gutterBottom>
-                        Jours actifs de la trame
+                        Jours actifs de la tableau de service
                     </Typography>
                     <Typography variant="caption" color="text.secondary" paragraph>
-                        Sélectionnez les jours de la semaine où cette trame est active.
+                        Sélectionnez les jours de la semaine où cette tableau de service est active.
                     </Typography>
                     <FormGroup row>
                         {(Object.keys(DAYS_LABEL) as DayOfWeek[]).map((day) => {
@@ -1063,10 +1063,10 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                                     key={day}
                                     control={
                                         <Checkbox
-                                            checked={template.joursSemaineActifs?.includes(dayNumber) ?? false}
+                                            checked={modèle.joursSemaineActifs?.includes(dayNumber) ?? false}
                                             onChange={(event) => {
                                                 const checked = event.target.checked;
-                                                const currentJours = template.joursSemaineActifs || [];
+                                                const currentJours = modèle.joursSemaineActifs || [];
                                                 const newJours = checked
                                                     ? [...currentJours, dayNumber].sort()
                                                     : currentJours.filter(d => d !== dayNumber);
@@ -1094,7 +1094,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                                 onValueChange={(value: 'TOUTES' | 'PAIRES' | 'IMPAIRES') => {
                                     updateTemplate(prev => ({ ...prev, typeSemaine: value }));
                                 }}
-                                value={template.typeSemaine || 'TOUTES'}
+                                value={modèle.typeSemaine || 'TOUTES'}
                             >
                                 <ShadSelectTrigger className="w-full">
                                     <ShadSelectValue placeholder="Sélectionner un type" />
@@ -1108,7 +1108,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                                 </ShadSelectContent>
                             </ShadSelect>
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                                Détermine à quelles semaines cette trame s'applique.
+                                Détermine à quelles semaines cette tableau de service s'applique.
                             </Typography>
                         </Box>
                         <Box sx={{ flex: 1 }}>
@@ -1117,7 +1117,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                             </Typography>
                             <TextField
                                 type="date"
-                                value={template.dateDebutEffet ? new Date(template.dateDebutEffet).toISOString().split('T')[0] : ''}
+                                value={modèle.dateDebutEffet ? new Date(modèle.dateDebutEffet).toISOString().split('T')[0] : ''}
                                 onChange={(e) => updateTemplate(prev => ({
                                     ...prev,
                                     dateDebutEffet: e.target.value ? new Date(e.target.value) : new Date()
@@ -1128,18 +1128,18 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                                 InputLabelProps={{ shrink: true }}
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                                Date à partir de laquelle cette trame est effective.
+                                Date à partir de laquelle cette tableau de service est effective.
                             </Typography>
                         </Box>
                     </Box>
                 </Box>
 
                 <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tab label="Affectations" value="affectations" />
+                    <Tab label="Gardes/Vacations" value="gardes/vacations" />
                     <Tab
                         label={
                             <Badge
-                                badgeContent={template.variations?.length || 0}
+                                badgeContent={modèle.variations?.length || 0}
                                 color="secondary"
                                 showZero={false}
                             >
@@ -1150,8 +1150,8 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                     />
                 </Tabs>
 
-                {/* Contenu de l'onglet affectations */}
-                {activeTab === "affectations" && (
+                {/* Contenu de l'onglet gardes/vacations */}
+                {activeTab === "gardes/vacations" && (
                     <>
                         {/* Onglets pour les jours de la semaine */}
                         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
@@ -1168,23 +1168,23 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                             </Tabs>
                         </Box>
 
-                        {/* Zone d'affectations pour le jour sélectionné */}
+                        {/* Zone d'gardes/vacations pour le jour sélectionné */}
                         <Box sx={{ mb: 3 }}>
                             <Typography variant="h6" gutterBottom>
-                                Affectations pour {DAYS_LABEL[currentViewingDay as DayOfWeek]}
+                                Gardes/Vacations pour {DAYS_LABEL[currentViewingDay as DayOfWeek]}
                             </Typography>
 
                             {filteredAffectations.length === 0 ? (
                                 <Alert severity="info" sx={{ mb: 2 }}>
-                                    Aucune affectation définie pour ce jour. Utilisez le formulaire ci-dessous pour en ajouter.
+                                    Aucune garde/vacation définie pour ce jour. Utilisez le formulaire ci-dessous pour en ajouter.
                                 </Alert>
                             ) : (
                                 <Box sx={{ mb: 2 }}>
-                                    {filteredAffectations.map((affectation, index) => (
+                                    {filteredAffectations.map((garde/vacation, index) => (
                                         <DraggableAffectation
-                                            key={affectation.id}
-                                            affectation={affectation}
-                                            variations={template.variations || []}
+                                            key={garde/vacation.id}
+                                            garde/vacation={garde/vacation}
+                                            variations={modèle.variations || []}
                                             index={index}
                                             moveAffectation={moveAffectation}
                                             onToggle={handleToggleAffectation}
@@ -1199,7 +1199,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                                 </Box>
                             )}
 
-                            {/* Formulaire d'ajout d'affectation */}
+                            {/* Formulaire d'ajout d'garde/vacation */}
                             {!readOnly && (
                                 <Box sx={{ display: 'flex', flexDirection: 'column', mt: 3, gap: 2 }}>
                                     <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
@@ -1224,7 +1224,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                                                             <ShadSelectItem
                                                                 key={activityTypeObj.code}
                                                                 value={activityTypeObj.code}
-                                                                disabled={template.affectations.some(a => a.jour === currentViewingDay && a.type === activityTypeObj.code)}
+                                                                disabled={modèle.gardes/vacations.some(a => a.jour === currentViewingDay && a.type === activityTypeObj.code)}
                                                             >
                                                                 {activityTypeObj.name}
                                                             </ShadSelectItem>
@@ -1247,7 +1247,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                                             startIcon={<PlusIcon size={16} />}
                                             sx={{ alignSelf: 'flex-start' }}
                                         >
-                                            Ajouter Affectation(s)
+                                            Ajouter Garde/Vacation(s)
                                         </MuiButton>
                                     </Box>
 
@@ -1296,16 +1296,16 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                             Variations de configuration
                         </Typography>
 
-                        {template.variations?.length === 0 ? (
+                        {modèle.variations?.length === 0 ? (
                             <Alert severity="info" sx={{ mb: 2 }}>
-                                Aucune variation configurée. Les variations permettent d'adapter les configurations d'affectation pour des périodes spécifiques.
+                                Aucune variation configurée. Les variations permettent d'adapter les configurations d'garde/vacation pour des périodes spécifiques.
                             </Alert>
                         ) : (
                             <Box sx={{ mb: 2 }}>
-                                {template.variations?.map((variation) => {
-                                    // Trouver l'affectation associée
-                                    const affectation = template.affectations.find(a => a.id === variation.affectationId);
-                                    if (!affectation) return null; // Skip si l'affectation n'existe plus
+                                {modèle.variations?.map((variation) => {
+                                    // Trouver l'garde/vacation associée
+                                    const garde/vacation = modèle.gardes/vacations.find(a => a.id === variation.affectationId);
+                                    if (!garde/vacation) return null; // Skip si l'garde/vacation n'existe plus
 
                                     return (
                                         <Card key={variation.id} variant="outlined" sx={{ mb: 2, p: 2 }}>
@@ -1313,7 +1313,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                                                 <Box>
                                                     <Typography variant="subtitle1">{variation.nom}</Typography>
                                                     <Typography variant="body2" color="text.secondary">
-                                                        {affectation.type} - {DAYS_LABEL[affectation.jour]}
+                                                        {garde/vacation.type} - {DAYS_LABEL[garde/vacation.jour]}
                                                         {variation.typeVariation && ` • ${PERIOD_LABEL[variation.typeVariation]}`}
                                                     </Typography>
                                                     {variation.dateDebut && variation.dateFin && (
@@ -1367,10 +1367,10 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                     fullWidth
                     maxWidth="md"
                     disablePortal
-                    aria-labelledby="assignment-config-dialog-title"
+                    aria-labelledby="attribution-config-dialog-title"
                 >
-                    <DialogTitle id="assignment-config-dialog-title">
-                        Configuration de l'affectation : {selectedAffectation.type} - {DAYS_LABEL[selectedAffectation.jour]}
+                    <DialogTitle id="attribution-config-dialog-title">
+                        Configuration de l'garde/vacation : {selectedAffectation.type} - {DAYS_LABEL[selectedAffectation.jour]}
                         <IconButton
                             aria-label="close"
                             onClick={handleCloseConfigPanel}
@@ -1394,16 +1394,16 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                             }
                             if (!selectedAffectation) {
                                 // console.error('[BlocEditor ERROR] selectedAffectation est null DANS LE RENDU du DialogContent. Ne devrait pas arriver si configPanelOpen est true ET selectedAffectation est la condition.');
-                                return <Alert severity="error">Erreur: Aucune affectation sélectionnée pour la configuration.</Alert>;
+                                return <Alert severity="error">Erreur: Aucune garde/vacation sélectionnée pour la configuration.</Alert>;
                             }
                             // console.log('[BlocEditor DEBUG] Passage des props à AssignmentConfigPanel:', {
-                            //     affectation: JSON.parse(JSON.stringify(selectedAffectation)),
+                            //     garde/vacation: JSON.parse(JSON.stringify(selectedAffectation)),
                             //     availablePostes: availablePostes || [],
                             //     isLoading
                             // });
                             return (
                                 <AssignmentConfigPanel
-                                    affectation={selectedAffectation}
+                                    garde/vacation={selectedAffectation}
                                     onChange={handleConfigurationChange}
                                     availablePostes={availablePostes || []}
                                     isLoading={isLoading}

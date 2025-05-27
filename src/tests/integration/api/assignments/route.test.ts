@@ -27,17 +27,17 @@ jest.mock('next/server', () => ({
     }
 }));
 
-describe('/api/affectations', () => {
+describe('/api/gardes/vacations', () => {
     let handlers: any;
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        const route = await import('@/app/api/affectations/route');
+        const route = await import('@/app/api/gardes/vacations/route');
         handlers = route;
     });
 
     const createRequest = (method: string, body?: any, params?: URLSearchParams) => {
-        const url = new URL('http://localhost:3000/api/affectations');
+        const url = new URL('http://localhost:3000/api/gardes/vacations');
         if (params) {
             url.search = params.toString();
         }
@@ -52,8 +52,8 @@ describe('/api/affectations', () => {
         });
     };
 
-    describe('GET /api/affectations', () => {
-        it('should return user assignments', async () => {
+    describe('GET /api/gardes/vacations', () => {
+        it('should return user attributions', async () => {
             const mockUser = { id: 1, role: Role.USER };
             const mockAssignments = [
                 {
@@ -81,7 +81,7 @@ describe('/api/affectations', () => {
             ];
 
             mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue(mockAssignments),
             } as any;
 
@@ -95,7 +95,7 @@ describe('/api/affectations', () => {
 
             expect(response.status).toBe(200);
             expect(data).toEqual(mockAssignments);
-            expect(mockedPrisma.assignment.findMany).toHaveBeenCalledWith({
+            expect(mockedPrisma.attribution.findMany).toHaveBeenCalledWith({
                 where: {
                     userId: 1,
                     date: {
@@ -118,17 +118,17 @@ describe('/api/affectations', () => {
             });
         });
 
-        it('should return all assignments for admin', async () => {
+        it('should return all attributions for admin', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             mockedGetUserFromCookie.mockResolvedValue(mockAdmin as any);
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([]),
             } as any;
 
             const request = createRequest('GET');
             await handlers.GET(request);
 
-            expect(mockedPrisma.assignment.findMany).toHaveBeenCalledWith({
+            expect(mockedPrisma.attribution.findMany).toHaveBeenCalledWith({
                 include: expect.any(Object),
                 orderBy: { date: 'asc' },
             });
@@ -137,7 +137,7 @@ describe('/api/affectations', () => {
         it('should filter by userId when provided', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             mockedGetUserFromCookie.mockResolvedValue(mockAdmin as any);
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([]),
             } as any;
 
@@ -145,7 +145,7 @@ describe('/api/affectations', () => {
             const request = createRequest('GET', undefined, params);
             await handlers.GET(request);
 
-            expect(mockedPrisma.assignment.findMany).toHaveBeenCalledWith({
+            expect(mockedPrisma.attribution.findMany).toHaveBeenCalledWith({
                 where: { userId: 5 },
                 include: expect.any(Object),
                 orderBy: { date: 'asc' },
@@ -155,7 +155,7 @@ describe('/api/affectations', () => {
         it('should filter by roomId when provided', async () => {
             const mockUser = { id: 1, role: Role.USER };
             mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([]),
             } as any;
 
@@ -163,7 +163,7 @@ describe('/api/affectations', () => {
             const request = createRequest('GET', undefined, params);
             await handlers.GET(request);
 
-            expect(mockedPrisma.assignment.findMany).toHaveBeenCalledWith({
+            expect(mockedPrisma.attribution.findMany).toHaveBeenCalledWith({
                 where: {
                     userId: 1,
                     operatingRoomId: 3,
@@ -174,8 +174,8 @@ describe('/api/affectations', () => {
         });
     });
 
-    describe('POST /api/affectations', () => {
-        it('should create assignment for admin', async () => {
+    describe('POST /api/gardes/vacations', () => {
+        it('should create attribution for admin', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             const assignmentData = {
                 userId: 2,
@@ -194,7 +194,7 @@ describe('/api/affectations', () => {
             mockedGetUserFromCookie.mockResolvedValue(mockAdmin as any);
             
             // Mock conflict check
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findFirst: jest.fn().mockResolvedValue(null),
                 create: jest.fn().mockResolvedValue(mockCreatedAssignment),
             } as any;
@@ -205,7 +205,7 @@ describe('/api/affectations', () => {
 
             expect(response.status).toBe(201);
             expect(data).toMatchObject(mockCreatedAssignment);
-            expect(mockedPrisma.assignment.create).toHaveBeenCalledWith({
+            expect(mockedPrisma.attribution.create).toHaveBeenCalledWith({
                 data: expect.objectContaining({
                     userId: 2,
                     operatingRoomId: 1,
@@ -237,8 +237,8 @@ describe('/api/affectations', () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             mockedGetUserFromCookie.mockResolvedValue(mockAdmin as any);
 
-            // Mock existing assignment
-            mockedPrisma.assignment = {
+            // Mock existing attribution
+            mockedPrisma.attribution = {
                 findFirst: jest.fn().mockResolvedValue({
                     id: 999,
                     userId: 3,
@@ -281,8 +281,8 @@ describe('/api/affectations', () => {
         });
     });
 
-    describe('PUT /api/affectations/[id]', () => {
-        it('should update assignment', async () => {
+    describe('PUT /api/gardes/vacations/[id]', () => {
+        it('should update attribution', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             const updateData = {
                 id: 1,
@@ -291,7 +291,7 @@ describe('/api/affectations', () => {
             };
 
             mockedGetUserFromCookie.mockResolvedValue(mockAdmin as any);
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 update: jest.fn().mockResolvedValue({
                     id: 1,
                     userId: 2,
@@ -313,7 +313,7 @@ describe('/api/affectations', () => {
             mockedGetUserFromCookie.mockResolvedValue(mockAdmin as any);
 
             // Mock conflict
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findFirst: jest.fn().mockResolvedValue({
                     id: 999,
                     userId: 3,
@@ -335,12 +335,12 @@ describe('/api/affectations', () => {
         });
     });
 
-    describe('DELETE /api/affectations/[id]', () => {
-        it('should delete assignment', async () => {
+    describe('DELETE /api/gardes/vacations/[id]', () => {
+        it('should delete attribution', async () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             mockedGetUserFromCookie.mockResolvedValue(mockAdmin as any);
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 delete: jest.fn().mockResolvedValue({ id: 1 }),
             } as any;
 
@@ -350,7 +350,7 @@ describe('/api/affectations', () => {
 
             expect(response.status).toBe(200);
             expect(data.success).toBe(true);
-            expect(mockedPrisma.assignment.delete).toHaveBeenCalledWith({
+            expect(mockedPrisma.attribution.delete).toHaveBeenCalledWith({
                 where: { id: 1 },
             });
         });
@@ -359,7 +359,7 @@ describe('/api/affectations', () => {
             const mockAdmin = { id: 1, role: Role.ADMIN_TOTAL };
             mockedGetUserFromCookie.mockResolvedValue(mockAdmin as any);
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 delete: jest.fn().mockRejectedValue({
                     code: 'P2025',
                 }),

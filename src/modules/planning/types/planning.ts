@@ -91,7 +91,7 @@ export interface UserAvailability {
 }
 
 /**
- * Template de planning
+ * Modèle de planning
  */
 export interface PlanningTemplate {
     id: string;
@@ -106,7 +106,7 @@ export interface PlanningTemplate {
 }
 
 /**
- * Événement dans un template de planning
+ * Événement dans un modèle de planning
  */
 export interface PlanningTemplateEvent {
     id: string;

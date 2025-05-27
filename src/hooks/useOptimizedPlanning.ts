@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { Assignment } from '@/types/assignment';
+import { Attribution } from '@/types/attribution';
 import { User } from '@/types/user';
 import { debounce } from 'lodash';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -16,7 +16,7 @@ interface UseOptimizedPlanningProps {
 
 interface PlanningUpdate {
     assignmentId: string;
-    changes: Partial<Assignment>;
+    changes: Partial<Attribution>;
     timestamp: number;
 }
 
@@ -164,8 +164,8 @@ export function useOptimizedPlanning({
         [localUpdates, saveDelay]
     );
 
-    // Mettre à jour une affectation localement
-    const updateAssignment = useCallback((assignmentId: string, changes: Partial<Assignment>) => {
+    // Mettre à jour une garde/vacation localement
+    const updateAssignment = useCallback((assignmentId: string, changes: Partial<Attribution>) => {
         const update: PlanningUpdate = {
             assignmentId,
             changes,
@@ -187,15 +187,15 @@ export function useOptimizedPlanning({
     }, [autoSave, debouncedSave]);
 
     // Appliquer les mises à jour locales aux données
-    const assignments = useMemo(() => {
-        if (!planningData?.assignments) return [];
+    const attributions = useMemo(() => {
+        if (!planningData?.attributions) return [];
 
-        return planningData.assignments.map((assignment: Assignment) => {
-            const localUpdate = localUpdates.get(assignment.id);
+        return planningData.attributions.map((attribution: Attribution) => {
+            const localUpdate = localUpdates.get(attribution.id);
             if (localUpdate) {
-                return { ...assignment, ...localUpdate.changes };
+                return { ...attribution, ...localUpdate.changes };
             }
-            return assignment;
+            return attribution;
         });
     }, [planningData, localUpdates]);
 
@@ -257,7 +257,7 @@ export function useOptimizedPlanning({
 
     return {
         // Données
-        assignments,
+        attributions,
         users: planningData?.users || [],
         validation: planningData?.validation,
         
@@ -278,12 +278,12 @@ export function useOptimizedPlanning({
         
         // Utils
         getAssignmentById: useCallback((id: string) => 
-            assignments.find(a => a.id === id), 
-            [assignments]
+            attributions.find(a => a.id === id), 
+            [attributions]
         ),
         getUserAssignments: useCallback((userId: string) => 
-            assignments.filter(a => a.userId === userId),
-            [assignments]
+            attributions.filter(a => a.userId === userId),
+            [attributions]
         ),
     };
 }

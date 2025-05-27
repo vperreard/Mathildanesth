@@ -48,7 +48,7 @@ Prisma.PrismaClientValidationError = PrismaClientValidationError
 Prisma.Decimal = Decimal
 
 /**
- * Re-export of sql-template-tag
+ * Re-export of sql-modèle-tag
  */
 Prisma.sql = sqltag
 Prisma.empty = empty
@@ -123,7 +123,7 @@ exports.Prisma.ModelName = {
  * Create the Client
  */
 const config = {
-  "generator": {
+  "organisateur": {
     "name": "client",
     "provider": {
       "fromEnvVar": null,

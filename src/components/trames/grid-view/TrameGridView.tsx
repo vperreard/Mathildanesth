@@ -39,7 +39,7 @@ export interface TrameModele {
     activeDays: number[]; // 0 = Sunday, 1 = Monday, etc.
     effectiveStartDate: Date;
     effectiveEndDate?: Date;
-    affectations: AffectationModele[];
+    gardes/vacations: AffectationModele[];
 }
 
 export interface AffectationModele {
@@ -93,24 +93,24 @@ const mockActivityTypes = [
 
 // Composant principal
 const TrameGridView: React.FC<{
-    trame?: TrameModele;
+    tableau de service?: TrameModele;
     readOnly?: boolean;
-    onTrameChange?: (trame: TrameModele) => void;
+    onTrameChange?: (tableau de service: TrameModele) => void;
     rooms?: any[];
     sectors?: any[];
     sites?: Array<{ id: string; name: string; }>;
     selectedSiteId?: string | null;
-}> = ({ trame: initialTrame, readOnly = false, onTrameChange, rooms = [], sectors = [], sites = [], selectedSiteId }) => {
+}> = ({ tableau de service: initialTrame, readOnly = false, onTrameChange, rooms = [], sectors = [], sites = [], selectedSiteId }) => {
     // État du composant
-    const [trame, setTrame] = useState<TrameModele>(
+    const [tableau de service, setTrame] = useState<TrameModele>(
         initialTrame || {
-            id: 'new-trame',
-            name: 'Nouvelle Trame',
+            id: 'new-tableau de service',
+            name: 'Nouvelle Tableau de service',
             siteId: 'site1',
             weekType: 'ALL',
             activeDays: [1, 2, 3, 4, 5], // Lundi à vendredi
             effectiveStartDate: new Date(),
-            affectations: [],
+            gardes/vacations: [],
         }
     );
 
@@ -123,8 +123,8 @@ const TrameGridView: React.FC<{
     const [selectedSectorIds, setSelectedSectorIds] = useState<Set<number>>(new Set());
     const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
 
-    // Clé unique pour le stockage des préférences de filtrage par trame
-    const filterStorageKey = `trame-filters-${trame.id}`;
+    // Clé unique pour le stockage des préférences de filtrage par tableau de service
+    const filterStorageKey = `tableau de service-filters-${tableau de service.id}`;
 
     // Charger les préférences de filtrage depuis localStorage au montage du composant
     useEffect(() => {
@@ -137,12 +137,12 @@ const TrameGridView: React.FC<{
                 if (parsed.categoryFilter) setCategoryFilter(parsed.categoryFilter);
                 if (parsed.showPersonnel !== undefined) setShowPersonnel(parsed.showPersonnel);
                 if (parsed.compactView !== undefined) setCompactView(parsed.compactView);
-                console.log(`Préférences de filtrage chargées pour la trame ${trame.id}:`, parsed);
+                console.log(`Préférences de filtrage chargées pour la tableau de service ${tableau de service.id}:`, parsed);
             } catch (error) {
                 console.error('Erreur lors du chargement des préférences de filtrage:', error);
             }
         }
-    }, [trame.id, filterStorageKey]);
+    }, [tableau de service.id, filterStorageKey]);
 
     // Sauvegarder les préférences de filtrage dans localStorage à chaque changement
     useEffect(() => {
@@ -155,8 +155,8 @@ const TrameGridView: React.FC<{
         };
 
         localStorage.setItem(filterStorageKey, JSON.stringify(filtersToSave));
-        console.log(`Préférences de filtrage sauvegardées pour la trame ${trame.id}:`, filtersToSave);
-    }, [sectorFilter, selectedSectorIds, categoryFilter, showPersonnel, compactView, trame.id, filterStorageKey]);
+        console.log(`Préférences de filtrage sauvegardées pour la tableau de service ${tableau de service.id}:`, filtersToSave);
+    }, [sectorFilter, selectedSectorIds, categoryFilter, showPersonnel, compactView, tableau de service.id, filterStorageKey]);
 
     // Utiliser les vraies salles ou les mockées si vides
     const actualRooms = useMemo(() => {
@@ -433,7 +433,7 @@ const TrameGridView: React.FC<{
     // Jours de la semaine pour l'affichage
     const weekDays = useMemo(() => {
         // Valeur par défaut pour les jours actifs si non défini
-        const activeDays = trame?.activeDays?.length ? trame.activeDays : [1, 2, 3, 4, 5]; // Par défaut lundi-vendredi
+        const activeDays = tableau de service?.activeDays?.length ? tableau de service.activeDays : [1, 2, 3, 4, 5]; // Par défaut lundi-vendredi
 
         return [
             { code: 1, name: 'Lundi' },
@@ -444,33 +444,33 @@ const TrameGridView: React.FC<{
             { code: 6, name: 'Samedi' },
             { code: 0, name: 'Dimanche' },
         ].filter(day => activeDays.includes(day.code));
-    }, [trame?.activeDays]);
+    }, [tableau de service?.activeDays]);
 
-    // Filtrer les affectations en fonction du type de semaine sélectionné
+    // Filtrer les gardes/vacations en fonction du type de semaine sélectionné
     const filteredAffectations = useMemo(() => {
-        // Vérifier si les affectations existent
-        if (!trame.affectations || trame.affectations.length === 0) {
-            console.log("Aucune affectation trouvée dans la trame");
+        // Vérifier si les gardes/vacations existent
+        if (!tableau de service.gardes/vacations || tableau de service.gardes/vacations.length === 0) {
+            console.log("Aucune garde/vacation trouvée dans la tableau de service");
             return [];
         }
 
-        console.log("Affectations dans la trame:", trame.affectations);
+        console.log("Gardes/Vacations dans la tableau de service:", tableau de service.gardes/vacations);
 
         if (showWeekType === 'ALL') {
-            return trame.affectations;
+            return tableau de service.gardes/vacations;
         }
-        return trame.affectations.filter(
-            affectation => !affectation.weekTypeOverride || affectation.weekTypeOverride === showWeekType
+        return tableau de service.gardes/vacations.filter(
+            garde/vacation => !garde/vacation.weekTypeOverride || garde/vacation.weekTypeOverride === showWeekType
         );
-    }, [trame.affectations, showWeekType]);
+    }, [tableau de service.gardes/vacations, showWeekType]);
 
-    // Fonction pour obtenir les affectations pour une salle et un jour spécifiques
+    // Fonction pour obtenir les gardes/vacations pour une salle et un jour spécifiques
     const getRoomDayAffectations = useCallback(
         (roomId: string, dayCode: number) => {
             const result = filteredAffectations.filter(
-                affectation =>
-                    affectation.roomId === roomId &&
-                    (!affectation.dayOverride || affectation.dayOverride === dayCode)
+                garde/vacation =>
+                    garde/vacation.roomId === roomId &&
+                    (!garde/vacation.dayOverride || garde/vacation.dayOverride === dayCode)
             );
 
             // Retirer le log de débogage spécifique à la salle mockée
@@ -516,15 +516,15 @@ const TrameGridView: React.FC<{
         setCompactView(false);
         // Supprimer les préférences sauvegardées
         localStorage.removeItem(filterStorageKey);
-        console.log(`Filtres réinitialisés pour la trame ${trame.id}`);
-    }, [trame.id, filterStorageKey]);
+        console.log(`Filtres réinitialisés pour la tableau de service ${tableau de service.id}`);
+    }, [tableau de service.id, filterStorageKey]);
 
-    // Fonction pour éditer une affectation existante
+    // Fonction pour éditer une garde/vacation existante
     const handleEditAffectation = useCallback(
         (affectationId: string) => {
             if (readOnly) return;
 
-            console.log(`Édition de l'affectation ${affectationId}`);
+            console.log(`Édition de l'garde/vacation ${affectationId}`);
 
             // Logique d'édition à implémenter plus tard
             // Par exemple, ouvrir une boîte de dialogue ou mettre à jour l'état
@@ -532,15 +532,15 @@ const TrameGridView: React.FC<{
         [readOnly]
     );
 
-    // Fonction pour supprimer une affectation
+    // Fonction pour supprimer une garde/vacation
     const handleDeleteAffectation = useCallback(
         (affectationId: string) => {
             if (readOnly) return;
 
-            // Mise à jour de la trame sans l'affectation supprimée
+            // Mise à jour de la tableau de service sans l'garde/vacation supprimée
             const updatedTrame = {
-                ...trame,
-                affectations: trame.affectations.filter(a => a.id !== affectationId)
+                ...tableau de service,
+                gardes/vacations: tableau de service.gardes/vacations.filter(a => a.id !== affectationId)
             };
 
             setTrame(updatedTrame);
@@ -550,20 +550,20 @@ const TrameGridView: React.FC<{
                 onTrameChange(updatedTrame);
             }
 
-            console.log(`Affectation ${affectationId} supprimée`);
+            console.log(`Garde/Vacation ${affectationId} supprimée`);
         },
-        [trame, readOnly, onTrameChange]
+        [tableau de service, readOnly, onTrameChange]
     );
 
-    // Fonction pour basculer l'état actif/inactif d'une affectation
+    // Fonction pour basculer l'état actif/inactif d'une garde/vacation
     const handleToggleAffectationActive = useCallback(
         (affectationId: string) => {
             if (readOnly) return;
 
-            // Mise à jour de l'état actif de l'affectation
+            // Mise à jour de l'état actif de l'garde/vacation
             const updatedTrame = {
-                ...trame,
-                affectations: trame.affectations.map(a =>
+                ...tableau de service,
+                gardes/vacations: tableau de service.gardes/vacations.map(a =>
                     a.id === affectationId
                         ? { ...a, isActive: !a.isActive }
                         : a
@@ -577,23 +577,23 @@ const TrameGridView: React.FC<{
                 onTrameChange(updatedTrame);
             }
 
-            console.log(`État actif de l'affectation ${affectationId} basculé`);
+            console.log(`État actif de l'garde/vacation ${affectationId} basculé`);
         },
-        [trame, readOnly, onTrameChange]
+        [tableau de service, readOnly, onTrameChange]
     );
 
-    // Fonction pour rendre l'affectation (MAR, CHIR, IADE)
+    // Fonction pour rendre l'garde/vacation (MAR, CHIR, IADE)
     const renderAssignment = useCallback(
-        (affectation: AffectationModele, period: DayPeriod) => {
+        (garde/vacation: AffectationModele, period: DayPeriod) => {
             // Filtrer par période
-            if (affectation.period !== period && affectation.period !== 'FULL_DAY') {
+            if (garde/vacation.period !== period && garde/vacation.period !== 'FULL_DAY') {
                 return null;
             }
 
             // Différents styles en fonction du type d'activité et de la période
             const getCardStyle = () => {
-                const activity = mockActivityTypes.find(a => a.id === affectation.activityTypeId);
-                if (!affectation.isActive) return 'bg-red-100 border-red-300';
+                const activity = mockActivityTypes.find(a => a.id === garde/vacation.activityTypeId);
+                if (!garde/vacation.isActive) return 'bg-red-100 border-red-300';
 
                 if (period === 'MORNING') return 'bg-blue-50 border-blue-200';
                 if (period === 'AFTERNOON') return 'bg-amber-50 border-amber-200';
@@ -602,17 +602,17 @@ const TrameGridView: React.FC<{
 
             return (
                 <Card
-                    key={`${affectation.id}-${period}`}
+                    key={`${garde/vacation.id}-${period}`}
                     className={`mb-1 shadow-sm ${getCardStyle()} ${compactView ? 'p-1 text-xs' : 'p-1'}`}
                 >
                     <CardContent className="p-1">
-                        {/* Entête de l'affectation */}
+                        {/* Entête de l'garde/vacation */}
                         <div className="flex justify-between items-center mb-1">
                             <span className="font-medium text-xs truncate">
-                                {mockActivityTypes.find(a => a.id === affectation.activityTypeId)?.code || "ACT"}
+                                {mockActivityTypes.find(a => a.id === garde/vacation.activityTypeId)?.code || "ACT"}
                             </span>
                             <div className="flex items-center flex-shrink-0">
-                                {!affectation.isActive && (
+                                {!garde/vacation.isActive && (
                                     <Badge variant="destructive" className="text-xs mr-1">×</Badge>
                                 )}
 
@@ -624,16 +624,16 @@ const TrameGridView: React.FC<{
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onClick={() => handleEditAffectation(affectation.id)}>
+                                            <DropdownMenuItem onClick={() => handleEditAffectation(garde/vacation.id)}>
                                                 <Edit className="mr-2 h-4 w-4" />
                                                 Modifier
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleToggleAffectationActive(affectation.id)}>
+                                            <DropdownMenuItem onClick={() => handleToggleAffectationActive(garde/vacation.id)}>
                                                 <MessageSquareX className="mr-2 h-4 w-4" />
-                                                {affectation.isActive ? 'Fermer' : 'Ouvrir'}
+                                                {garde/vacation.isActive ? 'Fermer' : 'Ouvrir'}
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
-                                                onClick={() => handleDeleteAffectation(affectation.id)}
+                                                onClick={() => handleDeleteAffectation(garde/vacation.id)}
                                                 className="text-red-600"
                                             >
                                                 <Trash className="mr-2 h-4 w-4" />
@@ -646,10 +646,10 @@ const TrameGridView: React.FC<{
                         </div>
 
                         {/* Personnel requis - Version compacte */}
-                        {showPersonnel && affectation.requiredStaff.length > 0 && (
+                        {showPersonnel && garde/vacation.requiredStaff.length > 0 && (
                             <div className="mt-1">
                                 <div className="flex flex-wrap gap-1">
-                                    {affectation.requiredStaff.map(staff => {
+                                    {garde/vacation.requiredStaff.map(staff => {
                                         const assignedUser = staff.userId
                                             ? mockUsers.find(u => u.id === staff.userId)
                                             : null;
@@ -706,8 +706,8 @@ const TrameGridView: React.FC<{
             // Abandon si pas de destination
             if (!destination) return;
 
-            // Ici on implémenterait la logique pour déplacer une affectation
-            console.log('Affectation déplacée:', { source, destination, draggableId });
+            // Ici on implémenterait la logique pour déplacer une garde/vacation
+            console.log('Garde/Vacation déplacée:', { source, destination, draggableId });
 
             // Mise à jour du state
             // ...
@@ -715,7 +715,7 @@ const TrameGridView: React.FC<{
         []
     );
 
-    // Fonction pour ajouter une nouvelle affectation
+    // Fonction pour ajouter une nouvelle garde/vacation
     const handleAddAffectation = useCallback(
         (roomId: string, dayCode: number, period: DayPeriod) => {
             if (readOnly) return;
@@ -740,10 +740,10 @@ const TrameGridView: React.FC<{
                 }
             }
 
-            // Création d'une nouvelle affectation
+            // Création d'une nouvelle garde/vacation
             const newAffectation: AffectationModele = {
                 id: `new-${Date.now()}`,
-                trameId: trame.id,
+                trameId: tableau de service.id,
                 roomId: roomId,
                 activityTypeId: defaultActivityType,
                 period: period,
@@ -759,10 +759,10 @@ const TrameGridView: React.FC<{
                 ]
             };
 
-            // Mise à jour de la trame
+            // Mise à jour de la tableau de service
             const updatedTrame = {
-                ...trame,
-                affectations: [...trame.affectations, newAffectation]
+                ...tableau de service,
+                gardes/vacations: [...tableau de service.gardes/vacations, newAffectation]
             };
 
             setTrame(updatedTrame);
@@ -772,28 +772,28 @@ const TrameGridView: React.FC<{
                 onTrameChange(updatedTrame);
             }
 
-            console.log(`Nouvelle affectation créée pour ${roomId}, jour ${dayCode}, période ${period}`);
+            console.log(`Nouvelle garde/vacation créée pour ${roomId}, jour ${dayCode}, période ${period}`);
         },
-        [trame, readOnly, onTrameChange, roomsWithVirtualRooms, mockActivityTypes]
+        [tableau de service, readOnly, onTrameChange, roomsWithVirtualRooms, mockActivityTypes]
     );
 
     // Fonction pour obtenir le nom du site
     const getSiteName = useCallback(() => {
-        if (trame.siteId) {
-            // Trame liée à un site spécifique
-            const site = sites.find(s => s.id === trame.siteId);
-            return site ? site.name : `Site ${trame.siteId}`;
+        if (tableau de service.siteId) {
+            // Tableau de service liée à un site spécifique
+            const site = sites.find(s => s.id === tableau de service.siteId);
+            return site ? site.name : `Site ${tableau de service.siteId}`;
         } else if (selectedSiteId) {
-            // Trame globale avec un site sélectionné
+            // Tableau de service globale avec un site sélectionné
             const site = sites.find(s => s.id === selectedSiteId);
             return site ? `${site.name} (vue filtrée)` : `Site ${selectedSiteId} (vue filtrée)`;
         } else {
-            // Trame globale, tous les sites
+            // Tableau de service globale, tous les sites
             return 'Tous les sites (globale)';
         }
-    }, [trame.siteId, selectedSiteId, sites]);
+    }, [tableau de service.siteId, selectedSiteId, sites]);
 
-    // Rendu de la grille de trame
+    // Rendu de la grille de tableau de service
     const renderTrameGrid = () => {
         // Si aucune salle n'est disponible, afficher un message
         if (filteredRooms.length === 0) {
@@ -880,10 +880,10 @@ const TrameGridView: React.FC<{
                                                                     {...provided.droppableProps}
                                                                     className="min-h-[40px]"
                                                                 >
-                                                                    {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                    {getRoomDayAffectations(room.id, day.code).map((garde/vacation, index) => (
                                                                         <Draggable
-                                                                            key={`${affectation.id}-morning`}
-                                                                            draggableId={`${affectation.id}-morning`}
+                                                                            key={`${garde/vacation.id}-morning`}
+                                                                            draggableId={`${garde/vacation.id}-morning`}
                                                                             index={index}
                                                                             isDragDisabled={readOnly}
                                                                         >
@@ -893,7 +893,7 @@ const TrameGridView: React.FC<{
                                                                                     {...provided.draggableProps}
                                                                                     {...provided.dragHandleProps}
                                                                                 >
-                                                                                    {renderAssignment(affectation, 'MORNING')}
+                                                                                    {renderAssignment(garde/vacation, 'MORNING')}
                                                                                 </div>
                                                                             )}
                                                                         </Draggable>
@@ -929,10 +929,10 @@ const TrameGridView: React.FC<{
                                                                     {...provided.droppableProps}
                                                                     className="min-h-[40px]"
                                                                 >
-                                                                    {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                    {getRoomDayAffectations(room.id, day.code).map((garde/vacation, index) => (
                                                                         <Draggable
-                                                                            key={`${affectation.id}-afternoon`}
-                                                                            draggableId={`${affectation.id}-afternoon`}
+                                                                            key={`${garde/vacation.id}-afternoon`}
+                                                                            draggableId={`${garde/vacation.id}-afternoon`}
                                                                             index={index}
                                                                             isDragDisabled={readOnly}
                                                                         >
@@ -942,7 +942,7 @@ const TrameGridView: React.FC<{
                                                                                     {...provided.draggableProps}
                                                                                     {...provided.dragHandleProps}
                                                                                 >
-                                                                                    {renderAssignment(affectation, 'AFTERNOON')}
+                                                                                    {renderAssignment(garde/vacation, 'AFTERNOON')}
                                                                                 </div>
                                                                             )}
                                                                         </Draggable>
@@ -1069,10 +1069,10 @@ const TrameGridView: React.FC<{
                                                                 {...provided.droppableProps}
                                                                 className="min-h-[60px]"
                                                             >
-                                                                {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                {getRoomDayAffectations(room.id, day.code).map((garde/vacation, index) => (
                                                                     <Draggable
-                                                                        key={`${affectation.id}-morning`}
-                                                                        draggableId={`${affectation.id}-morning`}
+                                                                        key={`${garde/vacation.id}-morning`}
+                                                                        draggableId={`${garde/vacation.id}-morning`}
                                                                         index={index}
                                                                         isDragDisabled={readOnly}
                                                                     >
@@ -1082,7 +1082,7 @@ const TrameGridView: React.FC<{
                                                                                 {...provided.draggableProps}
                                                                                 {...provided.dragHandleProps}
                                                                             >
-                                                                                {renderAssignment(affectation, 'MORNING')}
+                                                                                {renderAssignment(garde/vacation, 'MORNING')}
                                                                             </div>
                                                                         )}
                                                                     </Draggable>
@@ -1117,10 +1117,10 @@ const TrameGridView: React.FC<{
                                                                 {...provided.droppableProps}
                                                                 className="min-h-[60px]"
                                                             >
-                                                                {getRoomDayAffectations(room.id, day.code).map((affectation, index) => (
+                                                                {getRoomDayAffectations(room.id, day.code).map((garde/vacation, index) => (
                                                                     <Draggable
-                                                                        key={`${affectation.id}-afternoon`}
-                                                                        draggableId={`${affectation.id}-afternoon`}
+                                                                        key={`${garde/vacation.id}-afternoon`}
+                                                                        draggableId={`${garde/vacation.id}-afternoon`}
                                                                         index={index}
                                                                         isDragDisabled={readOnly}
                                                                     >
@@ -1130,7 +1130,7 @@ const TrameGridView: React.FC<{
                                                                                 {...provided.draggableProps}
                                                                                 {...provided.dragHandleProps}
                                                                             >
-                                                                                {renderAssignment(affectation, 'AFTERNOON')}
+                                                                                {renderAssignment(garde/vacation, 'AFTERNOON')}
                                                                             </div>
                                                                         )}
                                                                     </Draggable>
@@ -1165,14 +1165,14 @@ const TrameGridView: React.FC<{
     // Rendu principal du composant
     return (
         <div className="space-y-4">
-            {/* En-tête de la trame */}
+            {/* En-tête de la tableau de service */}
             <div className={`mb-3 p-3 rounded-lg border ${compactView ? 'bg-gray-50' : 'bg-white'} dark:bg-gray-800`}>
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`font-semibold ${compactView ? 'text-base' : 'text-lg'}`}>{trame.name}</span>
+                        <span className={`font-semibold ${compactView ? 'text-base' : 'text-lg'}`}>{tableau de service.name}</span>
                         <Badge variant="outline" className="text-xs">
-                            {trame.weekType === 'ALL' ? 'Toutes' :
-                                trame.weekType === 'EVEN' ? 'Paires' : 'Impaires'}
+                            {tableau de service.weekType === 'ALL' ? 'Toutes' :
+                                tableau de service.weekType === 'EVEN' ? 'Paires' : 'Impaires'}
                         </Badge>
 
                         {/* Indicateur de site - Nouveau */}
@@ -1182,19 +1182,19 @@ const TrameGridView: React.FC<{
                         </div>
                     </div>
 
-                    {/* Informations supplémentaires sur la trame */}
+                    {/* Informations supplémentaires sur la tableau de service */}
                     <div className="flex flex-col lg:flex-row lg:items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                        {trame.description && !compactView && (
-                            <span className="italic">"{trame.description}"</span>
+                        {tableau de service.description && !compactView && (
+                            <span className="italic">"{tableau de service.description}"</span>
                         )}
                         <div className="flex items-center gap-1">
                             <CalendarIcon className="h-3 w-3" />
                             <span>
-                                {trame.effectiveStartDate && !isNaN(new Date(trame.effectiveStartDate).getTime()) ? (
+                                {tableau de service.effectiveStartDate && !isNaN(new Date(tableau de service.effectiveStartDate).getTime()) ? (
                                     <>
-                                        {format(new Date(trame.effectiveStartDate), 'dd/MM/yy', { locale: fr })}
-                                        {trame.effectiveEndDate && !isNaN(new Date(trame.effectiveEndDate).getTime())
-                                            ? ` - ${format(new Date(trame.effectiveEndDate), 'dd/MM/yy', { locale: fr })}`
+                                        {format(new Date(tableau de service.effectiveStartDate), 'dd/MM/yy', { locale: fr })}
+                                        {tableau de service.effectiveEndDate && !isNaN(new Date(tableau de service.effectiveEndDate).getTime())
+                                            ? ` - ${format(new Date(tableau de service.effectiveEndDate), 'dd/MM/yy', { locale: fr })}`
                                             : ' (perm.)'
                                         }
                                     </>
@@ -1205,7 +1205,7 @@ const TrameGridView: React.FC<{
                         </div>
                         <div className="flex items-center gap-1">
                             <UsersIcon className="h-3 w-3" />
-                            <span>{filteredAffectations.length} affectation{filteredAffectations.length > 1 ? 's' : ''}</span>
+                            <span>{filteredAffectations.length} garde/vacation{filteredAffectations.length > 1 ? 's' : ''}</span>
                         </div>
                     </div>
                 </div>
@@ -1389,7 +1389,7 @@ const TrameGridView: React.FC<{
                 </div>
             </div>
 
-            {/* Grille de trame */}
+            {/* Grille de tableau de service */}
             {renderTrameGrid()}
         </div>
     );

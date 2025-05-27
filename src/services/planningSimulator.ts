@@ -1,10 +1,10 @@
 import { PlanningGenerator } from './planningGenerator';
 import {
-    Assignment,
+    Attribution,
     AssignmentType,
     GenerationParameters,
     ValidationResult
-} from '../types/assignment';
+} from '../types/attribution';
 import { User } from '../types/user';
 import {
     RulesConfiguration,
@@ -22,10 +22,10 @@ export interface PlanningSimulation {
     rulesConfiguration: RulesConfiguration;
     fatigueConfig: FatigueConfig;
     results: {
-        gardes: Assignment[];
-        astreintes: Assignment[];
-        consultations: Assignment[];
-        blocs: Assignment[];
+        gardes: Attribution[];
+        astreintes: Attribution[];
+        consultations: Attribution[];
+        blocs: Attribution[];
     };
     validation: ValidationResult;
     createdAt: Date;
@@ -58,13 +58,13 @@ export interface SimulationMetrics {
 export class PlanningSimulator {
     private simulations: Map<string, PlanningSimulation> = new Map();
     private personnel: User[] = [];
-    private existingAssignments: Assignment[] = [];
+    private existingAssignments: Attribution[] = [];
     private baseParameters: GenerationParameters;
 
     constructor(
         baseParameters: GenerationParameters,
         personnel: User[] = [],
-        existingAssignments: Assignment[] = []
+        existingAssignments: Attribution[] = []
     ) {
         this.baseParameters = baseParameters;
         this.personnel = personnel;
@@ -97,16 +97,16 @@ export class PlanningSimulator {
         const fatigueConfig = this.mergeFatigueConfig(fatigueOverrides);
 
         // Crée le générateur de planning avec les paramètres combinés
-        const generator = new PlanningGenerator(parameters, rulesConfig, fatigueConfig);
+        const organisateur = new PlanningGenerator(parameters, rulesConfig, fatigueConfig);
 
-        // Initialise le générateur avec le personnel et les affectations existantes
-        await generator.initialize(this.personnel, this.existingAssignments);
+        // Initialise le générateur avec le personnel et les gardes/vacations existantes
+        await organisateur.initialize(this.personnel, this.existingAssignments);
 
         // Génère le planning complet
-        const validation = await generator.generateFullPlanning();
+        const validation = await organisateur.generateFullPlanning();
 
         // Récupère les résultats générés
-        const results = generator.getResults();
+        const results = organisateur.getResults();
 
         // Crée l'objet de simulation
         const simulation: PlanningSimulation = {
@@ -214,7 +214,7 @@ export class PlanningSimulator {
             }
         });
 
-        // Compte les affectations par type
+        // Compte les gardes/vacations par type
         const assignmentCounts = {
             gardes: simulation.results.gardes.length,
             astreintes: simulation.results.astreintes.length,
@@ -329,13 +329,13 @@ export class PlanningSimulator {
 
     /**
      * Applique une simulation comme planning définitif
-     * Retourne les affectations combinées qui constituent le planning final
+     * Retourne les gardes/vacations combinées qui constituent le planning final
      */
-    applySimulation(simulationId: string): Assignment[] | null {
+    applySimulation(simulationId: string): Attribution[] | null {
         const simulation = this.simulations.get(simulationId);
         if (!simulation) return null;
 
-        // Combine toutes les affectations
+        // Combine toutes les gardes/vacations
         const allAssignments = [
             ...simulation.results.gardes,
             ...simulation.results.astreintes,

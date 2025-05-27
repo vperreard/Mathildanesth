@@ -29,7 +29,7 @@ export const useDragDrop = (options: UseDragDropOptions = {}) => {
 
         const dragItem: DragItem = {
             id: draggableId,
-            type: 'affectation',
+            type: 'garde/vacation',
             data: {},
             source: {
                 jourSemaine: source.droppableId.split('-')[1] as DayOfWeek,
@@ -60,7 +60,7 @@ export const useDragDrop = (options: UseDragDropOptions = {}) => {
             jourSemaine: destination.droppableId.split('-')[1] as DayOfWeek,
             periode: destination.droppableId.split('-')[2] as Period,
             roomId: destination.droppableId.split('-')[3] ? parseInt(destination.droppableId.split('-')[3]) : undefined,
-            accepts: ['affectation', 'personnel'],
+            accepts: ['garde/vacation', 'personnel'],
             isValid: true
         };
 
@@ -102,7 +102,7 @@ export const useDragDrop = (options: UseDragDropOptions = {}) => {
             jourSemaine: destination.droppableId.split('-')[1] as DayOfWeek,
             periode: destination.droppableId.split('-')[2] as Period,
             roomId: destination.droppableId.split('-')[3] ? parseInt(destination.droppableId.split('-')[3]) : undefined,
-            accepts: ['affectation', 'personnel'],
+            accepts: ['garde/vacation', 'personnel'],
             isValid: true
         };
 
@@ -126,7 +126,7 @@ export const useDragDrop = (options: UseDragDropOptions = {}) => {
 
     // Générer un ID draggable
     const generateDraggableId = useCallback((
-        type: 'affectation' | 'personnel',
+        type: 'garde/vacation' | 'personnel',
         id: number | string
     ): string => {
         return `${type}-${id}`;
@@ -155,7 +155,7 @@ export const useDragDrop = (options: UseDragDropOptions = {}) => {
         if (existingInSlot.length > 0) {
             return {
                 isValid: true,
-                reason: 'Conflit potentiel avec affectation existante',
+                reason: 'Conflit potentiel avec garde/vacation existante',
                 conflictLevel: 'warning'
             };
         }

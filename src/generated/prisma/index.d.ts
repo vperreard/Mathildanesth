@@ -209,7 +209,7 @@ export namespace Prisma {
   export import PrismaClientValidationError = runtime.PrismaClientValidationError
 
   /**
-   * Re-export of sql-template-tag
+   * Re-export of sql-modèle-tag
    */
   export import sql = runtime.sqltag
   export import empty = runtime.empty

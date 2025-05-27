@@ -150,7 +150,7 @@ describe('/api/planning/bloc', () => {
     });
 
     describe('POST /api/planning/bloc', () => {
-        it('should create bloc assignment for admin', async () => {
+        it('should create bloc attribution for admin', async () => {
             const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
             const assignmentData = {
                 date: '2024-01-01',
@@ -209,7 +209,7 @@ describe('/api/planning/bloc', () => {
             expect(data.error).toBe('Accès refusé');
         });
 
-        it('should return 409 for conflicting assignment', async () => {
+        it('should return 409 for conflicting attribution', async () => {
             const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
             mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
 
@@ -220,7 +220,7 @@ describe('/api/planning/bloc', () => {
                 period: 'AM',
             };
 
-            // Mock existing assignment
+            // Mock existing attribution
             mockedPrisma.blocPlanningAssignment = {
                 findFirst: jest.fn().mockResolvedValue({
                     id: 999,
@@ -259,7 +259,7 @@ describe('/api/planning/bloc', () => {
     });
 
     describe('PUT /api/planning/bloc', () => {
-        it('should update bloc assignment for admin', async () => {
+        it('should update bloc attribution for admin', async () => {
             const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
             const updateData = {
                 id: 1,
@@ -298,7 +298,7 @@ describe('/api/planning/bloc', () => {
     });
 
     describe('DELETE /api/planning/bloc', () => {
-        it('should delete bloc assignment for admin', async () => {
+        it('should delete bloc attribution for admin', async () => {
             const mockUser = { id: 1, role: Role.ADMIN_TOTAL };
             mockedGetUserFromCookie.mockResolvedValue(mockUser as any);
             

@@ -8,7 +8,7 @@ jest.mock('@/lib/prisma');
 
 const prisma = prisma;
 
-// Récupérer un type d'affectation par ID
+// Récupérer un type d'garde/vacation par ID
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
     try {
         const session = await getServerSession(authOptions);
@@ -36,22 +36,22 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
         if (!assignmentType) {
             return NextResponse.json(
-                { error: 'Type d\'affectation non trouvé' },
+                { error: 'Type d\'garde/vacation non trouvé' },
                 { status: 404 }
             );
         }
 
         return NextResponse.json(assignmentType);
     } catch (error) {
-        console.error('Erreur lors de la récupération du type d\'affectation:', error);
+        console.error('Erreur lors de la récupération du type d\'garde/vacation:', error);
         return NextResponse.json(
-            { error: 'Erreur lors de la récupération du type d\'affectation' },
+            { error: 'Erreur lors de la récupération du type d\'garde/vacation' },
             { status: 500 }
         );
     }
 }
 
-// Mettre à jour un type d'affectation
+// Mettre à jour un type d'garde/vacation
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
     try {
         const session = await getServerSession(authOptions);
@@ -90,7 +90,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
         if (!existingType) {
             return NextResponse.json(
-                { error: 'Type d\'affectation non trouvé' },
+                { error: 'Type d\'garde/vacation non trouvé' },
                 { status: 404 }
             );
         }
@@ -103,13 +103,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
             if (typeWithSameCode && typeWithSameCode.id !== id) {
                 return NextResponse.json(
-                    { error: 'Un type d\'affectation avec ce code existe déjà' },
+                    { error: 'Un type d\'garde/vacation avec ce code existe déjà' },
                     { status: 400 }
                 );
             }
         }
 
-        // Mettre à jour le type d'affectation
+        // Mettre à jour le type d'garde/vacation
         const updatedType = await prisma.assignmentType.update({
             where: { id },
             data: {
@@ -127,15 +127,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
         return NextResponse.json(updatedType);
     } catch (error) {
-        console.error('Erreur lors de la mise à jour du type d\'affectation:', error);
+        console.error('Erreur lors de la mise à jour du type d\'garde/vacation:', error);
         return NextResponse.json(
-            { error: 'Erreur lors de la mise à jour du type d\'affectation' },
+            { error: 'Erreur lors de la mise à jour du type d\'garde/vacation' },
             { status: 500 }
         );
     }
 }
 
-// Supprimer un type d'affectation
+// Supprimer un type d'garde/vacation
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
     try {
         const session = await getServerSession(authOptions);
@@ -164,13 +164,13 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
         if (!existingType) {
             return NextResponse.json(
-                { error: 'Type d\'affectation non trouvé' },
+                { error: 'Type d\'garde/vacation non trouvé' },
                 { status: 404 }
             );
         }
 
-        // Vérifier si des affectations utilisent ce type
-        const assignmentsCount = await prisma.assignment.count({
+        // Vérifier si des gardes/vacations utilisent ce type
+        const assignmentsCount = await prisma.attribution.count({
             where: { typeId: id },
         });
 
@@ -183,20 +183,20 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
             return NextResponse.json({
                 ...deactivatedType,
-                message: 'Le type d\'affectation a été désactivé car il est utilisé par des affectations existantes'
+                message: 'Le type d\'garde/vacation a été désactivé car il est utilisé par des gardes/vacations existantes'
             });
         }
 
-        // Supprimer le type d'affectation
+        // Supprimer le type d'garde/vacation
         await prisma.assignmentType.delete({
             where: { id },
         });
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error('Erreur lors de la suppression du type d\'affectation:', error);
+        console.error('Erreur lors de la suppression du type d\'garde/vacation:', error);
         return NextResponse.json(
-            { error: 'Erreur lors de la suppression du type d\'affectation' },
+            { error: 'Erreur lors de la suppression du type d\'garde/vacation' },
             { status: 500 }
         );
     }

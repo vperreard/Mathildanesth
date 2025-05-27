@@ -55,7 +55,7 @@ const mockUseUserWorkSchedule = userWorkScheduleHook.useUserWorkSchedule as jest
 const defaultTestOptions = {}; // Définir une référence stable pour les options
 
 const defaultWorkSchedule: WorkSchedule = {
-    id: 'default-schedule-123',
+    id: 'default-planning médical-123',
     userId: 1,
     frequency: WorkFrequency.FULL_TIME,
     weekType: WeekType.BOTH,
@@ -111,7 +111,7 @@ describe('useLeaveCalculation', () => {
         expectToBe(result.current.hasValidDates, false);
     });
 
-    it('should calculate details when valid dates and schedule are provided', async () => {
+    it('should calculate details when valid dates and planning médical are provided', async () => {
         const startDateForTest = new Date('2024-07-01');
         const endDateForTest = new Date('2024-07-05');
 
@@ -142,7 +142,7 @@ describe('useLeaveCalculation', () => {
 
         // Utiliser mockImplementation pour s'assurer que tous les appels pendant ce test utilisent specificHolidays
         const originalMockCalc = mockCalculateLeaveCountedDays.getMockImplementation() || mockCalculateLeaveCountedDays;
-        mockCalculateLeaveCountedDays.mockImplementation(async (startDate, endDate, schedule, options) => {
+        mockCalculateLeaveCountedDays.mockImplementation(async (startDate, endDate, planning médical, options) => {
             // On peut ici appeler la logique originale si besoin, ou juste retourner la valeur mockée
             // Pour ce test, on veut juste s'assurer que publicHolidays est correct.
             return completeLeaveCalculationDetailsMock({
@@ -234,14 +234,14 @@ describe('useLeaveCalculation', () => {
         const endDate = new Date('2024-08-09');
         const externalSchedule: WorkSchedule = {
             ...defaultWorkSchedule,
-            id: 'external-schedule-456',
+            id: 'external-planning médical-456',
             userId: 2,
         };
 
-        // S'assurer que le hook interne useUserWorkSchedule ne fournit pas de schedule prioritaire
+        // S'assurer que le hook interne useUserWorkSchedule ne fournit pas de planning médical prioritaire
         // et n'est pas en état de chargement qui bloquerait le calcul.
         mockUseUserWorkSchedule.mockReturnValue({
-            workSchedule: null, // ou un autre schedule non pertinent
+            workSchedule: null, // ou un autre planning médical non pertinent
             isLoading: false,   // IMPORTANT: ne doit pas être en chargement
             error: null,
         });
@@ -318,7 +318,7 @@ describe('useLeaveCalculation', () => {
         );
     });
 
-    it('should set status to loading when work schedule is loading', () => {
+    it('should set status to loading when work planning médical is loading', () => {
         mockUseUserWorkSchedule.mockReturnValueOnce({
             workSchedule: null,
             isLoading: true,
@@ -329,8 +329,8 @@ describe('useLeaveCalculation', () => {
         expectToBe(result.current.status, 'idle');
     });
 
-    it('should set status to error if work schedule fetch fails', () => {
-        const scheduleError = new Error('Failed to fetch schedule');
+    it('should set status to error if work planning médical fetch fails', () => {
+        const scheduleError = new Error('Failed to fetch planning médical');
         mockUseUserWorkSchedule.mockReturnValue({
             workSchedule: null,
             isLoading: false,
@@ -371,7 +371,7 @@ describe('useLeaveCalculation', () => {
         });
 
         // Vérifications ajustées :
-        // 1. Le service de calcul est appelé car hasValidDates est true (basé sur la présence des dates et du schedule)
+        // 1. Le service de calcul est appelé car hasValidDates est true (basé sur la présence des dates et du planning médical)
         expectToHaveBeenCalledTimes(mockCalculateLeaveCountedDays, 1);
 
         // 2. Le statut doit devenir 'success' car le service gère le cas des dates inversées
@@ -379,7 +379,7 @@ describe('useLeaveCalculation', () => {
             expectToBe(result.current.status, 'success');
         });
 
-        // 3. hasValidDates est true selon la logique actuelle du hook (vérifie juste la présence des dates/schedule)
+        // 3. hasValidDates est true selon la logique actuelle du hook (vérifie juste la présence des dates/planning médical)
         expectToBe(result.current.hasValidDates, true);
 
         // 4. Les jours comptés doivent être 0

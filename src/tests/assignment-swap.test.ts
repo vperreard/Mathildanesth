@@ -1,4 +1,4 @@
-import { AssignmentSwapEventType, sendAssignmentSwapNotification } from '@/lib/assignment-notification-utils';
+import { AssignmentSwapEventType, sendAssignmentSwapNotification } from '@/lib/attribution-notification-utils';
 import { PrismaClient, AssignmentSwapStatus } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '@/lib/prisma';
@@ -7,7 +7,7 @@ const prisma = prisma;
 
 jest.mock('@/lib/prisma');
 
-describe('Tests d\'intégration des échanges d\'affectations avec notifications', () => {
+describe('Tests d\'intégration des échanges d\'gardes/vacations avec notifications', () => {
     // Configuration de test
     let initiatorUserId: number;
     let targetUserId: number;
@@ -41,8 +41,8 @@ describe('Tests d\'intégration des échanges d\'affectations avec notifications
         initiatorUserId = user1.id;
         targetUserId = user2.id;
 
-        // Créer deux affectations
-        const assignment1 = await prisma.assignment.create({
+        // Créer deux gardes/vacations
+        const assignment1 = await prisma.attribution.create({
             data: {
                 userId: initiatorUserId,
                 date: new Date(),
@@ -52,7 +52,7 @@ describe('Tests d\'intégration des échanges d\'affectations avec notifications
             }
         });
 
-        const assignment2 = await prisma.assignment.create({
+        const assignment2 = await prisma.attribution.create({
             data: {
                 userId: targetUserId,
                 date: new Date(),
@@ -87,7 +87,7 @@ describe('Tests d\'intégration des échanges d\'affectations avec notifications
             }
         });
 
-        await prisma.assignment.deleteMany({
+        await prisma.attribution.deleteMany({
             where: {
                 id: { in: [proposedAssignmentId, requestedAssignmentId] }
             }

@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useOptimizedPlanning } from '../useOptimizedPlanning';
-import { Assignment } from '@/types/assignment';
+import { Attribution } from '@/types/attribution';
 import { startOfWeek, endOfWeek, format, addWeeks, subWeeks } from 'date-fns';
 
 // Mock fetch
@@ -28,9 +28,9 @@ describe('useOptimizedPlanning', () => {
         );
     };
 
-    const mockAssignments: Assignment[] = [
+    const mockAssignments: Attribution[] = [
         {
-            id: 'assignment-1',
+            id: 'attribution-1',
             userId: 'user-1',
             userName: 'John Doe',
             shiftType: 'JOUR',
@@ -44,7 +44,7 @@ describe('useOptimizedPlanning', () => {
             updatedAt: new Date()
         },
         {
-            id: 'assignment-2',
+            id: 'attribution-2',
             userId: 'user-2',
             userName: 'Jane Smith',
             shiftType: 'NUIT',
@@ -60,7 +60,7 @@ describe('useOptimizedPlanning', () => {
     ];
 
     const mockPlanningResponse = {
-        assignments: mockAssignments,
+        attributions: mockAssignments,
         users: [
             { id: 'user-1', name: 'John Doe' },
             { id: 'user-2', name: 'Jane Smith' }
@@ -104,7 +104,7 @@ describe('useOptimizedPlanning', () => {
                 expect(result.current.isLoading).toBe(false);
             });
 
-            expect(result.current.assignments).toEqual(mockAssignments);
+            expect(result.current.attributions).toEqual(mockAssignments);
             expect(result.current.users).toEqual(mockPlanningResponse.users);
             expect(result.current.validation).toEqual(mockPlanningResponse.validation);
 
@@ -156,7 +156,7 @@ describe('useOptimizedPlanning', () => {
             });
 
             expect(result.current.error?.message).toBe('Erreur lors du chargement du planning');
-            expect(result.current.assignments).toEqual([]);
+            expect(result.current.attributions).toEqual([]);
         });
     });
 
@@ -234,7 +234,7 @@ describe('useOptimizedPlanning', () => {
     });
 
     describe('local updates', () => {
-        it('should update assignment locally and merge with server data', async () => {
+        it('should update attribution locally and merge with server data', async () => {
             const { result } = renderHook(() => useOptimizedPlanning({ week: new Date() }), {
                 wrapper: createWrapper()
             });
@@ -244,14 +244,14 @@ describe('useOptimizedPlanning', () => {
             });
 
             act(() => {
-                result.current.updateAssignment('assignment-1', {
+                result.current.updateAssignment('attribution-1', {
                     userName: 'Updated Name',
                     shiftType: 'NUIT'
                 });
             });
 
             // Local update should be reflected immediately
-            const updatedAssignment = result.current.getAssignmentById('assignment-1');
+            const updatedAssignment = result.current.getAssignmentById('attribution-1');
             expect(updatedAssignment?.userName).toBe('Updated Name');
             expect(updatedAssignment?.shiftType).toBe('NUIT');
             
@@ -259,7 +259,7 @@ describe('useOptimizedPlanning', () => {
             expect(result.current.pendingUpdatesCount).toBe(1);
         });
 
-        it('should accumulate multiple updates for same assignment', async () => {
+        it('should accumulate multiple updates for same attribution', async () => {
             const { result } = renderHook(() => useOptimizedPlanning({ week: new Date() }), {
                 wrapper: createWrapper()
             });
@@ -269,14 +269,14 @@ describe('useOptimizedPlanning', () => {
             });
 
             act(() => {
-                result.current.updateAssignment('assignment-1', { userName: 'First Update' });
-                result.current.updateAssignment('assignment-1', { shiftType: 'NUIT' });
+                result.current.updateAssignment('attribution-1', { userName: 'First Update' });
+                result.current.updateAssignment('attribution-1', { shiftType: 'NUIT' });
             });
 
-            const assignment = result.current.getAssignmentById('assignment-1');
-            expect(assignment?.userName).toBe('First Update');
-            expect(assignment?.shiftType).toBe('NUIT');
-            expect(result.current.pendingUpdatesCount).toBe(1); // Still one assignment
+            const attribution = result.current.getAssignmentById('attribution-1');
+            expect(attribution?.userName).toBe('First Update');
+            expect(attribution?.shiftType).toBe('NUIT');
+            expect(result.current.pendingUpdatesCount).toBe(1); // Still one attribution
         });
     });
 
@@ -300,7 +300,7 @@ describe('useOptimizedPlanning', () => {
             });
 
             act(() => {
-                result.current.updateAssignment('assignment-1', { userName: 'Auto Save Test' });
+                result.current.updateAssignment('attribution-1', { userName: 'Auto Save Test' });
             });
 
             await waitFor(() => {
@@ -311,7 +311,7 @@ describe('useOptimizedPlanning', () => {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             updates: [{
-                                assignmentId: 'assignment-1',
+                                assignmentId: 'attribution-1',
                                 changes: { userName: 'Auto Save Test' },
                                 timestamp: expect.any(Number)
                             }]
@@ -340,7 +340,7 @@ describe('useOptimizedPlanning', () => {
             const initialCallCount = mockFetch.mock.calls.length;
 
             act(() => {
-                result.current.updateAssignment('assignment-1', { userName: 'No Auto Save' });
+                result.current.updateAssignment('attribution-1', { userName: 'No Auto Save' });
             });
 
             // Wait to ensure no auto-save happens
@@ -370,7 +370,7 @@ describe('useOptimizedPlanning', () => {
             });
 
             act(() => {
-                result.current.updateAssignment('assignment-1', { userName: 'Save Now Test' });
+                result.current.updateAssignment('attribution-1', { userName: 'Save Now Test' });
             });
 
             await act(async () => {
@@ -405,7 +405,7 @@ describe('useOptimizedPlanning', () => {
             } as Response);
 
             act(() => {
-                result.current.updateAssignment('assignment-1', { userName: 'Error Test' });
+                result.current.updateAssignment('attribution-1', { userName: 'Error Test' });
             });
 
             await act(async () => {
@@ -439,11 +439,11 @@ describe('useOptimizedPlanning', () => {
             const newDate = new Date('2025-01-16T08:00:00');
             
             act(() => {
-                result.current.moveAssignment('assignment-1', 'user-2', newDate);
+                result.current.moveAssignment('attribution-1', 'user-2', newDate);
             });
 
             // Should immediately update locally
-            const movedAssignment = result.current.getAssignmentById('assignment-1');
+            const movedAssignment = result.current.getAssignmentById('attribution-1');
             expect(movedAssignment?.userId).toBe('user-2');
             expect(movedAssignment?.startDate).toEqual(newDate);
             expect(result.current.isSyncing).toBe(true);
@@ -475,8 +475,8 @@ describe('useOptimizedPlanning', () => {
             });
 
             act(() => {
-                result.current.updateAssignment('assignment-1', { userName: 'To Cancel' });
-                result.current.updateAssignment('assignment-2', { shiftType: 'GARDE' });
+                result.current.updateAssignment('attribution-1', { userName: 'To Cancel' });
+                result.current.updateAssignment('attribution-2', { shiftType: 'GARDE' });
             });
 
             expect(result.current.hasUnsavedChanges).toBe(true);
@@ -489,14 +489,14 @@ describe('useOptimizedPlanning', () => {
             expect(result.current.hasUnsavedChanges).toBe(false);
             expect(result.current.pendingUpdatesCount).toBe(0);
 
-            // Assignments should revert to original
-            const assignment1 = result.current.getAssignmentById('assignment-1');
+            // Attributions should revert to original
+            const assignment1 = result.current.getAssignmentById('attribution-1');
             expect(assignment1?.userName).toBe('John Doe');
         });
     });
 
     describe('utility functions', () => {
-        it('should get user assignments correctly', async () => {
+        it('should get user attributions correctly', async () => {
             const { result } = renderHook(() => useOptimizedPlanning({ week: new Date() }), {
                 wrapper: createWrapper()
             });
@@ -507,14 +507,14 @@ describe('useOptimizedPlanning', () => {
 
             const user1Assignments = result.current.getUserAssignments('user-1');
             expect(user1Assignments).toHaveLength(1);
-            expect(user1Assignments[0].id).toBe('assignment-1');
+            expect(user1Assignments[0].id).toBe('attribution-1');
 
             const user2Assignments = result.current.getUserAssignments('user-2');
             expect(user2Assignments).toHaveLength(1);
-            expect(user2Assignments[0].id).toBe('assignment-2');
+            expect(user2Assignments[0].id).toBe('attribution-2');
         });
 
-        it('should return undefined for non-existent assignment', async () => {
+        it('should return undefined for non-existent attribution', async () => {
             const { result } = renderHook(() => useOptimizedPlanning({ week: new Date() }), {
                 wrapper: createWrapper()
             });
@@ -523,8 +523,8 @@ describe('useOptimizedPlanning', () => {
                 expect(result.current.isLoading).toBe(false);
             });
 
-            const assignment = result.current.getAssignmentById('non-existent');
-            expect(assignment).toBeUndefined();
+            const attribution = result.current.getAssignmentById('non-existent');
+            expect(attribution).toBeUndefined();
         });
     });
 
@@ -547,7 +547,7 @@ describe('useOptimizedPlanning', () => {
             });
 
             act(() => {
-                result.current.updateAssignment('assignment-1', { userName: 'Cleanup Test' });
+                result.current.updateAssignment('attribution-1', { userName: 'Cleanup Test' });
             });
 
             const saveNowSpy = jest.spyOn(result.current, 'saveNow');
@@ -572,7 +572,7 @@ describe('useOptimizedPlanning', () => {
             });
 
             act(() => {
-                result.current.updateAssignment('assignment-1', { userName: 'No Save on Cleanup' });
+                result.current.updateAssignment('attribution-1', { userName: 'No Save on Cleanup' });
             });
 
             const saveNowSpy = jest.spyOn(result.current, 'saveNow');
@@ -589,7 +589,7 @@ describe('useOptimizedPlanning', () => {
         it('should handle empty planning data', async () => {
             mockFetch.mockResolvedValueOnce({
                 ok: true,
-                json: async () => ({ assignments: [], users: [] })
+                json: async () => ({ attributions: [], users: [] })
             } as Response);
 
             const { result } = renderHook(() => useOptimizedPlanning({ week: new Date() }), {
@@ -600,7 +600,7 @@ describe('useOptimizedPlanning', () => {
                 expect(result.current.isLoading).toBe(false);
             });
 
-            expect(result.current.assignments).toEqual([]);
+            expect(result.current.attributions).toEqual([]);
             expect(result.current.users).toEqual([]);
         });
 
@@ -618,7 +618,7 @@ describe('useOptimizedPlanning', () => {
                 expect(result.current.isLoading).toBe(false);
             });
 
-            expect(result.current.assignments).toEqual([]);
+            expect(result.current.attributions).toEqual([]);
             expect(result.current.users).toEqual([]);
             expect(result.current.validation).toBeUndefined();
         });

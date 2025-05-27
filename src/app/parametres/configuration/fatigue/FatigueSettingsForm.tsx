@@ -117,10 +117,10 @@ const FatigueSettingsForm: React.FC<FatigueSettingsFormProps> = ({ initialConfig
 
                     {config.enabled && (
                         <>
-                            {/* Section Points d'affectation */}
+                            {/* Section Points d'garde/vacation */}
                             <Card className="pt-4">
                                 <CardHeader className="p-4">
-                                    <CardTitle className="text-lg">Points par Affectation</CardTitle>
+                                    <CardTitle className="text-lg">Points par Garde/Vacation</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4 p-4">
                                     {(Object.keys(config.points) as Array<keyof FatigueConfig['points']>).map((key) => (

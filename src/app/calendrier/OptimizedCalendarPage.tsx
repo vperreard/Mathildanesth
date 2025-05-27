@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import dynamic from 'next/dynamic';
 import { CalendarTab } from './types';
-import { Assignment } from '@/types/assignment';
+import { Attribution } from '@/types/attribution';
 import { Violation } from '@/types/validation';
 import toast from 'react-hot-toast';
 
@@ -67,7 +67,7 @@ export default function OptimizedCalendarPage() {
     const [activeTab, setActiveTab] = useState<CalendarTab>('personal');
     const [leaveToEdit, setLeaveToEdit] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [assignments, setAssignments] = useState<Assignment[]>([]);
+    const [attributions, setAssignments] = useState<Attribution[]>([]);
     const [isLoadingAssignments, setIsLoadingAssignments] = useState(false);
 
     const isAdmin = user && (user.role === 'ADMIN_TOTAL' || user.role === 'ADMIN_PARTIEL');
@@ -107,7 +107,7 @@ export default function OptimizedCalendarPage() {
         }
     };
 
-    // Charger les affectations uniquement pour l'onglet allocation
+    // Charger les gardes/vacations uniquement pour l'onglet allocation
     useEffect(() => {
         if (activeTab === 'allocation' && isAdmin) {
             fetchAssignments();
@@ -122,7 +122,7 @@ export default function OptimizedCalendarPage() {
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
             const response = await fetch(
-                `/api/affectations?start=${startOfMonth.toISOString()}&end=${endOfMonth.toISOString()}`
+                `/api/gardes/vacations?start=${startOfMonth.toISOString()}&end=${endOfMonth.toISOString()}`
             );
 
             if (!response.ok) {
@@ -130,7 +130,7 @@ export default function OptimizedCalendarPage() {
             }
 
             const data = await response.json();
-            const fetchedAssignments = (data.assignments || []).map((a: any) => ({
+            const fetchedAssignments = (data.attributions || []).map((a: any) => ({
                 ...a,
                 startDate: new Date(a.startDate),
                 endDate: new Date(a.endDate),
@@ -139,31 +139,31 @@ export default function OptimizedCalendarPage() {
             }));
             setAssignments(fetchedAssignments);
         } catch (error) {
-            console.error("Erreur lors du chargement des affectations:", error);
-            toast.error("Impossible de charger les affectations.");
+            console.error("Erreur lors du chargement des gardes/vacations:", error);
+            toast.error("Impossible de charger les gardes/vacations.");
             setAssignments([]);
         } finally {
             setIsLoadingAssignments(false);
         }
     };
 
-    const handleSave = async (updatedAssignments: Assignment[]) => {
+    const handleSave = async (updatedAssignments: Attribution[]) => {
         try {
-            const response = await fetch('http://localhost:3000/api/affectations', {
+            const response = await fetch('http://localhost:3000/api/gardes/vacations', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ assignments: updatedAssignments })
+                body: JSON.stringify({ attributions: updatedAssignments })
             });
 
             if (!response.ok) {
                 throw new Error(`Erreur HTTP ${response.status}`);
             }
 
-            toast.success('Affectations sauvegardées avec succès.');
+            toast.success('Gardes/Vacations sauvegardées avec succès.');
             setAssignments(updatedAssignments);
         } catch (error) {
             console.error("Erreur lors de la sauvegarde:", error);
-            toast.error('Échec de la sauvegarde des affectations.');
+            toast.error('Échec de la sauvegarde des gardes/vacations.');
         }
     };
 
@@ -261,7 +261,7 @@ export default function OptimizedCalendarPage() {
                             <CalendarLoader />
                         ) : (
                             <DraggableCalendar
-                                initialAssignments={assignments}
+                                initialAssignments={attributions}
                                 users={DEMO_USERS}
                                 rules={DEMO_RULES as any}
                                 onSave={handleSave}

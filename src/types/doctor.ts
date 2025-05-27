@@ -132,7 +132,7 @@ export interface Doctor {
     secondarySpecialties?: MedicalSpecialty[];
     /** Grade actuel */
     grade: MedicalGrade;
-    /** Établissements d'affectation */
+    /** Établissements d'garde/vacation */
     facilityIds: string[];
     /** Service principal */
     primaryServiceId: string;
@@ -405,7 +405,7 @@ export interface DoctorNotificationPreferences {
             /** Canaux de notification */
             channels: ("EMAIL" | "PUSH" | "SMS")[];
         };
-        /** Nouvelles affectations */
+        /** Nouvelles gardes/vacations */
         newAssignments: {
             /** Canaux de notification */
             channels: ("EMAIL" | "PUSH" | "SMS")[];

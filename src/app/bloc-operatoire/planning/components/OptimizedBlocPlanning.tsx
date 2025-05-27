@@ -62,21 +62,21 @@ export default function OptimizedBlocPlanning() {
 
     // Memoized event transformation
     const events = useMemo(() => {
-        if (!planningData?.assignments) return [];
+        if (!planningData?.attributions) return [];
         
-        return planningData.assignments.map((assignment: any) => ({
-            id: assignment.id,
-            title: assignment.user ? `${assignment.user.firstName} ${assignment.user.lastName}` : 'Non assigné',
-            startTime: assignment.period === 'MORNING' ? '08:00' : assignment.period === 'AFTERNOON' ? '14:00' : '20:00',
-            endTime: assignment.period === 'MORNING' ? '14:00' : assignment.period === 'AFTERNOON' ? '20:00' : '08:00',
-            roomId: assignment.roomId,
-            roomName: assignment.room?.name || '',
-            supervisorId: assignment.userId,
-            supervisorName: assignment.user ? `${assignment.user.firstName} ${assignment.user.lastName}` : '',
-            activityType: assignment.type,
-            color: assignment.room?.sector?.color || '#3b82f6'
+        return planningData.attributions.map((attribution: any) => ({
+            id: attribution.id,
+            title: attribution.user ? `${attribution.user.firstName} ${attribution.user.lastName}` : 'Non assigné',
+            startTime: attribution.period === 'MORNING' ? '08:00' : attribution.period === 'AFTERNOON' ? '14:00' : '20:00',
+            endTime: attribution.period === 'MORNING' ? '14:00' : attribution.period === 'AFTERNOON' ? '20:00' : '08:00',
+            roomId: attribution.roomId,
+            roomName: attribution.room?.name || '',
+            supervisorId: attribution.userId,
+            supervisorName: attribution.user ? `${attribution.user.firstName} ${attribution.user.lastName}` : '',
+            activityType: attribution.type,
+            color: attribution.room?.sector?.color || '#3b82f6'
         }));
-    }, [planningData?.assignments]);
+    }, [planningData?.attributions]);
 
     // Handle week changes with prefetching
     const handleWeekChange = useCallback((newWeek: Date) => {
@@ -92,28 +92,28 @@ export default function OptimizedBlocPlanning() {
         // Open edit modal or navigate to detail view
     }, []);
 
-    // Handle time slot click for new assignment
+    // Handle time créneau click for new attribution
     const handleTimeSlotClick = useCallback((date: Date, period: any, roomId: number) => {
-        console.log('Time slot clicked:', { date, period, roomId });
-        // Open assignment creation modal
+        console.log('Time créneau clicked:', { date, period, roomId });
+        // Open attribution creation modal
     }, []);
 
-    // Handle trame selection
+    // Handle tableau de service selection
     const handleTrameSelect = useCallback((trameId: number) => {
         setSelectedTrameId(trameId);
         setActiveTab('editor');
     }, []);
 
-    // Handle trame save with optimistic update
-    const handleTrameSave = useCallback((affectations: any[]) => {
+    // Handle tableau de service save with optimistic update
+    const handleTrameSave = useCallback((gardes/vacations: any[]) => {
         // Optimistic update
         optimisticUpdate((data) => ({
             ...data,
-            assignments: [...data.assignments, ...affectations]
+            attributions: [...data.attributions, ...gardes/vacations]
         }));
 
         // Actual save
-        updatePlanning(affectations);
+        updatePlanning(gardes/vacations);
         setActiveTab('planning');
     }, [optimisticUpdate, updatePlanning]);
 
@@ -140,7 +140,7 @@ export default function OptimizedBlocPlanning() {
                         disabled={isUpdating}
                     >
                         <Plus className="h-4 w-4 mr-2" />
-                        Nouvelle trame
+                        Nouvelle tableau de service
                     </Button>
                 </div>
 
@@ -165,8 +165,8 @@ export default function OptimizedBlocPlanning() {
                         <Settings className="h-4 w-4 mr-2" />
                         Éditeur
                     </TabsTrigger>
-                    <TabsTrigger value="assignments">
-                        Affectations
+                    <TabsTrigger value="attributions">
+                        Gardes/Vacations
                     </TabsTrigger>
                 </TabsList>
 
@@ -198,7 +198,7 @@ export default function OptimizedBlocPlanning() {
                 <TabsContent value="editor" className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Éditeur de Trame</CardTitle>
+                            <CardTitle>Éditeur de Tableau de service</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <Suspense fallback={<LoadingFallback />}>
@@ -212,16 +212,16 @@ export default function OptimizedBlocPlanning() {
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="assignments" className="space-y-6">
+                <TabsContent value="attributions" className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Gestion des Affectations</CardTitle>
+                            <CardTitle>Gestion des Gardes/Vacations</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <Suspense fallback={<LoadingFallback />}>
                                 <RoomAssignmentPanel
                                     rooms={planningData?.rooms || []}
-                                    assignments={planningData?.assignments || []}
+                                    attributions={planningData?.attributions || []}
                                     onAssignmentChange={updatePlanning}
                                 />
                             </Suspense>

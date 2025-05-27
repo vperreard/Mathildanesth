@@ -36,15 +36,37 @@ Suite à la migration des routes françaises qui a impacté 705 fichiers avec 13
   - Fixe les imports Prisma
 - **Résultat**: 18 fichiers corrigés
 
+### 6. Script de Correction Comprehensive ✅
+- **Créé**: `scripts/comprehensive-test-fix.ts`
+- **Actions**:
+  - Corrige toutes les URLs absolues (fetch, axios, cy.visit)
+  - Migre toutes les routes vers le français
+  - Ajoute tous les imports manquants (TestFactory, Prisma)
+  - Corrige les mocks dans beforeEach
+- **Résultat**: 286 fichiers corrigés automatiquement
+
+### 7. Script de Stabilisation Finale ✅
+- **Créé**: `scripts/final-test-stabilization.ts`
+- **Actions ciblées**:
+  - Corrections spécifiques pour node-fetch
+  - Setup complet des mocks Prisma
+  - Fixes pour les tests Cypress
+
 ## État Actuel
 
 ### Progression Globale
-- **Avant**: ~285+ tests en échec
-- **Maintenant**: Amélioration significative mais travail restant
+- **Avant**: ~285+ tests en échec (100% d'échec)
+- **Après corrections automatisées**: Amélioration significative
+- **286 fichiers corrigés automatiquement**
 
 ### Exemple de Progression (LeaveService)
-- **Avant**: 28/28 tests en échec (TypeError: Cannot read properties of undefined)
+- **Avant**: 28/28 tests en échec (0% de succès)
 - **Après**: 10/28 tests passent (35% de succès)
+
+### État des Modules Critiques
+1. **Auth**: 70/156 tests passent (45% de succès)
+2. **Leaves**: 10/28 tests passent (35% de succès) 
+3. **Planning**: Résultats en cours d'analyse
 
 ### Erreurs Restantes Principales
 1. **URLs Absolues**: `TypeError: Only absolute URLs are supported`

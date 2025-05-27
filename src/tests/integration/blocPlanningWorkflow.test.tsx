@@ -24,7 +24,7 @@ type BlocDayPlanning = {
     date: string;
     sallesPlanning: {
         roomId: string;
-        assignments: {
+        attributions: {
             id: string;
             startTime: string;
             endTime: string;
@@ -80,7 +80,7 @@ const BlocPlanningEditor = (props) => {
                         sallesPlanning: [
                             {
                                 roomId: 'salle1',
-                                assignments: [
+                                attributions: [
                                     {
                                         id: 'newAssign',
                                         startTime: '09:00',
@@ -106,7 +106,7 @@ const BlocPlanningEditor = (props) => {
                         sallesPlanning: [
                             {
                                 roomId: 'salle1',
-                                assignments: [
+                                attributions: [
                                     {
                                         id: 'newAssign',
                                         startTime: '09:00',
@@ -131,7 +131,7 @@ const BlocPlanningEditor = (props) => {
                         sallesPlanning: [
                             {
                                 roomId: 'salle1',
-                                assignments: [
+                                attributions: [
                                     {
                                         id: 'assign1',
                                         startTime: '08:00',
@@ -194,7 +194,7 @@ describe('Workflow de planification du bloc opératoire', () => {
         sallesPlanning: [
             {
                 roomId: 'salle1',
-                assignments: [
+                attributions: [
                     { id: 'assign1', startTime: '08:00', endTime: '12:00', surgeonId: 'dr1', procedure: 'Appendicectomie', sectorId: 'secteurA', supervisionId: 'sup1' },
                 ]
             }

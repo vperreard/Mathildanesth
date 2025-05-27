@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PlanningSimulatorComponent from '../../components/PlanningSimulator';
-import { Assignment, GenerationParameters, AssignmentType } from '../../types/assignment';
+import { Attribution, GenerationParameters, AssignmentType } from '../../types/attribution';
 import { User } from '../../types/user';
 import { defaultRulesConfiguration } from '../../types/rules';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
@@ -13,11 +13,11 @@ import Button from '../../components/ui/button';
 export default function SimulateurPage() {
     const router = useRouter();
     const [personnel, setPersonnel] = useState<User[]>([]);
-    const [existingAssignments, setExistingAssignments] = useState<Assignment[]>([]);
+    const [existingAssignments, setExistingAssignments] = useState<Attribution[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-    const [selectedAssignments, setSelectedAssignments] = useState<Assignment[]>([]);
+    const [selectedAssignments, setSelectedAssignments] = useState<Attribution[]>([]);
 
     // Paramètres par défaut pour la génération
     const defaultParameters: GenerationParameters = {
@@ -51,14 +51,14 @@ export default function SimulateurPage() {
                 const personnelData = await personnelResponse.json();
                 setPersonnel(personnelData);
 
-                // Chargement des affectations existantes pour le mois en cours
+                // Chargement des gardes/vacations existantes pour le mois en cours
                 const now = new Date();
                 const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
                 const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
 
-                const assignmentsResponse = await fetch(`http://localhost:3000/api/affectations?start=${firstDay}&end=${lastDay}`);
+                const assignmentsResponse = await fetch(`http://localhost:3000/api/gardes/vacations?start=${firstDay}&end=${lastDay}`);
                 if (!assignmentsResponse.ok) {
-                    throw new Error('Erreur lors du chargement des affectations');
+                    throw new Error('Erreur lors du chargement des gardes/vacations');
                 }
                 const assignmentsData = await assignmentsResponse.json();
                 setExistingAssignments(assignmentsData);
@@ -74,8 +74,8 @@ export default function SimulateurPage() {
     }, []);
 
     // Gestion de l'application d'une simulation
-    const handleSimulationApplied = (assignments: Assignment[]) => {
-        setSelectedAssignments(assignments);
+    const handleSimulationApplied = (attributions: Attribution[]) => {
+        setSelectedAssignments(attributions);
         setShowConfirmDialog(true);
     };
 
@@ -84,13 +84,13 @@ export default function SimulateurPage() {
         try {
             setLoading(true);
 
-            // Appel à l'API pour enregistrer les nouvelles affectations
-            const response = await fetch('http://localhost:3000/api/affectations/batch', {
+            // Appel à l'API pour enregistrer les nouvelles gardes/vacations
+            const response = await fetch('http://localhost:3000/api/gardes/vacations/batch', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ assignments: selectedAssignments })
+                body: JSON.stringify({ attributions: selectedAssignments })
             });
 
             if (!response.ok) {
@@ -150,7 +150,7 @@ export default function SimulateurPage() {
                     <div className="py-4">
                         <p className="mb-4">
                             Vous êtes sur le point d'appliquer la simulation sélectionnée au planning actuel.
-                            Cette action va créer ou modifier {selectedAssignments.length} affectations.
+                            Cette action va créer ou modifier {selectedAssignments.length} gardes/vacations.
                         </p>
                         <p className="mb-4 font-medium">
                             Cette action ne peut pas être annulée automatiquement.

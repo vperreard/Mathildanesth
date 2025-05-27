@@ -53,7 +53,7 @@ jest.mock('@prisma/client', () => {
     user: {
       findMany: jest.fn(),
     },
-    assignment: {
+    attribution: {
       findMany: jest.fn(),
       create: jest.fn(),
       groupBy: jest.fn(),
@@ -86,12 +86,12 @@ describe('Module de Planning - Tests d\'intégration', () => {
     await integrationService.disconnect();
   });
 
-  describe('Génération de planning avec trames', () => {
-    it('devrait générer un planning complet avec trames et gardes', async () => {
+  describe('Génération de planning avec tableaux de service', () => {
+    it('devrait générer un planning complet avec tableaux de service et gardes', async () => {
       // Mock des données
       const mockTrame = {
         id: 1,
-        name: 'Trame Test',
+        name: 'Tableau de service Test',
         isActive: true,
         siteId: 'site-123',
         dateDebutEffet: new Date('2024-01-01'),
@@ -127,9 +127,9 @@ describe('Module de Planning - Tests d\'intégration', () => {
       // Configuration des mocks
       prisma.trameModele.findMany.mockResolvedValue([mockTrame]);
       prisma.user.findMany.mockResolvedValue(mockUsers);
-      prisma.assignment.findMany.mockResolvedValue([]);
-      prisma.assignment.create.mockResolvedValue({ id: 'new-assignment' });
-      prisma.assignment.groupBy.mockResolvedValue([]);
+      prisma.attribution.findMany.mockResolvedValue([]);
+      prisma.attribution.create.mockResolvedValue({ id: 'new-attribution' });
+      prisma.attribution.groupBy.mockResolvedValue([]);
       prisma.$queryRaw.mockResolvedValue([]);
 
       // Mesure de performance
@@ -212,7 +212,7 @@ describe('Module de Planning - Tests d\'intégration', () => {
       expect(validation.errors[0]).toContain('2 jour(s) sans garde');
     });
 
-    it('devrait détecter les conflits d\'affectations', async () => {
+    it('devrait détecter les conflits d\'gardes/vacations', async () => {
       // Premier appel : pas de jours sans garde
       prisma.$queryRaw.mockResolvedValueOnce([]);
       
@@ -264,7 +264,7 @@ describe('Module de Planning - Tests d\'intégration', () => {
   describe('Calcul du score d\'équité', () => {
     it('devrait calculer un score d\'équité correct', async () => {
       // Distribution équitable
-      prisma.assignment.groupBy.mockResolvedValue([
+      prisma.attribution.groupBy.mockResolvedValue([
         { userId: 1, _count: 5 },
         { userId: 2, _count: 5 },
         { userId: 3, _count: 5 },
@@ -282,7 +282,7 @@ describe('Module de Planning - Tests d\'intégration', () => {
 
     it('devrait pénaliser les distributions inéquitables', async () => {
       // Distribution très inéquitable
-      prisma.assignment.groupBy.mockResolvedValue([
+      prisma.attribution.groupBy.mockResolvedValue([
         { userId: 1, _count: 10 },
         { userId: 2, _count: 2 },
         { userId: 3, _count: 8 },
@@ -316,9 +316,9 @@ describe('Module de Planning - Tests d\'intégration', () => {
 
       prisma.trameModele.findMany.mockResolvedValue([]);
       prisma.user.findMany.mockResolvedValue(mockUsers);
-      prisma.assignment.findMany.mockResolvedValue([]);
-      prisma.assignment.create.mockResolvedValue({ id: 'new' });
-      prisma.assignment.groupBy.mockResolvedValue([]);
+      prisma.attribution.findMany.mockResolvedValue([]);
+      prisma.attribution.create.mockResolvedValue({ id: 'new' });
+      prisma.attribution.groupBy.mockResolvedValue([]);
       prisma.$queryRaw.mockResolvedValue([]);
 
       const startTime = Date.now();
@@ -342,7 +342,7 @@ describe('Module de Planning - Tests d\'intégration', () => {
 });
 
 describe('PlanningGenerator - Tests unitaires', () => {
-  let generator: PlanningGenerator;
+  let organisateur: PlanningGenerator;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -358,7 +358,7 @@ describe('PlanningGenerator - Tests unitaires', () => {
       optimizeDistribution: true,
     };
 
-    generator = new PlanningGenerator(params);
+    organisateur = new PlanningGenerator(params);
   });
 
   describe('Initialisation', () => {
@@ -378,11 +378,11 @@ describe('PlanningGenerator - Tests unitaires', () => {
         },
       ];
 
-      await generator.initialize(personnel as any, []);
+      await organisateur.initialize(personnel as any, []);
 
       // Le générateur devrait être initialisé
-      expect((generator as any).isInitialized).toBe(true);
-      expect((generator as any).personnel).toHaveLength(2);
+      expect((organisateur as any).isInitialized).toBe(true);
+      expect((organisateur as any).personnel).toHaveLength(2);
     });
   });
 
@@ -393,7 +393,7 @@ describe('PlanningGenerator - Tests unitaires', () => {
         { id: 2, name: 'User2', role: 'MAR', isActive: true },
       ];
 
-      await generator.initialize(personnel as any, []);
+      await organisateur.initialize(personnel as any, []);
 
       // Simuler une génération
       const mockAssignments = [
@@ -404,7 +404,7 @@ describe('PlanningGenerator - Tests unitaires', () => {
       ];
 
       // Calculer le score (méthode privée, donc on teste indirectement)
-      const result = await generator.generate();
+      const result = await organisateur.generate();
       
       expect(result).toBeDefined();
       expect(result.score).toBeDefined();

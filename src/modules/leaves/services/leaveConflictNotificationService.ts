@@ -29,7 +29,7 @@ export class LeaveConflictNotificationService {
      * Génère une notification formatée pour un conflit spécifique
      * @param conflict Le conflit pour lequel générer la notification
      * @param locale La locale à utiliser pour la traduction
-     * @returns Template de notification formaté
+     * @returns Modèle de notification formaté
      */
     public generateNotificationTemplate(
         conflict: LeaveConflict,
@@ -143,14 +143,14 @@ export class LeaveConflictNotificationService {
         locale: string = 'fr'
     ): Promise<boolean> {
         try {
-            const template = this.generateNotificationTemplate(conflict, locale);
+            const modèle = this.generateNotificationTemplate(conflict, locale);
 
             // Pour chaque utilisateur concerné
             for (const userId of userIds) {
                 await this.emailService.sendEmail({
                     to: userId,
-                    subject: template.title,
-                    body: template.message,
+                    subject: modèle.title,
+                    body: modèle.message,
                     templateId: 'leave-conflict-notification',
                     data: {
                         conflictType: conflict.type,
@@ -183,14 +183,14 @@ export class LeaveConflictNotificationService {
         locale: string = 'fr'
     ): Promise<boolean> {
         try {
-            const template = this.generateNotificationTemplate(conflict, locale);
+            const modèle = this.generateNotificationTemplate(conflict, locale);
 
             // Pour chaque utilisateur concerné
             for (const userId of userIds) {
                 await this.notificationService.createNotification({
                     userId,
-                    title: template.title,
-                    message: template.message,
+                    title: modèle.title,
+                    message: modèle.message,
                     type: 'leave-conflict',
                     severity: this.mapSeverityToNotificationType(conflict.severity),
                     data: {

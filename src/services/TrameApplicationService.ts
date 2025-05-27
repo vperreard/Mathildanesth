@@ -6,7 +6,7 @@ jest.mock('@/lib/prisma');
 
 
 interface TrameModeleWithRelations extends TrameModele {
-  affectations: (AffectationModele & {
+  gardes/vacations: (AffectationModele & {
     activityType: ActivityType;
     operatingRoom: OperatingRoom | null;
     personnelRequis: (PersonnelRequisModele & {
@@ -40,7 +40,7 @@ export class TrameApplicationService {
   }
 
   /**
-   * Applique un modèle de trame à une plage de dates
+   * Applique un modèle de tableau de service à une plage de dates
    * Génère automatiquement les BlocDayPlanning et BlocRoomAssignment selon la récurrence
    */
   async applyTrameToDateRange(
@@ -60,10 +60,10 @@ export class TrameApplicationService {
     };
 
     try {
-      // 1. Récupérer le modèle de trame avec toutes ses relations
+      // 1. Récupérer le modèle de tableau de service avec toutes ses relations
       const trameModele = await this.getTrameModeleWithRelations(trameModeleId);
       if (!trameModele) {
-        result.errors.push(`Modèle de trame avec l'ID ${trameModeleId} non trouvé`);
+        result.errors.push(`Modèle de tableau de service avec l'ID ${trameModeleId} non trouvé`);
         return result;
       }
 
@@ -89,11 +89,11 @@ export class TrameApplicationService {
         result.success = true;
         result.message = `Mode simulation: ${applicableDates.length} dates seraient traitées`;
         result.planningsCreated = applicableDates.length;
-        result.assignmentsCreated = applicableDates.length * trameModele.affectations.length;
+        result.assignmentsCreated = applicableDates.length * trameModele.gardes/vacations.length;
         return result;
       }
 
-      // 5. Appliquer la trame pour chaque date
+      // 5. Appliquer la tableau de service pour chaque date
       for (const date of applicableDates) {
         try {
           const dayResult = await this.applyTrameToSingleDate(
@@ -118,8 +118,8 @@ export class TrameApplicationService {
 
       result.success = result.errors.length === 0;
       result.message = result.success 
-        ? `Trame appliquée avec succès sur ${result.planningsCreated} jours`
-        : `Trame appliquée partiellement avec ${result.errors.length} erreurs`;
+        ? `Tableau de service appliquée avec succès sur ${result.planningsCreated} jours`
+        : `Tableau de service appliquée partiellement avec ${result.errors.length} erreurs`;
 
       return result;
 
@@ -130,13 +130,13 @@ export class TrameApplicationService {
   }
 
   /**
-   * Récupère un modèle de trame avec toutes ses relations
+   * Récupère un modèle de tableau de service avec toutes ses relations
    */
   private async getTrameModeleWithRelations(trameModeleId: number): Promise<TrameModeleWithRelations | null> {
     return await this.prisma.trameModele.findUnique({
       where: { id: trameModeleId },
       include: {
-        affectations: {
+        gardes/vacations: {
           include: {
             activityType: true,
             operatingRoom: true,
@@ -156,7 +156,7 @@ export class TrameApplicationService {
   }
 
   /**
-   * Valide les paramètres d'application de la trame
+   * Valide les paramètres d'application de la tableau de service
    */
   private validateApplyParameters(
     trameModele: TrameModeleWithRelations,
@@ -166,18 +166,18 @@ export class TrameApplicationService {
   ): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    // Vérifier que la trame est active
+    // Vérifier que la tableau de service est active
     if (!trameModele.isActive) {
-      errors.push('Le modèle de trame n\'est pas actif');
+      errors.push('Le modèle de tableau de service n\'est pas actif');
     }
 
-    // Vérifier les dates de validité de la trame
+    // Vérifier les dates de validité de la tableau de service
     if (startDate < trameModele.dateDebutEffet) {
-      errors.push(`La date de début est antérieure à la date d'effet de la trame (${format(trameModele.dateDebutEffet, 'dd/MM/yyyy')})`);
+      errors.push(`La date de début est antérieure à la date d'effet de la tableau de service (${format(trameModele.dateDebutEffet, 'dd/MM/yyyy')})`);
     }
 
     if (trameModele.dateFinEffet && endDate > trameModele.dateFinEffet) {
-      errors.push(`La date de fin est postérieure à la date de fin d'effet de la trame (${format(trameModele.dateFinEffet, 'dd/MM/yyyy')})`);
+      errors.push(`La date de fin est postérieure à la date de fin d'effet de la tableau de service (${format(trameModele.dateFinEffet, 'dd/MM/yyyy')})`);
     }
 
     // Vérifier la cohérence des dates
@@ -185,14 +185,14 @@ export class TrameApplicationService {
       errors.push('La date de début doit être antérieure à la date de fin');
     }
 
-    // Vérifier que la trame a des affectations
-    if (trameModele.affectations.length === 0) {
-      errors.push('Le modèle de trame ne contient aucune affectation active');
+    // Vérifier que la tableau de service a des gardes/vacations
+    if (trameModele.gardes/vacations.length === 0) {
+      errors.push('Le modèle de tableau de service ne contient aucune garde/vacation active');
     }
 
     // Vérifier la cohérence du site si spécifié
     if (trameModele.siteId && trameModele.siteId !== siteId) {
-      errors.push(`Le modèle de trame est associé au site ${trameModele.siteId} mais l'application est demandée pour le site ${siteId}`);
+      errors.push(`Le modèle de tableau de service est associé au site ${trameModele.siteId} mais l'application est demandée pour le site ${siteId}`);
     }
 
     return {
@@ -202,7 +202,7 @@ export class TrameApplicationService {
   }
 
   /**
-   * Génère la liste des dates auxquelles appliquer la trame selon sa récurrence
+   * Génère la liste des dates auxquelles appliquer la tableau de service selon sa récurrence
    */
   private generateApplicableDates(
     trameModele: TrameModeleWithRelations,
@@ -225,14 +225,14 @@ export class TrameApplicationService {
       let currentDate = new Date(startDate);
       
       while (currentDate <= endDate) {
-        // Vérifier si la date est dans la période d'effet de la trame
+        // Vérifier si la date est dans la période d'effet de la tableau de service
         if (currentDate >= trameModele.dateDebutEffet && 
             (!trameModele.dateFinEffet || currentDate <= trameModele.dateFinEffet)) {
           
           const dayOfWeek = getISODay(currentDate); // Lundi = 1, Dimanche = 7
           const weekNumber = getISOWeek(currentDate);
           
-          // Vérifier si ce jour de la semaine est actif dans la trame
+          // Vérifier si ce jour de la semaine est actif dans la tableau de service
           if (trameModele.joursSemaineActifs.includes(dayOfWeek)) {
             // Vérifier le type de semaine (paire/impaire/toutes)
             if (this.isDateApplicableForWeekType(weekNumber, trameModele.typeSemaine)) {
@@ -265,7 +265,7 @@ export class TrameApplicationService {
   }
 
   /**
-   * Applique la trame à une date spécifique
+   * Applique la tableau de service à une date spécifique
    */
   private async applyTrameToSingleDate(
     trameModele: TrameModeleWithRelations,
@@ -304,22 +304,22 @@ export class TrameApplicationService {
       warnings.push(`Planning existant pour le ${format(date, 'dd/MM/yyyy')} - utilisez forceOverwrite pour écraser`);
     }
 
-    // 2. Traiter chaque affectation de la trame
+    // 2. Traiter chaque garde/vacation de la tableau de service
     const dayOfWeek = this.convertISODayToDayOfWeek(getISODay(date));
     const weekNumber = getISOWeek(date);
     const isApplicableWeek = this.isDateApplicableForWeekType(weekNumber, trameModele.typeSemaine);
 
-    for (const affectation of trameModele.affectations) {
-      // Vérifier si cette affectation s'applique à ce jour et ce type de semaine
-      if (affectation.jourSemaine === dayOfWeek && 
-          (affectation.typeSemaine === 'TOUTES' || 
-           (affectation.typeSemaine === 'PAIRES' && weekNumber % 2 === 0) ||
-           (affectation.typeSemaine === 'IMPAIRES' && weekNumber % 2 === 1))) {
+    for (const garde/vacation of trameModele.gardes/vacations) {
+      // Vérifier si cette garde/vacation s'applique à ce jour et ce type de semaine
+      if (garde/vacation.jourSemaine === dayOfWeek && 
+          (garde/vacation.typeSemaine === 'TOUTES' || 
+           (garde/vacation.typeSemaine === 'PAIRES' && weekNumber % 2 === 0) ||
+           (garde/vacation.typeSemaine === 'IMPAIRES' && weekNumber % 2 === 1))) {
         
         try {
           const assignmentCreated = await this.createRoomAssignmentFromAffectation(
             blocDayPlanning.id,
-            affectation,
+            garde/vacation,
             options
           );
           
@@ -327,7 +327,7 @@ export class TrameApplicationService {
             assignmentsCreated++;
           }
         } catch (error) {
-          warnings.push(`Erreur lors de la création de l'affectation pour ${affectation.activityType.name}: ${error instanceof Error ? error.message : String(error)}`);
+          warnings.push(`Erreur lors de la création de l'garde/vacation pour ${garde/vacation.activityType.name}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
     }
@@ -344,7 +344,7 @@ export class TrameApplicationService {
    */
   private async createRoomAssignmentFromAffectation(
     blocDayPlanningId: string,
-    affectation: AffectationModele & {
+    garde/vacation: AffectationModele & {
       activityType: ActivityType;
       operatingRoom: OperatingRoom | null;
       personnelRequis: (PersonnelRequisModele & {
@@ -355,17 +355,17 @@ export class TrameApplicationService {
     options: DateRangeOptions
   ): Promise<boolean> {
     
-    if (!affectation.operatingRoom) {
-      throw new Error(`Aucune salle d'opération définie pour l'affectation ${affectation.activityType.name}`);
+    if (!garde/vacation.operatingRoom) {
+      throw new Error(`Aucune salle d'opération définie pour l'garde/vacation ${garde/vacation.activityType.name}`);
     }
 
-    // Vérifier s'il existe déjà une affectation pour cette salle et cette période
+    // Vérifier s'il existe déjà une garde/vacation pour cette salle et cette période
     if (!options.forceOverwrite && !options.skipExistingAssignments) {
       const existingAssignment = await this.prisma.blocRoomAssignment.findFirst({
         where: {
           blocDayPlanningId,
-          operatingRoomId: affectation.operatingRoomId!,
-          period: affectation.periode
+          operatingRoomId: garde/vacation.operatingRoomId!,
+          period: garde/vacation.periode
         }
       });
 
@@ -373,25 +373,25 @@ export class TrameApplicationService {
         if (options.skipExistingAssignments) {
           return false; // Skip sans erreur
         } else {
-          throw new Error(`Affectation existante pour la salle ${affectation.operatingRoom.name} en ${affectation.periode}`);
+          throw new Error(`Garde/Vacation existante pour la salle ${garde/vacation.operatingRoom.name} en ${garde/vacation.periode}`);
         }
       }
     }
 
-    // Créer l'affectation de salle
+    // Créer l'garde/vacation de salle
     const roomAssignment = await this.prisma.blocRoomAssignment.create({
       data: {
         blocDayPlanningId,
-        operatingRoomId: affectation.operatingRoomId!,
-        period: affectation.periode,
-        chirurgienId: affectation.personnelRequis.find(p => p.surgeonHabituel)?.surgeonHabituel?.id,
-        expectedSpecialty: affectation.activityType.name,
-        notes: `Généré automatiquement depuis la trame ${affectation.trameModeleId}`
+        operatingRoomId: garde/vacation.operatingRoomId!,
+        period: garde/vacation.periode,
+        chirurgienId: garde/vacation.personnelRequis.find(p => p.surgeonHabituel)?.surgeonHabituel?.id,
+        expectedSpecialty: garde/vacation.activityType.name,
+        notes: `Généré automatiquement depuis la tableau de service ${garde/vacation.trameModeleId}`
       }
     });
 
-    // Créer les affectations de personnel
-    for (const personnelRequis of affectation.personnelRequis) {
+    // Créer les gardes/vacations de personnel
+    for (const personnelRequis of garde/vacation.personnelRequis) {
       if (personnelRequis.userHabituel && personnelRequis.roleGenerique) {
         await this.createStaffAssignmentFromPersonnelRequis(
           roomAssignment.id,

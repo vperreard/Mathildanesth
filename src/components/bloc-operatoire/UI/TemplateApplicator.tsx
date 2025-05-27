@@ -38,7 +38,7 @@ interface ApplicationOptions {
 }
 
 interface TemplateApplicatorProps {
-    templates?: TrameTemplate[];
+    modèles?: TrameTemplate[];
     selectedWeek?: Date;
     onApply?: (templateId: number, options: ApplicationOptions) => Promise<void>;
     onPreview?: (templateId: number, options: ApplicationOptions) => Promise<any>;
@@ -46,12 +46,12 @@ interface TemplateApplicatorProps {
     className?: string;
 }
 
-// Composant pour une carte de template
+// Composant pour une carte de modèle
 const TemplateCard: React.FC<{
-    template: TrameTemplate;
+    modèle: TrameTemplate;
     isSelected: boolean;
     onSelect: () => void;
-}> = ({ template, isSelected, onSelect }) => (
+}> = ({ modèle, isSelected, onSelect }) => (
     <motion.div
         className={`
             p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
@@ -63,43 +63,43 @@ const TemplateCard: React.FC<{
         onClick={onSelect}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        layoutId={`template-${template.id}`}
+        layoutId={`modèle-${modèle.id}`}
     >
         <div className="flex items-start justify-between mb-3">
             <div className="flex items-center space-x-2">
                 <FileText className="w-5 h-5 text-blue-600" />
-                <h3 className="font-medium text-gray-900">{template.name}</h3>
+                <h3 className="font-medium text-gray-900">{modèle.name}</h3>
             </div>
             {isSelected && (
                 <CheckCircle className="w-5 h-5 text-blue-600" />
             )}
         </div>
 
-        {template.description && (
-            <p className="text-sm text-gray-600 mb-3">{template.description}</p>
+        {modèle.description && (
+            <p className="text-sm text-gray-600 mb-3">{modèle.description}</p>
         )}
 
         <div className="flex items-center space-x-2 mb-2">
             <Calendar className="w-4 h-4 text-gray-500" />
             <span className="text-sm text-gray-700">
-                Récurrence: {template.recurrence}
+                Récurrence: {modèle.recurrence}
             </span>
         </div>
 
         <div className="flex items-center justify-between">
             <Badge variant="secondary" className="text-xs">
-                {template.affectationsCount} affectations
+                {modèle.affectationsCount} gardes/vacations
             </Badge>
-            {template.lastUsed && (
+            {modèle.lastUsed && (
                 <span className="text-xs text-gray-500">
-                    Utilisé le {template.lastUsed.toLocaleDateString('fr-FR')}
+                    Utilisé le {modèle.lastUsed.toLocaleDateString('fr-FR')}
                 </span>
             )}
         </div>
 
-        {template.tags && template.tags.length > 0 && (
+        {modèle.tags && modèle.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
-                {template.tags.map(tag => (
+                {modèle.tags.map(tag => (
                     <Badge key={tag} variant="outline" className="text-xs">
                         {tag}
                     </Badge>
@@ -111,7 +111,7 @@ const TemplateCard: React.FC<{
 
 // Composant principal
 export const TemplateApplicator: React.FC<TemplateApplicatorProps> = ({
-    templates = [],
+    modèles = [],
     selectedWeek = new Date(),
     onApply,
     onPreview,
@@ -130,7 +130,7 @@ export const TemplateApplicator: React.FC<TemplateApplicatorProps> = ({
     const [isApplying, setIsApplying] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
 
-    const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
+    const selectedTemplate = modèles.find(t => t.id === selectedTemplateId);
 
     const handlePreview = useCallback(async () => {
         if (!selectedTemplateId || !onPreview) return;
@@ -166,22 +166,22 @@ export const TemplateApplicator: React.FC<TemplateApplicatorProps> = ({
     return (
         <div className={`space-y-6 ${className}`}>
             <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Appliquer un Template</h2>
+                <h2 className="text-lg font-semibold">Appliquer un Modèle</h2>
                 <Badge variant="outline">
-                    {templates.length} templates disponibles
+                    {modèles.length} modèles disponibles
                 </Badge>
             </div>
 
-            {/* Sélection du template */}
+            {/* Sélection du modèle */}
             <div className="space-y-4">
-                <h3 className="text-md font-medium">1. Choisir un template</h3>
+                <h3 className="text-md font-medium">1. Choisir un modèle</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {templates.map(template => (
+                    {modèles.map(modèle => (
                         <TemplateCard
-                            key={template.id}
-                            template={template}
-                            isSelected={selectedTemplateId === template.id}
-                            onSelect={() => setSelectedTemplateId(template.id)}
+                            key={modèle.id}
+                            modèle={modèle}
+                            isSelected={selectedTemplateId === modèle.id}
+                            onSelect={() => setSelectedTemplateId(modèle.id)}
                         />
                     ))}
                 </div>
@@ -228,7 +228,7 @@ export const TemplateApplicator: React.FC<TemplateApplicatorProps> = ({
                                             onCheckedChange={(checked) => updateOptions('overwriteExisting', checked)}
                                         />
                                         <label htmlFor="overwrite" className="text-sm">
-                                            Remplacer les affectations existantes
+                                            Remplacer les gardes/vacations existantes
                                         </label>
                                     </div>
 
@@ -262,7 +262,7 @@ export const TemplateApplicator: React.FC<TemplateApplicatorProps> = ({
                         <Alert>
                             <Info className="h-4 w-4" />
                             <AlertDescription>
-                                {previewResults.affectationsToCreate || 0} affectations seront créées,
+                                {previewResults.affectationsToCreate || 0} gardes/vacations seront créées,
                                 {previewResults.conflictsFound || 0} conflits détectés.
                             </AlertDescription>
                         </Alert>

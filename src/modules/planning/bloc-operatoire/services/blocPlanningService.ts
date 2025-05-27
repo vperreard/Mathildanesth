@@ -52,33 +52,33 @@ export class BlocPlanningService {
 
     /**
      * Crée ou met à jour les plannings journaliers du bloc pour un site et une période donnés,
-     * en se basant sur des trames.
+     * en se basant sur des tableaux de service.
      */
     async createOrUpdateBlocDayPlanningsFromTrames(params: CreateOrUpdatePlanningsParams): Promise<BlocDayPlanning[]> {
         const { siteId, startDate, endDate, trameIds, initiatorUserId } = params;
         const generatedPlannings: BlocDayPlanning[] = [];
 
-        // 1. Récupérer les trames et leurs affectations habituelles
-        const trames = await prisma.blocTramePlanning.findMany({
+        // 1. Récupérer les tableaux de service et leurs gardes/vacations habituelles
+        const tableaux de service = await prisma.blocTramePlanning.findMany({
             where: {
                 id: { in: trameIds },
                 isActive: true,
             },
-            include: { affectations: { include: { user: true, surgeon: true } } }
+            include: { gardes/vacations: { include: { user: true, surgeon: true } } }
         });
 
-        if (!trames.length) {
+        if (!tableaux de service.length) {
             // Ne pas jeter d'erreur ici, car on peut vouloir créer un planning vide basé sur une période,
-            // puis y ajouter des affectations manuellement. Ou alors, la création depuis trames est stricte.
-            // Pour l'instant, on retourne un tableau vide si pas de trames fournies et création stricte depuis trames.
+            // puis y ajouter des gardes/vacations manuellement. Ou alors, la création depuis tableaux de service est stricte.
+            // Pour l'instant, on retourne un tableau vide si pas de tableaux de service fournies et création stricte depuis tableaux de service.
             // Si le but est de créer des BlocDayPlanning vides pour la période, il faudrait une autre logique.
-            console.warn("Aucune trame active trouvée pour les IDs fournis. Aucun planning ne sera généré ou mis à jour à partir de trames.");
+            console.warn("Aucune tableau de service active trouvée pour les IDs fournis. Aucun planning ne sera généré ou mis à jour à partir de tableaux de service.");
             return [];
-            // throw new Error("Aucune trame active trouvée pour les IDs fournis.");
+            // throw new Error("Aucune tableau de service active trouvée pour les IDs fournis.");
         }
 
-        const allUserIdsInTrames = trames.flatMap((t: BlocTramePlanning & { affectations: (BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null })[] }) => t.affectations.map((a: BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null }) => a.userId).filter(Boolean) as number[]);
-        const allSurgeonIdsInTrames = trames.flatMap((t: BlocTramePlanning & { affectations: (BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null })[] }) => t.affectations.map((a: BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null }) => a.chirurgienId).filter(Boolean) as number[]);
+        const allUserIdsInTrames = tableaux de service.flatMap((t: BlocTramePlanning & { gardes/vacations: (BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null })[] }) => t.gardes/vacations.map((a: BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null }) => a.userId).filter(Boolean) as number[]);
+        const allSurgeonIdsInTrames = tableaux de service.flatMap((t: BlocTramePlanning & { gardes/vacations: (BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null })[] }) => t.gardes/vacations.map((a: BlocAffectationHabituelle & { user: User | null, surgeon: Surgeon | null }) => a.chirurgienId).filter(Boolean) as number[]);
 
         const absences = await prisma.absence.findMany({
             where: {
@@ -101,7 +101,7 @@ export class BlocPlanningService {
             // Trouver ou créer le BlocDayPlanning pour ce jour et ce site
             let blocDayPlanning = await prisma.blocDayPlanning.findUnique({
                 where: { siteId_date: { siteId, date: currentDate } },
-                include: { assignments: { include: { staffAssignments: true } }, conflicts: true }
+                include: { attributions: { include: { staffAssignments: true } }, conflicts: true }
             });
 
             if (!blocDayPlanning) {
@@ -111,7 +111,7 @@ export class BlocPlanningService {
                         date: currentDate,
                         status: BlocPlanningStatus.DRAFT,
                     },
-                    include: { assignments: { include: { staffAssignments: true } }, conflicts: true }
+                    include: { attributions: { include: { staffAssignments: true } }, conflicts: true }
                 });
             } else if (blocDayPlanning.status !== BlocPlanningStatus.DRAFT) {
                 console.warn(`Le planning pour le ${currentDate.toISOString().split('T')[0]} sur le site ${siteId} n'est pas en DRAFT. Il ne sera pas modifié.`);
@@ -120,14 +120,14 @@ export class BlocPlanningService {
                 continue;
             }
 
-            // Supprimer les anciennes affectations et conflits (ou marquer comme obsolètes) pour ce planning DRAFT
+            // Supprimer les anciennes gardes/vacations et conflits (ou marquer comme obsolètes) pour ce planning DRAFT
             await prisma.blocPlanningConflict.deleteMany({ where: { blocDayPlanningId: blocDayPlanning.id } });
             await prisma.blocStaffAssignment.deleteMany({ where: { blocRoomAssignment: { blocDayPlanningId: blocDayPlanning.id } } });
             await prisma.blocRoomAssignment.deleteMany({ where: { blocDayPlanningId: blocDayPlanning.id } });
 
-            // Appliquer les affectations des trames pour ce jour
-            for (const trame of trames) {
-                for (const affHab of trame.affectations) {
+            // Appliquer les gardes/vacations des tableaux de service pour ce jour
+            for (const tableau de service of tableaux de service) {
+                for (const affHab of tableau de service.gardes/vacations) {
                     if (affHab.jourSemaine !== dayOfWeek || (affHab.typeSemaine !== WeekType.ALL && affHab.typeSemaine !== weekType)) {
                         continue;
                     }
@@ -139,10 +139,10 @@ export class BlocPlanningService {
                         continue; // Personnel absent
                     }
 
-                    // Créer les affectations dans le BlocDayPlanning
+                    // Créer les gardes/vacations dans le BlocDayPlanning
                     if (affHab.typeAffectation === 'BLOC_OPERATION' && affHab.operatingRoomId) {
-                        // Pour l'instant, on gère une seule affectation de trame par salle/période.
-                        // Une logique de priorité/fusion serait nécessaire si plusieurs trames affectent la même salle.
+                        // Pour l'instant, on gère une seule garde/vacation de tableau de service par salle/période.
+                        // Une logique de priorité/fusion serait nécessaire si plusieurs tableaux de service affectent la même salle.
                         const existingAssignmentForRoomPeriod = await prisma.blocRoomAssignment.findFirst({
                             where: {
                                 blocDayPlanningId: blocDayPlanning.id,
@@ -152,28 +152,28 @@ export class BlocPlanningService {
                         });
 
                         if (existingAssignmentForRoomPeriod) {
-                            // TODO: Gestion des conflits de trames pour la même salle/période
-                            // Options: Priorité de trame, première arrivée, fusion manuelle, ou générer un conflit.
+                            // TODO: Gestion des conflits de tableaux de service pour la même salle/période
+                            // Options: Priorité de tableau de service, première arrivée, fusion manuelle, ou générer un conflit.
                             // Pour V1: Générer un conflit d'avertissement.
-                            console.warn(`Conflit de trame: Salle ${affHab.operatingRoomId} déjà assignée pour ${affHab.periode} le ${currentDate.toISOString().split('T')[0]}. Trame ${trame.id}, Affectation ${affHab.id}. La première affectation de trame est conservée.`);
+                            console.warn(`Conflit de tableau de service: Salle ${affHab.operatingRoomId} déjà assignée pour ${affHab.periode} le ${currentDate.toISOString().split('T')[0]}. Tableau de service ${tableau de service.id}, Garde/Vacation ${affHab.id}. La première garde/vacation de tableau de service est conservée.`);
 
                             // Création d'un conflit pour notifier l'utilisateur
                             await prisma.blocPlanningConflict.create({
                                 data: {
                                     blocDayPlanningId: blocDayPlanning.id,
-                                    relatedRoomAssignmentId: existingAssignmentForRoomPeriod.id, // Lier au premier assignment
+                                    relatedRoomAssignmentId: existingAssignmentForRoomPeriod.id, // Lier au premier attribution
                                     relatedStaffAssignmentId: null,
                                     relatedUserId: null,
                                     relatedSurgeonId: null,
                                     type: 'TRAME_OVERLAP_WARNING',
-                                    message: `Conflit de trame : Plusieurs trames (${existingAssignmentForRoomPeriod.sourceBlocTrameAffectationId ? `provenant de l'affectation de trame ID ${existingAssignmentForRoomPeriod.sourceBlocTrameAffectationId}` : 'origine inconnue'} et trame ID ${trame.id} / affectation ID ${affHab.id}) tentent d'affecter la salle ID ${affHab.operatingRoomId} pour la période ${affHab.periode}. La première affectation a été conservée.`,
+                                    message: `Conflit de tableau de service : Plusieurs tableaux de service (${existingAssignmentForRoomPeriod.sourceBlocTrameAffectationId ? `provenant de l'garde/vacation de tableau de service ID ${existingAssignmentForRoomPeriod.sourceBlocTrameAffectationId}` : 'origine inconnue'} et tableau de service ID ${tableau de service.id} / garde/vacation ID ${affHab.id}) tentent d'affecter la salle ID ${affHab.operatingRoomId} pour la période ${affHab.periode}. La première garde/vacation a été conservée.`,
                                     severity: ConflictSeverity.WARNING,
                                     isResolved: false, isForceResolved: false,
                                     resolvedAt: null, resolvedByUserId: null, resolutionNotes: null,
                                     forceResolvedAt: null, forceResolvedByUserId: null, forceResolutionNotes: null
                                 }
                             });
-                            continue; // On garde la première affectation trouvée et on ne la remplace pas
+                            continue; // On garde la première garde/vacation trouvée et on ne la remplace pas
                         }
 
                         const roomAssignment = await prisma.blocRoomAssignment.create({
@@ -187,7 +187,7 @@ export class BlocPlanningService {
                             }
                         });
 
-                        // Si l'affectation habituelle concerne un User (MAR/IADE) directement pour cette salle de bloc
+                        // Si l'garde/vacation habituelle concerne un User (MAR/IADE) directement pour cette salle de bloc
                         if (affHab.userId && affHab.roleInAffectation) {
                             await prisma.blocStaffAssignment.create({
                                 data: {
@@ -200,7 +200,7 @@ export class BlocPlanningService {
                         }
                     }
                     // TODO: Gérer autres typeAffectation (CONSULTATION, GARDE, ASTREINTE)
-                    // Ces affectations ne vont pas dans BlocRoomAssignment mais pourraient générer des contraintes
+                    // Ces gardes/vacations ne vont pas dans BlocRoomAssignment mais pourraient générer des contraintes
                     // ou être stockées dans un autre modèle (GeneralAssignment)
                 }
             }
@@ -218,12 +218,12 @@ export class BlocPlanningService {
     /**
      * Récupère un planning journalier par son ID avec toutes ses relations.
      */
-    async getBlocDayPlanningById(planningId: string): Promise<BlocDayPlanning & { site: Site, assignments: (BlocRoomAssignment & { operatingRoom: OperatingRoom & { operatingSector: OperatingSector | null }, surgeon: Surgeon | null, staffAssignments: (BlocStaffAssignment & { user: User | null })[] })[], conflicts: BlocPlanningConflict[] } | null> {
+    async getBlocDayPlanningById(planningId: string): Promise<BlocDayPlanning & { site: Site, attributions: (BlocRoomAssignment & { operatingRoom: OperatingRoom & { operatingSector: OperatingSector | null }, surgeon: Surgeon | null, staffAssignments: (BlocStaffAssignment & { user: User | null })[] })[], conflicts: BlocPlanningConflict[] } | null> {
         return prisma.blocDayPlanning.findUnique({
             where: { id: planningId },
             include: {
                 site: true,
-                assignments: {
+                attributions: {
                     include: {
                         operatingRoom: { include: { operatingSector: true } }, // Modifié ici
                         surgeon: true,
@@ -249,7 +249,7 @@ export class BlocPlanningService {
             },
             include: {
                 site: true,
-                assignments: {
+                attributions: {
                     include: {
                         operatingRoom: { include: { operatingSector: true } }, // Modifié ici
                         surgeon: true,
@@ -276,7 +276,7 @@ export class BlocPlanningService {
             where: { id: planningId },
             include: {
                 site: true, // Accès direct aux champs de Site, pas de sous-relation siteConfiguration
-                assignments: {
+                attributions: {
                     include: {
                         operatingRoom: { include: { operatingSector: true } }, // Modifié ici
                         surgeon: true,
@@ -306,16 +306,16 @@ export class BlocPlanningService {
 
         const { date } = planning;
         const site = planning.site; // Garanti non-null par le typage et le check ci-dessus
-        const assignments = planning.assignments;
+        const attributions = planning.attributions;
 
         // Règle 1: Personnel Absent (MAR, IADE, Chirurgien)
-        for (const assignment of assignments) {
-            const period = assignment.period;
+        for (const attribution of attributions) {
+            const period = attribution.period;
 
-            if (assignment.chirurgienId && assignment.surgeon) {
+            if (attribution.chirurgienId && attribution.surgeon) {
                 const surgeonAbsences = await prisma.absence.findMany({
                     where: {
-                        chirurgienId: assignment.chirurgienId,
+                        chirurgienId: attribution.chirurgienId,
                         startDate: { lte: date },
                         endDate: { gte: date },
                         status: LeaveStatus.APPROVED,
@@ -326,10 +326,10 @@ export class BlocPlanningService {
                     if (this.isPersonnelAbsentForPeriod(date, period, absence.startDate, absence.endDate)) {
                         conflictsToCreate.push({
                             blocDayPlanningId: planning.id,
-                            relatedRoomAssignmentId: assignment.id,
-                            relatedSurgeonId: assignment.chirurgienId,
+                            relatedRoomAssignmentId: attribution.id,
+                            relatedSurgeonId: attribution.chirurgienId,
                             type: 'PERSONNEL_ABSENT',
-                            message: `Le chirurgien ${assignment.surgeon.prenom} ${assignment.surgeon.nom} (ID: ${assignment.chirurgienId}) est absent (${absence.reason}) pendant la période ${period} le ${date.toISOString().split('T')[0]}. Absence du ${absence.startDate.toISOString().split('T')[0]} au ${absence.endDate.toISOString().split('T')[0]}.`, // Correction: lastName -> nom
+                            message: `Le chirurgien ${attribution.surgeon.prenom} ${attribution.surgeon.nom} (ID: ${attribution.chirurgienId}) est absent (${absence.reason}) pendant la période ${period} le ${date.toISOString().split('T')[0]}. Absence du ${absence.startDate.toISOString().split('T')[0]} au ${absence.endDate.toISOString().split('T')[0]}.`, // Correction: lastName -> nom
                             severity: ConflictSeverity.ERROR,
                             isResolved: false,
                         });
@@ -337,7 +337,7 @@ export class BlocPlanningService {
                 }
             }
 
-            for (const staff of assignment.staffAssignments) {
+            for (const staff of attribution.staffAssignments) {
                 if (staff.userId && staff.user) {
                     const userAbsences = await prisma.absence.findMany({
                         where: {
@@ -367,12 +367,12 @@ export class BlocPlanningService {
         // Fin Règle 1
 
 
-        // Règle 2: Double Affectation du Personnel (MAR, IADE)
-        const staffAssignmentsByPeriod: { [key in Period]?: { [userId: number]: { assignment: BlocStaffAssignment & { user: User | null }, room: OperatingRoom, roomAssignmentId: string }[] } } = {};
+        // Règle 2: Double Garde/Vacation du Personnel (MAR, IADE)
+        const staffAssignmentsByPeriod: { [key in Period]?: { [userId: number]: { attribution: BlocStaffAssignment & { user: User | null }, room: OperatingRoom, roomAssignmentId: string }[] } } = {};
 
-        for (const roomAssignment of assignments) {
+        for (const roomAssignment of attributions) {
             if (!roomAssignment.operatingRoom) {
-                console.warn(`[Validation R2] Room assignment ${roomAssignment.id} for planning ${planning.id} has no operating room data. Skipping.`);
+                console.warn(`[Validation R2] Room attribution ${roomAssignment.id} for planning ${planning.id} has no operating room data. Skipping.`);
                 continue;
             }
             const period = roomAssignment.period;
@@ -386,7 +386,7 @@ export class BlocPlanningService {
                         staffAssignmentsByPeriod[period]![staff.userId] = [];
                     }
                     staffAssignmentsByPeriod[period]![staff.userId].push({
-                        assignment: staff as BlocStaffAssignment & { user: User },
+                        attribution: staff as BlocStaffAssignment & { user: User },
                         room: roomAssignment.operatingRoom,
                         roomAssignmentId: roomAssignment.id
                     });
@@ -406,7 +406,7 @@ export class BlocPlanningService {
                 const assignmentsForUser = usersInPeriod[userId];
 
                 if (assignmentsForUser && assignmentsForUser.length > 1) {
-                    const user = assignmentsForUser[0].assignment.user;
+                    const user = assignmentsForUser[0].attribution.user;
                     const roomNames = assignmentsForUser.map(a => `${a.room.name} (ID: ${a.room.id})`).join(', ');
 
                     // Début Solution Palliative pour isFivOrConsultation (R2)
@@ -430,14 +430,14 @@ export class BlocPlanningService {
                     // Fin Solution Palliative
 
                     const severity = isSpecialOrConsultation ? ConflictSeverity.WARNING : ConflictSeverity.ERROR;
-                    const message = `L'utilisateur ${user?.prenom || ''} ${user?.nom || `ID ${userId}`} est affecté à plusieurs salles (${roomNames}) sur la période ${period} le ${date.toISOString().split('T')[0]}. ${isSpecialOrConsultation ? 'Une des salles est de type spécial (Consultation/Garde/Astreinte), générant un avertissement.' : 'Cela constitue une double affectation bloquante.'}`;
+                    const message = `L'utilisateur ${user?.prenom || ''} ${user?.nom || `ID ${userId}`} est affecté à plusieurs salles (${roomNames}) sur la période ${period} le ${date.toISOString().split('T')[0]}. ${isSpecialOrConsultation ? 'Une des salles est de type spécial (Consultation/Garde/Astreinte), générant un avertissement.' : 'Cela constitue une double garde/vacation bloquante.'}`;
 
                     conflictsToCreate.push({
                         blocDayPlanningId: planning.id,
                         relatedUserId: userId,
-                        // On pourrait lier à la première affectation problématique, ou créer un conflit par affectation.
+                        // On pourrait lier à la première garde/vacation problématique, ou créer un conflit par garde/vacation.
                         // Pour garder simple, un conflit par utilisateur doublement affecté par période.
-                        // relatedStaffAssignmentId: assignmentsForUser[0].assignment.id, 
+                        // relatedStaffAssignmentId: assignmentsForUser[0].attribution.id, 
                         type: 'DOUBLE_AFFECTATION_PERSONNEL',
                         message,
                         severity,
@@ -468,12 +468,12 @@ export class BlocPlanningService {
                     supervisionOphtalmoCount: number, // Added for R3/R8 Ophtalmo specific
                     supervisionStandardCount: number, // Added for R8 Ophtalmo specific
                     isPrincipalInOphtalmo: boolean, // Added for R8 Ophtalmo specific
-                    assignments: (BlocStaffAssignment & { user: User | null, room: OperatingRoom & { operatingSector: OperatingSector | null } })[]
+                    attributions: (BlocStaffAssignment & { user: User | null, room: OperatingRoom & { operatingSector: OperatingSector | null } })[]
                 }
             }
         } = {};
 
-        for (const roomAssignment of assignments) {
+        for (const roomAssignment of attributions) {
             if (!roomAssignment.operatingRoom || !roomAssignment.operatingRoom.operatingSector) continue; // Sector is needed for type // Modifié ici
             const period = roomAssignment.period;
             const sectorType = roomAssignment.operatingRoom.operatingSector && // Modifié ici
@@ -496,7 +496,7 @@ export class BlocPlanningService {
                             supervisionOphtalmoCount: 0,
                             supervisionStandardCount: 0,
                             isPrincipalInOphtalmo: false,
-                            assignments: []
+                            attributions: []
                         };
                     }
 
@@ -518,7 +518,7 @@ export class BlocPlanningService {
                     }
                     // Explicitly cast room to include sector for type safety
                     const roomWithSector = roomAssignment.operatingRoom as OperatingRoom & { operatingSector: OperatingSector | null }; // Modifié ici
-                    marRecord.assignments.push({ ...staff, room: roomWithSector });
+                    marRecord.attributions.push({ ...staff, room: roomWithSector });
                 }
             }
         }
@@ -529,7 +529,7 @@ export class BlocPlanningService {
             for (const userIdStr of Object.keys(marsInPeriod)) {
                 const userId = parseInt(userIdStr, 10);
                 const marData = marsInPeriod[userId];
-                const user = marData.assignments[0]?.user; // Récupérer l'info utilisateur
+                const user = marData.attributions[0]?.user; // Récupérer l'info utilisateur
 
                 // Conflit si plus de salles en principal que permis
                 if (marData.primaryCount > maxSallesEnPrincipalMAR) {
@@ -537,7 +537,7 @@ export class BlocPlanningService {
                         blocDayPlanningId: planning.id,
                         relatedUserId: userId,
                         type: 'MAR_EXCEED_MAX_SALLES_PRINCIPALES',
-                        message: `Le MAR ${user?.prenom || ''} ${user?.nom || `ID ${userId}`} est anesthésiste principal dans ${marData.primaryCount} salles (${marData.assignments.filter(a => a.isPrimaryAnesthetist).map(a => a.room.name).join(', ')}) sur la période ${period}, excédant le maximum de ${maxSallesEnPrincipalMAR}.`, // Correction: name -> prenom, nom
+                        message: `Le MAR ${user?.prenom || ''} ${user?.nom || `ID ${userId}`} est anesthésiste principal dans ${marData.primaryCount} salles (${marData.attributions.filter(a => a.isPrimaryAnesthetist).map(a => a.room.name).join(', ')}) sur la période ${period}, excédant le maximum de ${maxSallesEnPrincipalMAR}.`, // Correction: name -> prenom, nom
                         severity: ConflictSeverity.ERROR,
                         isResolved: false,
                     });
@@ -553,8 +553,8 @@ export class BlocPlanningService {
                 // - Si primaryCount = 0, alors supervisionCount ne doit pas dépasser 3.
 
                 let maxAllowedSupervisions = maxSallesSuperviseesGlobal; // Par défaut 3 supervisions si 0 principal
-                if (marData.primaryCount >= maxSallesEnPrincipalMAR) { // Si le MAR a déjà son slot de principal (typiquement 1)
-                    maxAllowedSupervisions = maxSallesSuperviseesGlobal - marData.primaryCount; // Alors il lui reste N-P slots pour supervision
+                if (marData.primaryCount >= maxSallesEnPrincipalMAR) { // Si le MAR a déjà son créneau de principal (typiquement 1)
+                    maxAllowedSupervisions = maxSallesSuperviseesGlobal - marData.primaryCount; // Alors il lui reste N-P créneaux pour supervision
                     // Exemple: maxGlobal = 3, maxPrincipal = 1. Si primaryCount = 1, maxAllowedSupervisions = 2.
                 }
                 // Assurons nous que maxAllowedSupervisions n'est pas négatif si primaryCount > maxSallesSuperviseesGlobal (ce qui serait déjà un conflit)
@@ -566,7 +566,7 @@ export class BlocPlanningService {
                         blocDayPlanningId: planning.id,
                         relatedUserId: userId,
                         type: 'MAR_EXCEED_MAX_SALLES_SUPERVISEES',
-                        message: `Le MAR ${user?.prenom || ''} ${user?.nom || `ID ${userId}`} supervise ${marData.supervisionCount} salles (sans être principal ailleurs) sur la période ${period} (${marData.assignments.map(a => a.room.name).join(', ')}), excédant le maximum de ${maxSallesSuperviseesGlobal} supervisions seules.`, // Correction: name -> prenom, nom
+                        message: `Le MAR ${user?.prenom || ''} ${user?.nom || `ID ${userId}`} supervise ${marData.supervisionCount} salles (sans être principal ailleurs) sur la période ${period} (${marData.attributions.map(a => a.room.name).join(', ')}), excédant le maximum de ${maxSallesSuperviseesGlobal} supervisions seules.`, // Correction: name -> prenom, nom
                         severity: ConflictSeverity.ERROR,
                         isResolved: false,
                     });
@@ -575,7 +575,7 @@ export class BlocPlanningService {
                         blocDayPlanningId: planning.id,
                         relatedUserId: userId,
                         type: 'MAR_EXCEED_MAX_SALLES_SUPERVISEES',
-                        message: `Le MAR ${user?.prenom || ''} ${user?.nom || `ID ${userId}`} est principal dans ${marData.primaryCount} salle(s) et supervise ${marData.supervisionCount} autres salles sur la période ${period} (${marData.assignments.map(a => a.room.name).join(', ')}), excédant le maximum de ${maxAllowedSupervisions} supervisions autorisées en plus de l\'activité principale.`, // Correction: name -> prenom, nom
+                        message: `Le MAR ${user?.prenom || ''} ${user?.nom || `ID ${userId}`} est principal dans ${marData.primaryCount} salle(s) et supervise ${marData.supervisionCount} autres salles sur la période ${period} (${marData.attributions.map(a => a.room.name).join(', ')}), excédant le maximum de ${maxAllowedSupervisions} supervisions autorisées en plus de l\'activité principale.`, // Correction: name -> prenom, nom
                         severity: ConflictSeverity.ERROR,
                         isResolved: false,
                     });
@@ -625,14 +625,14 @@ export class BlocPlanningService {
         // R4: Cohérence Secteurs et Contiguïté
         // R5: Incompatibilités et Préférences Utilisateurs
         // R6: Incompatibilités Chirurgiens
-        // R7: Présence et Affectation IADE
+        // R7: Présence et Garde/Vacation IADE
         // R8: Règles Spécifiques Ophtalmo/Endoscopie
 
         // R4: Cohérence Secteurs et Contiguïté
         // Vérifier que les MAR affectés à plusieurs salles dans un même secteur sont dans des salles contiguës
         const contiguityCheckBySector: { [sectorId: string]: { [period: string]: { [userId: number]: OperatingRoom[] } } } = {};
 
-        for (const roomAssignment of assignments) {
+        for (const roomAssignment of attributions) {
             if (!roomAssignment.operatingRoom || !roomAssignment.operatingRoom.operatingSector) continue; // Modifié ici
 
             const sectorId = roomAssignment.operatingRoom.operatingSector.id; // Modifié ici
@@ -692,7 +692,7 @@ export class BlocPlanningService {
                         if (!areRoomsContiguous) {
                             // Créer un conflit pour chaque salle non contiguë
                             for (const roomInViolation of userRooms) { // Renommé room en roomInViolation pour éviter conflit de scope
-                                const roomAssignmentForConflict = assignments.find(a => // Renommé roomAssignment
+                                const roomAssignmentForConflict = attributions.find(a => // Renommé roomAssignment
                                     a.operatingRoomId === roomInViolation.id && a.period === period as Period
                                 );
 
@@ -717,7 +717,7 @@ export class BlocPlanningService {
         // R5: Incompatibilités et Préférences Utilisateurs
         // Vérification des incompatibilités entre personnel (récupération via méthode privée déjà définie)
         for (const period of Object.keys(Period)) {
-            const roomsInPeriod = assignments.filter(a => a.period === period);
+            const roomsInPeriod = attributions.filter(a => a.period === period);
 
             // Pour chaque paire de salles
             for (let i = 0; i < roomsInPeriod.length; i++) {
@@ -845,7 +845,7 @@ export class BlocPlanningService {
         }
 
         // R6: Vérifier la présence obligatoire d'un MAR avec chirurgien
-        for (const roomAssignment of assignments) {
+        for (const roomAssignment of attributions) {
             if (roomAssignment.chirurgienId) {
                 // Chirurgien présent dans cette salle, vérifier s'il y a un MAR
                 const hasMAR = roomAssignment.staffAssignments.some(
@@ -866,11 +866,11 @@ export class BlocPlanningService {
             }
         }
 
-        // R7: Présence et Affectation IADE
+        // R7: Présence et Garde/Vacation IADE
         // Vérifier le nombre d'IADEs affectés et leur disponibilité
         const roomsWithIADEDataByPeriod: { [key: string]: { roomAssignment: BlocRoomAssignment, iadeCount: number, marCount: number } } = {};
 
-        for (const roomAssignment of assignments) {
+        for (const roomAssignment of attributions) {
             const key = `${roomAssignment.operatingRoomId}-${roomAssignment.period}`;
             const iadeCount = roomAssignment.staffAssignments.filter(
                 staff => staff.role === BlocStaffRole.IADE
@@ -914,7 +914,7 @@ export class BlocPlanningService {
         }
 
         // R8: Règles Spécifiques par type de secteur
-        for (const roomAssignment of assignments) {
+        for (const roomAssignment of attributions) {
             const room = roomAssignment.operatingRoom;
             if (!room || !room.operatingSector) continue; // Modifié ici
 
@@ -999,7 +999,7 @@ export class BlocPlanningService {
                     });
                 }
             } // Fin du else if (sectorType === 'ENDOSCOPIE')
-        } // Fin de la boucle for (const roomAssignment of assignments) pour R8
+        } // Fin de la boucle for (const roomAssignment of attributions) pour R8
 
         // Création groupée des conflits en base de données
         if (conflictsToCreate.length > 0) {
@@ -1106,22 +1106,22 @@ export class BlocPlanningService {
         });
 
         if (!roomAssignment) {
-            throw new Error("Affectation de salle non trouvée.");
+            throw new Error("Garde/Vacation de salle non trouvée.");
         }
         if (roomAssignment.blocDayPlanning.status !== BlocPlanningStatus.DRAFT) {
             // Ou autre logique, ex: permettre modif sur certains statuts avec droits spécifiques
-            throw new Error("L'affectation ne peut être modifiée que si le planning est en mode brouillon (DRAFT).");
+            throw new Error("L'garde/vacation ne peut être modifiée que si le planning est en mode brouillon (DRAFT).");
         }
 
         // 🔐 CORRECTION TODO CRITIQUE : Vérifier si l'utilisateur a les droits de faire cette modification
         await this.verifyStaffModificationPermissions(initiatorUserId, roomAssignment.blocDayPlanning.siteId);
 
-        // 🔐 CORRECTION TODO CRITIQUE : Gérer le cas "update" si une affectation pour cet userId+role existe déjà pour ce blocRoomAssignmentId
+        // 🔐 CORRECTION TODO CRITIQUE : Gérer le cas "update" si une garde/vacation pour cet userId+role existe déjà pour ce blocRoomAssignmentId
         // Logique d'update/replace améliorée avec gestion des erreurs
 
         //       Actuellement, cela va créer une nouvelle entrée. Faut-il supprimer l'ancienne ou la mettre à jour ?
 
-        // Logique d'update/replace simple: si une affectation pour ce user existe déjà sur ce room assignment, la supprimer.
+        // Logique d'update/replace simple: si une garde/vacation pour ce user existe déjà sur ce room attribution, la supprimer.
         // Cela permet une forme de mise à jour par remplacement.
         // Attention: ne distingue pas par rôle pour la suppression. Si un user peut avoir plusieurs rôles sur la même room (peu probable), cela les supprimerait tous.
         // Pour une gestion plus fine, il faudrait un `findUnique` sur `blocRoomAssignmentId_userId_role` si une telle contrainte unique existait.
@@ -1136,12 +1136,12 @@ export class BlocPlanningService {
             await prisma.blocStaffAssignment.delete({ where: { id: existingAssignment.id } });
         }
 
-        const assignment = await prisma.blocStaffAssignment.create({
+        const attribution = await prisma.blocStaffAssignment.create({
             data: { blocRoomAssignmentId, userId, role, isPrimaryAnesthetist }
         });
 
         await this.validateEntireBlocDayPlanning(roomAssignment.blocDayPlanningId);
-        return assignment;
+        return attribution;
     }
 
     async removeStaffAssignment(staffAssignmentId: string, initiatorUserId: number): Promise<void> {
@@ -1151,10 +1151,10 @@ export class BlocPlanningService {
         });
 
         if (!staffAssignment) {
-            throw new Error("Affectation de personnel non trouvée.");
+            throw new Error("Garde/Vacation de personnel non trouvée.");
         }
         if (staffAssignment.blocRoomAssignment.blocDayPlanning.status !== BlocPlanningStatus.DRAFT) {
-            throw new Error("L'affectation ne peut être supprimée que si le planning est en mode brouillon (DRAFT).");
+            throw new Error("L'garde/vacation ne peut être supprimée que si le planning est en mode brouillon (DRAFT).");
         }
 
         // 🔐 CORRECTION TODO CRITIQUE : Vérifier si l'utilisateur a les droits de faire cette suppression
@@ -1744,7 +1744,7 @@ export class BlocPlanningService {
             throw new Error("Utilisateur non trouvé pour vérification des permissions.");
         }
 
-        // Seuls les administrateurs et chefs de service peuvent modifier les affectations de personnel
+        // Seuls les administrateurs et chefs de service peuvent modifier les gardes/vacations de personnel
         const allowedRoles = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'CHEF_SERVICE', 'CADRE_BLOC'];
 
         if (!allowedRoles.includes(user.role)) {

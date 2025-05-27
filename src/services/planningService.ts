@@ -1,4 +1,4 @@
-import { Assignment, RuleViolation } from '../types/assignment';
+import { Attribution, RuleViolation } from '../types/attribution';
 // Suppression des imports serveur inutiles côté client
 // import { TrameAffectationService } from './trameAffectationService';
 // import { UserService } from './userService';
@@ -14,78 +14,78 @@ interface PlanningSlot {
 
 export class PlanningService {
     /**
-     * Enregistre les modifications d'affectations en base de données (via API)
+     * Enregistre les modifications d'gardes/vacations en base de données (via API)
      */
-    static async saveAssignments(assignments: Assignment[]): Promise<boolean> {
+    static async saveAssignments(attributions: Attribution[]): Promise<boolean> {
         try {
             // Appel à l'API pour sauvegarder
-            const response = await fetch('http://localhost:3000/api/affectations', { // Supposons une route PATCH ou POST pour la sauvegarde
+            const response = await fetch('http://localhost:3000/api/gardes/vacations', { // Supposons une route PATCH ou POST pour la sauvegarde
                 method: 'PATCH', // ou 'POST'
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ assignments })
+                body: JSON.stringify({ attributions })
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('Erreur API lors de la sauvegarde:', errorData);
-                throw new Error(errorData.error || 'Erreur lors de la sauvegarde des affectations via API');
+                throw new Error(errorData.error || 'Erreur lors de la sauvegarde des gardes/vacations via API');
             }
 
-            console.log('Assignments sauvegardés via API:', assignments);
+            console.log('Attributions sauvegardés via API:', attributions);
             return true;
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde des affectations via API:', error);
+            console.error('Erreur lors de la sauvegarde des gardes/vacations via API:', error);
             return false;
         }
     }
 
     /**
-     * Valide les affectations par rapport aux règles métier (via API)
+     * Valide les gardes/vacations par rapport aux règles métier (via API)
      */
-    static async validateAssignments(assignments: Assignment[]): Promise<RuleViolation[]> {
+    static async validateAssignments(attributions: Attribution[]): Promise<RuleViolation[]> {
         try {
             // Appel à l'API pour valider
-            const response = await fetch('http://localhost:3000/api/affectations/validate', { // Supposons une route POST pour la validation
+            const response = await fetch('http://localhost:3000/api/gardes/vacations/validate', { // Supposons une route POST pour la validation
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ assignments })
+                body: JSON.stringify({ attributions })
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('Erreur API lors de la validation:', errorData);
-                throw new Error(errorData.error || 'Erreur lors de la validation des affectations via API');
+                throw new Error(errorData.error || 'Erreur lors de la validation des gardes/vacations via API');
             }
             const data = await response.json();
             return data.violations || []; // Assurer que violations est un tableau
         } catch (error) {
-            console.error('Erreur lors de la validation des affectations via API:', error);
+            console.error('Erreur lors de la validation des gardes/vacations via API:', error);
             // Renvoyer une structure d'erreur cohérente si nécessaire, ou lancer l'erreur
             throw error; // ou return [{ ruleId: 'API_ERROR', message: error.message, assignmentId: '' }];
         }
     }
 
     /**
-     * Récupère les affectations pour une période donnée (via API)
+     * Récupère les gardes/vacations pour une période donnée (via API)
      */
-    static async getAssignments(startDate: Date, endDate: Date): Promise<Assignment[]> {
+    static async getAssignments(startDate: Date, endDate: Date): Promise<Attribution[]> {
         try {
             // Appel à l'API GET créée précédemment
-            const response = await fetch(`http://localhost:3000/api/affectations?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
+            const response = await fetch(`http://localhost:3000/api/gardes/vacations?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
 
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('Erreur API lors de la récupération:', errorData);
-                throw new Error(errorData.error || 'Erreur lors de la récupération des affectations via API');
+                throw new Error(errorData.error || 'Erreur lors de la récupération des gardes/vacations via API');
             }
             const data = await response.json();
             // Assurer que les dates sont des objets Date
-            return (data.assignments || []).map((a: any) => ({
+            return (data.attributions || []).map((a: any) => ({
                 ...a,
                 date: new Date(a.date)
             }));
         } catch (error) {
-            console.error('Erreur lors de la récupération des affectations via API:', error);
+            console.error('Erreur lors de la récupération des gardes/vacations via API:', error);
             throw error;
         }
     }
@@ -99,7 +99,7 @@ export class PlanningService {
     }
 
     private static generateAffectationsFromTrame(
-        trame: any,
+        tableau de service: any,
         startDate: Date,
         endDate: Date
     ): PlanningSlot[] {

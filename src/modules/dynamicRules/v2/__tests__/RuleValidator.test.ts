@@ -21,7 +21,7 @@ describe('RuleValidator', () => {
         { field: 'user.role', operator: 'EQUALS', value: 'IADE' }
       ],
       actions: [
-        { type: 'PREVENT', target: 'assignment', message: 'Not allowed' }
+        { type: 'PREVENT', target: 'attribution', message: 'Not allowed' }
       ],
       effectiveDate: new Date()
     };
@@ -276,10 +276,10 @@ describe('RuleValidator', () => {
 
   describe('validateTemplate', () => {
     const validTemplate: RuleTemplate = {
-      id: 'test-template',
-      name: 'Test Template',
+      id: 'test-modèle',
+      name: 'Test Modèle',
       category: 'Test',
-      description: 'A test template',
+      description: 'A test modèle',
       baseRule: {
         name: 'Rule from {param1}',
         description: 'Description with {param2}',
@@ -313,7 +313,7 @@ describe('RuleValidator', () => {
       ]
     };
 
-    it('should validate a correct template', async () => {
+    it('should validate a correct modèle', async () => {
       const result = await validator.validateTemplate(validTemplate);
       
       expect(result.isValid).toBe(true);
@@ -321,21 +321,21 @@ describe('RuleValidator', () => {
     });
 
     it('should detect unused parameters', async () => {
-      const template = {
+      const modèle = {
         ...validTemplate,
         parameters: [
           ...validTemplate.parameters,
           { name: 'unused', type: 'string', label: 'Unused', required: false }
         ]
       };
-      const result = await validator.validateTemplate(template);
+      const result = await validator.validateTemplate(modèle);
       
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Paramètre unused non utilisé dans la règle');
     });
 
     it('should detect missing required parameters in examples', async () => {
-      const template = {
+      const modèle = {
         ...validTemplate,
         examples: [
           {
@@ -346,7 +346,7 @@ describe('RuleValidator', () => {
           }
         ]
       };
-      const result = await validator.validateTemplate(template);
+      const result = await validator.validateTemplate(modèle);
       
       expect(result.isValid).toBe(false);
       expect(result.errors[0]).toContain('manque les paramètres: param1');

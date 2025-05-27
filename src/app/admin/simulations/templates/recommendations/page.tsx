@@ -35,7 +35,7 @@ export default function TemplatesRecommendationsPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-    const [templates, setTemplates] = useState<SimulationTemplate[]>([]);
+    const [modèles, setTemplates] = useState<SimulationTemplate[]>([]);
     const [featuredTemplates, setFeaturedTemplates] = useState<string[]>([]);
     const [hiddenTemplates, setHiddenTemplates] = useState<string[]>([]);
 
@@ -63,7 +63,7 @@ export default function TemplatesRecommendationsPage() {
     const loadData = async () => {
         setIsLoading(true);
         try {
-            // Charger la liste des templates
+            // Charger la liste des modèles
             const templatesData = await fetchTemplates();
             setTemplates(templatesData);
 
@@ -71,7 +71,7 @@ export default function TemplatesRecommendationsPage() {
             // Dans une version réelle, cela viendrait d'une API
             await new Promise(resolve => setTimeout(resolve, 500));
 
-            // Simuler des templates mis en avant et masqués
+            // Simuler des modèles mis en avant et masqués
             setFeaturedTemplates(['2', '5', '7']);
             setHiddenTemplates(['3', '9']);
 
@@ -149,13 +149,13 @@ export default function TemplatesRecommendationsPage() {
         <div className="container p-4 mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <Link href="/admin/simulations/templates" className="inline-flex items-center text-sm text-primary hover:underline mb-2">
+                    <Link href="/admin/simulations/modèles" className="inline-flex items-center text-sm text-primary hover:underline mb-2">
                         <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                        Retour à la liste des templates
+                        Retour à la liste des modèles
                     </Link>
-                    <h1 className="text-2xl font-bold">Recommandations de Templates</h1>
+                    <h1 className="text-2xl font-bold">Recommandations de Modèles</h1>
                     <p className="text-muted-foreground">
-                        Configurez comment les templates sont recommandés aux utilisateurs
+                        Configurez comment les modèles sont recommandés aux utilisateurs
                     </p>
                 </div>
                 <div className="flex space-x-2">
@@ -200,7 +200,7 @@ export default function TemplatesRecommendationsPage() {
                         <Users className="h-4 w-4 mr-2" />
                         Audience
                     </TabsTrigger>
-                    <TabsTrigger value="scheduling">
+                    <TabsTrigger value="planification">
                         <Calendar className="h-4 w-4 mr-2" />
                         Planification
                     </TabsTrigger>
@@ -219,7 +219,7 @@ export default function TemplatesRecommendationsPage() {
                                 <div>
                                     <Label htmlFor="recommendation-enabled" className="text-base">Activer les recommandations</Label>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                        Affiche des recommandations de templates sur la page d'accueil et lors de la création de scénarios
+                                        Affiche des recommandations de modèles sur la page d'accueil et lors de la création de scénarios
                                     </p>
                                 </div>
                                 <Switch
@@ -233,7 +233,7 @@ export default function TemplatesRecommendationsPage() {
                                 <div>
                                     <Label htmlFor="contextual-recommendations" className="text-base">Recommandations contextuelles</Label>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                        Recommande des templates en fonction du contexte actuel (période de l'année, historique d'utilisation)
+                                        Recommande des modèles en fonction du contexte actuel (période de l'année, historique d'utilisation)
                                     </p>
                                 </div>
                                 <Switch
@@ -319,34 +319,34 @@ export default function TemplatesRecommendationsPage() {
                         <CardHeader>
                             <CardTitle>Contenu recommandé</CardTitle>
                             <CardDescription>
-                                Gérez les templates qui sont mis en avant ou masqués dans les recommandations
+                                Gérez les modèles qui sont mis en avant ou masqués dans les recommandations
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-6">
                                 <div>
-                                    <h3 className="text-lg font-medium mb-3">Templates mis en avant</h3>
+                                    <h3 className="text-lg font-medium mb-3">Modèles mis en avant</h3>
                                     <p className="text-sm text-muted-foreground mb-4">
-                                        Ces templates apparaîtront en priorité dans les recommandations
+                                        Ces modèles apparaîtront en priorité dans les recommandations
                                     </p>
 
                                     <div className="space-y-2">
-                                        {templates.map(template => (
-                                            <div key={`featured-${template.id}`} className="flex items-center space-x-2">
+                                        {modèles.map(modèle => (
+                                            <div key={`featured-${modèle.id}`} className="flex items-center space-x-2">
                                                 <Checkbox
-                                                    id={`featured-${template.id}`}
-                                                    checked={featuredTemplates.includes(template.id)}
-                                                    onCheckedChange={() => toggleFeaturedTemplate(template.id)}
-                                                    disabled={!settings.enabled || hiddenTemplates.includes(template.id)}
+                                                    id={`featured-${modèle.id}`}
+                                                    checked={featuredTemplates.includes(modèle.id)}
+                                                    onCheckedChange={() => toggleFeaturedTemplate(modèle.id)}
+                                                    disabled={!settings.enabled || hiddenTemplates.includes(modèle.id)}
                                                 />
                                                 <Label
-                                                    htmlFor={`featured-${template.id}`}
+                                                    htmlFor={`featured-${modèle.id}`}
                                                     className="flex-grow"
                                                 >
-                                                    {template.name}
-                                                    {template.category && (
+                                                    {modèle.name}
+                                                    {modèle.category && (
                                                         <span className="text-xs text-muted-foreground ml-2">
-                                                            ({template.category})
+                                                            ({modèle.category})
                                                         </span>
                                                     )}
                                                 </Label>
@@ -356,28 +356,28 @@ export default function TemplatesRecommendationsPage() {
                                 </div>
 
                                 <div>
-                                    <h3 className="text-lg font-medium mb-3">Templates masqués</h3>
+                                    <h3 className="text-lg font-medium mb-3">Modèles masqués</h3>
                                     <p className="text-sm text-muted-foreground mb-4">
-                                        Ces templates n'apparaîtront jamais dans les recommandations
+                                        Ces modèles n'apparaîtront jamais dans les recommandations
                                     </p>
 
                                     <div className="space-y-2">
-                                        {templates.map(template => (
-                                            <div key={`hidden-${template.id}`} className="flex items-center space-x-2">
+                                        {modèles.map(modèle => (
+                                            <div key={`hidden-${modèle.id}`} className="flex items-center space-x-2">
                                                 <Checkbox
-                                                    id={`hidden-${template.id}`}
-                                                    checked={hiddenTemplates.includes(template.id)}
-                                                    onCheckedChange={() => toggleHiddenTemplate(template.id)}
-                                                    disabled={!settings.enabled || featuredTemplates.includes(template.id)}
+                                                    id={`hidden-${modèle.id}`}
+                                                    checked={hiddenTemplates.includes(modèle.id)}
+                                                    onCheckedChange={() => toggleHiddenTemplate(modèle.id)}
+                                                    disabled={!settings.enabled || featuredTemplates.includes(modèle.id)}
                                                 />
                                                 <Label
-                                                    htmlFor={`hidden-${template.id}`}
+                                                    htmlFor={`hidden-${modèle.id}`}
                                                     className="flex-grow"
                                                 >
-                                                    {template.name}
-                                                    {template.category && (
+                                                    {modèle.name}
+                                                    {modèle.category && (
                                                         <span className="text-xs text-muted-foreground ml-2">
-                                                            ({template.category})
+                                                            ({modèle.category})
                                                         </span>
                                                     )}
                                                 </Label>
@@ -425,7 +425,7 @@ export default function TemplatesRecommendationsPage() {
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="show-experienced-users">Utilisateurs expérimentés</Label>
                                         <p className="text-sm text-muted-foreground">
-                                            Utilisateurs ayant déjà utilisé plusieurs templates
+                                            Utilisateurs ayant déjà utilisé plusieurs modèles
                                         </p>
                                     </div>
                                 </div>
@@ -449,7 +449,7 @@ export default function TemplatesRecommendationsPage() {
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="scheduling">
+                <TabsContent value="planification">
                     <Card>
                         <CardHeader>
                             <CardTitle>Planification des recommandations</CardTitle>
@@ -460,7 +460,7 @@ export default function TemplatesRecommendationsPage() {
                         <CardContent>
                             <div className="p-8 text-center text-muted-foreground">
                                 <p>La planification des recommandations sera disponible dans une prochaine mise à jour.</p>
-                                <p className="text-sm mt-2">Cette fonctionnalité permettra de programmer l'affichage de certains templates à des périodes spécifiques de l'année.</p>
+                                <p className="text-sm mt-2">Cette fonctionnalité permettra de programmer l'affichage de certains modèles à des périodes spécifiques de l'année.</p>
                             </div>
                         </CardContent>
                         <CardFooter className="justify-end">

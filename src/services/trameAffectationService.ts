@@ -16,7 +16,7 @@ export interface Post {
     minCount: number;
 }
 
-export interface Assignment {
+export interface Attribution {
     id: string;
     type: AssignmentType;
     name: string;
@@ -32,11 +32,11 @@ export interface TramePeriod {
     endTime: string;
     color: string;
     isActive: boolean;
-    assignments: Assignment[];
+    attributions: Attribution[];
     isLocked: boolean;
 }
 
-export interface Trame {
+export interface Tableau de service {
     id: string;
     name: string;
     description: string;
@@ -66,79 +66,79 @@ const generateId = (): string => {
 
 // API Endpoints
 const API_ENDPOINTS = {
-    TRAMES: '/api/trames',
-    TRAME: (id: string) => `/api/trames/${id}`,
-    SUGGESTIONS: '/api/trames/suggestions',
-    VALIDATE: '/api/trames/validate',
-    EXPORT: '/api/trames/export',
-    IMPORT: '/api/trames/import',
+    TRAMES: '/api/tableaux de service',
+    TRAME: (id: string) => `/api/tableaux de service/${id}`,
+    SUGGESTIONS: '/api/tableaux de service/suggestions',
+    VALIDATE: '/api/tableaux de service/validate',
+    EXPORT: '/api/tableaux de service/export',
+    IMPORT: '/api/tableaux de service/import',
 };
 
 // Service
 export const TrameAffectationService = {
     // Méthodes CRUD pour les tests
     /**
-     * Crée une nouvelle trame d'affectation
-     * @param data Les données de la nouvelle trame
-     * @returns Les attributs de la trame créée
+     * Crée une nouvelle tableau de service d'garde/vacation
+     * @param data Les données de la nouvelle tableau de service
+     * @returns Les attributs de la tableau de service créée
      */
     async create(data: Omit<TrameAffectationAttributes, 'id' | 'createdAt' | 'updatedAt'>): Promise<TrameAffectationAttributes> {
         try {
-            const trame = await TrameAffectation.create(data as any);
+            const tableau de service = await TrameAffectation.create(data as any);
             // Dans les tests, le mock retourne directement les attributs, pas d'instance avec toJSON
-            return trame && typeof trame.toJSON === 'function' ? trame.toJSON() : trame as TrameAffectationAttributes;
+            return tableau de service && typeof tableau de service.toJSON === 'function' ? tableau de service.toJSON() : tableau de service as TrameAffectationAttributes;
         } catch (error) {
-            console.error('Erreur lors de la création de la trame d\'affectation:', error);
-            throw new Error('Impossible de créer la trame d\'affectation');
+            console.error('Erreur lors de la création de la tableau de service d\'garde/vacation:', error);
+            throw new Error('Impossible de créer la tableau de service d\'garde/vacation');
         }
     },
 
     /**
-     * Récupère toutes les trames d'affectation
-     * @returns Une liste d'attributs de trames d'affectation
+     * Récupère toutes les tableaux de service d'garde/vacation
+     * @returns Une liste d'attributs de tableaux de service d'garde/vacation
      */
     async findAll(): Promise<TrameAffectationAttributes[]> {
         try {
-            const trames = await TrameAffectation.findAll({
+            const tableaux de service = await TrameAffectation.findAll({
                 order: [['createdAt', 'DESC']],
             });
             // Dans les tests, le mock retourne directement un tableau d'attributs
-            return Array.isArray(trames)
-                ? trames.map(trame => typeof trame.toJSON === 'function' ? trame.toJSON() : trame as TrameAffectationAttributes)
-                : trames as TrameAffectationAttributes[];
+            return Array.isArray(tableaux de service)
+                ? tableaux de service.map(tableau de service => typeof tableau de service.toJSON === 'function' ? tableau de service.toJSON() : tableau de service as TrameAffectationAttributes)
+                : tableaux de service as TrameAffectationAttributes[];
         } catch (error) {
-            console.error('Erreur lors de la récupération des trames d\'affectation:', error);
-            throw new Error('Impossible de récupérer les trames d\'affectation');
+            console.error('Erreur lors de la récupération des tableaux de service d\'garde/vacation:', error);
+            throw new Error('Impossible de récupérer les tableaux de service d\'garde/vacation');
         }
     },
 
     /**
-     * Récupère une trame d'affectation par son ID
-     * @param id L'ID de la trame à récupérer
-     * @returns Les attributs de la trame trouvée
+     * Récupère une tableau de service d'garde/vacation par son ID
+     * @param id L'ID de la tableau de service à récupérer
+     * @returns Les attributs de la tableau de service trouvée
      */
     async findById(id: string): Promise<TrameAffectationAttributes> {
         try {
-            const trame = await TrameAffectation.findByPk(id);
-            if (!trame) {
-                throw new Error('Trame d\'affectation non trouvée');
+            const tableau de service = await TrameAffectation.findByPk(id);
+            if (!tableau de service) {
+                throw new Error('Tableau de service d\'garde/vacation non trouvée');
             }
             // Dans les tests, le mock retourne directement les attributs
-            return typeof trame.toJSON === 'function' ? trame.toJSON() : trame as TrameAffectationAttributes;
+            return typeof tableau de service.toJSON === 'function' ? tableau de service.toJSON() : tableau de service as TrameAffectationAttributes;
         } catch (error) {
-            if ((error as Error).message === 'Trame d\'affectation non trouvée') {
+            if ((error as Error).message === 'Tableau de service d\'garde/vacation non trouvée') {
                 throw error;
             }
-            console.error(`Erreur lors de la récupération de la trame d'affectation ${id}:`, error);
-            throw new Error('Impossible de récupérer la trame d\'affectation');
+            console.error(`Erreur lors de la récupération de la tableau de service d'garde/vacation ${id}:`, error);
+            throw new Error('Impossible de récupérer la tableau de service d\'garde/vacation');
         }
     },
 
     /**
-     * Met à jour une trame d'affectation existante
-     * @param id L'ID de la trame à mettre à jour
-     * @param data Les nouvelles données de la trame
-     * @returns Les attributs de la trame mise à jour
+     * Met à jour une tableau de service d'garde/vacation existante
+     * @param id L'ID de la tableau de service à mettre à jour
+     * @param data Les nouvelles données de la tableau de service
+     * @returns Les attributs de la tableau de service mise à jour
      */
     async update(id: string, data: Partial<TrameAffectationAttributes>): Promise<TrameAffectationAttributes> {
         try {
@@ -147,22 +147,22 @@ export const TrameAffectationService = {
             });
 
             if (updatedRowsCount === 0) {
-                throw new Error('Trame d\'affectation non trouvée');
+                throw new Error('Tableau de service d\'garde/vacation non trouvée');
             }
 
             return this.findById(id);
         } catch (error) {
-            if ((error as Error).message === 'Trame d\'affectation non trouvée') {
+            if ((error as Error).message === 'Tableau de service d\'garde/vacation non trouvée') {
                 throw error;
             }
-            console.error(`Erreur lors de la mise à jour de la trame d'affectation ${id}:`, error);
-            throw new Error('Impossible de mettre à jour la trame d\'affectation');
+            console.error(`Erreur lors de la mise à jour de la tableau de service d'garde/vacation ${id}:`, error);
+            throw new Error('Impossible de mettre à jour la tableau de service d\'garde/vacation');
         }
     },
 
     /**
-     * Supprime une trame d'affectation
-     * @param id L'ID de la trame à supprimer
+     * Supprime une tableau de service d'garde/vacation
+     * @param id L'ID de la tableau de service à supprimer
      * @returns true si la suppression a réussi
      */
     async delete(id: string): Promise<boolean> {
@@ -172,92 +172,92 @@ export const TrameAffectationService = {
             });
 
             if (deletedRowsCount === 0) {
-                throw new Error('Trame d\'affectation non trouvée');
+                throw new Error('Tableau de service d\'garde/vacation non trouvée');
             }
 
             return true;
         } catch (error) {
-            if ((error as Error).message === 'Trame d\'affectation non trouvée') {
+            if ((error as Error).message === 'Tableau de service d\'garde/vacation non trouvée') {
                 throw error;
             }
-            console.error(`Erreur lors de la suppression de la trame d'affectation ${id}:`, error);
-            throw new Error('Impossible de supprimer la trame d\'affectation');
+            console.error(`Erreur lors de la suppression de la tableau de service d'garde/vacation ${id}:`, error);
+            throw new Error('Impossible de supprimer la tableau de service d\'garde/vacation');
         }
     },
 
     /**
-     * Récupère les trames d'affectation d'un utilisateur spécifique
+     * Récupère les tableaux de service d'garde/vacation d'un utilisateur spécifique
      * @param userId L'ID de l'utilisateur
-     * @returns Une liste d'attributs de trames d'affectation
+     * @returns Une liste d'attributs de tableaux de service d'garde/vacation
      */
     async findByUserId(userId: number): Promise<TrameAffectationAttributes[]> {
         try {
-            const trames = await TrameAffectation.findAll({
+            const tableaux de service = await TrameAffectation.findAll({
                 where: { userId },
                 order: [['createdAt', 'DESC']],
             });
             // Dans les tests, le mock retourne directement un tableau d'attributs
-            return Array.isArray(trames)
-                ? trames.map(trame => typeof trame.toJSON === 'function' ? trame.toJSON() : trame as TrameAffectationAttributes)
-                : trames as TrameAffectationAttributes[];
+            return Array.isArray(tableaux de service)
+                ? tableaux de service.map(tableau de service => typeof tableau de service.toJSON === 'function' ? tableau de service.toJSON() : tableau de service as TrameAffectationAttributes)
+                : tableaux de service as TrameAffectationAttributes[];
         } catch (error) {
-            console.error(`Erreur lors de la récupération des trames d'affectation de l'utilisateur ${userId}:`, error);
-            throw new Error('Impossible de récupérer les trames d\'affectation de l\'utilisateur');
+            console.error(`Erreur lors de la récupération des tableaux de service d'garde/vacation de l'utilisateur ${userId}:`, error);
+            throw new Error('Impossible de récupérer les tableaux de service d\'garde/vacation de l\'utilisateur');
         }
     },
 
-    // Chargement des trames
-    async getAllTrames(): Promise<Trame[]> {
+    // Chargement des tableaux de service
+    async getAllTrames(): Promise<Tableau de service[]> {
         try {
             const response = await fetch(API_ENDPOINTS.TRAMES);
             if (!response.ok) {
-                throw new Error('Erreur lors du chargement des trames');
+                throw new Error('Erreur lors du chargement des tableaux de service');
             }
             return await response.json();
         } catch (error) {
-            console.error('Erreur lors du chargement des trames:', error);
-            toast.error('Impossible de charger les trames');
+            console.error('Erreur lors du chargement des tableaux de service:', error);
+            toast.error('Impossible de charger les tableaux de service');
             return [];
         }
     },
 
-    async getTrame(id: string): Promise<Trame | null> {
+    async getTrame(id: string): Promise<Tableau de service | null> {
         try {
             const response = await fetch(API_ENDPOINTS.TRAME(id));
             if (!response.ok) {
-                throw new Error('Erreur lors du chargement de la trame');
+                throw new Error('Erreur lors du chargement de la tableau de service');
             }
             return await response.json();
         } catch (error) {
-            console.error(`Erreur lors du chargement de la trame ${id}:`, error);
-            toast.error('Impossible de charger la trame demandée');
+            console.error(`Erreur lors du chargement de la tableau de service ${id}:`, error);
+            toast.error('Impossible de charger la tableau de service demandée');
             return null;
         }
     },
 
-    // Sauvegarde des trames
-    async saveTrame(trame: Trame): Promise<Trame | null> {
+    // Sauvegarde des tableaux de service
+    async saveTrame(tableau de service: Tableau de service): Promise<Tableau de service | null> {
         try {
-            const method = trame.id ? 'PUT' : 'POST';
-            const url = trame.id ? API_ENDPOINTS.TRAME(trame.id) : API_ENDPOINTS.TRAMES;
+            const method = tableau de service.id ? 'PUT' : 'POST';
+            const url = tableau de service.id ? API_ENDPOINTS.TRAME(tableau de service.id) : API_ENDPOINTS.TRAMES;
 
             const response = await fetch(url, {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(trame),
+                body: JSON.stringify(tableau de service),
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Erreur lors de la sauvegarde de la trame');
+                throw new Error(errorData.message || 'Erreur lors de la sauvegarde de la tableau de service');
             }
 
             return await response.json();
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde de la trame:', error);
-            toast.error('Impossible de sauvegarder la trame');
+            console.error('Erreur lors de la sauvegarde de la tableau de service:', error);
+            toast.error('Impossible de sauvegarder la tableau de service');
             return null;
         }
     },
@@ -269,27 +269,27 @@ export const TrameAffectationService = {
             });
 
             if (!response.ok) {
-                throw new Error('Erreur lors de la suppression de la trame');
+                throw new Error('Erreur lors de la suppression de la tableau de service');
             }
 
             return true;
         } catch (error) {
-            console.error(`Erreur lors de la suppression de la trame ${id}:`, error);
-            toast.error('Impossible de supprimer la trame');
+            console.error(`Erreur lors de la suppression de la tableau de service ${id}:`, error);
+            toast.error('Impossible de supprimer la tableau de service');
             return false;
         }
     },
 
-    // Copie d'une trame existante
-    async copyTrame(id: string, newName: string): Promise<Trame | null> {
+    // Copie d'une tableau de service existante
+    async copyTrame(id: string, newName: string): Promise<Tableau de service | null> {
         try {
-            const trame = await this.getTrame(id);
-            if (!trame) {
-                throw new Error('Trame source introuvable');
+            const tableau de service = await this.getTrame(id);
+            if (!tableau de service) {
+                throw new Error('Tableau de service source introuvable');
             }
 
-            const newTrame: Trame = {
-                ...trame,
+            const newTrame: Tableau de service = {
+                ...tableau de service,
                 id: generateId(),
                 name: newName,
                 version: 1,
@@ -299,57 +299,57 @@ export const TrameAffectationService = {
 
             return await this.saveTrame(newTrame);
         } catch (error) {
-            console.error(`Erreur lors de la copie de la trame ${id}:`, error);
-            toast.error('Impossible de copier la trame');
+            console.error(`Erreur lors de la copie de la tableau de service ${id}:`, error);
+            toast.error('Impossible de copier la tableau de service');
             return null;
         }
     },
 
-    // Validation des trames
-    async validateTrame(trame: Trame): Promise<ValidationError[]> {
+    // Validation des tableaux de service
+    async validateTrame(tableau de service: Tableau de service): Promise<ValidationError[]> {
         try {
             const response = await fetch(API_ENDPOINTS.VALIDATE, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(trame),
+                body: JSON.stringify(tableau de service),
             });
 
             if (!response.ok) {
-                throw new Error('Erreur lors de la validation de la trame');
+                throw new Error('Erreur lors de la validation de la tableau de service');
             }
 
             return await response.json();
         } catch (error) {
-            console.error('Erreur lors de la validation de la trame:', error);
-            toast.error('Impossible de valider la trame');
+            console.error('Erreur lors de la validation de la tableau de service:', error);
+            toast.error('Impossible de valider la tableau de service');
             return [];
         }
     },
 
-    // Validation locale des trames (côté client)
-    validateTrameLocally(trame: Trame): ValidationError[] {
+    // Validation locale des tableaux de service (côté client)
+    validateTrameLocally(tableau de service: Tableau de service): ValidationError[] {
         const errors: ValidationError[] = [];
 
         // Vérification du chevauchement des périodes
-        this.checkPeriodOverlaps(trame, errors);
+        this.checkPeriodOverlaps(tableau de service, errors);
 
         // Vérification des postes requis
-        this.checkRequiredPosts(trame, errors);
+        this.checkRequiredPosts(tableau de service, errors);
 
         // Vérification des contraintes de temps
-        this.checkTimeConstraints(trame, errors);
+        this.checkTimeConstraints(tableau de service, errors);
 
         // Vérification des contraintes légales
-        this.checkLegalConstraints(trame, errors);
+        this.checkLegalConstraints(tableau de service, errors);
 
         return errors;
     },
 
     // Vérification du chevauchement des périodes
-    checkPeriodOverlaps(trame: Trame, errors: ValidationError[]): void {
-        const periods = trame.periods.filter(p => p.isActive);
+    checkPeriodOverlaps(tableau de service: Tableau de service, errors: ValidationError[]): void {
+        const periods = tableau de service.periods.filter(p => p.isActive);
 
         for (let i = 0; i < periods.length; i++) {
             const period1 = periods[i];
@@ -381,20 +381,20 @@ export const TrameAffectationService = {
     },
 
     // Vérification des postes requis
-    checkRequiredPosts(trame: Trame, errors: ValidationError[]): void {
-        trame.periods.forEach(period => {
+    checkRequiredPosts(tableau de service: Tableau de service, errors: ValidationError[]): void {
+        tableau de service.periods.forEach(period => {
             if (!period.isActive) return;
 
-            period.assignments.forEach(assignment => {
-                if (!assignment.isActive) return;
+            period.attributions.forEach(attribution => {
+                if (!attribution.isActive) return;
 
-                const requiredPosts = assignment.posts.filter(post => post.required);
+                const requiredPosts = attribution.posts.filter(post => post.required);
                 if (requiredPosts.length === 0) {
                     errors.push({
                         type: 'MISSING_REQUIRED_POST',
-                        message: `L'affectation "${assignment.name}" dans la période "${period.name}" n'a pas de poste requis défini`,
+                        message: `L'garde/vacation "${attribution.name}" dans la période "${period.name}" n'a pas de poste requis défini`,
                         periodId: period.id,
-                        assignmentId: assignment.id
+                        assignmentId: attribution.id
                     });
                 }
             });
@@ -402,8 +402,8 @@ export const TrameAffectationService = {
     },
 
     // Vérification des contraintes de temps
-    checkTimeConstraints(trame: Trame, errors: ValidationError[]): void {
-        trame.periods.forEach(period => {
+    checkTimeConstraints(tableau de service: Tableau de service, errors: ValidationError[]): void {
+        tableau de service.periods.forEach(period => {
             if (!period.isActive) return;
 
             const startTime = this.timeToMinutes(period.startTime);
@@ -431,20 +431,20 @@ export const TrameAffectationService = {
     },
 
     // Vérification des contraintes légales
-    checkLegalConstraints(trame: Trame, errors: ValidationError[]): void {
-        trame.periods.forEach(period => {
+    checkLegalConstraints(tableau de service: Tableau de service, errors: ValidationError[]): void {
+        tableau de service.periods.forEach(period => {
             if (!period.isActive) return;
 
-            period.assignments.forEach(assignment => {
-                if (!assignment.isActive) return;
+            period.attributions.forEach(attribution => {
+                if (!attribution.isActive) return;
 
                 // Vérification de la durée maximale légale
-                if (assignment.duration > 24) {
+                if (attribution.duration > 24) {
                     errors.push({
                         type: 'LEGAL_CONSTRAINT',
-                        message: `L'affectation "${assignment.name}" dépasse la durée maximale légale de 24h`,
+                        message: `L'garde/vacation "${attribution.name}" dépasse la durée maximale légale de 24h`,
                         periodId: period.id,
-                        assignmentId: assignment.id
+                        assignmentId: attribution.id
                     });
                 }
             });
@@ -457,8 +457,8 @@ export const TrameAffectationService = {
         return hours * 60 + minutes;
     },
 
-    // Génération de suggestions de trames
-    async getSuggestions(serviceNeeds: any): Promise<Trame[]> {
+    // Génération de suggestions de tableaux de service
+    async getSuggestions(serviceNeeds: any): Promise<Tableau de service[]> {
         try {
             const response = await fetch(API_ENDPOINTS.SUGGESTIONS, {
                 method: 'POST',
@@ -480,12 +480,12 @@ export const TrameAffectationService = {
         }
     },
 
-    // Export/Import de trames
+    // Export/Import de tableaux de service
     async exportTrame(id: string): Promise<any> {
         try {
             const response = await fetch(`${API_ENDPOINTS.EXPORT}/${id}`);
             if (!response.ok) {
-                throw new Error('Erreur lors de l\'export de la trame');
+                throw new Error('Erreur lors de l\'export de la tableau de service');
             }
 
             const blob = await response.blob();
@@ -497,13 +497,13 @@ export const TrameAffectationService = {
 
             return true;
         } catch (error) {
-            console.error(`Erreur lors de l'export de la trame ${id}:`, error);
-            toast.error('Impossible d\'exporter la trame');
+            console.error(`Erreur lors de l'export de la tableau de service ${id}:`, error);
+            toast.error('Impossible d\'exporter la tableau de service');
             return false;
         }
     },
 
-    async importTrame(file: File): Promise<Trame | null> {
+    async importTrame(file: File): Promise<Tableau de service | null> {
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -514,23 +514,23 @@ export const TrameAffectationService = {
             });
 
             if (!response.ok) {
-                throw new Error('Erreur lors de l\'import de la trame');
+                throw new Error('Erreur lors de l\'import de la tableau de service');
             }
 
             return await response.json();
         } catch (error) {
-            console.error('Erreur lors de l\'import de la trame:', error);
-            toast.error('Impossible d\'importer la trame');
+            console.error('Erreur lors de l\'import de la tableau de service:', error);
+            toast.error('Impossible d\'importer la tableau de service');
             return null;
         }
     },
 
     // Export manuel (sans API, pour l'utilisation client-side)
-    exportTrameToJSON(trame: Trame): void {
-        const dataStr = JSON.stringify(trame, null, 2);
+    exportTrameToJSON(tableau de service: Tableau de service): void {
+        const dataStr = JSON.stringify(tableau de service, null, 2);
         const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
 
-        const exportFileDefaultName = `trame_${trame.name.replace(/\s+/g, '_').toLowerCase()}.json`;
+        const exportFileDefaultName = `trame_${tableau de service.name.replace(/\s+/g, '_').toLowerCase()}.json`;
 
         const linkElement = document.createElement('a');
         linkElement.setAttribute('href', dataUri);

@@ -178,7 +178,7 @@ export function OperatingSectorList() {
                 <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-md mb-4">
                     <p className="text-sm">
                         <strong>Info :</strong> Les secteurs créés ici (y compris ceux pour consultations, gardes et astreintes) sont
-                        également disponibles dans la vue grille des trames. Les secteurs sans salles physiques apparaîtront comme
+                        également disponibles dans la vue grille des tableaux de service. Les secteurs sans salles physiques apparaîtront comme
                         des "salles virtuelles" dans cette vue.
                     </p>
                 </div>

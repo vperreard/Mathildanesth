@@ -81,14 +81,14 @@ export const clearLeaveCalculationCache = (): void => {
  * 
  * @param startDateInput Date de début des congés
  * @param endDateInput Date de fin des congés
- * @param schedule Planning de travail de l'utilisateur
+ * @param planning médical Planning de travail de l'utilisateur
  * @param options Options de calcul avancées
  * @returns Détails du calcul des jours de congés ou null en cas d'erreur
  */
 export const calculateLeaveCountedDays = async (
     startDateInput: Date | string | number | null | undefined,
     endDateInput: Date | string | number | null | undefined,
-    schedule: WorkSchedule,
+    planning médical: WorkSchedule,
     options?: {
         skipHolidays?: boolean;
         isHalfDay?: boolean;
@@ -124,7 +124,7 @@ export const calculateLeaveCountedDays = async (
         const cacheKey = generateCacheKey({
             startDate: format(startDate, 'yyyy-MM-dd'),
             endDate: format(endDate, 'yyyy-MM-dd'),
-            scheduleId: schedule.id,
+            scheduleId: planning médical.id,
             skipHolidays,
             isHalfDay: isHalfDayOption,
             halfDayPeriod: isHalfDayOption ? halfDayPeriod : undefined,
@@ -140,7 +140,7 @@ export const calculateLeaveCountedDays = async (
         logger.info('Starting leave counted days calculation...', {
             startDate: formatDate(startDate),
             endDate: formatDate(endDate),
-            scheduleId: schedule.id,
+            scheduleId: planning médical.id,
             isHalfDay: isHalfDayOption,
             halfDayPeriod: isHalfDayOption ? halfDayPeriod : undefined,
             options
@@ -220,7 +220,7 @@ export const calculateLeaveCountedDays = async (
                         naturalDays: currentWeekDays,
                         countedDays: currentWeekCountedDays,
                         halfDays: currentWeekHalfDays,
-                        isWorkingWeek: isWorkingWeekForUser(schedule, currentWeekType)
+                        isWorkingWeek: isWorkingWeekForUser(planning médical, currentWeekType)
                     });
                 }
 
@@ -242,7 +242,7 @@ export const calculateLeaveCountedDays = async (
             const isWorkDay = !isWeekend && (!isHoliday || !skipHolidays);
 
             // Vérifier si ce jour est travaillé pour l'utilisateur selon son planning
-            const isScheduledDay = isScheduledWorkingDay(schedule, day);
+            const isScheduledDay = isScheduledWorkingDay(planning médical, day);
             const isActualWorkDay = isWorkDay && isScheduledDay;
 
             if (isWorkDay) {
@@ -309,7 +309,7 @@ export const calculateLeaveCountedDays = async (
                 naturalDays: currentWeekDays,
                 countedDays: currentWeekCountedDays,
                 halfDays: currentWeekHalfDays,
-                isWorkingWeek: isWorkingWeekForUser(schedule, currentWeekType)
+                isWorkingWeek: isWorkingWeekForUser(planning médical, currentWeekType)
             });
         } else {
             throw new Error("Données de la dernière semaine invalides");
@@ -330,26 +330,26 @@ export const calculateLeaveCountedDays = async (
             halfDays,
             weeklyBreakdown,
             publicHolidays: mappedHolidays,
-            workingTimePercentage: schedule.workingTimePercentage || 100,
+            workingTimePercentage: planning médical.workingTimePercentage || 100,
             dayDetails
         };
 
         // Stocker dans le cache si un ID de planning est disponible
-        if (schedule.id) {
+        if (planning médical.id) {
             calculationCache.set(cacheKey, {
                 result,
                 timestamp: Date.now()
             });
         }
 
-        logger.info('Leave counted days calculation successful', { countedDays: result.countedDays, workDays: result.workDays, scheduleId: schedule.id });
+        logger.info('Leave counted days calculation successful', { countedDays: result.countedDays, workDays: result.workDays, scheduleId: planning médical.id });
         return result;
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         logger.error(`Erreur lors du calcul des jours de congés: ${errorMessage}`, {
             startDate: startDateInput,
             endDate: endDateInput,
-            scheduleId: schedule.id,
+            scheduleId: planning médical.id,
             options,
             stack: error instanceof Error ? error.stack : undefined
         });
@@ -485,35 +485,35 @@ export const isBusinessDay = async (
  * Vérifier si une semaine (paire ou impaire) est travaillée par l'utilisateur
  */
 const isWorkingWeekForUser = (
-    schedule: WorkSchedule,
+    planning médical: WorkSchedule,
     weekType: WeekEvenOdd
 ): boolean => {
     // Pour les temps pleins, toutes les semaines sont travaillées
-    if (schedule.frequency === WorkFrequency.FULL_TIME) {
+    if (planning médical.frequency === WorkFrequency.FULL_TIME) {
         return true;
     }
 
     // Pour l'alternance de semaines
-    if (schedule.frequency === WorkFrequency.ALTERNATE_WEEKS) {
-        if (schedule.weekType === WeekType.BOTH) {
+    if (planning médical.frequency === WorkFrequency.ALTERNATE_WEEKS) {
+        if (planning médical.weekType === WeekType.BOTH) {
             return true;
-        } else if (schedule.weekType === WeekType.EVEN && weekType === 'EVEN') {
+        } else if (planning médical.weekType === WeekType.EVEN && weekType === 'EVEN') {
             return true;
-        } else if (schedule.weekType === WeekType.ODD && weekType === 'ODD') {
+        } else if (planning médical.weekType === WeekType.ODD && weekType === 'ODD') {
             return true;
         }
         return false;
     }
 
     // Pour les configurations personnalisées
-    if (schedule.frequency === WorkFrequency.CUSTOM && schedule.customSchedule) {
-        if (weekType === 'EVEN' && schedule.customSchedule.evenWeeks?.length) {
+    if (planning médical.frequency === WorkFrequency.CUSTOM && planning médical.customSchedule) {
+        if (weekType === 'EVEN' && planning médical.customSchedule.evenWeeks?.length) {
             return true;
-        } else if (weekType === 'ODD' && schedule.customSchedule.oddWeeks?.length) {
+        } else if (weekType === 'ODD' && planning médical.customSchedule.oddWeeks?.length) {
             return true;
         }
     }
 
     // Pour les autres types de planning, vérifier s'il y a des jours travaillés
-    return (schedule.workingDays?.length || 0) > 0;
+    return (planning médical.workingDays?.length || 0) > 0;
 };

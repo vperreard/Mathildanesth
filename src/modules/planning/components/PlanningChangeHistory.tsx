@@ -10,7 +10,7 @@ interface ChangeHistoryItem {
     userId: string;
     userName: string;
     action: 'create' | 'update' | 'delete' | 'statusChange' | 'comment';
-    targetType: 'assignment' | 'planning' | 'supervisor' | 'annotation';
+    targetType: 'attribution' | 'planning' | 'supervisor' | 'annotation';
     targetId: string;
     details: {
         previous?: any;
@@ -117,8 +117,8 @@ export default function PlanningChangeHistory({ planningId, onLoadHistory }: Pla
 
     const getTargetLabel = (item: ChangeHistoryItem) => {
         switch (item.targetType) {
-            case 'assignment':
-                return `Affectation ${item.details.roomName ? `- Salle ${item.details.roomName}` : ''}`;
+            case 'attribution':
+                return `Garde/Vacation ${item.details.roomName ? `- Salle ${item.details.roomName}` : ''}`;
             case 'planning':
                 return 'Planning';
             case 'supervisor':
@@ -173,7 +173,7 @@ export default function PlanningChangeHistory({ planningId, onLoadHistory }: Pla
                         <p className="text-sm font-medium">
                             {getActionLabel(item.action)} de {getTargetLabel(item).toLowerCase()}
                         </p>
-                        {item.targetType === 'assignment' && (
+                        {item.targetType === 'attribution' && (
                             <div className="text-sm">
                                 {item.details.surgeonName && (
                                     <p>Chirurgien: <span className="font-medium">{item.details.surgeonName}</span></p>

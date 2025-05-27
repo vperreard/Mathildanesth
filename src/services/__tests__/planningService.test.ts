@@ -35,14 +35,14 @@ describe('PlanningService', () => {
                 },
             ];
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue(mockAssignments),
             } as any;
 
             const result = await planningService.getPlanning(startDate, endDate, siteId);
 
             expect(result).toEqual(mockAssignments);
-            expect(mockedPrisma.assignment.findMany).toHaveBeenCalledWith({
+            expect(mockedPrisma.attribution.findMany).toHaveBeenCalledWith({
                 where: {
                     date: {
                         gte: startDate,
@@ -75,13 +75,13 @@ describe('PlanningService', () => {
             const endDate = new Date('2024-01-31');
             const roomIds = [1, 2, 3];
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([]),
             } as any;
 
             await planningService.getPlanning(startDate, endDate, undefined, roomIds);
 
-            expect(mockedPrisma.assignment.findMany).toHaveBeenCalledWith({
+            expect(mockedPrisma.attribution.findMany).toHaveBeenCalledWith({
                 where: {
                     date: {
                         gte: startDate,
@@ -98,7 +98,7 @@ describe('PlanningService', () => {
     });
 
     describe('createAssignment', () => {
-        it('should create a new assignment with validation', async () => {
+        it('should create a new attribution with validation', async () => {
             const assignmentData = {
                 userId: 1,
                 operatingRoomId: 1,
@@ -107,7 +107,7 @@ describe('PlanningService', () => {
             };
 
             // Mock conflict check
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findFirst: jest.fn().mockResolvedValue(null),
                 create: jest.fn().mockResolvedValue({
                     id: 1,
@@ -123,11 +123,11 @@ describe('PlanningService', () => {
             const result = await planningService.createAssignment(assignmentData);
 
             expect(result).toMatchObject(assignmentData);
-            expect(mockedPrisma.assignment.findFirst).toHaveBeenCalled();
+            expect(mockedPrisma.attribution.findFirst).toHaveBeenCalled();
             expect(mockedPrisma.leave.findFirst).toHaveBeenCalled();
         });
 
-        it('should throw error for conflicting assignment', async () => {
+        it('should throw error for conflicting attribution', async () => {
             const assignmentData = {
                 userId: 1,
                 operatingRoomId: 1,
@@ -135,8 +135,8 @@ describe('PlanningService', () => {
                 period: 'AM' as const,
             };
 
-            // Mock existing assignment
-            mockedPrisma.assignment = {
+            // Mock existing attribution
+            mockedPrisma.attribution = {
                 findFirst: jest.fn().mockResolvedValue({
                     id: 999,
                     userId: 2,
@@ -156,7 +156,7 @@ describe('PlanningService', () => {
                 period: 'AM' as const,
             };
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findFirst: jest.fn().mockResolvedValue(null),
             } as any;
 
@@ -176,8 +176,8 @@ describe('PlanningService', () => {
     });
 
     describe('bulkCreateAssignments', () => {
-        it('should create multiple assignments in transaction', async () => {
-            const assignments = [
+        it('should create multiple attributions in transaction', async () => {
+            const attributions = [
                 {
                     userId: 1,
                     operatingRoomId: 1,
@@ -196,18 +196,18 @@ describe('PlanningService', () => {
                 return callback(mockedPrisma);
             });
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 createMany: jest.fn().mockResolvedValue({ count: 2 }),
             } as any;
 
-            const result = await planningService.bulkCreateAssignments(assignments);
+            const result = await planningService.bulkCreateAssignments(attributions);
 
             expect(result.created).toBe(2);
             expect(mockedPrisma.$transaction).toHaveBeenCalled();
         });
 
-        it('should skip conflicting assignments', async () => {
-            const assignments = [
+        it('should skip conflicting attributions', async () => {
+            const attributions = [
                 {
                     userId: 1,
                     operatingRoomId: 1,
@@ -221,11 +221,11 @@ describe('PlanningService', () => {
             });
 
             // Mock conflict
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findFirst: jest.fn().mockResolvedValue({ id: 999 }),
             } as any;
 
-            const result = await planningService.bulkCreateAssignments(assignments);
+            const result = await planningService.bulkCreateAssignments(attributions);
 
             expect(result.created).toBe(0);
             expect(result.skipped).toBe(1);
@@ -234,7 +234,7 @@ describe('PlanningService', () => {
     });
 
     describe('swapAssignments', () => {
-        it('should swap two assignments', async () => {
+        it('should swap two attributions', async () => {
             const assignment1 = {
                 id: 1,
                 userId: 1,
@@ -251,7 +251,7 @@ describe('PlanningService', () => {
                 period: 'PM',
             };
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findUnique: jest.fn()
                     .mockResolvedValueOnce(assignment1)
                     .mockResolvedValueOnce(assignment2),
@@ -261,24 +261,24 @@ describe('PlanningService', () => {
                 return callback(mockedPrisma);
             });
 
-            mockedPrisma.assignment.update = jest.fn()
+            mockedPrisma.attribution.update = jest.fn()
                 .mockResolvedValueOnce({ ...assignment1, userId: 2 })
                 .mockResolvedValueOnce({ ...assignment2, userId: 1 });
 
             const result = await planningService.swapAssignments(1, 2);
 
             expect(result).toHaveLength(2);
-            expect(mockedPrisma.assignment.update).toHaveBeenCalledTimes(2);
+            expect(mockedPrisma.attribution.update).toHaveBeenCalledTimes(2);
         });
 
-        it('should throw error if assignments not found', async () => {
-            mockedPrisma.assignment = {
+        it('should throw error if attributions not found', async () => {
+            mockedPrisma.attribution = {
                 findUnique: jest.fn().mockResolvedValue(null),
             } as any;
 
             await expect(
                 planningService.swapAssignments(999, 1000)
-            ).rejects.toThrow('Assignment introuvable');
+            ).rejects.toThrow('Attribution introuvable');
         });
     });
 
@@ -301,10 +301,10 @@ describe('PlanningService', () => {
                     date: new Date('2024-01-01'),
                     period: 'PM',
                 },
-                // User 1 has 2 assignments on same day - potential violation
+                // User 1 has 2 attributions on same day - potential violation
             ];
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue(mockAssignments),
             } as any;
 
@@ -317,7 +317,7 @@ describe('PlanningService', () => {
     });
 
     describe('getAvailableUsers', () => {
-        it('should return available users for a specific slot', async () => {
+        it('should return available users for a specific créneau', async () => {
             const date = new Date('2024-01-15');
             const period = 'AM';
             const siteId = 1;
@@ -333,7 +333,7 @@ describe('PlanningService', () => {
             } as any;
 
             // Mock busy users
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([
                     { userId: 2 }, // User 2 is busy
                 ]),
@@ -361,7 +361,7 @@ describe('PlanningService', () => {
                 ]),
             } as any;
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([]),
             } as any;
 
@@ -384,7 +384,7 @@ describe('PlanningService', () => {
             const endDate = new Date('2024-01-31');
             const siteId = 1;
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 count: jest.fn().mockResolvedValue(50),
                 groupBy: jest.fn().mockResolvedValue([
                     { userId: 1, _count: { _all: 10 } },

@@ -8,13 +8,13 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 interface BlocPlanningCalendarProps {
     date: Date;
     period: BlocPeriod;
-    onAssignmentChange?: (assignments: BlocRoomAssignment[]) => void;
+    onAssignmentChange?: (attributions: BlocRoomAssignment[]) => void;
 }
 
 export default function BlocPlanningCalendar({ date, period, onAssignmentChange }: BlocPlanningCalendarProps) {
     const [rooms, setRooms] = useState<any[]>([]);
     const [surgeons, setSurgeons] = useState<any[]>([]);
-    const [assignments, setAssignments] = useState<BlocRoomAssignment[]>([]);
+    const [attributions, setAssignments] = useState<BlocRoomAssignment[]>([]);
     const [supervisors, setSupervisors] = useState<BlocSupervisor[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export default function BlocPlanningCalendar({ date, period, onAssignmentChange 
                 if (planningResponse.ok) {
                     const planningData = await planningResponse.json();
                     if (planningData) {
-                        setAssignments(planningData.assignments || []);
+                        setAssignments(planningData.attributions || []);
                         setSupervisors(planningData.supervisors || []);
                     }
                 }
@@ -60,7 +60,7 @@ export default function BlocPlanningCalendar({ date, period, onAssignmentChange 
     }, [date, period]);
 
     const handleAssignmentChange = (roomId: number, surgeonId: number | null) => {
-        const newAssignments = [...assignments];
+        const newAssignments = [...attributions];
         const existingAssignmentIndex = newAssignments.findIndex(a => a.roomId === roomId);
 
         if (existingAssignmentIndex >= 0) {
@@ -109,10 +109,10 @@ export default function BlocPlanningCalendar({ date, period, onAssignmentChange 
     }
 
     const getSurgeonForRoom = (roomId: number) => {
-        const assignment = assignments.find(a => a.roomId === roomId);
-        if (!assignment) return null;
+        const attribution = attributions.find(a => a.roomId === roomId);
+        if (!attribution) return null;
 
-        return surgeons.find(s => s.id === assignment.surgeonId) || null;
+        return surgeons.find(s => s.id === attribution.surgeonId) || null;
     };
 
     const getSupervisorForRoom = (roomId: number) => {

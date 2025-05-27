@@ -150,7 +150,7 @@ describe('API Load Testing', () => {
             expect(responseTime).toBeLessThan(15000); // Moins de 15s pour génération
 
             const data = await response.json();
-            expect(data.assignments).toBeDefined();
+            expect(data.attributions).toBeDefined();
 
             console.log(`Génération de planning en ${responseTime.toFixed(2)}ms`);
         });
@@ -190,7 +190,7 @@ describe('API Load Testing', () => {
             const queries = [
                 '/api/conges?startDate=2023-01-01&endDate=2023-12-31', // Année complète
                 '/api/utilisateurs?includeStats=true', // Avec statistiques
-                '/api/affectations?startDate=2024-01-01&endDate=2024-12-31' // Assignations année
+                '/api/gardes/vacations?startDate=2024-01-01&endDate=2024-12-31' // Assignations année
             ];
 
             const results = await Promise.all(

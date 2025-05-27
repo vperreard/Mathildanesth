@@ -95,7 +95,7 @@ export default function PlanningRulesPage() {
           
           <Button
             variant="outline"
-            onClick={() => setActiveTab('templates')}
+            onClick={() => setActiveTab('modèles')}
           >
             <FileText className="h-4 w-4 mr-2" />
             Modèles
@@ -119,8 +119,8 @@ export default function PlanningRulesPage() {
               <Badge className="ml-2" variant="secondary">{rulesData.rules.length}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="templates">
-            Templates
+          <TabsTrigger value="modèles">
+            Modèles
           </TabsTrigger>
           <TabsTrigger value="conflicts">
             Conflits
@@ -138,10 +138,10 @@ export default function PlanningRulesPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="templates" className="mt-6">
+        <TabsContent value="modèles" className="mt-6">
           <Card>
             <CardContent className="pt-6">
-              <p className="text-muted-foreground">Templates de règles à implémenter</p>
+              <p className="text-muted-foreground">Modèles de règles à implémenter</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -170,7 +170,7 @@ export default function PlanningRulesPage() {
             <div className="p-6">
               <RuleBuilder
                 rule={editingRule}
-                template={selectedTemplate}
+                modèle={selectedTemplate}
                 onSave={(rule) => saveRuleMutation.mutate(rule)}
                 onCancel={handleCloseBuilder}
               />

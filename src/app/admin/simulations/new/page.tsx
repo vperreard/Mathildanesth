@@ -35,7 +35,7 @@ export default function NewSimulationPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [templates, setTemplates] = useState<SimulationTemplate[]>([]);
+    const [modèles, setTemplates] = useState<SimulationTemplate[]>([]);
 
     // États du formulaire
     const [name, setName] = useState('');
@@ -84,8 +84,8 @@ export default function NewSimulationPage() {
         const fetchInitialData = async () => {
             setIsLoading(true);
             try {
-                // Charger les templates de simulation
-                const templatesResponse = await fetch('http://localhost:3000/api/simulations/templates');
+                // Charger les modèles de simulation
+                const templatesResponse = await fetch('http://localhost:3000/api/simulations/modèles');
                 if (templatesResponse.ok) {
                     const templatesData = await templatesResponse.json();
                     setTemplates(templatesData.data);
@@ -256,16 +256,16 @@ export default function NewSimulationPage() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="template-select" className="mb-1 block">Modèle de simulation</Label>
+                                    <Label htmlFor="modèle-select" className="mb-1 block">Modèle de simulation</Label>
                                     <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
-                                        <SelectTrigger id="template-select">
+                                        <SelectTrigger id="modèle-select">
                                             <SelectValue placeholder="Sélectionner un modèle" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="">Aucun modèle</SelectItem>
-                                            {templates.map(template => (
-                                                <SelectItem key={template.id} value={template.id}>
-                                                    {template.name} {template.category ? `(${template.category})` : ''}
+                                            {modèles.map(modèle => (
+                                                <SelectItem key={modèle.id} value={modèle.id}>
+                                                    {modèle.name} {modèle.category ? `(${modèle.category})` : ''}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -456,7 +456,7 @@ export default function NewSimulationPage() {
                                 <div className="flex justify-between py-1 border-b">
                                     <span className="text-muted-foreground">Modèle</span>
                                     <span>
-                                        {templates.find(t => t.id === selectedTemplateId)?.name || 'Aucun'}
+                                        {modèles.find(t => t.id === selectedTemplateId)?.name || 'Aucun'}
                                     </span>
                                 </div>
                                 <div className="flex justify-between py-1 border-b">

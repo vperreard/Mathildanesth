@@ -33,7 +33,7 @@ export interface BaseCalendarEvent {
     color?: string;
 }
 
-// Événement d'affectation
+// Événement d'garde/vacation
 export interface AssignmentEvent extends BaseCalendarEvent {
     type: CalendarEventType.ASSIGNMENT;
     locationId?: string;
@@ -165,7 +165,7 @@ export interface ColorScheme {
     leave: string;
     duty: string;
     onCall: string;
-    assignment: string;
+    attribution: string;
     holiday: string;
     default: string;
     textColor: string;

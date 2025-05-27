@@ -60,11 +60,11 @@ export interface RegularAssignment {
     details: RegularAssignmentDetails;
     createdAt: Date;
     updatedAt: Date;
-    trame?: Trame | null;
+    tableau de service?: Tableau de service | null;
     user?: User | null;
     surgeon?: Surgeon | null;
     location?: Location | null;
-    assignments?: any[]; // Type à préciser lors de l'implémentation complète
+    attributions?: any[]; // Type à préciser lors de l'implémentation complète
 }
 
 export interface RegularAssignmentDetails {
@@ -75,7 +75,7 @@ export interface RegularAssignmentDetails {
     [key: string]: any; // Autres propriétés spécifiques
 }
 
-export interface Trame {
+export interface Tableau de service {
     id: number;
     name: string;
     description?: string | null;
@@ -88,11 +88,11 @@ export interface Trame {
     regularAssignments?: RegularAssignment[];
 }
 
-export type RegularAssignmentFormData = Omit<RegularAssignment, "id" | "createdAt" | "updatedAt" | "trame" | "user" | "surgeon" | "location" | "assignments">;
+export type RegularAssignmentFormData = Omit<RegularAssignment, "id" | "createdAt" | "updatedAt" | "tableau de service" | "user" | "surgeon" | "location" | "attributions">;
 
 export type TemplateDefinition = {
     name: string;
     description?: string;
     type: TrameType;
-    assignments: Array<Omit<RegularAssignment, "id" | "trameId" | "createdAt" | "updatedAt" | "trame" | "user" | "surgeon" | "location" | "assignments">>;
+    attributions: Array<Omit<RegularAssignment, "id" | "trameId" | "createdAt" | "updatedAt" | "tableau de service" | "user" | "surgeon" | "location" | "attributions">>;
 }; 

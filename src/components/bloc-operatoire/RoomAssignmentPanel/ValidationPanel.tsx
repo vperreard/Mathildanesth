@@ -17,7 +17,7 @@ import {
     MapPin
 } from 'lucide-react';
 
-interface Assignment {
+interface Attribution {
     id?: number;
     roomId: number;
     supervisorId: number;
@@ -37,7 +37,7 @@ interface ValidationSummary {
 
 interface ValidationPanelProps {
     summary: ValidationSummary;
-    assignments: Assignment[];
+    attributions: Attribution[];
     onValidate: () => void;
     onClose: () => void;
     className?: string;
@@ -99,7 +99,7 @@ const ValidationStats: React.FC<{
                     </div>
                     <div className="text-xs text-gray-600">
                         {summary.totalConflicts === 0
-                            ? 'Toutes les affectations sont valides'
+                            ? 'Toutes les gardes/vacations sont valides'
                             : `${summary.totalConflicts} conflit${summary.totalConflicts > 1 ? 's' : ''} détecté${summary.totalConflicts > 1 ? 's' : ''}`
                         }
                     </div>
@@ -109,28 +109,28 @@ const ValidationStats: React.FC<{
     );
 };
 
-// Composant pour afficher les détails des affectations
+// Composant pour afficher les détails des gardes/vacations
 const AssignmentDetails: React.FC<{
-    assignments: Assignment[];
-}> = ({ assignments }) => {
-    const validAssignments = assignments.filter(a => a.isValid);
-    const invalidAssignments = assignments.filter(a => !a.isValid);
+    attributions: Attribution[];
+}> = ({ attributions }) => {
+    const validAssignments = attributions.filter(a => a.isValid);
+    const invalidAssignments = attributions.filter(a => !a.isValid);
 
     return (
         <div className="space-y-4">
-            {/* Affectations valides */}
+            {/* Gardes/Vacations valides */}
             {validAssignments.length > 0 && (
                 <div>
                     <div className="flex items-center space-x-2 mb-3">
                         <CheckCircle className="w-4 h-4 text-green-600" />
                         <h4 className="font-medium text-gray-900">
-                            Affectations valides ({validAssignments.length})
+                            Gardes/Vacations valides ({validAssignments.length})
                         </h4>
                     </div>
                     <div className="space-y-2">
-                        {validAssignments.map((assignment, index) => (
+                        {validAssignments.map((attribution, index) => (
                             <motion.div
-                                key={assignment.id || index}
+                                key={attribution.id || index}
                                 className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-md"
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
@@ -139,10 +139,10 @@ const AssignmentDetails: React.FC<{
                                 <div className="flex items-center space-x-2">
                                     <MapPin className="w-4 h-4 text-green-600" />
                                     <span className="text-sm font-medium text-green-900">
-                                        Salle {assignment.roomId}
+                                        Salle {attribution.roomId}
                                     </span>
                                     <span className="text-xs text-green-700">
-                                        {assignment.day} - {assignment.period}
+                                        {attribution.day} - {attribution.period}
                                     </span>
                                 </div>
                                 <CheckCircle className="w-4 h-4 text-green-600" />
@@ -152,19 +152,19 @@ const AssignmentDetails: React.FC<{
                 </div>
             )}
 
-            {/* Affectations avec conflits */}
+            {/* Gardes/Vacations avec conflits */}
             {invalidAssignments.length > 0 && (
                 <div>
                     <div className="flex items-center space-x-2 mb-3">
                         <XCircle className="w-4 h-4 text-red-600" />
                         <h4 className="font-medium text-gray-900">
-                            Affectations avec conflits ({invalidAssignments.length})
+                            Gardes/Vacations avec conflits ({invalidAssignments.length})
                         </h4>
                     </div>
                     <div className="space-y-2">
-                        {invalidAssignments.map((assignment, index) => (
+                        {invalidAssignments.map((attribution, index) => (
                             <motion.div
-                                key={assignment.id || index}
+                                key={attribution.id || index}
                                 className="p-3 bg-red-50 border border-red-200 rounded-md"
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
@@ -174,16 +174,16 @@ const AssignmentDetails: React.FC<{
                                     <div className="flex items-center space-x-2">
                                         <MapPin className="w-4 h-4 text-red-600" />
                                         <span className="text-sm font-medium text-red-900">
-                                            Salle {assignment.roomId}
+                                            Salle {attribution.roomId}
                                         </span>
                                         <span className="text-xs text-red-700">
-                                            {assignment.day} - {assignment.period}
+                                            {attribution.day} - {attribution.period}
                                         </span>
                                     </div>
                                     <XCircle className="w-4 h-4 text-red-600" />
                                 </div>
                                 <div className="space-y-1">
-                                    {assignment.conflicts.map((conflict, conflictIndex) => (
+                                    {attribution.conflicts.map((conflict, conflictIndex) => (
                                         <div
                                             key={conflictIndex}
                                             className="text-xs text-red-700 bg-red-100 px-2 py-1 rounded"
@@ -203,7 +203,7 @@ const AssignmentDetails: React.FC<{
 
 export const ValidationPanel: React.FC<ValidationPanelProps> = ({
     summary,
-    assignments,
+    attributions,
     onValidate,
     onClose,
     className = ''
@@ -228,7 +228,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                                 ) : (
                                     <AlertTriangle className="w-5 h-5 text-orange-600" />
                                 )}
-                                <span>Validation des affectations</span>
+                                <span>Validation des gardes/vacations</span>
                             </CardTitle>
                             <Button
                                 variant="ghost"
@@ -262,7 +262,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                                 <span className={`font-medium ${summary.isValid ? 'text-green-900' : 'text-orange-900'
                                     }`}>
                                     {summary.isValid
-                                        ? 'Toutes les affectations sont valides'
+                                        ? 'Toutes les gardes/vacations sont valides'
                                         : 'Des conflits doivent être résolus'
                                     }
                                 </span>
@@ -270,23 +270,23 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                             <div className={`text-sm ${summary.isValid ? 'text-green-700' : 'text-orange-700'
                                 }`}>
                                 {summary.isValid
-                                    ? 'Vous pouvez valider et appliquer ces affectations au planning.'
-                                    : 'Résolvez les conflits avant de pouvoir valider les affectations.'
+                                    ? 'Vous pouvez valider et appliquer ces gardes/vacations au planning.'
+                                    : 'Résolvez les conflits avant de pouvoir valider les gardes/vacations.'
                                 }
                             </div>
                         </div>
 
-                        {/* Détails des affectations */}
-                        {assignments.length > 0 && (
-                            <AssignmentDetails assignments={assignments} />
+                        {/* Détails des gardes/vacations */}
+                        {attributions.length > 0 && (
+                            <AssignmentDetails attributions={attributions} />
                         )}
 
                         {/* Actions */}
                         <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                             <div className="text-sm text-gray-600">
                                 {summary.totalAssignments === 0
-                                    ? 'Aucune affectation à valider'
-                                    : `${summary.totalAssignments} affectation${summary.totalAssignments > 1 ? 's' : ''} à valider`
+                                    ? 'Aucune garde/vacation à valider'
+                                    : `${summary.totalAssignments} garde/vacation${summary.totalAssignments > 1 ? 's' : ''} à valider`
                                 }
                             </div>
 
@@ -307,7 +307,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                                     {canValidate ? (
                                         <>
                                             <CheckCircle className="w-4 h-4 mr-1" />
-                                            Valider les affectations
+                                            Valider les gardes/vacations
                                         </>
                                     ) : (
                                         <>

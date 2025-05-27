@@ -8,7 +8,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PlanningView } from '../PlanningView';
 import { User, UserRole, ExperienceLevel } from '@/types/user';
 import { ShiftType } from '@/types/common';
-import { AssignmentStatus, Assignment } from '@/types/assignment';
+import { AssignmentStatus, Attribution } from '@/types/attribution';
 import { RulesConfiguration } from '@/types/rules';
 import { toast } from 'react-toastify';
 

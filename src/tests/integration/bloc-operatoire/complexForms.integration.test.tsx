@@ -226,12 +226,12 @@ describe("Tests d'intégration des formulaires complexes du bloc opératoire", (
                 ...mockPlanning,
                 salles: [
                     {
-                        id: 'assignment-1',
+                        id: 'attribution-1',
                         salleId: 'salle-1',
                         superviseurs: [],
                     },
                     {
-                        id: 'assignment-2',
+                        id: 'attribution-2',
                         salleId: 'salle-2',
                         superviseurs: [],
                     }
@@ -268,7 +268,7 @@ describe("Tests d'intégration des formulaires complexes du bloc opératoire", (
                 ...mockPlanning,
                 salles: [
                     {
-                        id: 'assignment-3',
+                        id: 'attribution-3',
                         salleId: 'salle-1',
                         superviseurs: [],
                     }
@@ -324,7 +324,7 @@ describe("Tests d'intégration des formulaires complexes du bloc opératoire", (
                 ...mockPlanning,
                 salles: [
                     {
-                        id: 'assignment-4',
+                        id: 'attribution-4',
                         salleId: 'salle-1',
                         superviseurs: [{ userId: 'user-1', firstName: 'Jean', lastName: 'Dupont' }],
                     }
@@ -360,7 +360,7 @@ describe("Tests d'intégration des formulaires complexes du bloc opératoire", (
                 ...mockPlanning,
                 salles: [
                     {
-                        id: 'assignment-5',
+                        id: 'attribution-5',
                         salleId: 'salle-1',
                         superviseurs: [],
                     }
@@ -398,7 +398,7 @@ describe("Tests d'intégration des formulaires complexes du bloc opératoire", (
                 ...mockPlanning,
                 salles: [
                     {
-                        id: 'assignment-6',
+                        id: 'attribution-6',
                         salleId: 'salle-1',
                         superviseurs: [{ userId: 'user-1', firstName: 'Jean', lastName: 'Dupont' }],
                     }
@@ -436,7 +436,7 @@ describe("Tests d'intégration des formulaires complexes du bloc opératoire", (
                 ...mockPlanning,
                 salles: [
                     {
-                        id: 'assignment-7',
+                        id: 'attribution-7',
                         salleId: 'salle-1',
                         superviseurs: [],
                     }
@@ -481,7 +481,7 @@ describe("Tests d'intégration des formulaires complexes du bloc opératoire", (
                 ...mockPlanning,
                 salles: [
                     {
-                        id: 'assignment-8',
+                        id: 'attribution-8',
                         salleId: 'salle-1',
                         superviseurs: [],
                     }
@@ -524,13 +524,13 @@ describe("Tests d'intégration des formulaires complexes du bloc opératoire", (
                 ...mockPlanning,
                 salles: [
                     {
-                        id: 'assignment-9',
+                        id: 'attribution-9',
                         salleId: 'salle-1',
                         superviseurs: [{ userId: 'user-1', firstName: 'Jean', lastName: 'Dupont' }],
                         notes: 'Salle 1 - Ortho',
                     },
                     {
-                        id: 'assignment-10',
+                        id: 'attribution-10',
                         salleId: 'salle-2',
                         superviseurs: [{ userId: 'user-2', firstName: 'Marie', lastName: 'Martin' }],
                         notes: 'Salle 2 - Cardio',

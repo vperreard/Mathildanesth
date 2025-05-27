@@ -48,7 +48,7 @@ export default function CreatePlanningPage() {
           })}
         </h1>
         <p className="mt-1 text-sm text-gray-600">
-          Définissez les affectations pour cette journée
+          Définissez les gardes/vacations pour cette journée
         </p>
       </div>
 

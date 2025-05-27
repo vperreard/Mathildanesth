@@ -56,7 +56,7 @@ describe('RuleEngineV2', () => {
       actions: [
         {
           type: 'PREVENT',
-          target: 'assignment',
+          target: 'attribution',
           message: 'Not allowed'
         }
       ]
@@ -199,7 +199,7 @@ describe('RuleEngineV2', () => {
         { field: 'user.role', operator: 'EQUALS', value: 'IADE' }
       ],
       actions: [
-        { type: 'PREVENT', target: 'assignment' }
+        { type: 'PREVENT', target: 'attribution' }
       ]
     };
 
@@ -219,7 +219,7 @@ describe('RuleEngineV2', () => {
         { field: 'user.role', operator: 'EQUALS', value: 'IADE' }
       ],
       actions: [
-        { type: 'ALLOW', target: 'assignment' }
+        { type: 'ALLOW', target: 'attribution' }
       ]
     };
 

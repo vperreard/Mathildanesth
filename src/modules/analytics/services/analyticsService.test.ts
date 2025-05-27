@@ -40,7 +40,7 @@ describe('AnalyticsService', () => {
         const startDate = new Date('2023-01-01T00:00:00.000Z');
         const endDate = new Date('2023-01-01T23:59:59.999Z');
 
-        it('devrait retourner des statistiques vides si aucune affectation n\'est trouvée', async () => {
+        it('devrait retourner des statistiques vides si aucune garde/vacation n\'est trouvée', async () => {
             (prismaMock.operatingRoom.findMany as jest.Mock).mockResolvedValue([]);
             (prismaMock.blocRoomAssignment.findMany as jest.Mock).mockResolvedValue([]);
 

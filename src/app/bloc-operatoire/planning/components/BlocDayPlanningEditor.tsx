@@ -66,7 +66,7 @@ type SimplifiedPlanning = {
     date: Date;
     siteId: string;
     status: BlocPlanningStatus;
-    assignments: {
+    attributions: {
         id: string;
         operatingRoomId: number;
         period: Period;
@@ -148,7 +148,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
     const [rooms, setRooms] = useState<Room[]>([]);
     const [saving, setSaving] = useState<boolean>(false);
     const [validating, setValidating] = useState<boolean>(false);
-    const [activeTab, setActiveTab] = useState<string>('assignments');
+    const [activeTab, setActiveTab] = useState<string>('attributions');
     const [showAddStaffDialog, setShowAddStaffDialog] = useState<boolean>(false);
     const [selectedRoomAssignmentId, setSelectedRoomAssignmentId] = useState<string | null>(null);
     const [selectedStaffMember, setSelectedStaffMember] = useState<number | null>(null);
@@ -222,11 +222,11 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
 
         setPlanning({
             ...planning,
-            assignments: planning.assignments.map(assignment => {
-                if (assignment.id === roomAssignmentId) {
+            attributions: planning.attributions.map(attribution => {
+                if (attribution.id === roomAssignmentId) {
                     const selectedSurgeon = surgeonId ? surgeons.find(s => s.id === surgeonId) : null;
                     return {
-                        ...assignment,
+                        ...attribution,
                         chirurgienId: surgeonId,
                         surgeon: selectedSurgeon ? {
                             id: selectedSurgeon.id,
@@ -235,7 +235,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                         } : null
                     };
                 }
-                return assignment;
+                return attribution;
             })
         });
     };
@@ -252,8 +252,8 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
             if (selectedStaffData) {
                 setPlanning({
                     ...planning,
-                    assignments: planning.assignments.map(assignment => {
-                        if (assignment.id === selectedRoomAssignmentId) {
+                    attributions: planning.attributions.map(attribution => {
+                        if (attribution.id === selectedRoomAssignmentId) {
                             const newStaffAssignment = {
                                 id: `temp-${Date.now()}`, // ID temporaire
                                 userId: selectedStaffMember,
@@ -266,11 +266,11 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                             };
 
                             return {
-                                ...assignment,
-                                staffAssignments: [...assignment.staffAssignments, newStaffAssignment]
+                                ...attribution,
+                                staffAssignments: [...attribution.staffAssignments, newStaffAssignment]
                             };
                         }
-                        return assignment;
+                        return attribution;
                     })
                 });
 
@@ -292,16 +292,16 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
 
         setPlanning({
             ...planning,
-            assignments: planning.assignments.map(assignment => {
-                if (assignment.id === roomAssignmentId) {
+            attributions: planning.attributions.map(attribution => {
+                if (attribution.id === roomAssignmentId) {
                     return {
-                        ...assignment,
-                        staffAssignments: assignment.staffAssignments.filter(
+                        ...attribution,
+                        staffAssignments: attribution.staffAssignments.filter(
                             staff => staff.id !== staffAssignmentId
                         )
                     };
                 }
-                return assignment;
+                return attribution;
             })
         });
     };
@@ -430,7 +430,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList>
-                    <TabsTrigger value="assignments">Affectations</TabsTrigger>
+                    <TabsTrigger value="attributions">Gardes/Vacations</TabsTrigger>
                     <TabsTrigger value="conflicts">
                         Conflits
                         {planning.conflicts.filter(c => !c.isResolved).length > 0 && (
@@ -441,7 +441,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="assignments" className="space-y-4">
+                <TabsContent value="attributions" className="space-y-4">
                     {/* Organisation par secteur */}
                     {rooms.reduce((sectors: Record<number, Room[]>, room) => {
                         const sectorId = room.sectorId || 0;
@@ -460,7 +460,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                                     </CardHeader>
                                     <CardContent className="divide-y">
                                         {sectorRooms.map(room => {
-                                            const assignment = planning.assignments.find(
+                                            const attribution = planning.attributions.find(
                                                 a => a.operatingRoomId === room.id
                                             );
 
@@ -468,19 +468,19 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                                                 <div key={room.id} className="py-3">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div className="font-medium">{room.name}</div>
-                                                        {!assignment && (
+                                                        {!attribution && (
                                                             <Button variant="outline" size="sm">
                                                                 <Plus className="h-3 w-3 mr-1" />
-                                                                Ajouter affectation
+                                                                Ajouter garde/vacation
                                                             </Button>
                                                         )}
                                                     </div>
 
-                                                    {assignment && (
+                                                    {attribution && (
                                                         <div className="space-y-3">
                                                             <div className="flex items-center space-x-2">
                                                                 <span className="text-sm font-medium">Période:</span>
-                                                                <Select value={assignment.period} onValueChange={(value) => {
+                                                                <Select value={attribution.period} onValueChange={(value) => {
                                                                     // Mettre à jour la période
                                                                 }}>
                                                                     <SelectTrigger className="w-[180px]">
@@ -497,10 +497,10 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                                                             <div className="flex items-center space-x-2">
                                                                 <span className="text-sm font-medium">Chirurgien:</span>
                                                                 <Select
-                                                                    value={assignment.chirurgienId?.toString() || ''}
+                                                                    value={attribution.chirurgienId?.toString() || ''}
                                                                     onValueChange={(value) => {
                                                                         updateSurgeonForRoom(
-                                                                            assignment.id,
+                                                                            attribution.id,
                                                                             value ? parseInt(value) : null
                                                                         );
                                                                     }}
@@ -526,7 +526,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                                                                         variant="outline"
                                                                         size="sm"
                                                                         onClick={() => {
-                                                                            setSelectedRoomAssignmentId(assignment.id);
+                                                                            setSelectedRoomAssignmentId(attribution.id);
                                                                             setShowAddStaffDialog(true);
                                                                         }}
                                                                     >
@@ -536,13 +536,13 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                                                                 </div>
 
                                                                 <div className="space-y-1">
-                                                                    {assignment.staffAssignments.length === 0 && (
+                                                                    {attribution.staffAssignments.length === 0 && (
                                                                         <p className="text-sm text-muted-foreground italic">
                                                                             Aucun personnel affecté
                                                                         </p>
                                                                     )}
 
-                                                                    {assignment.staffAssignments.map(staffAssignment => (
+                                                                    {attribution.staffAssignments.map(staffAssignment => (
                                                                         <div
                                                                             key={staffAssignment.id}
                                                                             className="flex justify-between items-center p-2 bg-muted/30 rounded-sm"
@@ -564,7 +564,7 @@ const BlocDayPlanningEditor: React.FC<BlocDayPlanningEditorProps> = ({
                                                                             <Button
                                                                                 variant="ghost"
                                                                                 size="sm"
-                                                                                onClick={() => removeStaffFromRoom(assignment.id, staffAssignment.id)}
+                                                                                onClick={() => removeStaffFromRoom(attribution.id, staffAssignment.id)}
                                                                             >
                                                                                 <Trash2 className="h-3 w-3 text-red-500" />
                                                                             </Button>

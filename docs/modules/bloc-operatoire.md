@@ -23,28 +23,42 @@ Le module Bloc Opératoire offre une solution complète pour la gestion et la pl
 - **Affectation de salle (BlocRoomAssignment)** : Association d'une salle avec ses superviseurs
 - **Superviseur (BlocSupervisor)** : Médecin affecté à la supervision d'une salle pour une ou plusieurs périodes
 
-## Architecture technique
+## Architecture technique (Unifiée)
+
+### Structure unifiée
+
+Depuis la fusion (27/05/25), toute l'architecture est unifiée sous `/src/app/bloc-operatoire/` avec :
+- Navigation par tabs avec PermissionGuard
+- Lazy loading pour les composants admin
+- Optimisation avec React Query et caching intelligent
 
 ### Services
 
 - **blocPlanningService** : Service principal qui gère toutes les opérations CRUD sur les données du bloc opératoire
+- **optimizedBlocPlanningService** : Version optimisée avec mise en cache
 
 ### Composants UI
 
 - **BlocPlanning** : Affichage du planning hebdomadaire
 - **BlocPlanningDay** : Affichage du planning pour un jour spécifique
 - **BlocPlanningEditor** : Interface d'édition du planning
-- **AdminComponents** :
-  - SallesAdmin
-  - SecteursAdmin
-  - ReglesSupervisionAdmin
+- **Components unifiés** :
+  - SallesAdmin (tab Salles)
+  - SecteursAdmin (tab Secteurs)
+  - ModelesList (tab Modèles)
+  - TramesList (tab Trames)
 
-### Pages
+### Pages (Structure unifiée - Fusion complétée)
 
-- **/bloc-operatoire** : Page principale du module
-- **/bloc-operatoire/edit/[date]** : Édition du planning pour une date
-- **/bloc-operatoire/create/[date]** : Création d'un nouveau planning
-- **/admin/bloc-operatoire** : Administration du module
+- **/bloc-operatoire** : Page principale avec navigation par tabs
+  - **Planning** (onglet par défaut) : Vue hebdomadaire du planning
+  - **Salles** : Gestion des salles d'opération (admin)
+  - **Secteurs** : Gestion des secteurs opératoires (admin)
+  - **Modèles** : Gestion des modèles de planning (admin)
+  - **Trames** : Gestion des trames d'affectation (admin)
+- **/bloc-operatoire/planning/[date]** : Vue détaillée du planning
+- **/bloc-operatoire/planning/edit/[date]** : Édition du planning
+- **/bloc-operatoire/planning/create/[date]** : Création d'un planning
 
 ## Guide d'utilisation
 

@@ -121,21 +121,21 @@ function exportToPDF(data: SimulationExportData, fileName: string): Blob {
         yPosition = pdf.previousAutoTable?.finalY ? pdf.previousAutoTable.finalY + 10 : yPosition + 30;
     }
 
-    // Affectations utilisateurs (limité aux 10 premiers)
+    // Gardes/Vacations utilisateurs (limité aux 10 premiers)
     if (data.userAssignments && data.userAssignments.length > 0) {
         pdf.setFontSize(14);
-        pdf.text('Affectations des utilisateurs (Top 10)', 20, yPosition);
+        pdf.text('Gardes/Vacations des utilisateurs (Top 10)', 20, yPosition);
         yPosition += 10;
 
         const limitedAssignments = data.userAssignments.slice(0, 10);
 
         pdf.autoTable({
             startY: yPosition,
-            head: [['Utilisateur', 'Rôle', 'Nombre d\'affectations']],
-            body: limitedAssignments.map(assignment => [
-                assignment.userName || 'Inconnu',
-                assignment.role || 'Non défini',
-                assignment.assignmentCount?.toString() || '0'
+            head: [['Utilisateur', 'Rôle', 'Nombre d\'gardes/vacations']],
+            body: limitedAssignments.map(attribution => [
+                attribution.userName || 'Inconnu',
+                attribution.role || 'Non défini',
+                attribution.assignmentCount?.toString() || '0'
             ])
         });
     }
@@ -184,15 +184,15 @@ function exportToCSV(data: SimulationExportData, fileName: string): Blob {
         csvData.push([]);
     }
 
-    // Affectations utilisateurs
+    // Gardes/Vacations utilisateurs
     if (data.userAssignments && data.userAssignments.length > 0) {
-        csvData.push(['Affectations des utilisateurs']);
-        csvData.push(['Utilisateur', 'Rôle', 'Nombre d\'affectations']);
-        data.userAssignments.forEach(assignment => {
+        csvData.push(['Gardes/Vacations des utilisateurs']);
+        csvData.push(['Utilisateur', 'Rôle', 'Nombre d\'gardes/vacations']);
+        data.userAssignments.forEach(attribution => {
             csvData.push([
-                assignment.userName || 'Inconnu',
-                assignment.role || 'Non défini',
-                assignment.assignmentCount?.toString() || '0'
+                attribution.userName || 'Inconnu',
+                attribution.role || 'Non défini',
+                attribution.assignmentCount?.toString() || '0'
             ]);
         });
     }
@@ -207,7 +207,7 @@ function exportToCSV(data: SimulationExportData, fileName: string): Blob {
  */
 function formatStatKey(key: string): string {
     const translations: Record<string, string> = {
-        totalAssignments: 'Total des affectations',
+        totalAssignments: 'Total des gardes/vacations',
         conflictCount: 'Nombre de conflits',
         averageLoad: 'Charge moyenne',
         coverageRate: 'Taux de couverture',
@@ -326,7 +326,7 @@ function exportPlanningToCSV(planning: any[], fileName: string): Blob {
         'Date': dateFormat(new Date(entry.date), 'dd/MM/yyyy'),
         'Utilisateur': entry.userName || 'Non assigné',
         'Poste': entry.position || '',
-        'Horaire': entry.schedule || '',
+        'Horaire': entry.planning médical || '',
         'Lieu': entry.location || '',
         'Statut': entry.status || 'Planifié'
     }));
@@ -351,7 +351,7 @@ function exportPlanningToPDF(planning: any[], fileName: string): Blob {
         dateFormat(new Date(entry.date), 'dd/MM/yyyy'),
         entry.userName || 'Non assigné',
         entry.position || '',
-        entry.schedule || '',
+        entry.planning médical || '',
         entry.location || '',
         entry.status || 'Planifié'
     ]);

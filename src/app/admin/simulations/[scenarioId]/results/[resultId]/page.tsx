@@ -53,7 +53,7 @@ interface Statistic {
 interface UserAssignment {
     userId: string;
     userName: string;
-    assignments: number;
+    attributions: number;
     hours: number;
     conflicts: number;
 }
@@ -211,7 +211,7 @@ export default function SimulationResultPage() {
 
                 // Ajouter des statistiques basées sur le JSON reçu
                 if (stats.totalAssignments) formattedStats.push({
-                    name: 'Nombre total d\'affectations',
+                    name: 'Nombre total d\'gardes/vacations',
                     value: stats.totalAssignments,
                     category: 'Général'
                 });
@@ -294,33 +294,33 @@ export default function SimulationResultPage() {
                     ? JSON.parse(data.generatedPlanningData)
                     : data.generatedPlanningData;
 
-                // Extraction des données d'affectation des utilisateurs à partir du planning généré
+                // Extraction des données d'garde/vacation des utilisateurs à partir du planning généré
                 // Format fictif - à adapter en fonction de la structure réelle des données
                 if (planningData.userAssignments) {
                     setUserAssignments(planningData.userAssignments);
-                } else if (planningData.assignments) {
+                } else if (planningData.attributions) {
                     // Créer un objet pour agréger les données par utilisateur
                     const userMap: Record<string, UserAssignment> = {};
 
-                    planningData.assignments.forEach((assignment: { userId: string; userName?: string; [key: string]: unknown }) => {
-                        if (!userMap[assignment.userId]) {
-                            userMap[assignment.userId] = {
-                                userId: assignment.userId,
-                                userName: assignment.userName || `Utilisateur ${assignment.userId}`,
-                                assignments: 0,
+                    planningData.attributions.forEach((attribution: { userId: string; userName?: string; [key: string]: unknown }) => {
+                        if (!userMap[attribution.userId]) {
+                            userMap[attribution.userId] = {
+                                userId: attribution.userId,
+                                userName: attribution.userName || `Utilisateur ${attribution.userId}`,
+                                attributions: 0,
                                 hours: 0,
                                 conflicts: 0
                             };
                         }
 
-                        userMap[assignment.userId].assignments += 1;
+                        userMap[attribution.userId].attributions += 1;
 
-                        if (assignment.durationHours) {
-                            userMap[assignment.userId].hours += assignment.durationHours;
+                        if (attribution.durationHours) {
+                            userMap[attribution.userId].hours += attribution.durationHours;
                         }
 
-                        if (assignment.hasConflict) {
-                            userMap[assignment.userId].conflicts += 1;
+                        if (attribution.hasConflict) {
+                            userMap[attribution.userId].conflicts += 1;
                         }
                     });
 
@@ -706,7 +706,7 @@ export default function SimulationResultPage() {
                     <TabsContent value="users" className="space-y-4">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Affectations par utilisateur</CardTitle>
+                                <CardTitle>Gardes/Vacations par utilisateur</CardTitle>
                                 <CardDescription>Répartition et statistiques par participant</CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -715,7 +715,7 @@ export default function SimulationResultPage() {
                                         <TableHeader>
                                             <TableRow>
                                                 <TableHead>Nom</TableHead>
-                                                <TableHead className="text-right">Affectations</TableHead>
+                                                <TableHead className="text-right">Gardes/Vacations</TableHead>
                                                 <TableHead className="text-right">Heures</TableHead>
                                                 <TableHead className="text-right">Conflits</TableHead>
                                             </TableRow>
@@ -724,7 +724,7 @@ export default function SimulationResultPage() {
                                             {userAssignments.map((user) => (
                                                 <TableRow key={user.userId}>
                                                     <TableCell className="font-medium">{user.userName}</TableCell>
-                                                    <TableCell className="text-right">{user.assignments}</TableCell>
+                                                    <TableCell className="text-right">{user.attributions}</TableCell>
                                                     <TableCell className="text-right">{user.hours.toFixed(1)}h</TableCell>
                                                     <TableCell className="text-right">
                                                         {user.conflicts > 0 ? (
@@ -741,7 +741,7 @@ export default function SimulationResultPage() {
                                     <div className="text-center py-8">
                                         <UserIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                                         <p className="text-gray-500">
-                                            Aucune donnée d'affectation des utilisateurs disponible.
+                                            Aucune donnée d'garde/vacation des utilisateurs disponible.
                                         </p>
                                     </div>
                                 )}
@@ -885,7 +885,7 @@ export default function SimulationResultPage() {
                         enabled: true
                     }}
                     categoryOptions={{
-                        label: 'Catégories d\'affectation',
+                        label: 'Catégories d\'garde/vacation',
                         enabled: true,
                         options: [
                             { id: 'morning', label: 'Matin', value: 'morning' },

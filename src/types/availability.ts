@@ -212,12 +212,12 @@ export interface TimeOff {
 }
 
 /**
- * Interface pour un template de disponibilité récurrente
+ * Interface pour un modèle de disponibilité récurrente
  */
 export interface AvailabilityTemplate {
     /** Identifiant unique */
     id: string;
-    /** Nom du template */
+    /** Nom du modèle */
     name: string;
     /** Identifiant du médecin */
     doctorId: string;

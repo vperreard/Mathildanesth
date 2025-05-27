@@ -27,7 +27,7 @@ describe('leaveCalculator', () => {
 
     // Exemple d'emploi du temps pour les tests
     const createMockSchedule = (): WorkSchedule => ({
-        id: 'test-schedule-1',
+        id: 'test-planning médical-1',
         userId: 'user-1',
         name: 'Emploi du temps standard',
         frequency: WorkFrequency.FULL_TIME,

@@ -33,8 +33,8 @@ describe('AbsenceService', () => {
                 create: jest.fn().mockResolvedValue(mockCreatedAbsence),
             } as any;
 
-            // Mock assignment cancellation
-            mockedPrisma.assignment = {
+            // Mock attribution cancellation
+            mockedPrisma.attribution = {
                 updateMany: jest.fn().mockResolvedValue({ count: 1 }),
             } as any;
 
@@ -50,8 +50,8 @@ describe('AbsenceService', () => {
                 }),
             });
 
-            // Verify assignments were cancelled
-            expect(mockedPrisma.assignment.updateMany).toHaveBeenCalledWith({
+            // Verify attributions were cancelled
+            expect(mockedPrisma.attribution.updateMany).toHaveBeenCalledWith({
                 where: {
                     userId: 1,
                     date: absenceData.date,
@@ -79,7 +79,7 @@ describe('AbsenceService', () => {
                 }),
             } as any;
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 updateMany: jest.fn().mockResolvedValue({ count: 0 }),
             } as any;
 
@@ -100,7 +100,7 @@ describe('AbsenceService', () => {
                 create: jest.fn().mockResolvedValue({ id: 1, ...absenceData }),
             } as any;
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([
                     {
                         id: 1,
@@ -275,7 +275,7 @@ describe('AbsenceService', () => {
             } as any;
 
             // Mock busy users
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([
                     { userId: 3 }, // User 3 is busy
                 ]),
@@ -307,7 +307,7 @@ describe('AbsenceService', () => {
                 ]),
             } as any;
 
-            mockedPrisma.assignment = {
+            mockedPrisma.attribution = {
                 findMany: jest.fn().mockResolvedValue([]),
                 groupBy: jest.fn().mockResolvedValue([
                     { userId: 2, _count: { _all: 20 } }, // Heavy workload

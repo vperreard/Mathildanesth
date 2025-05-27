@@ -2,7 +2,7 @@ import { NotificationType } from '@prisma/client';
 import { createNotification } from '@/lib/notifications';
 
 /**
- * Types d'événements pour les échanges d'affectations
+ * Types d'événements pour les échanges d'gardes/vacations
  */
 export enum AssignmentSwapEventType {
     SWAP_REQUESTED = 'SWAP_REQUESTED',        // Demande d'échange initiée
@@ -24,23 +24,23 @@ interface SwapNotificationConfig {
 
 const swapNotificationConfigs: Record<AssignmentSwapEventType, SwapNotificationConfig> = {
     [AssignmentSwapEventType.SWAP_REQUESTED]: {
-        message: 'Nouvelle demande d\'échange d\'affectation reçue',
+        message: 'Nouvelle demande d\'échange d\'garde/vacation reçue',
         type: NotificationType.ASSIGNMENT_SWAP_REQUEST_RECEIVED
     },
     [AssignmentSwapEventType.SWAP_ACCEPTED]: {
-        message: 'Votre demande d\'échange d\'affectation a été acceptée',
+        message: 'Votre demande d\'échange d\'garde/vacation a été acceptée',
         type: NotificationType.ASSIGNMENT_SWAP_REQUEST_ACCEPTED
     },
     [AssignmentSwapEventType.SWAP_REJECTED]: {
-        message: 'Votre demande d\'échange d\'affectation a été refusée',
+        message: 'Votre demande d\'échange d\'garde/vacation a été refusée',
         type: NotificationType.ASSIGNMENT_SWAP_REQUEST_REJECTED
     },
     [AssignmentSwapEventType.SWAP_CANCELLED]: {
-        message: 'Une demande d\'échange d\'affectation a été annulée',
+        message: 'Une demande d\'échange d\'garde/vacation a été annulée',
         type: NotificationType.ASSIGNMENT_SWAP_REQUEST_CANCELLED
     },
     [AssignmentSwapEventType.SWAP_COMPLETED]: {
-        message: 'L\'échange d\'affectation a été finalisé avec succès',
+        message: 'L\'échange d\'garde/vacation a été finalisé avec succès',
         type: NotificationType.ASSIGNMENT_SWAP_REQUEST_ACCEPTED
     },
     [AssignmentSwapEventType.SWAP_ADMIN_APPROVED]: {
@@ -54,7 +54,7 @@ const swapNotificationConfigs: Record<AssignmentSwapEventType, SwapNotificationC
 };
 
 /**
- * Envoie une notification liée à un échange d'affectation
+ * Envoie une notification liée à un échange d'garde/vacation
  * 
  * @param userId ID de l'utilisateur destinataire
  * @param eventType Type d'événement d'échange
@@ -80,7 +80,7 @@ export async function sendAssignmentSwapNotification(
         }
 
         // Génération du lien vers la demande d'échange
-        const link = `/affectations/echanges/${swapRequestId}`;
+        const link = `/gardes/vacations/echanges/${swapRequestId}`;
 
         // Création et envoi de la notification
         return await createNotification({
@@ -93,7 +93,7 @@ export async function sendAssignmentSwapNotification(
         });
 
     } catch (error) {
-        console.error('Erreur lors de l\'envoi de la notification d\'échange d\'affectation:', error);
+        console.error('Erreur lors de l\'envoi de la notification d\'échange d\'garde/vacation:', error);
         return null;
     }
 }

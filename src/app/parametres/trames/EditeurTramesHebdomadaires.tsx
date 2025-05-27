@@ -8,9 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import { PlusCircleIcon, Trash2Icon, Edit3Icon, AlertCircleIcon, RefreshCwIcon } from 'lucide-react';
-import { TrameHebdomadaireService, TrameHebdomadaireDTO } from '@/modules/templates/services/TrameHebdomadaireService';
-import { PersonnelService, Personnel } from '@/modules/templates/services/PersonnelService';
-import { SalleService, OperatingRoomFromAPI } from '@/modules/templates/services/SalleService';
+import { TrameHebdomadaireService, TrameHebdomadaireDTO } from '@/modules/modèles/services/TrameHebdomadaireService';
+import { PersonnelService, Personnel } from '@/modules/modèles/services/PersonnelService';
+import { SalleService, OperatingRoomFromAPI } from '@/modules/modèles/services/SalleService';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { RecurrenceTypeTrame, TypeSemaineTrame } from '@prisma/client';
 
@@ -64,7 +64,7 @@ interface AffectationTrame {
     chirurgienId?: string | null;
     marId?: string | null;
     iadeId?: string | null;
-    // autres rôles ou informations spécifiques à l'affectation
+    // autres rôles ou informations spécifiques à l'garde/vacation
     // Par exemple: typeActivite?: string;
 }
 
@@ -73,8 +73,8 @@ interface TrameHebdomadaire {
     name: string;
     typeSemaine: TypeSemaine;
     description?: string; // Optionnel
-    roles?: RoleType[]; // Rôles associés à la trame
-    affectations: AffectationTrame[];
+    roles?: RoleType[]; // Rôles associés à la tableau de service
+    gardes/vacations: AffectationTrame[];
     // Potentiellement des métadonnées: dateCreation, dateModification
     siteId?: string | null;
     isActive?: boolean;
@@ -87,7 +87,7 @@ interface TrameHebdomadaire {
 interface EditingCellInfo {
     jour: JourSemaine;
     periode: PeriodeJour;
-    affectation?: AffectationTrame | null;
+    garde/vacation?: AffectationTrame | null;
 }
 
 // Données mockées pour le développement
@@ -119,31 +119,31 @@ const mockIADEs: BasePersonnel[] = [
 
 const mockTramesInitiales: TrameHebdomadaire[] = [
     {
-        id: 'trame-paires-std',
+        id: 'tableau de service-paires-std',
         name: 'Standard Semaines PAIRES',
         typeSemaine: TypeSemaine.PAIRE,
         description: 'Configuration type pour les semaines paires',
-        affectations: [
+        gardes/vacations: [
             { id: 'aff-p1', jourSemaine: JourSemaine.LUNDI, periode: PeriodeJour.MATIN, salleId: 'salle1', chirurgienId: 'chir1', marId: 'mar1', iadeId: 'iade1' },
             { id: 'aff-p2', jourSemaine: JourSemaine.MARDI, periode: PeriodeJour.APRES_MIDI, salleId: 'salle2', chirurgienId: 'chir2', marId: 'mar1' },
         ]
     },
     {
-        id: 'trame-impaires-cardio',
+        id: 'tableau de service-impaires-cardio',
         name: 'Cardio Semaines IMPAIRES',
         typeSemaine: TypeSemaine.IMPAIRE,
         description: 'Rotation cardio pour les semaines impaires',
-        affectations: [
+        gardes/vacations: [
             { id: 'aff-i1', jourSemaine: JourSemaine.MERCREDI, periode: PeriodeJour.MATIN, salleId: 'salle1', chirurgienId: 'chir3', iadeId: 'iade2' },
             { id: 'aff-i3', jourSemaine: JourSemaine.VENDREDI, periode: PeriodeJour.MATIN, salleId: 'salle3', chirurgienId: 'chir1' },
             { id: 'aff-i4', jourSemaine: JourSemaine.VENDREDI, periode: PeriodeJour.APRES_MIDI, salleId: 'salle3', chirurgienId: 'chir1', marId: 'mar2', iadeId: 'iade1' },
         ]
     },
     {
-        id: 'trame-toutes-consult',
+        id: 'tableau de service-toutes-consult',
         name: 'Consultations Générales',
         typeSemaine: TypeSemaine.TOUTES,
-        affectations: [
+        gardes/vacations: [
             { id: 'aff-t1', jourSemaine: JourSemaine.JEUDI, periode: PeriodeJour.APRES_MIDI, chirurgienId: 'chir2' }, // Pas de salle spécifique
         ]
     }
@@ -155,7 +155,7 @@ const periodesDeLaJournee = Object.values(PeriodeJour);
 
 const EditeurTramesHebdomadaires: React.FC = () => {
     // États pour les données
-    const [trames, setTrames] = useState<TrameHebdomadaire[]>([]);
+    const [tableaux de service, setTrames] = useState<TrameHebdomadaire[]>([]);
     const [salles, setSalles] = useState<Salle[]>([]);
     const [chirurgiens, setChirurgiens] = useState<Personnel[]>([]);
     const [mars, setMars] = useState<Personnel[]>([]);
@@ -168,7 +168,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
     const [newTrameTypeSemaine, setNewTrameTypeSemaine] = useState<TypeSemaine>(TypeSemaine.TOUTES);
     const [newTrameDescription, setNewTrameDescription] = useState('');
 
-    // États de la modale d'affectation
+    // États de la modale d'garde/vacation
     const [isAffectationModalOpen, setIsAffectationModalOpen] = useState(false);
     const [editingCellInfo, setEditingCellInfo] = useState<EditingCellInfo | null>(null);
     const [currentModalSalleId, setCurrentModalSalleId] = useState<string | null>(null);
@@ -198,7 +198,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         ]);
     };
 
-    // Chargement des trames
+    // Chargement des tableaux de service
     const fetchTrames = async () => {
         setIsLoadingTrames(true);
         try {
@@ -206,7 +206,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             console.log('[DEBUG] fetchTrames - DTO data:', tramesDataDTO);
             // Mapper DTO en TrameHebdomadaire local
             const tramesDataLocal: TrameHebdomadaire[] = tramesDataDTO.map(dto => {
-                const localAffectations: AffectationTrame[] = (dto.affectations || []).map((affDto): AffectationTrame => ({
+                const localAffectations: AffectationTrame[] = (dto.gardes/vacations || []).map((affDto): AffectationTrame => ({
                     id: affDto.id ? affDto.id.toString() : `generated-aff-${Math.random().toString(36).substring(7)}`,
                     jourSemaine: affDto.jourSemaine as JourSemaine,
                     periode: affDto.periode as PeriodeJour,
@@ -218,10 +218,10 @@ const EditeurTramesHebdomadaires: React.FC = () => {
 
                 return {
                     id: dto.id.toString(),
-                    name: dto.name || dto.nom || 'Trame sans nom',
+                    name: dto.name || dto.nom || 'Tableau de service sans nom',
                     typeSemaine: mapApiTypeSemaineToLocal(dto.typeSemaine),
                     description: dto.description || undefined,
-                    affectations: localAffectations,
+                    gardes/vacations: localAffectations,
                     siteId: dto.siteId,
                     isActive: dto.isActive,
                     dateDebutEffet: dto.dateDebutEffet,
@@ -233,8 +233,8 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             setTrames(tramesDataLocal);
             setIsLoadingTrames(false);
         } catch (err) {
-            console.error("Erreur lors du chargement des trames:", err);
-            setError("Impossible de charger les trames. Veuillez réessayer plus tard.");
+            console.error("Erreur lors du chargement des tableaux de service:", err);
+            setError("Impossible de charger les tableaux de service. Veuillez réessayer plus tard.");
             setIsLoadingTrames(false);
         }
     };
@@ -285,18 +285,18 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         }
     };
 
-    // Création d'une nouvelle trame
+    // Création d'une nouvelle tableau de service
     const handleCreateNewTrame = async () => {
         if (!newTrameNom.trim()) {
-            alert("Le nom de la trame ne peut pas être vide.");
+            alert("Le nom de la tableau de service ne peut pas être vide.");
             return;
         }
 
         setIsSaving(true);
         try {
             // Structure attendue par TrameHebdomadaireService.createTrame est CreateTrameModelePayload
-            // qui est Omit<TrameHebdomadaireDTO, 'id' | 'affectations'> mais avec des champs spécifiques
-            const payloadForCreate: Omit<TrameHebdomadaireDTO, 'id' | 'affectations'> = {
+            // qui est Omit<TrameHebdomadaireDTO, 'id' | 'gardes/vacations'> mais avec des champs spécifiques
+            const payloadForCreate: Omit<TrameHebdomadaireDTO, 'id' | 'gardes/vacations'> = {
                 name: newTrameNom,
                 typeSemaine: mapLocalTypeSemaineToApi(newTrameTypeSemaine),
                 description: newTrameDescription || null,
@@ -309,10 +309,10 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             // Mapper le DTO retourné vers TrameHebdomadaire local
             const createdTrameLocal: TrameHebdomadaire = {
                 id: createdTrameDTO.id.toString(),
-                name: createdTrameDTO.name || createdTrameDTO.nom || 'Trame sans nom',
+                name: createdTrameDTO.name || createdTrameDTO.nom || 'Tableau de service sans nom',
                 typeSemaine: mapApiTypeSemaineToLocal(createdTrameDTO.typeSemaine),
                 description: createdTrameDTO.description || undefined,
-                affectations: [],
+                gardes/vacations: [],
                 siteId: createdTrameDTO.siteId,
                 isActive: createdTrameDTO.isActive,
                 dateDebutEffet: createdTrameDTO.dateDebutEffet,
@@ -329,15 +329,15 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             setIsCreating(false);
             setIsSaving(false);
         } catch (err) {
-            console.error("Erreur lors de la création de la trame:", err);
-            setError("Impossible de créer la trame. Veuillez réessayer plus tard.");
+            console.error("Erreur lors de la création de la tableau de service:", err);
+            setError("Impossible de créer la tableau de service. Veuillez réessayer plus tard.");
             setIsSaving(false);
         }
     };
 
-    // Suppression d'une trame
+    // Suppression d'une tableau de service
     const handleDeleteTrame = async (trameId: string) => {
-        if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette trame ?")) {
+        if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette tableau de service ?")) {
             return;
         }
 
@@ -354,25 +354,25 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                 throw new Error("La suppression a échoué");
             }
         } catch (err) {
-            console.error(`Erreur lors de la suppression de la trame ${trameId}:`, err);
-            setError("Impossible de supprimer la trame. Veuillez réessayer plus tard.");
+            console.error(`Erreur lors de la suppression de la tableau de service ${trameId}:`, err);
+            setError("Impossible de supprimer la tableau de service. Veuillez réessayer plus tard.");
             setIsSaving(false);
         }
     };
 
-    // Ouverture de la modale d'affectation
+    // Ouverture de la modale d'garde/vacation
     const openAffectationModal = (jour: JourSemaine, periode: PeriodeJour) => {
         if (!selectedTrame) return;
 
-        const existingAffectation = selectedTrame.affectations?.find(
+        const existingAffectation = selectedTrame.gardes/vacations?.find(
             aff => aff.jourSemaine === jour && aff.periode === periode
         );
 
         console.log('[DEBUG] openAffectationModal - Jour:', jour, 'Periode:', periode);
-        console.log('[DEBUG] openAffectationModal - Selected Trame:', selectedTrame);
-        console.log('[DEBUG] openAffectationModal - Existing Affectation:', existingAffectation);
+        console.log('[DEBUG] openAffectationModal - Selected Tableau de service:', selectedTrame);
+        console.log('[DEBUG] openAffectationModal - Existing Garde/Vacation:', existingAffectation);
 
-        setEditingCellInfo({ jour, periode, affectation: existingAffectation || null });
+        setEditingCellInfo({ jour, periode, garde/vacation: existingAffectation || null });
         setCurrentModalSalleId(existingAffectation?.salleId || null);
         setCurrentModalChirurgienId(existingAffectation?.chirurgienId || null);
         setCurrentModalMarId(existingAffectation?.marId || null);
@@ -380,14 +380,14 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         setIsAffectationModalOpen(true);
     };
 
-    // Sauvegarde d'une affectation
+    // Sauvegarde d'une garde/vacation
     const handleSaveAffectation = async () => {
         if (!selectedTrame || !editingCellInfo) return;
 
         setIsSaving(true);
         try {
-            const { jour, periode, affectation: existingAffectation } = editingCellInfo;
-            let newAffectations = [...(selectedTrame.affectations || [])];
+            const { jour, periode, garde/vacation: existingAffectation } = editingCellInfo;
+            let newAffectations = [...(selectedTrame.gardes/vacations || [])];
 
             if (existingAffectation) {
                 newAffectations = newAffectations.map(aff =>
@@ -410,22 +410,22 @@ const EditeurTramesHebdomadaires: React.FC = () => {
 
             const updatedTrameForState = {
                 ...selectedTrame,
-                affectations: newAffectations
+                gardes/vacations: newAffectations
             };
 
-            console.log('[DEBUG] handleSaveAffectation - Updated Trame for State (local affectations):', updatedTrameForState);
+            console.log('[DEBUG] handleSaveAffectation - Updated Tableau de service for State (local gardes/vacations):', updatedTrameForState);
 
-            // TODO IMPORTANT: La sauvegarde des affectations doit se faire via une API dédiée,
-            // par exemple /api/trame-modeles/{trameId}/affectations.
-            // TrameHebdomadaireService.updateTrame ne gère probablement pas la mise à jour des affectations.
-            // Pour l'instant, on met à jour l'état local et on simule une sauvegarde de la trame principale (sans ses affectations).
+            // TODO IMPORTANT: La sauvegarde des gardes/vacations doit se faire via une API dédiée,
+            // par exemple /api/tableau de service-modeles/{trameId}/gardes/vacations.
+            // TrameHebdomadaireService.updateTrame ne gère probablement pas la mise à jour des gardes/vacations.
+            // Pour l'instant, on met à jour l'état local et on simule une sauvegarde de la tableau de service principale (sans ses gardes/vacations).
 
             const trameDetailsToUpdate: TrameHebdomadaireDTO = {
                 id: selectedTrame.id,
                 name: selectedTrame.name,
                 typeSemaine: mapLocalTypeSemaineToApi(selectedTrame.typeSemaine),
                 description: selectedTrame.description || null,
-                affectations: [],
+                gardes/vacations: [],
                 siteId: selectedTrame.siteId,
                 isActive: selectedTrame.isActive,
                 dateDebutEffet: selectedTrame.dateDebutEffet ? new Date(selectedTrame.dateDebutEffet).toISOString() : undefined,
@@ -438,7 +438,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             await TrameHebdomadaireService.updateTrame(selectedTrame.id, trameDetailsToUpdate);
 
 
-            // Mise à jour de l'état local pour refléter les changements d'affectations (UI)
+            // Mise à jour de l'état local pour refléter les changements d'gardes/vacations (UI)
             setSelectedTrame(updatedTrameForState);
             setTrames(prevTrames =>
                 prevTrames.map(t => t.id === updatedTrameForState.id ? updatedTrameForState : t)
@@ -446,40 +446,40 @@ const EditeurTramesHebdomadaires: React.FC = () => {
 
             setIsAffectationModalOpen(false);
             setEditingCellInfo(null);
-            // TODO: Afficher un message indiquant que les détails de la trame sont sauvegardés,
-            // mais que la sauvegarde individuelle des affectations est un TODO ou se fait autrement.
-            // toast.success('Détails de la trame sauvegardés. Sauvegarde des affectations à implémenter via API dédiée.');
+            // TODO: Afficher un message indiquant que les détails de la tableau de service sont sauvegardés,
+            // mais que la sauvegarde individuelle des gardes/vacations est un TODO ou se fait autrement.
+            // toast.success('Détails de la tableau de service sauvegardés. Sauvegarde des gardes/vacations à implémenter via API dédiée.');
 
         } catch (err) {
-            console.error("Erreur lors de la sauvegarde de l'affectation:", err);
-            setError("Impossible de sauvegarder l'affectation. Veuillez réessayer plus tard.");
+            console.error("Erreur lors de la sauvegarde de l'garde/vacation:", err);
+            setError("Impossible de sauvegarder l'garde/vacation. Veuillez réessayer plus tard.");
         } finally {
             setIsSaving(false);
         }
     };
 
-    // Suppression d'une affectation directement depuis la modale
+    // Suppression d'une garde/vacation directement depuis la modale
     const handleRemoveAffectationInModal = async () => {
-        if (!selectedTrame || !editingCellInfo?.affectation) return;
+        if (!selectedTrame || !editingCellInfo?.garde/vacation) return;
 
         setIsSaving(true);
         try {
-            const affectationIdToRemove = editingCellInfo.affectation.id;
-            const newAffectations = (selectedTrame.affectations || []).filter(
+            const affectationIdToRemove = editingCellInfo.garde/vacation.id;
+            const newAffectations = (selectedTrame.gardes/vacations || []).filter(
                 aff => aff.id !== affectationIdToRemove
             );
 
             const updatedTrameForState = {
                 ...selectedTrame,
-                affectations: newAffectations
+                gardes/vacations: newAffectations
             };
 
-            // TODO IMPORTANT: La suppression d'affectation doit aussi se faire via une API dédiée.
-            // Par exemple DELETE /api/trame-modeles/{trameId}/affectations/{affectationId}
+            // TODO IMPORTANT: La suppression d'garde/vacation doit aussi se faire via une API dédiée.
+            // Par exemple DELETE /api/tableau de service-modeles/{trameId}/gardes/vacations/{affectationId}
             // Pour l'instant, on met à jour uniquement l'état local.
 
-            console.log('[DEBUG] handleRemoveAffectationInModal - Affectation to remove ID:', affectationIdToRemove);
-            // Simuler un appel API ou appeler le vrai service de suppression d'affectation si disponible.
+            console.log('[DEBUG] handleRemoveAffectationInModal - Garde/Vacation to remove ID:', affectationIdToRemove);
+            // Simuler un appel API ou appeler le vrai service de suppression d'garde/vacation si disponible.
             // await AffectationService.deleteAffectation(selectedTrame.id, affectationIdToRemove);
 
 
@@ -490,25 +490,25 @@ const EditeurTramesHebdomadaires: React.FC = () => {
 
             setIsAffectationModalOpen(false);
             setEditingCellInfo(null);
-            // toast.info('Affectation retirée localement. Sauvegarde via API dédiée à implémenter.');
+            // toast.info('Garde/Vacation retirée localement. Sauvegarde via API dédiée à implémenter.');
 
         } catch (err) {
-            console.error("Erreur lors de la suppression de l'affectation:", err);
-            setError("Impossible de supprimer l'affectation. Veuillez réessayer plus tard.");
+            console.error("Erreur lors de la suppression de l'garde/vacation:", err);
+            setError("Impossible de supprimer l'garde/vacation. Veuillez réessayer plus tard.");
         } finally {
             setIsSaving(false);
         }
     };
 
-    // Rendu des affectations dans la grille
-    const renderAffectation = (affectation: AffectationTrame | undefined) => {
-        if (!affectation || (!affectation.salleId && !affectation.chirurgienId && !affectation.marId && !affectation.iadeId))
+    // Rendu des gardes/vacations dans la grille
+    const renderAffectation = (garde/vacation: AffectationTrame | undefined) => {
+        if (!garde/vacation || (!garde/vacation.salleId && !garde/vacation.chirurgienId && !garde/vacation.marId && !garde/vacation.iadeId))
             return <div className="text-xs text-gray-400 italic">Vide</div>;
 
-        const chir = chirurgiens.find(c => c.id === affectation.chirurgienId);
-        const salle = salles.find(s => s.id === affectation.salleId);
-        const mar = mars.find(m => m.id === affectation.marId);
-        const iade = iades.find(i => i.id === affectation.iadeId);
+        const chir = chirurgiens.find(c => c.id === garde/vacation.chirurgienId);
+        const salle = salles.find(s => s.id === garde/vacation.salleId);
+        const mar = mars.find(m => m.id === garde/vacation.marId);
+        const iade = iades.find(i => i.id === garde/vacation.iadeId);
 
         return (
             <div className="bg-blue-100 p-1 rounded text-xs text-blue-800 shadow-sm w-full text-left space-y-0.5">
@@ -560,17 +560,17 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Éditeur de Trames Habituelles (Hebdomadaires)</CardTitle>
+                    <CardTitle>Éditeur de Tableaux de service Habituelles (Hebdomadaires)</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className="text-gray-600 mb-6">
-                        Configurez ici les affectations récurrentes pour vos plannings hebdomadaires.
+                        Configurez ici les gardes/vacations récurrentes pour vos plannings hebdomadaires.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-                        {/* Colonne de gauche : Liste des trames et création */}
+                        {/* Colonne de gauche : Liste des tableaux de service et création */}
                         <div className="col-span-1 md:col-span-1 space-y-4 border-r md:pr-6">
                             <div className="flex justify-between items-center mb-2">
-                                <h3 className="text-lg font-semibold">Trames Existantes</h3>
+                                <h3 className="text-lg font-semibold">Tableaux de service Existantes</h3>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -585,21 +585,21 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                             {isCreating && (
                                 <Card className="p-4 bg-slate-50">
                                     <CardHeader className="p-0 pb-2">
-                                        <CardTitle className="text-md">Nouvelle Trame</CardTitle>
+                                        <CardTitle className="text-md">Nouvelle Tableau de service</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <div>
-                                            <Label htmlFor="newTrameNom" className="text-lg font-medium text-blue-700">Nom de la trame *</Label>
+                                            <Label htmlFor="newTrameNom" className="text-lg font-medium text-blue-700">Nom de la tableau de service *</Label>
                                             <Input
                                                 id="newTrameNom"
                                                 value={newTrameNom}
                                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTrameNom(e.target.value)}
-                                                placeholder="Entrez le nom de la trame..."
+                                                placeholder="Entrez le nom de la tableau de service..."
                                                 disabled={isSaving}
                                                 className="border-2 border-blue-300 focus:border-blue-500 font-medium"
                                                 required
                                             />
-                                            {!newTrameNom.trim() && <p className="text-xs text-red-500 mt-1">Le nom de la trame est obligatoire</p>}
+                                            {!newTrameNom.trim() && <p className="text-xs text-red-500 mt-1">Le nom de la tableau de service est obligatoire</p>}
                                         </div>
                                         <div>
                                             <Label htmlFor="newTrameTypeSemaine">Type de semaine</Label>
@@ -649,29 +649,29 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                                 </Card>
                             )}
 
-                            {trames.length === 0 && !isCreating && (
-                                <p className="text-sm text-gray-500">Aucune trame définie. Cliquez sur "Créer" pour commencer.</p>
+                            {tableaux de service.length === 0 && !isCreating && (
+                                <p className="text-sm text-gray-500">Aucune tableau de service définie. Cliquez sur "Créer" pour commencer.</p>
                             )}
 
                             <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-                                {trames.map(trame => (
+                                {tableaux de service.map(tableau de service => (
                                     <Button
-                                        key={trame.id}
-                                        variant={selectedTrame?.id === trame.id ? "default" : "outline"}
-                                        onClick={() => { setSelectedTrame(trame); setIsCreating(false); }}
+                                        key={tableau de service.id}
+                                        variant={selectedTrame?.id === tableau de service.id ? "default" : "outline"}
+                                        onClick={() => { setSelectedTrame(tableau de service); setIsCreating(false); }}
                                         className="w-full justify-start text-left h-auto py-2 relative group"
                                         disabled={isSaving}
                                     >
                                         <div className="flex flex-col flex-grow">
-                                            <span className="font-medium">{trame.name}</span>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">{trame.typeSemaine} - {trame.affectations?.length || 0} affect.</span>
+                                            <span className="font-medium">{tableau de service.name}</span>
+                                            <span className="text-xs text-gray-500 dark:text-gray-400">{tableau de service.typeSemaine} - {tableau de service.gardes/vacations?.length || 0} affect.</span>
                                         </div>
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 hover:bg-red-100 dark:hover:bg-red-700"
-                                            onClick={(e) => { e.stopPropagation(); handleDeleteTrame(trame.id); }}
-                                            aria-label="Supprimer la trame"
+                                            onClick={(e) => { e.stopPropagation(); handleDeleteTrame(tableau de service.id); }}
+                                            aria-label="Supprimer la tableau de service"
                                             disabled={isSaving}
                                         >
                                             <Trash2Icon className="w-4 h-4 text-red-500" />
@@ -681,14 +681,14 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Colonne de droite : Éditeur visuel pour la trame sélectionnée */}
+                        {/* Colonne de droite : Éditeur visuel pour la tableau de service sélectionnée */}
                         <div className="col-span-1 md:col-span-2">
                             {selectedTrame ? (
                                 <div className="border rounded-lg p-4">
                                     <div className="flex justify-between items-center mb-4">
                                         <div>
                                             <h3 className="text-xl font-semibold">
-                                                <span className="text-gray-700">Édition de la trame :</span>
+                                                <span className="text-gray-700">Édition de la tableau de service :</span>
                                                 <span className="text-2xl text-blue-600 font-bold ml-2 border-b-2 border-blue-400 pb-1">{selectedTrame.name}</span>
                                             </h3>
                                             <p className="text-sm text-gray-500 mt-1">Type: {selectedTrame.typeSemaine} {selectedTrame.description && `- ${selectedTrame.description}`}</p>
@@ -705,7 +705,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
 
                                         {joursDeLaSemaine.flatMap(jour =>
                                             periodesDeLaJournee.map(periode => {
-                                                const affectationExistante = selectedTrame.affectations?.find(
+                                                const affectationExistante = selectedTrame.gardes/vacations?.find(
                                                     aff => aff.jourSemaine === jour && aff.periode === periode
                                                 );
                                                 return (
@@ -731,7 +731,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="p-8 border-2 border-dashed border-gray-300 rounded-md min-h-[400px] flex items-center justify-center bg-slate-50">
-                                    <p className="text-gray-400 text-center">Sélectionnez une trame à éditer ou créez-en une nouvelle pour commencer.</p>
+                                    <p className="text-gray-400 text-center">Sélectionnez une tableau de service à éditer ou créez-en une nouvelle pour commencer.</p>
                                 </div>
                             )}
                         </div>
@@ -739,14 +739,14 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                 </CardContent>
             </Card>
 
-            {/* Modale d'édition d'affectation */}
+            {/* Modale d'édition d'garde/vacation */}
             {editingCellInfo && selectedTrame && (
                 <Dialog open={isAffectationModalOpen} onOpenChange={setIsAffectationModalOpen}>
                     <DialogContent className="sm:max-w-[480px]">
                         <DialogHeader>
-                            <DialogTitle>Éditer l'affectation</DialogTitle>
+                            <DialogTitle>Éditer l'garde/vacation</DialogTitle>
                             <DialogDescription>
-                                Pour {editingCellInfo.jour.toLowerCase()} - {editingCellInfo.periode.toLowerCase()} de la trame "{selectedTrame.name}".
+                                Pour {editingCellInfo.jour.toLowerCase()} - {editingCellInfo.periode.toLowerCase()} de la tableau de service "{selectedTrame.name}".
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
@@ -796,17 +796,17 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                             </div>
                         </div>
                         <DialogFooter className="justify-between sm:justify-between">
-                            {editingCellInfo.affectation && (
+                            {editingCellInfo.garde/vacation && (
                                 <Button
                                     type="button"
                                     variant="destructive"
                                     onClick={handleRemoveAffectationInModal}
                                     disabled={isSaving}
                                 >
-                                    {isSaving ? 'Suppression...' : 'Retirer l\'affectation'}
+                                    {isSaving ? 'Suppression...' : 'Retirer l\'garde/vacation'}
                                 </Button>
                             )}
-                            {!editingCellInfo.affectation && <div />}
+                            {!editingCellInfo.garde/vacation && <div />}
                             <div className="flex space-x-2">
                                 <DialogClose asChild>
                                     <Button type="button" variant="outline" disabled={isSaving}>Annuler</Button>

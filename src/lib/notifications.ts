@@ -59,7 +59,7 @@ export async function createNotification(args: NotificationCreationArgs) {
             include: {
                 user: { select: { id: true, login: true } },
                 triggeredByUser: { select: { id: true, login: true } },
-                relatedAssignment: true, // Inclure l'affectation liée si elle existe
+                relatedAssignment: true, // Inclure l'garde/vacation liée si elle existe
                 relatedRequest: true,    // Inclure la requête liée si elle existe
                 relatedContextualMessage: { // Inclure le message contextuel lié
                     include: {

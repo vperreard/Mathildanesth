@@ -74,7 +74,7 @@ export default function TemplateStatsPage() {
         }
 
         try {
-            downloadStatsAsCSV(stats, `statistiques-templates-${new Date().toISOString().split('T')[0]}.csv`);
+            downloadStatsAsCSV(stats, `statistiques-modèles-${new Date().toISOString().split('T')[0]}.csv`);
             toast.success('Statistiques exportées avec succès');
         } catch (error) {
             console.error('Erreur lors de l\'exportation:', error);
@@ -97,8 +97,8 @@ export default function TemplateStatsPage() {
                 <InfoIcon className="h-10 w-10 text-red-500 mb-4" />
                 <h2 className="text-xl font-bold mb-2">Erreur</h2>
                 <p className="text-red-500 mb-4">{error}</p>
-                <Button onClick={() => router.push('/admin/simulations/templates')}>
-                    Retour à la liste des templates
+                <Button onClick={() => router.push('/admin/simulations/modèles')}>
+                    Retour à la liste des modèles
                 </Button>
             </div>
         );
@@ -108,13 +108,13 @@ export default function TemplateStatsPage() {
         <div className="container p-4 mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <Link href="/admin/simulations/templates" className="inline-flex items-center text-sm text-primary hover:underline mb-2">
+                    <Link href="/admin/simulations/modèles" className="inline-flex items-center text-sm text-primary hover:underline mb-2">
                         <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                        Retour à la liste des templates
+                        Retour à la liste des modèles
                     </Link>
-                    <h1 className="text-2xl font-bold">Statistiques d'Utilisation des Templates</h1>
+                    <h1 className="text-2xl font-bold">Statistiques d'Utilisation des Modèles</h1>
                     <p className="text-muted-foreground">
-                        Analyse de l'utilisation et des tendances des templates de simulation
+                        Analyse de l'utilisation et des tendances des modèles de simulation
                     </p>
                 </div>
                 <div className="flex space-x-2">
@@ -140,7 +140,7 @@ export default function TemplateStatsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">Nombre total de templates</CardTitle>
+                        <CardTitle className="text-lg">Nombre total de modèles</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-3xl font-bold">{stats?.totalTemplates || 0}</p>
@@ -179,9 +179,9 @@ export default function TemplateStatsPage() {
                 <TabsContent value="usage">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Templates les plus utilisés</CardTitle>
+                            <CardTitle>Modèles les plus utilisés</CardTitle>
                             <CardDescription>
-                                Classement des templates par nombre d'utilisations
+                                Classement des modèles par nombre d'utilisations
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -192,7 +192,7 @@ export default function TemplateStatsPage() {
                                 <table className="w-full text-sm">
                                     <thead>
                                         <tr className="border-b">
-                                            <th className="text-left py-2 font-medium">Template</th>
+                                            <th className="text-left py-2 font-medium">Modèle</th>
                                             <th className="text-center py-2 font-medium">Utilisations</th>
                                             <th className="text-right py-2 font-medium">Dernière utilisation</th>
                                         </tr>
@@ -202,7 +202,7 @@ export default function TemplateStatsPage() {
                                             <tr key={item.templateId} className="border-b hover:bg-gray-50">
                                                 <td className="py-2">
                                                     <Link
-                                                        href={`/admin/simulations/templates/${item.templateId}/edit`}
+                                                        href={`/admin/simulations/modèles/${item.templateId}/edit`}
                                                         className="text-blue-600 hover:underline"
                                                     >
                                                         {item.templateName}
@@ -226,7 +226,7 @@ export default function TemplateStatsPage() {
                         <CardHeader>
                             <CardTitle>Répartition par catégorie</CardTitle>
                             <CardDescription>
-                                Distribution des templates par catégorie
+                                Distribution des modèles par catégorie
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -238,7 +238,7 @@ export default function TemplateStatsPage() {
                                     <thead>
                                         <tr className="border-b">
                                             <th className="text-left py-2 font-medium">Catégorie</th>
-                                            <th className="text-center py-2 font-medium">Nombre de templates</th>
+                                            <th className="text-center py-2 font-medium">Nombre de modèles</th>
                                             <th className="text-right py-2 font-medium">Pourcentage</th>
                                         </tr>
                                     </thead>
@@ -260,9 +260,9 @@ export default function TemplateStatsPage() {
                 <TabsContent value="recent">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Templates récemment utilisés</CardTitle>
+                            <CardTitle>Modèles récemment utilisés</CardTitle>
                             <CardDescription>
-                                Templates utilisés au cours des 30 derniers jours
+                                Modèles utilisés au cours des 30 derniers jours
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -270,7 +270,7 @@ export default function TemplateStatsPage() {
                                 <table className="w-full text-sm">
                                     <thead>
                                         <tr className="border-b">
-                                            <th className="text-left py-2 font-medium">Template</th>
+                                            <th className="text-left py-2 font-medium">Modèle</th>
                                             <th className="text-center py-2 font-medium">Utilisations</th>
                                             <th className="text-right py-2 font-medium">Dernière utilisation</th>
                                         </tr>
@@ -280,7 +280,7 @@ export default function TemplateStatsPage() {
                                             <tr key={item.templateId} className="border-b hover:bg-gray-50">
                                                 <td className="py-2">
                                                     <Link
-                                                        href={`/admin/simulations/templates/${item.templateId}/edit`}
+                                                        href={`/admin/simulations/modèles/${item.templateId}/edit`}
                                                         className="text-blue-600 hover:underline"
                                                     >
                                                         {item.templateName}

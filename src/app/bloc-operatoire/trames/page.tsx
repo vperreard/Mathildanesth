@@ -41,15 +41,15 @@ export default function TramesPage() {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Trames de Planning</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Tableaux de service de Planning</h1>
           <p className="mt-1 text-sm text-gray-600">
             Créez et gérez des modèles de planning réutilisables
           </p>
         </div>
-        <Link href="/bloc-operatoire/trames/nouveau">
+        <Link href="/bloc-operatoire/tableaux de service/nouveau">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
-            Nouvelle trame
+            Nouvelle tableau de service
           </Button>
         </Link>
       </div>
@@ -63,7 +63,7 @@ export default function TramesPage() {
                 <FileText className="h-8 w-8 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Trames créées</p>
+                <p className="text-sm font-medium text-gray-500">Tableaux de service créées</p>
                 <p className="text-2xl font-semibold text-gray-900">12</p>
               </div>
             </div>
@@ -113,47 +113,47 @@ export default function TramesPage() {
         </Card>
       </div>
 
-      {/* Liste des trames */}
+      {/* Liste des tableaux de service */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockTrames.map((trame) => (
-          <Card key={trame.id} className="hover:shadow-lg transition-shadow">
+        {mockTrames.map((tableau de service) => (
+          <Card key={tableau de service.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div>
-                  <CardTitle className="text-lg">{trame.nom}</CardTitle>
+                  <CardTitle className="text-lg">{tableau de service.nom}</CardTitle>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-2">
-                    {trame.statut === 'active' ? 'Active' : 'Inactive'}
+                    {tableau de service.statut === 'active' ? 'Active' : 'Inactive'}
                   </span>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <CardDescription className="mb-4">
-                {trame.description}
+                {tableau de service.description}
               </CardDescription>
               
               <div className="space-y-2 text-sm text-gray-600">
                 <div className="flex items-center">
                   <Users className="h-4 w-4 mr-2" />
-                  {trame.nbSalles} salles configurées
+                  {tableau de service.nbSalles} salles configurées
                 </div>
                 <div className="flex items-center">
                   <Clock className="h-4 w-4 mr-2" />
-                  Durée: {trame.dureeTypique}
+                  Durée: {tableau de service.dureeTypique}
                 </div>
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-2" />
-                  {trame.utilisations} utilisations
+                  {tableau de service.utilisations} utilisations
                 </div>
               </div>
 
               <div className="mt-4 flex gap-2">
-                <Link href={`/bloc-operatoire/trames/${trame.id}`} className="flex-1">
+                <Link href={`/bloc-operatoire/tableaux de service/${tableau de service.id}`} className="flex-1">
                   <Button variant="outline" className="w-full">
                     Modifier
                   </Button>
                 </Link>
-                <Link href={`/bloc-operatoire/trames/${trame.id}/utiliser`} className="flex-1">
+                <Link href={`/bloc-operatoire/tableaux de service/${tableau de service.id}/utiliser`} className="flex-1">
                   <Button className="w-full">
                     Utiliser
                   </Button>
@@ -164,21 +164,21 @@ export default function TramesPage() {
         ))}
       </div>
 
-      {/* Call to action si aucune trame */}
+      {/* Call to action si aucune tableau de service */}
       {mockTrames.length === 0 && (
         <Card className="text-center py-12">
           <CardContent>
             <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Aucune trame de planning
+              Aucune tableau de service de planning
             </h3>
             <p className="text-gray-600 mb-6">
-              Créez votre première trame pour commencer à optimiser vos plannings
+              Créez votre première tableau de service pour commencer à optimiser vos plannings
             </p>
-            <Link href="/bloc-operatoire/trames/nouveau">
+            <Link href="/bloc-operatoire/tableaux de service/nouveau">
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                Créer ma première trame
+                Créer ma première tableau de service
               </Button>
             </Link>
           </CardContent>

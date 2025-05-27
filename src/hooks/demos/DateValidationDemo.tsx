@@ -128,7 +128,7 @@ export default function DateValidationDemo() {
         }
     };
 
-    // Valider une affectation de garde
+    // Valider une garde/vacation de garde
     const handleValidateShift = () => {
         if (startDate) {
             validateShiftAssignment(

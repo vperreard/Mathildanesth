@@ -9,7 +9,7 @@ jest.mock('@prisma/client', () => {
             findUnique: jest.fn(),
             update: jest.fn()
         },
-        assignment: {
+        attribution: {
             deleteMany: jest.fn(),
             findFirst: jest.fn(),
             update: jest.fn(),
@@ -77,7 +77,7 @@ describe('ApplySimulationService', () => {
                 from: '2025-07-01',
                 to: '2025-07-31'
             },
-            assignments: [
+            attributions: [
                 {
                     userId: 1,
                     date: '2025-07-02',
@@ -132,8 +132,8 @@ describe('ApplySimulationService', () => {
                 scenario: { id: mockScenarioId, name: 'Test Scenario' }
             });
 
-            (prisma.assignment.findFirst as jest.Mock).mockResolvedValue(null);
-            (prisma.assignment.create as jest.Mock).mockResolvedValue({});
+            (prisma.attribution.findFirst as jest.Mock).mockResolvedValue(null);
+            (prisma.attribution.create as jest.Mock).mockResolvedValue({});
             (prisma.auditLog.create as jest.Mock).mockResolvedValue({});
             (prisma.simulationScenario.findUnique as jest.Mock).mockResolvedValue({
                 id: mockScenarioId,
@@ -146,7 +146,7 @@ describe('ApplySimulationService', () => {
 
             // Assert
             expect(result.success).toBe(true);
-            expect(result.assignmentsCreated).toBe(2); // 2 affectations dans les données mockées
+            expect(result.assignmentsCreated).toBe(2); // 2 gardes/vacations dans les données mockées
             expect(result.assignmentsUpdated).toBe(0); // Pas de mises à jour, seulement des créations
             expect(result.leavesCreated).toBe(0); // Pas de congés car includeLeaves = false
 
@@ -157,7 +157,7 @@ describe('ApplySimulationService', () => {
             expect(prisma.notification.create).toHaveBeenCalled();
         });
 
-        it('doit supprimer les affectations existantes si clearExistingAssignments est true', async () => {
+        it('doit supprimer les gardes/vacations existantes si clearExistingAssignments est true', async () => {
             // Arrange
             const optionsWithClear = { ...mockOptions, clearExistingAssignments: true };
 
@@ -168,9 +168,9 @@ describe('ApplySimulationService', () => {
                 scenario: { id: mockScenarioId, name: 'Test Scenario' }
             });
 
-            (prisma.assignment.deleteMany as jest.Mock).mockResolvedValue({ count: 5 });
-            (prisma.assignment.findFirst as jest.Mock).mockResolvedValue(null);
-            (prisma.assignment.create as jest.Mock).mockResolvedValue({});
+            (prisma.attribution.deleteMany as jest.Mock).mockResolvedValue({ count: 5 });
+            (prisma.attribution.findFirst as jest.Mock).mockResolvedValue(null);
+            (prisma.attribution.create as jest.Mock).mockResolvedValue({});
             (prisma.auditLog.create as jest.Mock).mockResolvedValue({});
             (prisma.simulationScenario.findUnique as jest.Mock).mockResolvedValue({
                 id: mockScenarioId,
@@ -184,8 +184,8 @@ describe('ApplySimulationService', () => {
             // Assert
             expect(result.success).toBe(true);
 
-            // Vérifier que les affectations existantes ont été supprimées
-            expect(prisma.assignment.deleteMany).toHaveBeenCalledWith({
+            // Vérifier que les gardes/vacations existantes ont été supprimées
+            expect(prisma.attribution.deleteMany).toHaveBeenCalledWith({
                 where: {
                     date: {
                         gte: new Date(mockResultData.simulatedPeriod.from),
@@ -195,7 +195,7 @@ describe('ApplySimulationService', () => {
             });
         });
 
-        it('doit mettre à jour les affectations existantes plutôt que d\'en créer de nouvelles', async () => {
+        it('doit mettre à jour les gardes/vacations existantes plutôt que d\'en créer de nouvelles', async () => {
             // Arrange
             (prisma.simulationResult.findUnique as jest.Mock).mockResolvedValue({
                 id: mockSimulationResultId,
@@ -204,17 +204,17 @@ describe('ApplySimulationService', () => {
                 scenario: { id: mockScenarioId, name: 'Test Scenario' }
             });
 
-            // Simuler une affectation existante pour le premier élément
-            (prisma.assignment.findFirst as jest.Mock).mockImplementation((args) => {
+            // Simuler une garde/vacation existante pour le premier élément
+            (prisma.attribution.findFirst as jest.Mock).mockImplementation((args) => {
                 const where = args.where;
                 if (where.userId === 1 && where.periode === 'MATIN') {
-                    return Promise.resolve({ id: 'existing-assignment-1' });
+                    return Promise.resolve({ id: 'existing-attribution-1' });
                 }
                 return Promise.resolve(null);
             });
 
-            (prisma.assignment.update as jest.Mock).mockResolvedValue({});
-            (prisma.assignment.create as jest.Mock).mockResolvedValue({});
+            (prisma.attribution.update as jest.Mock).mockResolvedValue({});
+            (prisma.attribution.create as jest.Mock).mockResolvedValue({});
             (prisma.auditLog.create as jest.Mock).mockResolvedValue({});
             (prisma.simulationScenario.findUnique as jest.Mock).mockResolvedValue({
                 id: mockScenarioId,
@@ -227,14 +227,14 @@ describe('ApplySimulationService', () => {
 
             // Assert
             expect(result.success).toBe(true);
-            expect(result.assignmentsCreated).toBe(1); // 1 nouvelle affectation
-            expect(result.assignmentsUpdated).toBe(1); // 1 affectation mise à jour
+            expect(result.assignmentsCreated).toBe(1); // 1 nouvelle garde/vacation
+            expect(result.assignmentsUpdated).toBe(1); // 1 garde/vacation mise à jour
 
-            // Vérifier que l'update a été appelé pour l'affectation existante
-            expect(prisma.assignment.update).toHaveBeenCalled();
+            // Vérifier que l'update a été appelé pour l'garde/vacation existante
+            expect(prisma.attribution.update).toHaveBeenCalled();
         });
 
-        it('doit gérer correctement les erreurs lors de la création d\'affectations', async () => {
+        it('doit gérer correctement les erreurs lors de la création d\'gardes/vacations', async () => {
             // Arrange
             (prisma.simulationResult.findUnique as jest.Mock).mockResolvedValue({
                 id: mockSimulationResultId,
@@ -243,12 +243,12 @@ describe('ApplySimulationService', () => {
                 scenario: { id: mockScenarioId, name: 'Test Scenario' }
             });
 
-            // Simuler une erreur lors de la création de la deuxième affectation
-            (prisma.assignment.findFirst as jest.Mock).mockResolvedValue(null);
-            (prisma.assignment.create as jest.Mock).mockImplementation((args) => {
+            // Simuler une erreur lors de la création de la deuxième garde/vacation
+            (prisma.attribution.findFirst as jest.Mock).mockResolvedValue(null);
+            (prisma.attribution.create as jest.Mock).mockImplementation((args) => {
                 const data = args.data;
                 if (data.userId === 2) {
-                    return Promise.reject(new Error('Erreur de création d\'affectation'));
+                    return Promise.reject(new Error('Erreur de création d\'garde/vacation'));
                 }
                 return Promise.resolve({});
             });
@@ -265,12 +265,12 @@ describe('ApplySimulationService', () => {
 
             // Assert
             expect(result.success).toBe(true); // L'opération globale réussit toujours
-            expect(result.assignmentsCreated).toBe(1); // Seulement 1 affectation créée avec succès
+            expect(result.assignmentsCreated).toBe(1); // Seulement 1 garde/vacation créée avec succès
             expect(result.conflicts.length).toBe(1); // 1 conflit enregistré
 
             // Vérifier que le conflit contient l'erreur
             expect(result.conflicts[0].type).toBe('ASSIGNMENT_CREATION_ERROR');
-            expect(result.conflicts[0].error).toBe('Erreur de création d\'affectation');
+            expect(result.conflicts[0].error).toBe('Erreur de création d\'garde/vacation');
         });
     });
 }); 

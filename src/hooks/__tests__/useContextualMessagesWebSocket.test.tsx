@@ -78,7 +78,7 @@ describe('useContextualMessagesWebSocket', () => {
         // Rendu du hook
         renderHook(() => useContextualMessagesWebSocket({
             autoConnect: true,
-            assignmentId: 'assignment-123'
+            assignmentId: 'attribution-123'
         }));
 
         // Vérifier que Socket.IO est initialisé avec les bonnes options d'authentification
@@ -102,13 +102,13 @@ describe('useContextualMessagesWebSocket', () => {
 
         // Rendu du hook
         renderHook(() => useContextualMessagesWebSocket({
-            assignmentId: 'assignment-456'
+            assignmentId: 'attribution-456'
         }));
 
         // Attendre que le chargement des messages soit déclenché
         await waitFor(() => {
             expect(fetchSpy).toHaveBeenCalledWith(
-                expect.stringContaining('/api/contextual-messages?assignmentId=assignment-456'),
+                expect.stringContaining('/api/contextual-messages?assignmentId=attribution-456'),
                 expect.objectContaining({
                     headers: {
                         'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ describe('useContextualMessagesWebSocket', () => {
 
         // Rendu du hook
         const { result } = renderHook(() => useContextualMessagesWebSocket({
-            assignmentId: 'assignment-789'
+            assignmentId: 'attribution-789'
         }));
 
         // Attendre que l'état d'erreur d'authentification soit défini
@@ -144,7 +144,7 @@ describe('useContextualMessagesWebSocket', () => {
     it('rejoint une room spécifique lorsque authentifié', async () => {
         // Rendu du hook avec des paramètres valides
         renderHook(() => useContextualMessagesWebSocket({
-            assignmentId: 'assignment-123',
+            assignmentId: 'attribution-123',
             contextDate: '2023-05-15'
         }));
 
@@ -191,7 +191,7 @@ describe('useContextualMessagesWebSocket', () => {
 
         // Rendu du hook
         const { result } = renderHook(() => useContextualMessagesWebSocket({
-            assignmentId: 'assignment-123'
+            assignmentId: 'attribution-123'
         }));
 
         // Appeler la fonction sendMessage
@@ -216,7 +216,7 @@ describe('useContextualMessagesWebSocket', () => {
     it('gère les événements socket entrants lorsque authentifié', async () => {
         // Rendu du hook
         const { result } = renderHook(() => useContextualMessagesWebSocket({
-            assignmentId: 'assignment-123'
+            assignmentId: 'attribution-123'
         }));
 
         // Simuler la réception d'un nouveau message par WebSocket
@@ -255,7 +255,7 @@ describe('useContextualMessagesWebSocket', () => {
     it('gère les erreurs d\'authentification WebSocket', async () => {
         // Rendu du hook
         const { result } = renderHook(() => useContextualMessagesWebSocket({
-            assignmentId: 'assignment-123'
+            assignmentId: 'attribution-123'
         }));
 
         // Simuler une erreur d'authentification WebSocket
@@ -277,7 +277,7 @@ describe('useContextualMessagesWebSocket', () => {
     it('déconnecte le socket lors du démontage du composant', async () => {
         // Rendu du hook
         const { unmount } = renderHook(() => useContextualMessagesWebSocket({
-            assignmentId: 'assignment-123'
+            assignmentId: 'attribution-123'
         }));
 
         // Simuler le démontage du composant

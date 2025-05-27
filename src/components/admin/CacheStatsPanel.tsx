@@ -261,7 +261,7 @@ export default function CacheStatsPanel() {
                             <Label htmlFor="modelName">Nom du modèle</Label>
                             <Input
                                 id="modelName"
-                                placeholder="Ex: User, ActivityType, Assignment"
+                                placeholder="Ex: User, ActivityType, Attribution"
                                 value={modelName}
                                 onChange={(e) => setModelName(e.target.value)}
                             />

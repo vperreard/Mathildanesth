@@ -18,7 +18,7 @@ export default function Footer() {
                             <h2 className="text-xl font-display font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent dark:text-gray-100">Mathildanesth</h2>
                         </div>
                         <p className="text-gray-600 dark:text-slate-300 text-sm mb-4">
-                            Solution complète de gestion des anesthésistes et du planning hospitalier.
+                            Plateforme de gestion des plannings médicaux pour équipes d'anesthésie.
                         </p>
                     </div>
 
@@ -31,18 +31,18 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/planning/hebdomadaire" className="text-gray-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-500 transition-colors">
-                                    Planning
+                                <Link href="/planning" className="text-gray-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-500 transition-colors">
+                                    Mon Planning
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/calendrier" className="text-gray-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-500 transition-colors">
-                                    Calendrier
+                                <Link href="/conges" className="text-gray-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-500 transition-colors">
+                                    Mes Congés
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/statistiques" className="text-gray-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-500 transition-colors">
-                                    Statistiques
+                                <Link href="/bloc-operatoire" className="text-gray-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-500 transition-colors">
+                                    Bloc Opératoire
                                 </Link>
                             </li>
                         </ul>

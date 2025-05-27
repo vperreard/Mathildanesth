@@ -1,42 +1,42 @@
-import { PlanningTemplate, AffectationConfiguration } from '../types/template';
+import { PlanningTemplate, AffectationConfiguration } from '../types/modèle';
 import { templateService } from './templateService';
 
 /**
- * Service d'intégration pour les trames de planning
+ * Service d'intégration pour les tableaux de service de planning
  * Gère l'intégration avec d'autres modules, l'exportation et l'importation
  */
 export const templateIntegrationService = {
     /**
-     * Exporte une trame au format JSON avec métadonnées
-     * @param templateId ID de la trame à exporter
+     * Exporte une tableau de service au format JSON avec métadonnées
+     * @param templateId ID de la tableau de service à exporter
      * @returns Promise avec un objet Blob contenant les données
      */
     async exportTemplateToJSON(templateId: string): Promise<Blob> {
         try {
             return await templateService.exportTemplateAsJSON(templateId);
         } catch (error) {
-            console.error('Erreur lors de l\'exportation de la trame:', error);
+            console.error('Erreur lors de l\'exportation de la tableau de service:', error);
             throw error;
         }
     },
 
     /**
-     * Déclenche le téléchargement d'une trame au format JSON
-     * @param templateId ID de la trame à télécharger
-     * @param fileName Nom du fichier à générer (défaut: nom de la trame)
+     * Déclenche le téléchargement d'une tableau de service au format JSON
+     * @param templateId ID de la tableau de service à télécharger
+     * @param fileName Nom du fichier à générer (défaut: nom de la tableau de service)
      */
     async downloadTemplateAsJSON(templateId: string, fileName?: string): Promise<void> {
         try {
-            // Récupérer la trame pour avoir son nom si fileName n'est pas fourni
-            const template = await templateService.getTemplateById(templateId);
-            if (!template) {
-                throw new Error(`Trame avec l'ID ${templateId} non trouvée`);
+            // Récupérer la tableau de service pour avoir son nom si fileName n'est pas fourni
+            const modèle = await templateService.getTemplateById(templateId);
+            if (!modèle) {
+                throw new Error(`Tableau de service avec l'ID ${templateId} non trouvée`);
             }
 
             // Générer le nom du fichier si non fourni
-            const safeFileName = fileName || `trame_${template.nom.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+            const safeFileName = fileName || `trame_${modèle.nom.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
 
-            // Obtenir le blob JSON de la trame
+            // Obtenir le blob JSON de la tableau de service
             const blob = await this.exportTemplateToJSON(templateId);
 
             // Créer un objet URL pour le blob
@@ -55,30 +55,30 @@ export const templateIntegrationService = {
             // Libérer l'URL
             setTimeout(() => URL.revokeObjectURL(url), 100);
         } catch (error) {
-            console.error('Erreur lors du téléchargement de la trame:', error);
+            console.error('Erreur lors du téléchargement de la tableau de service:', error);
             throw error;
         }
     },
 
     /**
-     * Importe une trame depuis un fichier JSON
+     * Importe une tableau de service depuis un fichier JSON
      * @param file Fichier JSON à importer
-     * @returns Promise avec la trame importée
+     * @returns Promise avec la tableau de service importée
      */
     async importTemplateFromJSON(file: File): Promise<PlanningTemplate> {
         try {
             return await templateService.importTemplateFromJSON(file);
         } catch (error) {
-            console.error('Erreur lors de l\'importation de la trame:', error);
+            console.error('Erreur lors de l\'importation de la tableau de service:', error);
             throw error;
         }
     },
 
     /**
-     * Duplique une trame existante avec un nouveau nom
-     * @param templateId ID de la trame à dupliquer
+     * Duplique une tableau de service existante avec un nouveau nom
+     * @param templateId ID de la tableau de service à dupliquer
      * @param newName Nouveau nom pour la copie (optionnel)
-     * @returns Promise avec la nouvelle trame
+     * @returns Promise avec la nouvelle tableau de service
      */
     async duplicateTemplate(templateId: string, newName?: string): Promise<PlanningTemplate> {
         try {
@@ -92,28 +92,28 @@ export const templateIntegrationService = {
 
             return duplicatedTemplate;
         } catch (error) {
-            console.error('Erreur lors de la duplication de la trame:', error);
+            console.error('Erreur lors de la duplication de la tableau de service:', error);
             throw error;
         }
     },
 
     /**
-     * Applique une trame à un planning pour une période spécifique
-     * @param templateId ID de la trame à appliquer
+     * Applique une tableau de service à un planning pour une période spécifique
+     * @param templateId ID de la tableau de service à appliquer
      * @param dateDebut Date de début de la période d'application
      * @param dateFin Date de fin de la période d'application
      * @returns Promise avec l'ID du planning généré
      */
     async applyTemplateToPlanning(templateId: string, dateDebut: Date, dateFin: Date): Promise<string> {
         try {
-            const template = await templateService.getTemplateById(templateId);
-            if (!template) {
-                throw new Error(`Trame avec l'ID ${templateId} non trouvée`);
+            const modèle = await templateService.getTemplateById(templateId);
+            if (!modèle) {
+                throw new Error(`Tableau de service avec l'ID ${templateId} non trouvée`);
             }
 
             // Cette fonction est une simulation, dans un cas réel,
             // elle communiquerait avec le module de planning
-            console.log(`Application de la trame ${template.nom} du ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}`);
+            console.log(`Application de la tableau de service ${modèle.nom} du ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}`);
 
             // Simuler un délai réseau
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -121,13 +121,13 @@ export const templateIntegrationService = {
             // Retourner un ID fictif de planning généré
             return `planning_${Date.now()}`;
         } catch (error) {
-            console.error('Erreur lors de l\'application de la trame au planning:', error);
+            console.error('Erreur lors de l\'application de la tableau de service au planning:', error);
             throw error;
         }
     },
 
     /**
-     * Compare deux configurations d'affectation pour détecter les différences
+     * Compare deux configurations d'garde/vacation pour détecter les différences
      * @param configA Première configuration
      * @param configB Deuxième configuration
      * @returns Objet avec les différences
@@ -183,8 +183,8 @@ export const templateIntegrationService = {
     },
 
     /**
-     * Vérifier la compatibilité d'une trame avec un planning existant
-     * @param templateId ID de la trame à vérifier
+     * Vérifier la compatibilité d'une tableau de service avec un planning existant
+     * @param templateId ID de la tableau de service à vérifier
      * @param planningId ID du planning existant
      * @returns Promise avec un rapport de compatibilité
      */
@@ -195,7 +195,7 @@ export const templateIntegrationService = {
         try {
             // Cette fonction est une simulation, dans un cas réel,
             // elle vérifierait réellement la compatibilité avec le module de planning
-            console.log(`Vérification de la compatibilité de la trame ${templateId} avec le planning ${planningId}`);
+            console.log(`Vérification de la compatibilité de la tableau de service ${templateId} avec le planning ${planningId}`);
 
             // Simuler un délai réseau
             await new Promise(resolve => setTimeout(resolve, 800));
@@ -206,7 +206,7 @@ export const templateIntegrationService = {
                 conflicts: [
                     {
                         type: 'WARNING',
-                        description: 'Certaines affectations du planning existant seront modifiées',
+                        description: 'Certaines gardes/vacations du planning existant seront modifiées',
                         severity: 'MEDIUM'
                     }
                 ]

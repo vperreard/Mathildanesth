@@ -42,7 +42,7 @@ const ACTION_TYPES: Record<ActionType, { label: string; icon: React.ReactNode; c
 };
 
 const TARGET_OPTIONS = [
-  { value: 'assignment', label: 'Affectation' },
+  { value: 'attribution', label: 'Garde/Vacation' },
   { value: 'leave', label: 'Congé' },
   { value: 'planning', label: 'Planning' },
   { value: 'user', label: 'Utilisateur' },

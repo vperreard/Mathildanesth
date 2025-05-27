@@ -118,7 +118,7 @@ export interface CongesConfig {
 export interface FatigueConfig {
     actif: boolean;
     points: {
-        // Points de fatigue par type d'affectation
+        // Points de fatigue par type d'garde/vacation
         garde: number;
         astreinte: number;
         supervisionMultiple: number;
@@ -185,7 +185,7 @@ export interface TeamConfiguration extends TeamConfigBase {
     preferences?: any;
     statistiques?: any;
     horaires?: any;
-    affectations?: any;
+    gardes/vacations?: any;
     transitions?: any;
     equite?: any;
     alertes?: any;

@@ -26,14 +26,14 @@ import { useRuleConflicts } from '../../hooks/useRuleConflicts';
 
 interface RuleBuilderProps {
   rule?: RuleV2;
-  template?: RuleTemplate;
+  modèle?: RuleTemplate;
   onSave: (rule: Partial<RuleV2>) => Promise<void>;
   onCancel: () => void;
 }
 
 export const RuleBuilder: React.FC<RuleBuilderProps> = ({
   rule,
-  template,
+  modèle,
   onSave,
   onCancel
 }) => {
@@ -47,7 +47,7 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
     removeAction,
     updateAction,
     validate
-  } = useRuleBuilder(rule, template);
+  } = useRuleBuilder(rule, modèle);
 
   const { preview, isLoading: previewLoading, runPreview } = useRulePreview();
   const { conflicts, checkConflicts } = useRuleConflicts();
@@ -94,9 +94,9 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
           <h2 className="text-2xl font-bold">
             {rule ? 'Modifier la règle' : 'Créer une nouvelle règle'}
           </h2>
-          {template && (
+          {modèle && (
             <p className="text-muted-foreground">
-              Basé sur le template : {template.name}
+              Basé sur le modèle : {modèle.name}
             </p>
           )}
         </div>
@@ -333,7 +333,7 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
               <div>
                 <label className="text-sm font-medium">Contextes d'application</label>
                 <div className="grid grid-cols-2 gap-2 mt-2">
-                  {['planning', 'leaves', 'assignments', 'bloc'].map(context => (
+                  {['planning', 'leaves', 'attributions', 'bloc'].map(context => (
                     <label key={context} className="flex items-center gap-2">
                       <input
                         type="checkbox"

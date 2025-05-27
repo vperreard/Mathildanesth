@@ -183,7 +183,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
         return Array.from({ length: 24 }, (_, i) => i);
     }, []);
 
-    // Vérifier si un slot horaire est disponible
+    // Vérifier si un créneau horaire est disponible
     const isTimeSlotAvailable = useCallback(
         (roomId: string, hour: number) => {
             const roomOperations = operationsByRoom[roomId] || [];
@@ -204,7 +204,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
         [currentDate, operationsByRoom]
     );
 
-    // Obtenir l'opération pour un slot horaire donné
+    // Obtenir l'opération pour un créneau horaire donné
     const getOperationForTimeSlot = useCallback(
         (roomId: string, hour: number): Operation | null => {
             const roomOperations = operationsByRoom[roomId] || [];
@@ -227,7 +227,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
         [currentDate, operationsByRoom]
     );
 
-    // Gérer le clic sur un slot horaire
+    // Gérer le clic sur un créneau horaire
     const handleTimeSlotClick = useCallback(
         (roomId: string, hour: number) => {
             if (isReadOnly) return;
@@ -238,7 +238,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
                 // Si une opération existe, appeler le gestionnaire de clic d'opération
                 onOperationClick && onOperationClick(operation);
             } else {
-                // Sinon, appeler le gestionnaire de clic de slot horaire
+                // Sinon, appeler le gestionnaire de clic de créneau horaire
                 const startHour = new Date(currentDate);
                 startHour.setHours(hour, 0, 0, 0);
                 const endHour = new Date(currentDate);
@@ -250,7 +250,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
         [currentDate, getOperationForTimeSlot, isReadOnly, onOperationClick, onTimeSlotClick]
     );
 
-    // Gérer le survol d'un slot horaire
+    // Gérer le survol d'un créneau horaire
     const handleTimeSlotHover = useCallback(
         (roomId: string, hour: number) => {
             setHoveredTimeSlot({ roomId, hour });
@@ -263,13 +263,13 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
         setHoveredTimeSlot(null);
     }, []);
 
-    // Déterminer la couleur du slot horaire
+    // Déterminer la couleur du créneau horaire
     const getTimeSlotColor = useCallback(
         (roomId: string, hour: number) => {
             const operation = getOperationForTimeSlot(roomId, hour);
 
             if (!operation) {
-                // Slot disponible
+                // Créneau disponible
                 return isTimeSlotAvailable(roomId, hour) ? 'bg-gray-100 hover:bg-gray-200' : 'bg-red-100 hover:bg-red-200';
             }
 
@@ -288,7 +288,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
         [getOperationForTimeSlot, isTimeSlotAvailable, sectors]
     );
 
-    // Style pour le slot horaire avec la couleur du secteur
+    // Style pour le créneau horaire avec la couleur du secteur
     const getTimeSlotStyle = useCallback(
         (roomId: string, hour: number) => {
             const operation = getOperationForTimeSlot(roomId, hour);

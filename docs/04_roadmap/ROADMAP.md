@@ -12,6 +12,14 @@
 - **Sécurité** : 100% des TODO critiques résolus (19/19) ✅ PERFECTION ATTEINTE (27/05/2025)
 
 ### 🚧 En Cours
+- **Sprint 2 - UX Médecin** : Interface centrée sur les besoins médicaux ✅ EN COURS (27/05/2025)
+  - [x] Vue "Mon Planning de Semaine" en page d'accueil
+  - [x] Widget planning personnel avec codes couleur médicaux
+  - [x] API optimisée `/api/mon-planning/semaine`
+  - [x] Actions rapides : congés, échanges, vue équipe
+  - [x] Pages créées : `/planning/equipe`, `/requetes/echange-garde`
+  - [ ] Navigation simplifiée et terminologie médicale (Sprint 2 - Instance 2)
+  - [ ] Mobile responsive complet (Sprint 2 - Instance 3)
 - **Refactoring Architecture** : Nettoyage doublons et restructuration
 - **Planning Unifié** : Consolidation des multiples interfaces
 - **Templates** : Simplification du système complexe actuel
@@ -39,12 +47,12 @@
   - `/admin/chirurgiens` → `/parametres/chirurgiens`
 
 **Unification Doublons**
-- [ ] **Bloc Opératoire** : Fusionner `/bloc-operatoire` et `/admin/bloc-operatoire` 🚧 EN COURS
+- [x] **Bloc Opératoire** : Fusionner `/bloc-operatoire` et `/admin/bloc-operatoire` ✅ COMPLÉTÉ (27/05/25)
   - [x] Analyse complète et plan de fusion créé (27/05/25)
   - [x] Phase 1 : Structure unifiée `/src/app/(app)/bloc-operatoire/` créée
   - [x] Navigation par tabs et PermissionGuard implémentés
-  - [ ] Phase 2 : Migration des composants planning (en cours)
-  - [ ] Phase 3-6 : Migration admin, services, optimisations, tests
+  - [x] Phase 2 : Migration des composants planning
+  - [x] Phase 3-6 : Migration admin, services, optimisations, tests
 - [ ] **Système Demandes** : Unifier 3 systèmes en 1
   - `/requetes` + `/admin/demandes` + `/notifications/echanges`
   - Un seul workflow cohérent

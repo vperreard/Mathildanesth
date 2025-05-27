@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePlanningValidation } from '../usePlanningValidation';
-import { Assignment } from '@/types/assignment';
+import { Attribution } from '@/types/attribution';
 import { RuleSeverity } from '@/types/rules';
 import { RuleEngineV2 } from '@/modules/dynamicRules/v2/services/RuleEngineV2';
 
@@ -20,8 +20,8 @@ describe('usePlanningValidation', () => {
         );
     };
 
-    const mockAssignment: Assignment = {
-        id: 'assignment-1',
+    const mockAssignment: Attribution = {
+        id: 'attribution-1',
         userId: 'user-1',
         userName: 'John Doe',
         shiftType: 'JOUR',
@@ -34,11 +34,11 @@ describe('usePlanningValidation', () => {
         updatedAt: new Date()
     };
 
-    const mockAssignments: Assignment[] = [
+    const mockAssignments: Attribution[] = [
         mockAssignment,
         {
             ...mockAssignment,
-            id: 'assignment-2',
+            id: 'attribution-2',
             userId: 'user-2',
             userName: 'Jane Smith'
         }
@@ -98,7 +98,7 @@ describe('usePlanningValidation', () => {
     });
 
     describe('validateAssignment', () => {
-        it('should validate a single assignment successfully', async () => {
+        it('should validate a single attribution successfully', async () => {
             const mockViolation = {
                 ruleId: 'rule-1',
                 ruleName: 'Min Interval Rule',
@@ -133,7 +133,7 @@ describe('usePlanningValidation', () => {
                 type: 'MIN_INTERVAL',
                 severity: RuleSeverity.WARNING,
                 message: 'Interval trop court',
-                affectedAssignments: ['assignment-1']
+                affectedAssignments: ['attribution-1']
             });
         });
 
@@ -240,7 +240,7 @@ describe('usePlanningValidation', () => {
                     })
                 ]),
                 metrics: {
-                    totalViolations: 2, // One per assignment
+                    totalViolations: 2, // One per attribution
                     criticalViolations: 2,
                     warnings: 0
                 }
@@ -266,7 +266,7 @@ describe('usePlanningValidation', () => {
                 }]
             };
 
-            // Return same violation for both assignments
+            // Return same violation for both attributions
             mockRuleEngine.evaluate.mockResolvedValue([duplicateViolation]);
 
             const { result } = renderHook(() => usePlanningValidation(), {
@@ -281,7 +281,7 @@ describe('usePlanningValidation', () => {
                 await result.current.validatePlanning(mockAssignments);
             });
 
-            // Should have 2 violations (one per assignment) as they have different affected assignments
+            // Should have 2 violations (one per attribution) as they have different affected attributions
             expect(result.current.violations).toHaveLength(2);
         });
 
@@ -371,7 +371,7 @@ describe('usePlanningValidation', () => {
 
             await waitFor(() => {
                 // Should only be called once despite multiple invocations
-                expect(mockRuleEngine.evaluate).toHaveBeenCalledTimes(2); // Once per assignment
+                expect(mockRuleEngine.evaluate).toHaveBeenCalledTimes(2); // Once per attribution
             });
         });
 
@@ -403,7 +403,7 @@ describe('usePlanningValidation', () => {
                 type: 'MIN_INTERVAL',
                 severity: RuleSeverity.WARNING,
                 message: 'Interval too short',
-                affectedAssignments: ['assignment-1']
+                affectedAssignments: ['attribution-1']
             };
 
             const { result } = renderHook(() => usePlanningValidation(), {
@@ -425,7 +425,7 @@ describe('usePlanningValidation', () => {
                 type: 'FATIGUE',
                 severity: RuleSeverity.ERROR,
                 message: 'Too many consecutive shifts',
-                affectedAssignments: ['assignment-1']
+                affectedAssignments: ['attribution-1']
             };
 
             const { result } = renderHook(() => usePlanningValidation(), {
@@ -437,7 +437,7 @@ describe('usePlanningValidation', () => {
                 suggestions = await result.current.getSuggestions(violation, mockAssignments);
             });
 
-            expect(suggestions).toContain('Réduire le nombre d\'affectations pour ce praticien');
+            expect(suggestions).toContain('Réduire le nombre d\'gardes/vacations pour ce praticien');
             expect(suggestions).toContain('Prévoir des jours de repos supplémentaires');
         });
 
@@ -447,7 +447,7 @@ describe('usePlanningValidation', () => {
                 type: 'UNKNOWN_TYPE',
                 severity: RuleSeverity.INFO,
                 message: 'Unknown violation',
-                affectedAssignments: ['assignment-1']
+                affectedAssignments: ['attribution-1']
             };
 
             const { result } = renderHook(() => usePlanningValidation(), {
@@ -464,7 +464,7 @@ describe('usePlanningValidation', () => {
     });
 
     describe('utility functions', () => {
-        it('should correctly filter violations by assignment', async () => {
+        it('should correctly filter violations by attribution', async () => {
             const violations = [
                 {
                     ruleId: 'rule-1',
@@ -495,8 +495,8 @@ describe('usePlanningValidation', () => {
             ];
 
             mockRuleEngine.evaluate
-                .mockResolvedValueOnce([violations[0]]) // For assignment-1
-                .mockResolvedValueOnce([violations[1]]); // For assignment-2
+                .mockResolvedValueOnce([violations[0]]) // For attribution-1
+                .mockResolvedValueOnce([violations[1]]); // For attribution-2
 
             const { result } = renderHook(() => usePlanningValidation(), {
                 wrapper: createWrapper()
@@ -510,8 +510,8 @@ describe('usePlanningValidation', () => {
                 await result.current.validatePlanning(mockAssignments);
             });
 
-            const assignment1Violations = result.current.violationsByAssignment('assignment-1');
-            const assignment2Violations = result.current.violationsByAssignment('assignment-2');
+            const assignment1Violations = result.current.violationsByAssignment('attribution-1');
+            const assignment2Violations = result.current.violationsByAssignment('attribution-2');
 
             expect(assignment1Violations).toHaveLength(1);
             expect(assignment1Violations[0].type).toBe('TYPE_1');
@@ -543,7 +543,7 @@ describe('usePlanningValidation', () => {
     });
 
     describe('edge cases', () => {
-        it('should handle empty assignments array', async () => {
+        it('should handle empty attributions array', async () => {
             const { result } = renderHook(() => usePlanningValidation(), {
                 wrapper: createWrapper()
             });

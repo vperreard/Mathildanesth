@@ -49,7 +49,7 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
     title: {
         default: 'MATHILDA',
-        template: '%s | MATHILDA'
+        modèle: '%s | MATHILDA'
     },
     description: 'Système de gestion des plannings et congés pour établissements de santé',
     keywords: ['planning', 'santé', 'hôpital', 'congés', 'médecin'],

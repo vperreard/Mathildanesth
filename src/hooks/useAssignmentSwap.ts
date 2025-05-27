@@ -5,7 +5,7 @@ import { NotificationType } from '@prisma/client';
 
 export type AssignmentSwapStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED' | 'EXPIRED';
 
-export interface Assignment {
+export interface Attribution {
     id: string;
     userId: number;
     date: string;
@@ -48,8 +48,8 @@ export interface AssignmentSwapRequest {
         email: string;
         profileImageUrl?: string;
     };
-    proposedAssignment?: Assignment;
-    requestedAssignment?: Assignment;
+    proposedAssignment?: Attribution;
+    requestedAssignment?: Attribution;
 }
 
 interface SwapListResponse {
@@ -97,7 +97,7 @@ interface UseAssignmentSwapReturn {
 }
 
 /**
- * Hook pour gérer les échanges d'affectations
+ * Hook pour gérer les échanges d'gardes/vacations
  */
 export function useAssignmentSwap(): UseAssignmentSwapReturn {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -137,7 +137,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
 
         try {
             const queryString = buildQueryParams(params);
-            const url = `/api/affectations/echange${queryString ? `?${queryString}` : ''}`;
+            const url = `/api/gardes/vacations/echange${queryString ? `?${queryString}` : ''}`;
 
             const response = await fetch(url);
 
@@ -170,7 +170,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch(`http://localhost:3000/api/affectations/echange/${id}`);
+            const response = await fetch(`http://localhost:3000/api/gardes/vacations/echange/${id}`);
 
             if (!response.ok) {
                 const errorData = await response.json();
@@ -220,7 +220,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch('http://localhost:3000/api/affectations/echange', {
+            const response = await fetch('http://localhost:3000/api/gardes/vacations/echange', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -264,7 +264,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch(`http://localhost:3000/api/affectations/echange/${id}`, {
+            const response = await fetch(`http://localhost:3000/api/gardes/vacations/echange/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -325,7 +325,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch(`http://localhost:3000/api/affectations/echange/${id}`, {
+            const response = await fetch(`http://localhost:3000/api/gardes/vacations/echange/${id}`, {
                 method: 'DELETE'
             });
 
@@ -367,7 +367,7 @@ export function useAssignmentSwap(): UseAssignmentSwapReturn {
         setError(null);
 
         try {
-            const response = await fetch(`http://localhost:3000/api/affectations/echange/${id}/admin`, {
+            const response = await fetch(`http://localhost:3000/api/gardes/vacations/echange/${id}/admin`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

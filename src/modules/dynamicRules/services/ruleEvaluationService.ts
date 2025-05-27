@@ -27,13 +27,13 @@ export class RuleEvaluationService {
     }
 
     /**
-     * Vérifie si une affectation est valide selon les règles configurées
+     * Vérifie si une garde/vacation est valide selon les règles configurées
      * @param userId ID de l'utilisateur
-     * @param date Date de l'affectation
-     * @param assignmentType Type d'affectation
+     * @param date Date de l'garde/vacation
+     * @param assignmentType Type d'garde/vacation
      * @param locationId ID de l'emplacement
      * @param additionalContext Contexte supplémentaire
-     * @returns Si l'affectation est valide et les raisons
+     * @returns Si l'garde/vacation est valide et les raisons
      */
     async validateAssignment(
         userId: number,
@@ -84,21 +84,21 @@ export class RuleEvaluationService {
      * @returns Contexte de génération modifié
      */
     async applyRulesToGeneration(generationContext: any): Promise<any> {
-        const assignments = generationContext.assignments || [];
-        const modifiedAssignments = [...assignments];
+        const attributions = generationContext.attributions || [];
+        const modifiedAssignments = [...attributions];
 
-        // Évaluer chaque affectation proposée
+        // Évaluer chaque garde/vacation proposée
         for (let i = 0; i < modifiedAssignments.length; i++) {
-            const assignment = modifiedAssignments[i];
+            const attribution = modifiedAssignments[i];
 
             const validationResult = await this.validateAssignment(
-                assignment.userId,
-                new Date(assignment.date),
-                assignment.type,
-                assignment.locationId,
+                attribution.userId,
+                new Date(attribution.date),
+                attribution.type,
+                attribution.locationId,
                 {
-                    previousAssignments: assignments
-                        .filter(a => a.userId === assignment.userId && new Date(a.date) < new Date(assignment.date))
+                    previousAssignments: attributions
+                        .filter(a => a.userId === attribution.userId && new Date(a.date) < new Date(attribution.date))
                         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                         .slice(0, 5)
                         .map(a => ({
@@ -106,8 +106,8 @@ export class RuleEvaluationService {
                             type: a.type,
                             locationId: a.locationId
                         })),
-                    nextAssignments: assignments
-                        .filter(a => a.userId === assignment.userId && new Date(a.date) > new Date(assignment.date))
+                    nextAssignments: attributions
+                        .filter(a => a.userId === attribution.userId && new Date(a.date) > new Date(attribution.date))
                         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                         .slice(0, 5)
                         .map(a => ({
@@ -118,10 +118,10 @@ export class RuleEvaluationService {
                 }
             );
 
-            // Marquer l'affectation comme invalide si elle viole des règles critiques
+            // Marquer l'garde/vacation comme invalide si elle viole des règles critiques
             if (!validationResult.isValid) {
                 modifiedAssignments[i] = {
-                    ...assignment,
+                    ...attribution,
                     status: 'REJECTED',
                     rejectionReason: validationResult.forbiddenRules
                         .map(r => r.ruleName)
@@ -133,7 +133,7 @@ export class RuleEvaluationService {
             // Ajouter des avertissements si nécessaire
             if (validationResult.warnings.length > 0) {
                 modifiedAssignments[i] = {
-                    ...assignment,
+                    ...attribution,
                     warnings: validationResult.warnings.map(r => ({
                         ruleId: r.ruleId,
                         ruleName: r.ruleName
@@ -147,7 +147,7 @@ export class RuleEvaluationService {
 
         return {
             ...generationContext,
-            assignments: optimizedAssignments,
+            attributions: optimizedAssignments,
             ruleViolations: modifiedAssignments
                 .filter(a => a.status === 'REJECTED')
                 .map(a => ({
@@ -161,12 +161,12 @@ export class RuleEvaluationService {
 
     /**
      * Applique des optimisations avancées basées sur les règles actives
-     * @param assignments Affectations à optimiser
-     * @returns Affectations optimisées
+     * @param attributions Gardes/Vacations à optimiser
+     * @returns Gardes/Vacations optimisées
      */
-    private applyAdvancedOptimizations(assignments: any[]): any[] {
+    private applyAdvancedOptimizations(attributions: any[]): any[] {
         // Copie pour éviter la mutation directe
-        const optimizedAssignments = [...assignments];
+        const optimizedAssignments = [...attributions];
 
         // Balancer la charge de travail
         this.balanceWorkload(optimizedAssignments);
@@ -178,13 +178,13 @@ export class RuleEvaluationService {
 
     /**
      * Optimise la répartition de la charge de travail
-     * @param assignments Affectations à optimiser
+     * @param attributions Gardes/Vacations à optimiser
      */
-    private balanceWorkload(assignments: any[]): void {
-        // Compter les affectations par utilisateur
+    private balanceWorkload(attributions: any[]): void {
+        // Compter les gardes/vacations par utilisateur
         const userAssignmentCounts = new Map<number, number>();
 
-        assignments.forEach(a => {
+        attributions.forEach(a => {
             if (a.status !== 'REJECTED') {
                 const count = userAssignmentCounts.get(a.userId) || 0;
                 userAssignmentCounts.set(a.userId, count + 1);
@@ -203,18 +203,18 @@ export class RuleEvaluationService {
             .filter(([_, count]) => count < averageAssignments * 0.8)
             .map(([userId]) => userId);
 
-        // Marquer les affectations qui pourraient être réaffectées
+        // Marquer les gardes/vacations qui pourraient être réaffectées
         if (overAssigned.length > 0 && underAssigned.length > 0) {
-            for (let i = 0; i < assignments.length; i++) {
-                const assignment = assignments[i];
+            for (let i = 0; i < attributions.length; i++) {
+                const attribution = attributions[i];
 
                 if (
-                    assignment.status !== 'REJECTED' &&
-                    overAssigned.includes(assignment.userId) &&
-                    !assignment.isFixed
+                    attribution.status !== 'REJECTED' &&
+                    overAssigned.includes(attribution.userId) &&
+                    !attribution.isFixed
                 ) {
-                    assignments[i] = {
-                        ...assignment,
+                    attributions[i] = {
+                        ...attribution,
                         balanceCandidate: true,
                         targetUsers: underAssigned
                     };

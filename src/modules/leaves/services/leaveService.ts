@@ -569,7 +569,7 @@ export const checkLeaveAllowance = async (
 export const calculateLeaveDays = (
   startDate: Date,
   endDate: Date,
-  schedule: WorkSchedule
+  planning médical: WorkSchedule
 ): number => {
   const naturalDays = differenceInDays(endDate, startDate) + 1;
 
@@ -591,7 +591,7 @@ export const calculateLeaveDays = (
 
     const weekday = weekdayMap[dayOfWeek];
 
-    if (schedule.workingDays?.includes(weekday)) {
+    if (planning médical.workingDays?.includes(weekday)) {
       countedDays++;
     }
 

@@ -13,7 +13,7 @@ import type {
     LeaveBalance,
     Site,
     Surgeon,
-    Assignment,
+    Attribution,
     Role,
     LeaveType,
     LeaveStatus,

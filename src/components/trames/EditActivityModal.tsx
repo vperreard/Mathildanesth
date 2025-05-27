@@ -6,9 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from "@/components/ui/checkbox";
 import { ActivityType, DetailedActivityInTrame, SlotStatus } from './BlocPlanningTemplateEditor';
-import { JourSemaine as ImportedJourSemaine, PeriodeJour as ImportedPeriodeJour } from '@/app/parametres/trames/EditeurTramesHebdomadaires';
-import { Personnel } from '@/modules/templates/services/PersonnelService';
-import { OperatingRoomFromAPI as Salle } from '@/modules/templates/services/SalleService';
+import { JourSemaine as ImportedJourSemaine, PeriodeJour as ImportedPeriodeJour } from '@/app/parametres/tableaux de service/EditeurTramesHebdomadaires';
+import { Personnel } from '@/modules/modèles/services/PersonnelService';
+import { OperatingRoomFromAPI as Salle } from '@/modules/modèles/services/SalleService';
 import { toast } from 'react-hot-toast';
 
 interface ApiSpecialty {
@@ -255,14 +255,14 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
 
             {(typeActivite === ActivityType.BLOC_SALLE || typeActivite === ActivityType.CONSULTATION) && (
                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="slot-status" className="text-right">
+                    <Label htmlFor="créneau-status" className="text-right">
                         Statut créneau
                     </Label>
                     <Select
                         value={statutOuverture}
                         onValueChange={(value) => setStatutOuverture(value as SlotStatus)}
                     >
-                        <SelectTrigger id="slot-status" className="col-span-3">
+                        <SelectTrigger id="créneau-status" className="col-span-3">
                             <SelectValue placeholder="Statut" />
                         </SelectTrigger>
                         <SelectContent>

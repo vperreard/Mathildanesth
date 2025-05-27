@@ -30,7 +30,7 @@ jest.mock('date-fns', () => ({
 // Données mock pour les tests
 const userIdMock = 'user-123';
 const userScheduleMock: WorkSchedule = {
-    id: 'schedule-123',
+    id: 'planning médical-123',
     userId: 'user-123',
     frequency: WorkFrequency.FULL_TIME,
     workingDays: [Weekday.MONDAY, Weekday.TUESDAY, Weekday.WEDNESDAY, Weekday.THURSDAY, Weekday.FRIDAY],

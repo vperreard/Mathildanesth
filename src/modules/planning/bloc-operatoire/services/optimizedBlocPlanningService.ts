@@ -66,7 +66,7 @@ export class OptimizedBlocPlanningService {
                         timezone: true
                     }
                 },
-                assignments: {
+                attributions: {
                     select: {
                         id: true,
                         period: true,
@@ -174,7 +174,7 @@ export class OptimizedBlocPlanningService {
                 status: true,
                 _count: {
                     select: {
-                        assignments: true,
+                        attributions: true,
                         conflicts: true
                     }
                 }
@@ -207,7 +207,7 @@ export class OptimizedBlocPlanningService {
             const generatedPlannings: BlocDayPlanning[] = [];
 
             // Requête optimisée pour récupérer toutes les données nécessaires en une fois
-            const trames = await tx.blocTramePlanning.findMany({
+            const tableaux de service = await tx.blocTramePlanning.findMany({
                 where: {
                     id: { in: trameIds },
                     isActive: true
@@ -215,7 +215,7 @@ export class OptimizedBlocPlanningService {
                 select: {
                     id: true,
                     name: true,
-                    affectations: {
+                    gardes/vacations: {
                         select: {
                             id: true,
                             userId: true,
@@ -232,8 +232,8 @@ export class OptimizedBlocPlanningService {
                 }
             });
 
-            if (!trames.length) {
-                logger.warn("Aucune trame active trouvée pour les IDs fournis");
+            if (!tableaux de service.length) {
+                logger.warn("Aucune tableau de service active trouvée pour les IDs fournis");
                 return [];
             }
 
@@ -241,8 +241,8 @@ export class OptimizedBlocPlanningService {
             const userIds = new Set<number>();
             const surgeonIds = new Set<number>();
             
-            trames.forEach(trame => {
-                trame.affectations.forEach(aff => {
+            tableaux de service.forEach(tableau de service => {
+                tableau de service.gardes/vacations.forEach(aff => {
                     if (aff.userId) userIds.add(aff.userId);
                     if (aff.chirurgienId) surgeonIds.add(aff.chirurgienId);
                 });
@@ -332,10 +332,10 @@ export class OptimizedBlocPlanningService {
                         status: BlocPlanningStatus.DRAFT
                     });
                     
-                    // Traiter les affectations pour ce nouveau planning
+                    // Traiter les gardes/vacations pour ce nouveau planning
                     this.processTrameAffectations(
                         newPlanningId,
-                        trames,
+                        tableaux de service,
                         dayOfWeek,
                         weekType,
                         currentDate,
@@ -360,10 +360,10 @@ export class OptimizedBlocPlanningService {
                         where: { blocDayPlanningId: existingPlanning.id } 
                     });
 
-                    // Traiter les affectations
+                    // Traiter les gardes/vacations
                     this.processTrameAffectations(
                         existingPlanning.id,
-                        trames,
+                        tableaux de service,
                         dayOfWeek,
                         weekType,
                         currentDate,
@@ -384,14 +384,14 @@ export class OptimizedBlocPlanningService {
                 });
             }
 
-            // Créer toutes les affectations en une fois
+            // Créer toutes les gardes/vacations en une fois
             if (assignmentsToCreate.length > 0) {
                 await tx.blocRoomAssignment.createMany({
                     data: assignmentsToCreate
                 });
             }
 
-            // Créer tous les staff assignments en une fois
+            // Créer tous les staff attributions en une fois
             if (staffAssignmentsToCreate.length > 0) {
                 await tx.blocStaffAssignment.createMany({
                     data: staffAssignmentsToCreate
@@ -411,7 +411,7 @@ export class OptimizedBlocPlanningService {
                     }
                 },
                 include: {
-                    assignments: {
+                    attributions: {
                         include: {
                             staffAssignments: true
                         }
@@ -444,7 +444,7 @@ export class OptimizedBlocPlanningService {
 
     private processTrameAffectations(
         planningId: string,
-        trames: any[],
+        tableaux de service: any[],
         dayOfWeek: DayOfWeek,
         weekType: WeekType,
         currentDate: Date,
@@ -455,8 +455,8 @@ export class OptimizedBlocPlanningService {
     ) {
         const roomPeriodAssignments = new Map<string, any>();
 
-        trames.forEach(trame => {
-            trame.affectations.forEach((aff: any) => {
+        tableaux de service.forEach(tableau de service => {
+            tableau de service.gardes/vacations.forEach((aff: any) => {
                 if (aff.jourSemaine !== dayOfWeek || 
                     (aff.typeSemaine !== WeekType.ALL && aff.typeSemaine !== weekType)) {
                     return;

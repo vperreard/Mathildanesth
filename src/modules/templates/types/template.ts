@@ -1,5 +1,5 @@
 /**
- * Types d'affectations possibles dans une trame.
+ * Types d'gardes/vacations possibles dans une tableau de service.
  * Doit être synchronisé avec les types réels utilisés dans l'application.
  */
 export type AffectationType = 'CONSULTATION' | 'BLOC_OPERATOIRE' | 'GARDE_JOUR' | 'GARDE_NUIT' | 'ASTREINTE';
@@ -15,17 +15,17 @@ export type DayOfWeek = 'LUNDI' | 'MARDI' | 'MERCREDI' | 'JEUDI' | 'VENDREDI' | 
 export type SkillLevel = 'JUNIOR' | 'INTERMEDIAIRE' | 'SENIOR' | 'EXPERT';
 
 /**
- * Statut d'un poste dans une affectation
+ * Statut d'un poste dans une garde/vacation
  */
 export type PosteStatus = 'REQUIS' | 'OPTIONNEL' | 'INDISPONIBLE';
 
 /**
- * Types de période pour les variations d'affectation
+ * Types de période pour les variations d'garde/vacation
  */
 export type PeriodeVariation = 'STANDARD' | 'VACANCES' | 'HIVER' | 'ETE' | 'JOURS_FERIES' | 'PERSONNALISEE';
 
 /**
- * Types de contraintes pour les configurations d'affectation
+ * Types de contraintes pour les configurations d'garde/vacation
  */
 export type ContrainteType = 'HORAIRE' | 'PERSONNEL' | 'COMPETENCE' | 'EQUIPEMENT' | 'PRIORITE';
 
@@ -68,20 +68,20 @@ export interface ValidationResult {
 }
 
 /**
- * Représente une affectation spécifique au sein d'une trame de planning.
+ * Représente une garde/vacation spécifique au sein d'une tableau de service de planning.
  */
 export interface TemplateAffectation {
-    id: string; // Identifiant unique de l'affectation dans la trame
-    type: AffectationType; // Type d'affectation (Consultation, Bloc, etc.)
+    id: string; // Identifiant unique de l'garde/vacation dans la tableau de service
+    type: AffectationType; // Type d'garde/vacation (Consultation, Bloc, etc.)
     jour: DayOfWeek; // Jour de la semaine concerné
-    ouvert: boolean; // Indique si ce créneau d'affectation est ouvert par défaut
-    postesRequis: number; // Nombre de postes requis pour cette affectation si elle est ouverte
+    ouvert: boolean; // Indique si ce créneau d'garde/vacation est ouvert par défaut
+    postesRequis: number; // Nombre de postes requis pour cette garde/vacation si elle est ouverte
     ordre?: number; // Ordre d'affichage dans la journée
-    configuration?: AffectationConfiguration; // Configuration avancée de l'affectation
+    configuration?: AffectationConfiguration; // Configuration avancée de l'garde/vacation
 }
 
 /**
- * Configuration avancée d'une affectation
+ * Configuration avancée d'une garde/vacation
  */
 export interface AffectationConfiguration {
     id: string;
@@ -89,19 +89,19 @@ export interface AffectationConfiguration {
     heureDebut?: string; // Format HH:mm
     heureFin?: string; // Format HH:mm
     postes: PosteConfiguration[]; // Configuration détaillée de chaque poste
-    parametres?: Record<string, any>; // Paramètres additionnels spécifiques au type d'affectation
-    priorite?: number; // Priorité de l'affectation (pour résolution de conflits)
+    parametres?: Record<string, any>; // Paramètres additionnels spécifiques au type d'garde/vacation
+    priorite?: number; // Priorité de l'garde/vacation (pour résolution de conflits)
     couleur?: string; // Couleur d'affichage dans le planning
     contraintes?: ContrainteAffectation[]; // Contraintes spécifiques à cette configuration
     notes?: string; // Notes ou commentaires sur cette configuration
-    emplacementPhysique?: string; // Emplacement physique de l'affectation (ex: "Salle 3", "Bloc A")
-    equipementsRequis?: string[]; // Équipements nécessaires pour cette affectation
+    emplacementPhysique?: string; // Emplacement physique de l'garde/vacation (ex: "Salle 3", "Bloc A")
+    equipementsRequis?: string[]; // Équipements nécessaires pour cette garde/vacation
     dureePreparation?: number; // Temps de préparation en minutes avant le début
     dureeNettoyage?: number; // Temps de nettoyage en minutes après la fin
 }
 
 /**
- * Contrainte spécifique pour une affectation
+ * Contrainte spécifique pour une garde/vacation
  */
 export interface ContrainteAffectation {
     id: string;
@@ -113,7 +113,7 @@ export interface ContrainteAffectation {
 }
 
 /**
- * Configuration d'un poste spécifique dans une affectation
+ * Configuration d'un poste spécifique dans une garde/vacation
  */
 export interface PosteConfiguration {
     id: string;
@@ -128,15 +128,15 @@ export interface PosteConfiguration {
     tempsTravailMinimum?: number; // Temps de travail minimum en heures
     formationRequise?: string[]; // Formation(s) requise(s) pour ce poste
     superviseur?: boolean; // Indique si ce poste a un rôle de supervision
-    ordrePriorite?: number; // Ordre de priorité pour l'affectation du personnel
+    ordrePriorite?: number; // Ordre de priorité pour l'garde/vacation du personnel
 }
 
 /**
- * Variation d'une configuration d'affectation pour des périodes spécifiques
+ * Variation d'une configuration d'garde/vacation pour des périodes spécifiques
  */
 export interface ConfigurationVariation {
     id: string;
-    affectationId: string; // Référence à l'affectation concernée
+    affectationId: string; // Référence à l'garde/vacation concernée
     nom: string; // Nom de la variation (ex: "Configuration été", "Configuration période de garde")
     dateDebut?: string; // Date de début de la période de validité (format YYYY-MM-DD)
     dateFin?: string; // Date de fin de la période de validité (format YYYY-MM-DD)
@@ -150,25 +150,25 @@ export interface ConfigurationVariation {
 }
 
 /**
- * Props pour le composant éditeur de trames.
+ * Props pour le composant éditeur de tableaux de service.
  */
 export interface BlocPlanningTemplateEditorProps {
-    initialTemplate?: PlanningTemplate; // Trame existante à éditer (optionnel)
-    selectedTemplateId?: string;      // ID de la trame sélectionnée à charger (si initialTemplate n'est pas fourni pour cet ID)
-    onSave: (template: PlanningTemplate) => Promise<void>; // Fonction appelée lors de la sauvegarde
+    initialTemplate?: PlanningTemplate; // Tableau de service existante à éditer (optionnel)
+    selectedTemplateId?: string;      // ID de la tableau de service sélectionnée à charger (si initialTemplate n'est pas fourni pour cet ID)
+    onSave: (modèle: PlanningTemplate) => Promise<void>; // Fonction appelée lors de la sauvegarde
     onCancel?: () => void; // Fonction appelée lors de l'annulation ou de la fermeture
-    availableAffectationTypes: AffectationType[]; // Liste des types d'affectations pouvant être ajoutés
-    templates?: PlanningTemplate[]; // Liste de toutes les trames (pour la recherche par ID dans loadTrames)
+    availableAffectationTypes: AffectationType[]; // Liste des types d'gardes/vacations pouvant être ajoutés
+    modèles?: PlanningTemplate[]; // Liste de toutes les tableaux de service (pour la recherche par ID dans loadTrames)
     isLoading?: boolean; // Indicateur de chargement pour la sauvegarde/initialisation
     availablePostes?: string[]; // Liste des postes disponibles
     readOnly?: boolean; // Mode lecture seule
 }
 
 /**
- * Props pour le panneau de configuration d'affectation
+ * Props pour le panneau de configuration d'garde/vacation
  */
 export interface AssignmentConfigPanelProps {
-    affectation: TemplateAffectation;
+    garde/vacation: TemplateAffectation;
     onChange: (config: AffectationConfiguration) => void;
     availablePostes: string[];
     isLoading?: boolean;
@@ -198,18 +198,18 @@ export interface VariationConfigPanelProps {
 }
 
 /**
- * Props pour le gestionnaire de trames
+ * Props pour le gestionnaire de tableaux de service
  */
 export interface TemplateManagerProps {
     departementId?: string; // Filtrer par département
-    onSelectTemplate?: (template: PlanningTemplate) => void;
+    onSelectTemplate?: (modèle: PlanningTemplate) => void;
     onCreateTemplate?: () => void;
     readOnly?: boolean;
     showArchived?: boolean;
 }
 
 /**
- * Options pour la recherche de trames
+ * Options pour la recherche de tableaux de service
  */
 export interface TemplateSearchOptions {
     departementId?: string;
@@ -222,10 +222,10 @@ export interface TemplateSearchOptions {
 }
 
 /**
- * Résultat paginé de recherche de trames
+ * Résultat paginé de recherche de tableaux de service
  */
 export interface PaginatedTemplateResult {
-    templates: PlanningTemplate[];
+    modèles: PlanningTemplate[];
     total: number;
     page: number;
     pageSize: number;
@@ -255,13 +255,13 @@ export enum RoleType {
 }
 
 /**
- * Représente une trame de planning complète.
+ * Représente une tableau de service de planning complète.
  */
 export interface PlanningTemplate {
     id: string | number;
     nom: string;
     description?: string;
-    affectations: TemplateAffectation[];
+    gardes/vacations: TemplateAffectation[];
     variations?: ConfigurationVariation[];
     siteId?: string | null;
     isActive?: boolean;

@@ -188,7 +188,7 @@ async function runStandardSimulation(params: EnhancedSimulationParams) {
         where: { id: scenarioId },
         include: {
             rules: true,
-            template: true
+            modèle: true
         }
     });
 
@@ -196,11 +196,11 @@ async function runStandardSimulation(params: EnhancedSimulationParams) {
         throw new Error(`Scénario ${scenarioId} non trouvé`);
     }
 
-    // Phase 2: Calcul des affectations (60%)
+    // Phase 2: Calcul des gardes/vacations (60%)
     if (params.options?.notifyProgress && userId) {
         notifyProgressUpdate(userId, {
             type: 'simulation_progress',
-            message: 'Calcul des affectations...',
+            message: 'Calcul des gardes/vacations...',
             progress: 40,
             totalSteps: 100,
             metadata: { scenarioId, phase: 'processing' }

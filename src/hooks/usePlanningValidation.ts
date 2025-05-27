@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Assignment, RuleViolation, ValidationResult } from '@/types/assignment';
+import { Attribution, RuleViolation, ValidationResult } from '@/types/attribution';
 import { RuleEngineV2 } from '@/modules/dynamicRules/v2/services/RuleEngineV2';
 import { RuleContext } from '@/modules/dynamicRules/v2/types/ruleV2.types';
 import { RuleSeverity } from '@/types/rules';
@@ -36,36 +36,36 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
         staleTime: Infinity
     });
 
-    // Créer le contexte de règle pour une affectation
+    // Créer le contexte de règle pour une garde/vacation
     const createRuleContext = useCallback((
-        assignment: Assignment,
-        allAssignments: Assignment[]
+        attribution: Attribution,
+        allAssignments: Attribution[]
     ): RuleContext => {
         return {
-            date: assignment.startDate,
-            assignment: {
-                type: assignment.shiftType,
-                startDate: assignment.startDate,
-                endDate: assignment.endDate,
-                userId: assignment.userId,
-                location: assignment.notes
+            date: attribution.startDate,
+            attribution: {
+                type: attribution.shiftType,
+                startDate: attribution.startDate,
+                endDate: attribution.endDate,
+                userId: attribution.userId,
+                location: attribution.notes
             },
             planning: {
-                existingAssignments: allAssignments.filter(a => a.id !== assignment.id),
-                proposedAssignments: [assignment]
+                existingAssignments: allAssignments.filter(a => a.id !== attribution.id),
+                proposedAssignments: [attribution]
             }
         };
     }, []);
 
-    // Valider une seule affectation
+    // Valider une seule garde/vacation
     const validateAssignment = useCallback(async (
-        assignment: Assignment,
-        allAssignments: Assignment[]
+        attribution: Attribution,
+        allAssignments: Attribution[]
     ): Promise<RuleViolation[]> => {
         if (isInitializing) return [];
 
         try {
-            const context = createRuleContext(assignment, allAssignments);
+            const context = createRuleContext(attribution, allAssignments);
             const results = await ruleEngine.evaluate(context, 'validation');
             const violations: RuleViolation[] = [];
 
@@ -78,7 +78,7 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
                                 type: action.parameters.violationType || 'RULE_VIOLATION',
                                 severity: action.parameters.severity as RuleSeverity,
                                 message: action.parameters.message || `Règle "${result.ruleName}" non respectée`,
-                                affectedAssignments: [assignment.id],
+                                affectedAssignments: [attribution.id],
                                 metadata: {
                                     ruleId: result.ruleId,
                                     ruleName: result.ruleName,
@@ -92,23 +92,23 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
 
             return violations;
         } catch (error) {
-            console.error('Error validating assignment:', error);
+            console.error('Error validating attribution:', error);
             return [];
         }
     }, [isInitializing, createRuleContext, ruleEngine]);
 
     // Valider tout le planning
     const validatePlanning = useCallback(async (
-        assignments: Assignment[]
+        attributions: Attribution[]
     ): Promise<ValidationResult> => {
         setValidationState(prev => ({ ...prev, isValidating: true, error: undefined }));
 
         try {
             const allViolations: RuleViolation[] = [];
             
-            // Valider chaque affectation
-            for (const assignment of assignments) {
-                const violations = await validateAssignment(assignment, assignments);
+            // Valider chaque garde/vacation
+            for (const attribution of attributions) {
+                const violations = await validateAssignment(attribution, attributions);
                 allViolations.push(...violations);
             }
 
@@ -157,9 +157,9 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
 
     // Valider en temps réel avec debounce
     const validateWithDebounce = useCallback(
-        debounce((assignments: Assignment[]) => {
+        debounce((attributions: Attribution[]) => {
             if (autoValidate) {
-                validateMutation.mutate(assignments);
+                validateMutation.mutate(attributions);
             }
         }, debounceMs),
         [autoValidate, validateMutation, debounceMs]
@@ -168,7 +168,7 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
     // Obtenir les suggestions de correction pour une violation
     const getSuggestions = useCallback(async (
         violation: RuleViolation,
-        assignments: Assignment[]
+        attributions: Attribution[]
     ): Promise<string[]> => {
         // Logique pour générer des suggestions basées sur le type de violation
         const suggestions: string[] = [];
@@ -179,12 +179,12 @@ export function usePlanningValidation(options: UsePlanningValidationOptions = {}
                 suggestions.push('Réaffecter à un autre praticien');
                 break;
             case 'FATIGUE':
-                suggestions.push('Réduire le nombre d\'affectations pour ce praticien');
+                suggestions.push('Réduire le nombre d\'gardes/vacations pour ce praticien');
                 suggestions.push('Prévoir des jours de repos supplémentaires');
                 break;
             case 'CONSECUTIVE_ASSIGNMENTS':
-                suggestions.push('Insérer un jour de repos entre les affectations');
-                suggestions.push('Redistribuer les affectations sur d\'autres praticiens');
+                suggestions.push('Insérer un jour de repos entre les gardes/vacations');
+                suggestions.push('Redistribuer les gardes/vacations sur d\'autres praticiens');
                 break;
             default:
                 suggestions.push('Vérifier les règles de planning configurées');

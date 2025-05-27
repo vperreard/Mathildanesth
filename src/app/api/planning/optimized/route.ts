@@ -9,7 +9,7 @@ jest.mock('@/lib/prisma');
 
 
 // Cache configuration
-const CACHE_TAGS = ['planning', 'assignments', 'rooms', 'users'];
+const CACHE_TAGS = ['planning', 'attributions', 'rooms', 'users'];
 const CACHE_REVALIDATE = 300; // 5 minutes
 
 // Optimized query with selective fields and includes
@@ -19,9 +19,9 @@ const getOptimizedPlanningData = unstable_cache(
         const end = parseISO(endDate);
 
         // Parallel queries for better performance
-        const [assignments, rooms, sectors, users] = await Promise.all([
-            // Assignments with minimal includes
-            prisma.assignment.findMany({
+        const [attributions, rooms, sectors, users] = await Promise.all([
+            // Attributions with minimal includes
+            prisma.attribution.findMany({
                 where: {
                     date: {
                         gte: start,
@@ -144,24 +144,24 @@ const getOptimizedPlanningData = unstable_cache(
             })
         ]);
 
-        // Group assignments by room and period for faster client-side rendering
+        // Group attributions by room and period for faster client-side rendering
         const assignmentsByKey: Record<string, any[]> = {};
-        assignments.forEach(assignment => {
-            const key = `${assignment.date.toISOString()}-${assignment.period}-${assignment.roomId}`;
+        attributions.forEach(attribution => {
+            const key = `${attribution.date.toISOString()}-${attribution.period}-${attribution.roomId}`;
             if (!assignmentsByKey[key]) {
                 assignmentsByKey[key] = [];
             }
-            assignmentsByKey[key].push(assignment);
+            assignmentsByKey[key].push(attribution);
         });
 
         return {
-            assignments,
+            attributions,
             assignmentsByKey,
             rooms,
             sectors,
             users,
             metadata: {
-                totalAssignments: assignments.length,
+                totalAssignments: attributions.length,
                 dateRange: { start: startDate, end: endDate },
                 cached: true,
                 generatedAt: new Date().toISOString()
@@ -237,7 +237,7 @@ export async function PUT(request: NextRequest) {
         // Process updates in transaction for consistency
         const results = await prisma.$transaction(
             updates.map(update => 
-                prisma.assignment.update({
+                prisma.attribution.update({
                     where: { id: update.assignmentId },
                     data: update.changes,
                     select: {

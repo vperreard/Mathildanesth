@@ -45,7 +45,7 @@ interface Room {
     isAvailable: boolean;
 }
 
-interface Assignment {
+interface Attribution {
     id?: number;
     roomId: number;
     supervisorId: number;
@@ -59,29 +59,29 @@ interface Assignment {
 interface RoomAssignmentPanelProps {
     rooms?: Room[];
     supervisors?: Supervisor[];
-    currentAssignments?: Assignment[];
+    currentAssignments?: Attribution[];
     selectedDay?: DayOfWeek;
     selectedPeriod?: Period;
-    onAssignmentChange?: (assignment: Assignment) => void;
+    onAssignmentChange?: (attribution: Attribution) => void;
     onAssignmentDelete?: (assignmentId: number) => void;
-    onValidate?: (assignments: Assignment[]) => void;
+    onValidate?: (attributions: Attribution[]) => void;
     readOnly?: boolean;
     className?: string;
 }
 
-// Composant pour afficher une affectation
+// Composant pour afficher une garde/vacation
 const AssignmentCard: React.FC<{
-    assignment: Assignment;
+    attribution: Attribution;
     room: Room;
     supervisor: Supervisor;
     onEdit?: () => void;
     onDelete?: () => void;
     readOnly?: boolean;
-}> = ({ assignment, room, supervisor, onEdit, onDelete, readOnly = false }) => (
+}> = ({ attribution, room, supervisor, onEdit, onDelete, readOnly = false }) => (
     <motion.div
         className={`
       p-4 rounded-lg border-2 transition-all duration-200
-      ${assignment.isValid
+      ${attribution.isValid
                 ? 'border-green-200 bg-green-50'
                 : 'border-red-200 bg-red-50'
             }
@@ -116,17 +116,17 @@ const AssignmentCard: React.FC<{
                 <div className="flex items-center space-x-2 mb-2">
                     <Clock className="w-4 h-4 text-gray-600" />
                     <span className="text-sm text-gray-700">
-                        {assignment.day} - {assignment.period}
+                        {attribution.day} - {attribution.period}
                     </span>
                 </div>
 
-                {assignment.conflicts.length > 0 && (
-                    <ConflictIndicator conflicts={assignment.conflicts} />
+                {attribution.conflicts.length > 0 && (
+                    <ConflictIndicator conflicts={attribution.conflicts} />
                 )}
             </div>
 
             <div className="flex items-center space-x-2">
-                {assignment.isValid ? (
+                {attribution.isValid ? (
                     <CheckCircle className="w-5 h-5 text-green-600" />
                 ) : (
                     <XCircle className="w-5 h-5 text-red-600" />
@@ -176,10 +176,10 @@ export const RoomAssignmentPanel: React.FC<RoomAssignmentPanelProps> = ({
     const [showValidation, setShowValidation] = useState(false);
     const [activityType, setActivityType] = useState('bloc-supervision');
 
-    // Filtrer les affectations pour la période sélectionnée
+    // Filtrer les gardes/vacations pour la période sélectionnée
     const filteredAssignments = useMemo(() => {
         return currentAssignments.filter(
-            assignment => assignment.day === selectedDay && assignment.period === selectedPeriod
+            attribution => attribution.day === selectedDay && attribution.period === selectedPeriod
         );
     }, [currentAssignments, selectedDay, selectedPeriod]);
 
@@ -204,7 +204,7 @@ export const RoomAssignmentPanel: React.FC<RoomAssignmentPanelProps> = ({
     // Validation globale
     const validationSummary = useMemo(() => {
         const totalConflicts = filteredAssignments.reduce(
-            (sum, assignment) => sum + assignment.conflicts.length, 0
+            (sum, attribution) => sum + attribution.conflicts.length, 0
         );
         const validAssignments = filteredAssignments.filter(a => a.isValid).length;
 
@@ -246,7 +246,7 @@ export const RoomAssignmentPanel: React.FC<RoomAssignmentPanelProps> = ({
             conflicts.push('Charge de travail élevée');
         }
 
-        const newAssignment: Assignment = {
+        const newAssignment: Attribution = {
             roomId: selectedRoomId,
             supervisorId: selectedSupervisorId,
             day: selectedDay,
@@ -289,7 +289,7 @@ export const RoomAssignmentPanel: React.FC<RoomAssignmentPanelProps> = ({
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900">
-                            Affectation des Salles
+                            Garde/Vacation des Salles
                         </h2>
                         <p className="text-sm text-gray-600">
                             {selectedDay} - {selectedPeriod}
@@ -322,7 +322,7 @@ export const RoomAssignmentPanel: React.FC<RoomAssignmentPanelProps> = ({
                 {showValidation && (
                     <ValidationPanel
                         summary={validationSummary}
-                        assignments={filteredAssignments}
+                        attributions={filteredAssignments}
                         onValidate={handleValidateAll}
                         onClose={() => setShowValidation(false)}
                     />
@@ -330,11 +330,11 @@ export const RoomAssignmentPanel: React.FC<RoomAssignmentPanelProps> = ({
             </AnimatePresence>
 
             <div className="flex-1 flex overflow-hidden">
-                {/* Panel de création d'affectation */}
+                {/* Panel de création d'garde/vacation */}
                 {!readOnly && (
                     <div className="w-80 border-r border-gray-200 p-4 overflow-y-auto">
                         <h3 className="text-lg font-medium text-gray-900 mb-4">
-                            Nouvelle Affectation
+                            Nouvelle Garde/Vacation
                         </h3>
 
                         <div className="space-y-4">
@@ -400,36 +400,36 @@ export const RoomAssignmentPanel: React.FC<RoomAssignmentPanelProps> = ({
                                 disabled={!selectedRoomId || !selectedSupervisorId}
                                 className="w-full"
                             >
-                                Créer l'affectation
+                                Créer l'garde/vacation
                             </Button>
                         </div>
                     </div>
                 )}
 
-                {/* Liste des affectations */}
+                {/* Liste des gardes/vacations */}
                 <div className="flex-1 p-4 overflow-y-auto">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-gray-900">
-                            Affectations actuelles ({filteredAssignments.length})
+                            Gardes/Vacations actuelles ({filteredAssignments.length})
                         </h3>
                     </div>
 
                     <div className="space-y-3">
                         <AnimatePresence>
-                            {filteredAssignments.map(assignment => {
-                                const room = rooms.find(r => r.id === assignment.roomId);
-                                const supervisor = supervisors.find(s => s.id === assignment.supervisorId);
+                            {filteredAssignments.map(attribution => {
+                                const room = rooms.find(r => r.id === attribution.roomId);
+                                const supervisor = supervisors.find(s => s.id === attribution.supervisorId);
 
                                 if (!room || !supervisor) return null;
 
                                 return (
                                     <AssignmentCard
-                                        key={assignment.id || `${assignment.roomId}-${assignment.supervisorId}`}
-                                        assignment={assignment}
+                                        key={attribution.id || `${attribution.roomId}-${attribution.supervisorId}`}
+                                        attribution={attribution}
                                         room={room}
                                         supervisor={supervisor}
                                         onEdit={() => {/* TODO: Implémenter l'édition */ }}
-                                        onDelete={() => assignment.id && handleDeleteAssignment(assignment.id)}
+                                        onDelete={() => attribution.id && handleDeleteAssignment(attribution.id)}
                                         readOnly={readOnly}
                                     />
                                 );
@@ -439,9 +439,9 @@ export const RoomAssignmentPanel: React.FC<RoomAssignmentPanelProps> = ({
                         {filteredAssignments.length === 0 && (
                             <div className="text-center py-8 text-gray-500">
                                 <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                <p>Aucune affectation pour cette période</p>
+                                <p>Aucune garde/vacation pour cette période</p>
                                 {!readOnly && (
-                                    <p className="text-sm">Utilisez le panel de gauche pour créer une affectation</p>
+                                    <p className="text-sm">Utilisez le panel de gauche pour créer une garde/vacation</p>
                                 )}
                             </div>
                         )}

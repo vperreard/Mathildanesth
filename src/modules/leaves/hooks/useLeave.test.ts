@@ -203,7 +203,7 @@ describe('useLeave Hook', () => {
             expect(result.current.leave?.type).toBe(mockInitialLeave.type);
         });
 
-        it('should update startDate and recalculate countedDays if schedule exists', () => {
+        it('should update startDate and recalculate countedDays if planning médical exists', () => {
             const initialLeaveForCalc: Partial<Leave> = {
                 startDate: d(2024, 9, 2), // Lundi 
                 endDate: d(2024, 9, 6)  // Vendredi
@@ -211,7 +211,7 @@ describe('useLeave Hook', () => {
             const { result } = renderHook(() => useLeave({
                 initialLeave: initialLeaveForCalc,
                 userId: mockUserId,
-                userSchedule: mockFullTimeSchedule // Fournir le schedule !
+                userSchedule: mockFullTimeSchedule // Fournir le planning médical !
             }));
 
             const newStartDate = d(2024, 9, 3); // Mardi
@@ -229,7 +229,7 @@ describe('useLeave Hook', () => {
             expect(result.current.leave?.countedDays).toBe(4);
         });
 
-        it('should update endDate and recalculate countedDays if schedule exists', () => {
+        it('should update endDate and recalculate countedDays if planning médical exists', () => {
             const initialLeaveForCalc: Partial<Leave> = {
                 startDate: d(2024, 9, 2), // Lundi 
                 endDate: d(2024, 9, 6)  // Vendredi
@@ -252,7 +252,7 @@ describe('useLeave Hook', () => {
             expect(result.current.leave?.countedDays).toBe(4);
         });
 
-        it('should NOT recalculate countedDays if schedule is missing', () => {
+        it('should NOT recalculate countedDays if planning médical is missing', () => {
             const initialLeaveForCalc: Partial<Leave> = {
                 startDate: d(2024, 9, 2),
                 endDate: d(2024, 9, 6),
@@ -315,7 +315,7 @@ describe('useLeave Hook', () => {
 
     // --- Tests pour calculateLeaveDuration ---
     describe('calculateLeaveDuration', () => {
-        it('should call calculateLeaveDays with correct dates and schedule', () => {
+        it('should call calculateLeaveDays with correct dates and planning médical', () => {
             const { result } = renderHook(() => useLeave({
                 initialLeave: mockInitialLeave,
                 userId: mockUserId,
@@ -336,11 +336,11 @@ describe('useLeave Hook', () => {
             expect(duration).toBe(5);
         });
 
-        it('should return 0 if schedule is missing', () => {
+        it('should return 0 if planning médical is missing', () => {
             const { result } = renderHook(() => useLeave({
                 initialLeave: mockInitialLeave,
                 userId: mockUserId
-                // Pas de schedule
+                // Pas de planning médical
             }));
 
             let duration = 0;

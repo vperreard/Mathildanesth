@@ -344,7 +344,7 @@ const RuleForm: React.FC<RuleFormProps> = ({ rule, allRules = [], onSave, onCanc
                                 </Select>
                                 {action.type === ActionType.MODIFY && (
                                     <Input
-                                        placeholder="Cible (ex: assignment.status)"
+                                        placeholder="Cible (ex: attribution.status)"
                                         value={action.target || ''}
                                         onChange={(e) => updateAction(index, 'target', e.target.value)}
                                         className="w-[200px]"

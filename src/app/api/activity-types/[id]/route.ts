@@ -124,7 +124,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         if (affectationReferences.length > 0) {
             // Construire un message détaillé pour l'utilisateur
             const trameIds = [...new Set(affectationReferences.map(a => a.trameModeleId))];
-            const trames = await prisma.trameModele.findMany({
+            const tableaux de service = await prisma.trameModele.findMany({
                 where: { id: { in: trameIds } },
                 select: {
                     id: true,
@@ -135,17 +135,17 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
                 }
             });
 
-            // Compter les affectations par trame pour plus de détails
+            // Compter les gardes/vacations par tableau de service pour plus de détails
             const affectationsParTrame = trameIds.map(trameId => {
                 const count = affectationReferences.filter(a => a.trameModeleId === trameId).length;
                 return { trameId, affectationCount: count };
             });
 
             return NextResponse.json({
-                error: 'Impossible de supprimer ce type d\'activité car il est utilisé dans des trames.',
+                error: 'Impossible de supprimer ce type d\'activité car il est utilisé dans des tableaux de service.',
                 details: {
                     affectationCount: affectationReferences.length,
-                    trames: trames.map(t => ({
+                    tableaux de service: tableaux de service.map(t => ({
                         id: t.id,
                         name: t.name,
                         description: t.description,

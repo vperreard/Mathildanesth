@@ -38,7 +38,7 @@ export class RuleSimulator {
 
     try {
       // Get relevant data for simulation
-      const { users, assignments, leaves } = await this.getSimulationData(startDate, endDate);
+      const { users, attributions, leaves } = await this.getSimulationData(startDate, endDate);
       
       // Simulate for each day in the range
       const days = eachDayOfInterval({ start: startDate, end: endDate });
@@ -49,7 +49,7 @@ export class RuleSimulator {
           const context = {
             userId: user.id,
             date: day,
-            planning: assignments.filter(a => 
+            planning: attributions.filter(a => 
               new Date(a.date).toDateString() === day.toDateString()
             ),
             leaves: leaves.filter(l => 
@@ -115,14 +115,14 @@ export class RuleSimulator {
   }
 
   private async getSimulationData(startDate: Date, endDate: Date) {
-    const [users, assignments, leaves] = await Promise.all([
+    const [users, attributions, leaves] = await Promise.all([
       prisma.user.findMany({
         where: {
           isActive: true,
           role: { in: ['IADE', 'MAR'] }
         }
       }),
-      prisma.assignment.findMany({
+      prisma.attribution.findMany({
         where: {
           date: {
             gte: startDate,
@@ -147,7 +147,7 @@ export class RuleSimulator {
       })
     ]);
 
-    return { users, assignments, leaves };
+    return { users, attributions, leaves };
   }
 
   private calculateViolationSeverity(

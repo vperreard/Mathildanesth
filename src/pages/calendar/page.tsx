@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DraggableCalendar from '../../components/DraggableCalendar';
-import { Assignment, AssignmentStatus } from '../../types/assignment';
+import { Attribution, AssignmentStatus } from '../../types/attribution';
 import { ShiftType } from '../../types/common';
 import { RulesConfiguration } from '../../types/rules';
 import { User, UserRole, LeaveStatus, LeaveType } from '../../types/user';
@@ -183,7 +183,7 @@ const mockRules: RulesConfiguration = {
     }
 };
 
-const mockInitialAssignments: Assignment[] = [
+const mockInitialAssignments: Attribution[] = [
     {
         id: 'assign1',
         userId: '1',
@@ -206,9 +206,9 @@ const mockInitialAssignments: Assignment[] = [
     }
 ];
 
-// Fonction pour générer des affectations MOCK (corrigée à nouveau)
-function generateMockAssignments(users: User[]): Assignment[] {
-    const assignments: Assignment[] = [];
+// Fonction pour générer des gardes/vacations MOCK (corrigée à nouveau)
+function generateMockAssignments(users: User[]): Attribution[] {
+    const attributions: Attribution[] = [];
     const today = startOfDay(new Date());
 
     users.forEach((user, userIndex) => {
@@ -241,7 +241,7 @@ function generateMockAssignments(users: User[]): Assignment[] {
                 else if (shiftType === ShiftType.APRES_MIDI) endDate.setHours(18, 30, 0, 0);
                 else if (shiftType === ShiftType.JOUR) endDate.setHours(20, 0, 0, 0);
 
-                assignments.push({
+                attributions.push({
                     id: `mock-${user.id}-${i}`,
                     userId: user.id,
                     startDate: date, // Utilisation de startDate
@@ -255,22 +255,22 @@ function generateMockAssignments(users: User[]): Assignment[] {
         }
     });
     // Ajouter manuellement une garde 24h pour tester si besoin
-    assignments.push({
+    attributions.push({
         id: `mock-24h-1`, userId: users[0].id, shiftType: ShiftType.GARDE_24H,
         startDate: addDays(today, 8), endDate: addDays(today, 9), status: AssignmentStatus.APPROVED,
         createdAt: new Date(), updatedAt: new Date()
     });
-    return assignments;
+    return attributions;
 }
 
 const CalendarPage: React.FC = () => {
-    const [assignments, setAssignments] = useState<Assignment[]>(() => generateMockAssignments(mockUsers));
+    const [attributions, setAssignments] = useState<Attribution[]>(() => generateMockAssignments(mockUsers));
     const [isLoading, setIsLoading] = useState(false); // Mettre à false car données mockées
     const [syncErrors, setSyncErrors] = useState<any[]>([]);
     const [validationErrors, setValidationErrors] = useState<any[]>([]);
     const [syncSuccess, setSyncSuccess] = useState<boolean | null>(null);
 
-    // Charger les affectations au chargement de la page (commenté car mock)
+    // Charger les gardes/vacations au chargement de la page (commenté car mock)
     // useEffect(() => {
     //   setIsLoading(true);
     //   // Simuler un fetch API
@@ -280,7 +280,7 @@ const CalendarPage: React.FC = () => {
     //   }, 500);
     // }, []);
 
-    const handleSave = (savedAssignments: Assignment[]) => {
+    const handleSave = (savedAssignments: Attribution[]) => {
         console.log("Changements sauvegardés (reçus via onSave):", savedAssignments);
         setAssignments(savedAssignments);
         toast.success('Modifications sauvegardées avec succès!');
@@ -308,7 +308,7 @@ const CalendarPage: React.FC = () => {
                 <div>Chargement du calendrier...</div>
             ) : (
                 <DraggableCalendar
-                    initialAssignments={assignments}
+                    initialAssignments={attributions}
                     users={mockUsers}
                     doctors={mockDoctors}
                     rules={mockRules}

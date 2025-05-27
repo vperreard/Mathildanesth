@@ -3,7 +3,7 @@
  */
 
 /**
- * Types d'affectations qui peuvent générer de la fatigue
+ * Types d'gardes/vacations qui peuvent générer de la fatigue
  */
 export enum AssignmentType {
     GARDE = 'GARDE',
@@ -29,7 +29,7 @@ export enum OffPeriodType {
  */
 export interface FatigueConfig {
     points: {
-        // Points de fatigue par type d'affectation
+        // Points de fatigue par type d'garde/vacation
         garde: number;
         astreinte: number;
         supervisionMultiple: number;
@@ -53,9 +53,9 @@ export interface FatigueConfig {
 }
 
 /**
- * Représentation d'une affectation
+ * Représentation d'une garde/vacation
  */
-export interface Assignment {
+export interface Attribution {
     id: string;
     type: AssignmentType;
     medecinId: string;
@@ -114,12 +114,12 @@ export class FatigueSystem {
     }
 
     /**
-     * Calculer les points de fatigue pour une affectation
+     * Calculer les points de fatigue pour une garde/vacation
      */
-    calculateFatiguePoints(assignment: Assignment): number {
+    calculateFatiguePoints(attribution: Attribution): number {
         let points = 0;
 
-        switch (assignment.type) {
+        switch (attribution.type) {
             case AssignmentType.GARDE:
                 points += this.config.points.garde;
                 break;
@@ -127,7 +127,7 @@ export class FatigueSystem {
                 points += this.config.points.astreinte;
                 break;
             case AssignmentType.SUPERVISION:
-                if (assignment.supervisionCount && assignment.supervisionCount > 2) {
+                if (attribution.supervisionCount && attribution.supervisionCount > 2) {
                     points += this.config.points.supervisionMultiple;
                 }
                 break;
@@ -135,15 +135,15 @@ export class FatigueSystem {
                 points += this.config.points.pediatrie;
                 break;
             default:
-                // Si l'affectation a une propriété "specialite" qui correspond à une spécialité lourde
-                if (assignment.specialite && this.isSpecialiteLourde(assignment.specialite)) {
+                // Si l'garde/vacation a une propriété "specialite" qui correspond à une spécialité lourde
+                if (attribution.specialite && this.isSpecialiteLourde(attribution.specialite)) {
                     points += this.config.points.specialiteLourde;
                 }
                 break;
         }
 
         // Ajout de points supplémentaires pour les gardes de nuit
-        if (this.isNightShift(assignment)) {
+        if (this.isNightShift(attribution)) {
             points += 5; // Points additionnels pour les gardes de nuit
         }
 
@@ -177,11 +177,11 @@ export class FatigueSystem {
     }
 
     /**
-     * Vérifier si un médecin peut prendre une affectation sans dépasser les seuils de fatigue
+     * Vérifier si un médecin peut prendre une garde/vacation sans dépasser les seuils de fatigue
      */
-    canTakeAssignment(medecin: Medecin, assignment: Assignment): boolean {
+    canTakeAssignment(medecin: Medecin, attribution: Attribution): boolean {
         const currentFatigue = medecin.fatigue.score;
-        const additionalFatigue = this.calculateFatiguePoints(assignment);
+        const additionalFatigue = this.calculateFatiguePoints(attribution);
         const projectedFatigue = currentFatigue + additionalFatigue;
 
         if (projectedFatigue > this.config.seuils.critique) {
@@ -190,17 +190,17 @@ export class FatigueSystem {
 
         if (projectedFatigue > this.config.seuils.alerte) {
             // Vérifier si des mesures compensatoires sont prévues
-            return this.hasCompensatoryMeasures(medecin, assignment);
+            return this.hasCompensatoryMeasures(medecin, attribution);
         }
 
         return true;
     }
 
     /**
-     * Mettre à jour le score de fatigue d'un médecin après une affectation
+     * Mettre à jour le score de fatigue d'un médecin après une garde/vacation
      */
-    updateFatigueAfterAssignment(medecin: Medecin, assignment: Assignment): Medecin {
-        const additionalFatigue = this.calculateFatiguePoints(assignment);
+    updateFatigueAfterAssignment(medecin: Medecin, attribution: Attribution): Medecin {
+        const additionalFatigue = this.calculateFatiguePoints(attribution);
 
         const updatedFatigue: FatigueState = {
             score: medecin.fatigue.score + additionalFatigue,
@@ -209,7 +209,7 @@ export class FatigueSystem {
                 {
                     date: new Date(),
                     score: medecin.fatigue.score + additionalFatigue,
-                    reason: `Affectation ${assignment.type} (${assignment.id})`
+                    reason: `Garde/Vacation ${attribution.type} (${attribution.id})`
                 }
             ],
             lastUpdate: new Date()
@@ -256,12 +256,12 @@ export class FatigueSystem {
     }
 
     /**
-     * Vérifier si une affectation est une garde de nuit
+     * Vérifier si une garde/vacation est une garde de nuit
      */
-    private isNightShift(assignment: Assignment): boolean {
-        // Considérer comme garde de nuit si l'affectation commence après 18h et finit avant 8h
-        const startHour = assignment.startDate.getHours();
-        const endHour = assignment.endDate.getHours();
+    private isNightShift(attribution: Attribution): boolean {
+        // Considérer comme garde de nuit si l'garde/vacation commence après 18h et finit avant 8h
+        const startHour = attribution.startDate.getHours();
+        const endHour = attribution.endDate.getHours();
 
         return (startHour >= 18 || startHour <= 8) && (endHour >= 18 || endHour <= 8);
     }
@@ -269,9 +269,9 @@ export class FatigueSystem {
     /**
      * Vérifier si des mesures compensatoires sont prévues pour un médecin ayant un niveau de fatigue élevé
      */
-    private hasCompensatoryMeasures(medecin: Medecin, assignment: Assignment): boolean {
+    private hasCompensatoryMeasures(medecin: Medecin, attribution: Attribution): boolean {
         // Cette méthode est une implémentation simplifiée
-        // Dans un système réel, elle vérifierait si des jours de repos sont planifiés après l'affectation
+        // Dans un système réel, elle vérifierait si des jours de repos sont planifiés après l'garde/vacation
         return false;
     }
 

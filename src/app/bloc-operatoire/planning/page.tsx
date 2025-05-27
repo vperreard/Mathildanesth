@@ -12,7 +12,7 @@ export default function BlocOperatoirePlanningPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Planning du Bloc Opératoire</h1>
         <p className="mt-1 text-sm text-gray-600">
-          Gérez les affectations et plannings des salles d'opération
+          Gérez les gardes/vacations et plannings des salles d'opération
         </p>
       </div>
 

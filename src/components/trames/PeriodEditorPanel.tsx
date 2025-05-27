@@ -38,7 +38,7 @@ const PeriodEditorPanel: React.FC<PeriodEditorPanelProps> = ({
             color: '#4CAF50',
             isActive: true,
             isLocked: false,
-            assignments: []
+            attributions: []
         };
 
         setCurrentPeriod(newPeriod);
@@ -188,7 +188,7 @@ const PeriodEditorPanel: React.FC<PeriodEditorPanelProps> = ({
                                         style={{ backgroundColor: period.color }}
                                     />
                                 </TableCell>
-                                <TableCell>{period.assignments?.length || 0}</TableCell>
+                                <TableCell>{period.attributions?.length || 0}</TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end space-x-2">
                                         <Button

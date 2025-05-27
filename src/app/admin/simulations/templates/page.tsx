@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 
 export default function TemplatesPage() {
     const router = useRouter();
-    const [templates, setTemplates] = useState<SimulationTemplate[]>([]);
+    const [modèles, setTemplates] = useState<SimulationTemplate[]>([]);
     const [filteredTemplates, setFilteredTemplates] = useState<SimulationTemplate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [, setError] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export default function TemplatesPage() {
 
     useEffect(() => {
         applyFilters();
-    }, [templates, searchTerm, categoryFilter, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [modèles, searchTerm, categoryFilter, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const loadTemplates = async () => {
         setIsLoading(true);
@@ -49,36 +49,36 @@ export default function TemplatesPage() {
             const data = await fetchTemplates();
             setTemplates(data);
         } catch (err: unknown) {
-            const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des templates';
+            const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des modèles';
             setError(errorMessage);
-            toast.error('Erreur lors du chargement des templates');
+            toast.error('Erreur lors du chargement des modèles');
         } finally {
             setIsLoading(false);
         }
     };
 
     const applyFilters = () => {
-        let filtered = [...templates];
+        let filtered = [...modèles];
 
         // Filtrer par onglet
         if (activeTab === 'my') {
-            filtered = filtered.filter(template => !template.isPublic);
+            filtered = filtered.filter(modèle => !modèle.isPublic);
         } else if (activeTab === 'public') {
-            filtered = filtered.filter(template => template.isPublic);
+            filtered = filtered.filter(modèle => modèle.isPublic);
         }
 
         // Filtrer par catégorie
         if (categoryFilter) {
-            filtered = filtered.filter(template => template.category === categoryFilter);
+            filtered = filtered.filter(modèle => modèle.category === categoryFilter);
         }
 
         // Filtrer par terme de recherche
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             filtered = filtered.filter(
-                template =>
-                    template.name.toLowerCase().includes(term) ||
-                    (template.description && template.description.toLowerCase().includes(term))
+                modèle =>
+                    modèle.name.toLowerCase().includes(term) ||
+                    (modèle.description && modèle.description.toLowerCase().includes(term))
             );
         }
 
@@ -92,11 +92,11 @@ export default function TemplatesPage() {
         try {
             await deleteTemplate(templateToDelete);
             setTemplates(prevTemplates => prevTemplates.filter(t => t.id !== templateToDelete));
-            toast.success('Template supprimé avec succès');
+            toast.success('Modèle supprimé avec succès');
             setDeleteDialogOpen(false);
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
-            toast.error('Erreur lors de la suppression du template: ' + errorMessage);
+            toast.error('Erreur lors de la suppression du modèle: ' + errorMessage);
         } finally {
             setIsDeleting(false);
             setTemplateToDelete(null);
@@ -110,12 +110,12 @@ export default function TemplatesPage() {
         try {
             const newTemplate = await duplicateTemplate(templateToDuplicate, newTemplateName);
             setTemplates(prevTemplates => [...prevTemplates, newTemplate]);
-            toast.success('Template dupliqué avec succès');
+            toast.success('Modèle dupliqué avec succès');
             setDuplicateDialogOpen(false);
             setNewTemplateName('');
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
-            toast.error('Erreur lors de la duplication du template: ' + errorMessage);
+            toast.error('Erreur lors de la duplication du modèle: ' + errorMessage);
         } finally {
             setIsDuplicating(false);
             setTemplateToDuplicate(null);
@@ -124,7 +124,7 @@ export default function TemplatesPage() {
 
     const handleUseTemplate = async (templateId: string) => {
         try {
-            toast.info('Création d\'un scénario à partir du template...');
+            toast.info('Création d\'un scénario à partir du modèle...');
             const scenario = await createScenarioFromTemplate(templateId);
             toast.success('Scénario créé avec succès');
             router.push(`/admin/simulations/${scenario.id}/edit`);
@@ -135,28 +135,28 @@ export default function TemplatesPage() {
     };
 
     const getUniqueCategories = () => {
-        const categories = new Set(templates.map(t => t.category).filter(Boolean));
+        const categories = new Set(modèles.map(t => t.category).filter(Boolean));
         return Array.from(categories) as string[];
     };
 
     const renderEmptyState = () => (
         <div className="flex flex-col items-center justify-center py-10 text-center">
             <BookmarkIcon className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium">Aucun template trouvé</h3>
+            <h3 className="text-lg font-medium">Aucun modèle trouvé</h3>
             <p className="text-sm text-gray-500 mt-1 mb-4">
                 {activeTab === 'all'
-                    ? 'Vous n\'avez pas encore de templates. Créez votre premier template pour faciliter la création de scénarios répétitifs.'
+                    ? 'Vous n\'avez pas encore de modèles. Créez votre premier modèle pour faciliter la création de scénarios répétitifs.'
                     : activeTab === 'my'
-                        ? 'Vous n\'avez pas encore créé de templates personnels.'
-                        : 'Aucun template public disponible.'}
+                        ? 'Vous n\'avez pas encore créé de modèles personnels.'
+                        : 'Aucun modèle public disponible.'}
             </p>
             <Button
                 variant="default"
                 size="sm"
-                onClick={() => router.push('/admin/simulations/templates/nouveau')}
+                onClick={() => router.push('/admin/simulations/modèles/nouveau')}
             >
                 <PlusIcon className="h-4 w-4 mr-2" />
-                Créer un template
+                Créer un modèle
             </Button>
         </div>
     );
@@ -165,7 +165,7 @@ export default function TemplatesPage() {
         <div className="container p-4 mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold">Templates de Simulation</h1>
+                    <h1 className="text-2xl font-bold">Modèles de Simulation</h1>
                     <p className="text-muted-foreground">
                         Gérez des configurations réutilisables pour vos simulations de planning
                     </p>
@@ -173,17 +173,17 @@ export default function TemplatesPage() {
                 <div className="flex space-x-2">
                     <Button
                         variant="outline"
-                        onClick={() => router.push('/admin/simulations/templates/stats')}
+                        onClick={() => router.push('/admin/simulations/modèles/stats')}
                     >
                         <BarChart2Icon className="h-4 w-4 mr-2" />
                         Statistiques
                     </Button>
                     <Button
                         variant="default"
-                        onClick={() => router.push('/admin/simulations/templates/nouveau')}
+                        onClick={() => router.push('/admin/simulations/modèles/nouveau')}
                     >
                         <PlusIcon className="h-4 w-4 mr-2" />
-                        Nouveau Template
+                        Nouveau Modèle
                     </Button>
                 </div>
             </div>
@@ -192,9 +192,9 @@ export default function TemplatesPage() {
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'all' | 'my' | 'public')}>
                     <div className="flex justify-between items-center mb-4">
                         <TabsList>
-                            <TabsTrigger value="all">Tous les templates</TabsTrigger>
-                            <TabsTrigger value="my">Mes templates</TabsTrigger>
-                            <TabsTrigger value="public">Templates publics</TabsTrigger>
+                            <TabsTrigger value="all">Tous les modèles</TabsTrigger>
+                            <TabsTrigger value="my">Mes modèles</TabsTrigger>
+                            <TabsTrigger value="public">Modèles publics</TabsTrigger>
                         </TabsList>
 
                         <div className="flex space-x-2">
@@ -231,10 +231,10 @@ export default function TemplatesPage() {
                             </div>
                         ) : filteredTemplates.length ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {filteredTemplates.map((template) => (
+                                {filteredTemplates.map((modèle) => (
                                     <TemplateCard
-                                        key={template.id}
-                                        template={template}
+                                        key={modèle.id}
+                                        modèle={modèle}
                                         onDelete={(id) => {
                                             setTemplateToDelete(id);
                                             setDeleteDialogOpen(true);
@@ -260,10 +260,10 @@ export default function TemplatesPage() {
                             </div>
                         ) : filteredTemplates.length ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {filteredTemplates.map((template) => (
+                                {filteredTemplates.map((modèle) => (
                                     <TemplateCard
-                                        key={template.id}
-                                        template={template}
+                                        key={modèle.id}
+                                        modèle={modèle}
                                         onDelete={(id) => {
                                             setTemplateToDelete(id);
                                             setDeleteDialogOpen(true);
@@ -289,10 +289,10 @@ export default function TemplatesPage() {
                             </div>
                         ) : filteredTemplates.length ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {filteredTemplates.map((template) => (
+                                {filteredTemplates.map((modèle) => (
                                     <TemplateCard
-                                        key={template.id}
-                                        template={template}
+                                        key={modèle.id}
+                                        modèle={modèle}
                                         onDelete={(id) => {
                                             setTemplateToDelete(id);
                                             setDeleteDialogOpen(true);
@@ -319,7 +319,7 @@ export default function TemplatesPage() {
                     <DialogHeader>
                         <DialogTitle>Confirmer la suppression</DialogTitle>
                         <DialogDescription>
-                            Êtes-vous sûr de vouloir supprimer ce template ? Cette action est irréversible.
+                            Êtes-vous sûr de vouloir supprimer ce modèle ? Cette action est irréversible.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="flex space-x-2 justify-end">
@@ -352,18 +352,18 @@ export default function TemplatesPage() {
             <Dialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Dupliquer le template</DialogTitle>
+                        <DialogTitle>Dupliquer le modèle</DialogTitle>
                         <DialogDescription>
-                            Entrez un nom pour la copie du template.
+                            Entrez un nom pour la copie du modèle.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
-                        <Label htmlFor="new-template-name" className="mb-2 block">Nom du nouveau template</Label>
+                        <Label htmlFor="new-modèle-name" className="mb-2 block">Nom du nouveau modèle</Label>
                         <Input
-                            id="new-template-name"
+                            id="new-modèle-name"
                             value={newTemplateName}
                             onChange={(e) => setNewTemplateName(e.target.value)}
-                            placeholder="Nom du template"
+                            placeholder="Nom du modèle"
                             className="w-full"
                         />
                     </div>
@@ -397,24 +397,24 @@ export default function TemplatesPage() {
 }
 
 interface TemplateCardProps {
-    template: SimulationTemplate;
+    modèle: SimulationTemplate;
     onDelete: (id: string) => void;
     onDuplicate: (id: string, name: string) => void;
     onUse: (id: string) => void;
 }
 
-function TemplateCard({ template, onDelete, onDuplicate, onUse }: TemplateCardProps) {
+function TemplateCard({ modèle, onDelete, onDuplicate, onUse }: TemplateCardProps) {
     return (
         <Card>
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div>
-                        <CardTitle className="text-lg">{template.name}</CardTitle>
+                        <CardTitle className="text-lg">{modèle.name}</CardTitle>
                         <CardDescription className="line-clamp-2 mt-1">
-                            {template.description || 'Aucune description'}
+                            {modèle.description || 'Aucune description'}
                         </CardDescription>
                     </div>
-                    {template.isPublic && (
+                    {modèle.isPublic && (
                         <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                             Public
                         </Badge>
@@ -425,11 +425,11 @@ function TemplateCard({ template, onDelete, onDuplicate, onUse }: TemplateCardPr
                 <div className="text-sm text-muted-foreground mb-3">
                     <div className="flex items-center mb-1">
                         <CalendarIcon className="h-3.5 w-3.5 mr-1.5" />
-                        Créé le {new Date(template.createdAt).toLocaleDateString()}
+                        Créé le {new Date(modèle.createdAt).toLocaleDateString()}
                     </div>
-                    {template.category && (
+                    {modèle.category && (
                         <Badge variant="secondary" className="mt-1">
-                            {template.category}
+                            {modèle.category}
                         </Badge>
                     )}
                 </div>
@@ -439,11 +439,11 @@ function TemplateCard({ template, onDelete, onDuplicate, onUse }: TemplateCardPr
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => onDelete(template.id)}
+                        onClick={() => onDelete(modèle.id)}
                     >
                         <Trash2Icon className="h-4 w-4" />
                     </Button>
-                    <Link href={`/admin/simulations/templates/${template.id}/edit`} passHref>
+                    <Link href={`/admin/simulations/modèles/${modèle.id}/edit`} passHref>
                         <Button variant="outline" size="sm">
                             <PencilIcon className="h-4 w-4" />
                         </Button>
@@ -451,12 +451,12 @@ function TemplateCard({ template, onDelete, onDuplicate, onUse }: TemplateCardPr
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => onDuplicate(template.id, template.name)}
+                        onClick={() => onDuplicate(modèle.id, modèle.name)}
                     >
                         <CopyIcon className="h-4 w-4" />
                     </Button>
                 </div>
-                <Button variant="default" size="sm" onClick={() => onUse(template.id)}>
+                <Button variant="default" size="sm" onClick={() => onUse(modèle.id)}>
                     Utiliser
                 </Button>
             </CardFooter>

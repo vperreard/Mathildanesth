@@ -159,7 +159,7 @@ export interface ServiceActivity {
     /** Fréquence (quotidienne, hebdomadaire, mensuelle) */
     frequency: "QUOTIDIENNE" | "HEBDOMADAIRE" | "MENSUELLE" | "AUTRE";
     /** Planification */
-    schedule?: {
+    planning médical?: {
         /** Jours (0=dimanche, 6=samedi) */
         days?: number[];
         /** Heure de début */

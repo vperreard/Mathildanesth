@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Assignment } from '../types/assignment';
+import { Attribution } from '../types/attribution';
 import { RulesConfiguration } from '../types/rules';
 import { SyncService } from '../services/syncService';
 import { Doctor } from '../types/doctor';
@@ -15,8 +15,8 @@ interface UseDragDropSyncOptions {
 }
 
 interface UseDragDropSyncReturn {
-    assignments: Assignment[];
-    setAssignments: (assignments: Assignment[]) => void;
+    attributions: Attribution[];
+    setAssignments: (attributions: Attribution[]) => void;
     handleDragDrop: (assignmentId: string, newDate: Date) => void;
     pendingChanges: Record<string, boolean>;
     hasPendingChanges: boolean;
@@ -31,7 +31,7 @@ interface UseDragDropSyncReturn {
 }
 
 /**
- * Hook personnalisé pour gérer la synchronisation des affectations 
+ * Hook personnalisé pour gérer la synchronisation des gardes/vacations 
  * entre l'interface drag-and-drop et le calendrier principal
  */
 export function useDragDropSync({
@@ -42,9 +42,9 @@ export function useDragDropSync({
     autoSaveDelay = 5000,
     onSyncComplete
 }: UseDragDropSyncOptions): UseDragDropSyncReturn {
-    const [assignments, setAssignments] = useState<Assignment[]>([]);
+    const [attributions, setAssignments] = useState<Attribution[]>([]);
     const [pendingChanges, setPendingChanges] = useState<Record<string, boolean>>({});
-    const [originalAssignments, setOriginalAssignments] = useState<Record<string, Assignment>>({});
+    const [originalAssignments, setOriginalAssignments] = useState<Record<string, Attribution>>({});
     const [isSaving, setIsSaving] = useState(false);
     const [isValidating, setIsValidating] = useState(false);
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -62,26 +62,26 @@ export function useDragDropSync({
     // Détermine si des modifications sont en attente
     const hasPendingChanges = Object.keys(pendingChanges).length > 0;
 
-    // Lorsque les affectations initiales sont changées, réinitialiser l'état
+    // Lorsque les gardes/vacations initiales sont changées, réinitialiser l'état
     useEffect(() => {
-        // Stocker les affectations originales pour pouvoir annuler les modifications
-        const originals: Record<string, Assignment> = {};
-        assignments.forEach(assignment => {
-            originals[assignment.id] = { ...assignment };
+        // Stocker les gardes/vacations originales pour pouvoir annuler les modifications
+        const originals: Record<string, Attribution> = {};
+        attributions.forEach(attribution => {
+            originals[attribution.id] = { ...attribution };
         });
         setOriginalAssignments(originals);
 
         // Réinitialiser les modifications en attente
         setPendingChanges({});
         setValidationErrors([]);
-    }, [assignments]);
+    }, [attributions]);
 
     /**
-     * Effectue la validation des affectations
+     * Effectue la validation des gardes/vacations
      */
     const triggerValidation = useCallback(() => {
         setIsValidating(true);
-        const result = syncServiceRef.current.validateOnly(assignments);
+        const result = syncServiceRef.current.validateOnly(attributions);
 
         if (!result.success && result.violations && onValidationError) {
             onValidationError(result.violations);
@@ -92,30 +92,30 @@ export function useDragDropSync({
 
         setIsValidating(false);
         return result.success;
-    }, [assignments, onValidationError]);
+    }, [attributions, onValidationError]);
 
     /**
-     * Gère le déplacement d'une affectation
+     * Gère le déplacement d'une garde/vacation
      */
     const handleDragDrop = useCallback((assignmentId: string, newDate: Date) => {
-        // Trouver l'affectation dans la liste
-        const assignmentIndex = assignments.findIndex(a => a.id === assignmentId);
+        // Trouver l'garde/vacation dans la liste
+        const assignmentIndex = attributions.findIndex(a => a.id === assignmentId);
         if (assignmentIndex === -1) return;
 
-        // Créer une copie de l'affectation et mettre à jour la date
+        // Créer une copie de l'garde/vacation et mettre à jour la date
         const updatedAssignment = {
-            ...assignments[assignmentIndex],
+            ...attributions[assignmentIndex],
             date: newDate
         };
 
-        // Mettre à jour la liste des affectations
-        const newAssignments = [...assignments];
+        // Mettre à jour la liste des gardes/vacations
+        const newAssignments = [...attributions];
         newAssignments[assignmentIndex] = updatedAssignment;
 
         // Mettre à jour l'état
         setAssignments(newAssignments);
 
-        // Marquer cette affectation comme modifiée
+        // Marquer cette garde/vacation comme modifiée
         setPendingChanges(prev => ({
             ...prev,
             [assignmentId]: true
@@ -136,46 +136,46 @@ export function useDragDropSync({
 
         // Réinitialiser les erreurs de validation car l'état a changé
         setValidationErrors([]);
-    }, [assignments, autoSaveDelay, autoSaveTimeout]);
+    }, [attributions, autoSaveDelay, autoSaveTimeout]);
 
     /**
      * Annule une modification spécifique
      */
     const revertChange = useCallback((assignmentId: string) => {
-        // Vérifier si cette affectation a été modifiée
+        // Vérifier si cette garde/vacation a été modifiée
         if (!pendingChanges[assignmentId]) return;
 
         // Vérifier si nous avons l'original
         const original = originalAssignments[assignmentId];
         if (!original) return;
 
-        // Restaurer l'affectation originale
-        const assignmentIndex = assignments.findIndex(a => a.id === assignmentId);
+        // Restaurer l'garde/vacation originale
+        const assignmentIndex = attributions.findIndex(a => a.id === assignmentId);
         if (assignmentIndex === -1) return;
 
-        const newAssignments = [...assignments];
+        const newAssignments = [...attributions];
         newAssignments[assignmentIndex] = { ...original };
 
         setAssignments(newAssignments);
 
-        // Supprimer cette affectation des modifications en attente
+        // Supprimer cette garde/vacation des modifications en attente
         const newPendingChanges = { ...pendingChanges };
         delete newPendingChanges[assignmentId];
         setPendingChanges(newPendingChanges);
 
         toast.success('Modification annulée');
-    }, [assignments, pendingChanges, originalAssignments]);
+    }, [attributions, pendingChanges, originalAssignments]);
 
     /**
      * Annule toutes les modifications en attente
      */
     const revertAllChanges = useCallback(() => {
-        // Restaurer toutes les affectations originales
-        const restoredAssignments = assignments.map(assignment => {
-            if (pendingChanges[assignment.id]) {
-                return { ...originalAssignments[assignment.id] };
+        // Restaurer toutes les gardes/vacations originales
+        const restoredAssignments = attributions.map(attribution => {
+            if (pendingChanges[attribution.id]) {
+                return { ...originalAssignments[attribution.id] };
             }
-            return assignment;
+            return attribution;
         });
 
         setAssignments(restoredAssignments);
@@ -183,7 +183,7 @@ export function useDragDropSync({
         setValidationErrors([]);
 
         toast.success('Toutes les modifications ont été annulées');
-    }, [assignments, pendingChanges, originalAssignments]);
+    }, [attributions, pendingChanges, originalAssignments]);
 
     /**
      * Sauvegarde les modifications en attente
@@ -192,7 +192,7 @@ export function useDragDropSync({
         // Ne rien faire s'il n'y a pas de modifications ou si déjà en cours de sauvegarde
         if (!hasPendingChanges || isSaving) return false;
 
-        // Valider les affectations si nécessaire
+        // Valider les gardes/vacations si nécessaire
         if (validateBeforeSave) {
             const isValid = triggerValidation();
             if (!isValid) {
@@ -205,8 +205,8 @@ export function useDragDropSync({
         setIsSaving(true);
 
         try {
-            // Filtrer pour n'envoyer que les affectations modifiées
-            const changedAssignments = assignments.filter(a => pendingChanges[a.id]);
+            // Filtrer pour n'envoyer que les gardes/vacations modifiées
+            const changedAssignments = attributions.filter(a => pendingChanges[a.id]);
 
             // Synchroniser avec le service
             const result = await syncServiceRef.current.syncAssignments(changedAssignments);
@@ -214,8 +214,8 @@ export function useDragDropSync({
             if (result.success) {
                 // Mise à jour de l'état après sauvegarde réussie
                 const newOriginals = { ...originalAssignments };
-                changedAssignments.forEach(assignment => {
-                    newOriginals[assignment.id] = { ...assignment };
+                changedAssignments.forEach(attribution => {
+                    newOriginals[attribution.id] = { ...attribution };
                 });
 
                 setOriginalAssignments(newOriginals);
@@ -254,7 +254,7 @@ export function useDragDropSync({
         } finally {
             setIsSaving(false);
         }
-    }, [assignments, hasPendingChanges, isSaving, pendingChanges, validateBeforeSave, triggerValidation, originalAssignments, onSyncComplete, onValidationError]);
+    }, [attributions, hasPendingChanges, isSaving, pendingChanges, validateBeforeSave, triggerValidation, originalAssignments, onSyncComplete, onValidationError]);
 
     // Nettoyer le timeout lors du démontage du composant
     useEffect(() => {
@@ -266,7 +266,7 @@ export function useDragDropSync({
     }, [autoSaveTimeout]);
 
     return {
-        assignments,
+        attributions,
         setAssignments,
         handleDragDrop,
         pendingChanges,

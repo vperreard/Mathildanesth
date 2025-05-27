@@ -87,11 +87,11 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 
 - [x] **Composants de définition des salles et secteurs** (Partiellement complété)
 
-  - ✅ Interface de création et modification des salles d'opération (`src/app/admin/bloc-operatoire/components/OperatingRoomForm.tsx`)
-  - ✅ Interface de création et modification des secteurs opératoires (`src/app/admin/bloc-operatoire/components/OperatingSectorForm.tsx`)
-  - ✅ Liste des salles avec actions CRUD (`src/app/admin/bloc-operatoire/components/OperatingRoomList.tsx`)
-  - ✅ Liste des secteurs avec actions CRUD (`src/app/admin/bloc-operatoire/components/OperatingSectorList.tsx`)
-  - ✅ Pages d'administration (`.../salles/page.tsx`, `.../secteurs/page.tsx`)
+  - ✅ Interface de création et modification des salles d'opération (`src/app/bloc-operatoire/salles/components/OperatingRoomForm.tsx`)
+  - ✅ Interface de création et modification des secteurs opératoires (`src/app/bloc-operatoire/secteurs/components/OperatingSectorForm.tsx`)
+  - ✅ Liste des salles avec actions CRUD (`src/app/bloc-operatoire/salles/components/OperatingRoomList.tsx`)
+  - ✅ Liste des secteurs avec actions CRUD (`src/app/bloc-operatoire/secteurs/components/OperatingSectorList.tsx`)
+  - ✅ Pages d'administration unifiées (`src/app/bloc-operatoire/salles/page.tsx`, `src/app/bloc-operatoire/secteurs/page.tsx`)
   - ✅ Hooks React Query pour API (`.../hooks/useOperatingResourceQueries.ts`)
   - 🚧 Association salles-secteurs-spécialités (Formulaires à corriger/compléter)
   - 🚧 Correction des erreurs de type dans les formulaires.

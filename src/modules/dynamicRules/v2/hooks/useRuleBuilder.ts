@@ -4,10 +4,10 @@ import { RuleCondition, RuleAction } from '../../types/rule';
 
 export const useRuleBuilder = (
   initialRule?: RuleV2,
-  template?: RuleTemplate
+  modèle?: RuleTemplate
 ) => {
   const [state, setState] = useState<RuleBuilderState>(() => {
-    const baseRule = template?.baseRule || initialRule || {};
+    const baseRule = modèle?.baseRule || initialRule || {};
     return {
       rule: {
         ...baseRule,
@@ -193,12 +193,12 @@ export const useRuleBuilder = (
     }
   }, [state.rule, state.isDirty, validate]);
 
-  // Apply template parameters if provided
+  // Apply modèle parameters if provided
   useEffect(() => {
-    if (template && template.parameters.length > 0) {
-      // Apply default values from template parameters
+    if (modèle && modèle.parameters.length > 0) {
+      // Apply default values from modèle parameters
       const updates: any = {};
-      template.parameters.forEach(param => {
+      modèle.parameters.forEach(param => {
         if (param.default !== undefined) {
           updates[param.name] = param.default;
         }
@@ -207,7 +207,7 @@ export const useRuleBuilder = (
         updateRule(updates);
       }
     }
-  }, [template, updateRule]);
+  }, [modèle, updateRule]);
 
   return {
     state,
