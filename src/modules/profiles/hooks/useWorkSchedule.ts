@@ -21,7 +21,7 @@ interface UseWorkScheduleReturn {
     currentSchedule: Partial<WorkSchedule> | null;
     loading: boolean;
     error: Error | null;
-    setCurrentSchedule: (planning médical: Partial<WorkSchedule> | null) => void;
+    setCurrentSchedule: (planningMedical: Partial<WorkSchedule> | null) => void;
     updateScheduleField: <K extends keyof WorkSchedule>(
         field: K,
         value: WorkSchedule[K]
@@ -158,10 +158,10 @@ export const useWorkSchedule = ({
     // Vérifier si l'utilisateur travaille à une date donnée
     const isUserWorkingOnDate = useCallback((date: Date): boolean => {
         // Trouver le planning actif à cette date
-        const activeSchedule = schedules.find(planning médical =>
-            planning médical.isActive &&
-            date >= planning médical.validFrom &&
-            (!planning médical.validTo || date <= planning médical.validTo)
+        const activeSchedule = schedules.find(planningMedical =>
+            planningMedical.isActive &&
+            date >= planningMedical.validFrom &&
+            (!planningMedical.validTo || date <= planningMedical.validTo)
         );
 
         if (!activeSchedule) return false;

@@ -326,7 +326,7 @@ function exportPlanningToCSV(planning: any[], fileName: string): Blob {
         'Date': dateFormat(new Date(entry.date), 'dd/MM/yyyy'),
         'Utilisateur': entry.userName || 'Non assigné',
         'Poste': entry.position || '',
-        'Horaire': entry.planning médical || '',
+        'Horaire': entry.planningMedical || '',
         'Lieu': entry.location || '',
         'Statut': entry.status || 'Planifié'
     }));
@@ -351,7 +351,7 @@ function exportPlanningToPDF(planning: any[], fileName: string): Blob {
         dateFormat(new Date(entry.date), 'dd/MM/yyyy'),
         entry.userName || 'Non assigné',
         entry.position || '',
-        entry.planning médical || '',
+        entry.planningMedical || '',
         entry.location || '',
         entry.status || 'Planifié'
     ]);

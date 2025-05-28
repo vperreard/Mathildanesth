@@ -133,7 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         timeout: 10000, // 10s timeout
       };
 
-      const response = await axios.post('http://localhost:3000/api/auth/login', credentials, config);
+      const response = await axios.post('/api/auth/login', credentials, config);
 
       if (response.data.token) {
         setClientAuthToken(response.data.token);

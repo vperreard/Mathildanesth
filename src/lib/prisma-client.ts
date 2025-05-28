@@ -1,4 +1,4 @@
-import { prisma as prismaInstance } from '@/lib/prisma';
+import { PrismaClient } from '@prisma/client';
 import NodeCache from 'node-cache';
 
 // Configuration du cache
@@ -12,11 +12,37 @@ const cache = new NodeCache({
     useClones: false,
 });
 
-// Utiliser l'instance importée
-const prisma = prismaInstance;
+// Détermine si le code s'exécute côté serveur
+const isServer = typeof window === 'undefined';
 
-// Intercepter les requêtes Prisma pour mettre en cache les résultats
-prisma.$use(async (params, next) => {
+// Déclare une variable globale pour stocker le client Prisma
+declare global {
+    // eslint-disable-next-line no-var
+    var prismaClientCached: PrismaClient | undefined;
+}
+
+// Créer l'instance Prisma avec cache
+let prisma: PrismaClient;
+
+if (isServer) {
+    if (process.env.NODE_ENV === 'development') {
+        // En développement, utiliser une instance globale pour éviter les reconnexions
+        prisma = global.prismaClientCached || new PrismaClient({
+            log: ['query', 'error', 'warn'],
+        });
+        global.prismaClientCached = prisma;
+    } else {
+        // En production, créer une nouvelle instance
+        prisma = new PrismaClient();
+    }
+} else {
+    // Côté client, créer une instance factice
+    prisma = {} as PrismaClient;
+}
+
+// Intercepter les requêtes Prisma pour mettre en cache les résultats (seulement côté serveur)
+if (isServer && prisma.$use) {
+    prisma.$use(async (params, next) => {
     // Ne pas mettre en cache les mutations (create, update, delete...)
     if (
         params.action === 'create' ||
@@ -62,7 +88,8 @@ prisma.$use(async (params, next) => {
 
     // Pour toutes les autres opérations, passer au middleware suivant
     return next(params);
-});
+    });
+}
 
 // Ajouter des méthodes utilitaires au client Prisma
 (prisma as any).$cache = {

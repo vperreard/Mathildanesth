@@ -1,18 +1,18 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { authService } from '../authService';
 import { AuthCacheService } from '@/lib/auth/authCache';
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
-jest.mock('@prisma/client');
 jest.mock('bcryptjs');
 jest.mock('jsonwebtoken');
 jest.mock('@/lib/auth/authCache');
 jest.mock('@/lib/logger');
+jest.mock('@/lib/prisma');
 
-const mockPrisma = new PrismaClient() as jest.Mocked<PrismaClient>;
+const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
 describe('AuthService', () => {
   beforeEach(() => {
@@ -34,7 +34,8 @@ describe('AuthService', () => {
 
       const mockToken = 'mock-jwt-token';
 
-      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+      mockPrisma.user.findUnique = jest.fn().mockResolvedValue(mockUser);
+      mockPrisma.user.update = jest.fn().mockResolvedValue({ ...mockUser, loginAttempts: 0, lastLogin: expect.any(Date) });
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       (jwt.sign as jest.Mock).mockReturnValue(mockToken);
       (AuthCacheService.cacheAuthToken as jest.Mock).mockResolvedValue(undefined);
@@ -66,7 +67,7 @@ describe('AuthService', () => {
     });
 
     it('devrait rejeter avec email invalide', async () => {
-      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+      mockPrisma.user.findUnique = jest.fn().mockResolvedValue(null);
 
       await expect(authService.login('invalid@example.com', 'password123'))
         .rejects.toThrow('Invalid credentials');
@@ -82,10 +83,12 @@ describe('AuthService', () => {
         id: 1,
         email: 'test@example.com',
         password: 'hashedPassword',
-        active: true
+        active: true,
+        loginAttempts: 0
       };
 
-      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+      mockPrisma.user.findUnique = jest.fn().mockResolvedValue(mockUser);
+      mockPrisma.user.update = jest.fn().mockResolvedValue({ ...mockUser, loginAttempts: 1 });
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(authService.login('test@example.com', 'wrongpassword'))
@@ -105,7 +108,7 @@ describe('AuthService', () => {
         active: false
       };
 
-      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+      mockPrisma.user.findUnique = jest.fn().mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       await expect(authService.login('test@example.com', 'password123'))
@@ -154,14 +157,14 @@ describe('AuthService', () => {
     });
 
     it('devrait rejeter un token expiré', async () => {
-      const mockPayload = {
+      const mockCachedAuth = {
         userId: 1,
         role: 'ADMIN',
         exp: Math.floor(Date.now() / 1000) - 3600 // Expiré
       };
 
-      (AuthCacheService.getCachedAuthToken as jest.Mock).mockResolvedValue(null);
-      (jwt.verify as jest.Mock).mockReturnValue(mockPayload);
+      (AuthCacheService.getCachedAuthToken as jest.Mock).mockResolvedValue(mockCachedAuth);
+      (AuthCacheService.invalidateAuthToken as jest.Mock).mockResolvedValue(undefined);
 
       await expect(authService.validateToken('expired-token'))
         .rejects.toThrow('Token expired');
@@ -264,13 +267,13 @@ describe('AuthService', () => {
       };
       const newHashedPassword = 'newHashedPassword';
 
-      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (bcrypt.hash as jest.Mock).mockResolvedValue(newHashedPassword);
-      (mockPrisma.user.update as jest.Mock).mockResolvedValue({
+      mockPrisma.user.findUnique = jest.fn().mockResolvedValue(mockUser);
+      mockPrisma.user.update = jest.fn().mockResolvedValue({
         ...mockUser,
         password: newHashedPassword
       });
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      (bcrypt.hash as jest.Mock).mockResolvedValue(newHashedPassword);
 
       await authService.changePassword(1, 'oldPassword', 'newPassword');
 
@@ -290,7 +293,7 @@ describe('AuthService', () => {
         password: 'oldHashedPassword'
       };
 
-      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+      mockPrisma.user.findUnique = jest.fn().mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(authService.changePassword(1, 'wrongPassword', 'newPassword'))
@@ -298,7 +301,7 @@ describe('AuthService', () => {
     });
 
     it('devrait rejeter si utilisateur non trouvé', async () => {
-      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+      mockPrisma.user.findUnique = jest.fn().mockResolvedValue(null);
 
       await expect(authService.changePassword(999, 'password', 'newPassword'))
         .rejects.toThrow('User not found');
@@ -316,13 +319,13 @@ describe('AuthService', () => {
         lockedUntil: null
       };
 
-      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
-      (mockPrisma.user.update as jest.Mock).mockResolvedValue({
+      mockPrisma.user.findUnique = jest.fn().mockResolvedValue(mockUser);
+      mockPrisma.user.update = jest.fn().mockResolvedValue({
         ...mockUser,
         loginAttempts: 5,
         lockedUntil: new Date(Date.now() + 30 * 60 * 1000)
       });
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(authService.login('test@example.com', 'wrongpassword'))
         .rejects.toThrow('Account locked due to too many failed attempts');
@@ -347,14 +350,16 @@ describe('AuthService', () => {
         name: 'Test User'
       };
 
-      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (jwt.sign as jest.Mock).mockReturnValue('token');
-      (mockPrisma.user.update as jest.Mock).mockResolvedValue({
+      mockPrisma.user.findUnique = jest.fn().mockResolvedValue(mockUser);
+      mockPrisma.user.update = jest.fn().mockResolvedValue({
         ...mockUser,
         loginAttempts: 0,
         lastLogin: new Date()
       });
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      (jwt.sign as jest.Mock).mockReturnValue('token');
+      (AuthCacheService.cacheAuthToken as jest.Mock).mockResolvedValue(undefined);
+      (AuthCacheService.cacheUserData as jest.Mock).mockResolvedValue(undefined);
 
       await authService.login('test@example.com', 'password123');
 

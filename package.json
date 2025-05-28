@@ -54,7 +54,7 @@
     "cypress:component:open": "cypress open --component",
     "test:e2e": "jest --config=jest.e2e.config.js",
     "test:e2e:ci": "jest --config=jest.e2e.config.js --runInBand --forceExit",
-    "test:e2e:puppeteer": "jest --config jest.e2e.puppeteer.config.js --runInBand",
+    "test:e2e:puppeteer": "start-server-and-test dev http://localhost:3000 'jest --config jest.e2e.puppeteer.config.js --runInBand'",
     "test:e2e:workflows": "jest --config jest.e2e.puppeteer.config.js --testPathPattern=workflows",
     "test:e2e:performance": "jest --config jest.e2e.puppeteer.config.js --testPathPattern=performance",
     "test:e2e:accessibility": "jest --config jest.e2e.puppeteer.config.js --testPathPattern=accessibility",

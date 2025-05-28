@@ -1,5 +1,8 @@
 import { AuditAction, AuditEntry } from './AuditService';
 
+// Re-exporter AuditAction pour faciliter l'import
+export { AuditAction };
+
 /**
  * Configuration du service d'audit optimisé
  */
@@ -481,4 +484,7 @@ export class OptimizedAuditService {
     public setDebugMode(enabled: boolean): void {
         this.isDebugMode = enabled;
     }
-} 
+}
+
+// Créer et exporter l'instance singleton
+export const auditService = OptimizedAuditService.getInstance(); 

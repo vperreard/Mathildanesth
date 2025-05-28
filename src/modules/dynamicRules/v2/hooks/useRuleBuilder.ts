@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { RuleV2, RuleBuilderState, RuleTemplate } from '../types/ruleV2.types';
-import { RuleCondition, RuleAction } from '../../types/rule';
+import { RuleCondition, RuleAction, RuleType } from '../../types/rule';
 
 export const useRuleBuilder = (
   initialRule?: RuleV2,
@@ -12,7 +12,7 @@ export const useRuleBuilder = (
       rule: {
         ...baseRule,
         name: baseRule.name || '',
-        type: baseRule.type || 'PLANNING',
+        type: baseRule.type || RuleType.PLANNING,
         status: baseRule.status || 'draft',
         enabled: baseRule.enabled ?? true,
         priority: baseRule.priority || 5,
@@ -95,7 +95,7 @@ export const useRuleBuilder = (
     const isValid = Object.keys(errors).length === 0;
     setState(prev => ({ ...prev, errors, isValid }));
     return isValid;
-  }, [state]);
+  }, [state.rule]);
 
   const updateRule = useCallback((updates: Partial<RuleV2>) => {
     setState(prev => ({

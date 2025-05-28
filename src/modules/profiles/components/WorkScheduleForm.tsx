@@ -12,7 +12,7 @@ import { calculateAnnualLeaveAllowance } from '../services/workScheduleService';
 interface WorkScheduleFormProps {
     userId: string;
     initialSchedule?: Partial<WorkSchedule>;
-    onSave?: (planning médical: WorkSchedule) => void;
+    onSave?: (planningMedical: WorkSchedule) => void;
     onCancel?: () => void;
 }
 
@@ -34,7 +34,7 @@ export const WorkScheduleForm: React.FC<WorkScheduleFormProps> = ({
     const [selectedEvenWeekdays, setSelectedEvenWeekdays] = useState<Weekday[]>([]);
     const [selectedOddWeekdays, setSelectedOddWeekdays] = useState<Weekday[]>([]);
 
-    // Initialiser les jours sélectionnés à partir du planning médical actuel
+    // Initialiser les jours sélectionnés à partir du planningMedical actuel
     useEffect(() => {
         if (currentSchedule?.workingDays) {
             setSelectedWeekdays(currentSchedule.workingDays);

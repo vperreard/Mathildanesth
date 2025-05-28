@@ -890,4 +890,52 @@ interface AdaptivePlanning {
 
 ---
 
+## 📋 MISE À JOUR - RÈGLES DE PLANNING SPÉCIFIQUES (28/05/2025)
+
+### ✅ DOCUMENTÉ - Règles équipe anesthésistes
+- [x] **Analyse complète besoins terrain** : Questionnaire détaillé complété
+- [x] **Documentation technique créée** : `docs/technical/REGLES_PLANNING_EQUIPE_SPECIFIQUES.md`
+- [x] **Spécifications implémentation** : Adaptation système règles V2 aux besoins spécifiques
+
+### 🎯 PROCHAINES ÉTAPES - Configuration Système Règles
+**Sprint priorisé post-stabilisation** :
+
+**1. 📊 Base : Système compteurs équité** (fondation technique)
+- [ ] Modèle de données avec compteurs ajustables par admin
+- [ ] Pourcentage temps travail dans profil utilisateur
+- [ ] Import/remise à zéro historique plannings
+- [ ] Équité multi-période : semaine (OFF) + long terme (gardes/WE)
+- [ ] Arrondi au plus proche mais exacte long terme
+
+**2. 🏥 Configuration secteurs/supervision** (règles métier)
+- [ ] Interface CRUD secteurs : Ophtalmo (4), Endoscopie (4), Hyperaseptique (4), Intermédiaire (3), Septique (6)
+- [ ] Règles supervision paramétrable par secteur (variables selon équipe)
+- [ ] Alertes visuelles dérogations : rouge + popup explication + résumé bas planning
+- [ ] Suppression système niveaux MAR/IADE (pas utilisé équipe)
+
+**3. 🌙 Gardes/astreintes** (contraintes temporelles)
+- [ ] Configuration 1 garde (exclusive) + 1 astreinte (+ activité normale)
+- [ ] Gardes coupées : interface simple (exceptionnel), équité 0.5 garde chacun
+- [ ] Espacement idéal 6j, max 3/mois (4 en vacances), repos 24h post-garde
+- [ ] Proratisation selon pourcentage contrat utilisateur
+
+**4. 📝 Demandes d'affectation** (interface utilisateur)
+- [ ] "Je veux consultation mardi" : affectation directe si possible
+- [ ] "Je veux travailler jour X" : alerte visuelle bleue (point exclamation)
+- [ ] Validation admin en cas conflit génération planning
+- [ ] Interface simple, intuitive, visuellement cohérente
+
+**5. 🚨 Alertes et contraintes spécifiques**
+- [ ] Alerte si >40% MAR ou IADE en congé (vacances scolaires)
+- [ ] Congés formation : MAR (décompté), IADE (non décompté)
+- [ ] Incompatibilités personnelles configurables par admin
+- [ ] Temps repos garde non négociable (règle absolue)
+
+### 📊 IMPACT PRIORITÉS
+- **Phase 1 Admin Tools** maintenue priorité ⭐⭐⭐
+- **Interface Gestion Contraintes** devient critique pour configuration règles équipe
+- **Système scoring/équité** préparé pour Sprint 3 (nouvelles fonctionnalités)
+
+---
+
 *Ce document remplace tous les anciens fichiers NEXT_STEPS et roadmap. Mise à jour mensuelle obligatoire.*

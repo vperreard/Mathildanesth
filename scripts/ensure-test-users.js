@@ -22,7 +22,7 @@ async function ensureTestUsers() {
                     nom: 'Admin',
                     prenom: 'Test',
                     role: 'ADMIN_TOTAL',
-                    professionalRole: 'ADMINISTRATOR',
+                    professionalRole: 'MAR',
                     actif: true
                 }
             });
@@ -72,7 +72,7 @@ async function ensureTestUsers() {
                     nom: 'Principal',
                     prenom: 'Admin',
                     role: 'ADMIN_TOTAL',
-                    professionalRole: 'ADMINISTRATOR',
+                    professionalRole: 'MAR',
                     actif: true
                 }
             });

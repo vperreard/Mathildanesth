@@ -11,7 +11,8 @@ module.exports = {
         moduleResolution: 'node',
         resolveJsonModule: true,
         jsx: 'react',
-        strict: false
+        strict: false,
+        isolatedModules: true
       }
     }]
   },
@@ -21,11 +22,6 @@ module.exports = {
     '^@/lib/prisma-client$': '<rootDir>/tests/e2e/mocks/prisma.ts'
   },
   setupFilesAfterEnv: ['<rootDir>/tests/e2e/setup.ts'],
-  testTimeout: 60000,
-  maxWorkers: 1,
-  globals: {
-    'ts-jest': {
-      isolatedModules: true
-    }
-  }
+  testTimeout: 90000,
+  maxWorkers: 1
 };

@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { PrismaClient } from '@prisma/client';
 import { prisma as cachedPrisma } from './prisma-client';
 
 // Détermine si le code s'exécute côté serveur

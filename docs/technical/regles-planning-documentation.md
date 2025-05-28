@@ -52,16 +52,18 @@ Ce document décrit l'ensemble des règles de planification pour l'application M
 
 ### 4. Règles de qualité de vie
 - Gestion de la fatigue
-- Préférences personnelles
+- Préférences personnelles (selon équipe)
 - Incompatibilités personnelles
 
 ## Règles spécifiques
 
+> ⚠️ **ATTENTION** : Cette section contient les règles génériques. Pour les règles spécifiques à l'équipe d'anesthésistes, voir : [REGLES_PLANNING_EQUIPE_SPECIFIQUES.md](./REGLES_PLANNING_EQUIPE_SPECIFIQUES.md)
+
 ### Gardes et Astreintes
-- **Espacement** : Idéalement 7 jours entre gardes (minimum 3 jours)
-- **Maximum** : 3 gardes/30 jours (exceptionnellement 4)
-- **Repos** : Le MAR de garde doit être OFF le lendemain
-- **Structure** : Un médecin de garde + un d'astreinte par jour
+- **Espacement** : Idéalement 6-7 jours entre gardes (minimum 3 jours, configurable)
+- **Maximum** : 3 gardes/mois (exceptionnellement 4, configurable par équipe)
+- **Repos** : Repos obligatoire après garde (durée configurable)
+- **Structure** : Variable selon équipe (garde seule, garde+astreinte, etc.)
 
 ### Consultations
 - **Volume** : 2 consultations par semaine pour temps plein (proportionnel pour temps partiel)

@@ -1,22 +1,22 @@
 import { prisma } from '@/lib/prisma'; // Import nommé
 import { Role, ProfessionalRole, Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
+// import bcrypt from 'bcrypt'; // Import dynamique pour éviter les erreurs de bundling
 import { headers } from 'next/headers';
 
 // const prisma = prisma; // Supprimé
 
 // Helper pour vérifier si l'utilisateur a AU MOINS l'un des rôles requis
-const hasRequiredRole = (requiredRoles: Role[] = [Role.ADMIN_TOTAL, Role.ADMIN_PARTIEL]): boolean => {
-    const headersList = headers();
+const hasRequiredRole = async (requiredRoles: Role[] = [Role.ADMIN_TOTAL, Role.ADMIN_PARTIEL]): Promise<boolean> => {
+    const headersList = await headers();
     const userRoleString = headersList.get('x-user-role');
     // Vérifier si le rôle existe et est inclus dans les rôles requis
     return !!userRoleString && requiredRoles.includes(userRoleString as Role);
 };
 
 // Helper pour récupérer l'ID de l'utilisateur depuis les headers
-const getUserIdFromRequest = (): number | null => {
-    const headersList = headers();
+const getUserIdFromRequest = async (): Promise<number | null> => {
+    const headersList = await headers();
     const userIdString = headersList.get('x-user-id');
     if (!userIdString) return null;
     const userId = parseInt(userIdString, 10);
@@ -28,12 +28,13 @@ interface RouteParams {
 }
 
 // --- Fonction GET (Récupérer un utilisateur par ID) ---
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     // Vérification des droits (à ajuster selon votre logique)
     // Si seul un admin peut voir les détails d'un autre user, ou si l'user peut voir son propre profil
     // Exemple : if (!hasRequiredRole([Role.ADMIN_TOTAL]) && headers().get('x-user-id') !== params.id) ...
 
-    const id = parseInt(params.id, 10);
+    const resolvedParams = await params;
+    const id = parseInt(resolvedParams.id, 10);
     if (isNaN(id)) {
         return NextResponse.json({ error: 'ID invalide' }, { status: 400 });
     }
@@ -59,15 +60,16 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 // --- Fonction PUT (Mettre à jour un utilisateur par ID) ---
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-    const userId = parseInt(params.id, 10);
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const resolvedParams = await params;
+    const userId = parseInt(resolvedParams.id, 10);
     if (isNaN(userId)) {
         return new NextResponse(JSON.stringify({ message: 'ID utilisateur invalide' }), { status: 400 });
     }
 
     // Utiliser les helpers corrigés
-    const isAdmin = hasRequiredRole([Role.ADMIN_TOTAL, Role.ADMIN_PARTIEL]);
-    const requestingUserId = getUserIdFromRequest();
+    const isAdmin = await hasRequiredRole([Role.ADMIN_TOTAL, Role.ADMIN_PARTIEL]);
+    const requestingUserId = await getUserIdFromRequest();
 
     if (!requestingUserId) {
         // Si on ne peut pas identifier l'utilisateur, on refuse
@@ -80,8 +82,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
 
     // Un ADMIN_PARTIEL ne peut pas modifier un ADMIN_TOTAL
-    const isTotalAdmin = hasRequiredRole([Role.ADMIN_TOTAL]); // Vérifie s'il est ADMIN_TOTAL
-    const isPartialAdmin = hasRequiredRole([Role.ADMIN_PARTIEL]); // Vérifie s'il est ADMIN_PARTIEL
+    const isTotalAdmin = await hasRequiredRole([Role.ADMIN_TOTAL]); // Vérifie s'il est ADMIN_TOTAL
+    const isPartialAdmin = await hasRequiredRole([Role.ADMIN_PARTIEL]); // Vérifie s'il est ADMIN_PARTIEL
 
     if (isPartialAdmin && !isTotalAdmin) { // Est PARTIEL mais pas TOTAL
         const userToEdit = await prisma.user.findUnique({ where: { id: userId } });
@@ -148,7 +150,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         // Si un nouveau mot de passe est fourni...
         if (password) {
             const saltRounds = 10;
-            dataToUpdate.password = await bcrypt.hash(password, saltRounds);
+            const bcrypt = await import('bcrypt');
+            dataToUpdate.password = await bcrypt.default.hash(password, saltRounds);
             if (requestingUserId === userId) {
                 dataToUpdate.mustChangePassword = false;
             }
@@ -193,13 +196,14 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 // --- Fonction DELETE (Supprimer un utilisateur par ID) ---
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     // Vérification des droits (seuls admins peuvent supprimer)
     // if (!hasRequiredRole([Role.ADMIN_TOTAL])) {
     //     return NextResponse.json({ error: 'Accès interdit' }, { status: 403 });
     // }
 
-    const id = parseInt(params.id, 10);
+    const resolvedParams = await params;
+    const id = parseInt(resolvedParams.id, 10);
     if (isNaN(id)) {
         return NextResponse.json({ error: 'ID invalide' }, { status: 400 });
     }
@@ -220,10 +224,11 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 }
 
 // --- Fonction POST pour le reset de mot de passe par Admin ---
-export async function POST(request: Request, { params }: { params: { id: string } }) {
-    const targetUserId = parseInt(params.id, 10);
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const resolvedParams = await params;
+    const targetUserId = parseInt(resolvedParams.id, 10);
 
-    if (!hasRequiredRole([Role.ADMIN_TOTAL, Role.ADMIN_PARTIEL])) {
+    if (!(await hasRequiredRole([Role.ADMIN_TOTAL, Role.ADMIN_PARTIEL]))) {
         return new NextResponse(JSON.stringify({ message: 'Accès non autorisé' }), { status: 403 });
     }
 
@@ -241,7 +246,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
         const newPassword = targetUser.login;
         const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+        const bcrypt = await import('bcrypt');
+        const hashedPassword = await bcrypt.default.hash(newPassword, saltRounds);
 
         await prisma.user.update({
             where: { id: targetUserId },

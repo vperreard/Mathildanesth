@@ -47,8 +47,8 @@ export const apiConfig = {
 // Points d'entrée API exportés pour l'utilisation dans les services
 export const API_ENDPOINTS = {
     // Authentification
-    LOGIN: `${apiConfig.baseUrl}/auth/connexion`,
-    LOGOUT: `${apiConfig.baseUrl}/auth/deconnexion`,
+    LOGIN: `${apiConfig.baseUrl}/auth/login`,
+    LOGOUT: `${apiConfig.baseUrl}/auth/logout`,
     REGISTER: `${apiConfig.baseUrl}/auth/register`,
     ME: `${apiConfig.baseUrl}/auth/me`,
 

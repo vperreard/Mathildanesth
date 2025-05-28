@@ -25,7 +25,9 @@ export enum AuditAction {
 
     REPORT_GENERATED = 'report:generated',
 
-    SYSTEM_UPDATED = 'system:updated'
+    SYSTEM_UPDATED = 'system:updated',
+    
+    RATE_LIMIT_EXCEEDED = 'security:rate_limit_exceeded'
 }
 
 // 🔧 CORRECTION TYPE ANY : Types spécifiques pour les détails d'audit

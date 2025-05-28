@@ -14,16 +14,16 @@ import { fr } from 'date-fns/locale';
 import { isEvenWeek, isEvenMonth, isWorkingDay } from '../services/workScheduleService';
 
 interface WorkScheduleDisplayProps {
-    planning médical: WorkSchedule;
+    planningMedical: WorkSchedule;
     onEdit?: () => void;
 }
 
 export const WorkScheduleDisplay: React.FC<WorkScheduleDisplayProps> = ({
-    planning médical,
+    planningMedical,
     onEdit
 }) => {
     // Calculer les jours travaillés par semaine
-    const weeklyWorkingDays = calculateWeeklyWorkingDays(planning médical);
+    const weeklyWorkingDays = calculateWeeklyWorkingDays(planningMedical);
 
     // Obtenir les libellés des jours de la semaine
     const getWeekdayLabel = (day: Weekday): string => {
@@ -105,28 +105,28 @@ export const WorkScheduleDisplay: React.FC<WorkScheduleDisplayProps> = ({
                 {/* Type de planning */}
                 <div>
                     <h3 className="text-sm font-medium text-gray-500">Type de planning</h3>
-                    <p className="mt-1 text-sm text-gray-900">{getFrequencyLabel(planning médical.frequency)}</p>
+                    <p className="mt-1 text-sm text-gray-900">{getFrequencyLabel(planningMedical.frequency)}</p>
                 </div>
 
                 {/* Informations spécifiques au type de planning */}
-                {planning médical.frequency === WorkFrequency.PART_TIME && planning médical.workingTimePercentage && (
+                {planningMedical.frequency === WorkFrequency.PART_TIME && planningMedical.workingTimePercentage && (
                     <div>
                         <h3 className="text-sm font-medium text-gray-500">Temps de travail</h3>
-                        <p className="mt-1 text-sm text-gray-900">{planning médical.workingTimePercentage}%</p>
+                        <p className="mt-1 text-sm text-gray-900">{planningMedical.workingTimePercentage}%</p>
                     </div>
                 )}
 
-                {planning médical.frequency === WorkFrequency.ALTERNATE_WEEKS && planning médical.weekType && (
+                {planningMedical.frequency === WorkFrequency.ALTERNATE_WEEKS && planningMedical.weekType && (
                     <div>
                         <h3 className="text-sm font-medium text-gray-500">Semaines travaillées</h3>
-                        <p className="mt-1 text-sm text-gray-900">{getWeekTypeLabel(planning médical.weekType)}</p>
+                        <p className="mt-1 text-sm text-gray-900">{getWeekTypeLabel(planningMedical.weekType)}</p>
                     </div>
                 )}
 
-                {planning médical.frequency === WorkFrequency.ALTERNATE_MONTHS && planning médical.monthType && (
+                {planningMedical.frequency === WorkFrequency.ALTERNATE_MONTHS && planningMedical.monthType && (
                     <div>
                         <h3 className="text-sm font-medium text-gray-500">Mois travaillés</h3>
-                        <p className="mt-1 text-sm text-gray-900">{getMonthTypeLabel(planning médical.monthType)}</p>
+                        <p className="mt-1 text-sm text-gray-900">{getMonthTypeLabel(planningMedical.monthType)}</p>
                     </div>
                 )}
 
@@ -134,12 +134,12 @@ export const WorkScheduleDisplay: React.FC<WorkScheduleDisplayProps> = ({
                 <div>
                     <h3 className="text-sm font-medium text-gray-500">Jours travaillés</h3>
 
-                    {planning médical.frequency !== WorkFrequency.CUSTOM && planning médical.workingDays && (
+                    {planningMedical.frequency !== WorkFrequency.CUSTOM && planningMedical.workingDays && (
                         <div className="mt-2 flex flex-wrap gap-2">
                             {([1, 2, 3, 4, 5] as Weekday[]).map(day => (
                                 <div
                                     key={day}
-                                    className={`px-3 py-1 rounded-md text-sm ${planning médical.workingDays?.includes(day)
+                                    className={`px-3 py-1 rounded-md text-sm ${planningMedical.workingDays?.includes(day)
                                         ? 'bg-blue-100 text-blue-800'
                                         : 'bg-gray-100 text-gray-400'
                                         }`}
@@ -150,7 +150,7 @@ export const WorkScheduleDisplay: React.FC<WorkScheduleDisplayProps> = ({
                         </div>
                     )}
 
-                    {planning médical.frequency === WorkFrequency.CUSTOM && planning médical.customSchedule && (
+                    {planningMedical.frequency === WorkFrequency.CUSTOM && planningMedical.customSchedule && (
                         <div className="mt-2">
                             <div className="mb-2">
                                 <span className="text-sm font-medium text-gray-500">Semaines paires:</span>
@@ -158,7 +158,7 @@ export const WorkScheduleDisplay: React.FC<WorkScheduleDisplayProps> = ({
                                     {([1, 2, 3, 4, 5] as Weekday[]).map(day => (
                                         <div
                                             key={day}
-                                            className={`px-3 py-1 rounded-md text-sm ${planning médical.customSchedule?.evenWeeks?.includes(day)
+                                            className={`px-3 py-1 rounded-md text-sm ${planningMedical.customSchedule?.evenWeeks?.includes(day)
                                                 ? 'bg-blue-100 text-blue-800'
                                                 : 'bg-gray-100 text-gray-400'
                                                 }`}
@@ -175,7 +175,7 @@ export const WorkScheduleDisplay: React.FC<WorkScheduleDisplayProps> = ({
                                     {([1, 2, 3, 4, 5] as Weekday[]).map(day => (
                                         <div
                                             key={day}
-                                            className={`px-3 py-1 rounded-md text-sm ${planning médical.customSchedule?.oddWeeks?.includes(day)
+                                            className={`px-3 py-1 rounded-md text-sm ${planningMedical.customSchedule?.oddWeeks?.includes(day)
                                                 ? 'bg-blue-100 text-blue-800'
                                                 : 'bg-gray-100 text-gray-400'
                                                 }`}
@@ -203,7 +203,7 @@ export const WorkScheduleDisplay: React.FC<WorkScheduleDisplayProps> = ({
                         <div className="bg-gray-50 p-3 rounded-md">
                             <p className="text-sm text-gray-600">Jours de congés annuels:</p>
                             <p className="text-lg font-semibold text-gray-900">
-                                {planning médical.annualLeaveAllowance}
+                                {planningMedical.annualLeaveAllowance}
                             </p>
                         </div>
                     </div>
@@ -213,8 +213,8 @@ export const WorkScheduleDisplay: React.FC<WorkScheduleDisplayProps> = ({
                 <div>
                     <h3 className="text-sm font-medium text-gray-500">Période de validité</h3>
                     <p className="mt-1 text-sm text-gray-900">
-                        Du {format(new Date(planning médical.validFrom), 'dd MMMM yyyy', { locale: fr })}
-                        {planning médical.validTo && ` au ${format(new Date(planning médical.validTo), 'dd MMMM yyyy', { locale: fr })}`}
+                        Du {format(new Date(planningMedical.validFrom), 'dd MMMM yyyy', { locale: fr })}
+                        {planningMedical.validTo && ` au ${format(new Date(planningMedical.validTo), 'dd MMMM yyyy', { locale: fr })}`}
                     </p>
                 </div>
 
@@ -224,13 +224,13 @@ export const WorkScheduleDisplay: React.FC<WorkScheduleDisplayProps> = ({
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         {/* Mois actuel */}
                         <CalendarMonth
-                            planning médical={planning médical}
+                            planningMedical={planningMedical}
                             monthOffset={0}
                         />
 
                         {/* Mois suivant */}
                         <CalendarMonth
-                            planning médical={planning médical}
+                            planningMedical={planningMedical}
                             monthOffset={1}
                         />
                     </div>
@@ -241,11 +241,11 @@ export const WorkScheduleDisplay: React.FC<WorkScheduleDisplayProps> = ({
 };
 
 interface CalendarMonthProps {
-    planning médical: WorkSchedule;
+    planningMedical: WorkSchedule;
     monthOffset: number;
 }
 
-const CalendarMonth: React.FC<CalendarMonthProps> = ({ planning médical, monthOffset }) => {
+const CalendarMonth: React.FC<CalendarMonthProps> = ({ planningMedical, monthOffset }) => {
     // Calculer le premier jour du mois
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
@@ -278,7 +278,7 @@ const CalendarMonth: React.FC<CalendarMonthProps> = ({ planning médical, monthO
         );
 
         // Vérifier si c'est un jour travaillé
-        const isWorking = isWorkingDay(planning médical, date);
+        const isWorking = isWorkingDay(planningMedical, date);
 
         days.push(
             <div
