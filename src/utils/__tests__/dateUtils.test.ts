@@ -1,0 +1,211 @@
+import {
+  formatDate,
+  parseDate,
+  addDaysToDate,
+  isWeekend,
+  getDifferenceInDays,
+  isValidDateObject,
+  areDatesSameDay,
+  getStartOfDay,
+  ISO_DATE_FORMAT
+} from '../dateUtils';
+
+describe('dateUtils', () => {
+  describe('formatDate', () => {
+    it('should format date to ISO string', () => {
+      const date = new Date('2024-01-15T10:30:00Z');
+      const result = formatDate(date);
+      
+      expect(result).toBe('2024-01-15');
+    });
+
+    it('should handle different date formats', () => {
+      const date = new Date('2024-12-25');
+      const result = formatDate(date, 'DD/MM/YYYY');
+      
+      expect(result).toContain('25');
+      expect(result).toContain('12');
+      expect(result).toContain('2024');
+    });
+
+    it('should handle null/undefined dates', () => {
+      expect(formatDate(null)).toBeNull();
+      expect(formatDate(undefined)).toBeUndefined();
+    });
+  });
+
+  describe('parseDate', () => {
+    it('should parse ISO date string', () => {
+      const result = parseDate('2024-01-15');
+      
+      expect(result).toBeInstanceOf(Date);
+      expect(result?.getFullYear()).toBe(2024);
+      expect(result?.getMonth()).toBe(0); // January is 0
+      expect(result?.getDate()).toBe(15);
+    });
+
+    it('should handle invalid date strings', () => {
+      expect(parseDate('invalid-date')).toBeNull();
+      expect(parseDate('')).toBeNull();
+      expect(parseDate(null)).toBeNull();
+    });
+
+    it('should parse different formats', () => {
+      const ddmmyyyy = parseDate('15/01/2024', 'DD/MM/YYYY');
+      const mmddyyyy = parseDate('01/15/2024', 'MM/DD/YYYY');
+      
+      expect(ddmmyyyy).toBeInstanceOf(Date);
+      expect(mmddyyyy).toBeInstanceOf(Date);
+    });
+  });
+
+  describe('addDaysToDate', () => {
+    it('should add positive days', () => {
+      const date = new Date('2024-01-15');
+      const result = addDaysToDate(date, 5);
+      
+      expect(result.getDate()).toBe(20);
+      expect(result.getMonth()).toBe(0);
+      expect(result.getFullYear()).toBe(2024);
+    });
+
+    it('should subtract days (negative input)', () => {
+      const date = new Date('2024-01-15');
+      const result = addDaysToDate(date, -5);
+      
+      expect(result.getDate()).toBe(10);
+    });
+
+    it('should handle month boundaries', () => {
+      const date = new Date('2024-01-30');
+      const result = addDaysToDate(date, 5);
+      
+      expect(result.getMonth()).toBe(1); // February
+      expect(result.getDate()).toBe(4);
+    });
+
+    it('should not modify original date', () => {
+      const originalDate = new Date('2024-01-15');
+      const originalTime = originalDate.getTime();
+      
+      addDaysToDate(originalDate, 5);
+      
+      expect(originalDate.getTime()).toBe(originalTime);
+    });
+  });
+
+  describe('isWeekend', () => {
+    it('should identify Saturday as weekend', () => {
+      const saturday = new Date('2024-01-13'); // Saturday
+      expect(isWeekend(saturday)).toBe(true);
+    });
+
+    it('should identify Sunday as weekend', () => {
+      const sunday = new Date('2024-01-14'); // Sunday
+      expect(isWeekend(sunday)).toBe(true);
+    });
+
+    it('should identify weekday as not weekend', () => {
+      const monday = new Date('2024-01-15'); // Monday
+      const friday = new Date('2024-01-19'); // Friday
+      
+      expect(isWeekend(monday)).toBe(false);
+      expect(isWeekend(friday)).toBe(false);
+    });
+  });
+
+  describe('getDifferenceInDays', () => {
+    it('should calculate positive difference', () => {
+      const start = new Date('2024-01-01');
+      const end = new Date('2024-01-10');
+      
+      expect(getDifferenceInDays(start, end)).toBe(9);
+    });
+
+    it('should calculate negative difference', () => {
+      const start = new Date('2024-01-10');
+      const end = new Date('2024-01-01');
+      
+      expect(getDifferenceInDays(start, end)).toBe(-9);
+    });
+
+    it('should handle same date', () => {
+      const date = new Date('2024-01-01');
+      
+      expect(getDifferenceInDays(date, date)).toBe(0);
+    });
+
+    it('should handle different months', () => {
+      const start = new Date('2024-01-01');
+      const end = new Date('2024-02-01');
+      
+      expect(getDifferenceInDays(start, end)).toBe(31);
+    });
+  });
+
+  describe('isValidDateObject', () => {
+    it('should validate valid dates', () => {
+      expect(isValidDateObject(new Date())).toBe(true);
+      expect(isValidDateObject(new Date('2024-01-01'))).toBe(true);
+    });
+
+    it('should reject invalid dates', () => {
+      expect(isValidDateObject(new Date('invalid'))).toBe(false);
+      expect(isValidDateObject(null)).toBe(false);
+      expect(isValidDateObject(undefined)).toBe(false);
+      expect(isValidDateObject('2024-01-01')).toBe(false);
+    });
+  });
+
+  describe('areDatesSameDay', () => {
+    it('should identify same day', () => {
+      const date1 = new Date('2024-01-15T10:00:00Z');
+      const date2 = new Date('2024-01-15T22:00:00Z');
+      
+      expect(areDatesSameDay(date1, date2)).toBe(true);
+    });
+
+    it('should identify different days', () => {
+      const date1 = new Date('2024-01-15');
+      const date2 = new Date('2024-01-16');
+      
+      expect(areDatesSameDay(date1, date2)).toBe(false);
+    });
+
+    it('should handle null dates', () => {
+      const date = new Date('2024-01-15');
+      
+      expect(areDatesSameDay(date, null)).toBe(false);
+      expect(areDatesSameDay(null, date)).toBe(false);
+      expect(areDatesSameDay(null, null)).toBe(false);
+    });
+  });
+
+  describe('getStartOfDay', () => {
+    it('should return start of day', () => {
+      const date = new Date('2024-01-15T15:30:45.123Z');
+      const result = getStartOfDay(date);
+      
+      expect(result.getHours()).toBe(0);
+      expect(result.getMinutes()).toBe(0);
+      expect(result.getSeconds()).toBe(0);
+      expect(result.getMilliseconds()).toBe(0);
+    });
+
+    it('should preserve date part', () => {
+      const date = new Date('2024-01-15T15:30:45Z');
+      const result = getStartOfDay(date);
+      
+      expect(result.getFullYear()).toBe(2024);
+      expect(result.getMonth()).toBe(0);
+      expect(result.getDate()).toBe(15);
+    });
+  });
+
+  describe('ISO_DATE_FORMAT constant', () => {
+    it('should be defined', () => {
+      expect(ISO_DATE_FORMAT).toBeDefined();
+      expect(typeof ISO_DATE_FORMAT).toBe('string');
+    });
+  });
+});
