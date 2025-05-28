@@ -16,7 +16,9 @@ module.exports = {
     }]
   },
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1'
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@/lib/prisma$': '<rootDir>/tests/e2e/mocks/prisma.ts',
+    '^@/lib/prisma-client$': '<rootDir>/tests/e2e/mocks/prisma.ts'
   },
   setupFilesAfterEnv: ['<rootDir>/tests/e2e/setup.ts'],
   testTimeout: 60000,

@@ -7,6 +7,13 @@ import { Role, UserStatus } from '@prisma/client';
 jest.mock('@/lib/prisma');
 jest.mock('bcryptjs');
 jest.mock('jsonwebtoken');
+jest.mock('@/lib/rateLimit', () => ({
+    withAuthRateLimit: (handler: Function) => handler
+}));
+jest.mock('@/lib/auth-server-utils', () => ({
+    generateAuthTokenServer: jest.fn().mockResolvedValue('mock-token'),
+    setAuthTokenServer: jest.fn()
+}));
 
 const mockedPrisma = prisma as jest.Mocked<typeof prisma>;
 const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
@@ -28,17 +35,17 @@ jest.mock('next/server', () => ({
     }
 }));
 
-describe('POST /api/auth/connexion', () => {
+describe('POST /api/auth/login', () => {
     let handler: any;
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        const route = await import('@/app/api/auth/connexion/route');
+        const route = await import('@/app/api/auth/login/route');
         handler = route.POST;
     });
 
     const createRequest = (body: any) => {
-        return new NextRequest('http://localhost:3000/api/auth/connexion', {
+        return new NextRequest('http://localhost:3000/api/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -50,30 +57,35 @@ describe('POST /api/auth/connexion', () => {
     it('should successfully login with valid credentials', async () => {
         const mockUser = {
             id: 1,
+            login: 'test@example.com',
             email: 'test@example.com',
             password: 'hashed_password',
             nom: 'Doe',
             prenom: 'John',
             role: Role.USER,
-            userStatus: UserStatus.ACTIF,
+            actif: true,
         };
 
         mockedPrisma.user = {
-            findUnique: jest.fn().mockResolvedValue(mockUser),
+            findFirst: jest.fn().mockResolvedValue(mockUser),
         } as any;
 
         mockedBcrypt.compare.mockResolvedValue(true as never);
 
         const request = createRequest({
-            email: 'test@example.com',
+            login: 'test@example.com',
             password: 'correct_password',
         });
 
         const response = await handler(request);
         const data = await response.json();
+        
+        if (response.status !== 200) {
+            console.error('Login test failed with status:', response.status, 'data:', data);
+        }
 
         expect(response.status).toBe(200);
-        expect(data.success).toBe(true);
+        expect(data.user).toBeDefined();
         expect(data.user).toEqual({
             id: mockUser.id,
             email: mockUser.email,
@@ -84,9 +96,9 @@ describe('POST /api/auth/connexion', () => {
         expect(response.headers.get('set-cookie')).toBeTruthy();
     });
 
-    it('should return 400 for missing email or password', async () => {
+    it('should return 400 for missing login or password', async () => {
         const testCases = [
-            { email: 'test@example.com' },
+            { login: 'test@example.com' },
             { password: 'password' },
             {},
         ];
@@ -97,17 +109,17 @@ describe('POST /api/auth/connexion', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toBe('Email et mot de passe requis');
+            expect(data.error).toBe('Login et mot de passe requis');
         }
     });
 
     it('should return 401 for non-existent user', async () => {
         mockedPrisma.user = {
-            findUnique: jest.fn().mockResolvedValue(null),
+            findFirst: jest.fn().mockResolvedValue(null),
         } as any;
 
         const request = createRequest({
-            email: 'nonexistent@example.com',
+            login: 'nonexistent@example.com',
             password: 'password',
         });
 
@@ -115,25 +127,26 @@ describe('POST /api/auth/connexion', () => {
         const data = await response.json();
 
         expect(response.status).toBe(401);
-        expect(data.error).toBe('Email ou mot de passe incorrect');
+        expect(data.error).toBe('Identifiants invalides');
     });
 
     it('should return 401 for incorrect password', async () => {
         const mockUser = {
             id: 1,
+            login: 'test@example.com',
             email: 'test@example.com',
             password: 'hashed_password',
-            userStatus: UserStatus.ACTIF,
+            actif: true,
         };
 
         mockedPrisma.user = {
-            findUnique: jest.fn().mockResolvedValue(mockUser),
+            findFirst: jest.fn().mockResolvedValue(mockUser),
         } as any;
 
         mockedBcrypt.compare.mockResolvedValue(false as never);
 
         const request = createRequest({
-            email: 'test@example.com',
+            login: 'test@example.com',
             password: 'wrong_password',
         });
 
@@ -141,25 +154,26 @@ describe('POST /api/auth/connexion', () => {
         const data = await response.json();
 
         expect(response.status).toBe(401);
-        expect(data.error).toBe('Email ou mot de passe incorrect');
+        expect(data.error).toBe('Identifiants invalides');
     });
 
     it('should return 403 for inactive user', async () => {
         const mockUser = {
             id: 1,
+            login: 'test@example.com',
             email: 'test@example.com',
             password: 'hashed_password',
-            userStatus: UserStatus.INACTIF,
+            actif: false,
         };
 
         mockedPrisma.user = {
-            findUnique: jest.fn().mockResolvedValue(mockUser),
+            findFirst: jest.fn().mockResolvedValue(mockUser),
         } as any;
 
         mockedBcrypt.compare.mockResolvedValue(true as never);
 
         const request = createRequest({
-            email: 'test@example.com',
+            login: 'test@example.com',
             password: 'correct_password',
         });
 
@@ -171,7 +185,7 @@ describe('POST /api/auth/connexion', () => {
     });
 
     it('should handle malformed JSON body', async () => {
-        const request = new NextRequest('http://localhost:3000/api/auth/connexion', {
+        const request = new NextRequest('http://localhost:3000/api/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -186,7 +200,7 @@ describe('POST /api/auth/connexion', () => {
 
     it('should handle database errors gracefully', async () => {
         mockedPrisma.user = {
-            findUnique: jest.fn().mockRejectedValue(new Error('Database error')),
+            findFirst: jest.fn().mockRejectedValue(new Error('Database error')),
         } as any;
 
         const request = createRequest({
@@ -198,6 +212,6 @@ describe('POST /api/auth/connexion', () => {
         const data = await response.json();
 
         expect(response.status).toBe(500);
-        expect(data.error).toBe('Erreur lors de la connexion');
+        expect(data.error).toBe('Erreur serveur lors de la connexion');
     });
 });

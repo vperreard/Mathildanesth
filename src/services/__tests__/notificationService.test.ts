@@ -1,275 +1,341 @@
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { notificationService } from '../notificationService';
 import { io } from 'socket.io-client';
 import { toast } from 'react-toastify';
 
-// Mock de socket.io-client
-jest.mock('socket.io-client', () => ({
-    io: jest.fn(() => ({
-        on: jest.fn(),
-        emit: jest.fn(),
-        connected: true
-    }))
-}));
+// Mock dependencies
+jest.mock('socket.io-client');
+jest.mock('react-toastify');
 
-// Mock de react-toastify
-jest.mock('react-toastify', () => ({
-    toast: {
-        info: jest.fn(),
-        success: jest.fn(),
-        warning: jest.fn(),
-        error: jest.fn()
-    }
-}));
+const mockSocket = {
+  on: jest.fn(),
+  off: jest.fn(),
+  emit: jest.fn(),
+  connect: jest.fn(),
+  disconnect: jest.fn(),
+  connected: true,
+};
+
+(io as unknown as jest.Mock).mockReturnValue(mockSocket);
 
 describe('NotificationService', () => {
-    let socketMock: any;
-    let socketOnHandler: jest.Mock;
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Reset notification service for testing
+    notificationService.resetForTesting();
+  });
 
-    beforeEach(() => {
-        jest.clearAllMocks();
+  const mockNotification = {
+    id: '1',
+    type: 'info' as const,
+    title: 'Test Notification',
+    message: 'This is a test',
+    createdAt: new Date(),
+  };
 
-        // Configuration des mocks avec une implémentation plus robuste
-        socketOnHandler = jest.fn();
-
-        socketMock = {
-            on: jest.fn((event, callback) => {
-                socketOnHandler.mockImplementation((testEvent, data) => {
-                    if (event === testEvent) {
-                        callback(data);
-                    }
-                });
-            }),
-            emit: jest.fn(),
-            connected: true
-        };
-
-        (io as jest.Mock).mockReturnValue(socketMock);
-
-        // Réinitialiser l'état de l'objet notificationService (trick pour réinitialiser un singleton)
-        // @ts-expect-error - Accès intentionnel à une propriété privée pour les tests
-        notificationService.socket = socketMock;
-        // @ts-expect-error - Accès intentionnel à une propriété privée pour les tests
-        notificationService.listeners = new Map();
-
-        // Déclencher l'initialisation qui va enregistrer les listeners
-        notificationService.resetForTesting?.();
+  describe('Initialization', () => {
+    it('devrait initialiser la connexion socket', () => {
+      // Socket should be initialized on service creation
+      expect(io).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          path: '/api/ws',
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+        })
+      );
     });
 
-    test('doit s\'abonner et recevoir des notifications', () => {
-        // Définir un callback de notification
-        const mockCallback = jest.fn();
-        const unsubscribe = notificationService.subscribe('info', mockCallback);
+    it('devrait configurer les listeners socket', () => {
+      expect(mockSocket.on).toHaveBeenCalledWith('connect', expect.any(Function));
+      expect(mockSocket.on).toHaveBeenCalledWith('disconnect', expect.any(Function));
+      expect(mockSocket.on).toHaveBeenCalledWith('notification', expect.any(Function));
+    });
+  });
 
-        // Simuler une notification entrante
-        const testNotification = {
-            id: 'test-id',
-            type: 'info' as const,
-            title: 'Test',
-            message: 'Ceci est un test',
-            createdAt: new Date()
-        };
+  describe('Subscribe/Unsubscribe', () => {
+    it('devrait permettre de s\'abonner aux notifications', () => {
+      const callback = jest.fn();
+      const unsubscribe = notificationService.subscribe('info', callback);
 
-        // Déclencher l'événement de notification via notre handler mock
-        socketOnHandler('notification', testNotification);
+      // Simulate receiving a notification
+      const notificationHandler = mockSocket.on.mock.calls.find(
+        call => call[0] === 'notification'
+      )?.[1];
 
-        // Vérifier que le callback a été appelé
-        expect(mockCallback).toHaveBeenCalledWith(testNotification);
+      notificationHandler(mockNotification);
 
-        // Vérifier que toast a été appelé
-        expect(toast.info).toHaveBeenCalledWith('Ceci est un test', expect.any(Object));
+      expect(callback).toHaveBeenCalledWith(mockNotification);
+      
+      // Cleanup
+      unsubscribe();
     });
 
-    test('doit se désabonner correctement', () => {
-        // Définir un callback de notification
-        const mockCallback = jest.fn();
-        const unsubscribe = notificationService.subscribe('warning', mockCallback);
+    it('devrait permettre de se désabonner', () => {
+      const callback = jest.fn();
+      const unsubscribe = notificationService.subscribe('info', callback);
+      
+      unsubscribe();
 
-        // Se désabonner
-        unsubscribe();
+      // Simulate receiving a notification after unsubscribe
+      const notificationHandler = mockSocket.on.mock.calls.find(
+        call => call[0] === 'notification'
+      )?.[1];
 
-        // Simuler une notification entrante
-        const testNotification = {
-            id: 'test-id',
-            type: 'warning' as const,
-            title: 'Test',
-            message: 'Ceci est un avertissement',
-            createdAt: new Date()
-        };
+      notificationHandler(mockNotification);
 
-        // Déclencher l'événement de notification
-        socketOnHandler('notification', testNotification);
-
-        // Vérifier que le callback n'a pas été appelé
-        expect(mockCallback).not.toHaveBeenCalled();
-
-        // Vérifier que toast a été appelé (même si désabonné, le toast est affiché)
-        expect(toast.warning).toHaveBeenCalledWith('Ceci est un avertissement', expect.any(Object));
+      expect(callback).not.toHaveBeenCalled();
     });
 
-    test('doit envoyer une notification via WebSocket', () => {
-        // Envoyer une notification
-        const notificationData = {
-            type: 'success' as const,
-            title: 'Succès',
-            message: 'Opération réussie'
-        };
+    it('devrait permettre plusieurs abonnements au même type', () => {
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
 
-        notificationService.sendNotification(notificationData);
+      notificationService.subscribe('info', callback1);
+      notificationService.subscribe('info', callback2);
 
-        // Vérifier que emit a été appelé
-        expect(socketMock.emit).toHaveBeenCalledWith(
-            'sendNotification',
-            expect.objectContaining({
-                type: 'success',
-                title: 'Succès',
-                message: 'Opération réussie',
-                id: expect.any(String),
-                createdAt: expect.any(Date)
-            })
-        );
+      // Simulate receiving a notification
+      const notificationHandler = mockSocket.on.mock.calls.find(
+        call => call[0] === 'notification'
+      )?.[1];
+
+      notificationHandler(mockNotification);
+
+      expect(callback1).toHaveBeenCalledWith(mockNotification);
+      expect(callback2).toHaveBeenCalledWith(mockNotification);
+    });
+  });
+
+  describe('Send Notification', () => {
+    it('devrait envoyer une notification via socket', () => {
+      const notification = {
+        type: 'success' as const,
+        title: 'Success',
+        message: 'Operation completed',
+      };
+
+      notificationService.sendNotification(notification);
+
+      expect(mockSocket.emit).toHaveBeenCalledWith(
+        'sendNotification',
+        expect.objectContaining({
+          ...notification,
+          id: expect.any(String),
+          createdAt: expect.any(Date),
+        })
+      );
     });
 
-    test('doit gérer différents types de notifications', () => {
-        // Définir des callbacks pour différents types
-        const infoCallback = jest.fn();
-        const successCallback = jest.fn();
-        const warningCallback = jest.fn();
-        const errorCallback = jest.fn();
+    it('ne devrait pas envoyer si socket déconnecté', () => {
+      mockSocket.connected = false;
 
-        notificationService.subscribe('info', infoCallback);
-        notificationService.subscribe('success', successCallback);
-        notificationService.subscribe('warning', warningCallback);
-        notificationService.subscribe('error', errorCallback);
+      notificationService.sendNotification({
+        type: 'error' as const,
+        title: 'Error',
+        message: 'Something went wrong',
+      });
 
-        // Simuler des notifications entrantes de différents types
-        const infoNotification = {
-            id: 'info-id',
-            type: 'info' as const,
-            title: 'Info',
-            message: 'Information',
-            createdAt: new Date()
-        };
+      expect(mockSocket.emit).not.toHaveBeenCalled();
 
-        const errorNotification = {
-            id: 'error-id',
-            type: 'error' as const,
-            title: 'Erreur',
-            message: 'Une erreur est survenue',
-            createdAt: new Date()
-        };
+      // Reset
+      mockSocket.connected = true;
+    });
+  });
 
-        // Déclencher les événements de notification
-        socketOnHandler('notification', infoNotification);
-        socketOnHandler('notification', errorNotification);
+  describe('Handle Notification', () => {
+    it('devrait afficher une notification toast', () => {
+      const notificationHandler = mockSocket.on.mock.calls.find(
+        call => call[0] === 'notification'
+      )?.[1];
 
-        // Vérifier que les callbacks ont été appelés
-        expect(infoCallback).toHaveBeenCalledWith(infoNotification);
-        expect(infoCallback).not.toHaveBeenCalledWith(errorNotification);
+      notificationHandler(mockNotification);
 
-        expect(errorCallback).toHaveBeenCalledWith(errorNotification);
-        expect(errorCallback).not.toHaveBeenCalledWith(infoNotification);
-
-        expect(successCallback).not.toHaveBeenCalled();
-        expect(warningCallback).not.toHaveBeenCalled();
-
-        // Vérifier que toast a été appelé avec le bon type
-        expect(toast.info).toHaveBeenCalledWith('Information', expect.any(Object));
-        expect(toast.error).toHaveBeenCalledWith('Une erreur est survenue', expect.any(Object));
+      expect(toast.info).toHaveBeenCalledWith(
+        mockNotification.message,
+        expect.objectContaining({
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        })
+      );
     });
 
-    test('doit gérer la désabonnement via unsubscribe', () => {
-        // Définir un callback de notification
-        const mockCallback = jest.fn();
+    it('devrait utiliser le bon type de toast', () => {
+      const notificationHandler = mockSocket.on.mock.calls.find(
+        call => call[0] === 'notification'
+      )?.[1];
 
-        // S'abonner puis se désabonner avec la méthode explicite
-        notificationService.subscribe('error', mockCallback);
-        notificationService.unsubscribe('error', mockCallback);
+      const notifications = [
+        { ...mockNotification, type: 'success' as const },
+        { ...mockNotification, type: 'warning' as const },
+        { ...mockNotification, type: 'error' as const },
+      ];
 
-        // Simuler une notification entrante
-        const testNotification = {
-            id: 'test-id',
-            type: 'error' as const,
-            title: 'Test',
-            message: 'Erreur test',
-            createdAt: new Date()
-        };
+      notifications.forEach(notification => {
+        notificationHandler(notification);
+        expect(toast[notification.type]).toHaveBeenCalled();
+      });
+    });
+  });
 
-        // Déclencher l'événement de notification
-        socketOnHandler('notification', testNotification);
+  describe('Connection Events', () => {
+    it('devrait logger la connexion', () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      const connectHandler = mockSocket.on.mock.calls.find(
+        call => call[0] === 'connect'
+      )?.[1];
 
-        // Vérifier que le callback n'a pas été appelé
-        expect(mockCallback).not.toHaveBeenCalled();
+      connectHandler();
+
+      expect(consoleSpy).toHaveBeenCalledWith('Connecté au serveur de notifications');
+      
+      consoleSpy.mockRestore();
     });
 
-    test('should handle WebSocket errors gracefully', async () => {
-        // Mock pour simuler une erreur sur l'appel à socket.emit
-        socketMock.emit = jest.fn().mockImplementationOnce(() => {
-            throw new Error('WS Emit Error');
-        });
-        // Mock pour simuler une erreur lors de la réception d'un événement
-        // (on va simuler une erreur dans le handler interne du service)
-        socketOnHandler.mockImplementationOnce((event, data) => {
-            if (event === 'notification') {
-                throw new Error('WS Receive Handler Error');
-            }
-        });
+    it('devrait logger la déconnexion', () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      const disconnectHandler = mockSocket.on.mock.calls.find(
+        call => call[0] === 'disconnect'
+      )?.[1];
 
-        const notificationData = {
-            type: 'error' as const,
-            title: 'Test Error Emit',
-            message: 'Test message on emit error'
-        };
+      disconnectHandler();
 
-        const incomingNotification = {
-            id: 'incoming-error-id',
-            type: 'info' as const,
-            title: 'Test Error Receive',
-            message: 'Test message on receive error',
-            createdAt: new Date()
-        };
+      expect(consoleSpy).toHaveBeenCalledWith('Déconnecté du serveur de notifications');
+      
+      consoleSpy.mockRestore();
+    });
+  });
 
-        // Tenter d'envoyer une notification (devrait échouer et logger)
-        // Utiliser un try/catch car le service pourrait ne pas propager l'erreur
-        try {
-            notificationService.sendNotification(notificationData);
-        } catch (e) {
-            console.log('Caught error from sendNotification:', e);
-        }
-        // Vérifier que le toast d'erreur a été appelé (si le service le gère)
-        // expect(toast.error).toHaveBeenCalledWith(expect.stringContaining('WS Emit Error'), expect.any(Object));
-        // Pour l'instant, on ne vérifie pas le toast car la gestion d'erreur interne n'est pas claire.
+  describe('Notification Types', () => {
+    it('devrait gérer les notifications de congés', () => {
+      const callback = jest.fn();
+      notificationService.subscribe('info', callback);
 
-        // Simuler une notification entrante (devrait déclencher l'erreur dans le handler)
-        try {
-            socketOnHandler('notification', incomingNotification);
-        } catch (e) {
-            console.log('Caught error from socketOnHandler:', e);
-        }
-        // Vérifier que le toast a été appelé malgré l'erreur handler (si le toast est appelé avant l'erreur)
-        // expect(toast.info).toHaveBeenCalledWith(expect.stringContaining('receive error'), expect.any(Object));
+      const leaveNotification = {
+        ...mockNotification,
+        data: {
+          leaveId: '123',
+          userId: '456',
+          leaveType: 'ANNUAL',
+          status: 'APPROVED',
+          startDate: '2025-02-01',
+          endDate: '2025-02-15',
+        },
+      };
 
-        // Le test vérifie surtout que le service ne crash pas complètement.
-        // Des vérifications plus précises dépendent de la gestion d'erreur interne du service.
-        expect(true).toBe(true); // Placeholder pour indiquer que le test s'est exécuté
+      const notificationHandler = mockSocket.on.mock.calls.find(
+        call => call[0] === 'notification'
+      )?.[1];
+
+      notificationHandler(leaveNotification);
+
+      expect(callback).toHaveBeenCalledWith(leaveNotification);
     });
 
-    test('invalid event type', () => {
-        const mockCallback = jest.fn();
+    it('devrait gérer les notifications d\'affectation', () => {
+      const callback = jest.fn();
+      notificationService.subscribe('info', callback);
 
-        // Test invalid event type - Utiliser subscribe et non on
-        const unsubscribe = notificationService.subscribe('invalid-event', mockCallback);
+      const assignmentNotification = {
+        ...mockNotification,
+        data: {
+          assignmentId: '789',
+          userId: '456',
+          date: '2025-01-15',
+          shiftType: 'MORNING',
+          location: 'OR-1',
+        },
+      };
 
-        // Simuler la réception d'un événement invalide via le handler mocké
-        socketOnHandler('invalid-event', { message: 'Should not be processed' });
-        // @ts-expect-error - Testing invalid event type handling
-        // notificationService.emit('invalid-event', { message: 'Should not be processed' }); // Incorrect call
-        expect(mockCallback).not.toHaveBeenCalled();
+      const notificationHandler = mockSocket.on.mock.calls.find(
+        call => call[0] === 'notification'
+      )?.[1];
 
-        // Test listener removal
-        if (unsubscribe) {
-            unsubscribe();
-        }
-        // Ou appeler la méthode explicite si unsubscribe n'est pas fiable
-        // notificationService.unsubscribe('invalid-event', mockCallback);
+      notificationHandler(assignmentNotification);
+
+      expect(callback).toHaveBeenCalledWith(assignmentNotification);
     });
-}); 
+
+    it('devrait gérer les notifications système', () => {
+      const callback = jest.fn();
+      notificationService.subscribe('info', callback);
+
+      const systemNotification = {
+        ...mockNotification,
+        data: {
+          component: 'PlanningModule',
+          action: 'GENERATION_COMPLETE',
+          timestamp: new Date().toISOString(),
+          metadata: {
+            duration: 1500,
+            recordsProcessed: 100,
+          },
+        },
+      };
+
+      const notificationHandler = mockSocket.on.mock.calls.find(
+        call => call[0] === 'notification'
+      )?.[1];
+
+      notificationHandler(systemNotification);
+
+      expect(callback).toHaveBeenCalledWith(systemNotification);
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('devrait continuer à fonctionner si toast échoue', () => {
+      (toast.error as jest.Mock).mockImplementation(() => {
+        throw new Error('Toast failed');
+      });
+
+      const callback = jest.fn();
+      notificationService.subscribe('error', callback);
+
+      const errorNotification = {
+        ...mockNotification,
+        type: 'error' as const,
+      };
+
+      const notificationHandler = mockSocket.on.mock.calls.find(
+        call => call[0] === 'notification'
+      )?.[1];
+
+      // Should not throw
+      expect(() => notificationHandler(errorNotification)).not.toThrow();
+      
+      // Callback should still be called
+      expect(callback).toHaveBeenCalledWith(errorNotification);
+    });
+  });
+
+  describe('Performance', () => {
+    it('devrait gérer de nombreux abonnements efficacement', () => {
+      const callbacks = Array.from({ length: 100 }, () => jest.fn());
+      
+      callbacks.forEach(callback => {
+        notificationService.subscribe('info', callback);
+      });
+
+      const notificationHandler = mockSocket.on.mock.calls.find(
+        call => call[0] === 'notification'
+      )?.[1];
+
+      const start = Date.now();
+      notificationHandler(mockNotification);
+      const duration = Date.now() - start;
+
+      expect(duration).toBeLessThan(10); // Should complete within 10ms
+      
+      callbacks.forEach(callback => {
+        expect(callback).toHaveBeenCalledWith(mockNotification);
+      });
+    });
+  });
+});

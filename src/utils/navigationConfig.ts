@@ -12,7 +12,10 @@ import {
   Stethoscope,
   Building2,
   ClipboardList,
-  Activity
+  Activity,
+  AlertTriangle,
+  Home,
+  ChevronRight
 } from 'lucide-react';
 
 // Configuration de navigation médicale simplifiée
@@ -32,147 +35,153 @@ export interface NavigationGroup {
   roles?: string[];
 }
 
-// Menu utilisateur simplifié (5 liens max)
+// NAVIGATION UTILISATEUR SIMPLIFIÉE - 6 PAGES MAXIMUM
 export const userNavigation: NavigationItem[] = [
   {
+    href: '/',
+    label: '🏠 Accueil',
+    icon: Activity,
+    description: 'Tableau de bord personnel'
+  },
+  {
     href: '/planning',
-    label: 'Mon Planning',
+    label: '📅 Mon Planning',
     icon: Calendar,
-    description: 'Voir mes gardes et vacations'
+    description: 'Mes gardes, vacations et équipe'
   },
   {
     href: '/conges',
-    label: 'Mes Congés',
+    label: '🌴 Mes Congés',
     icon: Clock,
-    description: 'Demandes et historique'
+    description: 'Demandes, soldes et historique'
+  },
+  {
+    href: '/demandes',
+    label: '📋 Mes Demandes',
+    icon: FileText,
+    description: 'Toutes vos demandes unifiées'
   },
   {
     href: '/notifications',
-    label: 'Messages',
+    label: '🔔 Notifications',
     icon: MessageCircle,
-    description: 'Notifications et messages'
+    description: 'Messages et alertes'
   },
   {
     href: '/profil',
-    label: 'Mon Profil',
+    label: '👤 Mon Profil',
     icon: User,
-    description: 'Paramètres personnels'
-  },
-  {
-    href: '/aide',
-    label: 'Aide',
-    icon: HelpCircle,
-    description: 'Guide et support'
+    description: 'Paramètres et préférences'
   }
 ];
 
-// Menu admin organisé en 4 catégories
+// NAVIGATION ADMIN SIMPLIFIÉE - 4 CATÉGORIES MAXIMUM
 export const adminNavigation: NavigationGroup[] = [
   {
-    name: 'Tableaux de Bord',
+    name: '📊 Command Center',
     icon: BarChart3,
     items: [
       {
-        href: '/admin/dashboard',
+        href: '/admin/command-center',
         label: 'Vue d\'ensemble',
         icon: Activity,
-        description: 'Métriques et indicateurs'
+        description: 'Dashboard unifié avec métriques temps réel'
       },
       {
-        href: '/admin/performance',
-        label: 'Performance',
+        href: '/admin/urgences',
+        label: 'Mode Urgence',
+        icon: AlertTriangle,
+        description: 'Remplacements express et alertes'
+      },
+      {
+        href: '/admin/analytics',
+        label: 'Analytics',
         icon: BarChart3,
-        description: 'Monitoring système'
+        description: 'Tendances et prédictions'
+      }
+    ]
+  },
+  {
+    name: '👥 Gestion',
+    icon: Users,
+    items: [
+      {
+        href: '/utilisateurs',
+        label: 'Personnel',
+        icon: Users,
+        description: 'MARs, IADEs, chirurgiens'
       },
       {
         href: '/bloc-operatoire',
         label: 'Bloc Opératoire',
         icon: Building2,
-        description: 'Gestion des salles'
-      }
-    ]
-  },
-  {
-    name: 'Gestion des Équipes',
-    icon: Users,
-    items: [
-      {
-        href: '/utilisateurs',
-        label: 'Personnel Médical',
-        icon: Users,
-        description: 'MARs, IADEs et équipes'
+        description: 'Salles, secteurs, planning'
       },
       {
-        href: '/parametres/chirurgiens',
-        label: 'Chirurgiens',
-        icon: Stethoscope,
-        description: 'Gestion des praticiens'
+        href: '/admin/demandes',
+        label: 'Demandes',
+        icon: FileText,
+        description: 'Gestion unifiée des demandes'
       },
       {
         href: '/admin/conges',
-        label: 'Validation Congés',
+        label: 'Congés',
         icon: UserCheck,
-        description: 'Approuver les demandes'
+        description: 'Validation et quotas'
       },
       {
-        href: '/planning/generation',
-        label: 'Organisateur Planning',
+        href: '/admin/planning-generator',
+        label: 'Assistant Planning',
         icon: ClipboardList,
-        description: 'Génération automatique'
+        description: 'Génération intelligente'
       }
     ]
   },
   {
-    name: 'Rapports & Analyses',
+    name: '📈 Rapports',
     icon: FileText,
     items: [
       {
-        href: '/admin/rapports/conges',
-        label: 'Rapports Congés',
+        href: '/admin/rapports',
+        label: 'Analyses',
         icon: FileText,
-        description: 'Analyses et statistiques'
-      },
-      {
-        href: '/admin/rapports/planning',
-        label: 'Rapports Planning',
-        icon: Calendar,
-        description: 'Couverture et répartition'
+        description: 'Rapports congés et planning'
       },
       {
         href: '/admin/exports',
-        label: 'Exports de Données',
+        label: 'Exports',
         icon: FileText,
-        description: 'Export CSV/Excel'
+        description: 'CSV, Excel, PDF'
+      },
+      {
+        href: '/admin/kpi',
+        label: 'Indicateurs',
+        icon: BarChart3,
+        description: 'KPI et métriques'
       }
     ]
   },
   {
-    name: 'Configuration',
+    name: '⚙️ Configuration',
     icon: Settings,
     items: [
       {
-        href: '/parametres/hopitaux',
-        label: 'Sites Hospitaliers',
-        icon: Building2,
-        description: 'Configuration des sites'
-      },
-      {
-        href: '/parametres/tableaux-service',
-        label: 'Tableaux de Service',
-        icon: ClipboardList,
-        description: 'Modèles de planning'
-      },
-      {
-        href: '/parametres/types-conges',
-        label: 'Types de Congés',
-        icon: Clock,
-        description: 'Configuration congés'
-      },
-      {
-        href: '/parametres/regles',
-        label: 'Règles de Planification',
+        href: '/admin/regles-planning',
+        label: 'Règles Métier',
         icon: Settings,
-        description: 'Contraintes métier'
+        description: 'Contraintes et validation'
+      },
+      {
+        href: '/admin/templates-medicaux',
+        label: 'Templates Médicaux',
+        icon: ClipboardList,
+        description: 'Modèles par spécialité'
+      },
+      {
+        href: '/parametres/systeme',
+        label: 'Système',
+        icon: Settings,
+        description: 'Configuration générale'
       }
     ]
   }
@@ -223,9 +232,9 @@ export const getQuickLinks = (userRole: string): NavigationItem[] => {
       icon: Calendar
     },
     {
-      href: '/conges/demander',
-      label: 'Demander Congé',
-      icon: Clock
+      href: '/demandes/nouvelle',
+      label: 'Nouvelle Demande',
+      icon: FileText
     }
   ];
 
@@ -338,6 +347,7 @@ export const getBreadcrumbs = (pathname: string, userRole: string): BreadcrumbIt
   const segmentMapping: Record<string, string> = {
     'planning': 'Mon Planning',
     'conges': 'Mes Congés',
+    'demandes': 'Mes Demandes',
     'admin': 'Administration',
     'parametres': 'Configuration',
     'utilisateurs': 'Personnel Médical',
@@ -366,7 +376,7 @@ export const getBreadcrumbs = (pathname: string, userRole: string): BreadcrumbIt
 // Vérification des droits d'accès
 export const hasAccess = (userRole: string, href: string): boolean => {
   // Liens toujours accessibles
-  const publicPaths = ['/planning', '/conges', '/notifications', '/profil', '/aide'];
+  const publicPaths = ['/planning', '/conges', '/demandes', '/notifications', '/profil', '/aide'];
   if (publicPaths.some(path => href.startsWith(path))) {
     return true;
   }

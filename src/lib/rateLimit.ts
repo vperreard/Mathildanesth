@@ -63,7 +63,7 @@ export async function rateLimit(
   identifier?: string
 ): Promise<RateLimitResult> {
   // Get identifier from IP or custom identifier
-  const headersList = headers();
+  const headersList = await headers();
   const forwardedFor = headersList.get('x-forwarded-for');
   const realIp = headersList.get('x-real-ip');
   const ip = forwardedFor?.split(',')[0] || realIp || 'unknown';
@@ -137,6 +137,10 @@ export function withRateLimit(
       }
 
       // Log d'audit pour le dépassement de rate limit
+      const headersList = await headers();
+      const forwardedFor = headersList.get('x-forwarded-for');
+      const realIp = headersList.get('x-real-ip');
+      
       await auditService.logAction({
         action: AuditAction.RATE_LIMIT_EXCEEDED,
         entityId: request.url,
@@ -145,7 +149,7 @@ export function withRateLimit(
         severity: 'WARNING',
         success: false,
         details: {
-          ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+          ipAddress: forwardedFor || realIp || 'unknown',
           userAgent: request.headers.get('user-agent') || 'unknown',
           metadata: {
             configType,

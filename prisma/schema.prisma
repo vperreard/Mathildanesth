@@ -228,6 +228,9 @@ model User {
   systemConfigUpdates                 SystemConfig[]             @relation("SystemConfigUpdates")
   activityLogs                        ActivityLog[]              @relation("UserActivityLogs")
   createdRulesTemplates               RulesTemplate[]            @relation("CreatedRulesTemplates")
+  unifiedRequestsAsRequester          UnifiedRequest[]           @relation("UnifiedRequestRequester")
+  unifiedRequestsAsAssignee           UnifiedRequest[]           @relation("UnifiedRequestAssignedTo")
+  unifiedRequestNotifications         UnifiedRequestNotification[] @relation
 
   @@map("users")
 }
@@ -965,6 +968,7 @@ model Site {
   UserRequest        UserRequest[]       @relation("SiteUserRequests")
   users              User[]              @relation("SiteUsers")
   surgeons           Surgeon[]           @relation("SurgeonSites")
+  unifiedRequests    UnifiedRequest[]
 
   @@map("sites")
 }
@@ -1508,4 +1512,79 @@ model RulesTemplate {
   @@index([category])
   @@index([isDefault])
   @@map("rules_templates")
+}
+
+model UnifiedRequest {
+  id                    String                    @id @default(cuid())
+  type                  String                    // LEAVE, ASSIGNMENT_SWAP, EMERGENCY_REPLACEMENT, etc.
+  status                String                    @default("draft")
+  priority              String                    @default("normal")
+  
+  // User relations
+  requesterId           Int
+  requester             User                      @relation("UnifiedRequestRequester", fields: [requesterId], references: [id])
+  assignedToId          Int?
+  assignedTo            User?                     @relation("UnifiedRequestAssignedTo", fields: [assignedToId], references: [id])
+  
+  // Request details
+  title                 String
+  description           String?
+  data                  Json                      // Type-specific data
+  
+  // Workflow
+  currentStep           String                    @default("draft")
+  workflowHistory       Json                      @default("[]")
+  
+  // Timestamps
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  submittedAt           DateTime?
+  resolvedAt            DateTime?
+  
+  // Site relation
+  siteId                String?
+  site                  Site?                     @relation(fields: [siteId], references: [id])
+  
+  // Notifications
+  notifications         UnifiedRequestNotification[]
+  
+  // Audit
+  auditLog              Json                      @default("[]")
+  
+  // Legacy references for migration
+  legacyType            String?                   // Original system type
+  legacyId              String?                   // Original record ID
+  
+  @@index([type])
+  @@index([status])
+  @@index([priority])
+  @@index([requesterId])
+  @@index([assignedToId])
+  @@index([createdAt])
+  @@index([siteId])
+  @@unique([legacyType, legacyId])
+}
+
+model UnifiedRequestNotification {
+  id                    String                    @id @default(cuid())
+  requestId             String
+  request               UnifiedRequest            @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  
+  type                  String                    // EMAIL, IN_APP, SMS
+  recipientId           Int
+  recipient             User                      @relation(fields: [recipientId], references: [id])
+  
+  subject               String
+  content               String
+  status                String                    @default("pending") // pending, sent, failed
+  
+  sentAt                DateTime?
+  failureReason         String?
+  
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  
+  @@index([requestId])
+  @@index([recipientId])
+  @@index([status])
 }

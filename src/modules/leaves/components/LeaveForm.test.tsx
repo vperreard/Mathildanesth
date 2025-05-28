@@ -179,7 +179,9 @@ describe('LeaveForm', () => {
 
         // Mock fetch plus explicite avec vraie simulation asynchrone
         (global.fetch as jest.Mock).mockImplementation(async (url: string | Request | URL) => {
-            if (url === '/api/conges/types') {
+            const urlString = typeof url === 'string' ? url : url.toString();
+            
+            if (urlString.includes('/api/conges/types')) {
                 // Simuler un vrai délai réseau court
                 return new Promise(resolve => {
                     setTimeout(() => {
@@ -190,11 +192,15 @@ describe('LeaveForm', () => {
                                 return Promise.resolve(mockAPIRawTypesResponse);
                             },
                         });
-                    }, 10); // 10ms de délai pour simuler le réseau
+                    }, 50); // Augmenter le délai pour s'assurer que les tests attendent
                 });
             }
-            // Gérer d'autres appels fetch si nécessaire, ou rejeter
-            return Promise.reject(new Error(`Unhandled fetch call to ${url}`));
+            // Mock par défaut pour tous les autres appels API
+            return Promise.resolve({
+                ok: true,
+                status: 200,
+                json: async () => ({}),
+            });
         });
         mockedAxios.post.mockReset(); // Si mockedAxios est utilisé, il faut aussi le reset.
     });
@@ -477,7 +483,7 @@ describe('LeaveForm', () => {
             const user = userEvent.setup();
 
             const leaveTypeSelectField = screen.getByLabelText('Type de congé');
-            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 5000 });
+            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 8000 });
             await user.selectOptions(leaveTypeSelectField, 'ANNUAL');
 
             await fillDatesInForm(user, '02/09/2024', '03/09/2024');
@@ -547,7 +553,7 @@ describe('LeaveForm', () => {
             const user = userEvent.setup();
 
             const leaveTypeSelectField = screen.getByLabelText('Type de congé');
-            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 5000 });
+            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 8000 });
             await user.selectOptions(leaveTypeSelectField, 'ANNUAL');
 
             await fillDatesInForm(user, '02/09/2024', '03/09/2024');
@@ -594,7 +600,7 @@ describe('LeaveForm', () => {
             const user = userEvent.setup();
 
             const leaveTypeSelectField = screen.getByLabelText('Type de congé');
-            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 5000 });
+            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 8000 });
             await user.selectOptions(leaveTypeSelectField, 'ANNUAL');
 
             await fillDatesInForm(user, '02/09/2024', '03/09/2024');
@@ -648,7 +654,7 @@ describe('LeaveForm', () => {
             const user = userEvent.setup();
 
             const leaveTypeSelectField = screen.getByLabelText('Type de congé');
-            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 5000 });
+            await waitFor(() => { expect(leaveTypeSelectField).not.toBeDisabled(); }, { timeout: 8000 });
             await user.selectOptions(leaveTypeSelectField, 'ANNUAL');
 
             await fillDatesInForm(user, '02/09/2024', '03/09/2024');

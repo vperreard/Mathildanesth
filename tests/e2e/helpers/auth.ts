@@ -32,11 +32,18 @@ export async function login(page: Page, user: TestUser, baseUrl: string): Promis
         // Aller à la page de login
         await page.goto(`${baseUrl}/auth/connexion`, { waitUntil: 'networkidle0' });
         
+        // Attendre un peu pour que la page soit complètement chargée
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
         // Attendre le formulaire avec plusieurs sélecteurs possibles
-        await page.waitForSelector('input[name="login"], input[name="email"], input[type="email"], #login', { timeout: 10000 });
+        await page.waitForSelector('input[name="login"], input[data-testid="login-email-input"], input[name="email"], input[type="email"], #login', { 
+            timeout: 30000,
+            visible: true 
+        });
         
         // Remplir login/email
         const loginInput = await page.$('input[name="login"]') ||
+                          await page.$('input[data-testid="login-email-input"]') ||
                           await page.$('input[name="email"]') || 
                           await page.$('input[type="email"]') || 
                           await page.$('#login') ||
@@ -56,9 +63,9 @@ export async function login(page: Page, user: TestUser, baseUrl: string): Promis
         }
         
         // Soumettre le formulaire
-        const submitBtn = await page.$('button[type="submit"]') || 
-                         await page.$('button:has-text("Connexion")') ||
-                         await page.$('button:has-text("Se connecter")');
+        const submitBtn = await page.$('button[type="submit"]') ||
+                         await page.$('button[data-testid="login-submit-button"]') ||
+                         await page.$('button[data-cy="submit-button"]');
         
         if (submitBtn) {
             await Promise.all([

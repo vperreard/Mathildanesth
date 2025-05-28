@@ -1,39 +1,75 @@
-// Service Worker Médical Optimisé - Mathildanesth v2
-// Cache intelligent pour application médicale avec support offline
+// Service Worker Médical Avancé - Mathildanesth PWA v3
+// Cache intelligent + Sync hors ligne + Notifications médicales
 
-const CACHE_NAME = 'mathildanesth-medical-v2';
-const STATIC_CACHE = 'mathildanesth-static-v2';
-const DYNAMIC_CACHE = 'mathildanesth-dynamic-v2';
-const API_CACHE = 'mathildanesth-api-v2';
+const CACHE_NAME = 'mathildanesth-medical-v3';
+const STATIC_CACHE = 'mathildanesth-static-v3';
+const DYNAMIC_CACHE = 'mathildanesth-dynamic-v3';
+const API_CACHE = 'mathildanesth-api-v3';
+const OFFLINE_QUEUE = 'mathildanesth-offline-v3';
 
-// Ressources statiques à pré-cacher
+// Ressources statiques pour PWA médicale
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
   '/offline.html',
+  '/icons/icon-72x72.png',
+  '/icons/icon-96x96.png',
+  '/icons/icon-128x128.png',
+  '/icons/icon-144x144.png',
+  '/icons/icon-152x152.png',
   '/icons/icon-192x192.png',
+  '/icons/icon-384x384.png',
   '/icons/icon-512x512.png',
-  // Pages principales accessibles hors ligne
+  '/favicon.ico',
+  '/apple-touch-icon.png',
+  // Pages médicales critiques hors ligne
   '/planning',
+  '/conges',
   '/bloc-operatoire',
-  '/leaves',
-  '/profile'
+  '/notifications',
+  '/profil',
+  '/admin/command-center',
+  '/admin/urgences'
 ];
 
-// Ressources dynamiques importantes (planning, etc.)
-const DYNAMIC_PATTERNS = [
+// Patterns API médicales prioritaires
+const CRITICAL_API_PATTERNS = [
   /^\/api\/planning\/.*/,
-  /^\/api\/leaves\/.*/,
+  /^\/api\/conges\/.*/,
   /^\/api\/auth\/me$/,
-  /^\/planning\/.*/,
-  /^\/bloc-operatoire\/.*/
+  /^\/api\/mon-planning\/.*/,
+  /^\/api\/bloc-operatoire\/.*/,
+  /^\/api\/notifications\/.*/,
+  /^\/api\/admin\/urgences\/.*/
 ];
 
-// Durées de cache
-const CACHE_DURATIONS = {
-  static: 24 * 60 * 60 * 1000, // 24h
-  dynamic: 2 * 60 * 60 * 1000, // 2h
-  api: 5 * 60 * 1000          // 5min
+// Patterns routes médicales
+const MEDICAL_ROUTE_PATTERNS = [
+  /^\/planning\/.*/,
+  /^\/conges\/.*/,
+  /^\/bloc-operatoire\/.*/,
+  /^\/admin\/.*/
+];
+
+// Stratégies de cache médical
+const CACHE_STRATEGIES = {
+  static: 24 * 60 * 60 * 1000,    // 24h - Assets statiques
+  planning: 30 * 60 * 1000,       // 30min - Données planning
+  medical: 10 * 60 * 1000,        // 10min - Données médicales critiques
+  user: 5 * 60 * 1000,            // 5min - Données utilisateur
+  emergency: 60 * 1000            // 1min - Données urgence
+};
+
+// Queue pour synchronisation différée
+let offlineQueue = [];
+
+// Support notifications push médicales
+const MEDICAL_NOTIFICATION_TYPES = {
+  EMERGENCY_REPLACEMENT: 'Remplacement Urgence',
+  SCHEDULE_CONFLICT: 'Conflit Planning',
+  LEAVE_APPROVAL: 'Validation Congé',
+  SHIFT_REMINDER: 'Rappel Garde',
+  SYSTEM_ALERT: 'Alerte Système'
 };
 
 self.addEventListener('install', function(event) {

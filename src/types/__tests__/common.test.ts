@@ -1,0 +1,55 @@
+import { ApiResponse, PaginatedResponse, RequestStatus } from '../common';
+
+describe('Common Types', () => {
+    describe('ApiResponse', () => {
+        it('should represent successful API response', () => {
+            const response: ApiResponse<string> = {
+                success: true,
+                data: 'test data'
+            };
+            
+            expect(response.success).toBe(true);
+            expect(response.data).toBe('test data');
+            expect(response.error).toBeUndefined();
+        });
+
+        it('should represent failed API response', () => {
+            const response: ApiResponse<string> = {
+                success: false,
+                error: 'Something went wrong'
+            };
+            
+            expect(response.success).toBe(false);
+            expect(response.error).toBe('Something went wrong');
+            expect(response.data).toBeUndefined();
+        });
+    });
+
+    describe('PaginatedResponse', () => {
+        it('should represent paginated data structure', () => {
+            const paginatedResponse: PaginatedResponse<string> = {
+                data: ['item1', 'item2'],
+                total: 100,
+                page: 1,
+                limit: 10,
+                totalPages: 10
+            };
+            
+            expect(paginatedResponse.data).toHaveLength(2);
+            expect(paginatedResponse.total).toBe(100);
+            expect(paginatedResponse.page).toBe(1);
+            expect(paginatedResponse.limit).toBe(10);
+            expect(paginatedResponse.totalPages).toBe(10);
+        });
+    });
+
+    describe('RequestStatus', () => {
+        it('should include all expected status values', () => {
+            const statuses: RequestStatus[] = ['idle', 'loading', 'success', 'error'];
+            
+            statuses.forEach(status => {
+                expect(['idle', 'loading', 'success', 'error']).toContain(status);
+            });
+        });
+    });
+});

@@ -1,0 +1,29 @@
+import { hasAccess } from '../navigationConfig';
+
+describe('navigationConfig', () => {
+    describe('hasAccess', () => {
+        it('should allow access to planning for all roles', () => {
+            expect(hasAccess('MAR', '/planning')).toBe(true);
+            expect(hasAccess('ADMIN_TOTAL', '/planning')).toBe(true);
+        });
+
+        it('should allow access to conges for all roles', () => {
+            expect(hasAccess('MAR', '/conges')).toBe(true);
+            expect(hasAccess('IADE', '/conges')).toBe(true);
+        });
+
+        it('should restrict admin access appropriately', () => {
+            expect(hasAccess('MAR', '/admin')).toBe(false);
+            expect(hasAccess('ADMIN_TOTAL', '/admin')).toBe(true);
+        });
+
+        it('should restrict admin access for partial admin', () => {
+            expect(hasAccess('ADMIN_PARTIEL', '/admin')).toBe(true);
+        });
+
+        it('should allow public paths access', () => {
+            expect(hasAccess('MAR', '/profil')).toBe(true);
+            expect(hasAccess('IADE', '/aide')).toBe(true);
+        });
+    });
+});

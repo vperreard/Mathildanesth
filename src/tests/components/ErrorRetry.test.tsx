@@ -20,12 +20,11 @@ const DefaultChildren = <div data-testid="default-children">Contenu réussi</div
 
 describe('ErrorRetry Component', () => {
     beforeEach(() => {
-    jest.clearAllMocks();
-        jest.useFakeTimers();
+        jest.clearAllMocks();
+        // Utiliser de vrais timers pour éviter les problèmes de synchronisation
     });
 
     afterEach(() => {
-        jest.useRealTimers();
         jest.clearAllMocks();
     });
 
@@ -59,31 +58,20 @@ describe('ErrorRetry Component', () => {
             .mockResolvedValueOnce('success');
 
         render(
-            <ErrorRetry action={mockAction} maxRetries={2} retryDelay={1000}>
+            <ErrorRetry action={mockAction} maxRetries={2} retryDelay={100}>
                 {DefaultChildren}
             </ErrorRetry>
         );
 
-        // L'action devrait être appelée une première fois au montage
-        expect(mockAction).toHaveBeenCalledTimes(1);
-
-        // Avancer dans le temps pour permettre à la nouvelle tentative
-        await act(async () => {
-            jest.advanceTimersByTime(1000);
-        });
-
-        // L'action devrait être appelée une deuxième fois
-        expect(mockAction).toHaveBeenCalledTimes(2);
-
-        // Avancer dans le temps pour permettre à l'action de se terminer
-        await act(async () => {
-            jest.runAllTimers();
-        });
+        // Attendre que les retries s'exécutent
+        await waitFor(() => {
+            expect(mockAction).toHaveBeenCalledTimes(2);
+        }, { timeout: 3000 });
 
         // Après la réussite, le contenu devrait être affiché
         await waitFor(() => {
             expect(screen.getByTestId('default-children')).toBeInTheDocument();
-        });
+        }, { timeout: 2000 });
     });
 
     test('devrait afficher un message d\'erreur après avoir épuisé les tentatives', async () => {

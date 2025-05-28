@@ -1,622 +1,435 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, act } from '@testing-library/react';
 import { usePlanningValidation } from '../usePlanningValidation';
-import { Attribution } from '@/types/attribution';
-import { RuleSeverity } from '@/types/rules';
-import { RuleEngineV2 } from '@/modules/dynamicRules/v2/services/RuleEngineV2';
+import { ValidationService } from '@/services/ValidationService';
+import { RuleConfigServiceV2 } from '@/services/RuleConfigServiceV2';
 
-// Mock RuleEngineV2
-jest.mock('@/modules/dynamicRules/v2/services/RuleEngineV2');
+jest.mock('@/services/ValidationService');
+jest.mock('@/services/RuleConfigServiceV2');
 
-describe('usePlanningValidation', () => {
-    let queryClient: QueryClient;
-    let mockRuleEngine: jest.Mocked<RuleEngineV2>;
+const mockValidationService = ValidationService as jest.Mocked<typeof ValidationService>;
+const mockRuleService = RuleConfigServiceV2 as jest.Mocked<typeof RuleConfigServiceV2>;
 
-    const createWrapper = () => {
-        return ({ children }: { children: React.ReactNode }) => (
-            <QueryClientProvider client={queryClient}>
-                {children}
-            </QueryClientProvider>
-        );
-    };
+describe('usePlanningValidation Hook', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    const mockAssignment: Attribution = {
-        id: 'attribution-1',
-        userId: 'user-1',
-        userName: 'John Doe',
-        shiftType: 'JOUR',
-        startDate: new Date('2025-01-15T08:00:00'),
-        endDate: new Date('2025-01-15T20:00:00'),
-        department: 'Surgery',
-        status: 'CONFIRMED',
-        notes: 'Bloc A',
-        createdAt: new Date(),
-        updatedAt: new Date()
-    };
+  const mockAssignment = {
+    id: 1,
+    userId: 1,
+    date: new Date('2025-01-28'),
+    roomId: 1,
+    period: 'MORNING' as const,
+    type: 'REGULAR' as const,
+  };
 
-    const mockAssignments: Attribution[] = [
-        mockAssignment,
+  const mockRules = [
+    {
+      id: 1,
+      name: 'Max consecutive days',
+      type: 'MAX_CONSECUTIVE_DAYS',
+      condition: { maxDays: 5 },
+      severity: 'ERROR' as const,
+      active: true,
+    },
+    {
+      id: 2,
+      name: 'Minimum rest period',
+      type: 'MIN_REST_PERIOD',
+      condition: { minHours: 11 },
+      severity: 'WARNING' as const,
+      active: true,
+    },
+  ];
+
+  describe('validateAssignment', () => {
+    it('devrait valider une affectation sans violations', async () => {
+      mockValidationService.validateAssignment.mockResolvedValue({
+        isValid: true,
+        violations: [],
+        warnings: [],
+      });
+
+      const { result } = renderHook(() => usePlanningValidation());
+
+      await act(async () => {
+        const validation = await result.current.validateAssignment(mockAssignment);
+        expect(validation.isValid).toBe(true);
+        expect(validation.violations).toHaveLength(0);
+      });
+
+      expect(mockValidationService.validateAssignment).toHaveBeenCalledWith(mockAssignment);
+    });
+
+    it('devrait détecter des violations de règles', async () => {
+      const violations = [
         {
-            ...mockAssignment,
-            id: 'attribution-2',
-            userId: 'user-2',
-            userName: 'Jane Smith'
-        }
-    ];
+          ruleId: 1,
+          ruleName: 'Max consecutive days',
+          severity: 'ERROR' as const,
+          message: 'Maximum de 5 jours consécutifs dépassé',
+          details: { currentDays: 6, maxDays: 5 },
+        },
+      ];
 
-    beforeEach(() => {
-    jest.clearAllMocks();
-        queryClient = new QueryClient({
-            defaultOptions: {
-                queries: { retry: false },
-                mutations: { retry: false }
-            }
-        });
+      mockValidationService.validateAssignment.mockResolvedValue({
+        isValid: false,
+        violations,
+        warnings: [],
+      });
 
-        // Reset mocks
-        jest.clearAllMocks();
-        
-        // Setup RuleEngineV2 mock
-        mockRuleEngine = {
-            initialize: jest.fn().mockResolvedValue(undefined),
-            evaluate: jest.fn().mockResolvedValue([]),
-            cleanup: jest.fn()
-        } as any;
+      const { result } = renderHook(() => usePlanningValidation());
 
-        (RuleEngineV2 as jest.MockedClass<typeof RuleEngineV2>).mockImplementation(() => mockRuleEngine);
+      await act(async () => {
+        const validation = await result.current.validateAssignment(mockAssignment);
+        expect(validation.isValid).toBe(false);
+        expect(validation.violations).toEqual(violations);
+      });
     });
 
-    afterEach(() => {
-        queryClient.clear();
+    it('devrait inclure les avertissements', async () => {
+      const warnings = [
+        {
+          ruleId: 2,
+          ruleName: 'Minimum rest period',
+          severity: 'WARNING' as const,
+          message: 'Période de repos insuffisante',
+          details: { currentHours: 10, minHours: 11 },
+        },
+      ];
+
+      mockValidationService.validateAssignment.mockResolvedValue({
+        isValid: true,
+        violations: [],
+        warnings,
+      });
+
+      const { result } = renderHook(() => usePlanningValidation());
+
+      await act(async () => {
+        const validation = await result.current.validateAssignment(mockAssignment);
+        expect(validation.isValid).toBe(true);
+        expect(validation.warnings).toEqual(warnings);
+      });
+    });
+  });
+
+  describe('validatePlanningPeriod', () => {
+    it('devrait valider une période de planning complète', async () => {
+      const startDate = new Date('2025-01-01');
+      const endDate = new Date('2025-01-31');
+      
+      mockValidationService.validatePlanningPeriod.mockResolvedValue({
+        isValid: true,
+        totalViolations: 0,
+        violationsByRule: {},
+        criticalViolations: [],
+      });
+
+      const { result } = renderHook(() => usePlanningValidation());
+
+      await act(async () => {
+        const validation = await result.current.validatePlanningPeriod(startDate, endDate);
+        expect(validation.isValid).toBe(true);
+        expect(validation.totalViolations).toBe(0);
+      });
+
+      expect(mockValidationService.validatePlanningPeriod).toHaveBeenCalledWith(startDate, endDate);
     });
 
-    describe('initialization', () => {
-        it('should initialize rule engine on mount', async () => {
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
+    it('devrait rapporter les violations par règle', async () => {
+      const startDate = new Date('2025-01-01');
+      const endDate = new Date('2025-01-31');
+      
+      mockValidationService.validatePlanningPeriod.mockResolvedValue({
+        isValid: false,
+        totalViolations: 5,
+        violationsByRule: {
+          'Max consecutive days': 3,
+          'Minimum rest period': 2,
+        },
+        criticalViolations: [
+          {
+            date: new Date('2025-01-15'),
+            userId: 1,
+            violation: {
+              ruleId: 1,
+              ruleName: 'Max consecutive days',
+              severity: 'ERROR',
+              message: 'Limite dépassée',
+            },
+          },
+        ],
+      });
 
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
+      const { result } = renderHook(() => usePlanningValidation());
 
-            expect(result.current.isValidating).toBe(false);
-            expect(result.current.violations).toEqual([]);
-        });
+      await act(async () => {
+        const validation = await result.current.validatePlanningPeriod(startDate, endDate);
+        expect(validation.isValid).toBe(false);
+        expect(validation.totalViolations).toBe(5);
+        expect(validation.violationsByRule['Max consecutive days']).toBe(3);
+        expect(validation.criticalViolations).toHaveLength(1);
+      });
+    });
+  });
 
-        it('should handle initialization errors gracefully', async () => {
-            mockRuleEngine.initialize.mockRejectedValue(new Error('Init failed'));
+  describe('getActiveRules', () => {
+    it('devrait récupérer les règles actives', async () => {
+      mockRuleService.getActiveRules.mockResolvedValue(mockRules);
 
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
+      const { result } = renderHook(() => usePlanningValidation());
 
-            await waitFor(() => {
-                expect(result.current.error).toBeUndefined();
-            });
-        });
+      await act(async () => {
+        await result.current.loadActiveRules();
+      });
+
+      expect(result.current.activeRules).toEqual(mockRules);
+      expect(result.current.isLoadingRules).toBe(false);
     });
 
-    describe('validateAssignment', () => {
-        it('should validate a single attribution successfully', async () => {
-            const mockViolation = {
-                ruleId: 'rule-1',
-                ruleName: 'Min Interval Rule',
-                passed: false,
-                actions: [{
-                    type: 'validate',
-                    parameters: {
-                        severity: RuleSeverity.WARNING,
-                        message: 'Interval trop court',
-                        violationType: 'MIN_INTERVAL'
-                    }
-                }]
-            };
+    it('devrait gérer les erreurs de chargement des règles', async () => {
+      mockRuleService.getActiveRules.mockRejectedValue(new Error('Failed to load rules'));
 
-            mockRuleEngine.evaluate.mockResolvedValue([mockViolation]);
+      const { result } = renderHook(() => usePlanningValidation());
 
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
+      await act(async () => {
+        await result.current.loadActiveRules();
+      });
 
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
+      expect(result.current.activeRules).toEqual([]);
+      expect(result.current.error).toBeTruthy();
+      expect(result.current.isLoadingRules).toBe(false);
+    });
+  });
 
-            let violations;
-            await act(async () => {
-                violations = await result.current.validateAssignment(mockAssignment, mockAssignments);
-            });
+  describe('Real-time Validation', () => {
+    it('devrait valider en temps réel pendant le drag & drop', async () => {
+      mockValidationService.validateAssignment.mockResolvedValue({
+        isValid: true,
+        violations: [],
+        warnings: [],
+      });
 
-            expect(violations).toHaveLength(1);
-            expect(violations[0]).toMatchObject({
-                type: 'MIN_INTERVAL',
-                severity: RuleSeverity.WARNING,
-                message: 'Interval trop court',
-                affectedAssignments: ['attribution-1']
-            });
-        });
+      const { result } = renderHook(() => usePlanningValidation());
 
-        it('should return empty violations array when all rules pass', async () => {
-            mockRuleEngine.evaluate.mockResolvedValue([{
-                ruleId: 'rule-1',
-                ruleName: 'Test Rule',
-                passed: true,
-                actions: []
-            }]);
+      let validationResult;
+      await act(async () => {
+        validationResult = await result.current.validateDragDrop(
+          mockAssignment.userId,
+          mockAssignment.date,
+          mockAssignment.roomId,
+          mockAssignment.period
+        );
+      });
 
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
-
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
-
-            let violations;
-            await act(async () => {
-                violations = await result.current.validateAssignment(mockAssignment, mockAssignments);
-            });
-
-            expect(violations).toEqual([]);
-        });
-
-        it('should handle evaluation errors gracefully', async () => {
-            mockRuleEngine.evaluate.mockRejectedValue(new Error('Evaluation failed'));
-
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
-
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
-
-            let violations;
-            await act(async () => {
-                violations = await result.current.validateAssignment(mockAssignment, mockAssignments);
-            });
-
-            expect(violations).toEqual([]);
-        });
-
-        it('should skip validation if engine is still initializing', async () => {
-            // Mock slow initialization
-            mockRuleEngine.initialize.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 1000)));
-
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
-
-            let violations;
-            await act(async () => {
-                violations = await result.current.validateAssignment(mockAssignment, mockAssignments);
-            });
-
-            expect(violations).toEqual([]);
-            expect(mockRuleEngine.evaluate).not.toHaveBeenCalled();
-        });
+      expect(validationResult).toEqual({
+        isValid: true,
+        violations: [],
+        warnings: [],
+      });
     });
 
-    describe('validatePlanning', () => {
-        it('should validate entire planning and update state', async () => {
-            const mockViolations = [
-                {
-                    ruleId: 'rule-1',
-                    ruleName: 'Fatigue Rule',
-                    passed: false,
-                    actions: [{
-                        type: 'validate',
-                        parameters: {
-                            severity: RuleSeverity.ERROR,
-                            message: 'Trop de gardes consécutives',
-                            violationType: 'FATIGUE'
-                        }
-                    }]
-                }
-            ];
+    it('devrait mettre en cache les validations répétées', async () => {
+      mockValidationService.validateAssignment.mockResolvedValue({
+        isValid: true,
+        violations: [],
+        warnings: [],
+      });
 
-            mockRuleEngine.evaluate.mockResolvedValue(mockViolations);
+      const { result } = renderHook(() => usePlanningValidation());
 
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
+      // First validation
+      await act(async () => {
+        await result.current.validateAssignment(mockAssignment);
+      });
 
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
+      // Second validation with same data
+      await act(async () => {
+        await result.current.validateAssignment(mockAssignment);
+      });
 
-            let validationResult;
-            await act(async () => {
-                validationResult = await result.current.validatePlanning(mockAssignments);
-            });
+      // Should use cache for second call
+      expect(mockValidationService.validateAssignment).toHaveBeenCalledTimes(1);
+    });
+  });
 
-            expect(validationResult).toMatchObject({
-                valid: false,
-                violations: expect.arrayContaining([
-                    expect.objectContaining({
-                        type: 'FATIGUE',
-                        severity: RuleSeverity.ERROR
-                    })
-                ]),
-                metrics: {
-                    totalViolations: 2, // One per attribution
-                    criticalViolations: 2,
-                    warnings: 0
-                }
-            });
+  describe('Batch Validation', () => {
+    it('devrait valider plusieurs affectations en batch', async () => {
+      const assignments = [
+        mockAssignment,
+        { ...mockAssignment, id: 2, date: new Date('2025-01-29') },
+        { ...mockAssignment, id: 3, date: new Date('2025-01-30') },
+      ];
 
-            expect(result.current.violations).toHaveLength(2);
-            expect(result.current.hasViolations).toBe(true);
-            expect(result.current.hasCriticalViolations).toBe(true);
-        });
+      mockValidationService.validateBatch.mockResolvedValue({
+        results: assignments.map(a => ({
+          assignmentId: a.id,
+          isValid: true,
+          violations: [],
+        })),
+        summary: {
+          total: 3,
+          valid: 3,
+          invalid: 0,
+        },
+      });
 
-        it('should deduplicate similar violations', async () => {
-            const duplicateViolation = {
-                ruleId: 'rule-1',
-                ruleName: 'Same Rule',
-                passed: false,
-                actions: [{
-                    type: 'validate',
-                    parameters: {
-                        severity: RuleSeverity.WARNING,
-                        message: 'Same message',
-                        violationType: 'SAME_TYPE'
-                    }
-                }]
-            };
+      const { result } = renderHook(() => usePlanningValidation());
 
-            // Return same violation for both attributions
-            mockRuleEngine.evaluate.mockResolvedValue([duplicateViolation]);
-
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
-
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
-
-            await act(async () => {
-                await result.current.validatePlanning(mockAssignments);
-            });
-
-            // Should have 2 violations (one per attribution) as they have different affected attributions
-            expect(result.current.violations).toHaveLength(2);
-        });
-
-        it('should update isValidating state during validation', async () => {
-            mockRuleEngine.evaluate.mockImplementation(() => 
-                new Promise(resolve => setTimeout(() => resolve([]), 100))
-            );
-
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
-
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
-
-            expect(result.current.isValidating).toBe(false);
-
-            const validationPromise = act(async () => {
-                await result.current.validatePlanning(mockAssignments);
-            });
-
-            expect(result.current.isValidating).toBe(true);
-
-            await validationPromise;
-
-            expect(result.current.isValidating).toBe(false);
-        });
-
-        it('should handle validation errors and update error state', async () => {
-            const error = new Error('Validation failed');
-            mockRuleEngine.evaluate.mockRejectedValue(error);
-
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
-
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
-
-            await act(async () => {
-                try {
-                    await result.current.validatePlanning(mockAssignments);
-                } catch (err) {
-                    expect(err).toBe(error);
-                }
-            });
-
-            expect(result.current.error).toBe(error);
-        });
+      await act(async () => {
+        const validation = await result.current.validateBatch(assignments);
+        expect(validation.summary.valid).toBe(3);
+        expect(validation.summary.invalid).toBe(0);
+      });
     });
 
-    describe('validateWithDebounce', () => {
-        beforeEach(() => {
-    jest.clearAllMocks();
-            jest.useFakeTimers();
-        });
+    it('devrait identifier les affectations invalides dans un batch', async () => {
+      const assignments = [
+        mockAssignment,
+        { ...mockAssignment, id: 2, date: new Date('2025-01-29') },
+      ];
 
-        afterEach(() => {
-            jest.useRealTimers();
-        });
+      mockValidationService.validateBatch.mockResolvedValue({
+        results: [
+          {
+            assignmentId: 1,
+            isValid: true,
+            violations: [],
+          },
+          {
+            assignmentId: 2,
+            isValid: false,
+            violations: [{
+              ruleId: 1,
+              ruleName: 'Max consecutive days',
+              severity: 'ERROR',
+              message: 'Limite dépassée',
+            }],
+          },
+        ],
+        summary: {
+          total: 2,
+          valid: 1,
+          invalid: 1,
+        },
+      });
 
-        it('should debounce validation calls', async () => {
-            const { result } = renderHook(() => usePlanningValidation({ autoValidate: true, debounceMs: 500 }), {
-                wrapper: createWrapper()
-            });
+      const { result } = renderHook(() => usePlanningValidation());
 
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
+      await act(async () => {
+        const validation = await result.current.validateBatch(assignments);
+        expect(validation.summary.invalid).toBe(1);
+        expect(validation.results[1].isValid).toBe(false);
+      });
+    });
+  });
 
-            // Call validateWithDebounce multiple times rapidly
-            act(() => {
-                result.current.validateWithDebounce(mockAssignments);
-                result.current.validateWithDebounce(mockAssignments);
-                result.current.validateWithDebounce(mockAssignments);
-            });
+  describe('Rule Suggestions', () => {
+    it('devrait suggérer des corrections pour les violations', async () => {
+      const violation = {
+        ruleId: 1,
+        ruleName: 'Max consecutive days',
+        severity: 'ERROR' as const,
+        message: 'Maximum de 5 jours consécutifs dépassé',
+      };
 
-            // Validation should not be called yet
-            expect(mockRuleEngine.evaluate).not.toHaveBeenCalled();
+      mockValidationService.getSuggestions.mockResolvedValue([
+        {
+          type: 'SWAP_ASSIGNMENT',
+          description: 'Échanger avec Dr. Martin le 29/01',
+          targetUserId: 2,
+          targetDate: new Date('2025-01-29'),
+        },
+        {
+          type: 'REMOVE_ASSIGNMENT',
+          description: 'Retirer l\'affectation du 28/01',
+          targetDate: new Date('2025-01-28'),
+        },
+      ]);
 
-            // Fast forward past debounce delay
-            act(() => {
-                jest.advanceTimersByTime(500);
-            });
+      const { result } = renderHook(() => usePlanningValidation());
 
-            await waitFor(() => {
-                // Should only be called once despite multiple invocations
-                expect(mockRuleEngine.evaluate).toHaveBeenCalledTimes(2); // Once per attribution
-            });
-        });
+      await act(async () => {
+        const suggestions = await result.current.getSuggestions(violation, mockAssignment);
+        expect(suggestions).toHaveLength(2);
+        expect(suggestions[0].type).toBe('SWAP_ASSIGNMENT');
+      });
+    });
+  });
 
-        it('should not validate if autoValidate is false', async () => {
-            const { result } = renderHook(() => usePlanningValidation({ autoValidate: false }), {
-                wrapper: createWrapper()
-            });
+  describe('Performance Metrics', () => {
+    it('devrait mesurer le temps de validation', async () => {
+      mockValidationService.validateAssignment.mockImplementation(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        return {
+          isValid: true,
+          violations: [],
+          warnings: [],
+        };
+      });
 
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
+      const { result } = renderHook(() => usePlanningValidation());
 
-            act(() => {
-                result.current.validateWithDebounce(mockAssignments);
-            });
+      const start = Date.now();
+      await act(async () => {
+        await result.current.validateAssignment(mockAssignment);
+      });
+      const duration = Date.now() - start;
 
-            act(() => {
-                jest.advanceTimersByTime(1000);
-            });
-
-            expect(mockRuleEngine.evaluate).not.toHaveBeenCalled();
-        });
+      expect(duration).toBeGreaterThanOrEqual(100);
+      expect(result.current.lastValidationTime).toBeGreaterThanOrEqual(100);
     });
 
-    describe('getSuggestions', () => {
-        it('should provide suggestions for MIN_INTERVAL violations', async () => {
-            const violation = {
-                id: 'violation-1',
-                type: 'MIN_INTERVAL',
-                severity: RuleSeverity.WARNING,
-                message: 'Interval too short',
-                affectedAssignments: ['attribution-1']
-            };
+    it('devrait suivre les statistiques de validation', async () => {
+      mockValidationService.validateAssignment
+        .mockResolvedValueOnce({ isValid: true, violations: [], warnings: [] })
+        .mockResolvedValueOnce({ isValid: false, violations: [{}], warnings: [] });
 
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
+      const { result } = renderHook(() => usePlanningValidation());
 
-            let suggestions;
-            await act(async () => {
-                suggestions = await result.current.getSuggestions(violation, mockAssignments);
-            });
+      await act(async () => {
+        await result.current.validateAssignment(mockAssignment);
+        await result.current.validateAssignment({ ...mockAssignment, id: 2 });
+      });
 
-            expect(suggestions).toContain('Augmenter l\'intervalle entre les gardes');
-            expect(suggestions).toContain('Réaffecter à un autre praticien');
-        });
+      expect(result.current.validationStats).toEqual({
+        total: 2,
+        valid: 1,
+        invalid: 1,
+        averageTime: expect.any(Number),
+      });
+    });
+  });
 
-        it('should provide suggestions for FATIGUE violations', async () => {
-            const violation = {
-                id: 'violation-1',
-                type: 'FATIGUE',
-                severity: RuleSeverity.ERROR,
-                message: 'Too many consecutive shifts',
-                affectedAssignments: ['attribution-1']
-            };
+  describe('Error Handling', () => {
+    it('devrait gérer les erreurs de validation gracieusement', async () => {
+      mockValidationService.validateAssignment.mockRejectedValue(
+        new Error('Validation service unavailable')
+      );
 
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
+      const { result } = renderHook(() => usePlanningValidation());
 
-            let suggestions;
-            await act(async () => {
-                suggestions = await result.current.getSuggestions(violation, mockAssignments);
-            });
-
-            expect(suggestions).toContain('Réduire le nombre d\'assignments pour ce praticien');
-            expect(suggestions).toContain('Prévoir des jours de repos supplémentaires');
-        });
-
-        it('should provide default suggestions for unknown violation types', async () => {
-            const violation = {
-                id: 'violation-1',
-                type: 'UNKNOWN_TYPE',
-                severity: RuleSeverity.INFO,
-                message: 'Unknown violation',
-                affectedAssignments: ['attribution-1']
-            };
-
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
-
-            let suggestions;
-            await act(async () => {
-                suggestions = await result.current.getSuggestions(violation, mockAssignments);
-            });
-
-            expect(suggestions).toContain('Vérifier les règles de planning configurées');
-        });
+      await act(async () => {
+        const validation = await result.current.validateAssignment(mockAssignment);
+        expect(validation.isValid).toBe(false);
+        expect(validation.error).toBe('Validation service unavailable');
+      });
     });
 
-    describe('utility functions', () => {
-        it('should correctly filter violations by attribution', async () => {
-            const violations = [
-                {
-                    ruleId: 'rule-1',
-                    ruleName: 'Rule 1',
-                    passed: false,
-                    actions: [{
-                        type: 'validate',
-                        parameters: {
-                            severity: RuleSeverity.WARNING,
-                            message: 'Violation 1',
-                            violationType: 'TYPE_1'
-                        }
-                    }]
-                },
-                {
-                    ruleId: 'rule-2',
-                    ruleName: 'Rule 2',
-                    passed: false,
-                    actions: [{
-                        type: 'validate',
-                        parameters: {
-                            severity: RuleSeverity.ERROR,
-                            message: 'Violation 2',
-                            violationType: 'TYPE_2'
-                        }
-                    }]
-                }
-            ];
+    it('devrait avoir un fallback pour les règles non disponibles', async () => {
+      mockRuleService.getActiveRules.mockRejectedValue(new Error('Rules service down'));
 
-            mockRuleEngine.evaluate
-                .mockResolvedValueOnce([violations[0]]) // For attribution-1
-                .mockResolvedValueOnce([violations[1]]); // For attribution-2
+      const { result } = renderHook(() => usePlanningValidation());
 
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
+      await act(async () => {
+        await result.current.loadActiveRules();
+      });
 
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
-
-            await act(async () => {
-                await result.current.validatePlanning(mockAssignments);
-            });
-
-            const assignment1Violations = result.current.violationsByAssignment('attribution-1');
-            const assignment2Violations = result.current.violationsByAssignment('attribution-2');
-
-            expect(assignment1Violations).toHaveLength(1);
-            expect(assignment1Violations[0].type).toBe('TYPE_1');
-            
-            expect(assignment2Violations).toHaveLength(1);
-            expect(assignment2Violations[0].type).toBe('TYPE_2');
-        });
-
-        it('should track lastValidation timestamp', async () => {
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
-
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
-
-            expect(result.current.lastValidation).toBeUndefined();
-
-            const beforeValidation = new Date();
-            
-            await act(async () => {
-                await result.current.validatePlanning(mockAssignments);
-            });
-
-            expect(result.current.lastValidation).toBeDefined();
-            expect(result.current.lastValidation!.getTime()).toBeGreaterThanOrEqual(beforeValidation.getTime());
-        });
+      // Should use default rules
+      expect(result.current.activeRules).toEqual(expect.arrayContaining([
+        expect.objectContaining({ type: 'BASIC_VALIDATION' }),
+      ]));
     });
-
-    describe('edge cases', () => {
-        it('should handle empty attributions array', async () => {
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
-
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
-
-            let validationResult;
-            await act(async () => {
-                validationResult = await result.current.validatePlanning([]);
-            });
-
-            expect(validationResult).toMatchObject({
-                valid: true,
-                violations: [],
-                metrics: {
-                    totalViolations: 0,
-                    criticalViolations: 0,
-                    warnings: 0
-                }
-            });
-        });
-
-        it('should handle violations without actions', async () => {
-            mockRuleEngine.evaluate.mockResolvedValue([{
-                ruleId: 'rule-1',
-                ruleName: 'No Actions Rule',
-                passed: false,
-                actions: undefined
-            }]);
-
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
-
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
-
-            let violations;
-            await act(async () => {
-                violations = await result.current.validateAssignment(mockAssignment, mockAssignments);
-            });
-
-            expect(violations).toEqual([]);
-        });
-
-        it('should handle actions without validate type', async () => {
-            mockRuleEngine.evaluate.mockResolvedValue([{
-                ruleId: 'rule-1',
-                ruleName: 'Other Action Rule',
-                passed: false,
-                actions: [{
-                    type: 'notify',
-                    parameters: {}
-                }]
-            }]);
-
-            const { result } = renderHook(() => usePlanningValidation(), {
-                wrapper: createWrapper()
-            });
-
-            await waitFor(() => {
-                expect(mockRuleEngine.initialize).toHaveBeenCalled();
-            });
-
-            let violations;
-            await act(async () => {
-                violations = await result.current.validateAssignment(mockAssignment, mockAssignments);
-            });
-
-            expect(violations).toEqual([]);
-        });
-    });
+  });
 });

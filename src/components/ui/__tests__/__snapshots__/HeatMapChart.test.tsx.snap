@@ -3,94 +3,93 @@
 exports[`HeatMapChart doit appliquer la bonne échelle de couleurs 1`] = `
 <div>
   <div
-    class="rounded-lg border bg-card text-card-foreground shadow-sm dark:bg-slate-800 dark:border-slate-700 overflow-hidden"
+    class="overflow-hidden"
   >
     <div
-      class="flex flex-col space-y-1.5 p-6 pb-2"
+      class="pb-2"
     >
       <div
         class="flex justify-between items-start"
       >
         <div>
-          <h3
-            class="text-2xl font-semibold leading-none tracking-tight bg-gradient-to-r from-primary-600 via-secondary-600 to-tertiary-600 bg-clip-text text-transparent"
-            style="background-clip: text;"
-          >
+          <h3>
             Test Heat Map
           </h3>
-          <p
-            class="text-sm text-muted-foreground dark:text-slate-400"
-          >
-            Visualisation de la charge de travail
+          <p>
+            Test Description
           </p>
         </div>
         <div
           class="flex items-center gap-2"
         >
-          <button
-            aria-autocomplete="none"
-            aria-controls="radix-:r8:"
-            aria-expanded="false"
-            class="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-[140px]"
-            data-state="closed"
-            dir="ltr"
-            role="combobox"
-            type="button"
+          <div
+            value="default"
           >
-            <span
-              style="pointer-events: none;"
+            <button
+              class="w-[140px]"
             >
-              Standard
-            </span>
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-chevron-down h-4 w-4 opacity-50"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="m6 9 6 6 6-6"
+              <span
+                placeholder="Palette de couleurs"
               />
-            </svg>
-          </button>
-          <svg
-            class="lucide lucide-circle-help text-muted-foreground cursor-help"
-            data-state="closed"
-            fill="none"
-            height="18"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-            width="18"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle
-              cx="12"
-              cy="12"
-              r="10"
-            />
-            <path
-              d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
-            />
-            <path
-              d="M12 17h.01"
-            />
-          </svg>
+            </button>
+            <div>
+              <div
+                value="default"
+              >
+                Standard
+              </div>
+              <div
+                value="overload"
+              >
+                Surcharge
+              </div>
+            </div>
+          </div>
+          <div>
+            <div>
+              <div>
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-circle-help text-muted-foreground cursor-help"
+                  fill="none"
+                  height="18"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                  />
+                  <path
+                    d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
+                  />
+                  <path
+                    d="M12 17h.01"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p>
+                  Palette "Standard" : Mesure la couverture à partir de 0% (vide) à 100% (couverture complète).
+                </p>
+                <p
+                  class="mt-1"
+                >
+                  Palette "Surcharge" : Inclut les valeurs au-delà de 100% pour identifier les surcharges.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div
-      class="p-6 pt-0"
-    >
+    <div>
       <div
         class="flex flex-col"
         style="height: 400px; width: 100%; overflow: auto;"

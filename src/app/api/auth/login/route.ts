@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAuthTokenServer, setAuthTokenServer } from '@/lib/auth-server-utils';
 import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { withAuthRateLimit } from '@/lib/rateLimit';
-import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
 async function loginHandler(req: NextRequest) {
     const startTime = Date.now();
@@ -20,13 +19,10 @@ async function loginHandler(req: NextRequest) {
 
         // Utilisation du client Prisma importé
 
-        // Requête optimisée : recherche login ET email en une seule requête
+        // Recherche uniquement par login
         const user = await prisma.user.findFirst({
             where: {
-                OR: [
-                    { login },
-                    { email: login }
-                ]
+                login
             },
             select: {
                 id: true,
@@ -41,29 +37,27 @@ async function loginHandler(req: NextRequest) {
         });
 
         if (!user || !user.password) {
-            // Log tentative de connexion échouée
-            await auditService.logLogin(0, false, {
-                ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
-                userAgent: req.headers.get('user-agent') || 'unknown',
-                reason: 'User not found',
-                metadata: { login }
-            });
+            // Log tentative de connexion échouée (temporairement commenté)
+            // await auditService.logAction({...});
             return NextResponse.json(
                 { error: 'Identifiants invalides' },
                 { status: 401 }
             );
         }
 
+        // Vérification que l'utilisateur est actif
+        if (!user.actif) {
+            return NextResponse.json(
+                { error: 'Compte désactivé' },
+                { status: 403 }
+            );
+        }
+
         // Vérification du mot de passe
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
-            // Log tentative de connexion échouée
-            await auditService.logLogin(user.id, false, {
-                ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
-                userAgent: req.headers.get('user-agent') || 'unknown',
-                reason: 'Invalid password',
-                metadata: { login: user.login }
-            });
+            // Log tentative de connexion échouée (temporairement commenté)
+            // await auditService.logAction({...});
             return NextResponse.json(
                 { error: 'Identifiants invalides' },
                 { status: 401 }
@@ -80,13 +74,8 @@ async function loginHandler(req: NextRequest) {
         // Exclure le mot de passe de la réponse
         const { password: _, ...userWithoutPassword } = user;
 
-        // Log connexion réussie
-        await auditService.logLogin(user.id, true, {
-            ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
-            userAgent: req.headers.get('user-agent') || 'unknown',
-            duration: Date.now() - startTime,
-            metadata: { login: user.login, role: user.role }
-        });
+        // Log connexion réussie (temporairement commenté)
+        // await auditService.logAction({...});
 
         // Log de performance en développement
         if (process.env.NODE_ENV === 'development') {

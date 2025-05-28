@@ -146,7 +146,7 @@ class LeaveToPlanningService {
 }
 
 // Mock des dépendances
-jest.mock('../../../calendrier/services/calendrierService', () => ({
+jest.mock('../../../calendar/services/calendarService', () => ({
     CalendarService: jest.fn().mockImplementation(() => ({
         addOrUpdateEvent: jest.fn().mockResolvedValue(undefined),
         removeEvent: jest.fn().mockResolvedValue(undefined)

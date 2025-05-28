@@ -1,6 +1,5 @@
 // jest.setup.js
-// import '@testing-library/jest-dom'; // Ancienne méthode
-import '@testing-library/jest-dom/jest-globals'; // Nouvelle tentative
+import '@testing-library/jest-dom';
 import { TextEncoder, TextDecoder } from 'util';
 
 // Polyfills globaux - NE PAS redéfinir fetch ici car c'est fait dans jest.polyfills.js
