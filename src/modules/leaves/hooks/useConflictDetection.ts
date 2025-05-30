@@ -6,7 +6,7 @@ import {
     ConflictSeverity
 } from '../types/conflict';
 import { checkLeaveConflicts } from '../services/leaveService';
-import { useDateValidation } from '../../../hooks/useDateValidation';
+import { useDateValidation } from './useDateValidation';
 
 export interface UseConflictDetectionProps {
     userId: string;

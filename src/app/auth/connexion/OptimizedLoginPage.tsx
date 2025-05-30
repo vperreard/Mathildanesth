@@ -4,11 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
-// Lazy load heavy dependencies
-const useAuth = dynamic(() => import('@/hooks/useAuth').then(mod => ({ default: mod.useAuth })), {
-    ssr: false,
-    loading: () => null
-}) as any;
+// Remove dynamic loading for now to fix the error
 
 // Minimal CSS styles inline for faster load
 const styles = {
@@ -39,7 +35,7 @@ const OptimizedLoginPage: React.FC = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:3000/api/auth/login', {
+            const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(loginData),

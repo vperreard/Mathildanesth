@@ -1,3 +1,5 @@
+const performanceMonitoring = require('./performance-monitoring');
+
 /**
  * @type {Cypress.PluginConfig}
  */
@@ -157,7 +159,26 @@ module.exports = (on, config) => {
         console.error('Erreur lors de la génération du rapport:', error);
         return null;
       }
-    }
+    },
+
+    // Tâches de monitoring de performance avancé
+    logAdvancedPerformance: performanceMonitoring.logAdvancedPerformance,
+    logRUMMetric: performanceMonitoring.logRUMMetric,
+    logRUMSessionSummary: performanceMonitoring.logRUMSessionSummary,
+    logAccessibilityViolation: performanceMonitoring.logAccessibilityViolation,
+    logMobileTest: performanceMonitoring.logMobileTest,
+    logMobilePerformance: performanceMonitoring.logMobilePerformance,
+    
+    // Génération de rapports automatisés
+    generatePerformanceReport: performanceMonitoring.generatePerformanceReport,
+    generateRUMReport: performanceMonitoring.generateRUMReport,
+    generateAccessibilityReport: performanceMonitoring.generateAccessibilityReport,
+    generateMobileTestReport: performanceMonitoring.generateMobileTestReport,
+    generateConsolidatedReport: performanceMonitoring.generateConsolidatedReport,
+    generateConsolidatedAccessibilityReport: performanceMonitoring.generateConsolidatedAccessibilityReport,
+    
+    // Export de métriques
+    exportPerformanceMetrics: performanceMonitoring.exportPerformanceMetrics
   });
 
   // Configuration pour le viewport

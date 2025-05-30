@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-05-30T19:53:10.920Z",
+  "performance": {
+    "totalTime": 1707,
+    "passed": false,
+    "threshold": 30000
+  },
+  "tests": {
+    "success": false
+  }
+}

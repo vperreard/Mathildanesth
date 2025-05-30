@@ -1,0 +1,70 @@
+{
+  "leaves": [
+    {
+      "id": 1,
+      "userId": 2,
+      "user": {
+        "nom": "Martin",
+        "prenom": "Jean",
+        "email": "medecin@example.com"
+      },
+      "type": "CONGE_ANNUEL",
+      "startDate": "2025-07-01",
+      "endDate": "2025-07-05",
+      "status": "PENDING",
+      "reason": "Congés d'été",
+      "requestedAt": "2025-05-29T10:00:00Z",
+      "daysCount": 5
+    },
+    {
+      "id": 2,
+      "userId": 3,
+      "user": {
+        "nom": "Durand",
+        "prenom": "Marie",
+        "email": "iade@example.com"
+      },
+      "type": "RTT",
+      "startDate": "2025-06-15",
+      "endDate": "2025-06-15",
+      "status": "PENDING",
+      "reason": "RTT",
+      "requestedAt": "2025-05-28T15:30:00Z",
+      "daysCount": 1
+    },
+    {
+      "id": 3,
+      "userId": 2,
+      "user": {
+        "nom": "Martin",
+        "prenom": "Jean",
+        "email": "medecin@example.com"
+      },
+      "type": "CONGE_ANNUEL",
+      "startDate": "2025-05-20",
+      "endDate": "2025-05-24",
+      "status": "APPROVED",
+      "reason": "Congés familiaux",
+      "requestedAt": "2025-05-10T09:00:00Z",
+      "approvedAt": "2025-05-11T11:15:00Z",
+      "approvedBy": 1,
+      "daysCount": 5
+    }
+  ],
+  "statistics": {
+    "total": 3,
+    "pending": 2,
+    "approved": 1,
+    "rejected": 0,
+    "byType": {
+      "CONGE_ANNUEL": 2,
+      "RTT": 1
+    }
+  },
+  "pagination": {
+    "total": 3,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}

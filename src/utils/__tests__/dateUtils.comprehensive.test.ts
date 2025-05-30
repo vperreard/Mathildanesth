@@ -1,0 +1,569 @@
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import {
+  // Validation
+  isValidDateObject,
+  isValidDateString,
+  
+  // Parsing
+  parseDate,
+  calculateEaster,
+  
+  // Formatage
+  formatDate,
+  formatDateTime,
+  formatDateForDisplay,
+  formatTime,
+  
+  // Comparaison
+  isDateBefore,
+  isDateAfter,
+  areDatesSameDay,
+  isDateWeekend,
+  isSameDay,
+  
+  // Manipulation
+  getStartOfDay,
+  getEndOfDay,
+  addDaysToDate,
+  addHoursToDate,
+  getDifferenceInDays,
+  getDaysBetween,
+  getFirstDayOfMonth,
+  getLastDayOfMonth,
+  getWeekNumber,
+  getStartOfWeek,
+  getEndOfWeek,
+  getDaysInInterval,
+  addMonths,
+  isDateInFuture,
+  getDaysUntil,
+  getDayPeriod,
+  
+  // Constantes
+  DEFAULT_DATE_FORMAT,
+  DEFAULT_DATETIME_FORMAT,
+  ISO_DATE_FORMAT
+} from '../dateUtils';
+
+describe('DateUtils - Tests Complets pour Système Médical', () => {
+  const mockDate = new Date('2024-03-15T10:30:00.000Z');
+  let consoleMock: jest.SpyInstance;
+
+  beforeEach(() => {
+    // Mock console.error pour éviter les logs pendant les tests
+    consoleMock = jest.spyOn(console, 'error').mockImplementation(() => {});
+    
+    // Fixer la date pour les tests déterministes
+    jest.useFakeTimers();
+    jest.setSystemTime(mockDate);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    consoleMock.mockRestore();
+  });
+
+  describe('CRITICITÉ HAUTE - Validation de Dates', () => {
+    describe('isValidDateObject', () => {
+      it('devrait valider correctement les objets Date valides', () => {
+        expect(isValidDateObject(new Date('2024-01-01'))).toBe(true);
+        expect(isValidDateObject(new Date(2024, 0, 1))).toBe(true);
+        expect(isValidDateObject(new Date())).toBe(true);
+      });
+
+      it('devrait rejeter les objets Date invalides', () => {
+        expect(isValidDateObject(new Date('invalid'))).toBe(false);
+        expect(isValidDateObject(new Date(NaN))).toBe(false);
+      });
+
+      it('devrait rejeter les types non-Date', () => {
+        expect(isValidDateObject('2024-01-01')).toBe(false);
+        expect(isValidDateObject(1234567890)).toBe(false);
+        expect(isValidDateObject(null)).toBe(false);
+        expect(isValidDateObject(undefined)).toBe(false);
+        expect(isValidDateObject({})).toBe(false);
+        expect(isValidDateObject([])).toBe(false);
+      });
+    });
+
+    describe('isValidDateString', () => {
+      it('devrait valider les formats de date médicaux standard', () => {
+        // Formats ISO
+        expect(isValidDateString('2024-01-01')).toBe(true);
+        expect(isValidDateString('2024-12-31T23:59:59Z')).toBe(true);
+        
+        // Format français médical
+        expect(isValidDateString('01/01/2024')).toBe(true);
+        expect(isValidDateString('31/12/2024')).toBe(true);
+        
+        // Timestamps
+        expect(isValidDateString(1704067200000)).toBe(true);
+      });
+
+      it('devrait rejeter les formats invalides critiques pour la sécurité', () => {
+        expect(isValidDateString('invalid-date')).toBe(false);
+        expect(isValidDateString('32/01/2024')).toBe(false);
+        expect(isValidDateString('01/13/2024')).toBe(false);
+        expect(isValidDateString('')).toBe(false);
+        expect(isValidDateString(null)).toBe(false);
+        expect(isValidDateString(undefined)).toBe(false);
+      });
+
+      it('devrait gérer les cas limites des années médicales', () => {
+        // Années limites pour planning médical
+        expect(isValidDateString('01/01/1900')).toBe(true);
+        expect(isValidDateString('31/12/2099')).toBe(true);
+        
+        // Années bissextiles critiques
+        expect(isValidDateString('29/02/2024')).toBe(true);
+        expect(isValidDateString('29/02/2023')).toBe(false);
+      });
+    });
+  });
+
+  describe('CRITICITÉ HAUTE - Parsing de Dates', () => {
+    describe('parseDate', () => {
+      it('devrait parser tous les formats de dates médicales', () => {
+        const testCases = [
+          { input: '2024-01-15', expected: new Date(2024, 0, 15) },
+          { input: '15/01/2024', expected: new Date(2024, 0, 15) },
+          { input: 1705276800000, expected: new Date(2024, 0, 15) },
+          { input: new Date(2024, 0, 15), expected: new Date(2024, 0, 15) }
+        ];
+
+        testCases.forEach(({ input, expected }) => {
+          const result = parseDate(input);
+          expect(result).toBeInstanceOf(Date);
+          expect(result?.getTime()).toBe(expected.getTime());
+        });
+      });
+
+      it('devrait gérer les formats complexes avec heures', () => {
+        const complexFormats = [
+          '2024-01-15T09:30:00.000Z',
+          '2024-01-15T14:45:30+01:00',
+          '2024-01-15 10:30:00'
+        ];
+
+        complexFormats.forEach(dateStr => {
+          const result = parseDate(dateStr);
+          expect(result).toBeInstanceOf(Date);
+          expect(result?.getFullYear()).toBe(2024);
+          expect(result?.getMonth()).toBe(0);
+          expect(result?.getDate()).toBe(15);
+        });
+      });
+
+      it('devrait retourner null pour les entrées invalides', () => {
+        const invalidInputs = [
+          null, undefined, '', 'invalid', NaN, {}, []
+        ];
+
+        invalidInputs.forEach(input => {
+          expect(parseDate(input as any)).toBeNull();
+        });
+      });
+
+      it('devrait gérer les années bissextiles médicales critiques', () => {
+        // Test années bissextiles pour planification sur 4 ans
+        const leapYearDates = [
+          '29/02/2024', '29/02/2020', '29/02/2016'
+        ];
+
+        leapYearDates.forEach(dateStr => {
+          const result = parseDate(dateStr);
+          expect(result).toBeInstanceOf(Date);
+          expect(result?.getMonth()).toBe(1); // Février
+          expect(result?.getDate()).toBe(29);
+        });
+
+        // Vérifier que le 29 février n'existe pas les années non-bissextiles
+        expect(parseDate('29/02/2023')).toBeNull();
+      });
+    });
+
+    describe('calculateEaster - CALCUL CRITIQUE MÉDICAL', () => {
+      it('devrait calculer Pâques correctement pour les années de référence', () => {
+        const easterDates = [
+          { year: 2024, expected: new Date(2024, 2, 31) }, // 31 mars 2024
+          { year: 2025, expected: new Date(2025, 3, 20) }, // 20 avril 2025
+          { year: 2026, expected: new Date(2026, 3, 5) },  // 5 avril 2026
+          { year: 2027, expected: new Date(2027, 2, 28) }, // 28 mars 2027
+          { year: 2028, expected: new Date(2028, 3, 16) }  // 16 avril 2028
+        ];
+
+        easterDates.forEach(({ year, expected }) => {
+          const result = calculateEaster(year);
+          expect(result.getTime()).toBe(expected.getTime());
+        });
+      });
+
+      it('devrait gérer les cas limites historiques et futurs', () => {
+        const edgeCases = [
+          1900, 1999, 2000, 2001, 2099, 2100
+        ];
+
+        edgeCases.forEach(year => {
+          const easter = calculateEaster(year);
+          
+          expect(easter).toBeInstanceOf(Date);
+          expect(easter.getFullYear()).toBe(year);
+          expect(easter.getMonth()).toBeGreaterThanOrEqual(2); // Mars ou après
+          expect(easter.getMonth()).toBeLessThan(5); // Avant mai
+          expect(easter.getDate()).toBeGreaterThan(0);
+          expect(easter.getDate()).toBeLessThanOrEqual(31);
+        });
+      });
+
+      it('devrait maintenir la cohérence algorithme de Butcher', () => {
+        // Test de cohérence: Pâques doit toujours être un dimanche
+        const years = [2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030];
+        
+        years.forEach(year => {
+          const easter = calculateEaster(year);
+          expect(easter.getDay()).toBe(0); // Dimanche = 0
+        });
+      });
+
+      it('devrait être performant pour calculs de masse', () => {
+        const startTime = performance.now();
+        
+        // Calculer 200 années de Pâques
+        for (let year = 1900; year <= 2100; year++) {
+          calculateEaster(year);
+        }
+        
+        const endTime = performance.now();
+        expect(endTime - startTime).toBeLessThan(100); // <100ms pour 200 calculs
+      });
+    });
+  });
+
+  describe('CRITICITÉ HAUTE - Formatage Dates Médicales', () => {
+    describe('formatDate & formatDateTime', () => {
+      it('devrait formater selon les standards médicaux français', () => {
+        const testDate = new Date(2024, 2, 15, 14, 30, 45);
+        
+        expect(formatDate(testDate)).toBe('15/03/2024');
+        expect(formatDateTime(testDate)).toBe('15/03/2024 14:30');
+        expect(formatDateForDisplay(testDate)).toBe('15/03/2024');
+        expect(formatDateForDisplay(testDate, true)).toBe('15/03/2024 14:30');
+      });
+
+      it('devrait gérer les formats personnalisés pour rapports médicaux', () => {
+        const testDate = new Date(2024, 2, 15, 14, 30, 45);
+        
+        expect(formatDate(testDate, 'yyyy-MM-dd')).toBe('2024-03-15');
+        expect(formatDate(testDate, 'dd MMMM yyyy')).toBe('15 mars 2024');
+        expect(formatDate(testDate, 'EEEE dd/MM/yyyy')).toBe('vendredi 15/03/2024');
+      });
+
+      it('devrait gérer gracieusement les erreurs de formatage', () => {
+        expect(formatDate(null)).toBe('');
+        expect(formatDate(undefined)).toBe('');
+        expect(formatDate('invalid')).toBe('');
+        expect(formatDateTime(new Date('invalid'))).toBe('');
+        
+        // Vérifier que les erreurs sont loggées
+        expect(consoleMock).toHaveBeenCalled();
+      });
+
+      it('devrait formater les heures pour les gardes médicales', () => {
+        const testDates = [
+          { date: new Date(2024, 2, 15, 8, 0, 0), expected: '08:00' },
+          { date: new Date(2024, 2, 15, 14, 30, 0), expected: '14:30' },
+          { date: new Date(2024, 2, 15, 23, 59, 59), expected: '23:59' }
+        ];
+
+        testDates.forEach(({ date, expected }) => {
+          expect(formatTime(date)).toBe(expected);
+        });
+      });
+
+      it('devrait identifier les périodes de service médical', () => {
+        const morningShift = new Date(2024, 2, 15, 8, 0, 0);
+        const afternoonShift = new Date(2024, 2, 15, 14, 0, 0);
+        const nightShift = new Date(2024, 2, 15, 20, 0, 0);
+
+        expect(getDayPeriod(morningShift)).toBe('MATIN');
+        expect(getDayPeriod(afternoonShift)).toBe('APRES_MIDI');
+        expect(getDayPeriod(nightShift)).toBe('APRES_MIDI');
+      });
+    });
+  });
+
+  describe('CRITICITÉ HAUTE - Comparaisons Temporelles', () => {
+    describe('Comparaisons de dates critiques pour planification', () => {
+      const date1 = new Date(2024, 2, 15);
+      const date2 = new Date(2024, 2, 20);
+      const sameDate = new Date(2024, 2, 15);
+
+      it('devrait comparer les dates pour validation des congés', () => {
+        expect(isDateBefore(date1, date2)).toBe(true);
+        expect(isDateBefore(date2, date1)).toBe(false);
+        expect(isDateBefore(date1, sameDate)).toBe(false);
+
+        expect(isDateAfter(date2, date1)).toBe(true);
+        expect(isDateAfter(date1, date2)).toBe(false);
+        expect(isDateAfter(date1, sameDate)).toBe(false);
+      });
+
+      it('devrait identifier les mêmes jours pour détection conflits', () => {
+        expect(areDatesSameDay(date1, sameDate)).toBe(true);
+        expect(areDatesSameDay(date1, date2)).toBe(false);
+        
+        // Test avec heures différentes même jour
+        const sameDayDiffTime = new Date(2024, 2, 15, 23, 59, 59);
+        expect(areDatesSameDay(date1, sameDayDiffTime)).toBe(true);
+        expect(isSameDay(date1, sameDayDiffTime)).toBe(true);
+      });
+
+      it('devrait détecter les week-ends pour planification médicale', () => {
+        const saturday = new Date(2024, 2, 16); // Samedi
+        const sunday = new Date(2024, 2, 17);   // Dimanche
+        const monday = new Date(2024, 2, 18);   // Lundi
+
+        expect(isDateWeekend(saturday)).toBe(true);
+        expect(isDateWeekend(sunday)).toBe(true);
+        expect(isDateWeekend(monday)).toBe(false);
+      });
+
+      it('devrait gérer les erreurs de comparaison gracieusement', () => {
+        expect(isDateBefore(null, date1)).toBe(false);
+        expect(isDateAfter(date1, undefined)).toBe(false);
+        expect(areDatesSameDay('invalid', date1)).toBe(false);
+        expect(isDateWeekend('invalid')).toBe(false);
+      });
+    });
+  });
+
+  describe('CRITICITÉ HAUTE - Manipulations Temporelles', () => {
+    describe('Calculs de durées pour congés médicaux', () => {
+      it('devrait calculer correctement les périodes de congés', () => {
+        const startDate = new Date(2024, 2, 15);
+        const endDate = new Date(2024, 2, 20);
+
+        expect(getDaysBetween(startDate, endDate)).toBe(6); // Inclusif
+        expect(getDifferenceInDays(endDate, startDate)).toBe(5); // Exclusif
+      });
+
+      it('devrait gérer les calculs de week-ends et jours fériés', () => {
+        const monday = new Date(2024, 2, 18);
+        const friday = new Date(2024, 2, 22);
+        const nextMonday = new Date(2024, 2, 25);
+
+        expect(getDaysBetween(monday, friday)).toBe(5); // Semaine de travail
+        expect(getDaysBetween(friday, nextMonday)).toBe(4); // Avec week-end
+      });
+
+      it('devrait calculer les débuts et fins de périodes', () => {
+        const testDate = new Date(2024, 2, 15, 14, 30, 45);
+
+        const startOfDay = getStartOfDay(testDate);
+        expect(startOfDay?.getHours()).toBe(0);
+        expect(startOfDay?.getMinutes()).toBe(0);
+        expect(startOfDay?.getSeconds()).toBe(0);
+
+        const endOfDay = getEndOfDay(testDate);
+        expect(endOfDay?.getHours()).toBe(23);
+        expect(endOfDay?.getMinutes()).toBe(59);
+        expect(endOfDay?.getSeconds()).toBe(59);
+      });
+
+      it('devrait ajouter jours et heures pour planification gardes', () => {
+        const baseDate = new Date(2024, 2, 15, 8, 0, 0);
+
+        const plusDays = addDaysToDate(baseDate, 7);
+        expect(plusDays?.getDate()).toBe(22);
+
+        const plusHours = addHoursToDate(baseDate, 12);
+        expect(plusHours?.getHours()).toBe(20);
+      });
+    });
+
+    describe('Calculs de mois et périodes étendues', () => {
+      it('devrait gérer les calculs mensuels pour planning annuel', () => {
+        const january = new Date(2024, 0, 15);
+        const march = addMonths(january, 2);
+
+        expect(march.getMonth()).toBe(2);
+        expect(march.getDate()).toBe(15);
+      });
+
+      it('devrait calculer les limites de mois pour facturation', () => {
+        const midMonth = new Date(2024, 2, 15);
+
+        const firstDay = getFirstDayOfMonth(midMonth);
+        expect(firstDay.getDate()).toBe(1);
+        expect(firstDay.getMonth()).toBe(2);
+
+        const lastDay = getLastDayOfMonth(midMonth);
+        expect(lastDay.getDate()).toBe(31);
+        expect(lastDay.getMonth()).toBe(2);
+      });
+
+      it('devrait gérer les années bissextiles pour février', () => {
+        const feb2024 = new Date(2024, 1, 15); // Année bissextile
+        const feb2023 = new Date(2023, 1, 15); // Année normale
+
+        expect(getLastDayOfMonth(feb2024).getDate()).toBe(29);
+        expect(getLastDayOfMonth(feb2023).getDate()).toBe(28);
+      });
+    });
+
+    describe('Calculs de semaines pour planning hebdomadaire', () => {
+      it('devrait calculer les numéros de semaine selon la norme française', () => {
+        const dates = [
+          { date: new Date(2024, 0, 1), expectedWeek: 1 },
+          { date: new Date(2024, 2, 15), expectedWeek: 11 },
+          { date: new Date(2024, 11, 31), expectedWeek: 1 } // Première semaine de 2025
+        ];
+
+        dates.forEach(({ date, expectedWeek }) => {
+          const weekNumber = getWeekNumber(date);
+          expect(weekNumber).toBe(expectedWeek);
+        });
+      });
+
+      it('devrait calculer les débuts et fins de semaine', () => {
+        const midWeek = new Date(2024, 2, 15); // Vendredi
+
+        const startWeek = getStartOfWeek(midWeek);
+        expect(startWeek?.getDay()).toBe(1); // Lundi selon locale française
+
+        const endWeek = getEndOfWeek(midWeek);
+        expect(endWeek?.getDay()).toBe(0); // Dimanche
+      });
+    });
+
+    describe('Génération d\'intervalles pour planification', () => {
+      it('devrait générer toutes les dates d\'une période', () => {
+        const start = new Date(2024, 2, 15);
+        const end = new Date(2024, 2, 20);
+
+        const interval = getDaysInInterval({ start, end });
+        expect(interval).toHaveLength(6);
+        expect(interval[0].getTime()).toBe(start.getTime());
+        expect(interval[5].getTime()).toBe(end.getTime());
+      });
+
+      it('devrait gérer les intervalles invalides', () => {
+        expect(getDaysInInterval({ start: null, end: null })).toEqual([]);
+        expect(getDaysInInterval({ start: new Date(2024, 2, 20), end: new Date(2024, 2, 15) })).toEqual([]);
+      });
+    });
+  });
+
+  describe('CRITICITÉ HAUTE - Dates Futures et Échéances', () => {
+    describe('Gestion des échéances médicales', () => {
+      it('devrait détecter les dates futures pour planification', () => {
+        const futureDate = new Date(2024, 3, 15); // Après mockDate (15 mars)
+        const pastDate = new Date(2024, 1, 15);   // Avant mockDate
+
+        expect(isDateInFuture(futureDate)).toBe(true);
+        expect(isDateInFuture(pastDate)).toBe(false);
+        expect(isDateInFuture(mockDate)).toBe(false); // Même date
+      });
+
+      it('devrait calculer les jours jusqu\'aux échéances', () => {
+        const futureDate = new Date(2024, 3, 20); // 5 avril (dans 36 jours)
+        const pastDate = new Date(2024, 1, 15);
+
+        expect(getDaysUntil(futureDate)).toBeGreaterThan(0);
+        expect(getDaysUntil(pastDate)).toBe(-1);
+        expect(getDaysUntil(null)).toBe(-1);
+      });
+
+      it('devrait gérer les calculs avec précision pour urgences médicales', () => {
+        // Test avec des dates très proches
+        const tomorrow = new Date(mockDate);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const nextWeek = new Date(mockDate);
+        nextWeek.setDate(nextWeek.getDate() + 7);
+
+        expect(getDaysUntil(tomorrow)).toBe(1);
+        expect(getDaysUntil(nextWeek)).toBe(7);
+      });
+    });
+  });
+
+  describe('PERFORMANCE ET ROBUSTESSE', () => {
+    describe('Tests de performance pour usage médical intensif', () => {
+      it('devrait gérer 1000 calculs de dates simultanés', () => {
+        const startTime = performance.now();
+        
+        for (let i = 0; i < 1000; i++) {
+          const date = new Date(2024, 0, 1 + i % 365);
+          formatDate(date);
+          isDateWeekend(date);
+          getDaysBetween(date, new Date());
+        }
+        
+        const endTime = performance.now();
+        expect(endTime - startTime).toBeLessThan(100); // <100ms pour 1000 opérations
+      });
+
+      it('devrait gérer les calculs de Pâques pour un siècle', () => {
+        const startTime = performance.now();
+        
+        for (let year = 2000; year <= 2100; year++) {
+          calculateEaster(year);
+        }
+        
+        const endTime = performance.now();
+        expect(endTime - startTime).toBeLessThan(50); // <50ms pour 100 années
+      });
+
+      it('devrait maintenir la précision avec des dates extrêmes', () => {
+        const extremeDates = [
+          new Date(1900, 0, 1),
+          new Date(2099, 11, 31),
+          new Date(2024, 1, 29), // 29 février bissextile
+          new Date(2023, 1, 28)  // 28 février normale
+        ];
+
+        extremeDates.forEach(date => {
+          expect(isValidDateObject(date)).toBe(true);
+          expect(formatDate(date)).toBeTruthy();
+          expect(isDateWeekend(date)).toBeDefined();
+        });
+      });
+    });
+
+    describe('Robustesse pour environnement médical critique', () => {
+      it('devrait gérer les entrées malformées sans crasher', () => {
+        const malformedInputs = [
+          'not-a-date', '', '  ', '32/13/2024', 
+          '2024-13-01', '2024-02-30', NaN, Infinity,
+          {}, [], true, false
+        ];
+
+        malformedInputs.forEach(input => {
+          expect(() => {
+            parseDate(input as any);
+            formatDate(input as any);
+            isDateBefore(input as any, new Date());
+            isDateWeekend(input as any);
+          }).not.toThrow();
+        });
+      });
+
+      it('devrait maintenir la cohérence des constantes', () => {
+        expect(DEFAULT_DATE_FORMAT).toBe('dd/MM/yyyy');
+        expect(DEFAULT_DATETIME_FORMAT).toBe('dd/MM/yyyy HH:mm');
+        expect(ISO_DATE_FORMAT).toBe('yyyy-MM-dd');
+      });
+
+      it('devrait valider la logique métier critique', () => {
+        // Vérifier que les calculs de base sont cohérents
+        const baseDate = new Date(2024, 2, 15);
+        
+        expect(isSameDay(baseDate, baseDate)).toBe(true);
+        expect(getDaysBetween(baseDate, baseDate)).toBe(1);
+        expect(addDaysToDate(baseDate, 0)?.getTime()).toBe(baseDate.getTime());
+        expect(addMonths(baseDate, 0).getTime()).toBe(baseDate.getTime());
+      });
+    });
+  });
+});

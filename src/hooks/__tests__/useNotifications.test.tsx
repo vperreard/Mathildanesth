@@ -3,22 +3,29 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useNotifications } from '../useNotifications';
 import { notificationService } from '@/services/notificationService';
-import io, { Socket } from 'socket.io-client';
 import { Notification } from '@prisma/client';
+import { renderWithProviders } from '../../test-utils/renderWithProviders';
 
 jest.mock('@/services/notificationService');
-jest.mock('socket.io-client');
 
-const mockNotificationService = notificationService as jest.Mocked<typeof notificationService>;
+// Mock socket.io-client
 const mockSocket = {
   on: jest.fn(),
   off: jest.fn(),
   emit: jest.fn(),
   connect: jest.fn(),
   disconnect: jest.fn(),
-} as unknown as jest.Mocked<Socket>;
+  connected: false,
+  id: 'test-socket-id',
+};
 
-(io as unknown as jest.Mock).mockReturnValue(mockSocket);
+jest.mock('socket.io-client', () => ({
+  __esModule: true,
+  default: jest.fn(() => mockSocket),
+  io: jest.fn(() => mockSocket),
+}));
+
+const mockNotificationService = notificationService as jest.Mocked<typeof notificationService>;
 
 describe('useNotifications Hook', () => {
   let queryClient: QueryClient;
@@ -31,6 +38,11 @@ describe('useNotifications Hook', () => {
       },
     });
     jest.clearAllMocks();
+    // Reset all socket mock calls
+    mockSocket.on.mockClear();
+    mockSocket.off.mockClear();
+    mockSocket.emit.mockClear();
+    mockSocket.disconnect.mockClear();
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (

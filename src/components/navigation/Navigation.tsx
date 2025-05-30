@@ -98,12 +98,12 @@ const Navigation = memo(function Navigation({ links, isAdmin, mobileMenuOpen, on
 
                         {/* Menu déroulant desktop */}
                         <div
-                            className={`absolute left-0 mt-2 w-56 origin-top-left border rounded-md shadow-lg transition-all duration-200 z-50 ${isDropdownOpen(group.name) ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+                            className={`absolute left-0 mt-2 w-56 origin-top-left border rounded-md shadow-lg transition-all duration-200 z-50 backdrop-blur-sm ${isDropdownOpen(group.name) ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
                                 }`}
                             style={
                                 theme === 'dark'
-                                    ? { backgroundColor: '#0F172A', borderColor: '#334155' } // slate-900, slate-700
-                                    : { backgroundColor: 'white', borderColor: '#E5E7EB' }   // blanc, gray-200
+                                    ? { backgroundColor: 'rgba(15, 23, 42, 0.97)', borderColor: 'rgba(51, 65, 85, 0.8)' } // slate-900, slate-700 avec opacité renforcée
+                                    : { backgroundColor: 'rgba(255, 255, 255, 0.97)', borderColor: 'rgba(229, 231, 235, 0.8)' }   // blanc, gray-200 avec opacité renforcée
                             }
                         >
                             <div className="py-1">

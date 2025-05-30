@@ -517,7 +517,8 @@ model Assignment {
   userId                Int?
   chirurgien            String?
   salle                 String?
-  type                  String
+  activityTypeId        String?
+  type                  String?
   statut                String?
   heureDebut            String?
   heureFin              String?
@@ -534,6 +535,7 @@ model Assignment {
   period                Period?
   proposedSwapRequests  AssignmentSwapRequest[] @relation("ProposedSwapAssignment")
   requestedSwapRequests AssignmentSwapRequest[] @relation("RequestedSwapAssignment")
+  activityType          ActivityType?           @relation("AssignmentActivityType", fields: [activityTypeId], references: [id])
   Location              Location?               @relation(fields: [locationId], references: [id])
   operatingRoom         OperatingRoom?          @relation(fields: [operatingRoomId], references: [id])
   regularAssignment     RegularAssignment?      @relation("GeneratedFromRegular", fields: [regularAssignmentId], references: [id])
@@ -1104,6 +1106,7 @@ model ActivityType {
   siteId               String?             @map("site_id")
   site                 Site?               @relation("SiteActivityTypes", fields: [siteId], references: [id])
   affectationModeles   AffectationModele[] @relation("ActivityTypeAffectationModeles")
+  assignments          Assignment[]        @relation("AssignmentActivityType")
 
   @@map("activity_types")
 }

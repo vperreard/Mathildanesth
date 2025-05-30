@@ -1,164 +1,159 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import SankeyChart from '../SankeyChart';
+import { renderWithProviders as render, screen } from '@/test-utils/renderWithProviders';
+import { SankeyChart } from '../SankeyChart';
+import type { SankeyData } from '../SankeyChart';
 
-// Mock D3 et d3-sankey
+// Mock D3 et d3-sankey pour les tests
 jest.mock('d3', () => ({
-    select: jest.fn(() => ({
+  select: jest.fn(() => ({
+    selectAll: jest.fn(() => ({
+      remove: jest.fn(),
+    })),
+    append: jest.fn(() => ({
+      attr: jest.fn(() => ({
         selectAll: jest.fn(() => ({
-            remove: jest.fn(),
-        })),
-        append: jest.fn(() => ({
-            attr: jest.fn(() => ({
-                attr: jest.fn(() => ({ attr: jest.fn() })),
-            })),
-            selectAll: jest.fn(() => ({
-                data: jest.fn(() => ({
-                    enter: jest.fn(() => ({
-                        append: jest.fn(() => ({
-                            attr: jest.fn(() => ({
-                                attr: jest.fn(() => ({
-                                    attr: jest.fn(() => ({
-                                        attr: jest.fn(() => ({
-                                            attr: jest.fn(() => ({
-                                                style: jest.fn(() => ({
-                                                    on: jest.fn(() => ({
-                                                        on: jest.fn(() => ({
-                                                            on: jest.fn(() => ({
-                                                                on: jest.fn()
-                                                            }))
-                                                        }))
-                                                    }))
-                                                }))
-                                            }))
-                                        }))
-                                    }))
-                                }))
-                            }))
-                        }))
-                    })),
-                })),
-            })),
-        })),
-    })),
-    rgb: jest.fn(() => ({
-        darker: jest.fn(() => "darker-color"),
-        brighter: jest.fn(() => "brighter-color"),
-    })),
+          data: jest.fn(() => ({
+            enter: jest.fn(() => ({
+              append: jest.fn(() => ({
+                attr: jest.fn(() => ({})),
+                style: jest.fn(() => ({})),
+                text: jest.fn(() => ({})),
+                on: jest.fn(() => ({})),
+              }))
+            }))
+          }))
+        }))
+      }))
+    }))
+  }))
 }));
 
 jest.mock('d3-sankey', () => ({
-    sankey: jest.fn(() => ({
-        nodeWidth: jest.fn(() => ({
-            nodePadding: jest.fn(() => ({
-                extent: jest.fn(() => (data: any) => ({
-                    nodes: data.nodes,
-                    links: data.links.map((l: any) => ({
-                        ...l,
-                        width: l.value,
-                        y0: 0,
-                        y1: l.value
-                    }))
-                }))
-            }))
-        }))
-    })),
-    sankeyLinkHorizontal: jest.fn(() => jest.fn()),
+  sankey: jest.fn(() => {
+    const mockSankey = jest.fn((data) => ({
+      nodes: data.nodes.map((node: any, i: number) => ({
+        ...node,
+        x0: i * 100,
+        x1: i * 100 + 15,
+        y0: 0,
+        y1: 50,
+      })),
+      links: data.links.map((link: any) => ({
+        ...link,
+        width: link.value,
+        source: { name: 'Source' },
+        target: { name: 'Target' },
+      })),
+    }));
+    
+    mockSankey.nodeWidth = jest.fn(() => mockSankey);
+    mockSankey.nodePadding = jest.fn(() => mockSankey);
+    mockSankey.extent = jest.fn(() => mockSankey);
+    
+    return mockSankey;
+  }),
+  sankeyLinkHorizontal: jest.fn(() => jest.fn(() => 'M0,0L100,0')),
 }));
 
 describe('SankeyChart', () => {
-    // Données de test
-    const mockData = {
-        nodes: [
-            { id: 'A', name: 'Node A' },
-            { id: 'B', name: 'Node B' },
-            { id: 'C', name: 'Node C' },
-        ],
-        links: [
-            { source: 'A', target: 'B', value: 100 },
-            { source: 'B', target: 'C', value: 50 },
-            { source: 'A', target: 'C', value: 25 },
-        ]
+  const mockData: SankeyData = {
+    nodes: [
+      { id: 'A', name: 'Node A', category: 'input' },
+      { id: 'B', name: 'Node B', category: 'process' },
+      { id: 'C', name: 'Node C', category: 'output' },
+    ],
+    links: [
+      { source: 'A', target: 'B', value: 10 },
+      { source: 'B', target: 'C', value: 5 },
+    ],
+  };
+
+  const defaultProps = {
+    data: mockData,
+    width: 600,
+    height: 400,
+    title: 'Test Sankey Chart',
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('doit rendre correctement avec les props par défaut', () => {
+    render(<SankeyChart {...defaultProps} />);
+    
+    expect(screen.getByText('Test Sankey Chart')).toBeInTheDocument();
+  });
+
+  it('doit afficher un message d\'erreur si les données sont invalides', () => {
+    const invalidData = { nodes: [], links: [] };
+    render(<SankeyChart {...defaultProps} data={invalidData} />);
+    
+    expect(screen.getByText(/aucune donnée/i)).toBeInTheDocument();
+  });
+
+  it('doit afficher un message d\'erreur si les données sont vides', () => {
+    render(<SankeyChart {...defaultProps} data={null as any} />);
+    
+    expect(screen.getByText(/aucune donnée/i)).toBeInTheDocument();
+  });
+
+  it('doit afficher un titre personnalisé', () => {
+    const customTitle = 'Mon Diagramme Sankey';
+    render(<SankeyChart {...defaultProps} title={customTitle} />);
+    
+    expect(screen.getByText(customTitle)).toBeInTheDocument();
+  });
+
+  it('doit inclure une aide pour l\'utilisateur', () => {
+    render(<SankeyChart {...defaultProps} />);
+    
+    expect(screen.getByText(/survolez les éléments/i)).toBeInTheDocument();
+  });
+
+  it('doit utiliser l\'unité spécifiée', () => {
+    const customUnit = 'patients';
+    render(<SankeyChart {...defaultProps} unit={customUnit} />);
+    
+    // L'unité devrait être mentionnée dans l'aide
+    expect(screen.getByText(new RegExp(customUnit, 'i'))).toBeInTheDocument();
+  });
+
+  it('doit permettre de changer le type de lien affiché', () => {
+    render(<SankeyChart {...defaultProps} />);
+    
+    // Par défaut, le select devrait être présent
+    expect(screen.getByDisplayValue(/horizontal/i)).toBeInTheDocument();
+  });
+
+  it('doit gérer les erreurs de rendu gracieusement', () => {
+    // Simuler une erreur D3
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    
+    const invalidData = {
+      nodes: [{ id: 'A', name: 'Node A' }],
+      links: [{ source: 'nonexistent', target: 'A', value: 10 }],
     };
+    
+    render(<SankeyChart {...defaultProps} data={invalidData} />);
+    
+    // Le composant ne devrait pas crasher
+    expect(screen.getByText('Test Sankey Chart')).toBeInTheDocument();
+    
+    consoleSpy.mockRestore();
+  });
 
-    const defaultProps = {
-        data: mockData,
-        title: 'Test Sankey Chart',
-        nodeWidth: 15,
-        nodePadding: 10,
-        units: 'personnes',
-    };
+  it('doit avoir les dimensions correctes', () => {
+    const { container } = render(<SankeyChart {...defaultProps} width={800} height={600} />);
+    
+    const svg = container.querySelector('svg');
+    expect(svg).toHaveAttribute('width', '800');
+    expect(svg).toHaveAttribute('height', '600');
+  });
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
-    it('doit rendre correctement avec les props par défaut', () => {
-        render(<SankeyChart {...defaultProps} />);
-
-        // Vérifier que le titre est affiché
-        expect(screen.getByText('Test Sankey Chart')).toBeInTheDocument();
-
-        // Vérifier que le select pour le type de lien est présent
-        expect(screen.getByLabelText('Type de lien:')).toBeInTheDocument();
-    });
-
-    it('doit afficher un message d\'erreur si les données sont invalides', () => {
-        render(<SankeyChart {...defaultProps} data={null as any} />);
-
-        expect(screen.getByText('Test Sankey Chart')).toBeInTheDocument();
-        expect(screen.getByText('Données non valides pour le diagramme de Sankey')).toBeInTheDocument();
-    });
-
-    it('doit afficher un message d\'erreur si les données sont vides', () => {
-        render(<SankeyChart {...defaultProps} data={{ nodes: [], links: [] }} />);
-
-        expect(screen.getByText('Test Sankey Chart')).toBeInTheDocument();
-        expect(screen.getByText('Aucune donnée disponible')).toBeInTheDocument();
-    });
-
-    it('doit afficher un titre personnalisé', () => {
-        render(
-            <SankeyChart
-                {...defaultProps}
-                title="Titre Personnalisé"
-            />
-        );
-
-        expect(screen.getByText('Titre Personnalisé')).toBeInTheDocument();
-    });
-
-    it('doit inclure une aide pour l\'utilisateur', () => {
-        render(<SankeyChart {...defaultProps} />);
-
-        expect(screen.getByText(/Cliquez sur un nœud ou un lien pour plus de détails/)).toBeInTheDocument();
-    });
-
-    it('doit utiliser l\'unité spécifiée', () => {
-        const { container } = render(
-            <SankeyChart
-                {...defaultProps}
-                units="heures"
-            />
-        );
-
-        // Nous ne pouvons pas facilement tester le contenu des tooltips
-        // car ils sont générés dynamiquement, mais nous pouvons vérifier
-        // que l'unité est passée en prop
-        expect(container).toBeInTheDocument();
-    });
-
-    it('doit permettre de changer le type de lien affiché', async () => {
-        const user = userEvent.setup();
-        render(<SankeyChart {...defaultProps} />);
-
-        // Tester que le sélecteur de type de lien est présent et peut être cliqué
-        const selectTrigger = screen.getByRole('combobox');
-        expect(selectTrigger).toBeInTheDocument();
-
-        // Remarque: Nous ne pouvons pas tester complètement l'interaction car cela
-        // nécessiterait d'ouvrir le select et de sélectionner une option, ce qui est 
-        // difficile avec les mocks actuels
-    });
-}); 
+  it('doit afficher le contrôle de type de lien', () => {
+    render(<SankeyChart {...defaultProps} />);
+    
+    expect(screen.getByText(/type de lien/i)).toBeInTheDocument();
+  });
+});

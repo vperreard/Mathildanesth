@@ -3,8 +3,19 @@ import { redis } from '@/lib/redis';
 import { logger } from '@/lib/logger';
 
 // Mock des dépendances
-jest.mock('@/lib/redis');
-jest.mock('@/lib/logger');
+jest.mock('@/lib/redis', () => ({
+  redis: {
+    setex: jest.fn(),
+    get: jest.fn(),
+    del: jest.fn(),
+    keys: jest.fn()
+  }
+}));
+jest.mock('@/lib/logger', () => ({
+  logger: {
+    warn: jest.fn()
+  }
+}));
 
 describe('AuthCacheService', () => {
     const mockRedis = redis as jest.Mocked<typeof redis>;
@@ -16,67 +27,55 @@ describe('AuthCacheService', () => {
 
     describe('cacheAuthToken', () => {
         it('should cache auth token successfully', async () => {
-            const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token';
-            const decodedToken = {
+            const token = 'test-token-123';
+            const payload = {
                 userId: 'user123',
-                login: 'testuser',
-                role: 'admin',
-                exp: Math.floor(Date.now() / 1000) + 3600, // 1 heure dans le futur
-                iat: Math.floor(Date.now() / 1000)
+                role: 'admin'
             };
+            
+            mockRedis.setex.mockResolvedValue('OK');
 
-            await AuthCacheService.cacheAuthToken(token, decodedToken);
+            await AuthCacheService.cacheAuthToken(token, payload);
 
             expect(mockRedis.setex).toHaveBeenCalledWith(
-                expect.stringContaining('auth:token:'),
-                expect.any(Number),
-                JSON.stringify(decodedToken)
+                'auth:token:test-token-123',
+                300, // 5 minutes
+                JSON.stringify(payload)
             );
-            expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('Token cached for'));
         });
 
-        it('should not cache expired token', async () => {
-            const token = 'expired.token';
-            const decodedToken = {
-                userId: 'user123',
-                login: 'testuser',
-                role: 'admin',
-                exp: Math.floor(Date.now() / 1000) - 3600, // 1 heure dans le passé
-                iat: Math.floor(Date.now() / 1000) - 7200
-            };
+        it('should handle redis unavailable gracefully', async () => {
+            // Mock redis as null
+            (redis as any) = null;
+            
+            const token = 'test-token-123';
+            const payload = { userId: '1', role: 'user' };
 
-            await AuthCacheService.cacheAuthToken(token, decodedToken);
-
-            expect(mockRedis.setex).not.toHaveBeenCalled();
+            await expect(AuthCacheService.cacheAuthToken(token, payload)).resolves.not.toThrow();
+            
+            // Restore redis mock
+            (redis as any) = mockRedis;
         });
 
         it('should handle cache errors gracefully', async () => {
-            const token = 'test.token';
-            const decodedToken = {
-                userId: 'user123',
-                login: 'testuser',
-                role: 'admin',
-                exp: Math.floor(Date.now() / 1000) + 3600,
-                iat: Math.floor(Date.now() / 1000)
-            };
+            const token = 'test-token-123';
+            const payload = { userId: 'user123', role: 'admin' };
+            const error = new Error('Redis error');
 
-            mockRedis.setex.mockRejectedValueOnce(new Error('Redis error'));
+            mockRedis.setex.mockRejectedValueOnce(error);
 
-            await AuthCacheService.cacheAuthToken(token, decodedToken);
+            await AuthCacheService.cacheAuthToken(token, payload);
 
-            expect(mockLogger.error).toHaveBeenCalledWith('Failed to cache auth token:', expect.any(Error));
+            expect(mockLogger.warn).toHaveBeenCalledWith('Failed to cache auth token', error);
         });
     });
 
     describe('getCachedAuthToken', () => {
         it('should retrieve cached token successfully', async () => {
-            const token = 'test.token';
+            const token = 'test-token-123';
             const cachedData = {
                 userId: 'user123',
-                login: 'testuser',
-                role: 'admin',
-                exp: Math.floor(Date.now() / 1000) + 3600,
-                iat: Math.floor(Date.now() / 1000)
+                role: 'admin'
             };
 
             mockRedis.get.mockResolvedValueOnce(JSON.stringify(cachedData));
@@ -84,41 +83,39 @@ describe('AuthCacheService', () => {
             const result = await AuthCacheService.getCachedAuthToken(token);
 
             expect(result).toEqual(cachedData);
-            expect(mockRedis.get).toHaveBeenCalledWith(expect.stringContaining('auth:token:'));
+            expect(mockRedis.get).toHaveBeenCalledWith('auth:token:test-token-123');
         });
 
         it('should return null for missing token', async () => {
             mockRedis.get.mockResolvedValueOnce(null);
 
-            const result = await AuthCacheService.getCachedAuthToken('missing.token');
+            const result = await AuthCacheService.getCachedAuthToken('missing-token');
 
             expect(result).toBeNull();
         });
 
-        it('should delete and return null for expired token', async () => {
-            const expiredData = {
-                userId: 'user123',
-                login: 'testuser',
-                role: 'admin',
-                exp: Math.floor(Date.now() / 1000) - 3600,
-                iat: Math.floor(Date.now() / 1000) - 7200
-            };
+        it('should return null when redis unavailable', async () => {
+            // Mock redis as null
+            (redis as any) = null;
+            
+            const token = 'test-token-123';
 
-            mockRedis.get.mockResolvedValueOnce(JSON.stringify(expiredData));
-
-            const result = await AuthCacheService.getCachedAuthToken('expired.token');
-
+            const result = await AuthCacheService.getCachedAuthToken(token);
+            
             expect(result).toBeNull();
-            expect(mockRedis.del).toHaveBeenCalled();
+            
+            // Restore redis mock
+            (redis as any) = mockRedis;
         });
 
         it('should handle errors gracefully', async () => {
-            mockRedis.get.mockRejectedValueOnce(new Error('Redis error'));
+            const error = new Error('Redis error');
+            mockRedis.get.mockRejectedValueOnce(error);
 
-            const result = await AuthCacheService.getCachedAuthToken('error.token');
+            const result = await AuthCacheService.getCachedAuthToken('error-token');
 
             expect(result).toBeNull();
-            expect(mockLogger.error).toHaveBeenCalledWith('Failed to get cached auth token:', expect.any(Error));
+            expect(mockLogger.warn).toHaveBeenCalledWith('Failed to get cached auth token', error);
         });
     });
 
@@ -127,32 +124,28 @@ describe('AuthCacheService', () => {
             const userId = 'user123';
             const userData = {
                 id: userId,
-                login: 'testuser',
                 email: 'test@example.com',
-                nom: 'Test',
-                prenom: 'User',
-                role: 'admin',
-                professionalRole: 'MAR',
-                siteIds: ['site1', 'site2'],
-                permissions: ['read', 'write']
+                role: 'admin'
             };
+            
+            mockRedis.setex.mockResolvedValue('OK');
 
             await AuthCacheService.cacheUserData(userId, userData);
 
             expect(mockRedis.setex).toHaveBeenCalledWith(
-                expect.stringContaining('user:data:'),
-                expect.any(Number),
+                'auth:user:user123',
+                300, // 5 minutes
                 JSON.stringify(userData)
             );
-            expect(mockLogger.debug).toHaveBeenCalledWith(`User data cached for user ${userId}`);
         });
 
         it('should handle cache errors gracefully', async () => {
-            mockRedis.setex.mockRejectedValueOnce(new Error('Redis error'));
+            const error = new Error('Redis error');
+            mockRedis.setex.mockRejectedValueOnce(error);
 
             await AuthCacheService.cacheUserData('user123', {} as any);
 
-            expect(mockLogger.error).toHaveBeenCalledWith('Failed to cache user data:', expect.any(Error));
+            expect(mockLogger.warn).toHaveBeenCalledWith('Failed to cache user data', error);
         });
     });
 
@@ -160,12 +153,8 @@ describe('AuthCacheService', () => {
         it('should retrieve cached user data successfully', async () => {
             const userData = {
                 id: 'user123',
-                login: 'testuser',
                 email: 'test@example.com',
-                nom: 'Test',
-                prenom: 'User',
-                role: 'admin',
-                professionalRole: 'MAR'
+                role: 'admin'
             };
 
             mockRedis.get.mockResolvedValueOnce(JSON.stringify(userData));
@@ -173,6 +162,7 @@ describe('AuthCacheService', () => {
             const result = await AuthCacheService.getCachedUserData('user123');
 
             expect(result).toEqual(userData);
+            expect(mockRedis.get).toHaveBeenCalledWith('auth:user:user123');
         });
 
         it('should return null for missing data', async () => {
@@ -184,171 +174,126 @@ describe('AuthCacheService', () => {
         });
 
         it('should handle errors gracefully', async () => {
-            mockRedis.get.mockRejectedValueOnce(new Error('Redis error'));
+            const error = new Error('Redis error');
+            mockRedis.get.mockRejectedValueOnce(error);
 
             const result = await AuthCacheService.getCachedUserData('error');
 
             expect(result).toBeNull();
-            expect(mockLogger.error).toHaveBeenCalledWith('Failed to get cached user data:', expect.any(Error));
+            expect(mockLogger.warn).toHaveBeenCalledWith('Failed to get cached user data', error);
         });
     });
 
-    describe('cacheUserPermissions', () => {
-        it('should cache permissions successfully', async () => {
-            const userId = 'user123';
-            const permissions = ['read', 'write', 'delete'];
+    describe('invalidateAuthToken', () => {
+        it('should invalidate auth token successfully', async () => {
+            const token = 'test-token-123';
+            
+            mockRedis.del.mockResolvedValue(1);
 
-            await AuthCacheService.cacheUserPermissions(userId, permissions);
+            await AuthCacheService.invalidateAuthToken(token);
 
-            expect(mockRedis.setex).toHaveBeenCalledWith(
-                expect.stringContaining('user:permissions:'),
-                expect.any(Number),
-                JSON.stringify(permissions)
-            );
-            expect(mockLogger.debug).toHaveBeenCalledWith(`Permissions cached for user ${userId}`);
+            expect(mockRedis.del).toHaveBeenCalledWith('auth:token:test-token-123');
         });
 
-        it('should handle errors gracefully', async () => {
-            mockRedis.setex.mockRejectedValueOnce(new Error('Redis error'));
+        it('should handle redis unavailable gracefully', async () => {
+            // Mock redis as null
+            (redis as any) = null;
+            
+            const token = 'test-token-123';
 
-            await AuthCacheService.cacheUserPermissions('user123', []);
-
-            expect(mockLogger.error).toHaveBeenCalledWith('Failed to cache user permissions:', expect.any(Error));
-        });
-    });
-
-    describe('getCachedUserPermissions', () => {
-        it('should retrieve cached permissions successfully', async () => {
-            const permissions = ['read', 'write', 'delete'];
-            mockRedis.get.mockResolvedValueOnce(JSON.stringify(permissions));
-
-            const result = await AuthCacheService.getCachedUserPermissions('user123');
-
-            expect(result).toEqual(permissions);
+            await expect(AuthCacheService.invalidateAuthToken(token)).resolves.not.toThrow();
+            
+            // Restore redis mock
+            (redis as any) = mockRedis;
         });
 
-        it('should return null for missing permissions', async () => {
-            mockRedis.get.mockResolvedValueOnce(null);
+        it('should handle redis errors gracefully', async () => {
+            const token = 'test-token-123';
+            const error = new Error('Redis connection failed');
+            
+            mockRedis.del.mockRejectedValue(error);
 
-            const result = await AuthCacheService.getCachedUserPermissions('missing');
+            await AuthCacheService.invalidateAuthToken(token);
 
-            expect(result).toBeNull();
-        });
-
-        it('should handle errors gracefully', async () => {
-            mockRedis.get.mockRejectedValueOnce(new Error('Redis error'));
-
-            const result = await AuthCacheService.getCachedUserPermissions('error');
-
-            expect(result).toBeNull();
-            expect(mockLogger.error).toHaveBeenCalledWith('Failed to get cached user permissions:', expect.any(Error));
+            expect(mockLogger.warn).toHaveBeenCalledWith('Failed to invalidate auth token', error);
         });
     });
 
-    describe('invalidateUserCache', () => {
-        it('should invalidate all user cache entries', async () => {
-            const userId = 'user123';
-            const tokenKeys = ['auth:token:abc', 'auth:token:def'];
-            const tokenData = JSON.stringify({ userId, login: 'test', role: 'admin', exp: 0, iat: 0 });
+    describe('invalidateUserData', () => {
+        it('should invalidate user data successfully', async () => {
+            const userId = 'user-123';
+            
+            mockRedis.del.mockResolvedValue(1);
 
-            mockRedis.keys.mockResolvedValueOnce(tokenKeys);
-            mockRedis.get.mockResolvedValue(tokenData);
+            await AuthCacheService.invalidateUserData(userId);
 
-            await AuthCacheService.invalidateUserCache(userId);
-
-            expect(mockRedis.del).toHaveBeenCalledWith(
-                expect.stringContaining('user:data:'),
-                expect.stringContaining('user:permissions:'),
-                ...tokenKeys
-            );
-            expect(mockLogger.debug).toHaveBeenCalledWith(`Cache invalidated for user ${userId}`);
+            expect(mockRedis.del).toHaveBeenCalledWith('auth:user:user-123');
         });
 
-        it('should handle no keys to delete', async () => {
-            mockRedis.keys.mockResolvedValueOnce(null);
+        it('should handle redis unavailable gracefully', async () => {
+            // Mock redis as null
+            (redis as any) = null;
+            
+            const userId = 'user-123';
 
-            await AuthCacheService.invalidateUserCache('user123');
+            await expect(AuthCacheService.invalidateUserData(userId)).resolves.not.toThrow();
+            
+            // Restore redis mock
+            (redis as any) = mockRedis;
+        });
 
+        it('should handle redis errors gracefully', async () => {
+            const userId = 'user-123';
+            const error = new Error('Redis connection failed');
+            
+            mockRedis.del.mockRejectedValue(error);
+
+            await AuthCacheService.invalidateUserData(userId);
+
+            expect(mockLogger.warn).toHaveBeenCalledWith('Failed to invalidate user data', error);
+        });
+    });
+
+    describe('clearAllCaches', () => {
+        it('should clear all auth caches successfully', async () => {
+            const keys = ['auth:token:token1', 'auth:user:user1', 'auth:token:token2'];
+            
+            mockRedis.keys.mockResolvedValue(keys);
+            mockRedis.del.mockResolvedValue(3);
+
+            await AuthCacheService.clearAllCaches();
+
+            expect(mockRedis.keys).toHaveBeenCalledWith('auth:*');
+            expect(mockRedis.del).toHaveBeenCalledWith(...keys);
+        });
+
+        it('should handle no keys found', async () => {
+            mockRedis.keys.mockResolvedValue([]);
+
+            await AuthCacheService.clearAllCaches();
+
+            expect(mockRedis.keys).toHaveBeenCalledWith('auth:*');
             expect(mockRedis.del).not.toHaveBeenCalled();
         });
 
-        it('should ignore tokens for other users', async () => {
-            const userId = 'user123';
-            const tokenKeys = ['auth:token:abc'];
-            const otherUserToken = JSON.stringify({ userId: 'other', login: 'other', role: 'user', exp: 0, iat: 0 });
+        it('should handle redis unavailable gracefully', async () => {
+            // Mock redis as null
+            (redis as any) = null;
 
-            mockRedis.keys.mockResolvedValueOnce(tokenKeys);
-            mockRedis.get.mockResolvedValueOnce(otherUserToken);
-
-            await AuthCacheService.invalidateUserCache(userId);
-
-            expect(mockRedis.del).toHaveBeenCalledWith(
-                expect.stringContaining('user:data:'),
-                expect.stringContaining('user:permissions:')
-            );
+            await expect(AuthCacheService.clearAllCaches()).resolves.not.toThrow();
+            
+            // Restore redis mock
+            (redis as any) = mockRedis;
         });
 
-        it('should handle JSON parse errors', async () => {
-            const userId = 'user123';
-            mockRedis.keys.mockResolvedValueOnce(['auth:token:invalid']);
-            mockRedis.get.mockResolvedValueOnce('invalid json');
+        it('should handle redis errors gracefully', async () => {
+            const error = new Error('Redis connection failed');
+            
+            mockRedis.keys.mockRejectedValue(error);
 
-            await AuthCacheService.invalidateUserCache(userId);
+            await AuthCacheService.clearAllCaches();
 
-            expect(mockRedis.del).toHaveBeenCalledWith(
-                expect.stringContaining('user:data:'),
-                expect.stringContaining('user:permissions:')
-            );
-        });
-
-        it('should handle errors gracefully', async () => {
-            mockRedis.keys.mockRejectedValueOnce(new Error('Redis error'));
-
-            await AuthCacheService.invalidateUserCache('user123');
-
-            expect(mockLogger.error).toHaveBeenCalledWith('Failed to invalidate user cache:', expect.any(Error));
-        });
-    });
-
-    describe('getCacheStats', () => {
-        it('should return cache statistics', async () => {
-            mockRedis.keys
-                .mockResolvedValueOnce(['token1', 'token2']) // tokens
-                .mockResolvedValueOnce(['user1', 'user2', 'user3']) // users
-                .mockResolvedValueOnce(['perm1']); // permissions
-
-            const stats = await AuthCacheService.getCacheStats();
-
-            expect(stats).toEqual({
-                tokens: 2,
-                users: 3,
-                permissions: 1
-            });
-        });
-
-        it('should handle null responses', async () => {
-            mockRedis.keys.mockResolvedValue(null);
-
-            const stats = await AuthCacheService.getCacheStats();
-
-            expect(stats).toEqual({
-                tokens: 0,
-                users: 0,
-                permissions: 0
-            });
-        });
-
-        it('should handle errors gracefully', async () => {
-            mockRedis.keys.mockRejectedValueOnce(new Error('Redis error'));
-
-            const stats = await AuthCacheService.getCacheStats();
-
-            expect(stats).toEqual({
-                tokens: 0,
-                users: 0,
-                permissions: 0
-            });
-            expect(mockLogger.error).toHaveBeenCalledWith('Failed to get cache stats:', expect.any(Error));
+            expect(mockLogger.warn).toHaveBeenCalledWith('Failed to clear auth caches', error);
         });
     });
 });

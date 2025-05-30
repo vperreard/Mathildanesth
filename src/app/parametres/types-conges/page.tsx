@@ -49,7 +49,7 @@ export default function ManageLeaveTypesPage() {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch('http://localhost:3000/api/admin/leave-types');
+            const response = await fetch('/api/admin/leave-types');
             if (!response.ok) {
                 throw new Error(`Erreur HTTP ${response.status}: ${await response.text()}`);
             }
@@ -96,7 +96,7 @@ export default function ManageLeaveTypesPage() {
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/api/admin/leave-types/${id}`, {
+            const response = await fetch(`/api/admin/leave-types/${id}`, {
                 method: 'DELETE',
             });
 

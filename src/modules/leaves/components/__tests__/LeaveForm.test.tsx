@@ -188,7 +188,7 @@ describe('LeaveForm', () => {
             expect(screen.getByText(/Jours décomptés : 3/)).toBeInTheDocument();
         });
 
-        it('displays loading state during calculation', () => {
+        it('displays loading state during calculation', async () => {
             mockUseLeaveCalculation.mockReturnValue({
                 ...defaultMockCalculationResult,
                 isLoading: true,
@@ -196,11 +196,14 @@ describe('LeaveForm', () => {
                 hasValidDates: true,
             });
 
-            renderLeaveForm();
+            await act(async () => {
+                renderLeaveForm();
+            });
+            
             expect(screen.getByText(/Calcul des jours en cours/)).toBeInTheDocument();
         });
 
-        it('displays error state when calculation fails', () => {
+        it('displays error state when calculation fails', async () => {
             mockUseLeaveCalculation.mockReturnValue({
                 ...defaultMockCalculationResult,
                 status: 'error',
@@ -208,7 +211,10 @@ describe('LeaveForm', () => {
                 hasValidDates: true,
             });
 
-            renderLeaveForm();
+            await act(async () => {
+                renderLeaveForm();
+            });
+            
             expect(screen.getByText(/Erreur calcul: Calculation failed/)).toBeInTheDocument();
         });
     });
@@ -226,8 +232,9 @@ describe('LeaveForm', () => {
         });
 
         it('validates required fields before submission', async () => {
-            renderLeaveForm();
-            const user = userEvent.setup();
+            await act(async () => {
+                renderLeaveForm();
+            });
 
             // Attendre que les types de congés soient chargés
             await waitFor(() => {
@@ -235,8 +242,12 @@ describe('LeaveForm', () => {
                 expect(selectElement).not.toBeDisabled();
             });
 
-            const submitButton = screen.getByRole('button', { name: /soumettre la demande/i });
-            await user.click(submitButton);
+            // Soumettre le formulaire directement
+            const form = screen.getByRole('form') || screen.getByTestId('leave-form') || document.querySelector('form');
+            
+            await act(async () => {
+                fireEvent.submit(form!);
+            });
 
             await waitFor(() => {
                 expect(screen.getByText('La date de début est requise.')).toBeInTheDocument();
@@ -256,7 +267,10 @@ describe('LeaveForm', () => {
                 hasValidDates: true,
             });
 
-            renderLeaveForm();
+            await act(async () => {
+                renderLeaveForm();
+            });
+            
             const user = userEvent.setup();
 
             // Attendre que les types de congés soient chargés
@@ -267,7 +281,9 @@ describe('LeaveForm', () => {
 
             // Sélectionner un type de congé
             const typeSelect = screen.getByLabelText('Type de congé');
-            await user.selectOptions(typeSelect, 'ANNUAL');
+            await act(async () => {
+                await user.selectOptions(typeSelect, 'ANNUAL');
+            });
 
             // Mock successful API response
             mockedAxios.post.mockResolvedValue({
@@ -303,7 +319,10 @@ describe('LeaveForm', () => {
                 hasValidDates: true,
             });
 
-            renderLeaveForm();
+            await act(async () => {
+                renderLeaveForm();
+            });
+            
             const user = userEvent.setup();
 
             // Setup form with valid data
@@ -313,7 +332,9 @@ describe('LeaveForm', () => {
             });
 
             const typeSelect = screen.getByLabelText('Type de congé');
-            await user.selectOptions(typeSelect, 'ANNUAL');
+            await act(async () => {
+                await user.selectOptions(typeSelect, 'ANNUAL');
+            });
 
             // Mock API error
             mockedAxios.post.mockResolvedValue({
@@ -341,7 +362,10 @@ describe('LeaveForm', () => {
                 countedDays: null,
             });
 
-            renderLeaveForm();
+            await act(async () => {
+                renderLeaveForm();
+            });
+            
             const user = userEvent.setup();
 
             await waitFor(() => {
@@ -350,7 +374,9 @@ describe('LeaveForm', () => {
             });
 
             const typeSelect = screen.getByLabelText('Type de congé');
-            await user.selectOptions(typeSelect, 'ANNUAL');
+            await act(async () => {
+                await user.selectOptions(typeSelect, 'ANNUAL');
+            });
 
             const submitButton = screen.getByRole('button', { name: /soumettre la demande/i });
             
@@ -366,27 +392,39 @@ describe('LeaveForm', () => {
 
     describe('Half-day functionality', () => {
         it('handles half-day period selection', async () => {
-            renderLeaveForm();
+            await act(async () => {
+                renderLeaveForm();
+            });
+            
             const user = userEvent.setup();
 
             const halfDayCheckbox = screen.getByLabelText('Demi-journée');
-            await user.click(halfDayCheckbox);
+            await act(async () => {
+                await user.click(halfDayCheckbox);
+            });
 
             expect(screen.getByLabelText('Matin')).toBeInTheDocument();
             expect(screen.getByLabelText('Après-midi')).toBeInTheDocument();
 
             const pmRadio = screen.getByLabelText('Après-midi');
-            await user.click(pmRadio);
+            await act(async () => {
+                await user.click(pmRadio);
+            });
 
             expect(pmRadio).toBeChecked();
         });
 
         it('recalculates when half-day options change', async () => {
-            renderLeaveForm();
+            await act(async () => {
+                renderLeaveForm();
+            });
+            
             const user = userEvent.setup();
 
             const halfDayCheckbox = screen.getByLabelText('Demi-journée');
-            await user.click(halfDayCheckbox);
+            await act(async () => {
+                await user.click(halfDayCheckbox);
+            });
 
             // Vérifier que recalculate a été appelé avec les bonnes options
             expect(mockUseLeaveCalculation().recalculate).toHaveBeenCalled();

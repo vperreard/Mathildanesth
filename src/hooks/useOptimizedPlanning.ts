@@ -89,7 +89,7 @@ export function useOptimizedPlanning({
                 const nextWeek = addWeeks(week, 1);
 
                 // Prefetch previous week
-                queryClient.prefetchQuery({
+                await queryClient.prefetchQuery({
                     queryKey: ['planning', 'week', format(startOfWeek(prevWeek, { weekStartsOn: 1 }), 'yyyy-MM-dd')],
                     queryFn: async () => {
                         const params = new URLSearchParams({
@@ -105,7 +105,7 @@ export function useOptimizedPlanning({
                 });
 
                 // Prefetch next week
-                queryClient.prefetchQuery({
+                await queryClient.prefetchQuery({
                     queryKey: ['planning', 'week', format(startOfWeek(nextWeek, { weekStartsOn: 1 }), 'yyyy-MM-dd')],
                     queryFn: async () => {
                         const params = new URLSearchParams({
@@ -146,7 +146,7 @@ export function useOptimizedPlanning({
             setLocalUpdates(new Map(localUpdates));
             
             // Invalider le cache pour forcer un rechargement
-            queryClient.invalidateQueries({ queryKey: ['planning', month.toISOString()] });
+            queryClient.invalidateQueries({ queryKey });
         },
         onError: (error) => {
             console.error('Erreur de sauvegarde:', error);

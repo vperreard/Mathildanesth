@@ -103,10 +103,10 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg overflow-hidden z-50 border border-gray-200"
+            className="absolute right-0 mt-2 w-96 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden z-50 border border-gray-200/80"
           >
             {/* En-tête du panneau */}
-            <div className="p-4 border-b border-gray-200 bg-gray-50">
+            <div className="p-4 border-b border-gray-200/80 bg-gray-50/90">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-800">Notifications</h3>
                 <div className="flex space-x-2">

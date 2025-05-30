@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "label": "Security Score",
+  "message": "0/100 (Poor)",
+  "color": "red"
+}

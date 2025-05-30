@@ -1,8 +1,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { getSession } from 'next-auth/react';
 
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || '',
+  baseURL: '', // URL relative pour éviter les problèmes CORS
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -10,10 +11,19 @@ const apiClient: AxiosInstance = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor
+// Request interceptor to add auth token
 apiClient.interceptors.request.use(
-  (config) => {
-    // Add any auth headers or request modifications here
+  async (config) => {
+    // Essayer d'obtenir la session NextAuth
+    try {
+      const session = await getSession();
+      if (session?.accessToken) {
+        config.headers.Authorization = `Bearer ${session.accessToken}`;
+      }
+    } catch (error) {
+      console.warn('Impossible d\'obtenir la session pour la requête API:', error);
+    }
+
     return config;
   },
   (error) => {
@@ -21,18 +31,13 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor
+// Response interceptor to handle common errors
 apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    // Handle common errors
     if (error.response?.status === 401) {
-      // Handle unauthorized
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
+      // Rediriger vers la page de connexion en cas d'erreur 401
+      window.location.href = '/auth/connexion';
     }
     return Promise.reject(error);
   }
@@ -42,16 +47,16 @@ apiClient.interceptors.response.use(
 export const api = {
   get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     apiClient.get<T>(url, config),
-  
+
   post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     apiClient.post<T>(url, data, config),
-  
+
   put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     apiClient.put<T>(url, data, config),
-  
+
   patch: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     apiClient.patch<T>(url, data, config),
-  
+
   delete: <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     apiClient.delete<T>(url, config),
 };

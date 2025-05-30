@@ -130,7 +130,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
         <div
             ref={ref}
             className={cn(
-                "absolute z-10 mt-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none",
+                "absolute z-10 mt-2 w-56 rounded-md bg-white/95 backdrop-blur-sm shadow-lg ring-1 ring-black/10 focus:outline-none dark:bg-slate-800/95 dark:ring-white/10",
                 {
                     "right-0": align === "end",
                     "left-0": align === "start",

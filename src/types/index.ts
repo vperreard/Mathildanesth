@@ -32,4 +32,8 @@ export interface ApiResponse<T> {
     success: boolean;
     message?: string;
     errors?: Record<string, string[]>;
-} 
+}
+
+// Export des nouveaux types Activity/Sector
+export * from './activityTypes';
+export * from './assignment'; 

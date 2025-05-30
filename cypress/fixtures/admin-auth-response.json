@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "user": {
+    "id": 1,
+    "email": "admin@example.com",
+    "nom": "Admin",
+    "prenom": "Test",
+    "role": "ADMIN_TOTAL",
+    "professionalRole": "MAR",
+    "actif": true,
+    "permissions": [
+      "ADMIN_USERS",
+      "ADMIN_SITES",
+      "ADMIN_LEAVES",
+      "ADMIN_PLANNING",
+      "ADMIN_REPORTS",
+      "ADMIN_CONFIG"
+    ]
+  },
+  "token": "cypress-admin-token-auth",
+  "redirectUrl": "/tableau-de-bord"
+}

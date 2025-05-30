@@ -3,39 +3,29 @@ import { useContextualMessagesWebSocket } from '../useContextualMessagesWebSocke
 import { useSession } from 'next-auth/react';
 import { io } from 'socket.io-client';
 import * as authHelpers from '@/lib/auth-helpers';
+import { renderWithProviders } from '../../test-utils/renderWithProviders';
 
 // Mocks
 jest.mock('next-auth/react');
 jest.mock('socket.io-client');
 jest.mock('@/lib/auth-helpers');
 
-// Définir la fonction fetch globale avant de la mocker
-if (!global.fetch) {
-    global.fetch = (() => Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({})
-    })) as any;
-}
-
-// Mock de fetch pour les appels API avec jest.spyOn
-const fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(() =>
-    Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve([])
-    }) as any
-);
+// Mock de fetch sera géré par MSW dans jest.setup.js
+const fetchSpy = jest.spyOn(global, 'fetch');
 
 describe('useContextualMessagesWebSocket', () => {
     // Mocks globaux
     const mockSession = {
-        data: {
-            user: {
-                id: 123,
-                login: 'test-user',
-                email: 'test@example.com',
-                role: 'USER'
-            }
-        },
+        user: {
+            id: 123,
+            login: 'test-user',
+            email: 'test@example.com',
+            role: 'USER'
+        }
+    };
+    
+    const mockUseSession = {
+        data: mockSession,
         status: 'authenticated'
     };
 
@@ -52,23 +42,30 @@ describe('useContextualMessagesWebSocket', () => {
         jest.clearAllMocks();
 
         // Configuration des mocks par défaut
-        (useSession as jest.Mock).mockReturnValue(mockSession);
+        (useSession as jest.Mock).mockReturnValue(mockUseSession);
         (io as jest.Mock).mockReturnValue(mockSocket);
 
-        // Réinitialiser le mock de fetch
+        // Réinitialiser le spy de fetch (les réponses sont gérées par MSW)
         fetchSpy.mockClear();
-        fetchSpy.mockImplementation(() =>
-            Promise.resolve({
-                ok: true,
-                json: () => Promise.resolve([])
-            }) as any
-        );
+        
+        // Mock fetch response pour les appels par défaut
+        fetchSpy.mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: () => Promise.resolve({ messages: [] }),
+        } as any);
 
         (authHelpers.getAuthToken as jest.Mock).mockReturnValue('mocked-auth-token');
         (authHelpers.createAuthHeaders as jest.Mock).mockReturnValue({
             'Content-Type': 'application/json',
             'Authorization': 'Bearer mocked-auth-token'
         });
+
+        // Reset socket mock methods
+        mockSocket.on.mockClear();
+        mockSocket.off.mockClear();
+        mockSocket.emit.mockClear();
+        mockSocket.disconnect.mockClear();
     });
 
     it('initialise le socket avec les options d\'authentification correctes', async () => {
@@ -83,9 +80,11 @@ describe('useContextualMessagesWebSocket', () => {
 
         // Vérifier que Socket.IO est initialisé avec les bonnes options d'authentification
         expect(io).toHaveBeenCalledWith(expect.any(String), {
+            path: '/api/ws',
             autoConnect: true,
             reconnectionAttempts: 5,
             reconnectionDelay: 5000,
+            withCredentials: true,
             auth: {
                 userId: 123,
                 token: 'test-auth-token'
@@ -95,29 +94,27 @@ describe('useContextualMessagesWebSocket', () => {
 
     it('charge les messages avec les en-têtes d\'authentification', async () => {
         // Configurer les mocks d'authentification
-        (authHelpers.createAuthHeaders as jest.Mock).mockReturnValue({
+        const expectedHeaders = {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer test-auth-token'
-        });
+        };
+        (authHelpers.createAuthHeaders as jest.Mock).mockReturnValue(expectedHeaders);
 
         // Rendu du hook
-        renderHook(() => useContextualMessagesWebSocket({
+        const { result } = renderHook(() => useContextualMessagesWebSocket({
             assignmentId: 'attribution-456'
         }));
-
-        // Attendre que le chargement des messages soit déclenché
+        
+        // Attendre que l'effet se déclenche et fasse l'appel
         await waitFor(() => {
             expect(fetchSpy).toHaveBeenCalledWith(
                 expect.stringContaining('/api/contextual-messages?assignmentId=attribution-456'),
                 expect.objectContaining({
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer test-auth-token'
-                    },
+                    headers: expectedHeaders,
                     credentials: 'include'
                 })
             );
-        });
+        }, { timeout: 5000 });
     });
 
     it('gère l\'erreur d\'authentification 401 dans fetch', async () => {
@@ -130,6 +127,12 @@ describe('useContextualMessagesWebSocket', () => {
             }) as any
         );
 
+        // Configurer les headers pour que l'appel soit fait
+        (authHelpers.createAuthHeaders as jest.Mock).mockReturnValue({
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer test-auth-token'
+        });
+
         // Rendu du hook
         const { result } = renderHook(() => useContextualMessagesWebSocket({
             assignmentId: 'attribution-789'
@@ -138,7 +141,7 @@ describe('useContextualMessagesWebSocket', () => {
         // Attendre que l'état d'erreur d'authentification soit défini
         await waitFor(() => {
             expect(result.current.authError).toBe(true);
-        });
+        }, { timeout: 5000 });
     });
 
     it('rejoint une room spécifique lorsque authentifié', async () => {
@@ -172,42 +175,58 @@ describe('useContextualMessagesWebSocket', () => {
     });
 
     it('envoie un message avec authentification', async () => {
-        // Configuration du mock fetch pour l'envoi de message
-        fetchSpy.mockImplementationOnce(() =>
-            Promise.resolve({
-                ok: true,
-                json: () => Promise.resolve({
-                    id: 'message-123',
-                    content: 'Test message',
-                    createdAt: new Date().toISOString(),
-                    authorId: 123,
-                    author: {
-                        id: 123,
-                        login: 'test-user'
-                    }
-                })
-            }) as any
-        );
+        // Configurer les mocks d'authentification
+        const expectedHeaders = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer mocked-auth-token'
+        };
+        (authHelpers.createAuthHeaders as jest.Mock).mockReturnValue(expectedHeaders);
+
+        // Configuration du mock fetch pour les messages - deux appels attendus
+        fetchSpy
+            .mockImplementationOnce(() => // Premier appel pour loadMessages
+                Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({ messages: [] })
+                }) as any
+            )
+            .mockImplementationOnce(() => // Deuxième appel pour sendMessage
+                Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({
+                        id: 'message-123',
+                        content: 'Test message',
+                        createdAt: new Date().toISOString(),
+                        authorId: 123,
+                        author: {
+                            id: 123,
+                            login: 'test-user'
+                        }
+                    })
+                }) as any
+            );
 
         // Rendu du hook
         const { result } = renderHook(() => useContextualMessagesWebSocket({
             assignmentId: 'attribution-123'
         }));
 
+        // Attendre que le hook soit chargé
+        await waitFor(() => {
+            expect(result.current.isLoading).toBe(false);
+        });
+
         // Appeler la fonction sendMessage
         await act(async () => {
             await result.current.sendMessage('Test message');
         });
 
-        // Vérifier que fetch a été appelé avec les bons en-têtes d'authentification
+        // Vérifier que fetch a été appelé avec les bons en-têtes d'authentification pour sendMessage
         expect(fetchSpy).toHaveBeenCalledWith(
             '/api/contextual-messages',
             expect.objectContaining({
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer mocked-auth-token'
-                },
+                headers: expectedHeaders,
                 credentials: 'include'
             })
         );

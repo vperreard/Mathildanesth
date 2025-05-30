@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { renderWithProviders as render, screen, fireEvent } from '@/test-utils/renderWithProviders';
 import UserProfile from '../UserProfile';
 import { ThemeProvider } from '@/context/ThemeContext';
 

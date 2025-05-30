@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { renderWithProviders as render, screen, fireEvent } from '@/test-utils/renderWithProviders';
 import '@testing-library/jest-dom';
 
 // Déclaration pour étendre les types d'assertion Jest avec testing-library/jest-dom

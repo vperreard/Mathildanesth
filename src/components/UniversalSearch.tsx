@@ -44,18 +44,23 @@ interface SearchSection {
   results: SearchResult[];
 }
 
-export function UniversalSearch() {
+interface UniversalSearchProps {
+  compact?: boolean;
+  className?: string;
+}
+
+export function UniversalSearch({ compact = false, className = '' }: UniversalSearchProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchSection[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  
+
   const debouncedQuery = useDebounce(query, 300);
 
   // Keyboard shortcut to open search
@@ -94,7 +99,7 @@ export function UniversalSearch() {
             results: [
               {
                 id: '1',
-                type: 'user',
+                type: 'user' as const,
                 title: 'Dr. Marie Dupont',
                 subtitle: 'marie.dupont@hospital.fr',
                 description: 'Anesthésiste MAR',
@@ -104,7 +109,7 @@ export function UniversalSearch() {
               },
               {
                 id: '2',
-                type: 'user',
+                type: 'user' as const,
                 title: 'Jean Martin',
                 subtitle: 'jean.martin@hospital.fr',
                 description: 'IADE',
@@ -119,7 +124,7 @@ export function UniversalSearch() {
             results: [
               {
                 id: '3',
-                type: 'leave',
+                type: 'leave' as const,
                 title: 'Congé de Marie Dupont',
                 subtitle: '15/06/2025 - 22/06/2025',
                 description: 'Congé annuel',
@@ -134,7 +139,7 @@ export function UniversalSearch() {
             results: [
               {
                 id: '4',
-                type: 'surgeon',
+                type: 'surgeon' as const,
                 title: 'Dr. Pierre Lefevre',
                 subtitle: 'Orthopédie, Traumatologie',
                 description: 'Hôpital Central, Clinique Sud',
@@ -174,7 +179,7 @@ export function UniversalSearch() {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     const allResults = results.flatMap(section => section.results);
-    
+
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
@@ -221,14 +226,22 @@ export function UniversalSearch() {
     return (
       <Button
         variant="ghost"
-        className="relative h-9 px-3 gap-2 text-sm font-normal text-muted-foreground hover:text-foreground transition-colors"
+        className={`relative transition-colors ${compact
+          ? 'h-8 w-8 p-0'
+          : 'h-9 px-3 gap-2 text-sm font-normal text-muted-foreground hover:text-foreground'
+          } ${className}`}
         onClick={() => setIsOpen(true)}
+        title={compact ? 'Rechercher (⌘K)' : undefined}
       >
-        <Search className="h-4 w-4" />
-        <span className="hidden lg:inline">Rechercher...</span>
-        <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground lg:flex">
-          <span className="text-xs">⌘</span>K
-        </kbd>
+        <Search className={compact ? 'h-4 w-4' : 'h-4 w-4'} />
+        {!compact && (
+          <>
+            <span className="hidden lg:inline">Rechercher...</span>
+            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground lg:flex">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </>
+        )}
       </Button>
     );
   }
@@ -242,13 +255,13 @@ export function UniversalSearch() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
             onClick={() => {
               setIsOpen(false);
               setQuery('');
             }}
           />
-          
+
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -257,8 +270,8 @@ export function UniversalSearch() {
             className="fixed left-1/2 top-24 z-50 w-full max-w-2xl -translate-x-1/2 px-4"
             onClick={e => e.stopPropagation()}
           >
-            <Card className="overflow-hidden border-0 shadow-2xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl">
-              <div className="border-b bg-gray-50/50 dark:bg-gray-800/50">
+            <Card className="overflow-hidden border-0 shadow-2xl bg-white/98 dark:bg-gray-900/98 backdrop-blur-xl">
+              <div className="border-b bg-gray-50/80 dark:bg-gray-800/80">
                 <div className="flex items-center px-4 gap-3">
                   <div className="flex items-center justify-center">
                     <Search className="h-5 w-5 text-gray-400" />
@@ -310,18 +323,17 @@ export function UniversalSearch() {
                             const globalIndex = results
                               .slice(0, sectionIndex)
                               .reduce((acc, s) => acc + s.results.length, 0) + resultIndex;
-                            
+
                             return (
                               <motion.button
                                 key={result.id}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: globalIndex * 0.02 }}
-                                className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all ${
-                                  selectedIndex === globalIndex
-                                    ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                                    : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                                }`}
+                                className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all ${selectedIndex === globalIndex
+                                  ? 'bg-primary/10 text-primary dark:bg-primary/20'
+                                  : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                                  }`}
                                 onClick={() => handleSelect(result)}
                               >
                                 <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${getIconBg(result.type)} ${getIconColor(result.type)} transition-all group-hover:scale-110`}>
@@ -350,9 +362,8 @@ export function UniversalSearch() {
                                     </div>
                                   )}
                                 </div>
-                                <ArrowRight className={`h-4 w-4 text-gray-300 transition-all group-hover:translate-x-1 group-hover:text-gray-500 ${
-                                  selectedIndex === globalIndex ? 'text-primary' : ''
-                                }`} />
+                                <ArrowRight className={`h-4 w-4 text-gray-300 transition-all group-hover:translate-x-1 group-hover:text-gray-500 ${selectedIndex === globalIndex ? 'text-primary' : ''
+                                  }`} />
                               </motion.button>
                             );
                           })}
@@ -388,7 +399,7 @@ export function UniversalSearch() {
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Commencez à taper pour rechercher dans toute l'application
                   </p>
-                  
+
                   <div className="mt-6 flex items-center justify-center gap-6 text-xs">
                     <div className="flex items-center gap-2 text-gray-400">
                       <kbd className="rounded border border-gray-200 bg-white px-2 py-1 font-mono text-[10px] shadow-sm dark:border-gray-700 dark:bg-gray-800">↑</kbd>

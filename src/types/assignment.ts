@@ -1,14 +1,15 @@
-// src/types/attribution.ts
+// src/types/assignment.ts
 
 import { RuleSeverity } from './rules';
 import { ShiftType } from './common';
+import { ActivityType, ActivityCategory, Period } from './activityTypes';
 
-// Type d'affectation
+// Type d'affectation - Compatible avec ActivityCategory
 export enum AssignmentType {
     GARDE = 'GARDE',
     ASTREINTE = 'ASTREINTE',
     CONSULTATION = 'CONSULTATION',
-    BLOC = 'BLOC'
+    BLOC = 'BLOC_OPERATOIRE'
 }
 
 /**
@@ -41,6 +42,67 @@ export interface Attribution {
     rejectionReason?: string;
     /** Raison de annulation de l'affectation */
     cancellationReason?: string;
+}
+
+/**
+ * Interface moderne pour les affectations avec séparation ActivityType/Sector
+ * Remplace progressivement l'interface Attribution legacy
+ */
+export interface Assignment {
+    /** Identifiant unique de l'affectation */
+    id: string;
+    /** Date de l'affectation */
+    date: Date;
+    /** ID de l'utilisateur assigné */
+    userId?: number;
+    /** Nom du chirurgien (legacy field) */
+    chirurgien?: string;
+    /** Nom de la salle (legacy field) */
+    salle?: string;
+    /** Référence au type d'activité */
+    activityTypeId?: string;
+    /** Type de l'affectation (legacy field) */
+    type?: string;
+    /** Statut de l'affectation */
+    statut?: string;
+    /** Heure de début */
+    heureDebut?: string;
+    /** Heure de fin */
+    heureFin?: string;
+    /** Notes supplémentaires */
+    notes?: string;
+    /** ID de la spécialité */
+    specialtyId?: number;
+    /** ID du site */
+    siteId?: string;
+    /** ID de la salle d'opération */
+    operatingRoomId?: number;
+    /** ID du chirurgien */
+    surgeonId?: number;
+    /** ID de l'affectation régulière source */
+    regularAssignmentId?: number;
+    /** ID du lieu */
+    locationId?: number;
+    /** Période (matin, après-midi, journée) */
+    period?: Period;
+    /** Date de création */
+    createdAt: Date;
+    /** Date de mise à jour */
+    updatedAt: Date;
+    
+    // Relations
+    /** Type d'activité (garde, consultation, etc.) */
+    activityType?: ActivityType;
+    /** Utilisateur assigné */
+    user?: any; // Type User à définir selon le contexte
+    /** Chirurgien assigné */
+    surgeon?: any; // Type Surgeon à définir selon le contexte
+    /** Spécialité */
+    specialty?: any; // Type Specialty à définir selon le contexte
+    /** Site */
+    site?: any; // Type Site à définir selon le contexte
+    /** Salle d'opération */
+    operatingRoom?: any; // Type OperatingRoom à définir selon le contexte
 }
 
 /**

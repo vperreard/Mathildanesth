@@ -26,53 +26,23 @@ import {
     EyeOff
 } from 'lucide-react';
 import axios from 'axios';
-
-interface OperatingSector {
-    id: number;
-    name: string;
-    description?: string;
-    displayOrder: number;
-    category: 'STANDARD' | 'SPECIALIZED' | 'EMERGENCY' | 'AMBULATORY';
-    sectorType: 'GENERAL' | 'CARDIAC' | 'NEURO' | 'PEDIATRIC' | 'OBSTETRIC' | 'OPHTHALMOLOGY' | 'ENDOSCOPY';
-    supervisionRules?: {
-        maxRoomsPerSupervisor: number;
-        requiresContiguousRooms: boolean;
-        compatibleSectors: string[];
-    };
-    isActive: boolean;
-    rooms?: Array<{
-        id: number;
-        name: string;
-        isActive: boolean;
-    }>;
-}
+import { SectorCategory, OperatingSector, CreateSectorData, UpdateSectorData } from '@/types/activityTypes';
 
 interface SectorFormData {
     name: string;
     description: string;
-    category: string;
-    sectorType: string;
+    category: SectorCategory;
     maxRoomsPerSupervisor: number;
     requiresContiguousRooms: boolean;
-    compatibleSectors: string[];
+    compatibleSectors: SectorCategory[];
     isActive: boolean;
 }
 
-const CATEGORY_OPTIONS = [
-    { value: 'STANDARD', label: 'Standard', color: 'blue' },
-    { value: 'SPECIALIZED', label: 'Spécialisé', color: 'purple' },
-    { value: 'EMERGENCY', label: 'Urgence', color: 'red' },
-    { value: 'AMBULATORY', label: 'Ambulatoire', color: 'green' }
-];
-
-const SECTOR_TYPE_OPTIONS = [
-    { value: 'GENERAL', label: 'Général' },
-    { value: 'CARDIAC', label: 'Cardiaque' },
-    { value: 'NEURO', label: 'Neurologie' },
-    { value: 'PEDIATRIC', label: 'Pédiatrie' },
-    { value: 'OBSTETRIC', label: 'Obstétrique' },
-    { value: 'OPHTHALMOLOGY', label: 'Ophtalmologie' },
-    { value: 'ENDOSCOPY', label: 'Endoscopie' }
+const SECTOR_CATEGORY_OPTIONS = [
+    { value: SectorCategory.STANDARD, label: 'Standard', color: 'blue', description: 'Secteur opératoire standard' },
+    { value: SectorCategory.HYPERASEPTIQUE, label: 'Hyperaseptique', color: 'green', description: 'Secteur haute asepsie' },
+    { value: SectorCategory.OPHTALMOLOGIE, label: 'Ophtalmologie', color: 'purple', description: 'Secteur ophtalmologique' },
+    { value: SectorCategory.ENDOSCOPIE, label: 'Endoscopie', color: 'orange', description: 'Secteur endoscopique' }
 ];
 
 export const SecteursOperatoireManager: React.FC = () => {
@@ -82,8 +52,7 @@ export const SecteursOperatoireManager: React.FC = () => {
     const [formData, setFormData] = useState<SectorFormData>({
         name: '',
         description: '',
-        category: 'STANDARD',
-        sectorType: 'GENERAL',
+        category: SectorCategory.STANDARD,
         maxRoomsPerSupervisor: 2,
         requiresContiguousRooms: true,
         compatibleSectors: [],
@@ -102,19 +71,17 @@ export const SecteursOperatoireManager: React.FC = () => {
     // Mutation pour créer un secteur
     const createSector = useMutation({
         mutationFn: async (data: SectorFormData) => {
-            const payload = {
+            const payload: CreateSectorData = {
                 name: data.name,
                 description: data.description,
                 category: data.category,
-                sectorType: data.sectorType,
-                supervisionRules: {
+                rules: {
                     maxRoomsPerSupervisor: data.maxRoomsPerSupervisor,
                     requiresContiguousRooms: data.requiresContiguousRooms,
                     compatibleSectors: data.compatibleSectors
-                },
-                isActive: data.isActive
+                }
             };
-            const response = await axios.post('http://localhost:3000/api/bloc-operatoire/operating-sectors', payload);
+            const response = await axios.post('/api/operating-sectors', payload);
             return response.data;
         },
         onSuccess: () => {

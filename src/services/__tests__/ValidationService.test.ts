@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import { ValidationService } from '../ValidationService';
 import { Attribution } from '../../types/attribution';
 import { Doctor } from '../../types/doctor';
@@ -7,6 +10,17 @@ import { ShiftType, SHIFT_DURATION } from '../../types/common';
 import { MedicalSpecialty, MedicalGrade, DoctorAvailabilityStatus } from '../../types/doctor';
 
 describe('ValidationService', () => {
+  let testEnv: any;
+  
+  beforeAll(() => {
+    testEnv = setupTestEnvironment();
+  });
+  
+  afterAll(() => {
+    cleanupTestEnvironment();
+    testEnv.restoreConsole?.();
+  });
+
     // Configuration des règles pour les tests
     const testRulesConfig: RulesConfiguration = {
         minDaysBetweenAssignments: 2,

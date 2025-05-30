@@ -17,6 +17,9 @@ export function PerformanceTracker() {
 
     // Monitoring des erreurs
     useEffect(() => {
+        // Vérifier si on est côté client
+        if (typeof window === 'undefined') return;
+
         const handleError = (event: ErrorEvent) => {
             // Filtrer les erreurs de toast connues pour éviter de polluer la console
             if (event.error &&
@@ -42,14 +45,16 @@ export function PerformanceTracker() {
                     });
 
                     // Nettoyer le DOM des toasts orphelins
-                    const toastElements = document.querySelectorAll('[class*="Toastify"], [class*="toast"]');
-                    toastElements.forEach(el => {
-                        try {
-                            el.remove();
-                        } catch (e) {
-                            // Ignorer les erreurs de suppression
-                        }
-                    });
+                    if (typeof document !== 'undefined') {
+                        const toastElements = document.querySelectorAll('[class*="Toastify"], [class*="toast"]');
+                        toastElements.forEach(el => {
+                            try {
+                                el.remove();
+                            } catch (e) {
+                                // Ignorer les erreurs de suppression
+                            }
+                        });
+                    }
 
                     event.preventDefault();
                 } catch (error) {

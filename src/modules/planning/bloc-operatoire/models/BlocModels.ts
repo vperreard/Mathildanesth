@@ -8,7 +8,8 @@ import { ROOM_TYPES } from '../constants/roomTypes';
 export enum BlocPeriod {
     MORNING = 'MORNING',
     AFTERNOON = 'AFTERNOON',
-    FULL_DAY = 'FULL_DAY',
+    ALL_DAY = 'ALL_DAY',
+    FULL_DAY = 'FULL_DAY', // Backward compatibility
 }
 
 // Enum pour le statut du planning
@@ -135,16 +136,35 @@ export const BlocVacationSchema = z.object({
 
 export type BlocVacation = z.infer<typeof BlocVacationSchema>;
 
-// Schéma pour une assignation de salle
+// Schéma pour une assignation de salle  
 export const BlocRoomAssignmentSchema = z.object({
     id: z.string().uuid().optional(),
     roomId: z.number().int().positive(),
+    surgeonId: z.number().int().positive().optional(),
+    date: z.date(),
+    period: z.nativeEnum(BlocPeriod),
     morningVacation: BlocVacationSchema.optional(),
     afternoonVacation: BlocVacationSchema.optional(),
     notes: z.string().optional(),
 });
 
 export type BlocRoomAssignment = z.infer<typeof BlocRoomAssignmentSchema>;
+
+// Schéma pour un superviseur de secteur
+export const BlocSupervisorSchema = z.object({
+    id: z.string().uuid().optional(),
+    userId: z.string(),
+    name: z.string(),
+    sectorId: z.string().optional(),
+    sectorIds: z.array(z.string()).default([]),
+    roomIds: z.array(z.number()).default([]),
+    role: z.string().default('SUPERVISOR'),
+    periods: z.array(z.nativeEnum(BlocPeriod)).default([]),
+    createdAt: z.date().optional(),
+    updatedAt: z.date().optional(),
+});
+
+export type BlocSupervisor = z.infer<typeof BlocSupervisorSchema>;
 
 // Schéma pour un planning de jour
 export const BlocDayPlanningSchema = z.object({

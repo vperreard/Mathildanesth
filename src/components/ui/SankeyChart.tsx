@@ -149,6 +149,9 @@ export function SankeyChart({
     // Rendu du graphique avec D3
     useEffect(() => {
         if (!processedData || !svgRef.current) return;
+        
+        // Protection SSR - s'assurer que D3 est disponible
+        if (typeof window === 'undefined' || !d3 || !d3.select) return;
 
         const svg = d3.select(svgRef.current);
         svg.selectAll('*').remove();
@@ -171,10 +174,10 @@ export function SankeyChart({
             categoryColors[category] = colors[i % colors.length];
         });
 
-        // Dessiner les liens
+        // Dessiner les liens - Protection contre les erreurs D3
         const links = linkGroup
             .selectAll('path')
-            .data(processedData.links)
+            .data(processedData?.links || [])
             .enter()
             .append('path')
             .attr('d', linkGenerator)

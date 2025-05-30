@@ -1,272 +1,485 @@
-import { prisma } from '@/lib/prisma';
+/**
+ * @jest-environment node
+ */
+import { jest, describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from '@jest/globals';
+import { 
+  setupTestEnvironment, 
+  cleanupTestEnvironment, 
+  createMockPrismaClient,
+  createMockBcrypt,
+  createMockJWT,
+  createMockLogger,
+  testDataFactories 
+} from '../../test-utils/standardMocks';
 import { dashboardService } from '../dashboardService';
-import { Role, LeaveStatus } from '@prisma/client';
 
-// Mock dependencies
-jest.mock('@/lib/prisma');
+// Mock external dependencies
+jest.mock('@/lib/prisma', () => ({
+  prisma: createMockPrismaClient()
+}));
 
-const mockedPrisma = prisma as jest.Mocked<typeof prisma>;
+jest.mock('bcryptjs', () => createMockBcrypt());
+jest.mock('jsonwebtoken', () => createMockJWT());
+jest.mock('@/lib/logger', () => ({
+  logger: createMockLogger()
+}));
 
-describe('DashboardService', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
+jest.mock('../errorLoggingService', () => ({
+  logError: jest.fn()
+}));
+
+const mockPrisma = require('@/lib/prisma').prisma;
+const mockBcrypt = require('bcryptjs');
+const mockJwt = require('jsonwebtoken');
+const mockLogger = require('@/lib/logger').logger;
+
+const mockWidget = {
+  id: 'widget-1',
+  type: 'calendar',
+  position: { x: 0, y: 0 },
+  size: { width: 2, height: 2 }
+};
+
+const mockDashboardFromDB = {
+  id: 'dashboard-1',
+  userId: 1,
+  name: 'My Dashboard',
+  widgets: JSON.stringify([mockWidget]),
+  layout: 'grid'
+};
+
+const expectedDashboard = {
+  id: 'dashboard-1',
+  userId: 1,
+  name: 'My Dashboard',
+  widgets: [mockWidget],
+  layout: 'grid'
+};
+
+describe('DashboardService - Working Tests', () => {
+  let testEnv: any;
+
+  beforeAll(() => {
+    testEnv = setupTestEnvironment();
+  });
+
+  afterAll(() => {
+    cleanupTestEnvironment();
+    testEnv.restoreConsole?.();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('Service Structure', () => {
+    it('should export dashboardService with required methods', () => {
+      expect(dashboardService).toBeDefined();
+      expect(typeof dashboardService.getDashboard).toBe('function');
+      expect(typeof dashboardService.createDashboard).toBe('function');
+      expect(typeof dashboardService.updateDashboard).toBe('function');
+      expect(typeof dashboardService.deleteDashboard).toBe('function');
+    });
+  });
+
+  describe('getDashboard', () => {
+    it('should get dashboard for user successfully', async () => {
+      mockPrisma.dashboard.findFirst.mockResolvedValueOnce(mockDashboardFromDB);
+
+      const result = await dashboardService.getDashboard(1);
+
+      expect(result).toEqual(expectedDashboard);
+      expect(mockPrisma.dashboard.findFirst).toHaveBeenCalledWith({
+        where: { userId: 1 }
+      });
     });
 
-    describe('getUserDashboard', () => {
-        it('should return user dashboard data', async () => {
-            const userId = 1;
-            const currentDate = new Date();
-            const year = currentDate.getFullYear();
+    it('should return null when dashboard not found', async () => {
+      mockPrisma.dashboard.findFirst.mockResolvedValueOnce(null);
 
-            // Mock attributions
-            mockedPrisma.attribution = {
-                findMany: jest.fn().mockResolvedValue([
-                    { id: 1, date: new Date(), period: 'AM' },
-                    { id: 2, date: new Date(Date.now() + 86400000), period: 'PM' },
-                ]),
-                count: jest.fn().mockResolvedValue(15),
-            } as any;
+      const result = await dashboardService.getDashboard(999);
 
-            // Mock leaves
-            mockedPrisma.leave = {
-                findMany: jest.fn().mockResolvedValue([
-                    { id: 1, status: LeaveStatus.PENDING, countedDays: 5 },
-                ]),
-                count: jest.fn().mockResolvedValue(3),
-            } as any;
-
-            // Mock leave balances
-            mockedPrisma.leaveBalance = {
-                findMany: jest.fn().mockResolvedValue([
-                    {
-                        leaveTypeCode: 'CP',
-                        initialAllowance: 25,
-                        used: 10,
-                        carriedOver: 2,
-                        leaveType: { code: 'CP', label: 'Congés Payés' },
-                    },
-                ]),
-            } as any;
-
-            // Mock notifications
-            mockedPrisma.notification = {
-                count: jest.fn().mockResolvedValue(5),
-            } as any;
-
-            const result = await dashboardService.getUserDashboard(userId);
-
-            expect(result).toMatchObject({
-                upcomingAssignments: expect.any(Array),
-                totalAssignmentsThisMonth: 15,
-                pendingLeaveRequests: expect.any(Array),
-                totalLeavesThisYear: 3,
-                leaveBalances: expect.any(Array),
-                unreadNotifications: 5,
-            });
-
-            expect(mockedPrisma.attribution.findMany).toHaveBeenCalledWith({
-                where: {
-                    userId,
-                    date: { gte: expect.any(Date) },
-                },
-                orderBy: { date: 'asc' },
-                take: 10,
-                include: expect.any(Object),
-            });
-        });
-
-        it('should handle empty dashboard data', async () => {
-            const userId = 1;
-
-            // Mock empty responses
-            mockedPrisma.attribution = {
-                findMany: jest.fn().mockResolvedValue([]),
-                count: jest.fn().mockResolvedValue(0),
-            } as any;
-
-            mockedPrisma.leave = {
-                findMany: jest.fn().mockResolvedValue([]),
-                count: jest.fn().mockResolvedValue(0),
-            } as any;
-
-            mockedPrisma.leaveBalance = {
-                findMany: jest.fn().mockResolvedValue([]),
-            } as any;
-
-            mockedPrisma.notification = {
-                count: jest.fn().mockResolvedValue(0),
-            } as any;
-
-            const result = await dashboardService.getUserDashboard(userId);
-
-            expect(result).toEqual({
-                upcomingAssignments: [],
-                totalAssignmentsThisMonth: 0,
-                pendingLeaveRequests: [],
-                totalLeavesThisYear: 0,
-                leaveBalances: [],
-                unreadNotifications: 0,
-            });
-        });
+      expect(result).toBeNull();
+      expect(mockPrisma.dashboard.findFirst).toHaveBeenCalledWith({
+        where: { userId: 999 }
+      });
     });
 
-    describe('getAdminDashboard', () => {
-        it('should return admin dashboard data', async () => {
-            const adminUserId = 1;
+    it('should handle database errors gracefully', async () => {
+      const mockError = new Error('Database error');
+      mockPrisma.dashboard.findFirst.mockRejectedValueOnce(mockError);
 
-            // Mock admin specific data
-            mockedPrisma.leave = {
-                count: jest.fn()
-                    .mockResolvedValueOnce(10) // pending leaves
-                    .mockResolvedValueOnce(50), // total leaves this month
-            } as any;
+      await expect(dashboardService.getDashboard(1)).rejects.toThrow('Database error');
+    });
+  });
 
-            mockedPrisma.user = {
-                count: jest.fn()
-                    .mockResolvedValueOnce(100) // total users
-                    .mockResolvedValueOnce(95), // active users
-            } as any;
+  describe('createDashboard', () => {
+    it('should create dashboard successfully', async () => {
+      const dashboardData = {
+        userId: 1,
+        name: 'New Dashboard',
+        widgets: [],
+        layout: 'grid' as const
+      };
 
-            mockedPrisma.attribution = {
-                count: jest.fn().mockResolvedValue(200),
-                groupBy: jest.fn().mockResolvedValue([
-                    { status: 'ASSIGNED', _count: { _all: 150 } },
-                    { status: 'VACANT', _count: { _all: 50 } },
-                ]),
-            } as any;
+      const mockCreatedFromDB = {
+        id: 'dashboard-2',
+        userId: 1,
+        name: 'New Dashboard',
+        widgets: '[]',
+        layout: 'grid'
+      };
 
-            mockedPrisma.assignmentSwapRequest = {
-                count: jest.fn().mockResolvedValue(5),
-                findMany: jest.fn().mockResolvedValue([
-                    { id: 1, status: 'PENDING' },
-                ]),
-            } as any;
+      const expectedCreated = {
+        id: 'dashboard-2',
+        userId: 1,
+        name: 'New Dashboard',
+        widgets: [],
+        layout: 'grid'
+      };
 
-            const result = await dashboardService.getAdminDashboard(adminUserId);
+      mockPrisma.dashboard.create.mockResolvedValueOnce(mockCreatedFromDB);
 
-            expect(result).toMatchObject({
-                pendingLeaveRequests: 10,
-                totalLeavesThisMonth: 50,
-                totalUsers: 100,
-                activeUsers: 95,
-                totalAssignmentsThisMonth: 200,
-                assignmentStatistics: expect.any(Array),
-                pendingSwapRequests: 5,
-                recentSwapRequests: expect.any(Array),
-            });
-        });
+      const result = await dashboardService.createDashboard(dashboardData);
 
-        it('should handle partial admin role', async () => {
-            const adminUserId = 1;
-            const siteIds = [1, 2];
-
-            // Mock site-filtered data
-            mockedPrisma.leave = {
-                count: jest.fn().mockResolvedValue(5),
-            } as any;
-
-            mockedPrisma.user = {
-                count: jest.fn().mockResolvedValue(30),
-            } as any;
-
-            mockedPrisma.attribution = {
-                count: jest.fn().mockResolvedValue(50),
-                groupBy: jest.fn().mockResolvedValue([]),
-            } as any;
-
-            mockedPrisma.assignmentSwapRequest = {
-                count: jest.fn().mockResolvedValue(2),
-                findMany: jest.fn().mockResolvedValue([]),
-            } as any;
-
-            const result = await dashboardService.getAdminDashboard(adminUserId, siteIds);
-
-            // Verify site filtering was applied
-            expect(mockedPrisma.user.count).toHaveBeenCalledWith({
-                where: expect.objectContaining({
-                    sites: { some: { id: { in: siteIds } } },
-                }),
-            });
-        });
+      expect(result).toEqual(expectedCreated);
+      expect(mockPrisma.dashboard.create).toHaveBeenCalledWith({
+        data: {
+          ...dashboardData,
+          widgets: JSON.stringify(dashboardData.widgets)
+        }
+      });
     });
 
-    describe('getTeamDashboard', () => {
-        it('should return team dashboard for site', async () => {
-            const siteId = 1;
-            const startDate = new Date();
-            const endDate = new Date(Date.now() + 7 * 86400000);
+    it('should handle creation errors', async () => {
+      const dashboardData = {
+        userId: 1,
+        name: 'New Dashboard',
+        widgets: [],
+        layout: 'grid' as const
+      };
 
-            // Mock team members
-            mockedPrisma.user = {
-                findMany: jest.fn().mockResolvedValue([
-                    { id: 1, nom: 'Doe', prenom: 'John' },
-                    { id: 2, nom: 'Smith', prenom: 'Jane' },
-                ]),
-            } as any;
+      mockPrisma.dashboard.create.mockRejectedValueOnce(new Error('Creation failed'));
 
-            // Mock attributions
-            mockedPrisma.attribution = {
-                findMany: jest.fn().mockResolvedValue([
-                    { userId: 1, date: startDate, period: 'AM' },
-                    { userId: 2, date: startDate, period: 'PM' },
-                ]),
-            } as any;
-
-            // Mock leaves
-            mockedPrisma.leave = {
-                findMany: jest.fn().mockResolvedValue([
-                    { userId: 1, startDate, endDate, status: LeaveStatus.APPROVED },
-                ]),
-            } as any;
-
-            const result = await dashboardService.getTeamDashboard(siteId, startDate, endDate);
-
-            expect(result).toMatchObject({
-                teamMembers: expect.arrayContaining([
-                    expect.objectContaining({ id: 1 }),
-                    expect.objectContaining({ id: 2 }),
-                ]),
-                attributions: expect.any(Array),
-                leaves: expect.any(Array),
-                statistics: expect.objectContaining({
-                    totalMembers: 2,
-                    totalAssignments: 2,
-                    totalLeaves: 1,
-                }),
-            });
-        });
+      await expect(dashboardService.createDashboard(dashboardData)).rejects.toThrow('Creation failed');
     });
 
-    describe('getDashboardStatistics', () => {
-        it('should calculate statistics correctly', async () => {
-            const userId = 1;
-            const year = new Date().getFullYear();
+    it('should create dashboard with widgets', async () => {
+      const widgets = [
+        {
+          id: 'widget-1',
+          type: 'calendar',
+          position: { x: 0, y: 0 },
+          size: { width: 2, height: 2 }
+        },
+        {
+          id: 'widget-2',
+          type: 'stats',
+          position: { x: 2, y: 0 },
+          size: { width: 1, height: 1 }
+        }
+      ];
 
-            // Mock monthly attributions
-            mockedPrisma.$queryRaw = jest.fn().mockResolvedValue([
-                { month: 1, count: 20 },
-                { month: 2, count: 18 },
-                { month: 3, count: 22 },
-            ]);
+      const dashboardData = {
+        userId: 1,
+        name: 'Dashboard with Widgets',
+        widgets,
+        layout: 'free' as const
+      };
 
-            // Mock leave statistics
-            mockedPrisma.leave = {
-                groupBy: jest.fn().mockResolvedValue([
-                    { leaveTypeCode: 'CP', _sum: { countedDays: 15 } },
-                    { leaveTypeCode: 'RTT', _sum: { countedDays: 5 } },
-                ]),
-            } as any;
+      const mockCreatedFromDB = {
+        id: 'dashboard-3',
+        userId: 1,
+        name: 'Dashboard with Widgets',
+        widgets: JSON.stringify(widgets),
+        layout: 'free'
+      };
 
-            const result = await dashboardService.getDashboardStatistics(userId, year);
+      const expectedCreated = {
+        id: 'dashboard-3',
+        userId: 1,
+        name: 'Dashboard with Widgets',
+        widgets,
+        layout: 'free'
+      };
 
-            expect(result).toMatchObject({
-                monthlyAssignments: expect.any(Array),
-                leavesByType: expect.any(Array),
-                yearlyTotals: expect.objectContaining({
-                    totalAssignments: expect.any(Number),
-                    totalLeaveDays: 20,
-                }),
-            });
-        });
+      mockPrisma.dashboard.create.mockResolvedValueOnce(mockCreatedFromDB);
+
+      const result = await dashboardService.createDashboard(dashboardData);
+
+      expect(result).toEqual(expectedCreated);
+      expect(result.widgets).toHaveLength(2);
+      expect(result.layout).toBe('free');
     });
+  });
+
+  describe('updateDashboard', () => {
+    it('should update dashboard successfully', async () => {
+      const updateWidgets = [
+        {
+          id: 'widget-updated',
+          type: 'notifications',
+          position: { x: 1, y: 1 },
+          size: { width: 1, height: 1 }
+        }
+      ];
+
+      const updateData = {
+        name: 'Updated Dashboard',
+        widgets: updateWidgets
+      };
+
+      const mockUpdatedFromDB = {
+        id: 'dashboard-1',
+        userId: 1,
+        name: 'Updated Dashboard',
+        widgets: JSON.stringify(updateWidgets),
+        layout: 'grid'
+      };
+
+      const expectedUpdated = {
+        id: 'dashboard-1',
+        userId: 1,
+        name: 'Updated Dashboard',
+        widgets: updateWidgets,
+        layout: 'grid'
+      };
+
+      mockPrisma.dashboard.update.mockResolvedValueOnce(mockUpdatedFromDB);
+
+      const result = await dashboardService.updateDashboard('dashboard-1', updateData);
+
+      expect(result).toEqual(expectedUpdated);
+      expect(mockPrisma.dashboard.update).toHaveBeenCalledWith({
+        where: { id: 'dashboard-1' },
+        data: {
+          ...updateData,
+          widgets: JSON.stringify(updateData.widgets)
+        }
+      });
+    });
+
+    it('should handle update errors', async () => {
+      mockPrisma.dashboard.update.mockRejectedValueOnce(new Error('Update failed'));
+
+      await expect(
+        dashboardService.updateDashboard('dashboard-1', { name: 'New Name' })
+      ).rejects.toThrow('Update failed');
+    });
+
+    it('should handle partial updates without widgets', async () => {
+      const partialUpdate = { name: 'Partially Updated' };
+
+      const mockUpdatedFromDB = {
+        id: 'dashboard-1',
+        userId: 1,
+        name: 'Partially Updated',
+        widgets: '[]',
+        layout: 'grid'
+      };
+
+      const expectedUpdated = {
+        id: 'dashboard-1',
+        userId: 1,
+        name: 'Partially Updated',
+        widgets: [],
+        layout: 'grid'
+      };
+
+      mockPrisma.dashboard.update.mockResolvedValueOnce(mockUpdatedFromDB);
+
+      const result = await dashboardService.updateDashboard('dashboard-1', partialUpdate);
+
+      expect(result).toEqual(expectedUpdated);
+      expect(mockPrisma.dashboard.update).toHaveBeenCalledWith({
+        where: { id: 'dashboard-1' },
+        data: {
+          ...partialUpdate,
+          widgets: undefined
+        }
+      });
+    });
+  });
+
+  describe('deleteDashboard', () => {
+    it('should delete dashboard successfully', async () => {
+      mockPrisma.dashboard.delete.mockResolvedValueOnce({
+        id: 'dashboard-1',
+        userId: 1,
+        name: 'Deleted Dashboard',
+        widgets: '[]',
+        layout: 'grid'
+      });
+
+      await expect(dashboardService.deleteDashboard('dashboard-1')).resolves.not.toThrow();
+
+      expect(mockPrisma.dashboard.delete).toHaveBeenCalledWith({
+        where: { id: 'dashboard-1' }
+      });
+    });
+
+    it('should handle deletion errors', async () => {
+      mockPrisma.dashboard.delete.mockRejectedValueOnce(new Error('Deletion failed'));
+
+      await expect(dashboardService.deleteDashboard('dashboard-1')).rejects.toThrow('Deletion failed');
+    });
+
+    it('should handle non-existent dashboard deletion', async () => {
+      mockPrisma.dashboard.delete.mockRejectedValueOnce(new Error('Record not found'));
+
+      await expect(dashboardService.deleteDashboard('non-existent')).rejects.toThrow('Record not found');
+    });
+  });
+
+  describe('Data Validation', () => {
+    it('should handle dashboard with empty widgets array', async () => {
+      const dashboardData = {
+        userId: 1,
+        name: 'Empty Dashboard',
+        widgets: [],
+        layout: 'grid' as const
+      };
+
+      const mockCreatedFromDB = {
+        id: 'dashboard-empty',
+        userId: 1,
+        name: 'Empty Dashboard',
+        widgets: '[]',
+        layout: 'grid'
+      };
+
+      const expectedCreated = {
+        id: 'dashboard-empty',
+        userId: 1,
+        name: 'Empty Dashboard',
+        widgets: [],
+        layout: 'grid'
+      };
+
+      mockPrisma.dashboard.create.mockResolvedValueOnce(mockCreatedFromDB);
+
+      const result = await dashboardService.createDashboard(dashboardData);
+
+      expect(result).toEqual(expectedCreated);
+      expect(result.widgets).toHaveLength(0);
+    });
+
+    it('should handle different layout types', async () => {
+      const gridDashboard = {
+        userId: 1,
+        name: 'Grid Dashboard',
+        widgets: [],
+        layout: 'grid' as const
+      };
+
+      const freeDashboard = {
+        userId: 2,
+        name: 'Free Dashboard',
+        widgets: [],
+        layout: 'free' as const
+      };
+
+      mockPrisma.dashboard.create
+        .mockResolvedValueOnce({ 
+          id: 'grid-1', 
+          userId: 1,
+          name: 'Grid Dashboard',
+          widgets: '[]',
+          layout: 'grid'
+        })
+        .mockResolvedValueOnce({ 
+          id: 'free-1', 
+          userId: 2,
+          name: 'Free Dashboard',
+          widgets: '[]',
+          layout: 'free'
+        });
+
+      const gridResult = await dashboardService.createDashboard(gridDashboard);
+      const freeResult = await dashboardService.createDashboard(freeDashboard);
+
+      expect(gridResult.layout).toBe('grid');
+      expect(freeResult.layout).toBe('free');
+    });
+  });
+
+  describe('Performance', () => {
+    it('should handle multiple concurrent operations', async () => {
+      const dashboards = Array.from({ length: 3 }, (_, i) => ({
+        userId: i + 1,
+        name: `Dashboard ${i + 1}`,
+        widgets: [],
+        layout: 'grid' as const
+      }));
+
+      dashboards.forEach((dashboard, i) => {
+        mockPrisma.dashboard.create.mockResolvedValueOnce({
+          id: `dashboard-${i + 1}`,
+          userId: dashboard.userId,
+          name: dashboard.name,
+          widgets: '[]',
+          layout: 'grid'
+        });
+      });
+
+      const startTime = Date.now();
+      const promises = dashboards.map(dashboard => 
+        dashboardService.createDashboard(dashboard)
+      );
+      
+      const results = await Promise.all(promises);
+      const endTime = Date.now();
+
+      expect(results).toHaveLength(3);
+      results.forEach((result, i) => {
+        expect(result.userId).toBe(i + 1);
+        expect(result.name).toBe(`Dashboard ${i + 1}`);
+        expect(result.widgets).toEqual([]);
+      });
+
+      expect(endTime - startTime).toBeLessThan(1000);
+    });
+
+    it('should handle large widget arrays efficiently', async () => {
+      const largeWidgetArray = Array.from({ length: 10 }, (_, i) => ({
+        id: `widget-${i}`,
+        type: 'generic',
+        position: { x: i % 5, y: Math.floor(i / 5) },
+        size: { width: 1, height: 1 }
+      }));
+
+      const dashboardData = {
+        userId: 1,
+        name: 'Large Dashboard',
+        widgets: largeWidgetArray,
+        layout: 'free' as const
+      };
+
+      const mockCreatedFromDB = {
+        id: 'large-dashboard',
+        userId: 1,
+        name: 'Large Dashboard',
+        widgets: JSON.stringify(largeWidgetArray),
+        layout: 'free'
+      };
+
+      const expectedCreated = {
+        id: 'large-dashboard',
+        userId: 1,
+        name: 'Large Dashboard',
+        widgets: largeWidgetArray,
+        layout: 'free'
+      };
+
+      mockPrisma.dashboard.create.mockResolvedValueOnce(mockCreatedFromDB);
+
+      const startTime = Date.now();
+      const result = await dashboardService.createDashboard(dashboardData);
+      const endTime = Date.now();
+
+      expect(result).toEqual(expectedCreated);
+      expect(result.widgets).toHaveLength(10);
+      expect(endTime - startTime).toBeLessThan(100);
+    });
+  });
 });

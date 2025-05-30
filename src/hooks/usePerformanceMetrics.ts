@@ -61,9 +61,13 @@ export const usePerformanceMetrics = (pageName?: string): PerformanceHookReturn 
                     if (memoryUsage) {
                         console.log(`Memory Usage: ${memoryUsage.toFixed(2)}MB`);
                     }
-                    if (Object.keys(customMetrics).length > 0) {
-                        console.log('Custom Metrics:', customMetrics);
-                    }
+                    // Log custom metrics at measurement time
+                    setCustomMetrics(currentCustomMetrics => {
+                        if (Object.keys(currentCustomMetrics).length > 0) {
+                            console.log('Custom Metrics:', currentCustomMetrics);
+                        }
+                        return currentCustomMetrics;
+                    });
                     console.groupEnd();
                 }
 
@@ -90,7 +94,7 @@ export const usePerformanceMetrics = (pageName?: string): PerformanceHookReturn 
         return () => {
             window.removeEventListener('load', measurePerformance);
         };
-    }, [pageName, customMetrics]);
+    }, [pageName]);
 
     return { metrics, isLoading, recordMetric };
 };
@@ -98,16 +102,23 @@ export const usePerformanceMetrics = (pageName?: string): PerformanceHookReturn 
 // Hook spécialisé pour les pages d'authentification
 export const useAuthPerformanceMetrics = () => {
     const { metrics, isLoading, recordMetric } = usePerformanceMetrics('Authentication');
+    const [authMetrics, setAuthMetrics] = useState<Record<string, number>>({});
 
-    const recordAuthStep = useCallback((step: 'login_start' | 'api_call' | 'redirect') => {
+    const recordAuthStep = useCallback((step: string) => {
         const timestamp = performance.now();
+        setAuthMetrics(prev => ({ ...prev, [step]: timestamp }));
         recordMetric(`auth_${step}`, timestamp);
     }, [recordMetric]);
+
+    const getAuthMetrics = useCallback(() => {
+        return authMetrics;
+    }, [authMetrics]);
 
     return {
         metrics,
         isLoading,
         recordAuthStep,
+        getAuthMetrics,
         recordMetric,
     };
 };

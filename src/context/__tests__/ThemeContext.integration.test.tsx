@@ -1,0 +1,545 @@
+import React from 'react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { ThemeProvider, useTheme } from '../ThemeContext';
+
+// Mock localStorage
+const localStorageMock = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+};
+
+// Mock matchMedia
+const matchMediaMock = jest.fn();
+
+// Mock document.documentElement
+const documentElementMock = {
+  classList: {
+    toggle: jest.fn(),
+    add: jest.fn(),
+    remove: jest.fn(),
+    contains: jest.fn(),
+  },
+};
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+});
+
+Object.defineProperty(window, 'matchMedia', {
+  value: matchMediaMock,
+});
+
+Object.defineProperty(document, 'documentElement', {
+  value: documentElementMock,
+  writable: true,
+});
+
+// Test components
+const ThemeDisplayComponent = () => {
+  const { theme } = useTheme();
+  
+  return (
+    <div data-testid="theme-display">
+      Current theme: {theme}
+    </div>
+  );
+};
+
+const ThemeControlComponent = () => {
+  const { theme, setTheme } = useTheme();
+  
+  return (
+    <div>
+      <div data-testid="current-theme">{theme}</div>
+      <button 
+        data-testid="set-dark-theme" 
+        onClick={() => setTheme('dark')}
+      >
+        Set Dark
+      </button>
+      <button 
+        data-testid="set-light-theme" 
+        onClick={() => setTheme('light')}
+      >
+        Set Light
+      </button>
+      <button 
+        data-testid="set-custom-theme" 
+        onClick={() => setTheme('custom')}
+      >
+        Set Custom
+      </button>
+    </div>
+  );
+};
+
+const TestApp = () => {
+  return (
+    <div>
+      <ThemeDisplayComponent />
+      <ThemeControlComponent />
+    </div>
+  );
+};
+
+const MultipleConsumerApp = () => {
+  return (
+    <div>
+      <div data-testid="consumer-1">
+        <ThemeDisplayComponent />
+      </div>
+      <div data-testid="consumer-2">
+        <ThemeDisplayComponent />
+      </div>
+      <ThemeControlComponent />
+    </div>
+  );
+};
+
+describe('ThemeContext Integration Tests', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    
+    // Setup default mock implementations
+    localStorageMock.getItem.mockReturnValue(null);
+    localStorageMock.setItem.mockImplementation(() => {});
+    
+    matchMediaMock.mockReturnValue({
+      matches: false,
+      media: '(prefers-color-scheme: dark)',
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    });
+    
+    documentElementMock.classList.toggle.mockImplementation(() => {});
+  });
+
+  const renderWithThemeProvider = (component: React.ReactElement) => {
+    return render(
+      <ThemeProvider>
+        {component}
+      </ThemeProvider>
+    );
+  };
+
+  describe('Initial Theme State', () => {
+    it('should start with light theme when no stored theme and system preference is light', async () => {
+      localStorageMock.getItem.mockReturnValue(null);
+      matchMediaMock.mockReturnValue({
+        matches: false, // Light mode preference
+        media: '(prefers-color-scheme: dark)',
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+      });
+
+      renderWithThemeProvider(<TestApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('theme-display')).toHaveTextContent('Current theme: light');
+      });
+
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('theme', 'light');
+      expect(documentElementMock.classList.toggle).toHaveBeenCalledWith('dark', false);
+    });
+
+    it('should start with dark theme when no stored theme and system preference is dark', async () => {
+      localStorageMock.getItem.mockReturnValue(null);
+      matchMediaMock.mockReturnValue({
+        matches: true, // Dark mode preference
+        media: '(prefers-color-scheme: dark)',
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+      });
+
+      renderWithThemeProvider(<TestApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('theme-display')).toHaveTextContent('Current theme: dark');
+      });
+
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('theme', 'dark');
+      expect(documentElementMock.classList.toggle).toHaveBeenCalledWith('dark', true);
+    });
+
+    it('should use stored theme when available', async () => {
+      localStorageMock.getItem.mockReturnValue('dark');
+
+      renderWithThemeProvider(<TestApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('theme-display')).toHaveTextContent('Current theme: dark');
+      });
+
+      expect(documentElementMock.classList.toggle).toHaveBeenCalledWith('dark', true);
+      // Should not call setItem since theme was already stored
+      expect(localStorageMock.setItem).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Theme Switching Integration', () => {
+    it('should switch from light to dark theme', async () => {
+      localStorageMock.getItem.mockReturnValue('light');
+
+      renderWithThemeProvider(<TestApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
+      });
+
+      // Switch to dark theme
+      fireEvent.click(screen.getByTestId('set-dark-theme'));
+
+      expect(screen.getByTestId('current-theme')).toHaveTextContent('dark');
+      expect(screen.getByTestId('theme-display')).toHaveTextContent('Current theme: dark');
+      
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('theme', 'dark');
+      expect(documentElementMock.classList.toggle).toHaveBeenLastCalledWith('dark', true);
+    });
+
+    it('should switch from dark to light theme', async () => {
+      localStorageMock.getItem.mockReturnValue('dark');
+
+      renderWithThemeProvider(<TestApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('current-theme')).toHaveTextContent('dark');
+      });
+
+      // Switch to light theme
+      fireEvent.click(screen.getByTestId('set-light-theme'));
+
+      expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
+      expect(screen.getByTestId('theme-display')).toHaveTextContent('Current theme: light');
+      
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('theme', 'light');
+      expect(documentElementMock.classList.toggle).toHaveBeenLastCalledWith('dark', false);
+    });
+
+    it('should handle custom theme values', async () => {
+      localStorageMock.getItem.mockReturnValue('light');
+
+      renderWithThemeProvider(<TestApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
+      });
+
+      // Switch to custom theme
+      fireEvent.click(screen.getByTestId('set-custom-theme'));
+
+      expect(screen.getByTestId('current-theme')).toHaveTextContent('custom');
+      expect(screen.getByTestId('theme-display')).toHaveTextContent('Current theme: custom');
+      
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('theme', 'custom');
+      expect(documentElementMock.classList.toggle).toHaveBeenLastCalledWith('dark', false);
+    });
+
+    it('should handle rapid theme switching', async () => {
+      localStorageMock.getItem.mockReturnValue('light');
+
+      renderWithThemeProvider(<TestApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
+      });
+
+      // Rapid theme switching
+      fireEvent.click(screen.getByTestId('set-dark-theme'));
+      fireEvent.click(screen.getByTestId('set-light-theme'));
+      fireEvent.click(screen.getByTestId('set-dark-theme'));
+      fireEvent.click(screen.getByTestId('set-custom-theme'));
+
+      expect(screen.getByTestId('current-theme')).toHaveTextContent('custom');
+      expect(screen.getByTestId('theme-display')).toHaveTextContent('Current theme: custom');
+      
+      // Should have called setItem for each theme change
+      expect(localStorageMock.setItem).toHaveBeenCalledTimes(4);
+      expect(localStorageMock.setItem).toHaveBeenLastCalledWith('theme', 'custom');
+    });
+  });
+
+  describe('Multiple Components Integration', () => {
+    it('should sync theme state across multiple components', async () => {
+      localStorageMock.getItem.mockReturnValue('light');
+
+      renderWithThemeProvider(<MultipleConsumerApp />);
+
+      await waitFor(() => {
+        const themeDisplays = screen.getAllByTestId('theme-display');
+        expect(themeDisplays[0]).toHaveTextContent('Current theme: light');
+        expect(themeDisplays[1]).toHaveTextContent('Current theme: light');
+      });
+
+      // Change theme
+      fireEvent.click(screen.getByTestId('set-dark-theme'));
+
+      // Both components should reflect the change
+      const updatedThemeDisplays = screen.getAllByTestId('theme-display');
+      expect(updatedThemeDisplays[0]).toHaveTextContent('Current theme: dark');
+      expect(updatedThemeDisplays[1]).toHaveTextContent('Current theme: dark');
+    });
+
+    it('should maintain consistent state during concurrent updates', async () => {
+      localStorageMock.getItem.mockReturnValue('light');
+
+      renderWithThemeProvider(<MultipleConsumerApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
+      });
+
+      // Simulate concurrent theme changes
+      act(() => {
+        fireEvent.click(screen.getByTestId('set-dark-theme'));
+        fireEvent.click(screen.getByTestId('set-custom-theme'));
+      });
+
+      // Should end up with the last theme
+      expect(screen.getByTestId('current-theme')).toHaveTextContent('custom');
+      
+      const themeDisplays = screen.getAllByTestId('theme-display');
+      expect(themeDisplays[0]).toHaveTextContent('Current theme: custom');
+      expect(themeDisplays[1]).toHaveTextContent('Current theme: custom');
+    });
+  });
+
+  describe('DOM Integration', () => {
+    it('should properly manage document class for dark theme', async () => {
+      localStorageMock.getItem.mockReturnValue('light');
+
+      renderWithThemeProvider(<TestApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
+      });
+
+      // Initial state should not have dark class
+      expect(documentElementMock.classList.toggle).toHaveBeenCalledWith('dark', false);
+
+      // Switch to dark theme
+      fireEvent.click(screen.getByTestId('set-dark-theme'));
+
+      // Should add dark class
+      expect(documentElementMock.classList.toggle).toHaveBeenLastCalledWith('dark', true);
+
+      // Switch back to light theme
+      fireEvent.click(screen.getByTestId('set-light-theme'));
+
+      // Should remove dark class
+      expect(documentElementMock.classList.toggle).toHaveBeenLastCalledWith('dark', false);
+    });
+
+    it('should handle custom theme classes correctly', async () => {
+      localStorageMock.getItem.mockReturnValue('light');
+
+      renderWithThemeProvider(<TestApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
+      });
+
+      // Switch to custom theme (not 'dark')
+      fireEvent.click(screen.getByTestId('set-custom-theme'));
+
+      // Should not add dark class for custom themes
+      expect(documentElementMock.classList.toggle).toHaveBeenLastCalledWith('dark', false);
+    });
+  });
+
+  describe('LocalStorage Integration', () => {
+    it('should persist theme changes across component re-renders', async () => {
+      localStorageMock.getItem.mockReturnValue('light');
+
+      const { rerender } = renderWithThemeProvider(<TestApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
+      });
+
+      // Change theme
+      fireEvent.click(screen.getByTestId('set-dark-theme'));
+      
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('theme', 'dark');
+
+      // Simulate component re-render with new localStorage value
+      localStorageMock.getItem.mockReturnValue('dark');
+      
+      rerender(
+        <ThemeProvider>
+          <TestApp />
+        </ThemeProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('current-theme')).toHaveTextContent('dark');
+      });
+    });
+
+    it('should handle localStorage errors gracefully', async () => {
+      localStorageMock.getItem.mockImplementation(() => {
+        throw new Error('localStorage not available');
+      });
+
+      // Should not throw error
+      expect(() => {
+        renderWithThemeProvider(<TestApp />);
+      }).not.toThrow();
+
+      // Should fall back to system preference
+      await waitFor(() => {
+        expect(screen.getByTestId('theme-display')).toHaveTextContent('Current theme:');
+      });
+    });
+
+    it('should handle localStorage setItem errors gracefully', async () => {
+      localStorageMock.getItem.mockReturnValue('light');
+      localStorageMock.setItem.mockImplementation(() => {
+        throw new Error('Storage quota exceeded');
+      });
+
+      renderWithThemeProvider(<TestApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('current-theme')).toHaveTextContent('light');
+      });
+
+      // Should not throw error when trying to set theme
+      expect(() => {
+        fireEvent.click(screen.getByTestId('set-dark-theme'));
+      }).not.toThrow();
+
+      // Theme should still change in memory
+      expect(screen.getByTestId('current-theme')).toHaveTextContent('dark');
+    });
+  });
+
+  describe('System Preference Integration', () => {
+    it('should respond to system preference when no stored theme', async () => {
+      localStorageMock.getItem.mockReturnValue(null);
+      
+      // First render with light preference
+      matchMediaMock.mockReturnValue({
+        matches: false,
+        media: '(prefers-color-scheme: dark)',
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+      });
+
+      const { rerender } = renderWithThemeProvider(<TestApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('theme-display')).toHaveTextContent('Current theme: light');
+      });
+
+      // Simulate system preference change to dark
+      matchMediaMock.mockReturnValue({
+        matches: true,
+        media: '(prefers-color-scheme: dark)',
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+      });
+
+      // Re-render with new system preference
+      localStorageMock.getItem.mockReturnValue(null); // Still no stored theme
+      
+      rerender(
+        <ThemeProvider>
+          <TestApp />
+        </ThemeProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('theme-display')).toHaveTextContent('Current theme: dark');
+      });
+    });
+
+    it('should prioritize stored theme over system preference', async () => {
+      // System prefers dark but stored theme is light
+      localStorageMock.getItem.mockReturnValue('light');
+      matchMediaMock.mockReturnValue({
+        matches: true,
+        media: '(prefers-color-scheme: dark)',
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+      });
+
+      renderWithThemeProvider(<TestApp />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('theme-display')).toHaveTextContent('Current theme: light');
+      });
+
+      // Should use stored theme, not system preference
+      expect(documentElementMock.classList.toggle).toHaveBeenCalledWith('dark', false);
+    });
+  });
+
+  describe('Error Boundary Integration', () => {
+    const ErrorThrowingComponent = () => {
+      const { theme } = useTheme();
+      
+      if (theme === 'error-theme') {
+        throw new Error('Theme error');
+      }
+      
+      return <div data-testid="error-component">Theme: {theme}</div>;
+    };
+
+    it('should handle component errors gracefully', async () => {
+      localStorageMock.getItem.mockReturnValue('light');
+
+      const { rerender } = renderWithThemeProvider(<ErrorThrowingComponent />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('error-component')).toHaveTextContent('Theme: light');
+      });
+
+      // Suppress console.error for this test
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Simulate theme change that causes error
+      expect(() => {
+        rerender(
+          <ThemeProvider>
+            <ErrorThrowingComponent />
+          </ThemeProvider>
+        );
+        
+        // Manually trigger error by simulating theme change
+        const ThemeErrorTrigger = () => {
+          const { setTheme } = useTheme();
+          React.useEffect(() => {
+            setTheme('error-theme');
+          }, [setTheme]);
+          return null;
+        };
+        
+        render(<ThemeErrorTrigger />, {
+          wrapper: ({ children }) => (
+            <ThemeProvider>
+              {children}
+              <ErrorThrowingComponent />
+            </ThemeProvider>
+          ),
+        });
+      }).toThrow('Theme error');
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('Provider Context Error', () => {
+    it('should throw error when useTheme is used outside ThemeProvider', () => {
+      const ConsoleErrorComponent = () => {
+        useTheme(); // This should throw
+        return <div>Should not render</div>;
+      };
+
+      expect(() => {
+        render(<ConsoleErrorComponent />);
+      }).toThrow('useTheme must be used within a ThemeProvider');
+    });
+  });
+});

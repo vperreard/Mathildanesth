@@ -1,0 +1,467 @@
+import {
+    createCacheKey,
+    isDateRangeOverlapping,
+    isDateInRange,
+    formatDateRange,
+    DateRange
+} from '../calendarUtils';
+import { CalendarFilters } from '../../types/event';
+import { CalendarEventType } from '../../types/event';
+
+describe('CalendarUtils', () => {
+    describe('createCacheKey', () => {
+        it('crée une clé de cache pour des filtres simples', () => {
+            const filters: CalendarFilters = {
+                eventTypes: [CalendarEventType.ASSIGNMENT, CalendarEventType.LEAVE]
+            };
+
+            const key = createCacheKey(filters);
+            expect(typeof key).toBe('string');
+            expect(key.length).toBeGreaterThan(0);
+        });
+
+        it('crée des clés différentes pour des filtres différents', () => {
+            const filters1: CalendarFilters = {
+                eventTypes: [CalendarEventType.ASSIGNMENT]
+            };
+            const filters2: CalendarFilters = {
+                eventTypes: [CalendarEventType.LEAVE]
+            };
+
+            const key1 = createCacheKey(filters1);
+            const key2 = createCacheKey(filters2);
+            expect(key1).not.toBe(key2);
+        });
+
+        it('crée la même clé pour les mêmes filtres', () => {
+            const filters: CalendarFilters = {
+                eventTypes: [CalendarEventType.ASSIGNMENT, CalendarEventType.LEAVE],
+                userIds: ['user1', 'user2']
+            };
+
+            const key1 = createCacheKey(filters);
+            const key2 = createCacheKey(filters);
+            expect(key1).toBe(key2);
+        });
+
+        it('trie les tableaux pour assurer la cohérence', () => {
+            const filters1: CalendarFilters = {
+                eventTypes: [CalendarEventType.ASSIGNMENT, CalendarEventType.LEAVE]
+            };
+            const filters2: CalendarFilters = {
+                eventTypes: [CalendarEventType.LEAVE, CalendarEventType.ASSIGNMENT]
+            };
+
+            const key1 = createCacheKey(filters1);
+            const key2 = createCacheKey(filters2);
+            expect(key1).toBe(key2); // Même clé car les types sont triés
+        });
+
+        it('gère les filtres avec tous les champs', () => {
+            const dateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-28')
+            };
+
+            const filters: CalendarFilters = {
+                eventTypes: [CalendarEventType.ASSIGNMENT],
+                userIds: ['user1'],
+                userRoles: ['DOCTOR'],
+                teamIds: ['team1'],
+                locationIds: ['loc1'],
+                specialtyIds: ['spec1'],
+                dateRange
+            };
+
+            const key = createCacheKey(filters);
+            expect(typeof key).toBe('string');
+            expect(key.includes(dateRange.start.toISOString())).toBe(true);
+            expect(key.includes(dateRange.end.toISOString())).toBe(true);
+        });
+
+        it('gère les filtres vides', () => {
+            const filters: CalendarFilters = {
+                eventTypes: []
+            };
+
+            const key = createCacheKey(filters);
+            expect(typeof key).toBe('string');
+        });
+
+        it('gère les filtres avec des champs undefined', () => {
+            const filters: CalendarFilters = {
+                eventTypes: [CalendarEventType.ASSIGNMENT],
+                userIds: undefined,
+                userRoles: undefined
+            };
+
+            const key = createCacheKey(filters);
+            expect(typeof key).toBe('string');
+        });
+
+        it('inclut la plage de dates dans la clé', () => {
+            const dateRange = {
+                start: new Date('2025-05-27T10:00:00Z'),
+                end: new Date('2025-05-28T18:00:00Z')
+            };
+
+            const filters: CalendarFilters = {
+                eventTypes: [CalendarEventType.ASSIGNMENT],
+                dateRange
+            };
+
+            const key = createCacheKey(filters);
+            expect(key).toContain(dateRange.start.toISOString());
+            expect(key).toContain(dateRange.end.toISOString());
+        });
+    });
+
+    describe('isDateRangeOverlapping', () => {
+        it('détecte un chevauchement quand les plages se croisent', () => {
+            const range1: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-29')
+            };
+            const range2: DateRange = {
+                start: new Date('2025-05-28'),
+                end: new Date('2025-05-30')
+            };
+
+            expect(isDateRangeOverlapping(range1, range2)).toBe(true);
+        });
+
+        it('détecte un chevauchement quand une plage contient l\'autre', () => {
+            const range1: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-30')
+            };
+            const range2: DateRange = {
+                start: new Date('2025-05-28'),
+                end: new Date('2025-05-29')
+            };
+
+            expect(isDateRangeOverlapping(range1, range2)).toBe(true);
+        });
+
+        it('retourne false quand les plages ne se chevauchent pas', () => {
+            const range1: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-28')
+            };
+            const range2: DateRange = {
+                start: new Date('2025-05-29'),
+                end: new Date('2025-05-30')
+            };
+
+            expect(isDateRangeOverlapping(range1, range2)).toBe(false);
+        });
+
+        it('détecte un chevauchement quand les plages se touchent exactement', () => {
+            const range1: DateRange = {
+                start: new Date('2025-05-27T10:00:00Z'),
+                end: new Date('2025-05-28T12:00:00Z')
+            };
+            const range2: DateRange = {
+                start: new Date('2025-05-28T12:00:00Z'),
+                end: new Date('2025-05-29T14:00:00Z')
+            };
+
+            expect(isDateRangeOverlapping(range1, range2)).toBe(true);
+        });
+
+        it('retourne false pour des plages null ou undefined', () => {
+            const range: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-28')
+            };
+
+            expect(isDateRangeOverlapping(null as any, range)).toBe(false);
+            expect(isDateRangeOverlapping(range, null as any)).toBe(false);
+            expect(isDateRangeOverlapping(null as any, null as any)).toBe(false);
+        });
+
+        it('gère les plages identiques', () => {
+            const range: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-28')
+            };
+
+            expect(isDateRangeOverlapping(range, range)).toBe(true);
+        });
+
+        it('gère les plages inversées (fin avant début)', () => {
+            const range1: DateRange = {
+                start: new Date('2025-05-29'),
+                end: new Date('2025-05-27') // Inversé
+            };
+            const range2: DateRange = {
+                start: new Date('2025-05-28'),
+                end: new Date('2025-05-30')
+            };
+
+            // La fonction devrait quand même fonctionner
+            const result = isDateRangeOverlapping(range1, range2);
+            expect(typeof result).toBe('boolean');
+        });
+    });
+
+    describe('isDateInRange', () => {
+        it('retourne true quand la date est dans la plage', () => {
+            const date = new Date('2025-05-28');
+            const range: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-29')
+            };
+
+            expect(isDateInRange(date, range)).toBe(true);
+        });
+
+        it('retourne true quand la date est exactement au début', () => {
+            const date = new Date('2025-05-27');
+            const range: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-29')
+            };
+
+            expect(isDateInRange(date, range)).toBe(true);
+        });
+
+        it('retourne true quand la date est exactement à la fin', () => {
+            const date = new Date('2025-05-29');
+            const range: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-29')
+            };
+
+            expect(isDateInRange(date, range)).toBe(true);
+        });
+
+        it('retourne false quand la date est avant la plage', () => {
+            const date = new Date('2025-05-26');
+            const range: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-29')
+            };
+
+            expect(isDateInRange(date, range)).toBe(false);
+        });
+
+        it('retourne false quand la date est après la plage', () => {
+            const date = new Date('2025-05-30');
+            const range: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-29')
+            };
+
+            expect(isDateInRange(date, range)).toBe(false);
+        });
+
+        it('gère les timestamps précis avec heures', () => {
+            const date = new Date('2025-05-27T14:30:00Z');
+            const range: DateRange = {
+                start: new Date('2025-05-27T10:00:00Z'),
+                end: new Date('2025-05-27T18:00:00Z')
+            };
+
+            expect(isDateInRange(date, range)).toBe(true);
+        });
+
+        it('gère les millisecondes', () => {
+            const date = new Date('2025-05-27T12:00:00.500Z');
+            const range: DateRange = {
+                start: new Date('2025-05-27T12:00:00.000Z'),
+                end: new Date('2025-05-27T12:00:01.000Z')
+            };
+
+            expect(isDateInRange(date, range)).toBe(true);
+        });
+    });
+
+    describe('formatDateRange', () => {
+        it('formate correctement une plage de dates sur plusieurs jours', () => {
+            const range: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-29')
+            };
+
+            const formatted = formatDateRange(range, 'month');
+            expect(typeof formatted).toBe('string');
+            expect(formatted.length).toBeGreaterThan(0);
+            expect(formatted).toContain('27');
+            expect(formatted).toContain('29');
+            expect(formatted).toContain('mai');
+            expect(formatted).toContain('2025');
+        });
+
+        it('formate correctement une seule journée', () => {
+            const range: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-27')
+            };
+
+            const formatted = formatDateRange(range, 'day');
+            expect(typeof formatted).toBe('string');
+            expect(formatted.length).toBeGreaterThan(0);
+            expect(formatted).toContain('27');
+            expect(formatted).toContain('mai');
+            expect(formatted).toContain('2025');
+            // Ne devrait pas contenir de tiret pour une seule journée
+            expect(formatted.split('-').length).toBeLessThanOrEqual(2);
+        });
+
+        it('simplifie l\'affichage pour le même mois', () => {
+            const range: DateRange = {
+                start: new Date('2025-05-15'),
+                end: new Date('2025-05-20')
+            };
+
+            const formatted = formatDateRange(range, 'month');
+            expect(formatted).toContain('15');
+            expect(formatted).toContain('20');
+            expect(formatted).toContain('mai');
+            expect(formatted).toContain('2025');
+            // Devrait avoir le format "15 - 20 mai 2025"
+            expect(formatted.split('mai').length).toBe(2); // Un seul "mai"
+        });
+
+        it('affiche la plage complète pour des mois différents', () => {
+            const range: DateRange = {
+                start: new Date('2025-05-30'),
+                end: new Date('2025-06-05')
+            };
+
+            const formatted = formatDateRange(range, 'month');
+            expect(formatted).toContain('mai');
+            expect(formatted).toContain('juin');
+            expect(formatted).toContain('30');
+            expect(formatted).toContain('5');
+            expect(formatted).toContain('-');
+        });
+
+        it('affiche la plage complète pour des années différentes', () => {
+            const range: DateRange = {
+                start: new Date('2024-12-30'),
+                end: new Date('2025-01-05')
+            };
+
+            const formatted = formatDateRange(range, 'year');
+            expect(formatted).toContain('2024');
+            expect(formatted).toContain('2025');
+            expect(formatted).toContain('décembre');
+            expect(formatted).toContain('janvier');
+            expect(formatted).toContain('-');
+        });
+
+        it('utilise le format français', () => {
+            const range: DateRange = {
+                start: new Date('2025-01-15'),
+                end: new Date('2025-01-20')
+            };
+
+            const formatted = formatDateRange(range, 'month');
+            expect(formatted).toContain('janvier'); // Pas "January"
+        });
+
+        it('gère différents types de vue', () => {
+            const range: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-28')
+            };
+
+            const monthView = formatDateRange(range, 'month');
+            const weekView = formatDateRange(range, 'week');
+            const dayView = formatDateRange(range, 'day');
+
+            expect(typeof monthView).toBe('string');
+            expect(typeof weekView).toBe('string');
+            expect(typeof dayView).toBe('string');
+        });
+    });
+
+    describe('Intégration et cas d\'usage réels', () => {
+        it('gère un workflow complet de cache et dates', () => {
+            const dateRange: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-29')
+            };
+
+            const filters: CalendarFilters = {
+                eventTypes: [CalendarEventType.ASSIGNMENT],
+                dateRange
+            };
+
+            const cacheKey = createCacheKey(filters);
+            expect(typeof cacheKey).toBe('string');
+
+            // Vérifier que la date est dans la plage
+            const testDate = new Date('2025-05-28');
+            expect(isDateInRange(testDate, dateRange)).toBe(true);
+
+            // Formater la plage
+            const formatted = formatDateRange(dateRange, 'month');
+            expect(formatted).toContain('27');
+            expect(formatted).toContain('29');
+        });
+
+        it('détecte les conflits de plages de dates', () => {
+            const existingEvent: DateRange = {
+                start: new Date('2025-05-27T09:00:00Z'),
+                end: new Date('2025-05-27T17:00:00Z')
+            };
+
+            const newEvent: DateRange = {
+                start: new Date('2025-05-27T16:00:00Z'),
+                end: new Date('2025-05-27T20:00:00Z')
+            };
+
+            expect(isDateRangeOverlapping(existingEvent, newEvent)).toBe(true);
+        });
+
+        it('gère les filtres complexes pour le cache', () => {
+            const filters: CalendarFilters = {
+                eventTypes: [CalendarEventType.ASSIGNMENT, CalendarEventType.LEAVE, CalendarEventType.DUTY],
+                userIds: ['user1', 'user2', 'user3'],
+                userRoles: ['DOCTOR', 'NURSE'],
+                teamIds: ['team1'],
+                locationIds: ['hospital1', 'clinic2'],
+                specialtyIds: ['cardio', 'neuro'],
+                dateRange: {
+                    start: new Date('2025-05-01'),
+                    end: new Date('2025-05-31')
+                }
+            };
+
+            const cacheKey = createCacheKey(filters);
+            expect(cacheKey).toBeDefined();
+            expect(cacheKey.length).toBeGreaterThan(10);
+
+            // La même configuration devrait donner la même clé
+            const cacheKey2 = createCacheKey(filters);
+            expect(cacheKey).toBe(cacheKey2);
+        });
+
+        it('performance: les fonctions s\'exécutent rapidement', () => {
+            const start = performance.now();
+
+            const range: DateRange = {
+                start: new Date('2025-05-27'),
+                end: new Date('2025-05-29')
+            };
+
+            const filters: CalendarFilters = {
+                eventTypes: [CalendarEventType.ASSIGNMENT]
+            };
+
+            // Exécuter les fonctions plusieurs fois
+            for (let i = 0; i < 1000; i++) {
+                createCacheKey(filters);
+                isDateRangeOverlapping(range, range);
+                isDateInRange(new Date(), range);
+                formatDateRange(range, 'month');
+            }
+
+            const duration = performance.now() - start;
+            expect(duration).toBeLessThan(200); // Moins de 200ms pour 1000 itérations
+        });
+    });
+});

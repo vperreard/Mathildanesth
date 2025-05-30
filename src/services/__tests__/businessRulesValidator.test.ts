@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import { BusinessRulesValidator } from '../businessRulesValidator';
 import { prisma } from '@/lib/prisma';
 import { addDays, subDays } from 'date-fns';
@@ -31,6 +34,17 @@ jest.mock('@/lib/prisma', () => ({
 jest.mock('@/lib/prisma');
 
 describe('BusinessRulesValidator', () => {
+  let testEnv: any;
+  
+  beforeAll(() => {
+    testEnv = setupTestEnvironment();
+  });
+  
+  afterAll(() => {
+    cleanupTestEnvironment();
+    testEnv.restoreConsole?.();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     

@@ -117,6 +117,14 @@ declare global {
              * Exemple: cy.checkLeaveQuota('Congé annuel', 20)
              */
             checkLeaveQuota(leaveType: string, expectedRemaining: number): Chainable<void>;
+
+            // Commandes de stabilité renforcées
+            waitForElement(selector: string, timeout?: number): Chainable<JQuery<HTMLElement>>;
+            waitForPageLoad(): Chainable<any>;
+            safeClick(selector: string): Chainable<any>;
+            safeType(selector: string, text: string): Chainable<any>;
+            waitForApiResponse(alias: string, retries?: number): Chainable<any>;
+            cleanState(): Chainable<any>;
         }
     }
 }
@@ -137,18 +145,31 @@ Cypress.Commands.add('login', (email: string, password: string) => {
 
 // Commande pour se connecter directement via l'API
 Cypress.Commands.add('loginByApi', (email: string, password: string) => {
-    // Simulation de l'authentification pour les tests
-    // Au lieu d'appeler l'API, nous allons simplement définir les cookies et localStorage manuellement
-    cy.log(`Simulation d'authentification pour ${email} - CONTOURNEMENT API`);
+    // Intercepter la requête de login pour la mocker
+    cy.intercept('POST', '**/api/auth/login', {
+        statusCode: 200,
+        body: {
+            success: true,
+            user: {
+                id: 1,
+                email: email,
+                name: 'Test User',
+                role: 'USER'
+            },
+            redirectUrl: '/tableau-de-bord'
+        }
+    }).as('mockLogin');
 
-    // Créer un faux token
-    const token = 'fake-test-token-' + Date.now();
-
-    // Définir le token dans localStorage
-    window.localStorage.setItem('authToken', token);
-
-    // Définir un cookie de session
-    cy.setCookie('auth_token', token);
+    // Créer un token de session valide pour les tests
+    const token = 'cypress-test-token-' + Date.now();
+    
+    // Définir le token dans localStorage et cookies
+    cy.window().then((win) => {
+        win.localStorage.setItem('authToken', token);
+    });
+    cy.setCookie('auth_token', token, { httpOnly: false });
+    
+    cy.log(`Authentification simulée pour ${email} avec token: ${token}`);
 });
 
 // Commande pour visiter une page en tant qu'utilisateur authentifié
@@ -477,4 +498,79 @@ Cypress.Commands.add('checkLeaveQuota', (leaveType: string, expectedRemaining: n
                 .should('contain', expectedRemaining.toString());
         });
     });
+});
+
+// Commandes de stabilité renforcées
+Cypress.Commands.add('waitForElement', (selector: string, timeout = 15000) => {
+    return cy.get(selector, { timeout })
+        .should('exist')
+        .should('be.visible')
+        .should('not.have.attr', 'disabled');
+});
+
+Cypress.Commands.add('waitForPageLoad', () => {
+    // Attendre que le DOM soit prêt et que les requêtes réseau soient terminées
+    cy.window().its('document.readyState').should('equal', 'complete');
+    
+    // Attendre que les éléments critiques soient chargés
+    cy.get('body').should('exist');
+    
+    // Attendre un court délai pour les hydrations React
+    cy.wait(500);
+    
+    return cy.log('Page fully loaded and hydrated');
+});
+
+Cypress.Commands.add('safeClick', (selector: string) => {
+    return cy.get(selector)
+        .should('exist')
+        .should('be.visible')
+        .should('not.be.disabled')
+        .click({ force: false, multiple: false });
+});
+
+Cypress.Commands.add('safeType', (selector: string, text: string) => {
+    return cy.get(selector)
+        .should('exist')
+        .should('be.visible')
+        .should('not.be.disabled')
+        .then($el => {
+            // Vider le champ en premier
+            cy.wrap($el).clear();
+            // Taper le texte avec un délai entre les caractères pour éviter les problèmes
+            cy.wrap($el).type(text, { delay: 50 });
+        });
+});
+
+// Nouvelle commande pour attendre les requêtes API avec retry
+Cypress.Commands.add('waitForApiResponse', (alias: string, retries = 3) => {
+    const attemptWait = (attempt: number) => {
+        if (attempt > retries) {
+            throw new Error(`Failed to receive API response for @${alias} after ${retries} attempts`);
+        }
+        
+        cy.wait(`@${alias}`).then((interception) => {
+            if (interception.response && interception.response.statusCode >= 400) {
+                cy.log(`API call failed (attempt ${attempt}/${retries}), retrying...`);
+                cy.wait(1000); // Wait before retry
+                attemptWait(attempt + 1);
+            } else {
+                cy.log(`API call successful on attempt ${attempt}`);
+            }
+        });
+    };
+    
+    attemptWait(1);
+});
+
+// Commande pour nettoyer l'état avant les tests
+Cypress.Commands.add('cleanState', () => {
+    cy.clearCookies();
+    cy.clearLocalStorage();
+    cy.clearSessionStorage();
+    
+    // Nettoyer les interceptions précédentes
+    cy.intercept('**/api/**', { statusCode: 200, body: {} }).as('catchAllApi');
+    
+    cy.log('State cleaned for fresh test start');
 }); 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { renderWithProviders as render, screen, fireEvent, act, waitFor } from '@/test-utils/renderWithProviders';
 import { NotificationBell } from '../NotificationBell';
 import { useNotificationsWebSocket } from '@/hooks/useNotificationsWebSocket';
 

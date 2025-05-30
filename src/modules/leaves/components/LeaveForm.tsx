@@ -175,7 +175,7 @@ export const LeaveForm: React.FC<LeaveFormProps> = ({ userId, onSuccess }) => {
             setLoadTypeError(null);
             try {
                 // Utilisation de l'API des types de congés settings pour avoir plus d'infos
-                const response = await fetch('http://localhost:3000/api/conges/types');
+                const response = await fetch('/api/leaves/types');
                 if (!response.ok) {
                     throw new Error(`Erreur HTTP ${response.status}`);
                 }

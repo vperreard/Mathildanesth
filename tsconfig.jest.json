@@ -9,7 +9,8 @@
         "lib": [
             "dom",
             "esnext"
-        ]
+        ],
+        "isolatedModules": true
     },
     "include": [
         "next-env.d.ts",

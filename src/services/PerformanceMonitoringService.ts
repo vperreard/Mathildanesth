@@ -1,6 +1,7 @@
 /**
  * Service de monitoring de performance pour l'application
  * Suit les métriques clés et génère des alertes si nécessaire
+ * Enhanced with Core Web Vitals and comprehensive monitoring
  */
 
 interface PerformanceMetric {
@@ -9,6 +10,24 @@ interface PerformanceMetric {
   endTime?: number;
   duration?: number;
   metadata?: Record<string, any>;
+}
+
+interface CoreWebVitals {
+  LCP: number | null; // Largest Contentful Paint
+  FID: number | null; // First Input Delay  
+  CLS: number | null; // Cumulative Layout Shift
+  FCP: number | null; // First Contentful Paint
+  TTFB: number | null; // Time to First Byte
+}
+
+interface PerformanceThresholds {
+  LCP: number; // Should be < 2.5s
+  FID: number; // Should be < 100ms
+  CLS: number; // Should be < 0.1
+  FCP: number; // Should be < 1.8s
+  TTFB: number; // Should be < 800ms
+  apiResponse: number; // Should be < 500ms
+  pageLoad: number; // Should be < 3s
 }
 
 interface PerformanceReport {
@@ -23,6 +42,29 @@ class PerformanceMonitoringService {
   private alertThreshold = 2000; // 2 secondes
   private degradationThreshold = 1.2; // 20% de dégradation
   private baseline: Map<string, number> = new Map();
+  private observers: Map<string, PerformanceObserver> = new Map();
+  private coreWebVitals: CoreWebVitals = {
+    LCP: null,
+    FID: null,
+    CLS: null,
+    FCP: null,
+    TTFB: null
+  };
+  private thresholds: PerformanceThresholds = {
+    LCP: 2500,
+    FID: 100,
+    CLS: 0.1,
+    FCP: 1800,
+    TTFB: 800,
+    apiResponse: 500,
+    pageLoad: 3000
+  };
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.initializeCoreWebVitals();
+    }
+  }
 
   /**
    * Démarre une mesure de performance
@@ -235,10 +277,169 @@ class PerformanceMonitoringService {
   }
 
   /**
+   * Initialize Core Web Vitals monitoring
+   */
+  private initializeCoreWebVitals(): void {
+    try {
+      // LCP Observer
+      if (PerformanceObserver.supportedEntryTypes.includes('largest-contentful-paint')) {
+        const lcpObserver = new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          const lastEntry = entries[entries.length - 1] as any;
+          this.coreWebVitals.LCP = lastEntry.startTime;
+          this.checkCoreWebVitalThreshold('LCP', lastEntry.startTime);
+        });
+        lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+        this.observers.set('lcp', lcpObserver);
+      }
+
+      // FCP Observer
+      if (PerformanceObserver.supportedEntryTypes.includes('paint')) {
+        const fcpObserver = new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          entries.forEach((entry) => {
+            if (entry.name === 'first-contentful-paint') {
+              this.coreWebVitals.FCP = entry.startTime;
+              this.checkCoreWebVitalThreshold('FCP', entry.startTime);
+            }
+          });
+        });
+        fcpObserver.observe({ entryTypes: ['paint'] });
+        this.observers.set('fcp', fcpObserver);
+      }
+
+      // FID Observer
+      if (PerformanceObserver.supportedEntryTypes.includes('first-input')) {
+        const fidObserver = new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          entries.forEach((entry: any) => {
+            const fid = entry.processingStart - entry.startTime;
+            this.coreWebVitals.FID = fid;
+            this.checkCoreWebVitalThreshold('FID', fid);
+          });
+        });
+        fidObserver.observe({ entryTypes: ['first-input'] });
+        this.observers.set('fid', fidObserver);
+      }
+
+      // CLS Observer
+      if (PerformanceObserver.supportedEntryTypes.includes('layout-shift')) {
+        let cumulativeLayoutShift = 0;
+        const clsObserver = new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          entries.forEach((entry: any) => {
+            if (!entry.hadRecentInput) {
+              cumulativeLayoutShift += entry.value;
+            }
+          });
+          this.coreWebVitals.CLS = cumulativeLayoutShift;
+          this.checkCoreWebVitalThreshold('CLS', cumulativeLayoutShift);
+        });
+        clsObserver.observe({ entryTypes: ['layout-shift'] });
+        this.observers.set('cls', clsObserver);
+      }
+
+      // Navigation Observer for TTFB
+      if (PerformanceObserver.supportedEntryTypes.includes('navigation')) {
+        const navObserver = new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          entries.forEach((entry) => {
+            if (entry.entryType === 'navigation') {
+              const navEntry = entry as PerformanceNavigationTiming;
+              const ttfb = navEntry.responseStart - navEntry.requestStart;
+              this.coreWebVitals.TTFB = ttfb;
+              this.checkCoreWebVitalThreshold('TTFB', ttfb);
+            }
+          });
+        });
+        navObserver.observe({ entryTypes: ['navigation'] });
+        this.observers.set('navigation', navObserver);
+      }
+    } catch (error) {
+      console.warn('Some Core Web Vitals observers not supported:', error);
+    }
+  }
+
+  /**
+   * Check Core Web Vital thresholds
+   */
+  private checkCoreWebVitalThreshold(metric: keyof CoreWebVitals, value: number): void {
+    const threshold = this.thresholds[metric as keyof PerformanceThresholds];
+    if (threshold && value > threshold) {
+      console.warn(`🚨 Core Web Vital threshold exceeded: ${metric} = ${value.toFixed(2)}ms (threshold: ${threshold}ms)`);
+      this.sendAlert(`core-web-vital-${metric}`, value, threshold);
+    }
+  }
+
+  /**
+   * Get Core Web Vitals
+   */
+  getCoreWebVitals(): CoreWebVitals {
+    return { ...this.coreWebVitals };
+  }
+
+  /**
+   * Get performance score based on Core Web Vitals
+   */
+  getPerformanceScore(): number {
+    let score = 100;
+    const vitals = this.getCoreWebVitals();
+    
+    // Deduct points for each vital that exceeds threshold
+    if (vitals.LCP && vitals.LCP > this.thresholds.LCP) {
+      score -= 20;
+    }
+    if (vitals.FID && vitals.FID > this.thresholds.FID) {
+      score -= 15;
+    }
+    if (vitals.CLS && vitals.CLS > this.thresholds.CLS) {
+      score -= 15;
+    }
+    if (vitals.FCP && vitals.FCP > this.thresholds.FCP) {
+      score -= 10;
+    }
+    if (vitals.TTFB && vitals.TTFB > this.thresholds.TTFB) {
+      score -= 10;
+    }
+    
+    return Math.max(0, score);
+  }
+
+  /**
+   * Generate comprehensive performance report
+   */
+  generateCoreWebVitalsReport(): string {
+    const vitals = this.getCoreWebVitals();
+    const score = this.getPerformanceScore();
+    
+    let report = `Core Web Vitals Report (Score: ${score}/100)\n`;
+    report += `==========================================\n\n`;
+    
+    Object.entries(vitals).forEach(([key, value]) => {
+      if (value !== null) {
+        const threshold = this.thresholds[key as keyof PerformanceThresholds];
+        const status = threshold && value > threshold ? '❌ FAIL' : '✅ PASS';
+        report += `${key}: ${value.toFixed(2)}ms ${status}\n`;
+      }
+    });
+    
+    return report;
+  }
+
+  /**
+   * Cleanup observers
+   */
+  destroyObservers(): void {
+    this.observers.forEach(observer => observer.disconnect());
+    this.observers.clear();
+  }
+
+  /**
    * Export les métriques pour analyse
    */
   exportMetrics(): string {
     const report = this.generateReport();
+    const coreWebVitalsReport = this.generateCoreWebVitalsReport();
     const stats: Record<string, any> = {};
 
     for (const [name] of this.metrics.entries()) {
@@ -247,6 +448,9 @@ class PerformanceMonitoringService {
 
     return JSON.stringify({
       report,
+      coreWebVitalsReport,
+      coreWebVitals: this.getCoreWebVitals(),
+      performanceScore: this.getPerformanceScore(),
       stats,
       baseline: Object.fromEntries(this.baseline)
     }, null, 2);

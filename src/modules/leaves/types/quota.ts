@@ -1,4 +1,4 @@
-import { LeaveType } from '../types/leave';
+import { LeaveType } from './leave';
 
 /**
  * Types pour le système de gestion des quotas de congés
@@ -251,7 +251,7 @@ export interface QuotaCalculationResult {
  */
 
 /**
- * Types pour les employés et quotas
+ * Types pour les employés et quotas (alias pour rétrocompatibilité)
  */
 export interface EmployeeQuota {
     employeeId: string;
@@ -264,7 +264,7 @@ export interface EmployeeQuota {
 }
 
 /**
- * Ajustement de quota
+ * Ajustement de quota (alias pour rétrocompatibilité)
  */
 export interface QuotaAdjustment {
     id: string;
@@ -277,18 +277,7 @@ export interface QuotaAdjustment {
 }
 
 /**
- * Demande de transfert de quota
- */
-export interface QuotaTransferRequest {
-    userId: string;
-    sourceType: LeaveType;
-    targetType: LeaveType;
-    sourceAmount: number;
-    comment?: string;
-}
-
-/**
- * Résultat d'un transfert de quota
+ * Résultat d'un transfert de quota (version simple pour rétrocompatibilité)
  */
 export interface QuotaTransferResult {
     success: boolean;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { renderWithProviders as render, screen } from '@/test-utils/renderWithProviders';
 import HeatMapChart from '../HeatMapChart';
 
 // Mock des composants UI

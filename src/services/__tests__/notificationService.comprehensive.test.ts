@@ -1,0 +1,503 @@
+/**
+ * Tests complets pour NotificationService
+ * Tests toutes les fonctionnalités de notifications temps réel
+ */
+
+import { 
+  mockSocketIO, 
+  testDataFactories, 
+  setupTestEnvironment, 
+  cleanupTestEnvironment 
+} from '../../test-utils/standardMocks';
+
+// Mock de react-toastify
+const mockToast = {
+  success: jest.fn(),
+  error: jest.fn(),
+  info: jest.fn(),
+  warning: jest.fn(),
+};
+
+jest.mock('react-toastify', () => ({
+  toast: mockToast,
+}));
+
+// Mock de socket.io-client
+const { mockIO, mockSocket } = mockSocketIO();
+
+// Import du service après les mocks
+let NotificationService: any;
+
+describe('NotificationService', () => {
+  let testEnv: any;
+  let notificationService: any;
+
+  beforeAll(() => {
+    testEnv = setupTestEnvironment();
+    
+    // Import dynamique après setup des mocks
+    jest.isolateModules(() => {
+      NotificationService = require('../notificationService').default;
+    });
+  });
+
+  afterAll(() => {
+    cleanupTestEnvironment();
+    testEnv.restoreConsole?.();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    notificationService = NotificationService.getInstance();
+  });
+
+  describe('Singleton Pattern', () => {
+    it('should return the same instance', () => {
+      const instance1 = NotificationService.getInstance();
+      const instance2 = NotificationService.getInstance();
+      
+      expect(instance1).toBe(instance2);
+    });
+
+    it('should initialize socket connection', () => {
+      expect(mockIO).toHaveBeenCalledWith(
+        expect.stringContaining('ws://'),
+        expect.objectContaining({
+          autoConnect: false,
+          transports: ['websocket', 'polling']
+        })
+      );
+    });
+  });
+
+  describe('Connection Management', () => {
+    it('should connect to socket server', async () => {
+      mockSocket.connected = false;
+      
+      await notificationService.connect();
+      
+      expect(mockSocket.connect).toHaveBeenCalled();
+    });
+
+    it('should not reconnect if already connected', async () => {
+      mockSocket.connected = true;
+      jest.clearAllMocks();
+      
+      await notificationService.connect();
+      
+      expect(mockSocket.connect).not.toHaveBeenCalled();
+    });
+
+    it('should disconnect from socket server', () => {
+      notificationService.disconnect();
+      
+      expect(mockSocket.disconnect).toHaveBeenCalled();
+    });
+
+    it('should handle connection errors gracefully', () => {
+      const errorHandler = jest.fn();
+      notificationService.onConnectionError(errorHandler);
+      
+      // Simuler une erreur de connexion
+      const connectionError = new Error('Connection failed');
+      mockSocket.on.mock.calls.find(([event]) => event === 'connect_error')?.[1](connectionError);
+      
+      expect(errorHandler).toHaveBeenCalledWith(connectionError);
+    });
+  });
+
+  describe('Event Listeners', () => {
+    it('should register notification listener', () => {
+      const listener = jest.fn();
+      
+      notificationService.onNotification('test-channel', listener);
+      
+      expect(mockSocket.on).toHaveBeenCalledWith('notification:test-channel', expect.any(Function));
+    });
+
+    it('should remove notification listener', () => {
+      const listener = jest.fn();
+      
+      notificationService.onNotification('test-channel', listener);
+      notificationService.offNotification('test-channel', listener);
+      
+      expect(mockSocket.off).toHaveBeenCalledWith('notification:test-channel', expect.any(Function));
+    });
+
+    it('should handle multiple listeners for same channel', () => {
+      const listener1 = jest.fn();
+      const listener2 = jest.fn();
+      
+      notificationService.onNotification('test-channel', listener1);
+      notificationService.onNotification('test-channel', listener2);
+      
+      const notification = testDataFactories.apiResponse({
+        id: '1',
+        type: 'info',
+        title: 'Test',
+        message: 'Test message'
+      });
+      
+      // Simuler réception de notification
+      const socketHandler = mockSocket.on.mock.calls.find(
+        ([event]) => event === 'notification:test-channel'
+      )?.[1];
+      
+      socketHandler?.(notification);
+      
+      expect(listener1).toHaveBeenCalledWith(notification);
+      expect(listener2).toHaveBeenCalledWith(notification);
+    });
+  });
+
+  describe('Notification Sending', () => {
+    it('should send notification through socket', () => {
+      const notification = {
+        type: 'info' as const,
+        title: 'Test Notification',
+        message: 'This is a test',
+        data: { userId: '123' }
+      };
+      
+      notificationService.sendNotification('user-123', notification);
+      
+      expect(mockSocket.emit).toHaveBeenCalledWith('send-notification', {
+        channel: 'user-123',
+        ...notification
+      });
+    });
+
+    it('should handle send errors gracefully', () => {
+      mockSocket.emit.mockImplementation(() => {
+        throw new Error('Socket error');
+      });
+      
+      expect(() => {
+        notificationService.sendNotification('user-123', {
+          type: 'info',
+          title: 'Test',
+          message: 'Test'
+        });
+      }).not.toThrow();
+    });
+  });
+
+  describe('Toast Notifications', () => {
+    it('should show success toast', () => {
+      notificationService.showToast('success', 'Success message');
+      
+      expect(mockToast.success).toHaveBeenCalledWith('Success message', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+    });
+
+    it('should show error toast', () => {
+      notificationService.showToast('error', 'Error message');
+      
+      expect(mockToast.error).toHaveBeenCalledWith('Error message', expect.any(Object));
+    });
+
+    it('should show info toast', () => {
+      notificationService.showToast('info', 'Info message');
+      
+      expect(mockToast.info).toHaveBeenCalledWith('Info message', expect.any(Object));
+    });
+
+    it('should show warning toast', () => {
+      notificationService.showToast('warning', 'Warning message');
+      
+      expect(mockToast.warning).toHaveBeenCalledWith('Warning message', expect.any(Object));
+    });
+
+    it('should handle custom toast options', () => {
+      const customOptions = {
+        autoClose: 10000,
+        position: 'bottom-left' as const
+      };
+      
+      notificationService.showToast('success', 'Custom message', customOptions);
+      
+      expect(mockToast.success).toHaveBeenCalledWith(
+        'Custom message',
+        expect.objectContaining(customOptions)
+      );
+    });
+  });
+
+  describe('Channel Management', () => {
+    it('should subscribe to user notifications', () => {
+      const userId = '123';
+      
+      notificationService.subscribeToUser(userId);
+      
+      expect(mockSocket.emit).toHaveBeenCalledWith('subscribe', `user-${userId}`);
+    });
+
+    it('should unsubscribe from user notifications', () => {
+      const userId = '123';
+      
+      notificationService.unsubscribeFromUser(userId);
+      
+      expect(mockSocket.emit).toHaveBeenCalledWith('unsubscribe', `user-${userId}`);
+    });
+
+    it('should subscribe to system notifications', () => {
+      notificationService.subscribeToSystem();
+      
+      expect(mockSocket.emit).toHaveBeenCalledWith('subscribe', 'system');
+    });
+
+    it('should subscribe to leave notifications', () => {
+      notificationService.subscribeToLeaves();
+      
+      expect(mockSocket.emit).toHaveBeenCalledWith('subscribe', 'leaves');
+    });
+
+    it('should subscribe to assignment notifications', () => {
+      notificationService.subscribeToAssignments();
+      
+      expect(mockSocket.emit).toHaveBeenCalledWith('subscribe', 'assignments');
+    });
+  });
+
+  describe('Notification Processing', () => {
+    it('should process leave notification correctly', () => {
+      const listener = jest.fn();
+      notificationService.onNotification('leaves', listener);
+      
+      const leaveNotification = {
+        id: '1',
+        type: 'info' as const,
+        title: 'Nouvelle demande de congé',
+        message: 'John Doe a demandé un congé',
+        data: {
+          leaveId: 'leave-123',
+          userId: 'user-456',
+          leaveType: 'ANNUAL',
+          status: 'PENDING',
+          startDate: '2025-06-01',
+          endDate: '2025-06-05'
+        }
+      };
+      
+      // Simuler réception
+      const socketHandler = mockSocket.on.mock.calls.find(
+        ([event]) => event === 'notification:leaves'
+      )?.[1];
+      
+      socketHandler?.(leaveNotification);
+      
+      expect(listener).toHaveBeenCalledWith(leaveNotification);
+    });
+
+    it('should process assignment notification correctly', () => {
+      const listener = jest.fn();
+      notificationService.onNotification('assignments', listener);
+      
+      const assignmentNotification = {
+        id: '2',
+        type: 'warning' as const,
+        title: 'Changement d\'affectation',
+        message: 'Votre garde de demain a été modifiée',
+        data: {
+          assignmentId: 'assignment-789',
+          userId: 'user-123',
+          date: '2025-05-31',
+          shiftType: 'GARDE_NUIT',
+          location: 'Bloc A'
+        }
+      };
+      
+      const socketHandler = mockSocket.on.mock.calls.find(
+        ([event]) => event === 'notification:assignments'
+      )?.[1];
+      
+      socketHandler?.(assignmentNotification);
+      
+      expect(listener).toHaveBeenCalledWith(assignmentNotification);
+    });
+
+    it('should process system notification correctly', () => {
+      const listener = jest.fn();
+      notificationService.onNotification('system', listener);
+      
+      const systemNotification = {
+        id: '3',
+        type: 'error' as const,
+        title: 'Maintenance système',
+        message: 'Le système sera indisponible de 2h à 4h',
+        data: {
+          component: 'database',
+          action: 'maintenance',
+          timestamp: '2025-05-30T02:00:00Z',
+          metadata: { duration: '2h' }
+        }
+      };
+      
+      const socketHandler = mockSocket.on.mock.calls.find(
+        ([event]) => event === 'notification:system'
+      )?.[1];
+      
+      socketHandler?.(systemNotification);
+      
+      expect(listener).toHaveBeenCalledWith(systemNotification);
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle malformed notifications', () => {
+      const listener = jest.fn();
+      notificationService.onNotification('test', listener);
+      
+      const malformedNotification = {
+        // Missing required fields
+        id: '1'
+      };
+      
+      const socketHandler = mockSocket.on.mock.calls.find(
+        ([event]) => event === 'notification:test'
+      )?.[1];
+      
+      expect(() => {
+        socketHandler?.(malformedNotification);
+      }).not.toThrow();
+      
+      // Should not call listener with malformed data
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('should handle socket disconnection', () => {
+      const disconnectHandler = jest.fn();
+      notificationService.onDisconnect(disconnectHandler);
+      
+      // Simuler déconnexion
+      const socketHandler = mockSocket.on.mock.calls.find(
+        ([event]) => event === 'disconnect'
+      )?.[1];
+      
+      socketHandler?.('transport close');
+      
+      expect(disconnectHandler).toHaveBeenCalledWith('transport close');
+    });
+
+    it('should handle reconnection attempts', () => {
+      const reconnectHandler = jest.fn();
+      notificationService.onReconnect(reconnectHandler);
+      
+      // Simuler reconnexion
+      const socketHandler = mockSocket.on.mock.calls.find(
+        ([event]) => event === 'reconnect'
+      )?.[1];
+      
+      socketHandler?.(3); // Attempt number
+      
+      expect(reconnectHandler).toHaveBeenCalledWith(3);
+    });
+  });
+
+  describe('Memory Management', () => {
+    it('should clean up listeners on destroy', () => {
+      const listener1 = jest.fn();
+      const listener2 = jest.fn();
+      
+      notificationService.onNotification('channel1', listener1);
+      notificationService.onNotification('channel2', listener2);
+      
+      notificationService.destroy();
+      
+      expect(mockSocket.removeAllListeners).toHaveBeenCalled();
+      expect(mockSocket.disconnect).toHaveBeenCalled();
+    });
+
+    it('should prevent memory leaks from multiple listeners', () => {
+      // Ajouter beaucoup de listeners
+      for (let i = 0; i < 100; i++) {
+        notificationService.onNotification(`channel-${i}`, jest.fn());
+      }
+      
+      // Vérifier que le service gère correctement
+      expect(mockSocket.on).toHaveBeenCalledTimes(100);
+      
+      // Nettoyer
+      notificationService.destroy();
+      expect(mockSocket.removeAllListeners).toHaveBeenCalled();
+    });
+  });
+
+  describe('Integration Scenarios', () => {
+    it('should handle complete notification workflow', async () => {
+      const userId = '123';
+      const listener = jest.fn();
+      
+      // 1. Se connecter
+      await notificationService.connect();
+      
+      // 2. S'abonner aux notifications utilisateur
+      notificationService.subscribeToUser(userId);
+      
+      // 3. Écouter les notifications
+      notificationService.onNotification(`user-${userId}`, listener);
+      
+      // 4. Recevoir une notification
+      const notification = {
+        id: '1',
+        type: 'success' as const,
+        title: 'Congé approuvé',
+        message: 'Votre demande de congé a été approuvée'
+      };
+      
+      const socketHandler = mockSocket.on.mock.calls.find(
+        ([event]) => event === `notification:user-${userId}`
+      )?.[1];
+      
+      socketHandler?.(notification);
+      
+      // 5. Vérifier que tout fonctionne
+      expect(mockSocket.connect).toHaveBeenCalled();
+      expect(mockSocket.emit).toHaveBeenCalledWith('subscribe', `user-${userId}`);
+      expect(listener).toHaveBeenCalledWith(notification);
+    });
+
+    it('should handle multiple concurrent channels', () => {
+      const listeners = {
+        user: jest.fn(),
+        system: jest.fn(),
+        leaves: jest.fn()
+      };
+      
+      // S'abonner à plusieurs canaux
+      notificationService.subscribeToUser('123');
+      notificationService.subscribeToSystem();
+      notificationService.subscribeToLeaves();
+      
+      notificationService.onNotification('user-123', listeners.user);
+      notificationService.onNotification('system', listeners.system);
+      notificationService.onNotification('leaves', listeners.leaves);
+      
+      // Recevoir des notifications sur tous les canaux
+      const notifications = {
+        user: { id: '1', type: 'info' as const, title: 'User', message: 'User notification' },
+        system: { id: '2', type: 'warning' as const, title: 'System', message: 'System notification' },
+        leaves: { id: '3', type: 'success' as const, title: 'Leave', message: 'Leave notification' }
+      };
+      
+      Object.entries(notifications).forEach(([channel, notification]) => {
+        const socketHandler = mockSocket.on.mock.calls.find(
+          ([event]) => event === `notification:${channel === 'user' ? 'user-123' : channel}`
+        )?.[1];
+        
+        socketHandler?.(notification);
+      });
+      
+      // Vérifier que chaque listener a reçu sa notification
+      expect(listeners.user).toHaveBeenCalledWith(notifications.user);
+      expect(listeners.system).toHaveBeenCalledWith(notifications.system);
+      expect(listeners.leaves).toHaveBeenCalledWith(notifications.leaves);
+    });
+  });
+});

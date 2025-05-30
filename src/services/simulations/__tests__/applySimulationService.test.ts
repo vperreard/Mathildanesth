@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import { PrismaClient, SimulationStatus } from '@prisma/client';
 import { ApplySimulationService } from '../applySimulationService';
 import { simulationNotificationService } from '../notificationService';
@@ -50,6 +53,17 @@ jest.mock('../notificationService', () => ({
 jest.mock('@/lib/prisma');
 
 describe('ApplySimulationService', () => {
+  let testEnv: any;
+  
+  beforeAll(() => {
+    testEnv = setupTestEnvironment();
+  });
+  
+  afterAll(() => {
+    cleanupTestEnvironment();
+    testEnv.restoreConsole?.();
+  });
+
     let service: ApplySimulationService;
     let prisma: PrismaClient;
 

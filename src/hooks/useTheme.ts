@@ -5,13 +5,18 @@ export const useTheme = () => {
     const [currentTheme, setCurrentTheme] = useState<Theme>(defaultTheme);
 
     useEffect(() => {
-        // Charger le thème sauvegardé
-        const savedThemeId = localStorage.getItem('dashboard-theme');
-        if (savedThemeId) {
-            const savedTheme = themes.find(theme => theme.id === savedThemeId);
-            if (savedTheme) {
-                setCurrentTheme(savedTheme);
+        try {
+            // Charger le thème sauvegardé
+            const savedThemeId = localStorage.getItem('dashboard-theme');
+            if (savedThemeId) {
+                const savedTheme = themes.find(theme => theme.id === savedThemeId);
+                if (savedTheme) {
+                    setCurrentTheme(savedTheme);
+                }
             }
+        } catch (error) {
+            // Ignorer les erreurs localStorage et utiliser le thème par défaut
+            console.warn('Erreur lors du chargement du thème:', error);
         }
     }, []);
 
@@ -19,7 +24,12 @@ export const useTheme = () => {
         const newTheme = themes.find(theme => theme.id === themeId);
         if (newTheme) {
             setCurrentTheme(newTheme);
-            localStorage.setItem('dashboard-theme', themeId);
+            try {
+                localStorage.setItem('dashboard-theme', themeId);
+            } catch (error) {
+                // Ignorer les erreurs localStorage
+                console.warn('Erreur lors de la sauvegarde du thème:', error);
+            }
         }
     };
 

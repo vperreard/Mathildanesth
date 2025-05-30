@@ -40,17 +40,81 @@
  */
 
 import { useState, useCallback, useMemo, useRef } from 'react';
-import {
-    useDateValidation,
-    DateValidationOptions,
-    DateValidationErrorType,
-    normalizeDate,
-    calculateDurationInDays,
-    calculateBusinessDays,
-    isInBlackoutPeriod,
-    DateRange,
-    ValidationContext
-} from '../../../hooks/useDateValidation';
+import { useDateValidation } from './useDateValidation';
+
+// Types for date validation
+export enum DateValidationErrorType {
+    REQUIRED = 'required',
+    INVALID_FORMAT = 'invalid_format',
+    PAST_DATE = 'past_date',
+    FUTURE_DATE = 'future_date',
+    START_AFTER_END = 'start_after_end',
+    BLACKOUT_PERIOD = 'blackout_period',
+    INSUFFICIENT_NOTICE = 'insufficient_notice',
+    EXCEEDS_AVAILABLE_DAYS = 'exceeds_available_days',
+    WEEKEND_NOT_ALLOWED = 'weekend_not_allowed'
+}
+
+export interface DateValidationOptions {
+    required?: boolean;
+    allowPastDates?: boolean;
+    allowFutureDates?: boolean;
+    minAdvanceNotice?: number;
+    maxAdvanceNotice?: number;
+    disallowWeekends?: boolean;
+    availableDaysPerYear?: number;
+    blackoutPeriods?: DateRange[];
+    businessDaysOnly?: boolean;
+}
+
+export interface DateRange {
+    start: Date;
+    end: Date;
+}
+
+export interface ValidationContext {
+    usedDays?: number;
+    remainingDays?: number;
+    totalDaysCount?: number;
+    availableDaysPerYear?: number;
+}
+
+// Helper functions
+export function normalizeDate(date: Date | string | null | undefined): Date | null {
+    if (!date) return null;
+    if (date instanceof Date) return date;
+    if (typeof date === 'string') {
+        const parsed = new Date(date);
+        return isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
+}
+
+export function calculateDurationInDays(startDate: Date, endDate: Date): number {
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+}
+
+export function calculateBusinessDays(startDate: Date, endDate: Date): number {
+    let count = 0;
+    const currentDate = new Date(startDate);
+    
+    while (currentDate <= endDate) {
+        const dayOfWeek = currentDate.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Not Sunday or Saturday
+            count++;
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return count;
+}
+
+export function isInBlackoutPeriod(date: Date, blackoutPeriods: DateRange[]): boolean {
+    return blackoutPeriods.some(period => 
+        date >= period.start && date <= period.end
+    );
+}
 
 /**
  * Interface pour l'erreur de validation de date

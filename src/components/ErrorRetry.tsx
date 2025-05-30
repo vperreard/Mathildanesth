@@ -28,7 +28,7 @@ interface ErrorRetryProps<T = any> {
  * </ErrorRetry>
  * ```
  */
-const ErrorRetry = <T extends any = any>({
+const ErrorRetry = <T = any>({
     children,
     action,
     fallback,

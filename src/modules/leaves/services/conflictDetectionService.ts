@@ -15,10 +15,15 @@ import {
     ConflictCheckResult
 } from '../types/conflict';
 import { User } from '../../../types/user';
-import { UserService } from '../../utilisateurs/services/userService';
+import { UserService } from '../../../services/userService';
 import { TeamService } from '../../teams/services/teamService';
-import { ConfigService } from '../../config/services/configService';
 import { PerformanceLogger } from '../../../utils/performanceLogger';
+
+// Interface pour la configuration
+interface ConfigService {
+    getConfigValue<T>(key: string): Promise<T | null>;
+    setConfigValue<T>(key: string, value: T): Promise<void>;
+}
 
 // Interface pour les entrées de cache
 interface CacheKey {
@@ -71,7 +76,7 @@ export class ConflictDetectionService {
     /**
      * Initialise les règles de détection des conflits à partir de la configuration
      */
-    private async initializeRules(): Promise<void> {
+    public async initializeRules(): Promise<void> {
         try {
             // Récupérer la configuration stockée pour les règles de conflit
             const storedRules = await this.configService.getConfigValue<ConflictRules>('leaveConflictRules');
@@ -767,4 +772,223 @@ export class ConflictDetectionService {
         );
         return differenceInDays <= gap;
     }
-} 
+}
+
+/**
+ * Détecte les conflits de congés pour une demande donnée
+ * @param leaveRequest Demande de congés à vérifier
+ * @param existingLeaves Congés existants
+ * @returns Liste des conflits détectés
+ */
+export const detectLeaveConflicts = async (
+    leaveRequest: LeaveRequest,
+    existingLeaves: LeaveRequest[] = []
+): Promise<LeaveConflict[]> => {
+    // Créer des services mockés pour cette fonction utilitaire
+    const userService = {
+        getUserById: async (id: string) => ({ 
+            id, 
+            name: 'User', 
+            email: 'user@example.com',
+            departmentId: 'dept1',
+            roles: []
+        } as User),
+        getUsersByRole: async (roleId: string) => [] as User[]
+    } as UserService;
+    
+    const teamService = {
+        getTeamMembers: async (departmentId: string) => [] as User[]
+    } as TeamService;
+    
+    const configService: ConfigService = {
+        getConfigValue: async <T>(key: string) => null,
+        setConfigValue: async <T>(key: string, value: T) => {}
+    };
+    
+    const service = new ConflictDetectionService(userService, teamService, configService);
+    const result = await service.checkConflicts(leaveRequest, existingLeaves);
+    
+    return result.conflicts;
+};
+
+/**
+ * Valide les règles de conflit configurées
+ * @param rules Règles de conflit à valider
+ * @returns true si les règles sont valides
+ */
+export const validateConflictRules = (rules: ConflictRules): boolean => {
+    try {
+        // Vérifier que les pourcentages sont dans les limites valides
+        if (rules.maxTeamAbsencePercentage !== undefined) {
+            if (rules.maxTeamAbsencePercentage < 0 || rules.maxTeamAbsencePercentage > 100) {
+                return false;
+            }
+        }
+
+        // Vérifier que les jours minimum sont positifs
+        if (rules.minDaysBeforeDeadline !== undefined) {
+            if (rules.minDaysBeforeDeadline < 0) {
+                return false;
+            }
+        }
+
+        // Vérifier que les périodes de forte charge sont valides
+        if (rules.highWorkloadPeriods) {
+            for (const period of rules.highWorkloadPeriods) {
+                const startDate = new Date(period.startDate);
+                const endDate = new Date(period.endDate);
+                
+                if (startDate >= endDate) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Erreur lors de la validation des règles:', error);
+        return false;
+    }
+};
+
+/**
+ * Résout un conflit en proposant des solutions
+ * @param conflict Conflit à résoudre
+ * @param leaveRequest Demande de congés concernée
+ * @returns Solutions proposées
+ */
+export const resolveConflict = async (
+    conflict: LeaveConflict,
+    leaveRequest: LeaveRequest
+): Promise<{
+    canResolve: boolean;
+    solutions: Array<{
+        type: 'RESCHEDULE' | 'REDUCE_DURATION' | 'OVERRIDE' | 'SPLIT';
+        description: string;
+        newStartDate?: string;
+        newEndDate?: string;
+        metadata?: Record<string, any>;
+    }>;
+}> => {
+    const solutions: Array<{
+        type: 'RESCHEDULE' | 'REDUCE_DURATION' | 'OVERRIDE' | 'SPLIT';
+        description: string;
+        newStartDate?: string;
+        newEndDate?: string;
+        metadata?: Record<string, any>;
+    }> = [];
+
+    switch (conflict.type) {
+        case ConflictType.USER_LEAVE_OVERLAP:
+            if (conflict.canOverride) {
+                solutions.push({
+                    type: 'OVERRIDE',
+                    description: 'Annuler le congé existant et approuver cette demande',
+                    metadata: { overlappingLeaveId: conflict.metadata?.overlappingLeaveId }
+                });
+            }
+
+            // Proposer de reprogrammer avant le conflit
+            const conflictStart = new Date(conflict.startDate);
+            const requestStart = new Date(leaveRequest.startDate);
+            const requestEnd = new Date(leaveRequest.endDate);
+            const duration = Math.ceil((requestEnd.getTime() - requestStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+            const newEndDate = new Date(conflictStart);
+            newEndDate.setDate(newEndDate.getDate() - 1);
+            const newStartDate = new Date(newEndDate);
+            newStartDate.setDate(newStartDate.getDate() - duration + 1);
+
+            solutions.push({
+                type: 'RESCHEDULE',
+                description: `Reprogrammer du ${newStartDate.toLocaleDateString()} au ${newEndDate.toLocaleDateString()}`,
+                newStartDate: newStartDate.toISOString().split('T')[0],
+                newEndDate: newEndDate.toISOString().split('T')[0]
+            });
+            break;
+
+        case ConflictType.TEAM_ABSENCE:
+            solutions.push({
+                type: 'RESCHEDULE',
+                description: 'Reprogrammer à une période avec moins d\'absences dans l\'équipe'
+            });
+
+            if (conflict.canOverride) {
+                solutions.push({
+                    type: 'OVERRIDE',
+                    description: 'Approuver malgré le taux d\'absence élevé avec validation managériale'
+                });
+            }
+            break;
+
+        case ConflictType.CRITICAL_ROLE:
+            solutions.push({
+                type: 'RESCHEDULE',
+                description: 'Reprogrammer à une période où un remplaçant est disponible'
+            });
+            break;
+
+        case ConflictType.DEADLINE_PROXIMITY:
+            const currentEnd = new Date(leaveRequest.endDate);
+            const reducedEnd = new Date(currentEnd);
+            reducedEnd.setDate(reducedEnd.getDate() - 3);
+
+            solutions.push({
+                type: 'REDUCE_DURATION',
+                description: 'Réduire la durée pour finir plus tôt',
+                newEndDate: reducedEnd.toISOString().split('T')[0]
+            });
+
+            if (conflict.canOverride) {
+                solutions.push({
+                    type: 'OVERRIDE',
+                    description: 'Approuver avec validation managériale renforcée'
+                });
+            }
+            break;
+
+        case ConflictType.HIGH_WORKLOAD:
+            const workloadStart = new Date(conflict.startDate);
+            const workloadEnd = new Date(conflict.endDate);
+            
+            // Proposer avant la période
+            const beforeEnd = new Date(workloadStart);
+            beforeEnd.setDate(beforeEnd.getDate() - 1);
+            const beforeStart = new Date(beforeEnd);
+            beforeStart.setDate(beforeStart.getDate() - duration + 1);
+
+            solutions.push({
+                type: 'RESCHEDULE',
+                description: `Reprogrammer avant la période de forte charge (${beforeStart.toLocaleDateString()} au ${beforeEnd.toLocaleDateString()})`,
+                newStartDate: beforeStart.toISOString().split('T')[0],
+                newEndDate: beforeEnd.toISOString().split('T')[0]
+            });
+
+            // Proposer après la période
+            const afterStart = new Date(workloadEnd);
+            afterStart.setDate(afterStart.getDate() + 1);
+            const afterEnd = new Date(afterStart);
+            afterEnd.setDate(afterEnd.getDate() + duration - 1);
+
+            solutions.push({
+                type: 'RESCHEDULE',
+                description: `Reprogrammer après la période de forte charge (${afterStart.toLocaleDateString()} au ${afterEnd.toLocaleDateString()})`,
+                newStartDate: afterStart.toISOString().split('T')[0],
+                newEndDate: afterEnd.toISOString().split('T')[0]
+            });
+            break;
+
+        default:
+            if (conflict.canOverride) {
+                solutions.push({
+                    type: 'OVERRIDE',
+                    description: 'Approuver avec validation managériale'
+                });
+            }
+    }
+
+    return {
+        canResolve: solutions.length > 0,
+        solutions
+    };
+}; 

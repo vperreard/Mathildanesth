@@ -2,10 +2,52 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useOptimizedPlanning } from '../useOptimizedPlanning';
 import { Attribution } from '@/types/attribution';
-import { startOfWeek, endOfWeek, format, addWeeks, subWeeks } from 'date-fns';
+import { renderWithProviders, mockApiResponse } from '@/test-utils/renderWithProviders';
 
-// Mock fetch
-global.fetch = jest.fn();
+// Mock date-fns
+jest.mock('date-fns', () => ({
+    format: jest.fn((date: Date, formatStr: string) => {
+        if (formatStr === 'yyyy-MM-dd') {
+            return date.toISOString().split('T')[0];
+        }
+        return date.toISOString();
+    }),
+    startOfWeek: jest.fn((date: Date, options?: { weekStartsOn?: number }) => {
+        const day = date.getDay();
+        const weekStartsOn = options?.weekStartsOn || 0;
+        const diff = date.getDate() - day + (weekStartsOn === 1 ? (day === 0 ? -6 : 1) : 0);
+        const result = new Date(date);
+        result.setDate(diff);
+        result.setHours(0, 0, 0, 0);
+        return result;
+    }),
+    endOfWeek: jest.fn((date: Date, options?: { weekStartsOn?: number }) => {
+        const startOfWeek = (date: Date, options?: { weekStartsOn?: number }) => {
+            const day = date.getDay();
+            const weekStartsOn = options?.weekStartsOn || 0;
+            const diff = date.getDate() - day + (weekStartsOn === 1 ? (day === 0 ? -6 : 1) : 0);
+            const result = new Date(date);
+            result.setDate(diff);
+            result.setHours(0, 0, 0, 0);
+            return result;
+        };
+        const start = startOfWeek(date, options);
+        const end = new Date(start);
+        end.setDate(end.getDate() + 6);
+        end.setHours(23, 59, 59, 999);
+        return end;
+    }),
+    addWeeks: jest.fn((date: Date, amount: number) => {
+        const result = new Date(date);
+        result.setDate(result.getDate() + amount * 7);
+        return result;
+    }),
+    subWeeks: jest.fn((date: Date, amount: number) => {
+        const result = new Date(date);
+        result.setDate(result.getDate() - amount * 7);
+        return result;
+    })
+}));
 
 // Mock lodash debounce
 jest.mock('lodash', () => ({
@@ -18,7 +60,6 @@ jest.mock('lodash', () => ({
 
 describe('useOptimizedPlanning', () => {
     let queryClient: QueryClient;
-    const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
 
     const createWrapper = () => {
         return ({ children }: { children: React.ReactNode }) => (
@@ -72,16 +113,16 @@ describe('useOptimizedPlanning', () => {
     };
 
     beforeEach(() => {
-    jest.clearAllMocks();
+        jest.clearAllMocks();
         queryClient = new QueryClient({
             defaultOptions: {
-                queries: { retry: false },
+                queries: { retry: false, staleTime: 0, gcTime: 0 },
                 mutations: { retry: false }
             }
         });
 
-        jest.clearAllMocks();
-        mockFetch.mockResolvedValue({
+        // Setup global fetch mock
+        global.fetch = jest.fn().mockResolvedValue({
             ok: true,
             json: async () => mockPlanningResponse
         } as Response);
@@ -89,6 +130,7 @@ describe('useOptimizedPlanning', () => {
 
     afterEach(() => {
         queryClient.clear();
+        jest.clearAllMocks();
     });
 
     describe('data loading', () => {
@@ -109,10 +151,11 @@ describe('useOptimizedPlanning', () => {
             expect(result.current.validation).toEqual(mockPlanningResponse.validation);
 
             // Verify API call
+            const { format, startOfWeek, endOfWeek } = require('date-fns');
             const expectedStart = format(startOfWeek(week, { weekStartsOn: 1 }), 'yyyy-MM-dd');
             const expectedEnd = format(endOfWeek(week, { weekStartsOn: 1 }), 'yyyy-MM-dd');
             
-            expect(mockFetch).toHaveBeenCalledWith(
+            expect(global.fetch).toHaveBeenCalledWith(
                 expect.stringContaining(`/api/planning/optimized?startDate=${expectedStart}&endDate=${expectedEnd}&viewType=week`),
                 expect.objectContaining({
                     headers: {
@@ -135,17 +178,14 @@ describe('useOptimizedPlanning', () => {
             const expectedStart = '2025-01-01';
             const expectedEnd = '2025-01-31';
             
-            expect(mockFetch).toHaveBeenCalledWith(
+            expect(global.fetch).toHaveBeenCalledWith(
                 expect.stringContaining(`startDate=${expectedStart}&endDate=${expectedEnd}&viewType=month`),
                 expect.any(Object)
             );
         });
 
         it('should handle loading errors', async () => {
-            mockFetch.mockResolvedValueOnce({
-                ok: false,
-                status: 500
-            } as Response);
+            mockApiResponse('/api/planning/optimized', null, 500);
 
             const { result } = renderHook(() => useOptimizedPlanning({ week: new Date() }), {
                 wrapper: createWrapper()
@@ -191,21 +231,22 @@ describe('useOptimizedPlanning', () => {
 
             await waitFor(() => {
                 // Should have made 3 calls: initial + 2 prefetch
-                expect(mockFetch).toHaveBeenCalledTimes(3);
+                expect(global.fetch).toHaveBeenCalledTimes(3);
             });
 
             // Verify prefetch calls for previous and next week
+            const { addWeeks, subWeeks, format, startOfWeek } = require('date-fns');
             const prevWeek = subWeeks(week, 1);
             const nextWeek = addWeeks(week, 1);
             
             const prevWeekStart = format(startOfWeek(prevWeek, { weekStartsOn: 1 }), 'yyyy-MM-dd');
             const nextWeekStart = format(startOfWeek(nextWeek, { weekStartsOn: 1 }), 'yyyy-MM-dd');
 
-            expect(mockFetch).toHaveBeenCalledWith(
+            expect(global.fetch).toHaveBeenCalledWith(
                 expect.stringContaining(`startDate=${prevWeekStart}`),
                 expect.any(Object)
             );
-            expect(mockFetch).toHaveBeenCalledWith(
+            expect(global.fetch).toHaveBeenCalledWith(
                 expect.stringContaining(`startDate=${nextWeekStart}`),
                 expect.any(Object)
             );
@@ -229,7 +270,7 @@ describe('useOptimizedPlanning', () => {
             });
 
             // Should only have initial call
-            expect(mockFetch).toHaveBeenCalledTimes(1);
+            expect(global.fetch).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -282,10 +323,7 @@ describe('useOptimizedPlanning', () => {
 
     describe('auto-save functionality', () => {
         it('should auto-save changes when autoSave is enabled', async () => {
-            mockFetch.mockResolvedValue({
-                ok: true,
-                json: async () => ({ success: true })
-            } as Response);
+            mockApiResponse('/api/planning/batch-update', { success: true });
 
             const { result } = renderHook(() => useOptimizedPlanning({ 
                 week: new Date(),
@@ -304,8 +342,8 @@ describe('useOptimizedPlanning', () => {
             });
 
             await waitFor(() => {
-                expect(mockFetch).toHaveBeenCalledWith(
-                    '/api/planning/batch-update',
+                expect(global.fetch).toHaveBeenCalledWith(
+                    expect.stringContaining('/api/planning/batch-update'),
                     expect.objectContaining({
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -337,7 +375,7 @@ describe('useOptimizedPlanning', () => {
                 expect(result.current.isLoading).toBe(false);
             });
 
-            const initialCallCount = mockFetch.mock.calls.length;
+            const initialCallCount = (global.fetch as jest.MockedFunction<typeof fetch>).mock.calls.length;
 
             act(() => {
                 result.current.updateAssignment('attribution-1', { userName: 'No Auto Save' });
@@ -346,17 +384,14 @@ describe('useOptimizedPlanning', () => {
             // Wait to ensure no auto-save happens
             await new Promise(resolve => setTimeout(resolve, 300));
 
-            expect(mockFetch).toHaveBeenCalledTimes(initialCallCount);
+            expect(global.fetch).toHaveBeenCalledTimes(initialCallCount);
             expect(result.current.hasUnsavedChanges).toBe(true);
         });
     });
 
     describe('manual save operations', () => {
         it('should save immediately with saveNow', async () => {
-            mockFetch.mockResolvedValue({
-                ok: true,
-                json: async () => ({ success: true })
-            } as Response);
+            mockApiResponse('/api/planning/batch-update', { success: true });
 
             const { result } = renderHook(() => useOptimizedPlanning({ 
                 week: new Date(),
@@ -377,19 +412,14 @@ describe('useOptimizedPlanning', () => {
                 await result.current.saveNow();
             });
 
-            expect(mockFetch).toHaveBeenCalledWith(
-                '/api/planning/batch-update',
+            expect(global.fetch).toHaveBeenCalledWith(
+                expect.stringContaining('/api/planning/batch-update'),
                 expect.any(Object)
             );
             expect(result.current.hasUnsavedChanges).toBe(false);
         });
 
         it('should handle save errors', async () => {
-            mockFetch.mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockPlanningResponse
-            } as Response);
-
             const { result } = renderHook(() => useOptimizedPlanning({ week: new Date() }), {
                 wrapper: createWrapper()
             });
@@ -399,10 +429,7 @@ describe('useOptimizedPlanning', () => {
             });
 
             // Mock save failure
-            mockFetch.mockResolvedValueOnce({
-                ok: false,
-                status: 500
-            } as Response);
+            mockApiResponse('/api/planning/batch-update', null, 500);
 
             act(() => {
                 result.current.updateAssignment('attribution-1', { userName: 'Error Test' });
@@ -423,10 +450,7 @@ describe('useOptimizedPlanning', () => {
 
     describe('drag and drop operations', () => {
         it('should handle moveAssignment with optimistic updates', async () => {
-            mockFetch.mockResolvedValue({
-                ok: true,
-                json: async () => ({ success: true })
-            } as Response);
+            mockApiResponse('/api/planning/batch-update', { success: true });
 
             const { result } = renderHook(() => useOptimizedPlanning({ week: new Date() }), {
                 wrapper: createWrapper()
@@ -450,8 +474,8 @@ describe('useOptimizedPlanning', () => {
 
             // Should trigger immediate save
             await waitFor(() => {
-                expect(mockFetch).toHaveBeenCalledWith(
-                    '/api/planning/batch-update',
+                expect(global.fetch).toHaveBeenCalledWith(
+                    expect.stringContaining('/api/planning/batch-update'),
                     expect.objectContaining({
                         body: expect.stringContaining('user-2')
                     })
@@ -530,10 +554,7 @@ describe('useOptimizedPlanning', () => {
 
     describe('cleanup', () => {
         it('should save pending changes on cleanup if autoSave is enabled', async () => {
-            mockFetch.mockResolvedValue({
-                ok: true,
-                json: async () => ({ success: true })
-            } as Response);
+            mockApiResponse('/api/planning/batch-update', { success: true });
 
             const { result } = renderHook(() => useOptimizedPlanning({ 
                 week: new Date(),
@@ -587,10 +608,7 @@ describe('useOptimizedPlanning', () => {
 
     describe('edge cases', () => {
         it('should handle empty planning data', async () => {
-            mockFetch.mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({ attributions: [], users: [] })
-            } as Response);
+            mockApiResponse('/api/planning/optimized', { attributions: [], users: [] });
 
             const { result } = renderHook(() => useOptimizedPlanning({ week: new Date() }), {
                 wrapper: createWrapper()
@@ -605,10 +623,7 @@ describe('useOptimizedPlanning', () => {
         });
 
         it('should handle malformed response data', async () => {
-            mockFetch.mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({}) // Missing expected fields
-            } as Response);
+            mockApiResponse('/api/planning/optimized', {}); // Missing expected fields
 
             const { result } = renderHook(() => useOptimizedPlanning({ week: new Date() }), {
                 wrapper: createWrapper()
@@ -632,14 +647,14 @@ describe('useOptimizedPlanning', () => {
                 expect(result.current.isLoading).toBe(false);
             });
 
-            const initialCallCount = mockFetch.mock.calls.length;
+            const initialCallCount = (global.fetch as jest.MockedFunction<typeof fetch>).mock.calls.length;
 
             await act(async () => {
                 await result.current.saveNow();
             });
 
             // Should not make additional call
-            expect(mockFetch).toHaveBeenCalledTimes(initialCallCount);
+            expect(global.fetch).toHaveBeenCalledTimes(initialCallCount);
         });
     });
 });

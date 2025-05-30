@@ -368,19 +368,40 @@ body,
     font-family: var(--font-family);
 }
 
-/* Effets de transparence */
+/* Effets de transparence - Opacité augmentée pour meilleure lisibilité */
 .transparency-effects .card,
 .transparency-effects .bg-white,
 .transparency-effects .bg-card {
-    background-color: rgba(255, 255, 255, 0.8) !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
     backdrop-filter: blur(8px);
 }
 
 .dark.transparency-effects .card,
 .dark.transparency-effects .bg-slate-800,
 .dark.transparency-effects .bg-card {
-    background-color: rgba(30, 41, 59, 0.8) !important;
+    background-color: rgba(30, 41, 59, 0.95) !important;
     backdrop-filter: blur(8px);
+}
+
+/* Amélioration des menus et popovers */
+.menu-enhanced,
+.popover-enhanced,
+[role="menu"],
+[role="listbox"],
+[data-radix-popper-content-wrapper] {
+    background-color: rgba(255, 255, 255, 0.97) !important;
+    backdrop-filter: blur(10px) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark .menu-enhanced,
+.dark .popover-enhanced,
+.dark [role="menu"],
+.dark [role="listbox"],
+.dark [data-radix-popper-content-wrapper] {
+    background-color: rgba(30, 41, 59, 0.97) !important;
+    backdrop-filter: blur(10px) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Classes de thèmes visuels */

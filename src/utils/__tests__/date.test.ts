@@ -1,0 +1,355 @@
+import {
+    formatDate,
+    formatDateTime,
+    formatDays,
+    isSameDay,
+    daysBetween
+} from '../date';
+
+describe('Date Utils', () => {
+    describe('formatDate', () => {
+        it('formate correctement une date valide', () => {
+            const date = new Date(2025, 4, 27); // 27 mai 2025
+            const result = formatDate(date);
+            
+            expect(result).toBe('27/05/2025');
+        });
+
+        it('formate correctement les dates avec un seul chiffre', () => {
+            const date = new Date(2025, 0, 5); // 5 janvier 2025
+            const result = formatDate(date);
+            
+            expect(result).toBe('05/01/2025');
+        });
+
+        it('retourne "-" pour une date invalide', () => {
+            const invalidDate = new Date('invalid');
+            const result = formatDate(invalidDate);
+            
+            expect(result).toBe('-');
+        });
+
+        it('retourne "-" pour null', () => {
+            const result = formatDate(null as any);
+            
+            expect(result).toBe('-');
+        });
+
+        it('retourne "-" pour undefined', () => {
+            const result = formatDate(undefined as any);
+            
+            expect(result).toBe('-');
+        });
+
+        it('gère les années avec 4 chiffres', () => {
+            const date = new Date(1999, 11, 31); // 31 décembre 1999
+            const result = formatDate(date);
+            
+            expect(result).toBe('31/12/1999');
+        });
+
+        it('gère les dates bissextiles', () => {
+            const date = new Date(2024, 1, 29); // 29 février 2024 (bissextile)
+            const result = formatDate(date);
+            
+            expect(result).toBe('29/02/2024');
+        });
+    });
+
+    describe('formatDateTime', () => {
+        it('formate correctement une date et heure valides', () => {
+            const date = new Date(2025, 4, 27, 14, 30); // 27 mai 2025, 14:30
+            const result = formatDateTime(date);
+            
+            expect(result).toBe('27/05/2025 14:30');
+        });
+
+        it('formate correctement les heures avec un seul chiffre', () => {
+            const date = new Date(2025, 0, 5, 9, 5); // 5 janvier 2025, 09:05
+            const result = formatDateTime(date);
+            
+            expect(result).toBe('05/01/2025 09:05');
+        });
+
+        it('formate correctement minuit', () => {
+            const date = new Date(2025, 4, 27, 0, 0); // 27 mai 2025, 00:00
+            const result = formatDateTime(date);
+            
+            expect(result).toBe('27/05/2025 00:00');
+        });
+
+        it('formate correctement 23:59', () => {
+            const date = new Date(2025, 4, 27, 23, 59); // 27 mai 2025, 23:59
+            const result = formatDateTime(date);
+            
+            expect(result).toBe('27/05/2025 23:59');
+        });
+
+        it('retourne "-" pour une date invalide', () => {
+            const invalidDate = new Date('invalid');
+            const result = formatDateTime(invalidDate);
+            
+            expect(result).toBe('-');
+        });
+
+        it('retourne "-" pour null', () => {
+            const result = formatDateTime(null as any);
+            
+            expect(result).toBe('-');
+        });
+
+        it('retourne "-" pour undefined', () => {
+            const result = formatDateTime(undefined as any);
+            
+            expect(result).toBe('-');
+        });
+    });
+
+    describe('formatDays', () => {
+        it('formate correctement 1 jour (singulier)', () => {
+            const result = formatDays(1);
+            
+            expect(result).toBe('1 jour');
+        });
+
+        it('formate correctement plusieurs jours (pluriel)', () => {
+            const result = formatDays(5);
+            
+            expect(result).toBe('5 jours');
+        });
+
+        it('formate correctement 0 jour (pluriel)', () => {
+            const result = formatDays(0);
+            
+            expect(result).toBe('0 jours');
+        });
+
+        it('formate correctement les demi-journées', () => {
+            const result = formatDays(1.5);
+            
+            expect(result).toBe('1.5 jours');
+        });
+
+        it('formate correctement 0.5 jour', () => {
+            const result = formatDays(0.5);
+            
+            expect(result).toBe('0.5 jours');
+        });
+
+        it('formate correctement les décimales complexes', () => {
+            const result = formatDays(2.3);
+            
+            expect(result).toBe('2.3 jours');
+        });
+
+        it('retourne "-" pour null', () => {
+            const result = formatDays(null as any);
+            
+            expect(result).toBe('-');
+        });
+
+        it('retourne "-" pour undefined', () => {
+            const result = formatDays(undefined as any);
+            
+            expect(result).toBe('-');
+        });
+
+        it('retourne "-" pour NaN', () => {
+            const result = formatDays(NaN);
+            
+            expect(result).toBe('-');
+        });
+
+        it('gère les nombres négatifs', () => {
+            const result = formatDays(-2);
+            
+            expect(result).toBe('-2 jours');
+        });
+
+        it('gère les nombres très grands', () => {
+            const result = formatDays(1000);
+            
+            expect(result).toBe('1000 jours');
+        });
+    });
+
+    describe('isSameDay', () => {
+        it('retourne true pour la même date exacte', () => {
+            const date1 = new Date(2025, 4, 27, 10, 30);
+            const date2 = new Date(2025, 4, 27, 10, 30);
+            
+            expect(isSameDay(date1, date2)).toBe(true);
+        });
+
+        it('retourne true pour le même jour avec des heures différentes', () => {
+            const date1 = new Date(2025, 4, 27, 9, 0);
+            const date2 = new Date(2025, 4, 27, 18, 30);
+            
+            expect(isSameDay(date1, date2)).toBe(true);
+        });
+
+        it('retourne false pour des jours différents', () => {
+            const date1 = new Date(2025, 4, 27);
+            const date2 = new Date(2025, 4, 28);
+            
+            expect(isSameDay(date1, date2)).toBe(false);
+        });
+
+        it('retourne false pour des mois différents', () => {
+            const date1 = new Date(2025, 4, 27);
+            const date2 = new Date(2025, 5, 27);
+            
+            expect(isSameDay(date1, date2)).toBe(false);
+        });
+
+        it('retourne false pour des années différentes', () => {
+            const date1 = new Date(2025, 4, 27);
+            const date2 = new Date(2024, 4, 27);
+            
+            expect(isSameDay(date1, date2)).toBe(false);
+        });
+
+        it('retourne false si la première date est null', () => {
+            const date2 = new Date(2025, 4, 27);
+            
+            expect(isSameDay(null as any, date2)).toBe(false);
+        });
+
+        it('retourne false si la deuxième date est null', () => {
+            const date1 = new Date(2025, 4, 27);
+            
+            expect(isSameDay(date1, null as any)).toBe(false);
+        });
+
+        it('retourne false si les deux dates sont null', () => {
+            expect(isSameDay(null as any, null as any)).toBe(false);
+        });
+
+        it('retourne false pour des dates invalides', () => {
+            const invalidDate1 = new Date('invalid');
+            const validDate = new Date(2025, 4, 27);
+            
+            expect(isSameDay(invalidDate1, validDate)).toBe(false);
+        });
+
+        it('gère les changements de fuseau horaire', () => {
+            // Même jour UTC mais potentiellement différent selon le fuseau
+            const date1 = new Date(2025, 4, 27, 0, 0);
+            const date2 = new Date(2025, 4, 27, 23, 59);
+            
+            expect(isSameDay(date1, date2)).toBe(true);
+        });
+    });
+
+    describe('daysBetween', () => {
+        it('calcule correctement la différence pour des dates consécutives', () => {
+            const startDate = new Date(2025, 4, 27);
+            const endDate = new Date(2025, 4, 28);
+            
+            expect(daysBetween(startDate, endDate)).toBe(2); // Inclut les deux jours
+        });
+
+        it('calcule correctement la différence pour la même date', () => {
+            const date = new Date(2025, 4, 27);
+            
+            expect(daysBetween(date, date)).toBe(1); // Un jour
+        });
+
+        it('calcule correctement une semaine', () => {
+            const startDate = new Date(2025, 4, 27);
+            const endDate = new Date(2025, 5, 2); // 6 jours plus tard
+            
+            expect(daysBetween(startDate, endDate)).toBe(7); // 7 jours inclus
+        });
+
+        it('gère les mois différents', () => {
+            const startDate = new Date(2025, 4, 30); // 30 mai
+            const endDate = new Date(2025, 5, 2); // 2 juin
+            
+            expect(daysBetween(startDate, endDate)).toBe(4); // 30 mai, 31 mai, 1 juin, 2 juin
+        });
+
+        it('gère les années différentes', () => {
+            const startDate = new Date(2024, 11, 31); // 31 décembre 2024
+            const endDate = new Date(2025, 0, 2); // 2 janvier 2025
+            
+            expect(daysBetween(startDate, endDate)).toBe(3); // 31 déc, 1 jan, 2 jan
+        });
+
+        it('retourne 0 pour des dates null', () => {
+            const validDate = new Date(2025, 4, 27);
+            
+            expect(daysBetween(null as any, validDate)).toBe(0);
+            expect(daysBetween(validDate, null as any)).toBe(0);
+            expect(daysBetween(null as any, null as any)).toBe(0);
+        });
+
+        it('retourne 0 pour des dates undefined', () => {
+            const validDate = new Date(2025, 4, 27);
+            
+            expect(daysBetween(undefined as any, validDate)).toBe(0);
+            expect(daysBetween(validDate, undefined as any)).toBe(0);
+        });
+
+        it('gère les dates avec des heures différentes', () => {
+            const startDate = new Date(2025, 4, 27, 23, 59);
+            const endDate = new Date(2025, 4, 28, 0, 1);
+            
+            expect(daysBetween(startDate, endDate)).toBe(2); // Toujours 2 jours
+        });
+
+        it('gère les dates bissextiles', () => {
+            const startDate = new Date(2024, 1, 28); // 28 février 2024
+            const endDate = new Date(2024, 2, 1); // 1 mars 2024
+            
+            expect(daysBetween(startDate, endDate)).toBe(3); // 28 fév, 29 fév, 1 mars
+        });
+
+        it('gère les dates dans l\'ordre inverse', () => {
+            const laterDate = new Date(2025, 4, 28);
+            const earlierDate = new Date(2025, 4, 27);
+            
+            // La fonction devrait gérer les dates dans l'ordre inverse
+            const result = daysBetween(laterDate, earlierDate);
+            expect(result).toBe(0); // Ou un comportement défini pour les dates inversées
+        });
+
+        it('gère de longues périodes', () => {
+            const startDate = new Date(2024, 0, 1); // 1er janvier 2024
+            const endDate = new Date(2024, 11, 31); // 31 décembre 2024 (année bissextile)
+            
+            expect(daysBetween(startDate, endDate)).toBe(366); // 366 jours (bissextile)
+        });
+    });
+
+    describe('Intégration et cas d\'usage réels', () => {
+        it('gère un workflow complet de formatage', () => {
+            const date = new Date(2025, 4, 27, 14, 30);
+            
+            expect(formatDate(date)).toBe('27/05/2025');
+            expect(formatDateTime(date)).toBe('27/05/2025 14:30');
+        });
+
+        it('gère un calcul de congés typique', () => {
+            const startDate = new Date(2025, 4, 27);
+            const endDate = new Date(2025, 4, 31);
+            const days = daysBetween(startDate, endDate);
+            
+            expect(days).toBe(5);
+            expect(formatDays(days)).toBe('5 jours');
+        });
+
+        it('vérifie des dates identiques avec différents formats', () => {
+            const date1 = new Date(2025, 4, 27, 9, 0);
+            const date2 = new Date(2025, 4, 27, 17, 0);
+            
+            expect(isSameDay(date1, date2)).toBe(true);
+            expect(formatDate(date1)).toBe(formatDate(date2));
+        });
+
+        it('gère les demi-journées de congé', () => {
+            expect(formatDays(0.5)).toBe('0.5 jours');
+            expect(formatDays(2.5)).toBe('2.5 jours');
+        });
+    });
+});

@@ -10,19 +10,19 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
-  
+
   /* Variables médicales */
   --medical-guard-primary: #ef4444;
   --medical-oncall-primary: #f59e0b;
   --medical-vacation-primary: #3b82f6;
   --medical-rest-primary: #22c55e;
   --medical-emergency-primary: #ec4899;
-  
+
   /* Touch targets standards */
   --touch-target-min: 44px;
   --touch-target-lg: 48px;
   --touch-spacing: 8px;
-  
+
   /* Typographie mobile-first */
   --text-mobile-base: 16px;
   --text-mobile-lg: 18px;
@@ -54,8 +54,8 @@ html {
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(to bottom,
-          transparent,
-          rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+      transparent,
+      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
   font-family: var(--font-sans);
   line-height: var(--line-height-mobile);
   /* Améliore le scroll sur mobile */
@@ -70,6 +70,7 @@ body {
    ================================= */
 
 @layer components {
+
   /* Boutons médicaux avec touch targets optimisés */
   .btn-medical {
     @apply inline-flex items-center justify-center;
@@ -82,44 +83,44 @@ body {
     padding: 12px 16px;
     touch-action: manipulation;
   }
-  
+
   .btn-medical-sm {
     @apply btn-medical text-sm;
     min-height: var(--touch-target-min);
     padding: 10px 14px;
   }
-  
+
   .btn-medical-lg {
     @apply btn-medical text-lg;
     min-height: var(--touch-target-lg);
     padding: 14px 20px;
   }
-  
+
   /* Variantes de couleurs médicales */
   .btn-guard {
     @apply btn-medical bg-medical-guard-500 text-white;
     @apply hover:bg-medical-guard-600 focus:ring-medical-guard-500;
     @apply active:bg-medical-guard-700;
   }
-  
+
   .btn-oncall {
     @apply btn-medical bg-medical-oncall-500 text-white;
     @apply hover:bg-medical-oncall-600 focus:ring-medical-oncall-500;
     @apply active:bg-medical-oncall-700;
   }
-  
+
   .btn-vacation {
     @apply btn-medical bg-medical-vacation-500 text-white;
     @apply hover:bg-medical-vacation-600 focus:ring-medical-vacation-500;
     @apply active:bg-medical-vacation-700;
   }
-  
+
   .btn-rest {
     @apply btn-medical bg-medical-rest-500 text-white;
     @apply hover:bg-medical-rest-600 focus:ring-medical-rest-500;
     @apply active:bg-medical-rest-700;
   }
-  
+
   /* Cards planning médicales */
   .card-medical {
     @apply bg-white rounded-medical-lg shadow-medical;
@@ -127,45 +128,45 @@ body {
     @apply transition-all duration-200;
     @apply hover:shadow-medical-lg hover:scale-[1.02];
   }
-  
+
   .card-medical-guard {
     @apply card-medical border-l-4 border-l-medical-guard-500;
     @apply bg-medical-guard-50;
   }
-  
+
   .card-medical-oncall {
     @apply card-medical border-l-4 border-l-medical-oncall-500;
     @apply bg-medical-oncall-50;
   }
-  
+
   .card-medical-vacation {
     @apply card-medical border-l-4 border-l-medical-vacation-500;
     @apply bg-medical-vacation-50;
   }
-  
+
   .card-medical-rest {
     @apply card-medical border-l-4 border-l-medical-rest-500;
     @apply bg-medical-rest-50;
   }
-  
+
   /* États visuels médicaux */
   .status-confirmed {
     @apply bg-status-confirmed text-white px-3 py-1 rounded-full text-sm font-medium;
   }
-  
+
   .status-pending {
     @apply bg-status-pending text-white px-3 py-1 rounded-full text-sm font-medium;
   }
-  
+
   .status-urgent {
     @apply bg-status-urgent text-white px-3 py-1 rounded-full text-sm font-medium;
     @apply animate-pulse-medical shadow-urgent;
   }
-  
+
   .status-normal {
     @apply bg-status-normal text-white px-3 py-1 rounded-full text-sm font-medium;
   }
-  
+
   /* Navigation mobile bottom tabs */
   .bottom-tabs {
     @apply fixed bottom-0 left-0 right-0 z-50;
@@ -174,7 +175,7 @@ body {
     @apply p-2 pb-safe;
     min-height: 60px;
   }
-  
+
   .bottom-tab {
     @apply flex flex-col items-center justify-center;
     @apply min-w-[60px] min-h-[44px] rounded-lg;
@@ -182,32 +183,33 @@ body {
     @apply focus:outline-none focus:ring-2 focus:ring-blue-500;
     touch-action: manipulation;
   }
-  
+
   .bottom-tab.active {
     @apply bg-blue-50 text-blue-600;
   }
-  
+
   .bottom-tab:not(.active) {
     @apply text-gray-600 hover:bg-gray-50 hover:text-gray-900;
   }
-  
+
   /* Formulaires optimisés mobile */
   .form-medical {
     @apply space-y-4;
   }
-  
+
   .input-medical {
     @apply w-full px-4 py-3 border border-gray-300 rounded-medical;
     @apply focus:ring-2 focus:ring-blue-500 focus:border-transparent;
     @apply transition-all duration-200;
-    @apply text-base; /* Évite le zoom sur iOS */
+    @apply text-base;
+    /* Évite le zoom sur iOS */
     min-height: var(--touch-target-min);
   }
-  
+
   .label-medical {
     @apply block text-sm font-medium text-gray-700 mb-2;
   }
-  
+
   /* Notifications médicales */
   .notification-medical {
     @apply fixed top-4 right-4 z-50 max-w-sm;
@@ -215,19 +217,19 @@ body {
     @apply border-l-4 p-4;
     @apply animate-slide-down;
   }
-  
+
   .notification-success {
     @apply notification-medical border-l-medical-rest-500;
   }
-  
+
   .notification-warning {
     @apply notification-medical border-l-medical-oncall-500;
   }
-  
+
   .notification-error {
     @apply notification-medical border-l-medical-guard-500;
   }
-  
+
   .notification-info {
     @apply notification-medical border-l-medical-vacation-500;
   }
@@ -241,35 +243,40 @@ body {
   .text-balance {
     text-wrap: balance;
   }
-  
+
+  /* Ombres douces pour l'interface */
+  .shadow-soft {
+    box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+  }
+
   /* Touch targets sécurisés */
   .touch-target {
     min-height: var(--touch-target-min);
     min-width: var(--touch-target-min);
     touch-action: manipulation;
   }
-  
+
   .touch-target-lg {
     min-height: var(--touch-target-lg);
     min-width: var(--touch-target-lg);
     touch-action: manipulation;
   }
-  
+
   /* Espacement tactile */
   .touch-spacing {
     margin: var(--touch-spacing);
   }
-  
+
   .touch-spacing-x {
     margin-left: var(--touch-spacing);
     margin-right: var(--touch-spacing);
   }
-  
+
   .touch-spacing-y {
     margin-top: var(--touch-spacing);
     margin-bottom: var(--touch-spacing);
   }
-  
+
   /* Sécurité mobile */
   .safe-area-inset {
     padding-top: env(safe-area-inset-top);
@@ -277,17 +284,17 @@ body {
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
   }
-  
+
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 1rem);
   }
-  
+
   /* Scroll optimisé mobile */
   .scroll-smooth-mobile {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
   }
-  
+
   /* Réduction mouvement pour accessibilité */
   @media (prefers-reduced-motion: reduce) {
     * {
@@ -296,44 +303,44 @@ body {
       transition-duration: 0.01ms !important;
     }
   }
-  
+
   /* Ajustements pour écrans petits */
   @media (max-width: 375px) {
     .text-responsive {
       font-size: 14px;
     }
-    
+
     .btn-medical {
       padding: 10px 12px;
     }
-    
+
     .card-medical {
       padding: 12px;
     }
   }
-  
+
   /* Mode sombre médical */
   .dark .card-medical {
     @apply bg-gray-800 border-gray-700;
   }
-  
+
   .dark .btn-medical {
     @apply shadow-lg;
   }
-  
+
   .dark .input-medical {
     @apply bg-gray-800 border-gray-600 text-white;
   }
-  
+
   .dark .notification-medical {
     @apply bg-gray-800 border-gray-700;
   }
-  
+
   /* Accessibilité - focus visible */
   .focus-medical:focus-visible {
     @apply outline-none ring-2 ring-blue-500 ring-offset-2;
   }
-  
+
   /* Large targets pour accessibilité */
   .large-targets * {
     min-height: var(--touch-target-lg) !important;
@@ -346,9 +353,12 @@ body {
    ================================= */
 
 @keyframes pulse-medical {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.7;
   }
@@ -359,6 +369,7 @@ body {
     transform: translateY(100%);
     opacity: 0;
   }
+
   100% {
     transform: translateY(0);
     opacity: 1;
@@ -396,7 +407,9 @@ body {
 }
 
 /* Optimise les inputs sur mobile */
-input, textarea, select {
+input,
+textarea,
+select {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;

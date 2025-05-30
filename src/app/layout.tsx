@@ -102,8 +102,8 @@ export default function RootLayout({
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
 
-                {/* Préchargement des ressources critiques */}
-                <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="" />
+                {/* Préchargement des ressources critiques - Désactivé temporairement car fichiers corrompus */}
+                {/* <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="" /> */}
 
                 {/* DNS prefetch pour les domaines potentiels */}
                 <link rel="dns-prefetch" href="//api.mathilda.com" />
@@ -122,12 +122,12 @@ export default function RootLayout({
                                 >
                                     {children}
                                 </ErrorBoundary>
-                                
+
                                 {/* Notifications et composants globaux */}
                                 <NotificationToast />
                                 <ClientNotificationCenter />
                                 <ClientSimulationNotifications />
-                                
+
                                 {/* Préchargeur de routes et données via un wrapper client */}
                                 <ClientPrefetcherWrapper />
 

@@ -1,0 +1,397 @@
+import React from 'react';
+import { renderWithProviders as render, screen } from '@/test-utils/renderWithProviders';
+import Footer from '../Footer';
+
+// Mock next/link
+jest.mock('next/link', () => {
+  return ({ children, href, className, ...props }: any) => (
+    <a href={href} className={className} {...props}>
+      {children}
+    </a>
+  );
+});
+
+// Mock framer-motion
+}));
+
+describe('Footer', () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+
+  beforeEach(() => {
+    // Reset to original value
+    process.env.NODE_ENV = originalNodeEnv;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    // Restore original value
+    process.env.NODE_ENV = originalNodeEnv;
+  });
+
+  describe('Basic Rendering', () => {
+    it('should render footer with main sections', () => {
+      render(<Footer />);
+
+      expect(screen.getByRole('contentinfo')).toBeInTheDocument();
+      expect(screen.getByText('Mathildanesth')).toBeInTheDocument();
+      expect(screen.getByText('Navigation rapide')).toBeInTheDocument();
+      expect(screen.getByText('Informations')).toBeInTheDocument();
+    });
+
+    it('should display the brand logo and name', () => {
+      render(<Footer />);
+
+      const logoText = screen.getByText('M');
+      const brandName = screen.getByText('Mathildanesth');
+
+      expect(logoText).toBeInTheDocument();
+      expect(brandName).toBeInTheDocument();
+    });
+
+    it('should display the description text', () => {
+      render(<Footer />);
+
+      const description = screen.getByText('Plateforme de gestion des plannings médicaux pour équipes d\'anesthésie.');
+      expect(description).toBeInTheDocument();
+    });
+  });
+
+  describe('Navigation Links', () => {
+    it('should render all navigation links', () => {
+      render(<Footer />);
+
+      const links = [
+        { text: 'Accueil', href: '/' },
+        { text: 'Mon Planning', href: '/planning' },
+        { text: 'Mes Congés', href: '/conges' },
+        { text: 'Bloc Opératoire', href: '/bloc-operatoire' }
+      ];
+
+      links.forEach(({ text, href }) => {
+        const link = screen.getByRole('link', { name: text });
+        expect(link).toBeInTheDocument();
+        expect(link).toHaveAttribute('href', href);
+      });
+    });
+
+    it('should have proper hover styles on navigation links', () => {
+      render(<Footer />);
+
+      const homeLink = screen.getByRole('link', { name: 'Accueil' });
+      expect(homeLink).toHaveClass('hover:text-primary-600');
+      expect(homeLink).toHaveClass('dark:hover:text-primary-500');
+    });
+
+    it('should have proper base colors for navigation links', () => {
+      render(<Footer />);
+
+      const homeLink = screen.getByRole('link', { name: 'Accueil' });
+      expect(homeLink).toHaveClass('text-gray-600');
+      expect(homeLink).toHaveClass('dark:text-slate-300');
+    });
+  });
+
+  describe('Information Section', () => {
+    it('should display version information', () => {
+      render(<Footer />);
+
+      const version = screen.getByText('Version: 0.1.0');
+      expect(version).toBeInTheDocument();
+    });
+
+    it('should display environment information for development', () => {
+      process.env.NODE_ENV = 'development';
+      render(<Footer />);
+
+      const environment = screen.getByText('Environnement: development');
+      expect(environment).toBeInTheDocument();
+    });
+
+    it('should display environment information for production', () => {
+      process.env.NODE_ENV = 'production';
+      render(<Footer />);
+
+      const environment = screen.getByText('Environnement: production');
+      expect(environment).toBeInTheDocument();
+    });
+
+    it('should display environment information for test', () => {
+      process.env.NODE_ENV = 'test';
+      render(<Footer />);
+
+      const environment = screen.getByText('Environnement: test');
+      expect(environment).toBeInTheDocument();
+    });
+
+    it('should handle undefined NODE_ENV gracefully', () => {
+      process.env.NODE_ENV = undefined as any;
+      render(<Footer />);
+
+      const environment = screen.getByText(/Environnement:/);
+      expect(environment).toBeInTheDocument();
+    });
+  });
+
+  describe('Copyright Section', () => {
+    it('should display current year in copyright', () => {
+      const currentYear = new Date().getFullYear();
+      render(<Footer />);
+
+      const copyright = screen.getByText(`© ${currentYear} Mathildanesth. Tous droits réservés.`);
+      expect(copyright).toBeInTheDocument();
+    });
+
+    it('should update copyright year dynamically', () => {
+      // Mock Date to return a specific year
+      const mockDate = new Date('2025-01-01');
+      jest.spyOn(global, 'Date').mockImplementation(() => mockDate as any);
+      Object.defineProperty(global.Date, 'now', {
+        value: () => mockDate.getTime(),
+      });
+
+      render(<Footer />);
+
+      const copyright = screen.getByText('© 2025 Mathildanesth. Tous droits réservés.');
+      expect(copyright).toBeInTheDocument();
+
+      jest.restoreAllMocks();
+    });
+  });
+
+  describe('Legal Links', () => {
+    it('should render privacy policy link', () => {
+      render(<Footer />);
+
+      const privacyLink = screen.getByText('Confidentialité');
+      expect(privacyLink).toBeInTheDocument();
+      expect(privacyLink).toHaveAttribute('href', '#');
+    });
+
+    it('should render terms of use link', () => {
+      render(<Footer />);
+
+      const termsLink = screen.getByText('Conditions');
+      expect(termsLink).toBeInTheDocument();
+      expect(termsLink).toHaveAttribute('href', '#');
+    });
+
+    it('should have screen reader text for legal links', () => {
+      render(<Footer />);
+
+      const privacyScreenReader = screen.getByText('Politique de confidentialité');
+      const termsScreenReader = screen.getByText('Conditions d\'utilisation');
+
+      expect(privacyScreenReader).toBeInTheDocument();
+      expect(termsScreenReader).toBeInTheDocument();
+    });
+
+    it('should have proper hover styles on legal links', () => {
+      render(<Footer />);
+
+      const privacyLink = screen.getByText('Confidentialité');
+      const termsLink = screen.getByText('Conditions');
+
+      expect(privacyLink).toHaveClass('hover:text-primary-600');
+      expect(privacyLink).toHaveClass('dark:hover:text-primary-500');
+      expect(termsLink).toHaveClass('hover:text-primary-600');
+      expect(termsLink).toHaveClass('dark:hover:text-primary-500');
+    });
+  });
+
+  describe('Styling and Theme Support', () => {
+    it('should have proper background colors for light and dark themes', () => {
+      render(<Footer />);
+
+      const footer = screen.getByRole('contentinfo');
+      expect(footer).toHaveClass('bg-gray-50');
+      expect(footer).toHaveClass('dark:bg-slate-800');
+    });
+
+    it('should have proper border colors for light and dark themes', () => {
+      render(<Footer />);
+
+      const footer = screen.getByRole('contentinfo');
+      expect(footer).toHaveClass('border-gray-100');
+      expect(footer).toHaveClass('dark:border-slate-700');
+    });
+
+    it('should have transition classes for smooth theme switching', () => {
+      render(<Footer />);
+
+      const footer = screen.getByRole('contentinfo');
+      expect(footer).toHaveClass('transition-colors');
+      expect(footer).toHaveClass('duration-300');
+    });
+
+    it('should have gradient background for the logo', () => {
+      render(<Footer />);
+
+      const logo = screen.getByText('M').parentElement;
+      expect(logo).toHaveClass('bg-gradient-to-r');
+      expect(logo).toHaveClass('from-primary-600');
+      expect(logo).toHaveClass('to-secondary-600');
+    });
+
+    it('should have gradient text for the brand name', () => {
+      render(<Footer />);
+
+      const brandName = screen.getByText('Mathildanesth');
+      expect(brandName).toHaveClass('bg-gradient-to-r');
+      expect(brandName).toHaveClass('from-primary-600');
+      expect(brandName).toHaveClass('to-secondary-600');
+      expect(brandName).toHaveClass('bg-clip-text');
+      expect(brandName).toHaveClass('text-transparent');
+    });
+  });
+
+  describe('Layout and Responsiveness', () => {
+    it('should have responsive grid layout', () => {
+      render(<Footer />);
+
+      const gridContainer = screen.getByText('Navigation rapide').closest('.grid');
+      expect(gridContainer).toHaveClass('grid-cols-1');
+      expect(gridContainer).toHaveClass('md:grid-cols-3');
+    });
+
+    it('should have responsive flex layout for bottom section', () => {
+      render(<Footer />);
+
+      const bottomSection = screen.getByText(/© \d{4} Mathildanesth/).closest('.flex');
+      expect(bottomSection).toHaveClass('flex-col');
+      expect(bottomSection).toHaveClass('sm:flex-row');
+    });
+
+    it('should have proper spacing and padding', () => {
+      render(<Footer />);
+
+      const footer = screen.getByRole('contentinfo');
+      expect(footer).toHaveClass('pt-12');
+      expect(footer).toHaveClass('pb-8');
+      expect(footer).toHaveClass('mt-20');
+    });
+
+    it('should have responsive container sizing', () => {
+      render(<Footer />);
+
+      const container = screen.getByText('Mathildanesth').closest('.max-w-7xl');
+      expect(container).toHaveClass('mx-auto');
+      expect(container).toHaveClass('px-4');
+      expect(container).toHaveClass('sm:px-6');
+      expect(container).toHaveClass('lg:px-8');
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('should have proper semantic structure', () => {
+      render(<Footer />);
+
+      const footer = screen.getByRole('contentinfo');
+      expect(footer).toBeInTheDocument();
+    });
+
+    it('should have proper heading hierarchy', () => {
+      render(<Footer />);
+
+      const mainHeading = screen.getByRole('heading', { level: 2, name: 'Mathildanesth' });
+      const sectionHeadings = screen.getAllByRole('heading', { level: 3 });
+
+      expect(mainHeading).toBeInTheDocument();
+      expect(sectionHeadings).toHaveLength(2);
+      expect(sectionHeadings[0]).toHaveTextContent('Navigation rapide');
+      expect(sectionHeadings[1]).toHaveTextContent('Informations');
+    });
+
+    it('should have proper link accessibility', () => {
+      render(<Footer />);
+
+      const links = screen.getAllByRole('link');
+      links.forEach(link => {
+        expect(link).toHaveAttribute('href');
+      });
+    });
+
+    it('should have screen reader only text where appropriate', () => {
+      render(<Footer />);
+
+      const srOnlyElements = screen.getAllByText(/Politique de confidentialité|Conditions d'utilisation/);
+      srOnlyElements.forEach(element => {
+        expect(element).toHaveClass('sr-only');
+      });
+    });
+  });
+
+  describe('Content Structure', () => {
+    it('should have all three main sections', () => {
+      render(<Footer />);
+
+      // Brand section (implicit)
+      expect(screen.getByText('Mathildanesth')).toBeInTheDocument();
+      
+      // Navigation section
+      expect(screen.getByText('Navigation rapide')).toBeInTheDocument();
+      
+      // Information section
+      expect(screen.getByText('Informations')).toBeInTheDocument();
+    });
+
+    it('should have navigation items in a list structure', () => {
+      render(<Footer />);
+
+      const navigationList = screen.getByText('Accueil').closest('ul');
+      expect(navigationList).toBeInTheDocument();
+      expect(navigationList).toHaveClass('space-y-2');
+
+      const listItems = navigationList?.querySelectorAll('li');
+      expect(listItems).toHaveLength(4);
+    });
+
+    it('should have information items in a list structure', () => {
+      render(<Footer />);
+
+      const informationList = screen.getByText('Version: 0.1.0').closest('ul');
+      expect(informationList).toBeInTheDocument();
+      expect(informationList).toHaveClass('space-y-2');
+
+      const listItems = informationList?.querySelectorAll('li');
+      expect(listItems).toHaveLength(2);
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle missing NODE_ENV gracefully', () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = undefined as any;
+
+      expect(() => {
+        render(<Footer />);
+      }).not.toThrow();
+
+      process.env.NODE_ENV = originalEnv;
+    });
+
+    it('should render consistently across different years', () => {
+      // Test with different mock years
+      const years = [2020, 2024, 2030];
+      
+      years.forEach(year => {
+        const mockDate = new Date(`${year}-06-15`);
+        jest.spyOn(global, 'Date').mockImplementation(() => mockDate as any);
+        
+        const { unmount } = render(<Footer />);
+        expect(screen.getByText(`© ${year} Mathildanesth. Tous droits réservés.`)).toBeInTheDocument();
+        
+        unmount();
+        jest.restoreAllMocks();
+      });
+    });
+
+    it('should maintain layout with very long environment name', () => {
+      process.env.NODE_ENV = 'very-long-environment-name-for-testing';
+      
+      render(<Footer />);
+      
+      const environment = screen.getByText('Environnement: very-long-environment-name-for-testing');
+      expect(environment).toBeInTheDocument();
+    });
+  });
+});

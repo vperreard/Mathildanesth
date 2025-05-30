@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import { prisma } from '@/lib/prisma';
 import { absenceService } from '../absenceService';
 import { LeaveStatus } from '@prisma/client';
@@ -9,6 +12,17 @@ jest.mock('../notificationService');
 const mockedPrisma = prisma as jest.Mocked<typeof prisma>;
 
 describe('AbsenceService', () => {
+  let testEnv: any;
+  
+  beforeAll(() => {
+    testEnv = setupTestEnvironment();
+  });
+  
+  afterAll(() => {
+    cleanupTestEnvironment();
+    testEnv.restoreConsole?.();
+  });
+
     beforeEach(() => {
         jest.clearAllMocks();
     });

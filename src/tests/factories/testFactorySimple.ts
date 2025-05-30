@@ -1,8 +1,6 @@
 /**
  * Factory simple pour générer des données de test
  */
-import { TestFactory } from '@/tests/factories/testFactorySimple';
-
 import {
   BlocPlanningStatus,
   ConflictSeverity,
@@ -101,6 +99,35 @@ export class TestFactory {
       ...overrides,
     }),
   };
+
+  static Site = {
+    create: (overrides: any = {}) => ({
+      id: '1',
+      name: 'Site Test',
+      description: 'Site de test',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...overrides,
+    }),
+  };
+
+  static OperatingRoom = {
+    create: (overrides: any = {}) => ({
+      id: 1,
+      name: 'Salle 1',
+      description: 'Salle de test',
+      capacity: 1,
+      equipment: ['Respirateur', 'Monitoring'],
+      sectorId: 1,
+      displayOrder: 1,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...overrides,
+    }),
+  };
+
   static createSite(overrides: any = {}) {
     return {
       id: '1',

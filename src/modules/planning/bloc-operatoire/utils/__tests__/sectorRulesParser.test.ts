@@ -1,36 +1,60 @@
+import { describe, expect, it } from '@jest/globals';
+import { JsonValue } from '@prisma/client/runtime/library';
 import { getSectorRules, areRoomsContiguous, areAllRoomsConnected } from '../sectorRulesParser';
 
 describe('sectorRulesParser', () => {
     describe('getSectorRules', () => {
-        it('should return empty object for null or undefined', () => {
+        it('should handle null or undefined input', () => {
             expect(getSectorRules(null)).toEqual({});
             expect(getSectorRules(undefined)).toEqual({});
         });
 
-        it('should extract requireContiguousRooms', () => {
-            const rules = { requireContiguousRooms: true };
-            expect(getSectorRules(rules)).toEqual({ requireContiguousRooms: true });
+        it('should handle non-object input', () => {
+            expect(getSectorRules('not an object' as unknown as JsonValue)).toEqual({});
+            expect(getSectorRules([] as unknown as JsonValue)).toEqual({});
+            expect(getSectorRules(123 as unknown as JsonValue)).toEqual({});
         });
 
-        it('should extract minIADEPerRoom', () => {
-            const rules = { minIADEPerRoom: 2 };
-            expect(getSectorRules(rules)).toEqual({ minIADEPerRoom: 2 });
-        });
-
-        it('should extract contiguityMap', () => {
-            const rules = { contiguityMap: { '1': ['2', '3'], '2': ['1', '4'] } };
-            expect(getSectorRules(rules)).toEqual({
-                contiguityMap: { '1': ['2', '3'], '2': ['1', '4'] }
-            });
-        });
-
-        it('should handle invalid values', () => {
+        it('should extract contiguityMap from rules', () => {
             const rules = {
-                requireContiguousRooms: 'not-a-boolean',
-                minIADEPerRoom: 'not-a-number',
-                contiguityMap: 'not-an-object'
+                contiguityMap: {
+                    '1': ['2', '3'],
+                    '2': ['1', '4'],
+                    '3': ['1', '5'],
+                    '4': ['2'],
+                    '5': ['3']
+                },
+                maxRoomsPerSupervisor: 3
             };
-            expect(getSectorRules(rules)).toEqual({});
+
+            const result = getSectorRules(rules as unknown as JsonValue);
+
+            expect(result.contiguityMap).toEqual(rules.contiguityMap);
+            expect(result.maxRoomsPerSupervisor).toBe(3);
+        });
+
+        it('should extract requireContiguousRooms from rules', () => {
+            const rules = {
+                requireContiguousRooms: true,
+                maxRoomsPerSupervisor: 2
+            };
+
+            const result = getSectorRules(rules as unknown as JsonValue);
+
+            expect(result.requireContiguousRooms).toBe(true);
+            expect(result.maxRoomsPerSupervisor).toBe(2);
+        });
+
+        it('should handle missing properties', () => {
+            const rules = {
+                someOtherProperty: 'value'
+            };
+
+            const result = getSectorRules(rules as unknown as JsonValue);
+
+            expect(result.contiguityMap).toBeUndefined();
+            expect(result.requireContiguousRooms).toBeUndefined();
+            expect(result.maxRoomsPerSupervisor).toBeUndefined();
         });
     });
 
@@ -38,51 +62,91 @@ describe('sectorRulesParser', () => {
         const contiguityMap = {
             '1': ['2', '3'],
             '2': ['1', '4'],
-            '3': ['1'],
-            '4': ['2']
+            '3': ['1', '5'],
+            '4': ['2'],
+            '5': ['3']
         };
 
-        it('should return true for contiguous rooms', () => {
-            expect(areRoomsContiguous('1', '2', contiguityMap)).toBe(true);
-            expect(areRoomsContiguous('2', '1', contiguityMap)).toBe(true);
-            expect(areRoomsContiguous(1, 3, contiguityMap)).toBe(true);
+        it('should return true for a single room', () => {
+            const result = areRoomsContiguous(['1'], contiguityMap);
+            expect(result).toBe(true);
         });
 
-        it('should return false for non-contiguous rooms', () => {
-            expect(areRoomsContiguous('1', '4', contiguityMap)).toBe(false);
-            expect(areRoomsContiguous('3', '4', contiguityMap)).toBe(false);
+        it('should return true for directly connected rooms', () => {
+            const result = areRoomsContiguous(['1', '2'], contiguityMap);
+            expect(result).toBe(true);
         });
 
-        it('should return false when contiguityMap is undefined', () => {
-            expect(areRoomsContiguous('1', '2')).toBe(false);
+        it('should return true for indirectly connected rooms', () => {
+            const result = areRoomsContiguous(['1', '4'], contiguityMap);
+            expect(result).toBe(true);
+        });
+
+        it('should return true for multiple connected rooms', () => {
+            const result = areRoomsContiguous(['1', '2', '3'], contiguityMap);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for disconnected rooms', () => {
+            const result = areRoomsContiguous(['1', '6'], contiguityMap);
+            expect(result).toBe(false);
+        });
+
+        it('should handle undefined contiguity map', () => {
+            const result = areRoomsContiguous(['1', '2'], undefined);
+            expect(result).toBe(true);
         });
     });
 
     describe('areAllRoomsConnected', () => {
-        const contiguityMap = {
-            '1': ['2', '3'],
-            '2': ['1', '4'],
-            '3': ['1', '5'],
-            '4': ['2'],
-            '5': ['3'],
-            '6': ['7'],
-            '7': ['6']
-        };
-
-        it('should return true for connected subsets of rooms', () => {
-            expect(areAllRoomsConnected(['1', '2', '3', '4', '5'], contiguityMap)).toBe(true);
-            expect(areAllRoomsConnected(['6', '7'], contiguityMap)).toBe(true);
-            expect(areAllRoomsConnected(['1', '2', '4'], contiguityMap)).toBe(true);
+        it('should handle empty room list', () => {
+            const result = areAllRoomsConnected([]);
+            expect(result).toBe(true);
         });
 
-        it('should return false for disconnected subsets of rooms', () => {
-            expect(areAllRoomsConnected(['1', '6'], contiguityMap)).toBe(false);
-            expect(areAllRoomsConnected(['1', '2', '3', '6'], contiguityMap)).toBe(false);
+        it('should handle single room', () => {
+            const result = areAllRoomsConnected([{ id: 1, number: '1' }]);
+            expect(result).toBe(true);
         });
 
-        it('should handle edge cases', () => {
-            expect(areAllRoomsConnected([], contiguityMap)).toBe(true);
-            expect(areAllRoomsConnected(['1'], contiguityMap)).toBe(true);
+        it('should determine if rooms are sequential by number', () => {
+            const rooms = [
+                { id: 1, number: '1' },
+                { id: 2, number: '2' },
+                { id: 3, number: '3' }
+            ];
+            const result = areAllRoomsConnected(rooms);
+            expect(result).toBe(true);
+        });
+
+        it('should handle non-sequential rooms', () => {
+            const rooms = [
+                { id: 1, number: '1' },
+                { id: 3, number: '3' },
+                { id: 5, number: '5' }
+            ];
+            const result = areAllRoomsConnected(rooms);
+            expect(result).toBe(false);
+        });
+
+        it('should handle non-numeric room numbers', () => {
+            const rooms = [
+                { id: 1, number: 'A' },
+                { id: 2, number: 'B' },
+                { id: 3, number: 'C' }
+            ];
+            const result = areAllRoomsConnected(rooms);
+            expect(result).toBe(true);
+        });
+
+        it('should handle mixed numeric and non-numeric room numbers', () => {
+            const rooms = [
+                { id: 1, number: '1' },
+                { id: 2, number: 'A' },
+                { id: 3, number: '2' }
+            ];
+            const result = areAllRoomsConnected(rooms);
+            expect(result).toBe(false);
         });
     });
 }); 

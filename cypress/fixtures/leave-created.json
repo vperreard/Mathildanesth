@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "leave": {
+    "id": 2,
+    "userId": 1,
+    "type": "CONGE_ANNUEL",
+    "startDate": "2025-07-01",
+    "endDate": "2025-07-05",
+    "status": "PENDING",
+    "reason": "Congés d'été",
+    "requestedAt": "2025-05-29T10:00:00Z",
+    "daysCount": 5
+  },
+  "message": "Demande de congé créée avec succès",
+  "quotaRemaining": 15
+}

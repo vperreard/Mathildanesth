@@ -1,0 +1,37 @@
+{
+  "leaves": [
+    {
+      "id": 1,
+      "userId": 1,
+      "type": "CONGE_ANNUEL",
+      "startDate": "2025-06-15",
+      "endDate": "2025-06-20",
+      "status": "APPROVED",
+      "reason": "Congés d'été",
+      "requestedAt": "2025-05-15T10:00:00Z",
+      "approvedAt": "2025-05-16T14:30:00Z"
+    }
+  ],
+  "quotas": [
+    {
+      "type": "CONGE_ANNUEL",
+      "total": 25,
+      "used": 5,
+      "remaining": 20,
+      "year": 2025
+    },
+    {
+      "type": "RTT",
+      "total": 12,
+      "used": 2,
+      "remaining": 10,
+      "year": 2025
+    }
+  ],
+  "statistics": {
+    "totalRequests": 8,
+    "approved": 6,
+    "pending": 1,
+    "rejected": 1
+  }
+}

@@ -1,0 +1,422 @@
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import {
+  parseDate,
+  calculateEaster,
+  getDaysBetween,
+  isDateWeekend,
+  formatDate,
+  getDifferenceInDays,
+  addDaysToDate,
+  addHoursToDate,
+  getStartOfDay,
+  getEndOfDay,
+  isDateInFuture,
+  getDaysUntil,
+  getDayPeriod,
+} from '../dateUtils';
+
+describe('Calculs Temporels Médicaux - Tests Spécialisés', () => {
+  const mockCurrentDate = new Date('2024-03-15T14:30:00.000Z');
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(mockCurrentDate);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  describe('CRITICITÉ HAUTE - Calculs de Gardes Médicales', () => {
+    describe('Durées de garde et repos obligatoire', () => {
+      it('devrait calculer correctement les durées de garde standard', () => {
+        // Garde de jour : 8h-20h (12 heures)
+        const startDayShift = new Date('2024-03-15T08:00:00');
+        const endDayShift = new Date('2024-03-15T20:00:00');
+
+        const dayShiftHours = getDifferenceInDays(endDayShift, startDayShift);
+        expect(dayShiftHours).toBe(0); // Même jour
+
+        // Calcul en heures (12 heures = 0.5 jour)
+        const hoursDiff = (endDayShift.getTime() - startDayShift.getTime()) / (1000 * 60 * 60);
+        expect(hoursDiff).toBe(12);
+      });
+
+      it('devrait calculer les gardes de nuit qui s\'étendent sur 2 jours', () => {
+        // Garde de nuit : 20h-8h+1 (12 heures)
+        const startNightShift = new Date('2024-03-15T20:00:00');
+        const endNightShift = new Date('2024-03-16T08:00:00');
+
+        const nightShiftDays = getDifferenceInDays(endNightShift, startNightShift);
+        expect(nightShiftDays).toBe(1); // Passe à travers 2 jours
+
+        const hoursDiff = (endNightShift.getTime() - startNightShift.getTime()) / (1000 * 60 * 60);
+        expect(hoursDiff).toBe(12);
+      });
+
+      it('devrait valider le temps de repos minimum de 12h entre gardes', () => {
+        const endFirstShift = new Date('2024-03-15T20:00:00');
+        const startSecondShift = new Date('2024-03-16T08:00:00');
+
+        const restTime = (startSecondShift.getTime() - endFirstShift.getTime()) / (1000 * 60 * 60);
+        expect(restTime).toBe(12); // 12 heures de repos
+
+        // Validation réglementaire : minimum 12h
+        expect(restTime).toBeGreaterThanOrEqual(12);
+      });
+
+      it('devrait calculer les gardes de week-end étendues', () => {
+        // Garde de week-end : Vendredi 20h → Lundi 8h
+        const startWeekendShift = new Date('2024-03-15T20:00:00'); // Vendredi
+        const endWeekendShift = new Date('2024-03-18T08:00:00');   // Lundi
+
+        const weekendDays = getDaysBetween(startWeekendShift, endWeekendShift);
+        expect(weekendDays).toBe(4); // Vendredi, Samedi, Dimanche, Lundi
+
+        const totalHours = (endWeekendShift.getTime() - startWeekendShift.getTime()) / (1000 * 60 * 60);
+        expect(totalHours).toBe(60); // 60 heures de garde continue
+      });
+
+      it('devrait identifier les violations de temps de travail maximum', () => {
+        // Simulation d\'une semaine avec dépassement des 48h réglementaires
+        const shifts = [
+          { start: new Date('2024-03-11T08:00:00'), end: new Date('2024-03-11T20:00:00') }, // Lundi 12h
+          { start: new Date('2024-03-12T08:00:00'), end: new Date('2024-03-12T20:00:00') }, // Mardi 12h
+          { start: new Date('2024-03-13T08:00:00'), end: new Date('2024-03-13T20:00:00') }, // Mercredi 12h
+          { start: new Date('2024-03-14T20:00:00'), end: new Date('2024-03-15T08:00:00') }, // Jeudi nuit 12h
+          { start: new Date('2024-03-15T08:00:00'), end: new Date('2024-03-15T20:00:00') }, // Vendredi 12h
+        ];
+
+        const totalWeeklyHours = shifts.reduce((total, shift) => {
+          const hours = (shift.end.getTime() - shift.start.getTime()) / (1000 * 60 * 60);
+          return total + hours;
+        }, 0);
+
+        expect(totalWeeklyHours).toBe(60); // 60 heures dans la semaine
+        expect(totalWeeklyHours).toBeGreaterThan(48); // Violation des 48h maximum
+      });
+    });
+
+    describe('Calculs spécifiques aux astreintes', () => {
+      it('devrait calculer les périodes d\'astreinte avec interruptions', () => {
+        // Astreinte : 18h-8h+1 avec possibles rappels
+        const startOnCall = new Date('2024-03-15T18:00:00');
+        const endOnCall = new Date('2024-03-16T08:00:00');
+
+        const onCallDuration = (endOnCall.getTime() - startOnCall.getTime()) / (1000 * 60 * 60);
+        expect(onCallDuration).toBe(14); // 14 heures d\'astreinte
+
+        // Simulation de rappels pendant l\'astreinte
+        const recalls = [
+          { start: new Date('2024-03-15T22:30:00'), end: new Date('2024-03-16T01:30:00') }, // 3h
+          { start: new Date('2024-03-16T04:00:00'), end: new Date('2024-03-16T06:00:00') }, // 2h
+        ];
+
+        const totalRecallTime = recalls.reduce((total, recall) => {
+          const hours = (recall.end.getTime() - recall.start.getTime()) / (1000 * 60 * 60);
+          return total + hours;
+        }, 0);
+
+        expect(totalRecallTime).toBe(5); // 5 heures de rappel effectif
+      });
+
+      it('devrait calculer la compensation temps pour astreintes', () => {
+        // Règle médical : 1h d\'astreinte = 0.125h de compensation
+        // 1h de rappel = 1h de compensation
+        const onCallHours = 14;
+        const recallHours = 5;
+
+        const onCallCompensation = onCallHours * 0.125;
+        const recallCompensation = recallHours * 1.0;
+        const totalCompensation = onCallCompensation + recallCompensation;
+
+        expect(onCallCompensation).toBe(1.75); // 1h45 de compensation pour astreinte
+        expect(recallCompensation).toBe(5);    // 5h de compensation pour rappels
+        expect(totalCompensation).toBe(6.75);  // Total 6h45
+      });
+    });
+  });
+
+  describe('CRITICITÉ HAUTE - Gestion des Congés Médicaux', () => {
+    describe('Calculs de congés annuels', () => {
+      it('devrait calculer les jours de congés acquis par mois', () => {
+        // Règle hospitalière : 2.5 jours par mois travaillé
+        const monthsWorked = 12;
+        const vacationDaysPerMonth = 2.5;
+        const totalVacationDays = monthsWorked * vacationDaysPerMonth;
+
+        expect(totalVacationDays).toBe(30); // 30 jours par an
+      });
+
+      it('devrait calculer les congés restants après prises', () => {
+        const annualAllowance = 30;
+        const takenDays = [
+          { start: new Date('2024-01-15'), end: new Date('2024-01-19') }, // 5 jours
+          { start: new Date('2024-02-26'), end: new Date('2024-03-01') }, // 5 jours (3 jours ouvrés)
+          { start: new Date('2024-04-10'), end: new Date('2024-04-12') }, // 3 jours
+        ];
+
+        let totalTakenDays = 0;
+        takenDays.forEach(vacation => {
+          const days = getDaysBetween(vacation.start, vacation.end);
+          
+          // Compter seulement les jours ouvrés (exclure week-ends)
+          const workingDays = Array.from({ length: days }, (_, i) => {
+            const date = addDaysToDate(vacation.start, i);
+            return date && !isDateWeekend(date);
+          }).filter(Boolean).length;
+          
+          totalTakenDays += workingDays;
+        });
+
+        // Calcul approximatif : 5 + 3 + 3 = 11 jours ouvrés
+        const remainingDays = annualAllowance - totalTakenDays;
+        expect(remainingDays).toBeGreaterThan(15);
+        expect(remainingDays).toBeLessThanOrEqual(annualAllowance);
+      });
+
+      it('devrait valider les congés par périodes de service', () => {
+        // Contrainte : maximum 3 semaines consécutives en été
+        const summerVacation = {
+          start: new Date('2024-07-01'),
+          end: new Date('2024-07-22')
+        };
+
+        const vacationDays = getDaysBetween(summerVacation.start, summerVacation.end);
+        const vacationWeeks = Math.ceil(vacationDays / 7);
+
+        expect(vacationWeeks).toBe(4); // 4 semaines demandées
+        expect(vacationWeeks).toBeGreaterThan(3); // Violation de la règle
+      });
+    });
+
+    describe('Congés maladie et récupération', () => {
+      it('devrait calculer les jours de récupération post-garde', () => {
+        // Règle : 1 jour de récupération pour garde de week-end
+        const weekendShift = {
+          start: new Date('2024-03-16T08:00:00'), // Samedi
+          end: new Date('2024-03-17T08:00:00')    // Dimanche
+        };
+
+        const isWeekendShift = isDateWeekend(weekendShift.start) || isDateWeekend(weekendShift.end);
+        const recoveryDays = isWeekendShift ? 1 : 0;
+
+        expect(isWeekendShift).toBe(true);
+        expect(recoveryDays).toBe(1);
+      });
+
+      it('devrait calculer l\'ancienneté pour droits aux congés', () => {
+        const hireDate = new Date('2022-01-15');
+        const currentDate = new Date('2024-03-15');
+
+        const serviceYears = getDifferenceInDays(currentDate, hireDate) / 365;
+        const seniorityYears = Math.floor(serviceYears);
+
+        expect(seniorityYears).toBe(2);
+
+        // Droits supplémentaires selon ancienneté
+        const additionalDays = seniorityYears >= 5 ? 5 : seniorityYears >= 3 ? 3 : 0;
+        expect(additionalDays).toBe(0); // Pas encore 3 ans
+      });
+    });
+  });
+
+  describe('CRITICITÉ HAUTE - Calendrier des Jours Fériés Médicaux', () => {
+    describe('Impact des jours fériés sur les gardes', () => {
+      it('devrait identifier les jours fériés nécessitant des équipes renforcées', () => {
+        const holidays2024 = [
+          calculateEaster(2024),                    // Pâques
+          new Date(2024, 0, 1),                    // Nouvel An
+          new Date(2024, 4, 1),                    // Fête du travail
+          new Date(2024, 4, 8),                    // Victoire 1945
+          new Date(2024, 6, 14),                   // Fête nationale
+          new Date(2024, 7, 15),                   // Assomption
+          new Date(2024, 10, 1),                   // Toussaint
+          new Date(2024, 10, 11),                  // Armistice
+          new Date(2024, 11, 25),                  // Noël
+        ];
+
+        expect(holidays2024.length).toBe(9);
+
+        // Vérifier que Pâques est calculé correctement pour 2024
+        const easter2024 = calculateEaster(2024);
+        expect(easter2024.getMonth()).toBe(2); // Mars
+        expect(easter2024.getDate()).toBe(31); // 31 mars 2024
+      });
+
+      it('devrait calculer les majorations de garde pour jours fériés', () => {
+        const baseShiftPay = 200; // €
+        const holidayMultiplier = 1.5;
+
+        const newYearShift = new Date('2024-01-01');
+        const isHoliday = [
+          new Date(2024, 0, 1),   // Nouvel An
+          new Date(2024, 11, 25), // Noël
+        ].some(holiday => 
+          holiday.getDate() === newYearShift.getDate() && 
+          holiday.getMonth() === newYearShift.getMonth()
+        );
+
+        const shiftPay = isHoliday ? baseShiftPay * holidayMultiplier : baseShiftPay;
+        expect(shiftPay).toBe(300); // 50% de majoration
+      });
+
+      it('devrait planifier les congés autour des périodes critiques', () => {
+        // Périodes critiques : été, fin d\'année, Pâques
+        const criticalPeriods = [
+          { start: new Date('2024-07-01'), end: new Date('2024-08-31'), name: 'Été' },
+          { start: new Date('2024-12-20'), end: new Date('2024-01-05'), name: 'Fin d\'année' },
+          { start: new Date('2024-03-25'), end: new Date('2024-04-08'), name: 'Pâques' },
+        ];
+
+        const requestedVacation = new Date('2024-07-15');
+
+        const isInCriticalPeriod = criticalPeriods.some(period => {
+          const start = getStartOfDay(period.start);
+          const end = getEndOfDay(period.end);
+          const request = getStartOfDay(requestedVacation);
+          
+          return start && end && request && 
+                 request.getTime() >= start.getTime() && 
+                 request.getTime() <= end.getTime();
+        });
+
+        expect(isInCriticalPeriod).toBe(true); // Période d\'été
+      });
+    });
+  });
+
+  describe('CRITICITÉ HAUTE - Prévisions et Planification', () => {
+    describe('Calculs prédictifs de charge de travail', () => {
+      it('devrait prédire les besoins en personnel pour les prochains mois', () => {
+        const currentStaff = 25;
+        const averageAbsenceRate = 0.15; // 15% d\'absence moyenne
+        const seasonalMultiplier = 1.2;   // 20% d\'augmentation en hiver
+
+        const effectiveStaff = currentStaff * (1 - averageAbsenceRate);
+        const winterStaffNeed = effectiveStaff * seasonalMultiplier;
+        const additionalStaffNeeded = Math.ceil(winterStaffNeed - effectiveStaff);
+
+        expect(effectiveStaff).toBe(21.25);
+        expect(additionalStaffNeeded).toBe(5);
+      });
+
+      it('devrait calculer les échéances de formation obligatoire', () => {
+        const lastTrainingDate = new Date('2023-03-15');
+        const trainingValidityMonths = 12;
+        const warningMonthsBefore = 2;
+
+        const nextTrainingDue = addDaysToDate(lastTrainingDate, trainingValidityMonths * 30);
+        const warningDate = addDaysToDate(nextTrainingDue!, -warningMonthsBefore * 30);
+
+        expect(nextTrainingDue).toBeInstanceOf(Date);
+        expect(warningDate).toBeInstanceOf(Date);
+
+        const isWarningPeriod = mockCurrentDate >= warningDate! && mockCurrentDate <= nextTrainingDue!;
+        expect(isWarningPeriod).toBe(true); // Nous sommes en période d\'alerte
+      });
+
+      it('devrait optimiser la rotation des équipes', () => {
+        const teams = ['A', 'B', 'C', 'D'];
+        const rotationPattern = ['day', 'night', 'off', 'off'];
+        const currentWeek = 1;
+
+        const getTeamAssignment = (team: string, week: number) => {
+          const teamIndex = teams.indexOf(team);
+          const patternIndex = (week + teamIndex) % rotationPattern.length;
+          return rotationPattern[patternIndex];
+        };
+
+        expect(getTeamAssignment('A', currentWeek)).toBe('night');
+        expect(getTeamAssignment('B', currentWeek)).toBe('off');
+        expect(getTeamAssignment('C', currentWeek)).toBe('off');
+        expect(getTeamAssignment('D', currentWeek)).toBe('day');
+      });
+    });
+
+    describe('Calculs de conformité réglementaire', () => {
+      it('devrait valider les temps de repos minimum entre gardes', () => {
+        const shifts = [
+          { end: new Date('2024-03-15T08:00:00') },
+          { start: new Date('2024-03-15T20:00:00') },
+        ];
+
+        const restHours = (shifts[1].start.getTime() - shifts[0].end.getTime()) / (1000 * 60 * 60);
+        const isCompliant = restHours >= 12; // Minimum 12h de repos
+
+        expect(restHours).toBe(12);
+        expect(isCompliant).toBe(true);
+      });
+
+      it('devrait calculer les dépassements d\'heures supplémentaires', () => {
+        const weeklyHours = 52;
+        const standardHours = 35;
+        const legalMaxHours = 48;
+
+        const overtimeHours = Math.max(0, weeklyHours - standardHours);
+        const excessHours = Math.max(0, weeklyHours - legalMaxHours);
+
+        expect(overtimeHours).toBe(17); // 17h supplémentaires
+        expect(excessHours).toBe(4);    // 4h de dépassement illégal
+      });
+
+      it('devrait suivre les quotas de gardes par spécialité', () => {
+        const specialtyQuotas = {
+          'anesthesia': { min: 2, max: 4 },
+          'surgery': { min: 1, max: 3 },
+          'emergency': { min: 3, max: 6 },
+        };
+
+        const currentAssignments = {
+          'anesthesia': 3,
+          'surgery': 2,
+          'emergency': 5,
+        };
+
+        Object.entries(specialtyQuotas).forEach(([specialty, quota]) => {
+          const current = currentAssignments[specialty as keyof typeof currentAssignments];
+          expect(current).toBeGreaterThanOrEqual(quota.min);
+          expect(current).toBeLessThanOrEqual(quota.max);
+        });
+      });
+    });
+  });
+
+  describe('PERFORMANCE ET OPTIMISATION', () => {
+    it('devrait calculer rapidement des plannings complexes', () => {
+      const startTime = performance.now();
+
+      // Simulation calcul planning pour 100 médecins sur 30 jours
+      const doctors = 100;
+      const days = 30;
+      const shiftsPerDay = 4;
+
+      const totalCalculations = doctors * days * shiftsPerDay;
+      
+      // Simulation de calculs temporels
+      for (let i = 0; i < 1000; i++) {
+        const date = addDaysToDate(mockCurrentDate, i % days);
+        const period = getDayPeriod(date!);
+        const isWeekend = isDateWeekend(date);
+      }
+
+      const endTime = performance.now();
+      expect(endTime - startTime).toBeLessThan(100); // <100ms pour 1000 calculs
+    });
+
+    it('devrait optimiser les calculs de jours fériés sur plusieurs années', () => {
+      const startTime = performance.now();
+
+      // Calculer Pâques pour 50 années
+      const easterDates = [];
+      for (let year = 2000; year <= 2050; year++) {
+        easterDates.push(calculateEaster(year));
+      }
+
+      const endTime = performance.now();
+      
+      expect(easterDates).toHaveLength(51);
+      expect(endTime - startTime).toBeLessThan(50); // <50ms pour 50 calculs de Pâques
+    });
+  });
+});

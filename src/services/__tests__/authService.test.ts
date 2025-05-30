@@ -1,24 +1,153 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+/**
+ * @jest-environment node
+ */
+
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+
+// Create mocks before importing authService
+const mockPrisma = {
+  user: {
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    create: jest.fn()
+  },
+  $transaction: jest.fn()
+};
+
+const mockAuthCache = {
+  cacheAuthToken: jest.fn(),
+  getCachedAuthToken: jest.fn(),
+  invalidateAuthToken: jest.fn(),
+  cacheUserData: jest.fn(),
+  invalidateUserData: jest.fn()
+};
+
+const mockLogger = {
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  debug: jest.fn()
+};
+
+const mockBcrypt = {
+  compare: jest.fn(),
+  hash: jest.fn()
+};
+
+const mockJwt = {
+  sign: jest.fn(),
+  verify: jest.fn()
+};
+
+// Mock external dependencies
+jest.mock('@/lib/prisma', () => ({ prisma: mockPrisma }));
+jest.mock('@/lib/auth/authCache', () => ({ AuthCacheService: mockAuthCache }));
+jest.mock('@/lib/logger', () => ({ logger: mockLogger }));
+jest.mock('bcryptjs', () => mockBcrypt);
+jest.mock('jsonwebtoken', () => mockJwt);
+
 import { authService } from '../authService';
-import { AuthCacheService } from '@/lib/auth/authCache';
-import { logger } from '@/lib/logger';
-import { prisma } from '@/lib/prisma';
 
-jest.mock('bcryptjs');
-jest.mock('jsonwebtoken');
-jest.mock('@/lib/auth/authCache');
-jest.mock('@/lib/logger');
-jest.mock('@/lib/prisma');
+// Test constants for medical application
+const MEDICAL_USER_ROLES = {
+  MAR: 'MAR', // Médecin Anesthésiste Réanimateur
+  IADE: 'IADE', // Infirmier Anesthésiste Diplômé d'État
+  ADMIN_TOTAL: 'ADMIN_TOTAL',
+  ADMIN_PARTIEL: 'ADMIN_PARTIEL',
+  CHIRURGIEN: 'CHIRURGIEN',
+  USER: 'USER'
+} as const;
 
-const mockPrisma = prisma as jest.Mocked<typeof prisma>;
+const TEST_USERS = {
+  validMAR: {
+    id: 1,
+    email: 'dr.martin@hospital.com',
+    login: 'dr.martin',
+    password: '$2b$12$validHashedPassword',
+    role: MEDICAL_USER_ROLES.MAR,
+    name: 'Dr. Martin',
+    prenom: 'Jean',
+    nom: 'Martin',
+    active: true,
+    mustChangePassword: false,
+    loginAttempts: 0,
+    lockedUntil: null,
+    lastLogin: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  validIADE: {
+    id: 2,
+    email: 'nurse.jane@hospital.com',
+    login: 'nurse.jane',
+    password: '$2b$12$validHashedPassword',
+    role: MEDICAL_USER_ROLES.IADE,
+    name: 'Nurse Jane',
+    prenom: 'Jane',
+    nom: 'Dupont',
+    active: true,
+    mustChangePassword: false,
+    loginAttempts: 0,
+    lockedUntil: null,
+    lastLogin: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  inactiveUser: {
+    id: 3,
+    email: 'inactive@hospital.com',
+    login: 'inactive',
+    password: '$2b$12$validHashedPassword',
+    role: MEDICAL_USER_ROLES.USER,
+    name: 'Inactive User',
+    active: false,
+    mustChangePassword: false,
+    loginAttempts: 0,
+    lockedUntil: null,
+    lastLogin: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  lockedUser: {
+    id: 4,
+    email: 'locked@hospital.com',
+    login: 'locked',
+    password: '$2b$12$validHashedPassword',
+    role: MEDICAL_USER_ROLES.USER,
+    name: 'Locked User',
+    active: true,
+    mustChangePassword: false,
+    loginAttempts: 5,
+    lockedUntil: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
+    lastLogin: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
+};
 
-describe('AuthService', () => {
+const SECURITY_CONFIG = {
+  JWT_SECRET: 'test-jwt-secret-256-bit-key-for-medical-app',
+  BCRYPT_ROUNDS: 12,
+  MAX_LOGIN_ATTEMPTS: 5,
+  LOCKOUT_TIME: 30 * 60 * 1000, // 30 minutes
+  TOKEN_EXPIRY: '24h'
+};
+
+describe('AuthService - Comprehensive Security Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.JWT_SECRET = 'test-secret';
+    process.env.JWT_SECRET = SECURITY_CONFIG.JWT_SECRET;
     process.env.NODE_ENV = 'test';
+    
+    // Configure mock implementations
+    mockBcrypt.compare.mockImplementation((password, hash) => Promise.resolve(password === 'validPassword'));
+    mockBcrypt.hash.mockImplementation((password) => Promise.resolve(`$2b$12$${password}Hashed`));
+    mockJwt.sign.mockImplementation(() => 'mock-jwt-token');
+    mockJwt.verify.mockImplementation(() => ({ userId: 1, role: 'USER' }));
+  });
+  
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   describe('login', () => {
@@ -34,12 +163,11 @@ describe('AuthService', () => {
 
       const mockToken = 'mock-jwt-token';
 
-      mockPrisma.user.findUnique = jest.fn().mockResolvedValue(mockUser);
-      mockPrisma.user.update = jest.fn().mockResolvedValue({ ...mockUser, loginAttempts: 0, lastLogin: expect.any(Date) });
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (jwt.sign as jest.Mock).mockReturnValue(mockToken);
-      (AuthCacheService.cacheAuthToken as jest.Mock).mockResolvedValue(undefined);
-      (AuthCacheService.cacheUserData as jest.Mock).mockResolvedValue(undefined);
+      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      mockPrisma.user.update.mockResolvedValue({ ...mockUser, loginAttempts: 0, lastLogin: expect.any(Date) });
+      mockBcrypt.compare.mockResolvedValue(true);
+      mockJwt.sign.mockReturnValue(mockToken);
+      mockAuthCache.cacheAuthToken.mockResolvedValue(undefined);
 
       const result = await authService.login('test@example.com', 'password123');
 
@@ -56,14 +184,14 @@ describe('AuthService', () => {
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
         where: { email: 'test@example.com' }
       });
-      expect(bcrypt.compare).toHaveBeenCalledWith('password123', 'hashedPassword');
-      expect(jwt.sign).toHaveBeenCalledWith(
+      expect(mockBcrypt.compare).toHaveBeenCalledWith('password123', 'hashedPassword');
+      expect(mockJwt.sign).toHaveBeenCalledWith(
         { userId: 1, role: 'ADMIN' },
         'test-secret',
         { expiresIn: '24h' }
       );
-      expect(AuthCacheService.cacheAuthToken).toHaveBeenCalled();
-      expect(AuthCacheService.cacheUserData).toHaveBeenCalled();
+      expect(mockAuthCache.cacheAuthToken).toHaveBeenCalled();
+      expect(mockAuthCache.cacheUserData).toHaveBeenCalled();
     });
 
     it('devrait rejeter avec email invalide', async () => {
@@ -72,7 +200,7 @@ describe('AuthService', () => {
       await expect(authService.login('invalid@example.com', 'password123'))
         .rejects.toThrow('Invalid credentials');
 
-      expect(logger.warn).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         'Login attempt failed: user not found',
         { email: 'invalid@example.com' }
       );
@@ -89,12 +217,12 @@ describe('AuthService', () => {
 
       mockPrisma.user.findUnique = jest.fn().mockResolvedValue(mockUser);
       mockPrisma.user.update = jest.fn().mockResolvedValue({ ...mockUser, loginAttempts: 1 });
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+      mockBcrypt.compare.mockResolvedValue(false);
 
       await expect(authService.login('test@example.com', 'wrongpassword'))
         .rejects.toThrow('Invalid credentials');
 
-      expect(logger.warn).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         'Login attempt failed: invalid password',
         { email: 'test@example.com' }
       );
@@ -109,12 +237,12 @@ describe('AuthService', () => {
       };
 
       mockPrisma.user.findUnique = jest.fn().mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      mockBcrypt.compare.mockResolvedValue(true);
 
       await expect(authService.login('test@example.com', 'password123'))
         .rejects.toThrow('Account is disabled');
 
-      expect(logger.warn).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         'Login attempt failed: account disabled',
         { email: 'test@example.com' }
       );
@@ -129,13 +257,13 @@ describe('AuthService', () => {
         exp: Math.floor(Date.now() / 1000) + 3600
       };
 
-      (AuthCacheService.getCachedAuthToken as jest.Mock).mockResolvedValue(mockCachedAuth);
+      mockAuthCache.getCachedAuthToken.mockResolvedValue(mockCachedAuth);
 
       const result = await authService.validateToken('valid-token');
 
       expect(result).toEqual(mockCachedAuth);
-      expect(AuthCacheService.getCachedAuthToken).toHaveBeenCalledWith('valid-token');
-      expect(jwt.verify).not.toHaveBeenCalled();
+      expect(mockAuthCache.getCachedAuthToken).toHaveBeenCalledWith('valid-token');
+      expect(mockJwt.verify).not.toHaveBeenCalled();
     });
 
     it('devrait valider un token valide non-caché', async () => {
@@ -145,15 +273,15 @@ describe('AuthService', () => {
         exp: Math.floor(Date.now() / 1000) + 3600
       };
 
-      (AuthCacheService.getCachedAuthToken as jest.Mock).mockResolvedValue(null);
-      (jwt.verify as jest.Mock).mockReturnValue(mockPayload);
-      (AuthCacheService.cacheAuthToken as jest.Mock).mockResolvedValue(undefined);
+      mockAuthCache.getCachedAuthToken.mockResolvedValue(null);
+      mockJwt.verify.mockReturnValue(mockPayload);
+      mockAuthCache.cacheAuthToken.mockResolvedValue(undefined);
 
       const result = await authService.validateToken('valid-token');
 
       expect(result).toEqual(mockPayload);
-      expect(jwt.verify).toHaveBeenCalledWith('valid-token', 'test-secret');
-      expect(AuthCacheService.cacheAuthToken).toHaveBeenCalled();
+      expect(mockJwt.verify).toHaveBeenCalledWith('valid-token', 'test-secret');
+      expect(mockAuthCache.cacheAuthToken).toHaveBeenCalled();
     });
 
     it('devrait rejeter un token expiré', async () => {
@@ -163,25 +291,25 @@ describe('AuthService', () => {
         exp: Math.floor(Date.now() / 1000) - 3600 // Expiré
       };
 
-      (AuthCacheService.getCachedAuthToken as jest.Mock).mockResolvedValue(mockCachedAuth);
-      (AuthCacheService.invalidateAuthToken as jest.Mock).mockResolvedValue(undefined);
+      mockAuthCache.getCachedAuthToken.mockResolvedValue(mockCachedAuth);
+      mockAuthCache.invalidateAuthToken.mockResolvedValue(undefined);
 
       await expect(authService.validateToken('expired-token'))
         .rejects.toThrow('Token expired');
 
-      expect(AuthCacheService.invalidateAuthToken).toHaveBeenCalledWith('expired-token');
+      expect(mockAuthCache.invalidateAuthToken).toHaveBeenCalledWith('expired-token');
     });
 
     it('devrait rejeter un token invalide', async () => {
-      (AuthCacheService.getCachedAuthToken as jest.Mock).mockResolvedValue(null);
-      (jwt.verify as jest.Mock).mockImplementation(() => {
+      mockAuthCache.getCachedAuthToken.mockResolvedValue(null);
+      mockJwt.verify.mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
       await expect(authService.validateToken('invalid-token'))
         .rejects.toThrow('Invalid token');
 
-      expect(logger.error).toHaveBeenCalledWith(
+      expect(mockLogger.error).toHaveBeenCalledWith(
         'Token validation failed',
         expect.any(Error)
       );
@@ -197,25 +325,25 @@ describe('AuthService', () => {
       };
       const newToken = 'new-token';
 
-      (jwt.verify as jest.Mock).mockReturnValue(mockPayload);
-      (jwt.sign as jest.Mock).mockReturnValue(newToken);
-      (AuthCacheService.invalidateAuthToken as jest.Mock).mockResolvedValue(undefined);
-      (AuthCacheService.cacheAuthToken as jest.Mock).mockResolvedValue(undefined);
+      mockJwt.verify.mockReturnValue(mockPayload);
+      mockJwt.sign.mockReturnValue(newToken);
+      mockAuthCache.invalidateAuthToken.mockResolvedValue(undefined);
+      mockAuthCache.cacheAuthToken.mockResolvedValue(undefined);
 
       const result = await authService.refreshToken('old-token');
 
       expect(result).toBe(newToken);
-      expect(jwt.sign).toHaveBeenCalledWith(
+      expect(mockJwt.sign).toHaveBeenCalledWith(
         { userId: 1, role: 'ADMIN' },
         'test-secret',
         { expiresIn: '24h' }
       );
-      expect(AuthCacheService.invalidateAuthToken).toHaveBeenCalledWith('old-token');
-      expect(AuthCacheService.cacheAuthToken).toHaveBeenCalled();
+      expect(mockAuthCache.invalidateAuthToken).toHaveBeenCalledWith('old-token');
+      expect(mockAuthCache.cacheAuthToken).toHaveBeenCalled();
     });
 
     it('devrait rejeter un token invalide', async () => {
-      (jwt.verify as jest.Mock).mockImplementation(() => {
+      mockJwt.verify.mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
@@ -231,29 +359,29 @@ describe('AuthService', () => {
         role: 'ADMIN'
       };
 
-      (jwt.verify as jest.Mock).mockReturnValue(mockPayload);
-      (AuthCacheService.invalidateAuthToken as jest.Mock).mockResolvedValue(undefined);
-      (AuthCacheService.invalidateUserData as jest.Mock).mockResolvedValue(undefined);
+      mockJwt.verify.mockReturnValue(mockPayload);
+      mockAuthCache.invalidateAuthToken.mockResolvedValue(undefined);
+      mockAuthCache.invalidateUserData.mockResolvedValue(undefined);
 
       await authService.logout('valid-token');
 
-      expect(AuthCacheService.invalidateAuthToken).toHaveBeenCalledWith('valid-token');
-      expect(AuthCacheService.invalidateUserData).toHaveBeenCalledWith('1');
-      expect(logger.info).toHaveBeenCalledWith(
+      expect(mockAuthCache.invalidateAuthToken).toHaveBeenCalledWith('valid-token');
+      expect(mockAuthCache.invalidateUserData).toHaveBeenCalledWith('1');
+      expect(mockLogger.info).toHaveBeenCalledWith(
         'User logged out successfully',
         { userId: 1 }
       );
     });
 
     it('devrait gérer un token invalide lors du logout', async () => {
-      (jwt.verify as jest.Mock).mockImplementation(() => {
+      mockJwt.verify.mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
       await authService.logout('invalid-token');
 
-      expect(AuthCacheService.invalidateAuthToken).toHaveBeenCalledWith('invalid-token');
-      expect(logger.warn).toHaveBeenCalledWith(
+      expect(mockAuthCache.invalidateAuthToken).toHaveBeenCalledWith('invalid-token');
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         'Logout attempted with invalid token'
       );
     });
@@ -272,8 +400,8 @@ describe('AuthService', () => {
         ...mockUser,
         password: newHashedPassword
       });
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (bcrypt.hash as jest.Mock).mockResolvedValue(newHashedPassword);
+      mockBcrypt.compare.mockResolvedValue(true);
+      mockBcrypt.hash.mockResolvedValue(newHashedPassword);
 
       await authService.changePassword(1, 'oldPassword', 'newPassword');
 
@@ -281,7 +409,7 @@ describe('AuthService', () => {
         where: { id: 1 },
         data: { password: newHashedPassword }
       });
-      expect(logger.info).toHaveBeenCalledWith(
+      expect(mockLogger.info).toHaveBeenCalledWith(
         'Password changed successfully',
         { userId: 1 }
       );
@@ -294,7 +422,7 @@ describe('AuthService', () => {
       };
 
       mockPrisma.user.findUnique = jest.fn().mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+      mockBcrypt.compare.mockResolvedValue(false);
 
       await expect(authService.changePassword(1, 'wrongPassword', 'newPassword'))
         .rejects.toThrow('Current password is incorrect');
@@ -325,7 +453,7 @@ describe('AuthService', () => {
         loginAttempts: 5,
         lockedUntil: new Date(Date.now() + 30 * 60 * 1000)
       });
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+      mockBcrypt.compare.mockResolvedValue(false);
 
       await expect(authService.login('test@example.com', 'wrongpassword'))
         .rejects.toThrow('Account locked due to too many failed attempts');
@@ -356,10 +484,9 @@ describe('AuthService', () => {
         loginAttempts: 0,
         lastLogin: new Date()
       });
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (jwt.sign as jest.Mock).mockReturnValue('token');
-      (AuthCacheService.cacheAuthToken as jest.Mock).mockResolvedValue(undefined);
-      (AuthCacheService.cacheUserData as jest.Mock).mockResolvedValue(undefined);
+      mockBcrypt.compare.mockResolvedValue(true);
+      mockJwt.sign.mockReturnValue('token');
+      mockAuthCache.cacheAuthToken.mockResolvedValue(undefined);
 
       await authService.login('test@example.com', 'password123');
 

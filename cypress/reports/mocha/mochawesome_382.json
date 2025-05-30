@@ -1,0 +1,192 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-05-30T05:13:45.933Z",
+    "end": "2025-05-30T05:13:56.542Z",
+    "duration": 10609,
+    "testsRegistered": 5,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 1,
+    "hasOther": true,
+    "skipped": 3,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "1cc28fc8-a063-4e4c-9454-07ecee5d9ce3",
+      "title": "",
+      "fullFile": "cypress/e2e/admin/admin-workflows.spec.ts",
+      "file": "cypress/e2e/admin/admin-workflows.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "5e02f277-6294-43d0-941d-9d8abf6a769a",
+          "title": "Workflows administrateur",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "permet la gestion complète des utilisateurs",
+              "fullTitle": "Workflows administrateur permet la gestion complète des utilisateurs",
+              "timedOut": null,
+              "duration": 77,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// ÉTAPE 1: Connexion admin\ncy.log('🔐 ÉTAPE 1: Connexion administrateur');\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', adminUser.email);\ncy.safeType('[data-cy=password-input]', adminUser.password);\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('adminLogin');\ncy.url({ timeout: 15000 }).should('include', '/tableau-de-bord');\n// ÉTAPE 2: Navigation vers gestion utilisateurs\ncy.log('👥 ÉTAPE 2: Navigation vers gestion utilisateurs');\ncy.get('[data-cy=nav-admin]').click();\ncy.get('[data-cy=admin-menu]').within(function () {\n    cy.get('[data-cy=admin-users-link]').click();\n});\ncy.waitForApiResponse('usersList');\ncy.url().should('include', '/admin/utilisateurs');\ncy.waitForElement('[data-cy=users-table]');\n// ÉTAPE 3: Création d'un nouvel utilisateur\ncy.log('➕ ÉTAPE 3: Création d\\'un nouvel utilisateur');\ncy.safeClick('[data-cy=create-user-button]');\ncy.waitForElement('[data-cy=user-modal]');\ncy.get('[data-cy=user-modal]').within(function () {\n    cy.safeType('[data-cy=user-email]', 'nouveau.medecin@example.com');\n    cy.safeType('[data-cy=user-nom]', 'Nouveau');\n    cy.safeType('[data-cy=user-prenom]', 'Médecin');\n    cy.safeType('[data-cy=user-password]', 'TempPass123!');\n    cy.safeClick('[data-cy=user-role-select]');\n    cy.get('[data-cy=role-option-user]').click();\n    cy.safeClick('[data-cy=professional-role-select]');\n    cy.get('[data-cy=professional-role-iade]').click();\n    cy.safeClick('[data-cy=save-user-button]');\n});\ncy.waitForApiResponse('createUser');\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]').should('contain', 'Utilisateur créé');\n// ÉTAPE 4: Modification d'un utilisateur existant\ncy.log('✏️ ÉTAPE 4: Modification d\\'utilisateur');\ncy.get('[data-cy=users-table]').within(function () {\n    cy.get('[data-cy=user-row]').first().within(function () {\n        cy.get('[data-cy=edit-user-button]').click();\n    });\n});\ncy.waitForElement('[data-cy=user-modal]');\ncy.get('[data-cy=user-modal]').within(function () {\n    cy.get('[data-cy=user-nom]').clear().type('Nom Modifié');\n    cy.safeClick('[data-cy=save-user-button]');\n});\ncy.waitForApiResponse('updateUser');\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]').should('contain', 'Utilisateur modifié');\n// ÉTAPE 5: Désactivation d'un utilisateur\ncy.log('🚫 ÉTAPE 5: Désactivation d\\'utilisateur');\ncy.get('[data-cy=users-table]').within(function () {\n    cy.get('[data-cy=user-row]').last().within(function () {\n        cy.get('[data-cy=toggle-user-status]').click();\n    });\n});\ncy.waitForElement('[data-cy=confirm-modal]');\ncy.get('[data-cy=confirm-modal]').within(function () {\n    cy.safeClick('[data-cy=confirm-action]');\n});\ncy.waitForApiResponse('updateUser');\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]').should('contain', 'Statut utilisateur modifié');",
+              "err": {
+                "message": "TypeError: cy.clearSessionStorage is not a function\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Workflows administrateur`",
+                "estack": "TypeError: cy.clearSessionStorage is not a function\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Workflows administrateur`\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:570:7)\n    at wrapped (http://localhost:3001/__cypress/runner/cypress_runner.js:140165:43)\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:146118:15)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3001/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3001/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromiseCtx (http://localhost:3001/__cypress/runner/cypress_runner.js:1583:10)\n    at _drainQueueStep (http://localhost:3001/__cypress/runner/cypress_runner.js:2381:12)\n    at _drainQueue (http://localhost:3001/__cypress/runner/cypress_runner.js:2370:9)",
+                "diff": null
+              },
+              "uuid": "92a07327-7a94-4616-b355-ecdb241ae222",
+              "parentUUID": "5e02f277-6294-43d0-941d-9d8abf6a769a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet la gestion des demandes de congés",
+              "fullTitle": "Workflows administrateur permet la gestion des demandes de congés",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Connexion admin\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', adminUser.email);\ncy.safeType('[data-cy=password-input]', adminUser.password);\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('adminLogin');\ncy.url().should('include', '/tableau-de-bord');\n// Navigation vers gestion des congés\ncy.log('📋 Navigation vers gestion des congés');\ncy.get('[data-cy=nav-admin]').click();\ncy.get('[data-cy=admin-menu]').within(function () {\n    cy.get('[data-cy=admin-leaves-link]').click();\n});\ncy.waitForApiResponse('adminLeavesList');\ncy.url().should('include', '/admin/conges');\ncy.waitForElement('[data-cy=leaves-management-table]');\n// Approbation d'une demande\ncy.log('✅ Approbation d\\'une demande de congé');\ncy.get('[data-cy=leaves-management-table]').within(function () {\n    cy.get('[data-cy=leave-row-pending]').first().within(function () {\n        cy.get('[data-cy=approve-leave-button]').click();\n    });\n});\ncy.waitForElement('[data-cy=approval-modal]');\ncy.get('[data-cy=approval-modal]').within(function () {\n    cy.safeType('[data-cy=approval-comment]', 'Demande approuvée - planning compatible');\n    cy.safeClick('[data-cy=confirm-approval]');\n});\ncy.waitForApiResponse('approveLeave');\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]').should('contain', 'Congé approuvé');\n// Rejet d'une demande\ncy.log('❌ Rejet d\\'une demande de congé');\ncy.get('[data-cy=leaves-management-table]').within(function () {\n    cy.get('[data-cy=leave-row-pending]').first().within(function () {\n        cy.get('[data-cy=reject-leave-button]').click();\n    });\n});\ncy.waitForElement('[data-cy=rejection-modal]');\ncy.get('[data-cy=rejection-modal]').within(function () {\n    cy.safeType('[data-cy=rejection-reason]', 'Conflit avec planning existant');\n    cy.safeClick('[data-cy=confirm-rejection]');\n});\ncy.waitForApiResponse('rejectLeave');\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]').should('contain', 'Congé rejeté');",
+              "err": {},
+              "uuid": "e2c93a21-25a0-4855-950d-c08faef869b7",
+              "parentUUID": "5e02f277-6294-43d0-941d-9d8abf6a769a",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "permet la gestion des sites et salles",
+              "fullTitle": "Workflows administrateur permet la gestion des sites et salles",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Connexion admin\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', adminUser.email);\ncy.safeType('[data-cy=password-input]', adminUser.password);\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('adminLogin');\n// Navigation vers gestion des sites\ncy.log('🏥 Navigation vers gestion des sites');\ncy.get('[data-cy=nav-admin]').click();\ncy.get('[data-cy=admin-menu]').within(function () {\n    cy.get('[data-cy=admin-sites-link]').click();\n});\ncy.waitForApiResponse('sitesList');\ncy.url().should('include', '/admin/sites');\ncy.waitForElement('[data-cy=sites-table]');\n// Création d'un nouveau site\ncy.log('🏗️ Création d\\'un nouveau site');\ncy.safeClick('[data-cy=create-site-button]');\ncy.waitForElement('[data-cy=site-modal]');\ncy.get('[data-cy=site-modal]').within(function () {\n    cy.safeType('[data-cy=site-name]', 'Nouveau Site Médical');\n    cy.safeType('[data-cy=site-address]', '123 Rue de la Santé, 75000 Paris');\n    cy.safeType('[data-cy=site-phone]', '01 23 45 67 89');\n    cy.safeType('[data-cy=site-capacity]', '50');\n    cy.safeClick('[data-cy=save-site-button]');\n});\ncy.waitForApiResponse('createSite');\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]').should('contain', 'Site créé');\n// Gestion des salles d'opération\ncy.log('🏥 Gestion des salles d\\'opération');\ncy.get('[data-cy=sites-table]').within(function () {\n    cy.get('[data-cy=site-row]').first().within(function () {\n        cy.get('[data-cy=manage-rooms-button]').click();\n    });\n});\ncy.waitForElement('[data-cy=rooms-modal]');\ncy.get('[data-cy=rooms-modal]').within(function () {\n    cy.safeClick('[data-cy=add-room-button]');\n    cy.get('[data-cy=room-form]').within(function () {\n        cy.safeType('[data-cy=room-name]', 'Salle Opération 1');\n        cy.safeClick('[data-cy=room-type-select]');\n        cy.get('[data-cy=room-type-chirurgie]').click();\n        cy.safeType('[data-cy=room-capacity]', '8');\n        cy.safeClick('[data-cy=save-room-button]');\n    });\n});\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]').should('contain', 'Salle ajoutée');",
+              "err": {},
+              "uuid": "1069e38b-b5f3-413d-8a69-6002d5ea6860",
+              "parentUUID": "5e02f277-6294-43d0-941d-9d8abf6a769a",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "permet la configuration système",
+              "fullTitle": "Workflows administrateur permet la configuration système",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Connexion admin\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', adminUser.email);\ncy.safeType('[data-cy=password-input]', adminUser.password);\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('adminLogin');\n// Navigation vers configuration\ncy.log('⚙️ Navigation vers configuration système');\ncy.get('[data-cy=nav-admin]').click();\ncy.get('[data-cy=admin-menu]').within(function () {\n    cy.get('[data-cy=admin-config-link]').click();\n});\ncy.url().should('include', '/admin/configuration');\ncy.waitForElement('[data-cy=config-form]');\n// Configuration des règles de planning\ncy.log('📋 Configuration des règles de planning');\ncy.get('[data-cy=config-form]').within(function () {\n    cy.get('[data-cy=max-consecutive-days]').clear().type('5');\n    cy.get('[data-cy=min-rest-hours]').clear().type('11');\n    cy.get('[data-cy=max-weekly-hours]').clear().type('48');\n    cy.get('[data-cy=enable-auto-assignment]').check();\n    cy.get('[data-cy=enable-conflict-detection]').check();\n    cy.safeClick('[data-cy=save-config-button]');\n});\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]').should('contain', 'Configuration sauvegardée');\n// Test de sauvegarde/restauration\ncy.log('💾 Test de sauvegarde/restauration');\ncy.get('[data-cy=backup-section]').within(function () {\n    cy.safeClick('[data-cy=create-backup-button]');\n});\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]').should('contain', 'Sauvegarde créée');\n// Vérifier que la liste des sauvegardes se met à jour\ncy.get('[data-cy=backups-list]').should('contain', new Date().toLocaleDateString());",
+              "err": {},
+              "uuid": "34380ca7-498b-4a50-8943-6ad96f526d8b",
+              "parentUUID": "5e02f277-6294-43d0-941d-9d8abf6a769a",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "génère des rapports d'administration",
+              "fullTitle": "Workflows administrateur génère des rapports d'administration",
+              "timedOut": null,
+              "duration": 0,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Connexion admin\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', adminUser.email);\ncy.safeType('[data-cy=password-input]', adminUser.password);\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('adminLogin');\n// Navigation vers rapports\ncy.log('📊 Navigation vers rapports');\ncy.get('[data-cy=nav-admin]').click();\ncy.get('[data-cy=admin-menu]').within(function () {\n    cy.get('[data-cy=admin-reports-link]').click();\n});\ncy.url().should('include', '/admin/rapports');\ncy.waitForElement('[data-cy=reports-dashboard]');\n// Génération rapport d'activité\ncy.log('📈 Génération rapport d\\'activité');\ncy.get('[data-cy=activity-report-section]').within(function () {\n    cy.safeType('[data-cy=report-start-date]', '2025-05-01');\n    cy.safeType('[data-cy=report-end-date]', '2025-05-31');\n    cy.safeClick('[data-cy=generate-activity-report]');\n});\ncy.waitForElement('[data-cy=report-generated]');\ncy.get('[data-cy=report-generated]').should('be.visible');\n// Vérification du contenu du rapport\ncy.get('[data-cy=report-stats]').within(function () {\n    cy.get('[data-cy=total-users]').should('exist');\n    cy.get('[data-cy=total-leaves]').should('exist');\n    cy.get('[data-cy=total-assignments]').should('exist');\n});\n// Export du rapport\ncy.log('📥 Export du rapport');\ncy.get('[data-cy=export-report-section]').within(function () {\n    cy.safeClick('[data-cy=export-format-csv]');\n    cy.safeClick('[data-cy=export-report-button]');\n});\n// Vérifier que le téléchargement démarre\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]').should('contain', 'Rapport exporté');",
+              "err": {
+                "message": "CypressError: `cy.request()` timed out waiting `10000ms` for a response from your server.\n\nThe request we sent was:\n\nMethod: GET\nURL: http://localhost:3001/__coverage__\n\nNo response was received within the timeout.\n\nhttps://on.cypress.io/request\n\nBecause this error occurred during a `after all` hook we are skipping all of the remaining tests.\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail",
+                "estack": "CypressError: `cy.request()` timed out waiting `10000ms` for a response from your server.\n\nThe request we sent was:\n\nMethod: GET\nURL: http://localhost:3001/__coverage__\n\nNo response was received within the timeout.\n\nhttps://on.cypress.io/request\n\nBecause this error occurred during a `after all` hook we are skipping all of the remaining tests.\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:135014:70)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:4156:41)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3001/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3001/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3001/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3001/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3001/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3001/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at captureCoverage (webpack://mathildanesth/./node_modules/@cypress/code-coverage/support.js:203:0)\n    at Context.collectBackendCoverage (webpack://mathildanesth/./node_modules/@cypress/code-coverage/support.js:238:0)",
+                "diff": null
+              },
+              "uuid": "110b4614-4cc7-4740-b251-224c8f88f552",
+              "parentUUID": "5e02f277-6294-43d0-941d-9d8abf6a769a",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "92a07327-7a94-4616-b355-ecdb241ae222",
+            "110b4614-4cc7-4740-b251-224c8f88f552"
+          ],
+          "pending": [],
+          "skipped": [
+            "e2c93a21-25a0-4855-950d-c08faef869b7",
+            "1069e38b-b5f3-413d-8a69-6002d5ea6860",
+            "34380ca7-498b-4a50-8943-6ad96f526d8b"
+          ],
+          "duration": 77,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

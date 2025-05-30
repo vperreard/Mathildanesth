@@ -102,7 +102,7 @@ export default function MedicalNavigation({
                 className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700/80 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
                 title={item.description}
               >
@@ -209,11 +209,11 @@ export default function MedicalNavigation({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="lg:hidden absolute top-full left-0 right-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-lg"
+            className="lg:hidden absolute top-full left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-200/80 dark:border-slate-700/80 shadow-lg"
           >
             <div className="max-w-7xl mx-auto px-4 py-4">
               {/* Rôle utilisateur */}
-              <div className="flex items-center gap-3 mb-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+              <div className="flex items-center gap-3 mb-4 p-3 bg-slate-50/90 dark:bg-slate-800/90 rounded-lg">
                 {getRoleIcon(userRole)}
                 <div>
                   <div className="font-medium text-slate-900 dark:text-slate-100">

@@ -576,14 +576,14 @@ export const calculateLeaveDays = (
   while (currentDate <= endDate) {
     const dayOfWeek = currentDate.getDay();
 
-    const weekdayMap: Record<number, Weekday> = {
-      0: Weekday.SUNDAY,
-      1: Weekday.MONDAY,
-      2: Weekday.TUESDAY,
-      3: Weekday.WEDNESDAY,
-      4: Weekday.THURSDAY,
-      5: Weekday.FRIDAY,
-      6: Weekday.SATURDAY,
+    const weekdayMap: Record<number, string> = {
+      0: 'SUNDAY',
+      1: 'MONDAY',
+      2: 'TUESDAY',
+      3: 'WEDNESDAY',
+      4: 'THURSDAY',
+      5: 'FRIDAY',
+      6: 'SATURDAY',
     };
 
     const weekday = weekdayMap[dayOfWeek];
@@ -613,19 +613,20 @@ export const formatLeavePeriod = (startDate: Date, endDate: Date): string => {
  * Renvoie le libellé d'un type de congé
  */
 export const getLeaveTypeLabel = (type: LeaveType): string => {
-  const labels: Record<LeaveType, string> = {
-    [LeaveType.ANNUAL]: 'Congé annuel',
-    [LeaveType.RECOVERY]: 'Récupération',
-    [LeaveType.TRAINING]: 'Formation',
-    [LeaveType.SICK]: 'Maladie',
-    [LeaveType.MATERNITY]: 'Maternité',
-    [LeaveType.PATERNITY]: 'Paternité',
-    [LeaveType.PARENTAL]: 'Parental',
-    [LeaveType.SPECIAL]: 'Congé spécial',
-    [LeaveType.UNPAID]: 'Congé sans solde',
-    [LeaveType.OTHER]: 'Autre',
+  const labels = {
+    ANNUAL: 'Congé annuel',
+    SICK: 'Maladie',
+    MATERNITY: 'Maternité',
+    PATERNITY: 'Paternité',
+    UNPAID: 'Congé sans solde',
+    SPECIAL: 'Congé spécial',
+    TRAINING: 'Formation',
+    RECOVERY: 'Récupération',
+    COMPENSATORY: 'Récupération compensatoire',
+    FAMILY: 'Congé familial',
+    MEDICAL: 'Congé médical',
+    OTHER: 'Autre',
   };
-
   return labels[type] || type;
 };
 

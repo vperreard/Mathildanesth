@@ -67,7 +67,7 @@ describe.skip('Tests d\'intégration WebSocket avec Authentification', () => {
             mockSocket.connected = true;
             // Déclencher l'événement connect de manière asynchrone
             setTimeout(() => {
-                const connectHandler = mockSocket.on.mock.calls.find((call: [string, Function]) => call[0] === 'connect');
+                const connectHandler = mockSocket.on.mock.calls.find((call: [string, (() => void)]) => call[0] === 'connect');
                 if (connectHandler && connectHandler[1]) {
                     connectHandler[1]();
                 }
@@ -115,7 +115,7 @@ describe.skip('Tests d\'intégration WebSocket avec Authentification', () => {
                 
                 // Simuler la réponse du serveur
                 setTimeout(() => {
-                    const authSuccessHandler = mockSocket.on.mock.calls.find((call: [string, Function]) => call[0] === 'auth_success');
+                    const authSuccessHandler = mockSocket.on.mock.calls.find((call: [string, (() => void)]) => call[0] === 'auth_success');
                     if (authSuccessHandler && authSuccessHandler[1]) {
                         authSuccessHandler[1]();
                     }
@@ -143,7 +143,7 @@ describe.skip('Tests d\'intégration WebSocket avec Authentification', () => {
                 
                 // Simuler la réponse d'erreur du serveur
                 setTimeout(() => {
-                    const authErrorHandler = mockSocket.on.mock.calls.find((call: [string, Function]) => call[0] === 'auth_error');
+                    const authErrorHandler = mockSocket.on.mock.calls.find((call: [string, (() => void)]) => call[0] === 'auth_error');
                     if (authErrorHandler && authErrorHandler[1]) {
                         authErrorHandler[1]('Token invalide');
                     }
@@ -168,7 +168,7 @@ describe.skip('Tests d\'intégration WebSocket avec Authentification', () => {
                 
                 // Simuler le rejet du serveur
                 setTimeout(() => {
-                    const errorHandler = mockSocket.on.mock.calls.find((call: [string, Function]) => call[0] === 'room_error');
+                    const errorHandler = mockSocket.on.mock.calls.find((call: [string, (() => void)]) => call[0] === 'room_error');
                     if (errorHandler && errorHandler[1]) {
                         errorHandler[1]('Authentification requise');
                     }
@@ -202,7 +202,7 @@ describe.skip('Tests d\'intégration WebSocket avec Authentification', () => {
                     
                     // Simuler la confirmation du serveur
                     setTimeout(() => {
-                        const roomJoinedHandler = mockSocket.on.mock.calls.find((call: [string, Function]) => call[0] === 'room_joined');
+                        const roomJoinedHandler = mockSocket.on.mock.calls.find((call: [string, (() => void)]) => call[0] === 'room_joined');
                         if (roomJoinedHandler && roomJoinedHandler[1]) {
                             roomJoinedHandler[1](roomName);
                         }
@@ -249,7 +249,7 @@ describe.skip('Tests d\'intégration WebSocket avec Authentification', () => {
                     
                     // Simuler la réponse du serveur
                     setTimeout(() => {
-                        const authStatusHandler = mockSocket.on.mock.calls.find((call: [string, Function]) => call[0] === 'auth_status');
+                        const authStatusHandler = mockSocket.on.mock.calls.find((call: [string, (() => void)]) => call[0] === 'auth_status');
                         if (authStatusHandler && authStatusHandler[1]) {
                             authStatusHandler[1]({ authenticated: true, userId: mockUser.id });
                         }

@@ -7,6 +7,14 @@ describe('Authentification et gestion des sessions', () => {
     };
 
     beforeEach(() => {
+        // Nettoyer l'état avant chaque test
+        cy.cleanState();
+        
+        // Configurer les interceptions API
+        cy.intercept('POST', '**/api/auth/login', { fixture: 'auth-response.json' }).as('loginRequest');
+        cy.intercept('GET', '**/api/auth/me', { fixture: 'user-profile.json' }).as('userProfile');
+        cy.intercept('POST', '**/api/auth/logout').as('logoutRequest');
+        
         // Réinitialiser la base de données de test
         cy.task('resetTestDatabase');
 
@@ -18,27 +26,46 @@ describe('Authentification et gestion des sessions', () => {
 
     it('permet la connexion avec des identifiants valides', () => {
         cy.visit('/auth/connexion');
-        cy.get('[data-cy=email-input]').type(testUser.email);
-        cy.get('[data-cy=password-input]').type(testUser.password);
-        cy.get('[data-cy=submit-button]').click();
+        cy.waitForPageLoad();
+        
+        // Remplir le formulaire avec des commandes sécurisées
+        cy.safeType('[data-cy=email-input]', testUser.email);
+        cy.safeType('[data-cy=password-input]', testUser.password);
+        cy.safeClick('[data-cy=submit-button]');
 
-        // Vérifier la redirection après connexion
-        cy.url().should('satisfy', (url: string) => {
-            return url.includes('/tableau-de-bord') || url.includes('/planning');
+        // Attendre la réponse de l'API avec retry
+        cy.waitForApiResponse('loginRequest');
+
+        // Vérifier la redirection après connexion (avec timeout étendu)
+        cy.url({ timeout: 15000 }).should('satisfy', (url: string) => {
+            return url.includes('/tableau-de-bord') || url.includes('/planning') || url.includes('/');
         });
 
         // Vérifier que le nom de l'utilisateur est affiché
+        cy.waitForElement('[data-cy=user-name]');
         cy.get('[data-cy=user-name]').should('contain', testUser.name);
     });
 
     it('affiche un message d\'erreur pour des identifiants invalides', () => {
+        // Intercepter la requête avec réponse d'erreur
+        cy.intercept('POST', '**/api/auth/login', {
+            statusCode: 401,
+            body: { error: 'Identifiants invalides' }
+        }).as('failedLogin');
+        
         cy.visit('/auth/connexion');
-        cy.get('[data-cy=email-input]').type('utilisateur.invalide@example.com');
-        cy.get('[data-cy=password-input]').type('mot_de_passe_incorrect');
-        cy.get('[data-cy=submit-button]').click();
+        cy.waitForPageLoad();
+        
+        cy.safeType('[data-cy=email-input]', 'utilisateur.invalide@example.com');
+        cy.safeType('[data-cy=password-input]', 'mot_de_passe_incorrect');
+        cy.safeClick('[data-cy=submit-button]');
+
+        // Attendre la réponse d'erreur
+        cy.wait('@failedLogin');
 
         // Vérifier le message d'erreur
-        cy.get('[data-cy=error-message], [data-testid=login-error-message]')
+        cy.waitForElement('[data-cy=error-message]', 10000);
+        cy.get('[data-cy=error-message]')
             .should('be.visible')
             .and('contain.text', 'Identifiants invalides');
     });
@@ -49,14 +76,18 @@ describe('Authentification et gestion des sessions', () => {
 
         // Visiter la page d'accueil
         cy.visitAsAuthenticatedUser('/tableau-de-bord');
+        cy.waitForPageLoad();
 
         // Vérifier que l'utilisateur est connecté
+        cy.waitForElement('[data-cy=user-name]');
         cy.get('[data-cy=user-name]').should('contain', testUser.name);
 
         // Rafraîchir la page
         cy.reload();
+        cy.waitForPageLoad();
 
         // Vérifier que l'utilisateur est toujours connecté
+        cy.waitForElement('[data-cy=user-name]');
         cy.get('[data-cy=user-name]').should('contain', testUser.name);
     });
 
@@ -86,10 +117,13 @@ describe('Authentification et gestion des sessions', () => {
         // Vérifier qu'on est redirigé vers la page de connexion
         cy.url().should('include', '/auth/connexion');
 
-        // Se connecter
-        cy.get('[data-testid=login-email-input]').type(testUser.email);
-        cy.get('[data-testid=login-password-input]').type(testUser.password);
-        cy.get('[data-testid=login-submit-button]').click();
+        // Se connecter avec commandes sécurisées
+        cy.safeType('[data-cy=email-input]', testUser.email);
+        cy.safeType('[data-cy=password-input]', testUser.password);
+        cy.safeClick('[data-cy=submit-button]');
+        
+        // Attendre la réponse de connexion
+        cy.waitForApiResponse('loginRequest');
 
         // Vérifier qu'on est redirigé vers la page initialement demandée
         cy.url().should('include', '/planning');

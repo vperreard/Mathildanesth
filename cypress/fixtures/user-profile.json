@@ -1,0 +1,18 @@
+{
+  "id": 1,
+  "email": "medecin@example.com",
+  "nom": "Martin",
+  "prenom": "Jean",
+  "role": "USER",
+  "professionalRole": "MAR",
+  "actif": true,
+  "preferences": {
+    "theme": "light",
+    "notifications": true
+  },
+  "permissions": [
+    "READ_PLANNING",
+    "WRITE_LEAVES",
+    "READ_LEAVES"
+  ]
+}

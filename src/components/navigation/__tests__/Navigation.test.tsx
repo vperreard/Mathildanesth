@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { renderWithProviders as render, screen, fireEvent } from '@/test-utils/renderWithProviders';
 import Navigation from '../Navigation';
 import { usePathname } from 'next/navigation';
 
@@ -32,26 +32,6 @@ jest.mock('@/utils/navigationConfig', () => ({
 }));
 
 // Mock framer-motion - déjà fait dans jest.setup.js mais on peut le remock localement si besoin
-jest.mock('framer-motion', () => {
-    const React = require('react');
-    return {
-        motion: {
-            nav: React.forwardRef((props: any, ref: any) => {
-                const { children, ...rest } = props;
-                return React.createElement('nav', { ...rest, ref }, children);
-            }),
-            div: React.forwardRef((props: any, ref: any) => {
-                const { children, ...rest } = props;
-                return React.createElement('div', { ...rest, ref }, children);
-            }),
-            button: React.forwardRef((props: any, ref: any) => {
-                const { children, ...rest } = props;
-                return React.createElement('button', { ...rest, ref }, children);
-            }),
-        },
-        AnimatePresence: ({ children }: any) => children,
-    };
-});
 
 describe('Navigation', () => {
     const mockLinks = [

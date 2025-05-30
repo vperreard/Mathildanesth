@@ -1,0 +1,146 @@
+import React from 'react';
+import { render, fireEvent, waitFor } from '@/test-utils/renderWithProviders';
+import { PerformanceTracker } from '../PerformanceTracker';
+
+// Mock the navigation performance hook
+jest.mock('@/hooks/useNavigationPerformance', () => ({
+  useNavigationPerformance: jest.fn(),
+}));
+
+// Mock console methods
+const consoleSpy = {
+  error: jest.spyOn(console, 'error').mockImplementation(),
+  warn: jest.spyOn(console, 'warn').mockImplementation(),
+  log: jest.spyOn(console, 'log').mockImplementation(),
+};
+
+describe('PerformanceTracker', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    consoleSpy.error.mockClear();
+    consoleSpy.warn.mockClear();
+    consoleSpy.log.mockClear();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('should render without visible output', () => {
+    const { container } = render(<PerformanceTracker />);
+    // Le composant peut rendre des providers invisibles
+    const visibleContent = container.textContent;
+    expect(visibleContent).toBe('');
+  });
+
+  it('should call useNavigationPerformance hook', () => {
+    const useNavigationPerformance = require('@/hooks/useNavigationPerformance').useNavigationPerformance;
+    render(<PerformanceTracker />);
+    expect(useNavigationPerformance).toHaveBeenCalled();
+  });
+
+  describe('Error handling', () => {
+    it('should handle window error events', () => {
+      render(<PerformanceTracker />);
+
+      const mockError = new Error('Test error');
+      const errorEvent = new ErrorEvent('error', {
+        error: mockError,
+        message: 'Test error',
+      });
+
+      fireEvent(window, errorEvent);
+
+      expect(consoleSpy.error).toHaveBeenCalledWith('[Performance] Erreur détectée:', mockError);
+    });
+
+    it('should filter out known toast errors', () => {
+      render(<PerformanceTracker />);
+
+      const toastError = new Error("Cannot set properties of undefined (setting 'removalReason')");
+      const errorEvent = new ErrorEvent('error', {
+        error: toastError,
+        message: toastError.message,
+      });
+
+      const preventDefaultSpy = jest.spyOn(errorEvent, 'preventDefault');
+
+      fireEvent(window, errorEvent);
+
+      expect(preventDefaultSpy).toHaveBeenCalled();
+      expect(consoleSpy.error).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('PerformanceObserver', () => {
+    it('should handle missing PerformanceObserver gracefully', () => {
+      const originalPerformanceObserver = (global as any).PerformanceObserver;
+      delete (global as any).PerformanceObserver;
+
+      expect(() => {
+        render(<PerformanceTracker />);
+      }).not.toThrow();
+
+      // Restore
+      (global as any).PerformanceObserver = originalPerformanceObserver;
+    });
+
+    it('should handle server-side rendering (no window)', () => {
+      // Créer un environnement mockup qui simule SSR
+      const originalWindow = global.window;
+      const mockWindow = { ...global.window };
+      delete mockWindow.PerformanceObserver;
+      delete mockWindow.performance;
+      global.window = mockWindow as any;
+
+      expect(() => {
+        render(<PerformanceTracker />);
+      }).not.toThrow();
+
+      // Restore window
+      global.window = originalWindow;
+    });
+  });
+
+  describe('Cleanup', () => {
+    it('should remove event listeners on unmount', () => {
+      // Mock window et ses méthodes si disponibles
+      if (typeof window !== 'undefined') {
+        const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
+        
+        const { unmount } = render(<PerformanceTracker />);
+        
+        unmount();
+
+        // Vérifier que les event listeners sont nettoyés
+        expect(removeEventListenerSpy).toHaveBeenCalled();
+      } else {
+        // En environnement serveur, juste vérifier que le composant se démonte sans erreur
+        const { unmount } = render(<PerformanceTracker />);
+        expect(() => unmount()).not.toThrow();
+      }
+    });
+  });
+
+  describe('Keyboard shortcuts', () => {
+    it('should not trigger keyboard actions with incomplete key combinations', () => {
+      render(<PerformanceTracker />);
+
+      // Test different combinations that should not trigger
+      const events = [
+        { ctrlKey: true, key: 'X' }, // Missing shift
+        { shiftKey: true, key: 'X' }, // Missing ctrl
+        { ctrlKey: true, shiftKey: true, key: 'Y' }, // Wrong key
+      ];
+
+      events.forEach(eventProps => {
+        fireEvent(window, new KeyboardEvent('keydown', eventProps));
+      });
+
+      // Should not have any console logs from keyboard shortcuts
+      expect(consoleSpy.log).not.toHaveBeenCalledWith(
+        '[Performance] Tous les toasts fermés via raccourci clavier'
+      );
+    });
+  });
+});

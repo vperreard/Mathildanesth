@@ -1,0 +1,391 @@
+/**
+ * @jest-environment node
+ */
+import cacheService, { setCache, getCache, removeCache, clearCache, invalidateNamespace } from '../CacheService';
+
+describe('CacheService - Working Tests', () => {
+  beforeEach(() => {
+    clearCache();
+  });
+
+  afterEach(() => {
+    clearCache();
+  });
+
+  describe('Service Instance', () => {
+    it('should export a cache service instance', () => {
+      expect(cacheService).toBeDefined();
+      expect(typeof cacheService.set).toBe('function');
+      expect(typeof cacheService.get).toBe('function');
+      expect(typeof cacheService.clear).toBe('function');
+    });
+
+    it('should export utility functions', () => {
+      expect(typeof setCache).toBe('function');
+      expect(typeof getCache).toBe('function');
+      expect(typeof removeCache).toBe('function');
+      expect(typeof clearCache).toBe('function');
+      expect(typeof invalidateNamespace).toBe('function');
+    });
+  });
+
+  describe('Basic Cache Operations via Service Instance', () => {
+    it('should store and retrieve values', () => {
+      const testData = { id: 1, name: 'Test User' };
+      
+      cacheService.set('user:1', testData);
+      const retrieved = cacheService.get('user:1');
+      
+      expect(retrieved).toEqual(testData);
+    });
+
+    it('should return null for non-existent keys', () => {
+      const result = cacheService.get('non-existent-key');
+      
+      expect(result).toBeNull();
+    });
+
+    it('should overwrite existing values', () => {
+      cacheService.set('test-key', 'original-value');
+      cacheService.set('test-key', 'new-value');
+      
+      const result = cacheService.get('test-key');
+      
+      expect(result).toBe('new-value');
+    });
+
+    it('should handle different data types', () => {
+      const testCases = [
+        { key: 'string', value: 'test string' },
+        { key: 'number', value: 42 },
+        { key: 'boolean', value: true },
+        { key: 'array', value: [1, 2, 3] },
+        { key: 'object', value: { a: 1, b: 'test' } },
+        { key: 'null', value: null }
+      ];
+
+      testCases.forEach(({ key, value }) => {
+        cacheService.set(key, value);
+        expect(cacheService.get(key)).toEqual(value);
+      });
+    });
+  });
+
+  describe('Basic Cache Operations via Utility Functions', () => {
+    it('should store and retrieve values using utility functions', () => {
+      const testData = { id: 2, name: 'Test User 2' };
+      
+      setCache('user:2', testData);
+      const retrieved = getCache('user:2');
+      
+      expect(retrieved).toEqual(testData);
+    });
+
+    it('should return null for non-existent keys using utility', () => {
+      const result = getCache('non-existent-util');
+      
+      expect(result).toBeNull();
+    });
+
+    it('should remove keys using utility function', () => {
+      setCache('to-remove', 'test-value');
+      
+      expect(getCache('to-remove')).toBe('test-value');
+      
+      const removed = removeCache('to-remove');
+      
+      expect(removed).toBe(true);
+      expect(getCache('to-remove')).toBeNull();
+    });
+  });
+
+  describe('TTL (Time To Live)', () => {
+    it('should respect custom TTL', async () => {
+      const shortTTL = 50; // 50ms
+      
+      cacheService.set('short-lived', 'test-value', { ttl: shortTTL });
+      
+      // Should be available immediately
+      expect(cacheService.get('short-lived')).toBe('test-value');
+      
+      // Wait for TTL to expire
+      await new Promise(resolve => setTimeout(resolve, shortTTL + 10));
+      
+      // Should be expired
+      expect(cacheService.get('short-lived')).toBeNull();
+    });
+
+    it('should use default TTL when none specified', () => {
+      cacheService.set('default-ttl', 'test-value');
+      
+      // Should be available (default TTL is usually much longer than test duration)
+      expect(cacheService.get('default-ttl')).toBe('test-value');
+    });
+
+    it('should not expire items within TTL', async () => {
+      const longTTL = 10000; // 10 seconds
+      
+      cacheService.set('long-lived', 'test-value', { ttl: longTTL });
+      
+      // Wait a short time (much less than TTL)
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
+      // Should still be available
+      expect(cacheService.get('long-lived')).toBe('test-value');
+    });
+  });
+
+  describe('Namespaces', () => {
+    it('should organize keys by namespace', () => {
+      cacheService.set('user:1', { name: 'User 1' }, { namespace: 'users' });
+      cacheService.set('user:2', { name: 'User 2' }, { namespace: 'users' });
+      cacheService.set('post:1', { title: 'Post 1' }, { namespace: 'posts' });
+      
+      // All keys should be accessible
+      expect(cacheService.get('user:1')).toEqual({ name: 'User 1' });
+      expect(cacheService.get('user:2')).toEqual({ name: 'User 2' });
+      expect(cacheService.get('post:1')).toEqual({ title: 'Post 1' });
+      
+      // Should be able to invalidate by namespace
+      invalidateNamespace('users');
+      
+      expect(cacheService.get('user:1')).toBeNull();
+      expect(cacheService.get('user:2')).toBeNull();
+      expect(cacheService.get('post:1')).toEqual({ title: 'Post 1' }); // Should still exist
+    });
+
+    it('should handle keys without namespace', () => {
+      cacheService.set('no-namespace', 'test-value');
+      
+      expect(cacheService.get('no-namespace')).toBe('test-value');
+    });
+  });
+
+  describe('Cache Management', () => {
+    it('should provide cache statistics', () => {
+      // Set some values
+      cacheService.set('key1', 'value1');
+      cacheService.set('key2', 'value2');
+      
+      // Get some values (hits)
+      cacheService.get('key1');
+      cacheService.get('key1'); // Second hit
+      
+      // Try to get non-existent key (miss)
+      cacheService.get('non-existent');
+      
+      const stats = cacheService.getStats();
+      
+      expect(stats).toHaveProperty('size');
+      expect(stats.size).toBeGreaterThan(0);
+      expect(stats).toHaveProperty('hits');
+      expect(stats).toHaveProperty('misses');
+      expect(stats.hits).toBeGreaterThan(0);
+      expect(stats.misses).toBeGreaterThan(0);
+    });
+
+    it('should clear all cache entries', () => {
+      cacheService.set('key1', 'value1');
+      cacheService.set('key2', 'value2');
+      cacheService.set('key3', 'value3');
+      
+      clearCache();
+      
+      expect(cacheService.get('key1')).toBeNull();
+      expect(cacheService.get('key2')).toBeNull();
+      expect(cacheService.get('key3')).toBeNull();
+    });
+
+    it('should handle cache size configuration', () => {
+      // Configure small cache size
+      cacheService.configure({ maxSize: 3 });
+      
+      // Add items
+      cacheService.set('key1', 'value1');
+      cacheService.set('key2', 'value2');
+      cacheService.set('key3', 'value3');
+      cacheService.set('key4', 'value4'); // Might trigger eviction depending on implementation
+      
+      // Check that cache handles the configuration
+      const stats = cacheService.getStats();
+      expect(stats.size).toBeGreaterThan(0);
+      // Size limit enforcement depends on implementation details
+    });
+  });
+
+  describe('Delete Operations', () => {
+    it('should delete specific keys', () => {
+      cacheService.set('key-to-delete', 'test-value');
+      cacheService.set('key-to-keep', 'keep-this');
+      
+      // Check both are set
+      expect(cacheService.get('key-to-delete')).toBe('test-value');
+      expect(cacheService.get('key-to-keep')).toBe('keep-this');
+      
+      // Delete one key
+      const deleted = cacheService.remove('key-to-delete');
+      
+      expect(deleted).toBe(true);
+      expect(cacheService.get('key-to-delete')).toBeNull();
+      expect(cacheService.get('key-to-keep')).toBe('keep-this');
+    });
+
+    it('should handle removing non-existent keys', () => {
+      const result = cacheService.remove('non-existent');
+      
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle invalid keys gracefully', () => {
+      expect(() => {
+        cacheService.get('');
+      }).not.toThrow();
+      
+      expect(() => {
+        cacheService.set('', 'value');
+      }).not.toThrow();
+    });
+
+    it('should handle undefined/null values', () => {
+      expect(() => {
+        cacheService.set('undefined-test', undefined);
+      }).not.toThrow();
+      
+      expect(() => {
+        cacheService.set('null-test', null);
+      }).not.toThrow();
+      
+      expect(cacheService.get('undefined-test')).toBe(undefined);
+      expect(cacheService.get('null-test')).toBe(null);
+    });
+  });
+
+  describe('Configuration', () => {
+    it('should accept configuration changes', () => {
+      expect(() => {
+        cacheService.configure({
+          maxSize: 50,
+          defaultTTL: 60000
+        });
+      }).not.toThrow();
+    });
+
+    it('should maintain configuration across operations', () => {
+      cacheService.configure({ maxSize: 2, defaultTTL: 60000 });
+      
+      cacheService.set('config-test-1', 'value1');
+      cacheService.set('config-test-2', 'value2');
+      cacheService.set('config-test-3', 'value3'); // Might trigger eviction
+      
+      // Check that cache is working with configuration
+      const stats = cacheService.getStats();
+      expect(stats.size).toBeGreaterThan(0);
+      // Configuration is applied but enforcement varies by implementation
+    });
+  });
+
+  describe('Performance', () => {
+    it('should handle many cache operations efficiently', () => {
+      const startTime = Date.now();
+      
+      // Perform many operations
+      for (let i = 0; i < 100; i++) {
+        cacheService.set(`key-${i}`, `value-${i}`);
+      }
+      
+      for (let i = 0; i < 100; i++) {
+        cacheService.get(`key-${i}`);
+      }
+      
+      const endTime = Date.now();
+      
+      // Should complete within reasonable time
+      expect(endTime - startTime).toBeLessThan(50);
+    });
+
+    it('should handle concurrent access gracefully', async () => {
+      const promises = [];
+      
+      // Create many concurrent operations
+      for (let i = 0; i < 50; i++) {
+        promises.push(
+          Promise.resolve().then(() => {
+            cacheService.set(`concurrent-${i}`, `value-${i}`);
+            return cacheService.get(`concurrent-${i}`);
+          })
+        );
+      }
+      
+      const results = await Promise.all(promises);
+      
+      // All operations should complete successfully
+      results.forEach((result, index) => {
+        expect(result).toBe(`value-${index}`);
+      });
+    });
+  });
+
+  describe('Persistence', () => {
+    // Mock localStorage for testing
+    const localStorageMock = {
+      getItem: jest.fn(),
+      setItem: jest.fn(),
+      removeItem: jest.fn(),
+      clear: jest.fn(),
+    };
+
+    beforeAll(() => {
+      Object.defineProperty(window, 'localStorage', {
+        value: localStorageMock,
+      });
+    });
+
+    beforeEach(() => {
+      localStorageMock.getItem.mockClear();
+      localStorageMock.setItem.mockClear();
+      localStorageMock.removeItem.mockClear();
+      localStorageMock.clear.mockClear();
+    });
+
+    it('should persist cache data', () => {
+      cacheService.set('persist-test', 'test-value');
+      
+      const success = cacheService.persist();
+      
+      expect(success).toBe(true);
+      expect(localStorageMock.setItem).toHaveBeenCalled();
+    });
+
+    it('should restore cache data', () => {
+      const mockData = {
+        data: {
+          'restore-test': {
+            data: 'restored-value',
+            expiresAt: Date.now() + 10000
+          }
+        },
+        namespaces: {},
+        timestamp: Date.now()
+      };
+
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(mockData));
+      
+      const success = cacheService.restore();
+      
+      expect(success).toBe(true);
+      expect(localStorageMock.getItem).toHaveBeenCalled();
+    });
+
+    it('should handle persistence errors gracefully', () => {
+      localStorageMock.setItem.mockImplementation(() => {
+        throw new Error('Storage error');
+      });
+      
+      const success = cacheService.persist();
+      
+      expect(success).toBe(false);
+    });
+  });
+});

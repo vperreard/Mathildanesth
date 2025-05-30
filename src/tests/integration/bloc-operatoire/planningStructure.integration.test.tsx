@@ -2,7 +2,25 @@ import { jest as vi, describe, it, expect, beforeEach, afterEach } from '@jest/g
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, addDays } from 'date-fns';
+import { format, eachDayOfInterval, addDays } from 'date-fns';
+
+// Fix for date-fns import issue
+const getStartOfWeek = (date: Date) => {
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+    const result = new Date(date);
+    result.setDate(diff);
+    result.setHours(0, 0, 0, 0);
+    return result;
+};
+
+const getEndOfWeek = (date: Date) => {
+    const start = getStartOfWeek(date);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+    return end;
+};
 import { fr } from 'date-fns/locale';
 import { BlocDayPlanning, OperatingRoom, BlocSector } from '@/types/bloc-planning-types';
 import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';

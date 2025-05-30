@@ -21,7 +21,7 @@ import {
 import {
     generateRecurringDates,
     GenerateRecurringResult
-} from '../utils/recurrentsLeavesUtils';
+} from '../utils/recurringLeavesUtils';
 
 // Helper to normalize dates
 function normalizeDate(date: Date | string | null | undefined): Date | null {

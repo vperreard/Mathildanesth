@@ -1,7 +1,18 @@
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import { server, http } from '@/tests/mocks/server';
-import { HttpResponse } from 'msw';
+import { jest, describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from '@jest/globals';
 import { QuotaAdvancedService, quotaAdvancedService } from '../QuotaAdvancedService';
+
+// Disable MSW for this test file to avoid response.body.getReader issues
+beforeAll(() => {
+    try {
+        // Try to import and close the server if it exists
+        const { server } = require('@/tests/mocks/server');
+        if (server && typeof server.close === 'function') {
+            server.close();
+        }
+    } catch (error) {
+        // MSW not available, continue
+    }
+});
 
 // MODIFIÉ: Plus besoin d'importer les types pour les mocks de fonctions ici
 // import * as quotaServiceTypes from '../quotaService';
@@ -50,11 +61,39 @@ const mockFetchActiveCarryOverRulesForUserRef = fetchActiveCarryOverRulesForUser
 const mockFetchTransferHistoryRef = fetchTransferHistory as jest.MockedFunction<typeof fetchTransferHistory>;
 const mockFetchCarryOverHistoryRef = fetchCarryOverHistory as jest.MockedFunction<typeof fetchCarryOverHistory>;
 
+// Mock the local AuditService (the one imported in QuotaAdvancedService)
+jest.mock('../AuditService', () => {
+    const mockAuditInstance = {
+        logAction: jest.fn().mockResolvedValue(undefined),
+        createAuditEntry: jest.fn().mockResolvedValue({ id: 'mock-audit-id' })
+    };
+    
+    const MockAuditService = jest.fn().mockImplementation(() => mockAuditInstance);
+    MockAuditService.getInstance = jest.fn().mockReturnValue(mockAuditInstance);
+    
+    return {
+        __esModule: true,
+        AuditService: MockAuditService,
+        AuditActionType: {
+            QUOTA_TRANSFERRED: 'QUOTA_TRANSFERRED',
+            QUOTA_CARRIED_OVER: 'QUOTA_CARRIED_OVER'
+        },
+        AuditSeverity: {
+            LOW: 'LOW',
+            MEDIUM: 'MEDIUM',
+            HIGH: 'HIGH'
+        },
+        auditService: mockAuditInstance
+    };
+});
+
+// Also mock the services AuditService for completeness
 jest.mock('@/services/AuditService', () => ({
     __esModule: true,
     default: {
         getInstance: jest.fn().mockReturnValue({
-            logAction: jest.fn<() => Promise<void>>()
+            logAction: jest.fn().mockResolvedValue(undefined),
+            createAuditEntry: jest.fn().mockResolvedValue({ id: 'mock-audit-id' })
         })
     }
 }));
@@ -79,6 +118,74 @@ jest.mock('@/utils/dateUtils', () => ({
     getDaysUntil: jest.fn((): number => 15),
     isDateInFuture: jest.fn().mockImplementation(() => true)
 }));
+
+// Mock the eventBus import
+jest.mock('../../../integration/services/EventBusService', () => ({
+    eventBus: {
+        publish: jest.fn(),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn()
+    },
+    IntegrationEventType: {
+        QUOTA_TRANSFERRED: 'QUOTA_TRANSFERRED',
+        QUOTA_CARRIED_OVER: 'QUOTA_CARRIED_OVER'
+    }
+}));
+
+// Also mock the EventBusService from services
+jest.mock('@/services/eventBusService', () => ({
+    EventBusService: {
+        getInstance: jest.fn().mockReturnValue({
+            publish: jest.fn(),
+            subscribe: jest.fn(),
+            unsubscribe: jest.fn()
+        })
+    }
+}));
+
+// Mock axios to handle AuditService HTTP calls
+jest.mock('axios', () => {
+    const mockAxiosInstance = {
+        post: jest.fn().mockResolvedValue({
+            data: { id: 'mock-audit-id', success: true },
+            status: 201,
+            statusText: 'Created'
+        }),
+        get: jest.fn().mockResolvedValue({
+            data: { success: true },
+            status: 200,
+            statusText: 'OK'
+        }),
+        put: jest.fn().mockResolvedValue({
+            data: { success: true },
+            status: 200,
+            statusText: 'OK'
+        }),
+        delete: jest.fn().mockResolvedValue({
+            data: { success: true },
+            status: 200,
+            statusText: 'OK'
+        }),
+        interceptors: {
+            request: {
+                use: jest.fn(),
+                eject: jest.fn()
+            },
+            response: {
+                use: jest.fn(),
+                eject: jest.fn()
+            }
+        }
+    };
+
+    return {
+        __esModule: true,
+        default: {
+            ...mockAxiosInstance,
+            create: jest.fn(() => mockAxiosInstance)
+        }
+    };
+});
 
 const mockUserId = 'user-123';
 const mockYear = 2024;
@@ -190,47 +297,89 @@ const mockCarryOverHistoryData = [
     }
 ];
 
-const quotaHandlers = [
-    http.post('/api/conges/quotas/transfer', async ({ request }) => {
-        return HttpResponse.json({
-            success: true,
-            transferId: 'mock-transfer-id-from-msw',
-        }, { status: 200 });
-    }),
-    http.post('/api/conges/quotas/carry-over', async ({ request }) => {
-        return HttpResponse.json({
-            success: true,
-            id: 'mock-carryover-id-from-msw',
-        }, { status: 200 });
-    }),
-    http.post('/api/conges/audit/entries', async ({ request }) => {
-        return HttpResponse.json({ id: 'mock-audit-entry-id', success: true }, { status: 201 });
-    }),
-    http.get('/api/conges/quotas/transfer/history', () => {
-        return HttpResponse.json(mockTransferHistoryData, { status: 200 });
-    }),
-    http.get('/api/conges/quotas/carry-over/history', () => {
-        return HttpResponse.json(mockCarryOverHistoryData, { status: 200 });
-    }),
-];
+// Define mock fetch responses for different endpoints
+const createMockResponse = (data: any, status = 200) => ({
+    ok: status >= 200 && status < 300,
+    status,
+    statusText: status === 200 ? 'OK' : 'Error',
+    headers: new Map(),
+    json: async () => data,
+    text: async () => JSON.stringify(data),
+    blob: async () => new Blob([JSON.stringify(data)]),
+    arrayBuffer: async () => new ArrayBuffer(0),
+    clone: function() { return this; },
+    body: null,
+    bodyUsed: false,
+    url: '',
+    type: 'basic' as ResponseType,
+    redirected: false,
+});
 
 let mockLogActionAuditService: jest.MockedFunction<any>;
+let mockCreateAuditEntry: jest.MockedFunction<any>;
 
 beforeEach(() => {
     jest.clearAllMocks();
     
+    // Reset the singleton instances to ensure fresh mocks
+    (QuotaAdvancedService as any).instance = null;
+    
+    // Get the mocked AuditService
+    const { AuditService } = require('../AuditService');
     const auditServiceInstance = AuditService.getInstance();
     mockLogActionAuditService = auditServiceInstance.logAction as jest.MockedFunction<any>;
+    mockCreateAuditEntry = auditServiceInstance.createAuditEntry as jest.MockedFunction<any>;
+    
     mockLogActionAuditService.mockClear();
     mockLogActionAuditService.mockResolvedValue(undefined);
+    
+    mockCreateAuditEntry.mockClear();
+    mockCreateAuditEntry.mockResolvedValue({ id: 'mock-audit-id' });
 
-    server.use(...quotaHandlers);
+    // Mock fetch directly with comprehensive URL matching
+    const mockFetch = jest.fn().mockImplementation((url: string, options?: any) => {
+        const urlStr = url.toString();
+        const method = options?.method || 'GET';
+        
+        // Transfer endpoints
+        if (urlStr.includes('/api/conges/quotas/transfer') && method === 'POST') {
+            return Promise.resolve(createMockResponse({ success: true, transferId: 'mock-transfer-id' }));
+        }
+        
+        if (urlStr.includes('/api/conges/quotas/transfer/history')) {
+            return Promise.resolve(createMockResponse(mockTransferHistoryData));
+        }
+        
+        // Carry-over endpoints
+        if (urlStr.includes('/api/conges/quotas/carry-over') && method === 'POST') {
+            return Promise.resolve(createMockResponse({ success: true, id: 'mock-carryover-id' }));
+        }
+        
+        if (urlStr.includes('/api/conges/quotas/carry-over/history')) {
+            return Promise.resolve(createMockResponse(mockCarryOverHistoryData));
+        }
+        
+        // Audit endpoints
+        if (urlStr.includes('/api/conges/audit/entries') && method === 'POST') {
+            return Promise.resolve(createMockResponse({ id: 'mock-audit-entry-id', success: true }, 201));
+        }
+        
+        // Default response for any unmatched URL
+        return Promise.resolve(createMockResponse({ success: true, message: 'Mock response' }));
+    });
+    
+    global.fetch = mockFetch;
 
+    // Set up service mocks
     mockFetchLeaveBalanceRef.mockResolvedValue(mockLeaveBalance);
     mockFetchActiveTransferRulesForUserRef.mockResolvedValue(mockTransferRules);
     mockFetchActiveCarryOverRulesForUserRef.mockResolvedValue(mockCarryOverRules);
     mockFetchTransferHistoryRef.mockResolvedValue(mockTransferHistoryData);
     mockFetchCarryOverHistoryRef.mockResolvedValue(mockCarryOverHistoryData);
+});
+
+afterEach(() => {
+    jest.restoreAllMocks();
 });
 
 describe('QuotaAdvancedService', () => {
@@ -300,7 +449,7 @@ describe('QuotaAdvancedService', () => {
             } as any, mockUserId);
 
             expect(result.success).toBe(true);
-            expect(mockLogActionAuditService).toHaveBeenCalled();
+            expect(mockCreateAuditEntry).toHaveBeenCalled();
         });
 
         it('devrait rejeter un transfert si la simulation échoue', async () => {
@@ -321,7 +470,7 @@ describe('QuotaAdvancedService', () => {
             } as any, mockUserId)).rejects.toThrow('Quota insuffisant simulé');
 
             expect(simulateTransferSpy).toHaveBeenCalled();
-            expect(mockLogActionAuditService).not.toHaveBeenCalled();
+            expect(mockCreateAuditEntry).not.toHaveBeenCalled();
 
             simulateTransferSpy.mockRestore();
         });
@@ -377,7 +526,7 @@ describe('QuotaAdvancedService', () => {
             }, mockUserId);
 
             expect(result).toBe(true);
-            expect(mockLogActionAuditService).toHaveBeenCalled();
+            expect(mockCreateAuditEntry).toHaveBeenCalled();
         });
 
         it('devrait rejeter un report si la simulation échoue', async () => {
@@ -390,7 +539,7 @@ describe('QuotaAdvancedService', () => {
                 toYear: mockYear + 1
             }, mockUserId)).rejects.toThrow('Aucun jour à reporter');
 
-            expect(mockLogActionAuditService).not.toHaveBeenCalled();
+            expect(mockCreateAuditEntry).not.toHaveBeenCalled();
         });
     });
 

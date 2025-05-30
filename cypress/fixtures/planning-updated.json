@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "planning": {
+    "id": 1,
+    "version": 2,
+    "updatedAt": "2025-05-29T10:00:00Z"
+  },
+  "changes": [
+    {
+      "type": "LEAVE_ADDED",
+      "userId": 1,
+      "dates": ["2025-07-01", "2025-07-02", "2025-07-03", "2025-07-04", "2025-07-05"],
+      "impact": "ASSIGNMENTS_MODIFIED"
+    }
+  ],
+  "validation": {
+    "valid": true,
+    "warnings": [],
+    "errors": []
+  }
+}

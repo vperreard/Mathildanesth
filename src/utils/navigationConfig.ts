@@ -166,7 +166,7 @@ export const adminNavigation: NavigationGroup[] = [
     icon: Settings,
     items: [
       {
-        href: '/admin/regles-planning',
+        href: '/admin/planning-rules',
         label: 'Règles Métier',
         icon: Settings,
         description: 'Contraintes et validation'
@@ -178,7 +178,7 @@ export const adminNavigation: NavigationGroup[] = [
         description: 'Modèles par spécialité'
       },
       {
-        href: '/parametres/systeme',
+        href: '/admin/configuration',
         label: 'Système',
         icon: Settings,
         description: 'Configuration générale'

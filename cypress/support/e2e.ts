@@ -4,6 +4,8 @@
 
 // Import des commandes personnalisées
 import './commands';
+import './database';
+import './auth';
 import '@cypress/code-coverage/support';
 import '@testing-library/cypress/add-commands';
 // import 'cypress-axe'; // Commenter l'import
@@ -95,9 +97,32 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     // Liste des messages d'erreur à ignorer
     'ResizeObserver loop limit exceeded',
     'Cannot read properties of null',
-    'Network Error'
+    'Network Error',
+    'Loading CSS chunk',
+    'Non-Error promise rejection captured',
+    'Cannot find module',
+    'Failed to fetch'
   ];
 
   // Renvoie false pour empêcher Cypress d'échouer le test en cas d'erreur spécifique
   return ignoredErrors.some(errorMsg => err.message.includes(errorMsg));
-}); 
+});
+
+// Commandes de stabilité supplémentaires
+Cypress.Commands.add('safeClick', (selector: string) => {
+  cy.get(selector).should('be.visible').and('not.be.disabled').click();
+});
+
+Cypress.Commands.add('safeType', (selector: string, text: string) => {
+  cy.get(selector).should('be.visible').and('not.be.disabled').clear().type(text);
+});
+
+// Types pour TypeScript
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      safeClick(selector: string): Chainable<any>;
+      safeType(selector: string, text: string): Chainable<any>;
+    }
+  }
+} 

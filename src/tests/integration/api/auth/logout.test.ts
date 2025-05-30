@@ -1,5 +1,25 @@
 import { NextRequest } from 'next/server';
 
+// Mock dependencies
+jest.mock('@/lib/auth-utils', () => ({
+    removeAuthToken: jest.fn()
+}));
+jest.mock('@/services/OptimizedAuditService', () => ({
+    auditService: {
+        logLogout: jest.fn()
+    }
+}));
+jest.mock('@/lib/auth-server-utils', () => ({
+    verifyAuthToken: jest.fn()
+}));
+jest.mock('@/lib/rateLimit', () => ({
+    withAuthRateLimit: (handler: Function) => handler,
+    withUserRateLimit: (handler: Function) => handler,
+    withPublicRateLimit: (handler: Function) => handler,
+    withAdminRateLimit: (handler: Function) => handler,
+    withSensitiveRateLimit: (handler: Function) => handler
+}));
+
 // Mock NextResponse
 jest.mock('next/server', () => ({
     NextRequest: jest.requireActual('next/server').NextRequest,
@@ -17,64 +37,83 @@ jest.mock('next/server', () => ({
     }
 }));
 
-describe('POST /api/auth/deconnexion', () => {
+describe('POST /api/auth/logout', () => {
     let handler: any;
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        const route = await import('@/app/api/auth/deconnexion/route');
+        const route = await import('@/app/api/auth/logout/route');
         handler = route.POST;
     });
 
-    const createRequest = () => {
-        return new NextRequest('http://localhost:3000/api/auth/deconnexion', {
+    const createRequest = (authHeader?: string) => {
+        return new NextRequest('http://localhost:3000/api/auth/logout', {
             method: 'POST',
             headers: {
-                'cookie': 'auth-token=valid_token',
+                ...(authHeader ? { 'authorization': authHeader } : {}),
             },
         });
     };
 
-    it('should successfully logout and clear cookie', async () => {
-        const request = createRequest();
-        const response = await handler(request);
-        const data = await response.json();
+    it('should successfully logout and clear authentication', async () => {
+        const mockVerifyAuthToken = require('@/lib/auth-server-utils').verifyAuthToken;
+        const mockRemoveAuthToken = require('@/lib/auth-utils').removeAuthToken;
+        const mockAuditService = require('@/services/OptimizedAuditService').auditService;
 
-        expect(response.status).toBe(200);
-        expect(data.success).toBe(true);
-        expect(data.message).toBe('Déconnexion réussie');
-
-        // Check that auth cookie is cleared
-        const setCookieHeader = response.headers.get('set-cookie');
-        expect(setCookieHeader).toBeTruthy();
-        expect(setCookieHeader).toContain('auth-token=');
-        expect(setCookieHeader).toContain('Max-Age=0');
-    });
-
-    it('should handle logout even without existing auth cookie', async () => {
-        const request = new NextRequest('http://localhost:3000/api/auth/deconnexion', {
-            method: 'POST',
+        mockVerifyAuthToken.mockResolvedValue({
+            authenticated: true,
+            userId: 1
         });
 
+        const request = createRequest('Bearer valid_token');
         const response = await handler(request);
         const data = await response.json();
 
         expect(response.status).toBe(200);
-        expect(data.success).toBe(true);
         expect(data.message).toBe('Déconnexion réussie');
+        expect(mockRemoveAuthToken).toHaveBeenCalled();
+        expect(mockAuditService.logLogout).toHaveBeenCalledWith(1);
     });
 
-    it('should set secure cookie flags in production', async () => {
-        const originalEnv = process.env.NODE_ENV;
-        process.env.NODE_ENV = 'production';
+    it('should handle logout even without existing auth token', async () => {
+        const mockRemoveAuthToken = require('@/lib/auth-utils').removeAuthToken;
 
         const request = createRequest();
         const response = await handler(request);
+        const data = await response.json();
 
-        const setCookieHeader = response.headers.get('set-cookie');
-        expect(setCookieHeader).toContain('HttpOnly');
-        expect(setCookieHeader).toContain('SameSite=Strict');
+        expect(response.status).toBe(200);
+        expect(data.message).toBe('Déconnexion réussie');
+        expect(mockRemoveAuthToken).toHaveBeenCalled();
+    });
 
-        process.env.NODE_ENV = originalEnv;
+    it('should handle invalid auth tokens gracefully', async () => {
+        const mockVerifyAuthToken = require('@/lib/auth-server-utils').verifyAuthToken;
+        const mockRemoveAuthToken = require('@/lib/auth-utils').removeAuthToken;
+
+        mockVerifyAuthToken.mockResolvedValue({
+            authenticated: false,
+            userId: null
+        });
+
+        const request = createRequest('Bearer invalid_token');
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(200);
+        expect(data.message).toBe('Déconnexion réussie');
+        expect(mockRemoveAuthToken).toHaveBeenCalled();
+    });
+
+    it('should handle server errors gracefully', async () => {
+        const mockRemoveAuthToken = require('@/lib/auth-utils').removeAuthToken;
+        mockRemoveAuthToken.mockRejectedValue(new Error('Server error'));
+
+        const request = createRequest();
+        const response = await handler(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(500);
+        expect(data.message).toBe('Erreur interne du serveur lors de la déconnexion');
     });
 });

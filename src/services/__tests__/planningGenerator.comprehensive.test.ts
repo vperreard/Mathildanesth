@@ -1,0 +1,728 @@
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { setupTestEnvironment, cleanupTestEnvironment, createMockPrismaClient } from '../../test-utils/standardMocks';
+import {
+  createTestUser,
+  createMedicalTeam,
+  createTestAssignment,
+  createPerformanceTestData,
+  createConflictScenario,
+  createBusinessRules,
+} from '../../test-utils/planningFactories';
+import { PlanningGenerator } from '../planningGenerator';
+import { GenerationParameters, Attribution, AssignmentType } from '../../types/assignment';
+import { RulesConfiguration, FatigueConfig, defaultRulesConfiguration, defaultFatigueConfig } from '../../types/rules';
+import { ShiftType } from '../../types/common';
+import { WeekType } from '../../types/user';
+
+// Mock dependencies
+jest.mock('../rulesConfigService', () => ({
+  rulesConfigService: {
+    getRulesConfiguration: jest.fn().mockResolvedValue(defaultRulesConfiguration),
+    getFatigueConfiguration: jest.fn().mockResolvedValue(defaultFatigueConfig),
+  },
+}));
+
+jest.mock('@/modules/dynamicRules/v2/services/RuleEngineV2', () => ({
+  RuleEngineV2: jest.fn().mockImplementation(() => ({
+    initialize: jest.fn().mockResolvedValue(undefined),
+    evaluate: jest.fn().mockResolvedValue([]),
+  })),
+}));
+
+/**
+ * Tests compréhensifs pour PlanningGenerator
+ * Couvre tous les algorithmes de génération de planning médical
+ */
+
+describe('PlanningGenerator - Comprehensive Tests', () => {
+  let planningGenerator: PlanningGenerator;
+  let mockParameters: GenerationParameters;
+  let medicalTeam: ReturnType<typeof createMedicalTeam>;
+
+  beforeEach(() => {
+    setupTestEnvironment();
+    
+    // Configuration de base pour la génération
+    mockParameters = {
+      startDate: '2025-01-15',
+      endDate: '2025-01-21',
+      generateGardes: true,
+      generateAstreintes: true,
+      generateConsultations: true,
+      generateBlocs: false,
+      siteId: 'site-test',
+      optimizationLevel: 'BALANCED',
+      respectIndisponibilites: true,
+      autoBalance: true,
+      prioritizeExperience: true,
+      allowOvertime: false,
+    };
+
+    medicalTeam = createMedicalTeam(10);
+    planningGenerator = new PlanningGenerator(mockParameters);
+  });
+
+  afterEach(() => {
+    cleanupTestEnvironment();
+  });
+
+  describe('Planning Generator Initialization', () => {
+    it('should initialize with default configuration', async () => {
+      await planningGenerator.initialize(medicalTeam);
+      
+      expect(planningGenerator['isInitialized']).toBe(true);
+      expect(planningGenerator['personnel']).toEqual(medicalTeam);
+      expect(planningGenerator['userCounters'].size).toBe(medicalTeam.length);
+    });
+
+    it('should initialize with existing assignments', async () => {
+      const existingAssignments = [
+        createTestAssignment({
+          userId: medicalTeam[0].id,
+          shiftType: ShiftType.GARDE_24H,
+          startDate: '2025-01-10',
+        }),
+        createTestAssignment({
+          userId: medicalTeam[1].id,
+          shiftType: ShiftType.ASTREINTE,
+          startDate: '2025-01-11',
+        }),
+      ];
+
+      await planningGenerator.initialize(medicalTeam, existingAssignments);
+
+      expect(planningGenerator['existingAssignments']).toEqual(existingAssignments);
+      
+      // Vérifier que les compteurs sont mis à jour avec les assignments existants
+      const user1Counter = planningGenerator['userCounters'].get(String(medicalTeam[0].id));
+      const user2Counter = planningGenerator['userCounters'].get(String(medicalTeam[1].id));
+      
+      expect(user1Counter?.gardes.total).toBe(1);
+      expect(user2Counter?.astreintes.total).toBe(1);
+    });
+
+    it('should handle custom rules and fatigue configuration', async () => {
+      const customRules: RulesConfiguration = {
+        ...defaultRulesConfiguration,
+        maxConsecutiveGardes: 2,
+        minDaysBetweenGardes: 3,
+      };
+
+      const customFatigue: FatigueConfig = {
+        ...defaultFatigueConfig,
+        maxFatigueScore: 50,
+        points: {
+          garde: 10,
+          astreinte: 5,
+          astreinteWeekendFerie: 8,
+        },
+      };
+
+      const customGenerator = new PlanningGenerator(mockParameters, customRules, customFatigue);
+      await customGenerator.initialize(medicalTeam);
+
+      expect(customGenerator['rulesConfig'].maxConsecutiveGardes).toBe(2);
+      expect(customGenerator['fatigueConfig'].maxFatigueScore).toBe(50);
+    });
+
+    it('should handle empty personnel gracefully', async () => {
+      await planningGenerator.initialize([]);
+      
+      expect(planningGenerator['personnel']).toEqual([]);
+      expect(planningGenerator['userCounters'].size).toBe(0);
+      expect(planningGenerator['isInitialized']).toBe(true);
+    });
+  });
+
+  describe('Medical Team Assignment Algorithms', () => {
+    it('should generate gardes assignments with proper MAR/IADE distribution', async () => {
+      const parameters = {
+        ...mockParameters,
+        generateGardes: true,
+        generateAstreintes: false,
+        generateConsultations: false,
+      };
+
+      const generator = new PlanningGenerator(parameters);
+      await generator.initialize(medicalTeam);
+
+      const result = await generator.generatePlanning();
+
+      expect(result.success).toBe(true);
+      expect(result.attributions).toBeDefined();
+      
+      // Vérifier la distribution MAR/IADE
+      const marAssignments = result.attributions.filter(a => 
+        medicalTeam.find(u => u.id === a.userId)?.role === 'MAR'
+      );
+      const iadeAssignments = result.attributions.filter(a => 
+        medicalTeam.find(u => u.id === a.userId)?.role === 'IADE'
+      );
+
+      expect(marAssignments.length).toBeGreaterThan(0);
+      expect(iadeAssignments.length).toBeGreaterThan(0);
+      
+      // Ratio MAR/IADE doit être raisonnable (pas plus de 2:1)
+      const ratio = marAssignments.length / Math.max(iadeAssignments.length, 1);
+      expect(ratio).toBeLessThanOrEqual(2);
+    });
+
+    it('should respect medical specialty requirements', async () => {
+      const specializedTeam = medicalTeam.map(user => ({
+        ...user,
+        specialty: user.id % 3 === 0 ? 'Cardiologie' : user.id % 3 === 1 ? 'Orthopédie' : 'Anesthésie',
+        competences: user.id % 3 === 0 ? ['BLOC_CARDIO'] : user.id % 3 === 1 ? ['BLOC_ORTHO'] : ['MULTI_SPECIALITE'],
+      }));
+
+      await planningGenerator.initialize(specializedTeam);
+      const result = await planningGenerator.generatePlanning();
+
+      expect(result.success).toBe(true);
+      
+      // Vérifier que les spécialités sont respectées
+      result.attributions.forEach(attribution => {
+        const user = specializedTeam.find(u => u.id === attribution.userId);
+        if (attribution.notes?.includes('Cardio')) {
+          expect(user?.competences).toContain('BLOC_CARDIO');
+        }
+      });
+    });
+
+    it('should handle weekend and holiday scheduling priorities', async () => {
+      const weekendParams = {
+        ...mockParameters,
+        startDate: '2025-01-18', // Samedi
+        endDate: '2025-01-19', // Dimanche
+        prioritizeWeekendExperience: true,
+      };
+
+      const generator = new PlanningGenerator(weekendParams);
+      await generator.initialize(medicalTeam);
+
+      const result = await generator.generatePlanning();
+
+      expect(result.success).toBe(true);
+      
+      // Vérifier que les utilisateurs expérimentés sont prioritaires le weekend
+      const weekendAssignments = result.attributions.filter(a => {
+        const date = new Date(a.startDate);
+        return date.getDay() === 0 || date.getDay() === 6; // Dimanche ou Samedi
+      });
+
+      weekendAssignments.forEach(assignment => {
+        const user = medicalTeam.find(u => u.id === assignment.userId);
+        if (user) {
+          expect(user.niveauExperience).toMatch(/(SENIOR|EXPERT)/);
+        }
+      });
+    });
+
+    it('should balance workload across team members', async () => {
+      const balancedParams = {
+        ...mockParameters,
+        autoBalance: true,
+        optimizationLevel: 'BALANCED' as const,
+      };
+
+      const generator = new PlanningGenerator(balancedParams);
+      await generator.initialize(medicalTeam);
+
+      const result = await generator.generatePlanning();
+
+      expect(result.success).toBe(true);
+
+      // Calculer la distribution des assignments
+      const assignmentCounts = new Map<number, number>();
+      result.attributions.forEach(attribution => {
+        const count = assignmentCounts.get(attribution.userId) || 0;
+        assignmentCounts.set(attribution.userId, count + 1);
+      });
+
+      // Vérifier que la distribution est équilibrée
+      const counts = Array.from(assignmentCounts.values());
+      const maxCount = Math.max(...counts);
+      const minCount = Math.min(...counts);
+      const variance = maxCount - minCount;
+
+      expect(variance).toBeLessThanOrEqual(2); // Différence max de 2 assignments
+    });
+  });
+
+  describe('Conflict Detection and Resolution', () => {
+    it('should detect and avoid double assignments', async () => {
+      const conflictingAssignments = [
+        createTestAssignment({
+          userId: medicalTeam[0].id,
+          startDate: '2025-01-15',
+          endDate: '2025-01-16',
+          shiftType: ShiftType.GARDE_24H,
+        }),
+      ];
+
+      await planningGenerator.initialize(medicalTeam, conflictingAssignments);
+      const result = await planningGenerator.generatePlanning();
+
+      expect(result.success).toBe(true);
+
+      // Vérifier qu'aucun conflit n'existe dans les nouveaux assignments
+      const user1NewAssignments = result.attributions.filter(a => a.userId === medicalTeam[0].id);
+      
+      user1NewAssignments.forEach(assignment => {
+        const assignmentDate = new Date(assignment.startDate);
+        const conflictDate = new Date(conflictingAssignments[0].startDate);
+        
+        // Les nouvelles assignments ne doivent pas être le même jour que l'existante
+        expect(assignmentDate.toDateString()).not.toBe(conflictDate.toDateString());
+      });
+    });
+
+    it('should respect leave periods and unavailability', async () => {
+      const userOnLeave = medicalTeam[0];
+      const leaveAssignments = [
+        createTestAssignment({
+          userId: userOnLeave.id,
+          startDate: '2025-01-16',
+          endDate: '2025-01-17',
+          shiftType: ShiftType.CONGE,
+          type: AssignmentType.LEAVE,
+        }),
+      ];
+
+      await planningGenerator.initialize(medicalTeam, leaveAssignments);
+      const result = await planningGenerator.generatePlanning();
+
+      expect(result.success).toBe(true);
+
+      // Vérifier qu'aucun assignment n'est créé pendant les congés
+      const conflictingAssignments = result.attributions.filter(assignment => {
+        if (assignment.userId !== userOnLeave.id) return false;
+        
+        const assignmentDate = new Date(assignment.startDate);
+        const leaveStart = new Date('2025-01-16');
+        const leaveEnd = new Date('2025-01-17');
+        
+        return assignmentDate >= leaveStart && assignmentDate <= leaveEnd;
+      });
+
+      expect(conflictingAssignments).toHaveLength(0);
+    });
+
+    it('should handle consultation time conflicts', async () => {
+      const consultationTeam = medicalTeam.slice(0, 3);
+      const consultationParams = {
+        ...mockParameters,
+        generateGardes: false,
+        generateAstreintes: false,
+        generateConsultations: true,
+      };
+
+      const generator = new PlanningGenerator(consultationParams);
+      await generator.initialize(consultationTeam);
+
+      const result = await generator.generatePlanning();
+
+      expect(result.success).toBe(true);
+
+      // Vérifier qu'aucun utilisateur n'a deux consultations simultanées
+      const consultationsByUser = new Map<number, Attribution[]>();
+      result.attributions.forEach(attribution => {
+        if (!consultationsByUser.has(attribution.userId)) {
+          consultationsByUser.set(attribution.userId, []);
+        }
+        consultationsByUser.get(attribution.userId)!.push(attribution);
+      });
+
+      consultationsByUser.forEach(userConsultations => {
+        for (let i = 0; i < userConsultations.length; i++) {
+          for (let j = i + 1; j < userConsultations.length; j++) {
+            const consultation1 = userConsultations[i];
+            const consultation2 = userConsultations[j];
+            
+            // Vérifier qu'il n'y a pas de chevauchement temporel
+            const start1 = new Date(consultation1.startDate);
+            const end1 = new Date(consultation1.endDate || consultation1.startDate);
+            const start2 = new Date(consultation2.startDate);
+            const end2 = new Date(consultation2.endDate || consultation2.startDate);
+            
+            const hasOverlap = start1 < end2 && start2 < end1;
+            expect(hasOverlap).toBe(false);
+          }
+        }
+      });
+    });
+  });
+
+  describe('Fatigue Management and Working Time Compliance', () => {
+    it('should calculate and respect fatigue scores', async () => {
+      const fatigueConfig: FatigueConfig = {
+        enabled: true,
+        maxFatigueScore: 30,
+        resetPeriodDays: 7,
+        points: {
+          garde: 15,
+          astreinte: 8,
+          astreinteWeekendFerie: 12,
+        },
+      };
+
+      const generator = new PlanningGenerator(mockParameters, defaultRulesConfiguration, fatigueConfig);
+      
+      // Créer des assignments existants qui génèrent de la fatigue
+      const highFatigueAssignments = [
+        createTestAssignment({
+          userId: medicalTeam[0].id,
+          shiftType: ShiftType.GARDE_24H,
+          startDate: '2025-01-10',
+        }),
+        createTestAssignment({
+          userId: medicalTeam[0].id,
+          shiftType: ShiftType.GARDE_24H,
+          startDate: '2025-01-12',
+        }),
+      ];
+
+      await generator.initialize(medicalTeam, highFatigueAssignments);
+      const result = await generator.generatePlanning();
+
+      expect(result.success).toBe(true);
+
+      // Vérifier que l'utilisateur fatigué reçoit moins d'assignments
+      const user1Counter = generator['userCounters'].get(String(medicalTeam[0].id));
+      expect(user1Counter?.fatigue.score).toBeGreaterThan(20); // Score de fatigue élevé
+
+      const user1NewAssignments = result.attributions.filter(a => 
+        a.userId === medicalTeam[0].id && a.shiftType === ShiftType.GARDE_24H
+      );
+
+      // L'utilisateur fatigué devrait avoir moins de nouvelles gardes
+      expect(user1NewAssignments.length).toBeLessThanOrEqual(1);
+    });
+
+    it('should enforce maximum consecutive shifts', async () => {
+      const strictRules: RulesConfiguration = {
+        ...defaultRulesConfiguration,
+        maxConsecutiveGardes: 2,
+        minDaysBetweenGardes: 2,
+      };
+
+      const generator = new PlanningGenerator(mockParameters, strictRules);
+      
+      // Créer des assignments consécutifs existants
+      const consecutiveAssignments = [
+        createTestAssignment({
+          userId: medicalTeam[0].id,
+          shiftType: ShiftType.GARDE_24H,
+          startDate: '2025-01-13',
+        }),
+        createTestAssignment({
+          userId: medicalTeam[0].id,
+          shiftType: ShiftType.GARDE_24H,
+          startDate: '2025-01-14',
+        }),
+      ];
+
+      await generator.initialize(medicalTeam, consecutiveAssignments);
+      const result = await generator.generatePlanning();
+
+      expect(result.success).toBe(true);
+
+      // Vérifier qu'aucune garde supplémentaire n'est assignée immédiatement après
+      const user1NewGardes = result.attributions.filter(a => 
+        a.userId === medicalTeam[0].id && 
+        a.shiftType === ShiftType.GARDE_24H
+      );
+
+      user1NewGardes.forEach(garde => {
+        const gardeDate = new Date(garde.startDate);
+        const lastConsecutiveDate = new Date('2025-01-14');
+        const daysDifference = Math.abs(gardeDate.getTime() - lastConsecutiveDate.getTime()) / (1000 * 3600 * 24);
+        
+        expect(daysDifference).toBeGreaterThanOrEqual(2);
+      });
+    });
+
+    it('should comply with French working time regulations', async () => {
+      const complianceRules: RulesConfiguration = {
+        ...defaultRulesConfiguration,
+        maxHoursPerWeek: 48,
+        minRestHoursBetweenShifts: 11,
+        maxNightShiftsPerMonth: 8,
+      };
+
+      const generator = new PlanningGenerator(mockParameters, complianceRules);
+      await generator.initialize(medicalTeam);
+
+      const result = await generator.generatePlanning();
+
+      expect(result.success).toBe(true);
+
+      // Vérifier les heures de repos entre shifts
+      result.attributions.forEach(assignment => {
+        const userAssignments = result.attributions
+          .filter(a => a.userId === assignment.userId)
+          .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+
+        for (let i = 0; i < userAssignments.length - 1; i++) {
+          const current = userAssignments[i];
+          const next = userAssignments[i + 1];
+          
+          const currentEnd = new Date(current.endDate || current.startDate);
+          const nextStart = new Date(next.startDate);
+          
+          if (current.shiftType === ShiftType.GARDE_24H) {
+            currentEnd.setHours(currentEnd.getHours() + 24);
+          }
+          
+          const restHours = (nextStart.getTime() - currentEnd.getTime()) / (1000 * 3600);
+          expect(restHours).toBeGreaterThanOrEqual(11);
+        }
+      });
+    });
+  });
+
+  describe('Advanced Medical Scenarios', () => {
+    it('should handle emergency coverage requirements', async () => {
+      const emergencyParams = {
+        ...mockParameters,
+        emergencyCoverage24h: true,
+        minimumMAROnDuty: 2,
+        minimumIADEOnDuty: 3,
+      };
+
+      const generator = new PlanningGenerator(emergencyParams);
+      await generator.initialize(medicalTeam);
+
+      const result = await generator.generatePlanning();
+
+      expect(result.success).toBe(true);
+
+      // Vérifier la couverture d'urgence pour chaque jour
+      const dateRange = [];
+      const start = new Date(mockParameters.startDate);
+      const end = new Date(mockParameters.endDate);
+      
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        dateRange.push(new Date(d));
+      }
+
+      dateRange.forEach(date => {
+        const dayAssignments = result.attributions.filter(a => {
+          const assignmentDate = new Date(a.startDate);
+          return assignmentDate.toDateString() === date.toDateString();
+        });
+
+        const marCount = dayAssignments.filter(a => 
+          medicalTeam.find(u => u.id === a.userId)?.role === 'MAR'
+        ).length;
+        
+        const iadeCount = dayAssignments.filter(a => 
+          medicalTeam.find(u => u.id === a.userId)?.role === 'IADE'
+        ).length;
+
+        expect(marCount).toBeGreaterThanOrEqual(1); // Au moins 1 MAR
+        expect(iadeCount).toBeGreaterThanOrEqual(1); // Au moins 1 IADE
+      });
+    });
+
+    it('should handle pediatric surgery scheduling requirements', async () => {
+      const pediatricTeam = medicalTeam.map(user => ({
+        ...user,
+        competences: user.id % 2 === 0 ? [...(user.competences || []), 'PEDIATRIE'] : user.competences,
+        certifications: user.id % 2 === 0 ? ['PEDIATRIC_ANESTHESIA'] : [],
+      }));
+
+      const pediatricParams = {
+        ...mockParameters,
+        requirePediatricCertification: true,
+        pediatricRoomsOnly: true,
+      };
+
+      const generator = new PlanningGenerator(pediatricParams);
+      await generator.initialize(pediatricTeam);
+
+      const result = await generator.generatePlanning();
+
+      expect(result.success).toBe(true);
+
+      // Vérifier que seuls les utilisateurs certifiés en pédiatrie sont assignés
+      result.attributions.forEach(assignment => {
+        if (assignment.notes?.includes('Pediatric') || assignment.notes?.includes('Pédiatrie')) {
+          const user = pediatricTeam.find(u => u.id === assignment.userId);
+          expect(user?.competences).toContain('PEDIATRIE');
+          expect(user?.certifications).toContain('PEDIATRIC_ANESTHESIA');
+        }
+      });
+    });
+
+    it('should handle multi-site coordination', async () => {
+      const multiSiteTeam = medicalTeam.map(user => ({
+        ...user,
+        sites: user.id % 3 === 0 ? ['site-main', 'site-secondary'] : ['site-main'],
+        mobilityRange: user.id % 2 === 0 ? 'LOCAL' : 'REGIONAL',
+      }));
+
+      const multiSiteParams = {
+        ...mockParameters,
+        enableMultiSite: true,
+        maxTravelDistance: 50, // km
+        travelTimeBuffer: 30, // minutes
+      };
+
+      const generator = new PlanningGenerator(multiSiteParams);
+      await generator.initialize(multiSiteTeam);
+
+      const result = await generator.generatePlanning();
+
+      expect(result.success).toBe(true);
+
+      // Vérifier que les assignments respectent la mobilité des utilisateurs
+      result.attributions.forEach(assignment => {
+        const user = multiSiteTeam.find(u => u.id === assignment.userId);
+        
+        if (assignment.notes?.includes('site-secondary')) {
+          expect(user?.sites).toContain('site-secondary');
+        }
+      });
+    });
+  });
+
+  describe('Performance and Optimization', () => {
+    it('should handle large team planning efficiently', async () => {
+      const largeTeam = Array.from({ length: 50 }, (_, i) => 
+        createTestUser({
+          id: i + 1,
+          role: i % 3 === 0 ? 'MAR' : 'IADE',
+          nom: `User${i + 1}`,
+          prenom: 'Test',
+        })
+      );
+
+      const performanceParams = {
+        ...mockParameters,
+        startDate: '2025-01-01',
+        endDate: '2025-03-31', // 3 mois
+        optimizationLevel: 'PERFORMANCE' as const,
+      };
+
+      const generator = new PlanningGenerator(performanceParams);
+      
+      const startTime = performance.now();
+      await generator.initialize(largeTeam);
+      const result = await generator.generatePlanning();
+      const endTime = performance.now();
+
+      expect(result.success).toBe(true);
+      expect(endTime - startTime).toBeLessThan(30000); // Moins de 30 secondes
+      expect(result.attributions.length).toBeGreaterThan(0);
+    });
+
+    it('should optimize assignment distribution algorithms', async () => {
+      const optimizedParams = {
+        ...mockParameters,
+        optimizationLevel: 'OPTIMAL' as const,
+        optimizationCriteria: ['FAIRNESS', 'EXPERIENCE', 'FATIGUE'],
+      };
+
+      const generator = new PlanningGenerator(optimizedParams);
+      await generator.initialize(medicalTeam);
+
+      const result = await generator.generatePlanning();
+
+      expect(result.success).toBe(true);
+      expect(result.optimization).toBeDefined();
+      expect(result.optimization.fairnessScore).toBeGreaterThan(0.7);
+      expect(result.optimization.efficiencyScore).toBeGreaterThan(0.8);
+    });
+
+    it('should handle memory constraints for long-term planning', async () => {
+      const yearLongParams = {
+        ...mockParameters,
+        startDate: '2025-01-01',
+        endDate: '2025-12-31', // Année complète
+      };
+
+      const generator = new PlanningGenerator(yearLongParams);
+      
+      const memBefore = process.memoryUsage();
+      await generator.initialize(medicalTeam);
+      const result = await generator.generatePlanning();
+      const memAfter = process.memoryUsage();
+
+      expect(result.success).toBe(true);
+      
+      // L'augmentation de mémoire doit rester raisonnable
+      const memIncrease = memAfter.heapUsed - memBefore.heapUsed;
+      expect(memIncrease).toBeLessThan(200 * 1024 * 1024); // Moins de 200MB
+    });
+  });
+
+  describe('Error Handling and Edge Cases', () => {
+    it('should handle invalid date ranges gracefully', async () => {
+      const invalidParams = {
+        ...mockParameters,
+        startDate: '2025-01-31',
+        endDate: '2025-01-01', // Fin avant début
+      };
+
+      const generator = new PlanningGenerator(invalidParams);
+      await generator.initialize(medicalTeam);
+
+      const result = await generator.generatePlanning();
+
+      expect(result.success).toBe(false);
+      expect(result.errors).toBeDefined();
+      expect(result.errors).toContain('Invalid date range');
+    });
+
+    it('should handle insufficient personnel scenarios', async () => {
+      const insufficientTeam = medicalTeam.slice(0, 2); // Seulement 2 personnes
+
+      const demandingParams = {
+        ...mockParameters,
+        generateGardes: true,
+        minimumMAROnDuty: 5, // Impossible avec 2 personnes
+        minimumIADEOnDuty: 5,
+      };
+
+      const generator = new PlanningGenerator(demandingParams);
+      await generator.initialize(insufficientTeam);
+
+      const result = await generator.generatePlanning();
+
+      expect(result.success).toBe(false);
+      expect(result.warnings).toBeDefined();
+      expect(result.warnings.some(w => w.includes('insufficient personnel'))).toBe(true);
+    });
+
+    it('should recover from partial generation failures', async () => {
+      // Simuler une équipe avec des contraintes contradictoires
+      const problematicTeam = medicalTeam.map(user => ({
+        ...user,
+        unavailableDates: user.id % 2 === 0 ? ['2025-01-15', '2025-01-16', '2025-01-17'] : [],
+      }));
+
+      await planningGenerator.initialize(problematicTeam);
+      const result = await planningGenerator.generatePlanning();
+
+      // Doit réussir partiellement
+      expect(result.success).toBe(true);
+      expect(result.attributions.length).toBeGreaterThan(0);
+      expect(result.warnings).toBeDefined();
+      expect(result.partialGeneration).toBe(true);
+    });
+
+    it('should validate generated planning consistency', async () => {
+      await planningGenerator.initialize(medicalTeam);
+      const result = await planningGenerator.generatePlanning();
+
+      expect(result.success).toBe(true);
+
+      // Vérifier la cohérence du planning généré
+      const validation = await planningGenerator.validateGeneratedPlanning(result.attributions);
+      
+      expect(validation.isValid).toBe(true);
+      expect(validation.conflicts).toHaveLength(0);
+      expect(validation.violations).toHaveLength(0);
+    });
+  });
+});

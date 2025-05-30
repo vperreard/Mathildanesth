@@ -1,7 +1,38 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { notificationService } from '../notificationService';
-import { io } from 'socket.io-client';
-import { toast } from 'react-toastify';
+/**
+ * @jest-environment node
+ */
+/**
+ * @jest-environment node
+ */
+import { jest, describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from '@jest/globals';
+import { 
+  setupTestEnvironment, 
+  cleanupTestEnvironment, 
+  createMockPrismaClient,
+  createMockBcrypt,
+  createMockJWT,
+  createMockLogger,
+  testDataFactories 
+} from '../../test-utils/standardMocks';
+
+
+// Mock external dependencies
+jest.mock('@/lib/prisma', () => ({
+  prisma: createMockPrismaClient()
+}));
+
+jest.mock('bcryptjs', () => createMockBcrypt());
+jest.mock('jsonwebtoken', () => createMockJWT());
+jest.mock('@/lib/logger', () => ({
+  logger: createMockLogger()
+}));
+
+const mockPrisma = require('@/lib/prisma').prisma;
+const mockBcrypt = require('bcryptjs');
+const mockJwt = require('jsonwebtoken');
+const mockLogger = require('@/lib/logger').logger;
+
+
 
 // Mock dependencies
 jest.mock('socket.io-client');

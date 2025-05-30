@@ -1,55 +1,97 @@
-// Setup global pour les tests E2E Puppeteer
-const { execSync } = require('child_process');
-const puppeteer = require('puppeteer');
+// import { Browser } from 'puppeteer';
 
-// Configuration globale des timeouts
-jest.setTimeout(60000);
+// Configuration globale pour les tests E2E
+jest.setTimeout(60000); // 60 secondes par défaut
 
-// Variables globales pour Puppeteer
-global.puppeteer = puppeteer;
+// Variables d'environnement pour les tests
+process.env.BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+process.env.HEADLESS = process.env.HEADLESS || 'true';
+process.env.SLOWMO = process.env.SLOWMO || '0';
 
-// Helper pour créer un utilisateur de test
-global.createTestUser = async () => {
-    try {
-        execSync('node create-test-user.js', { stdio: 'pipe' });
-        return {
-            email: 'test@mathildanesth.fr',
-            password: 'test123',
-            userId: 59,
-            role: 'ADMIN_TOTAL'
-        };
-    } catch (error) {
-        console.error('Erreur création utilisateur test:', error);
-        throw error;
+// Stockage des instances de navigateur pour cleanup
+const browserInstances = [];
+
+// Configuration Puppeteer par défaut avec mode headless et cleanup
+const defaultPuppeteerConfig = {
+    headless: process.env.HEADLESS === 'true' ? 'new' : false,
+    args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor',
+        '--window-size=1400,1200'
+    ],
+    defaultViewport: {
+        width: 1400,
+        height: 1200
     }
 };
 
-// Helper pour démarrer l'application en mode test
-global.startTestServer = async () => {
-    // L'application doit être démarrée manuellement ou via CI
-    const baseUrl = process.env.TEST_BASE_URL || 'http://localhost:3000';
-    return baseUrl;
-};
+// Helper pour lancer un navigateur avec cleanup automatique
+async function launchBrowserWithCleanup(puppeteer, config = {}) {
+    const finalConfig = { ...defaultPuppeteerConfig, ...config };
+    const browser = await puppeteer.launch(finalConfig);
+    browserInstances.push(browser);
+    console.log('Navigateur Puppeteer lancé en mode headless avec cleanup automatique configuré');
+    return browser;
+}
 
-// Helper pour attendre qu'un élément soit présent
-global.waitForElement = async (page, selector, timeout = 10000) => {
-    await page.waitForSelector(selector, { timeout });
-};
+// Helper pour prendre des screenshots en cas d'échec
+async function takeScreenshot(page, testName) {
+    const screenshotPath = `./tests/e2e/screenshots/${testName}-${Date.now()}.png`;
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    console.log(`Screenshot saved: ${screenshotPath}`);
+}
 
-// Helper pour remplir un formulaire
-global.fillForm = async (page, formData) => {
-    for (const [selector, value] of Object.entries(formData)) {
-        await page.type(selector, value);
+// Cleanup automatique de tous les navigateurs
+async function cleanupAllBrowsers() {
+    console.log('Nettoyage automatique des navigateurs Puppeteer...');
+    for (const browser of browserInstances) {
+        try {
+            await browser.close();
+        } catch (error) {
+            console.warn('Erreur lors de la fermeture d\'un navigateur:', error);
+        }
     }
-};
+    browserInstances.length = 0;
+    
+    // Force cleanup des processus chrome restants
+    if (process.platform === 'darwin') {
+        // macOS
+        require('child_process').exec('pkill -f "Google Chrome for Testing"', (error) => {
+            if (!error) console.log('Processus Chrome nettoyés avec succès (macOS)');
+        });
+    } else if (process.platform === 'linux') {
+        // Linux
+        require('child_process').exec('pkill -f chrome', (error) => {
+            if (!error) console.log('Processus Chrome nettoyés avec succès (Linux)');
+        });
+    } else if (process.platform === 'win32') {
+        // Windows
+        require('child_process').exec('taskkill /F /IM chrome.exe /T', (error) => {
+            if (!error) console.log('Processus Chrome nettoyés avec succès (Windows)');
+        });
+    }
+}
 
-// Helper pour capturer des screenshots en cas d'erreur
-global.captureScreenshotOnError = async (page, testName) => {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const filename = `error-${testName}-${timestamp}.png`;
-    await page.screenshot({
-        path: `tests/e2e/screenshots/${filename}`,
-        fullPage: true
-    });
-    console.log(`Screenshot capturé: ${filename}`);
-}; 
+// Configuration globale pour gérer les erreurs
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Cleanup automatique à la fin des tests
+afterAll(async () => {
+    await cleanupAllBrowsers();
+});
+
+module.exports = {
+    defaultPuppeteerConfig,
+    launchBrowserWithCleanup,
+    takeScreenshot,
+    cleanupAllBrowsers
+};

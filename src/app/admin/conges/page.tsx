@@ -88,7 +88,7 @@ export default function AdminLeavesPage() {
             }
 
             // Passer l'objet params directement à axios
-            const response = await axios.get('http://localhost:3000/api/conges', { params });
+            const response = await axios.get('/api/conges', { params });
             setRequests(response.data);
             setLoading(false);
         } catch (error) {
@@ -100,7 +100,7 @@ export default function AdminLeavesPage() {
 
     const fetchLeaveTypes = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/api/conges/types');
+            const response = await axios.get('/api/conges/types');
             setTypes(response.data);
         } catch (error) {
             console.error('Erreur lors du chargement des types de congés:', error);

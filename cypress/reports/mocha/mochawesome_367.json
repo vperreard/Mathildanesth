@@ -1,0 +1,131 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 1,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-05-28T15:13:38.118Z",
+    "end": "2025-05-28T15:14:27.274Z",
+    "duration": 49156,
+    "testsRegistered": 2,
+    "passPercent": 50,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "9e7f5acc-2a57-4591-9689-149e29697aea",
+      "title": "",
+      "fullFile": "cypress/e2e/auth/simple-login-test.spec.ts",
+      "file": "cypress/e2e/auth/simple-login-test.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "62a16326-626b-44e9-83bd-9cd1e48a9b0e",
+          "title": "Test de connexion simple",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "visite la page de connexion",
+              "fullTitle": "Test de connexion simple visite la page de connexion",
+              "timedOut": null,
+              "duration": 412,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/auth/connexion');\ncy.get('h1').should('contain', 'Connexion');\ncy.get('[data-cy=email-input]').should('be.visible');\ncy.get('[data-cy=password-input]').should('be.visible');\ncy.get('[data-cy=submit-button]').should('be.visible');",
+              "err": {},
+              "uuid": "4410043d-4be8-4a91-9801-11a1e1c4e9ca",
+              "parentUUID": "62a16326-626b-44e9-83bd-9cd1e48a9b0e",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "affiche une erreur pour des identifiants invalides",
+              "fullTitle": "Test de connexion simple affiche une erreur pour des identifiants invalides",
+              "timedOut": null,
+              "duration": 16184,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/auth/connexion');\ncy.get('[data-cy=email-input]').type('test@invalid.com');\ncy.get('[data-cy=password-input]').type('wrongpassword');\ncy.wait(100); // Attendre que React mette à jour l'état\ncy.get('[data-cy=submit-button]').should('not.be.disabled').click();\ncy.get('[data-cy=error-message]')\n    .should('be.visible')\n    .and('contain.text', 'Identifiants invalides');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 15000ms: expected '<button.w-full.rounded-md.bg-blue-600.px-4.py-2.text-white.hover:bg-blue-700.focus:outline-none.focus:ring-2.focus:ring-blue-500.focus:ring-offset-2.disabled:opacity-50.disabled:cursor-not-allowed.transition-colors>' not to be 'disabled'",
+                "estack": "AssertionError: Timed out retrying after 15000ms: expected '<button.w-full.rounded-md.bg-blue-600.px-4.py-2.text-white.hover:bg-blue-700.focus:outline-none.focus:ring-2.focus:ring-blue-500.focus:ring-offset-2.disabled:opacity-50.disabled:cursor-not-allowed.transition-colors>' not to be 'disabled'\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/simple-login-test.spec.ts:15:42)",
+                "diff": null
+              },
+              "uuid": "0fdf71c0-f662-467a-a44a-089ba546df99",
+              "parentUUID": "62a16326-626b-44e9-83bd-9cd1e48a9b0e",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "4410043d-4be8-4a91-9801-11a1e1c4e9ca"
+          ],
+          "failures": [
+            "0fdf71c0-f662-467a-a44a-089ba546df99"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 16596,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

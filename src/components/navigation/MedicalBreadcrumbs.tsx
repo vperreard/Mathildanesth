@@ -27,7 +27,7 @@ export function MedicalBreadcrumbs({ userRole }: MedicalBreadcrumbsProps) {
           {/* Breadcrumbs */}
           <nav className="flex items-center space-x-1 text-sm" aria-label="Fil d'Ariane">
             {breadcrumbs.map((crumb, index) => (
-              <React.Fragment key={crumb.label}>
+              <React.Fragment key={`${crumb.label}-${index}`}>
                 {index > 0 && (
                   <ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                 )}
