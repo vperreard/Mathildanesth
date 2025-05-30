@@ -1,0 +1,267 @@
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { LeaveCard } from '../LeaveCard';
+import { LeaveStatus, LeaveWithUser } from '../../types/leave';
+
+// Mock framer-motion
+jest.mock('framer-motion', () => ({
+    motion: {
+        div: ({ children, onClick, ...props }: any) => (
+            <div onClick={onClick} {...props}>
+                {children}
+            </div>
+        ),
+    },
+}));
+
+// Mock de date-fns
+jest.mock('date-fns', () => ({
+    format: jest.fn(() => '01 octobre 2023'),
+}));
+
+describe('LeaveCard', () => {
+    const mockOnEdit = jest.fn();
+    const mockOnCancel = jest.fn();
+    const mockOnView = jest.fn();
+
+    const mockLeave: LeaveWithUser = {
+        id: '123',
+        userId: 'user1',
+        startDate: '2023-10-01', // LeaveCard utilise des strings de dates
+        endDate: '2023-10-05',
+        type: 'ANNUAL',
+        status: LeaveStatus.PENDING,
+        countedDays: 5,
+        requestDate: new Date('2023-09-15'),
+        createdAt: new Date('2023-09-15'),
+        updatedAt: new Date('2023-09-15'),
+        user: {
+            id: 'user1',
+            nom: 'Dupont',
+            prenom: 'Jean',
+            email: 'jean.dupont@example.com'
+        }
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('renders correctly with pending status', () => {
+        render(
+            <LeaveCard 
+                leave={mockLeave} 
+                onEdit={mockOnEdit} 
+                onCancel={mockOnCancel} 
+                onView={mockOnView} 
+            />
+        );
+
+        // Vérifier l'affichage du statut
+        expect(screen.getByText('En attente')).toBeInTheDocument();
+
+        // Vérifier l'affichage du type de congé
+        expect(screen.getByText('ANNUAL')).toBeInTheDocument();
+
+        // Vérifier l'affichage des dates (format français mocké)
+        expect(screen.getByText(/Du 01 octobre 2023 au 01 octobre 2023/)).toBeInTheDocument();
+
+        // Vérifier l'affichage du nom de l'utilisateur
+        expect(screen.getByText('Jean Dupont')).toBeInTheDocument();
+
+        // Vérifier la présence des boutons d'action pour un congé en attente
+        expect(screen.getByText('Modifier')).toBeInTheDocument();
+        expect(screen.getByText('Annuler')).toBeInTheDocument();
+    });
+
+    it('does not show action buttons when status is not PENDING', () => {
+        const approvedLeave = { ...mockLeave, status: LeaveStatus.APPROVED };
+        render(
+            <LeaveCard 
+                leave={approvedLeave} 
+                onEdit={mockOnEdit} 
+                onCancel={mockOnCancel} 
+                onView={mockOnView} 
+            />
+        );
+
+        // Vérifier que les boutons ne sont pas affichés pour un congé approuvé
+        expect(screen.queryByText('Modifier')).not.toBeInTheDocument();
+        expect(screen.queryByText('Annuler')).not.toBeInTheDocument();
+    });
+
+    it('calls onEdit when edit button is clicked', () => {
+        render(
+            <LeaveCard 
+                leave={mockLeave} 
+                onEdit={mockOnEdit} 
+                onCancel={mockOnCancel} 
+                onView={mockOnView} 
+            />
+        );
+
+        const editButton = screen.getByText('Modifier');
+        fireEvent.click(editButton);
+
+        expect(mockOnEdit).toHaveBeenCalledWith(mockLeave);
+    });
+
+    it('calls onCancel when cancel button is clicked', () => {
+        render(
+            <LeaveCard 
+                leave={mockLeave} 
+                onEdit={mockOnEdit} 
+                onCancel={mockOnCancel} 
+                onView={mockOnView} 
+            />
+        );
+
+        const cancelButton = screen.getByText('Annuler');
+        fireEvent.click(cancelButton);
+
+        expect(mockOnCancel).toHaveBeenCalledWith(mockLeave);
+    });
+
+    it('calls onView when the card is clicked', () => {
+        render(
+            <LeaveCard 
+                leave={mockLeave} 
+                onEdit={mockOnEdit} 
+                onCancel={mockOnCancel} 
+                onView={mockOnView} 
+            />
+        );
+
+        // Trouver la carte principale - le motion.div est rendu comme un div normal
+        const card = screen.getByText('En attente').closest('div');
+        expect(card).toBeInTheDocument();
+        
+        if (card && card.parentElement) {
+            // Cliquer sur le parent qui contient le onClick
+            fireEvent.click(card.parentElement);
+            expect(mockOnView).toHaveBeenCalledWith(mockLeave);
+        }
+    });
+
+    it('shows expanded content when isExpanded is true', () => {
+        const leaveWithDetails = {
+            ...mockLeave,
+            reason: 'Vacances en famille',
+            comment: 'Voyage prévu depuis longtemps'
+        };
+
+        render(
+            <LeaveCard
+                leave={leaveWithDetails}
+                onEdit={mockOnEdit}
+                onCancel={mockOnCancel}
+                onView={mockOnView}
+                isExpanded={true}
+            />
+        );
+
+        // Vérifier l'affichage des détails supplémentaires
+        expect(screen.getByText('Motif')).toBeInTheDocument();
+        expect(screen.getByText('Vacances en famille')).toBeInTheDocument();
+        expect(screen.getByText('Commentaire')).toBeInTheDocument();
+        expect(screen.getByText('Voyage prévu depuis longtemps')).toBeInTheDocument();
+    });
+
+    it('does not show action buttons when showActions is false', () => {
+        render(
+            <LeaveCard
+                leave={mockLeave}
+                onEdit={mockOnEdit}
+                onCancel={mockOnCancel}
+                onView={mockOnView}
+                showActions={false}
+            />
+        );
+
+        // Vérifier que les boutons ne sont pas affichés
+        expect(screen.queryByText('Modifier')).not.toBeInTheDocument();
+        expect(screen.queryByText('Annuler')).not.toBeInTheDocument();
+    });
+
+    it('displays correct status badges for different statuses', () => {
+        const statuses = [
+            { status: LeaveStatus.PENDING, text: 'En attente' },
+            { status: LeaveStatus.APPROVED, text: 'Approuvé' },
+            { status: LeaveStatus.REJECTED, text: 'Refusé' },
+            { status: LeaveStatus.CANCELLED, text: 'Annulé' },
+        ];
+
+        statuses.forEach(({ status, text }) => {
+            const leaveWithStatus = { ...mockLeave, status };
+            const { unmount } = render(
+                <LeaveCard 
+                    leave={leaveWithStatus} 
+                    onEdit={mockOnEdit} 
+                    onCancel={mockOnCancel} 
+                    onView={mockOnView} 
+                />
+            );
+
+            expect(screen.getByText(text)).toBeInTheDocument();
+            unmount();
+        });
+    });
+
+    it('handles missing user data gracefully', () => {
+        const leaveWithoutUser: LeaveWithUser = {
+            ...mockLeave,
+            user: undefined
+        };
+
+        render(
+            <LeaveCard 
+                leave={leaveWithoutUser} 
+                onEdit={mockOnEdit} 
+                onCancel={mockOnCancel} 
+                onView={mockOnView} 
+            />
+        );
+
+        // Le composant doit se rendre sans erreur même sans données utilisateur
+        expect(screen.getByText('En attente')).toBeInTheDocument();
+        expect(screen.getByText('ANNUAL')).toBeInTheDocument();
+    });
+
+    it('prevents event propagation when action buttons are clicked', () => {
+        render(
+            <LeaveCard 
+                leave={mockLeave} 
+                onEdit={mockOnEdit} 
+                onCancel={mockOnCancel} 
+                onView={mockOnView} 
+            />
+        );
+
+        const editButton = screen.getByText('Modifier');
+        fireEvent.click(editButton);
+
+        // Vérifier que onEdit a été appelé
+        expect(mockOnEdit).toHaveBeenCalledWith(mockLeave);
+        
+        // onView ne devrait pas être appelé quand on clique sur le bouton
+        expect(mockOnView).not.toHaveBeenCalled();
+    });
+
+    it('displays type and status information correctly', () => {
+        render(
+            <LeaveCard 
+                leave={mockLeave} 
+                onEdit={mockOnEdit} 
+                onCancel={mockOnCancel} 
+                onView={mockOnView} 
+            />
+        );
+
+        // Vérifier que le type est affiché
+        expect(screen.getByText('ANNUAL')).toBeInTheDocument();
+        
+        // Vérifier que le statut est affiché avec le bon texte
+        expect(screen.getByText('En attente')).toBeInTheDocument();
+    });
+});

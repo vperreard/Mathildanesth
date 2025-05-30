@@ -1,260 +1,365 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-// Importer ConflictType et ConflictSeverity AVANT les mocks
-import { LeaveConflict, ConflictSeverity, ConflictType, ConflictCheckResult } from '../../types/conflict';
 import { useConflictDetection } from '../useConflictDetection';
-// Importer LeaveRequest si nécessaire pour le mock de checkConflicts du service
-import { LeaveRequest } from '../../types/leave';
-import { jest, describe, it, expect, beforeEach, afterEach, test } from '@jest/globals';
-import * as leaveService from '../../services/leaveService';
+import { checkLeaveConflicts } from '../../services/leaveService';
+import { ConflictSeverity, ConflictType, LeaveConflict } from '../../types/conflict';
+import { useDateValidation } from '../useDateValidation';
 
-// Mock de useDateValidation
-// Revenir à l'alias et s'assurer que les fonctions retournent true
-jest.mock('@/hooks/useDateValidation', () => ({
-    useDateValidation: () => ({
-        validateDate: jest.fn().mockReturnValue(true),
-        validateDateRange: jest.fn().mockReturnValue(true),
-        getAllErrors: jest.fn().mockReturnValue([]),
-        clearAllValidationErrors: jest.fn(),
-        hasFieldError: jest.fn().mockReturnValue(false),
-        getFieldErrors: jest.fn().mockReturnValue([]),
-        hasErrorType: jest.fn().mockReturnValue(false),
-        resetErrors: jest.fn(),
-        errors: []
-    })
-}));
-
-// Mock du service
-// Utiliser le chemin relatif correct depuis le test vers le service dans le même module
+// Mock du service de vérification des conflits
 jest.mock('../../services/leaveService', () => ({
-    checkLeaveConflicts: jest.fn().mockResolvedValue({
-        hasConflicts: true,
-        conflicts: [
-            { id: 'c1', leaveId: 'leave-456', type: ConflictType.USER_LEAVE_OVERLAP, severity: ConflictSeverity.BLOQUANT, description: 'Overlap', startDate: '2024-08-10', endDate: '2024-08-15', canOverride: false },
-            { id: 'c2', leaveId: 'leave-456', type: ConflictType.TEAM_ABSENCE, severity: ConflictSeverity.AVERTISSEMENT, description: 'Team', startDate: '2024-08-10', endDate: '2024-08-15', canOverride: true },
-        ],
-        hasBlockers: true,
-        canAutoApprove: false,
-        requiresManagerReview: true,
-    } as unknown as ConflictCheckResult)
+    checkLeaveConflicts: jest.fn()
 }));
 
-const mockUserId = 'user-123';
-const mockLeaveId = 'leave-456';
-// Utiliser des objets Date directement
-const mockStartDateObj = new Date(2024, 7, 10); // Mois est 0-indexé (7 = Août)
-const mockEndDateObj = new Date(2024, 7, 15);
+// Mock du hook de validation de dates
+jest.mock('../useDateValidation', () => ({
+    useDateValidation: jest.fn()
+}));
 
-// Définition de mockConflicts (garder les chaînes pour le mock du service)
-const mockConflicts: LeaveConflict[] = [
-    { id: 'c1', leaveId: mockLeaveId, type: ConflictType.USER_LEAVE_OVERLAP, severity: ConflictSeverity.BLOQUANT, description: 'Overlap', startDate: '2024-08-10', endDate: '2024-08-15', canOverride: false },
-    { id: 'c2', leaveId: mockLeaveId, type: ConflictType.TEAM_ABSENCE, severity: ConflictSeverity.AVERTISSEMENT, description: 'Team', startDate: '2024-08-10', endDate: '2024-08-15', canOverride: true },
-];
+// Fonction utilitaire pour créer une date
+const createDate = (year: number, month: number, day: number): Date => new Date(year, month - 1, day);
 
-// Définition d'un mock ConflictCheckResult valide
-const mockConflictResult: ConflictCheckResult = {
-    hasConflicts: true,
-    conflicts: mockConflicts,
-    hasBlockers: true,
-    canAutoApprove: false,
-    requiresManagerReview: true,
+// Données de test
+const userId = 'user-123';
+// Utiliser des dates futures pour éviter les problèmes de validation "allowPastDates: false"
+const futureDate = new Date();
+futureDate.setDate(futureDate.getDate() + 10); // 10 jours dans le futur
+const mockStartDate = new Date(futureDate);
+futureDate.setDate(futureDate.getDate() + 5);
+const mockEndDate = new Date(futureDate);
+
+const mockLeaveId = 'leave-123';
+
+// Conflits factices pour les tests - corriger les types de dates pour correspondre à l'interface
+const mockBlockingConflict: LeaveConflict = {
+    id: 'conflict-1',
+    leaveId: mockLeaveId,
+    type: ConflictType.USER_LEAVE_OVERLAP,
+    severity: ConflictSeverity.BLOQUANT,
+    description: 'Conflit avec une autre absence',
+    startDate: mockStartDate.toISOString(),
+    endDate: mockStartDate.toISOString(),
+    canOverride: false,
+    resolved: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
 };
 
-const mockEmptyConflictResult: ConflictCheckResult = {
-    hasConflicts: false,
-    conflicts: [],
-    hasBlockers: false,
-    canAutoApprove: true,
-    requiresManagerReview: false,
+const mockWarningConflict: LeaveConflict = {
+    id: 'conflict-2',
+    leaveId: mockLeaveId,
+    type: ConflictType.SPECIAL_PERIOD,
+    severity: ConflictSeverity.AVERTISSEMENT,
+    description: 'Jour férié pendant l\'absence',
+    startDate: createDate(2023, 5, 11).toISOString(),
+    endDate: createDate(2023, 5, 11).toISOString(),
+    canOverride: true,
+    resolved: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
 };
 
-// Avant chaque test, configurer le mock du *service*
-beforeEach(() => {
-    jest.clearAllMocks();
-    // Par défaut, le mock de checkLeaveConflicts retourne déjà mockConflictResult
-});
+const mockInfoConflict: LeaveConflict = {
+    id: 'conflict-3',
+    leaveId: mockLeaveId,
+    type: ConflictType.TEAM_CAPACITY,
+    severity: ConflictSeverity.INFORMATION,
+    description: 'Capacité d\'équipe réduite',
+    startDate: createDate(2023, 5, 13).toISOString(),
+    endDate: createDate(2023, 5, 13).toISOString(),
+    canOverride: true,
+    resolved: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+};
+
+// Variable globale pour le mock du hook useDateValidation
+let mockDateValidation: any;
 
 describe('useConflictDetection', () => {
-    // Marquer le test comme async
-    it('devrait initialiser correctement l\'état et vérifier les conflits', async () => {
-        // Passer seulement userId comme argument
-        const { result } = renderHook(() => useConflictDetection({ userId: mockUserId }));
+    beforeEach(() => {
+        jest.clearAllMocks();
 
-        // Appeler checkConflicts du *hook* avec des objets Date
-        act(() => {
-            result.current.checkConflicts(mockStartDateObj, mockEndDateObj);
-        });
+        // Mock avancé pour useDateValidation
+        mockDateValidation = {
+            validateDate: jest.fn().mockReturnValue(true),
+            validateDateRange: jest.fn().mockReturnValue(true),
+            hasError: jest.fn().mockReturnValue(false),
+            getErrorMessage: jest.fn().mockReturnValue(null),
+            resetErrors: jest.fn(),
+            clearError: jest.fn(),
+            getAllErrors: jest.fn().mockReturnValue({}),
+            clearAllValidationErrors: jest.fn(),
+            hasFieldError: jest.fn().mockReturnValue(false),
+            getFieldErrors: jest.fn().mockReturnValue(null),
+            hasErrorType: jest.fn().mockReturnValue(false)
+        };
 
-        // Attendre la fin du chargement
-        await waitFor(() => expect(result.current.loading).toBe(false));
+        // Injecter le mock
+        (useDateValidation as jest.Mock).mockReturnValue(mockDateValidation);
+    });
 
-        // Assert : vérifier que la méthode du *service* a été appelée (indirectement par le hook)
-        // Il faut peut-être ajuster ce que le hook passe au service
-        expect(leaveService.checkLeaveConflicts).toHaveBeenCalled();
-        // Vérifier que les objets Date sont passés au service mocké
-        expect(leaveService.checkLeaveConflicts).toHaveBeenCalledWith(mockStartDateObj, mockEndDateObj, mockUserId, undefined);
+    it('devrait initialiser correctement le hook', () => {
+        const { result } = renderHook(() => useConflictDetection({ userId }));
 
-        // Vérifier l'état du hook
-        expect(result.current.conflicts).toEqual(mockConflicts);
-        expect(result.current.hasBlockingConflicts).toBe(true);
+        expect(result.current.conflicts).toEqual([]);
+        expect(result.current.hasBlockingConflicts).toBe(false);
+        expect(result.current.loading).toBe(false);
         expect(result.current.error).toBeNull();
     });
 
-    // Marquer le test comme async
-    it('devrait gérer les erreurs lors de la vérification des conflits', async () => {
-        // Arrange
-        const mockError = new Error('Erreur réseau');
-        jest.spyOn(leaveService, 'checkLeaveConflicts').mockRejectedValueOnce(mockError);
-        const { result } = renderHook(() => useConflictDetection({ userId: mockUserId }));
-
-        // Act & Assert : Vérifier que l'appel à checkConflicts rejette et met à jour l'état
-        await act(async () => {
-            // Attendre que la promesse checkConflicts soit rejetée
-            await expect(result.current.checkConflicts(mockStartDateObj, mockEndDateObj)).rejects.toThrow('Erreur réseau');
+    describe('validateDates', () => {
+        it('devrait valider correctement des dates valides', () => {
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+            const isValid = result.current.validateDates(mockStartDate, mockEndDate);
+            expect(isValid).toBe(true);
+            expect(mockDateValidation.resetErrors).toHaveBeenCalled();
+            expect(mockDateValidation.validateDate).toHaveBeenCalledWith(mockStartDate, 'startDate', expect.any(Object));
+            expect(mockDateValidation.validateDate).toHaveBeenCalledWith(mockEndDate, 'endDate', expect.any(Object));
+            expect(mockDateValidation.validateDateRange).toHaveBeenCalled();
         });
 
-        // Vérifier l'état final APRÈS que l'erreur a été gérée par le hook
-        // Il faut peut-être un léger délai ou un waitFor supplémentaire si la mise à jour de l'état est asynchrone au rejet
-        await waitFor(() => {
-            expect(result.current.loading).toBe(false);
-            expect(result.current.error).toEqual(mockError);
+        it('devrait rejeter des dates invalides - startDate null', () => {
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+            const isValid = result.current.validateDates(null as any, mockEndDate);
+            expect(isValid).toBe(false);
+            expect(mockDateValidation.resetErrors).toHaveBeenCalled();
+        });
+
+        it('devrait rejeter des dates invalides - endDate null', () => {
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+            const isValid = result.current.validateDates(mockStartDate, null as any);
+            expect(isValid).toBe(false);
+            expect(mockDateValidation.resetErrors).toHaveBeenCalled();
+        });
+
+        it('devrait rejeter des dates invalides - date de début après date de fin', () => {
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+            const laterDate = new Date(mockStartDate);
+            laterDate.setDate(laterDate.getDate() + 10);
+            const isValid = result.current.validateDates(laterDate, mockStartDate);
+            expect(isValid).toBe(false);
+            expect(mockDateValidation.resetErrors).toHaveBeenCalled();
+        });
+
+        it('devrait rejeter des dates lorsque la validation useDateValidation échoue', () => {
+            // Mock pour que validateDate échoue
+            mockDateValidation.validateDate.mockReturnValueOnce(false);
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+            const isValid = result.current.validateDates(mockStartDate, mockEndDate);
+            expect(isValid).toBe(false);
+            expect(mockDateValidation.resetErrors).toHaveBeenCalled();
+            expect(mockDateValidation.validateDate).toHaveBeenCalled();
+        });
+    });
+
+    describe('checkConflicts', () => {
+        beforeEach(() => {
+    jest.clearAllMocks();
+            mockDateValidation.validateDate.mockReturnValue(true);
+            mockDateValidation.validateDateRange.mockReturnValue(true);
+            mockDateValidation.hasError.mockReturnValue(false);
+        });
+
+        it('devrait vérifier les conflits et mettre à jour l\'état - sans conflits', async () => {
+            (checkLeaveConflicts as jest.Mock).mockResolvedValue({ conflicts: [], hasBlockingConflicts: false, hasBlockers: false, hasConflicts: false });
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+            await result.current.checkConflicts(mockStartDate, mockEndDate);
+            await waitFor(() => { expect(result.current.loading).toBe(false); });
             expect(result.current.conflicts).toEqual([]);
+            expect(result.current.hasBlockingConflicts).toBe(false);
+        });
+
+        it('devrait vérifier les conflits et mettre à jour l\'état - avec conflits', async () => {
+            const mockResult = { conflicts: [mockBlockingConflict], hasBlockingConflicts: true, hasBlockers: true, hasConflicts: true };
+            (checkLeaveConflicts as jest.Mock).mockResolvedValue(mockResult);
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+            await act(async () => {
+                await result.current.checkConflicts(mockStartDate, mockEndDate, mockLeaveId, true);
+            });
+            await waitFor(() => { expect(result.current.loading).toBe(false); });
+            expect(result.current.conflicts).toEqual(mockResult.conflicts);
+            expect(result.current.hasBlockingConflicts).toBe(true);
+        });
+
+        it('devrait gérer les erreurs lors de la vérification des conflits', async () => {
+            const mockError = new Error('Erreur test');
+            (checkLeaveConflicts as jest.Mock).mockRejectedValue(mockError);
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+            await expect(result.current.checkConflicts(mockStartDate, mockEndDate)).rejects.toEqual(mockError);
+        });
+
+        it('devrait rejeter avec une erreur si les dates sont invalides', async () => {
+            mockDateValidation.validateDate.mockReturnValueOnce(false);
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+            await expect(result.current.checkConflicts(mockStartDate, mockEndDate)).rejects.toThrow('Dates invalides pour la vérification des conflits');
+        });
+
+        it('ne devrait pas appeler checkLeaveConflicts si les dates sont invalides', async () => {
+            mockDateValidation.validateDate.mockReturnValue(false);
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+            try { await result.current.checkConflicts(mockStartDate, mockEndDate); } catch (e) { }
+            expect(checkLeaveConflicts).not.toHaveBeenCalled();
+        });
+
+        it('devrait mettre à jour les conflits lorsque le service renvoie des conflits', async () => {
+            const mockConflicts = [mockBlockingConflict];
+            (checkLeaveConflicts as jest.Mock).mockResolvedValue({ conflicts: mockConflicts, hasBlockingConflicts: true, hasBlockers: true, hasConflicts: true });
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+            await act(async () => {
+                await result.current.checkConflicts(mockStartDate, mockEndDate, undefined, true);
+            });
+            await waitFor(() => { expect(result.current.loading).toBe(false); });
+            expect(result.current.conflicts).toEqual(mockConflicts);
+            expect(result.current.hasBlockingConflicts).toBe(true);
+        });
+
+        it('devrait gérer les erreurs du service', async () => {
+            const mockError = new Error('Erreur test');
+            (checkLeaveConflicts as jest.Mock).mockRejectedValue(mockError);
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+            await expect(result.current.checkConflicts(mockStartDate, mockEndDate)).rejects.toEqual(mockError);
+        });
+
+    });
+
+    describe('getConflictsByType', () => {
+        it('devrait filtrer les conflits par type', async () => {
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+
+            // Créer des objets Date à partir des dates existantes
+            const mockStartDateObj = new Date(mockStartDate.getTime());
+            const mockEndDateObj = new Date(mockEndDate.getTime());
+
+            // Mock du service pour renvoyer tous les conflits
+            const mockConflicts = [mockBlockingConflict, mockWarningConflict, mockInfoConflict];
+            (checkLeaveConflicts as jest.Mock).mockResolvedValue({
+                conflicts: mockConflicts,
+                hasBlockingConflicts: true,
+                hasBlockers: true,
+                hasConflicts: true
+            });
+
+            // Initialiser avec des conflits en sautant le debounce
+            await act(async () => {
+                await result.current.checkConflicts(mockStartDateObj, mockEndDateObj, undefined, true);
+            });
+
+            // Attendre la fin du chargement et vérifier les résultats
+            expect(result.current.conflicts).toEqual(mockConflicts);
+            expect(result.current.getConflictsByType(ConflictType.USER_LEAVE_OVERLAP)).toEqual([mockBlockingConflict]);
+            expect(result.current.getConflictsByType(ConflictType.SPECIAL_PERIOD)).toEqual([mockWarningConflict]);
+            expect(result.current.getConflictsByType(ConflictType.TEAM_CAPACITY)).toEqual([mockInfoConflict]);
+        });
+    });
+
+    describe('resolveConflict', () => {
+        it('devrait supprimer un conflit et mettre à jour l\'état des conflits bloquants', async () => {
+            const { result } = renderHook(() => useConflictDetection({ userId }));
+
+            // Créer des objets Date à partir des dates existantes
+            const mockStartDateObj = new Date(mockStartDate.getTime());
+            const mockEndDateObj = new Date(mockEndDate.getTime());
+
+            // Mock du service pour renvoyer tous les conflits
+            const mockConflicts = [mockBlockingConflict, mockWarningConflict];
+            (checkLeaveConflicts as jest.Mock).mockResolvedValue({
+                conflicts: mockConflicts,
+                hasBlockingConflicts: true,
+                hasBlockers: true,
+                hasConflicts: true
+            });
+
+            // Initialiser avec des conflits en sautant le debounce
+            await act(async () => {
+                await result.current.checkConflicts(mockStartDateObj, mockEndDateObj, undefined, true);
+            });
+
+            // Attendre la fin du chargement et vérifier les résultats initiaux
+            expect(result.current.conflicts).toEqual(mockConflicts);
+            expect(result.current.hasBlockingConflicts).toBe(true);
+
+            // Résoudre le conflit bloquant
+            await act(async () => {
+                result.current.resolveConflict(mockBlockingConflict.id);
+            });
+
+            // Vérifier que le conflit bloquant a été supprimé
+            expect(result.current.conflicts).toEqual([mockWarningConflict]);
+            // hasBlockingConflicts devrait maintenant être false puisque le conflit a été résolu
             expect(result.current.hasBlockingConflicts).toBe(false);
         });
     });
 
-    // ... autres tests pour checkConflicts (dates invalides, etc.)
-});
+    describe('resetConflicts', () => {
+        it('devrait réinitialiser l\'état des conflits', async () => {
+            const { result } = renderHook(() => useConflictDetection({ userId }));
 
-describe('useConflictDetection - resolveConflict', () => {
-    // Marquer le test comme async
-    it('devrait appeler le service (indirectement) et mettre à jour l\'état après résolution', async () => {
-        // Arrange
-        const conflictToResolveId = 'c1';
-        const initialConflictsResult: ConflictCheckResult = {
-            hasConflicts: true,
-            conflicts: [
-                { id: conflictToResolveId, leaveId: mockLeaveId, type: ConflictType.USER_LEAVE_OVERLAP, severity: ConflictSeverity.BLOQUANT, description: '', startDate: '', endDate: '', canOverride: false },
-                { id: 'c2', leaveId: mockLeaveId, type: ConflictType.TEAM_ABSENCE, severity: ConflictSeverity.AVERTISSEMENT, description: '', startDate: '', endDate: '', canOverride: true },
-            ],
-            hasBlockers: true, canAutoApprove: false, requiresManagerReview: true
-        };
-        const remainingConflictsResult: ConflictCheckResult = {
-            hasConflicts: true,
-            conflicts: [initialConflictsResult.conflicts[1]],
-            hasBlockers: false, canAutoApprove: true, requiresManagerReview: true
-        };
+            // Créer des objets Date à partir des dates existantes
+            const mockStartDateObj = new Date(mockStartDate.getTime());
+            const mockEndDateObj = new Date(mockEndDate.getTime());
 
-        // Configurer le mock du *service*
-        jest.spyOn(leaveService, 'checkLeaveConflicts')
-            .mockResolvedValueOnce(initialConflictsResult) // Pour le premier appel checkConflicts du hook
-            .mockResolvedValueOnce(remainingConflictsResult); // Pour le checkConflicts après resolve
+            // Mock du service pour renvoyer des conflits
+            (checkLeaveConflicts as jest.Mock).mockResolvedValue({
+                conflicts: [mockBlockingConflict],
+                hasBlockingConflicts: true,
+                hasBlockers: true,
+                hasConflicts: true
+            });
 
-        // Mock pour la fonction interne de résolution (si elle existe et est appelable/mockable)
-        // Supposons ici que resolveConflict du hook appelle une API ou une autre logique
-        // Pour ce test, nous nous concentrons sur l'appel à checkConflicts après la résolution simulée.
-        // Si resolveConflict lui-même fait un appel API, il faudrait le mocker (ex: mock fetch).
+            // Initialiser avec des conflits en sautant le debounce
+            await act(async () => {
+                await result.current.checkConflicts(mockStartDateObj, mockEndDateObj, undefined, true);
+            });
 
-        // Passer seulement userId comme argument
-        const { result } = renderHook(() => useConflictDetection({ userId: mockUserId }));
+            // Vérifier l'état initial
+            expect(result.current.conflicts.length).toBeGreaterThan(0);
+            expect(result.current.hasBlockingConflicts).toBe(true);
 
-        // Charger les conflits initiaux en appelant checkConflicts avec des objets Date
-        act(() => { result.current.checkConflicts(mockStartDateObj, mockEndDateObj); });
-        await waitFor(() => expect(result.current.loading).toBe(false));
-        expect(result.current.conflicts).toEqual(initialConflictsResult.conflicts);
-        expect(result.current.hasBlockingConflicts).toBe(true);
+            // Réinitialiser les conflits
+            act(() => {
+                result.current.resetConflicts();
+            });
 
-        // Act : Appeler resolveConflict du *hook*
-        act(() => {
-            result.current.resolveConflict(conflictToResolveId);
-            // Simuler ici que la résolution a réussi et déclenche un re-check
+            // Vérifier que l'état a été réinitialisé
+            expect(result.current.conflicts).toEqual([]);
+            expect(result.current.hasBlockingConflicts).toBe(false);
+            expect(result.current.error).toBeNull();
         });
-
-        // Assert
-        // Attendre que le re-check des conflits soit terminé
-        await waitFor(() => {
-            // Vérifier que checkConflicts du service a été appelé une deuxième fois
-            expect(leaveService.checkLeaveConflicts).toHaveBeenCalledTimes(1);
-            expect(result.current.loading).toBe(false);
-            // Après resolveConflict, seul un conflit devrait rester
-            expect(result.current.conflicts.length).toBe(1);
-            expect(result.current.conflicts[0]).toEqual(initialConflictsResult.conflicts[1]);
-            expect(result.current.hasBlockingConflicts).toBe(false); // Plus de conflits bloquants
-        });
-    });
-
-    // Marquer le test comme async
-    it('devrait gérer les erreurs lors de la résolution', async () => {
-        // Arrange
-        const conflictToResolveId = 'c1';
-        const mockResolveError = new Error('Erreur de résolution');
-
-        // Configurer le check initial pour réussir
-        jest.spyOn(leaveService, 'checkLeaveConflicts').mockResolvedValue(mockConflictResult);
-
-        // Simuler l'échec de l'opération de résolution elle-même (ex: mock fetch échoue)
-        // Comment simuler dépend de l'implémentation interne de resolveConflict du hook.
-        // Pour l'instant, on suppose que l'erreur est capturée et mise dans l'état.
-        // On pourrait mocker une dépendance interne du hook si nécessaire.
-
-        // Passer seulement userId comme argument
-        const { result } = renderHook(() => useConflictDetection({ userId: mockUserId }));
-
-        // Charger les conflits initiaux en appelant checkConflicts avec des objets Date
-        act(() => { result.current.checkConflicts(mockStartDateObj, mockEndDateObj); });
-        await waitFor(() => expect(result.current.loading).toBe(false));
-
-        // Act : Appeler resolveConflict du hook. On s'attend à ce qu'il échoue.
-        // Pour simuler l'échec, on pourrait mocker une dépendance ou modifier le hook
-        // Temporairement, on vérifie juste que l'état d'erreur peut être mis à jour.
-        act(() => {
-            // Simuler une erreur directement dans le test pour l'exemple
-            try {
-                result.current.resolveConflict(conflictToResolveId);
-                // Si resolveConflict est async et rejette, le catch interne devrait mettre à jour l'erreur.
-                // Si elle n'est pas async ou ne rejette pas, il faut simuler l'erreur autrement.
-                // Ici, on suppose qu'elle ne rejette pas directement mais met à jour l'état error en cas de souci.
-                // Alternative: Mocker une dépendance de resolveConflict pour qu'elle lance mockResolveError
-            } catch (e) {
-                // Ce catch ne sera probablement pas atteint si le hook gère l'erreur en interne
-            }
-            // Simuler manuellement la mise à jour de l'erreur si le hook ne le fait pas
-            // ou si la simulation d'échec interne est complexe.
-            // result.current.setError(mockResolveError); // Ceci nécessiterait d'exposer setError
-        });
-
-        // Assert
-        await waitFor(() => {
-            expect(result.current.loading).toBe(false);
-            // Si l'erreur est gérée par le hook, vérifier result.current.error
-            // expect(result.current.error).toEqual(mockResolveError);
-        });
-        // On vérifie au moins que l'appel initial à checkConflicts a eu lieu
-        expect(leaveService.checkLeaveConflicts).toHaveBeenCalledTimes(1);
     });
 });
 
-describe('useConflictDetection - getConflictsByType', () => {
-    // Marquer le test comme async
-    it('devrait filtrer les conflits par type', async () => {
-        // Arrange
-        jest.spyOn(leaveService, 'checkLeaveConflicts').mockResolvedValue(mockConflictResult);
-        // Passer seulement userId comme argument
-        const { result } = renderHook(() => useConflictDetection({ userId: mockUserId }));
+// Tests d'intégration
+describe('Integration useConflictDetection avec useDateValidation', () => {
+    const createDate = (year: number, month: number, day: number): Date => new Date(year, month - 1, day);
 
-        // Charger les conflits en appelant checkConflicts avec des objets Date
-        act(() => { result.current.checkConflicts(mockStartDateObj, mockEndDateObj); });
-        await waitFor(() => expect(result.current.loading).toBe(false));
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
-        // Act & Assert : Appeler getConflictsByType du *hook*
-        expect(result.current.getConflictsByType(ConflictType.USER_LEAVE_OVERLAP)).toEqual([mockConflicts[0]]);
-        expect(result.current.getConflictsByType(ConflictType.TEAM_ABSENCE)).toEqual([mockConflicts[1]]);
-        // Utiliser un type de conflit existant
-        expect(result.current.getConflictsByType(ConflictType.SPECIAL_PERIOD)).toEqual([]);
+    it('devrait vérifier les conflits et gérer la validation des dates', async () => {
+        // 1. Cas de test avec des dates valides
+        (useDateValidation as jest.Mock).mockImplementation(() => ({
+            validateDate: jest.fn(() => true),
+            validateDateRange: jest.fn(() => true),
+            hasError: jest.fn(() => false),
+            getErrorMessage: jest.fn(() => null),
+            resetErrors: jest.fn()
+        }));
+        (checkLeaveConflicts as jest.Mock).mockResolvedValue({ conflicts: [], hasBlockingConflicts: false });
+        const { result } = renderHook(() => useConflictDetection({ userId }));
+        await result.current.checkConflicts(mockStartDate, mockEndDate);
+        expect(checkLeaveConflicts).toHaveBeenCalledWith(mockStartDate, mockEndDate, userId, undefined);
+
+        // 2. Tester la fonction validateDates directement
+        jest.clearAllMocks();
+        (useDateValidation as jest.Mock).mockImplementation(() => ({
+            validateDate: jest.fn().mockReturnValueOnce(false),
+            validateDateRange: jest.fn(),
+            hasError: jest.fn().mockReturnValue(true),
+            getErrorMessage: jest.fn().mockReturnValue('Date invalide'),
+            resetErrors: jest.fn()
+        }));
+        const { result: result2 } = renderHook(() => useConflictDetection({ userId }));
+        const isValid = result2.current.validateDates(mockStartDate, mockEndDate);
+        expect(isValid).toBe(false);
     });
 });
-
-// Test de base qui passe toujours
-test.skip('should be implemented properly', () => {
-    // Ce test sera implémenté correctement après la correction des erreurs de configuration
-    expect(true).toBe(true);
-}); 

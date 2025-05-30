@@ -14,7 +14,12 @@ import {
 } from '../types/quota';
 import { LeaveType, LeaveBalance } from '../types/leave';
 import { fetchLeaveBalance } from './leaveService';
-import { format, isWithinInterval, differenceInDays } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
+
+// Custom implementation of isWithinInterval for compatibility
+const isWithinInterval = (date: Date, interval: { start: Date; end: Date }): boolean => {
+    return date >= interval.start && date <= interval.end;
+};
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -478,11 +483,15 @@ export const simulateQuotaTransfer = async (
     let applicableRule: QuotaTransferRule | undefined;
 
     if (rules.length > 0) {
-        applicableRule = rules.find(rule =>
-            rule.sourceType === request.sourceType &&
-            rule.targetType === request.targetType &&
-            isTransferRuleApplicable(rule)
-        );
+        applicableRule = rules.find(rule => {
+            // Support both fromType/toType and sourceType/targetType
+            const ruleFromType = (rule as any).fromType || rule.sourceType;
+            const ruleToType = (rule as any).toType || rule.targetType;
+            
+            return ruleFromType === request.sourceType &&
+                   ruleToType === request.targetType &&
+                   isTransferRuleApplicable(rule);
+        });
     }
 
     // Si aucune règle trouvée, utiliser un taux de conversion par défaut de 1:1
@@ -577,16 +586,16 @@ export const simulateCarryOverCalculation = async (
  * Fonction utilitaire pour obtenir le quota d'un type de congé
  */
 const getQuotaForType = (balance: LeaveBalance, type: LeaveType) => {
-    const details = balance.detailsByType[type] || { used: 0, pending: 0 };
+    const details = balance.balances[type] || { initial: 0, used: 0, pending: 0, remaining: 0, acquired: 0 };
     let total = 0;
 
     // Attribuer les quotas par type
     switch (type) {
         case LeaveType.ANNUAL:
-            total = balance.initialAllowance;
+            total = details.initial;
             break;
         case LeaveType.RECOVERY:
-            total = balance.additionalAllowance;
+            total = details.initial;
             break;
         case LeaveType.TRAINING:
             total = 5; // Exemple: 5 jours de formation par an
@@ -600,6 +609,82 @@ const getQuotaForType = (balance: LeaveBalance, type: LeaveType) => {
     const remaining = Math.max(0, total - used - pending);
 
     return { total, used, pending, remaining };
+};
+
+/**
+ * Calcule le quota de congés pour un utilisateur et un type spécifique
+ * @param userId Identifiant de l'utilisateur
+ * @param leaveType Type de congé
+ * @returns Quota calculé
+ */
+export const calculateLeaveQuota = async (userId: string, leaveType: LeaveType): Promise<number> => {
+    try {
+        const balance = await fetchLeaveBalance(userId);
+        const quota = getQuotaForType(balance, leaveType);
+        return quota.total;
+    } catch (error) {
+        console.error('Erreur lors du calcul du quota:', error);
+        throw error;
+    }
+};
+
+/**
+ * Vérifie la disponibilité d'un quota pour une demande
+ * @param userId Identifiant de l'utilisateur
+ * @param leaveType Type de congé
+ * @param requestedDays Nombre de jours demandés
+ * @returns true si le quota est disponible
+ */
+export const checkQuotaAvailability = async (
+    userId: string, 
+    leaveType: LeaveType, 
+    requestedDays: number
+): Promise<boolean> => {
+    try {
+        const balance = await fetchLeaveBalance(userId);
+        const quota = getQuotaForType(balance, leaveType);
+        return quota.remaining >= requestedDays;
+    } catch (error) {
+        console.error('Erreur lors de la vérification de disponibilité:', error);
+        throw error;
+    }
+};
+
+/**
+ * Met à jour l'utilisation d'un quota
+ * @param userId Identifiant de l'utilisateur
+ * @param leaveType Type de congé
+ * @param usedDays Nombre de jours utilisés
+ * @returns Nouveau solde
+ */
+export const updateQuotaUsage = async (
+    userId: string, 
+    leaveType: LeaveType, 
+    usedDays: number
+): Promise<LeaveBalance> => {
+    try {
+        const response = await fetch(`${QUOTA_API_BASE_URL}/usage`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId,
+                leaveType,
+                usedDays
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => response.statusText);
+            throw new Error(`Erreur HTTP ${response.status} lors de la mise à jour du quota: ${errorData}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du quota:', error);
+        throw error;
+    }
 };
 
 /**
