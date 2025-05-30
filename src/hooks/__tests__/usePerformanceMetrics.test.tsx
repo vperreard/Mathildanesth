@@ -1,5 +1,9 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { usePerformanceMetrics, useAuthPerformanceMetrics, measureExecutionTime } from '../usePerformanceMetrics';
+import {
+  usePerformanceMetrics,
+  useAuthPerformanceMetrics,
+  measureExecutionTime,
+} from '../usePerformanceMetrics';
 import { renderWithProviders } from '@/test-utils/renderWithProviders';
 
 // Mock performance APIs
@@ -37,23 +41,21 @@ const consoleSpy = {
   error: jest.spyOn(console, 'error').mockImplementation(),
 };
 
-// Mock timers globally
-jest.useFakeTimers();
+// We'll use real timers and manual control of setTimeout
 
 describe('usePerformanceMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.clearAllTimers();
-    
+
     // Setup default mock returns
     mockPerformanceAPI.getEntriesByType.mockImplementation((type: string) => {
       if (type === 'navigation') return [mockNavigationTiming];
       if (type === 'paint') return mockPaintTiming;
       return [];
     });
-    
+
     mockPerformanceAPI.now.mockReturnValue(1500);
-    
+
     // Mock document.readyState
     Object.defineProperty(document, 'readyState', {
       value: 'complete',
@@ -63,8 +65,6 @@ describe('usePerformanceMetrics', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
   });
 
   describe('Basic functionality', () => {
@@ -79,7 +79,7 @@ describe('usePerformanceMetrics', () => {
     it('should measure performance metrics when document is complete', async () => {
       Object.defineProperty(document, 'readyState', {
         writable: true,
-        value: 'complete'
+        value: 'complete',
       });
 
       const { result } = renderHook(() => usePerformanceMetrics('TestPage'));
@@ -88,7 +88,7 @@ describe('usePerformanceMetrics', () => {
       act(() => {
         jest.advanceTimersByTime(200);
       });
-      
+
       // Wait for state updates
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -109,7 +109,7 @@ describe('usePerformanceMetrics', () => {
       });
 
       const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
-      
+
       renderHook(() => usePerformanceMetrics());
 
       expect(addEventListenerSpy).toHaveBeenCalledWith('load', expect.any(Function));
@@ -128,7 +128,7 @@ describe('usePerformanceMetrics', () => {
       act(() => {
         jest.advanceTimersByTime(200);
       });
-      
+
       // Wait for state updates
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -154,7 +154,7 @@ describe('usePerformanceMetrics', () => {
       act(() => {
         jest.advanceTimersByTime(200);
       });
-      
+
       // Wait for state updates
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -166,7 +166,7 @@ describe('usePerformanceMetrics', () => {
     it('should handle missing memory API', async () => {
       const performanceWithoutMemory = { ...mockPerformanceAPI };
       delete (performanceWithoutMemory as any).memory;
-      
+
       Object.defineProperty(window, 'performance', {
         value: performanceWithoutMemory,
         writable: true,
@@ -174,12 +174,16 @@ describe('usePerformanceMetrics', () => {
 
       const { result } = renderHook(() => usePerformanceMetrics());
 
-      // Advance timers to trigger the setTimeout
+      // Advance timers to trigger the setTimeout (100ms)
       act(() => {
-        jest.advanceTimersByTime(150);
+        jest.advanceTimersByTime(200);
       });
 
-      expect(result.current.isLoading).toBe(false);
+      // Wait for state updates
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
       expect(result.current.metrics?.memoryUsage).toBeUndefined();
     });
   });
@@ -193,12 +197,16 @@ describe('usePerformanceMetrics', () => {
         result.current.recordMetric('customMetric2', 456);
       });
 
-      // Advance timers to trigger the setTimeout
+      // Advance timers to trigger the setTimeout (100ms)
       act(() => {
-        jest.advanceTimersByTime(150);
+        jest.advanceTimersByTime(200);
       });
 
-      expect(result.current.isLoading).toBe(false);
+      // Wait for state updates
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
       // Custom metrics should be available in development logs
       expect(result.current.recordMetric).toBeDefined();
     });
@@ -237,12 +245,16 @@ describe('usePerformanceMetrics', () => {
     it('should log metrics in development mode with page name', async () => {
       const { result } = renderHook(() => usePerformanceMetrics('TestPage'));
 
-      // Advance timers to trigger the setTimeout
+      // Advance timers to trigger the setTimeout (100ms)
       act(() => {
-        jest.advanceTimersByTime(150);
+        jest.advanceTimersByTime(200);
       });
 
-      expect(result.current.isLoading).toBe(false);
+      // Wait for state updates
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
       expect(consoleSpy.group).toHaveBeenCalledWith('🚀 Performance Metrics - TestPage');
       expect(consoleSpy.log).toHaveBeenCalledWith('Load Time: 900.00ms');
       expect(consoleSpy.log).toHaveBeenCalledWith('Render Time: 400.00ms');
@@ -252,11 +264,16 @@ describe('usePerformanceMetrics', () => {
     });
 
     it('should log metrics without page name', async () => {
-      renderHook(() => usePerformanceMetrics());
+      const { result } = renderHook(() => usePerformanceMetrics());
 
-      // Advance timers to trigger the setTimeout
+      // Advance timers to trigger the setTimeout (100ms)
       act(() => {
-        jest.advanceTimersByTime(150);
+        jest.advanceTimersByTime(200);
+      });
+
+      // Wait for state updates
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
       });
 
       expect(consoleSpy.group).toHaveBeenCalledWith('🚀 Performance Metrics ');
@@ -289,9 +306,9 @@ describe('usePerformanceMetrics', () => {
   describe('Cleanup', () => {
     it('should remove event listeners on unmount', () => {
       const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
-      
+
       const { unmount } = renderHook(() => usePerformanceMetrics());
-      
+
       unmount();
 
       expect(removeEventListenerSpy).toHaveBeenCalledWith('load', expect.any(Function));
@@ -357,9 +374,9 @@ describe('measureExecutionTime', () => {
   it('should measure failed function execution', async () => {
     const testFunction = jest.fn().mockRejectedValue(new Error('Test error'));
 
-    await expect(
-      measureExecutionTime(testFunction, 'failingFunction')
-    ).rejects.toThrow('Test error');
+    await expect(measureExecutionTime(testFunction, 'failingFunction')).rejects.toThrow(
+      'Test error'
+    );
 
     expect(consoleSpy.error).toHaveBeenCalledWith(
       '❌ failingFunction failed after 500.00ms:',
