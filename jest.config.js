@@ -27,9 +27,14 @@ module.exports = {
         '^@/public/(.*)$': '<rootDir>/public/$1',
         '^@/core/(.*)$': '<rootDir>/src/core/$1',
         
-        // Mocks externes
+        // Mocks externes - CENTRALISÉS
         '^next/image$': '<rootDir>/__mocks__/nextImage.js',
         '^next/font/google$': '<rootDir>/__mocks__/nextFont.js',
+        '^next-auth/next$': '<rootDir>/__mocks__/next-auth.js',
+        '^next-auth$': '<rootDir>/__mocks__/next-auth.js',
+        '^socket\\.io-client$': '<rootDir>/__mocks__/socket.io-client.js',
+        '^@tanstack/react-query$': '<rootDir>/__mocks__/@tanstack/react-query.js',
+        '^@vercel/analytics/react$': '<rootDir>/__mocks__/@vercel/analytics/react.js',
         '^jose$': '<rootDir>/__mocks__/jose.js',
         '^uuid$': '<rootDir>/__mocks__/uuid.js',
         
@@ -42,7 +47,7 @@ module.exports = {
         '^@mswjs/interceptors/ClientRequest$': require.resolve('@mswjs/interceptors/ClientRequest'),
     },
     transform: {
-        // TypeScript avec ts-jest
+        // TypeScript avec ts-jest - Configuration optimisée pour éviter punycode warnings
         '^.+\\.(ts|tsx)$': ['ts-jest', { 
             tsconfig: 'tsconfig.jest.json'
         }],
@@ -59,7 +64,7 @@ module.exports = {
     },
     
     transformIgnorePatterns: [
-        'node_modules/(?!(msw|@mswjs|uuid|react-day-picker|date-fns|@radix-ui|@fullcalendar|react-beautiful-dnd|lucide-react|@hookform|@tanstack|nanoid|jose))'
+        'node_modules/(?!(msw|@mswjs|uuid|react-day-picker|date-fns|@radix-ui|@fullcalendar|react-beautiful-dnd|lucide-react|@hookform|@tanstack|nanoid|jose|next-auth|@panva|preact|@vercel))'
     ],
     
     testPathIgnorePatterns: [
@@ -86,6 +91,22 @@ module.exports = {
     forceExit: true,
     detectOpenHandles: false,
     workerIdleMemoryLimit: '512MB',
+    
+    // Supprimer warnings spécifiques node - config fusionnée
+    testEnvironmentOptions: {
+        url: 'http://localhost',
+        beforeParse(window) {
+            // Supprimer les warnings punycode et autres dépréciations Node.js
+            const originalWarn = console.warn;
+            console.warn = (...args) => {
+                if (args[0] && typeof args[0] === 'string' && 
+                    (args[0].includes('punycode') || args[0].includes('DEP0040'))) {
+                    return;
+                }
+                originalWarn.apply(console, args);
+            };
+        }
+    },
     
     reporters: [
         'default',
@@ -130,10 +151,15 @@ module.exports = {
         }
     },
 
-    // Performance et stabilité
+    // Performance et stabilité - OPTIMISÉ
     slowTestThreshold: 10,
     bail: false,
     clearMocks: true,
     restoreMocks: true,
     resetMocks: false,
+    
+    // Éviter les warnings et erreurs
+    globals: {
+        'process.env.NODE_OPTIONS': '--no-deprecation --no-warnings',
+    },
 }; 

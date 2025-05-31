@@ -187,49 +187,11 @@ jest.mock('lucide-react', () => {
   });
 });
 
-// Socket.IO Client
-jest.mock('socket.io-client', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    on: jest.fn(),
-    off: jest.fn(),
-    emit: jest.fn(),
-    connect: jest.fn(),
-    disconnect: jest.fn(),
-    connected: false,
-    id: 'test-socket-id',
-  })),
-  io: jest.fn(() => ({
-    on: jest.fn(),
-    off: jest.fn(),
-    emit: jest.fn(),
-    connect: jest.fn(),
-    disconnect: jest.fn(),
-    connected: false,
-    id: 'test-socket-id',
-  })),
-}));
+// Socket.IO Client - DÉPLACÉ VERS __mocks__/socket.io-client.js
+// Mock géré par moduleNameMapper dans jest.config.js
 
-// Mock React Query
-jest.mock('@tanstack/react-query', () => ({
-  useQuery: jest.fn(() => ({
-    data: null,
-    isLoading: false,
-    error: null,
-    refetch: jest.fn(),
-  })),
-  useMutation: jest.fn(() => ({
-    mutate: jest.fn(),
-    isLoading: false,
-    error: null,
-  })),
-  QueryClient: jest.fn(() => ({
-    clear: jest.fn(),
-    setQueryData: jest.fn(),
-    getQueryData: jest.fn(),
-  })),
-  QueryClientProvider: ({ children }) => children,
-}));
+// React Query - DÉPLACÉ VERS __mocks__/@tanstack/react-query.js
+// Mock géré par moduleNameMapper dans jest.config.js
 
 // Mock D3.js et d3-sankey
 jest.mock('d3', () => {
@@ -721,20 +683,85 @@ try {
 
 // ===== MOCKS ENVIRONMENT =====
 
+// ===== FIX USER-EVENT CLIPBOARD ISSUE =====
+// Fix pour l'erreur "Cannot redefine property: clipboard" dans userEvent.setup()
+if (typeof window !== 'undefined' && window.navigator && window.navigator.clipboard) {
+  // Supprimer l'objet clipboard existant pour permettre à userEvent de le redéfinir
+  delete window.navigator.clipboard;
+}
+
 // Mock window et DOM globals pour éviter les erreurs côté serveur
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(), // Deprecated
-    removeListener: jest.fn(), // Deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(), // Deprecated
+      removeListener: jest.fn(), // Deprecated
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  });
+  
+  // Mock navigator pour window existant - SANS clipboard (userEvent le gérera)
+  if (!window.navigator) {
+    Object.defineProperty(window, 'navigator', {
+      writable: true,
+      configurable: true,
+      value: {
+        userAgent: 'Mozilla/5.0 (Test Environment)',
+        language: 'en-US',
+        // PAS de clipboard ici - userEvent.setup() le créera
+      },
+    });
+  }
+  
+  // Mock location pour window existant
+  if (!window.location) {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: {
+        origin: 'http://localhost:3000',
+        href: 'http://localhost:3000',
+        pathname: '/',
+        search: '',
+        hash: '',
+      },
+    });
+  }
+} else {
+  // Mock pour environnement Node.js
+  global.window = {
+    matchMedia: jest.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+    navigator: {
+      userAgent: 'Mozilla/5.0 (Test Environment)',
+      language: 'en-US',
+      clipboard: {
+        writeText: jest.fn().mockResolvedValue(undefined),
+        readText: jest.fn().mockResolvedValue(''),
+      },
+    },
+    location: {
+      origin: 'http://localhost:3000',
+      href: 'http://localhost:3000',
+      pathname: '/',
+      search: '',
+      hash: '',
+    },
+  };
+}
 
 // Mock IntersectionObserver
 global.IntersectionObserver = jest.fn().mockImplementation(() => ({
@@ -759,6 +786,14 @@ if (typeof window !== 'undefined') {
     getEntriesByName: jest.fn(() => []),
     getEntriesByType: jest.fn(() => []),
   };
+} else {
+  global.performance = {
+    mark: jest.fn(),
+    measure: jest.fn(),
+    now: jest.fn(() => Date.now()),
+    getEntriesByName: jest.fn(() => []),
+    getEntriesByType: jest.fn(() => []),
+  };
 }
 
 // Mock localStorage et sessionStorage
@@ -772,16 +807,27 @@ const createStorage = () => {
   };
 };
 
-Object.defineProperty(window, 'localStorage', { value: createStorage() });
-Object.defineProperty(window, 'sessionStorage', { value: createStorage() });
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'localStorage', { value: createStorage() });
+  Object.defineProperty(window, 'sessionStorage', { value: createStorage() });
+} else {
+  global.localStorage = createStorage();
+  global.sessionStorage = createStorage();
+  if (!global.window) global.window = {};
+  global.window.localStorage = createStorage();
+  global.window.sessionStorage = createStorage();
+}
 
 // ===== SETUP GLOBAL =====
 
 // Configuration des tests
 jest.setTimeout(10000);
 
-// Suppression des warnings non pertinents
+// Suppression des warnings non pertinents - VERSION ÉTENDUE
 const originalConsoleError = console.error;
+const originalConsoleWarn = console.warn;
+
+// Supprimer les erreurs de test non critiques
 console.error = (...args) => {
   if (
     typeof args[0] === 'string' &&
@@ -794,11 +840,26 @@ console.error = (...args) => {
      args[0].includes('Could not load canvas') ||
      args[0].includes('Warning: React does not recognize') ||
      args[0].includes('forwardRef render functions') ||
-     args[0].includes('Warning: React.createFactory'))
+     args[0].includes('Warning: React.createFactory') ||
+     args[0].includes('punycode') ||
+     args[0].includes('DEP0040'))
   ) {
     return;
   }
   originalConsoleError(...args);
+};
+
+// Supprimer les avertissements punycode et autres dépréciations
+console.warn = (...args) => {
+  if (
+    typeof args[0] === 'string' &&
+    (args[0].includes('punycode') ||
+     args[0].includes('DEP0040') ||
+     args[0].includes('DeprecationWarning'))
+  ) {
+    return;
+  }
+  originalConsoleWarn(...args);
 };
 
 // Enums globaux pour éviter les erreurs d'import

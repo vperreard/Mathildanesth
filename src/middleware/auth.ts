@@ -1,14 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { UserService } from '@/services/userService';
-import { UserRole } from '@/models/User';
+import type { Role } from '@prisma/client';
 
 interface AuthRequest extends Request {
     user?: {
         id: number;
-        role: UserRole;
+        role: Role;
     };
 }
+
+// Export du type Role depuis Prisma au lieu de Sequelize
+export type { Role as UserRole } from '@prisma/client';
 
 export const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
@@ -20,12 +23,12 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as {
             id: number;
-            role: UserRole;
+            role: Role;
         };
 
-        const user = await UserService.findById(decoded.id);
+        const user = await UserService.findUserById(decoded.id);
 
-        if (!user || !user.isActive) {
+        if (!user || !user.actif) {
             throw new Error();
         }
 
@@ -40,7 +43,7 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
     }
 };
 
-export const requireRole = (roles: UserRole[]) => {
+export const requireRole = (roles: Role[]) => {
     return (req: AuthRequest, res: Response, next: NextFunction) => {
         if (!req.user) {
             return res.status(401).json({ error: 'Veuillez vous authentifier' });

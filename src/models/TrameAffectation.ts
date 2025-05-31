@@ -1,70 +1,17 @@
-import { Model, DataTypes } from 'sequelize';
-import sequelize from '@/lib/database';
+/**
+ * TrameAffectation Model - Migration vers Prisma (Phase 3)
+ * @deprecated Utilisez TrameAffectationPrisma à la place
+ */
 
-export type PeriodeType = 'HEBDOMADAIRE' | 'BI_HEBDOMADAIRE' | 'MENSUEL';
+// Import du nouveau modèle Prisma
+export { TrameAffectationPrisma as TrameAffectation, PeriodeType, TrameAffectationAttributes } from './TrameAffectationPrisma';
+export { default } from './TrameAffectationPrisma';
 
-export interface TrameAffectationAttributes {
-    id: string;
-    userId: number;
-    periodeType: PeriodeType;
-    dateDebut: Date;
-    dateFin: Date;
-    motif: string;
-    isRecurrent: boolean;
-    createdAt?: Date;
-    updatedAt?: Date;
-}
-
-class TrameAffectation extends Model<TrameAffectationAttributes> implements TrameAffectationAttributes {
-    public id!: string;
-    public userId!: number;
-    public periodeType!: PeriodeType;
-    public dateDebut!: Date;
-    public dateFin!: Date;
-    public motif!: string;
-    public isRecurrent!: boolean;
-    public readonly createdAt!: Date;
-    public readonly updatedAt!: Date;
-}
-
-TrameAffectation.init(
-    {
-        id: {
-            type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4,
-            primaryKey: true,
-        },
-        userId: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-        periodeType: {
-            type: DataTypes.ENUM('HEBDOMADAIRE', 'BI_HEBDOMADAIRE', 'MENSUEL'),
-            allowNull: false,
-        },
-        dateDebut: {
-            type: DataTypes.DATE,
-            allowNull: false,
-        },
-        dateFin: {
-            type: DataTypes.DATE,
-            allowNull: false,
-        },
-        motif: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        isRecurrent: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false,
-        },
-    },
-    {
-        sequelize,
-        modelName: 'TrameAffectation',
-        tableName: 'trames_affectation',
-        timestamps: true,
-    }
-);
-
-export default TrameAffectation; 
+// Avertissement de dépréciation
+if (process.env.NODE_ENV === 'development') {
+    console.warn(
+        '⚠️  DÉPRÉCIATION: src/models/TrameAffectation.ts utilise Sequelize (obsolète).\n' +
+        '   → Utilisez TrameAffectationPrisma à la place.\n' +
+        '   → Ce fichier sera supprimé dans une version future.'
+    );
+} 

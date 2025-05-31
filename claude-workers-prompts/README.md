@@ -2,17 +2,11 @@
 
 ## 🚀 WORKERS DISPONIBLES
 
-### 1. WORKER-LEAVES
-- **Focus**: Leaves Module Tests
+### 1. WORKER-HOOKS-CORE
+- **Focus**: Core Hooks (Non-Auth)
 - **Priorité**: HIGH
-- **Temps**: 20-25 min
-- **Prompt**: [worker-leaves-prompt.md](./worker-leaves-prompt.md)
-
-### 2. WORKER-HOOKS
-- **Focus**: Custom Hooks Tests
-- **Priorité**: MEDIUM
 - **Temps**: 10-15 min
-- **Prompt**: [worker-hooks-prompt.md](./worker-hooks-prompt.md)
+- **Prompt**: [worker-hooks-core-prompt.md](./worker-hooks-core-prompt.md)
 
 ## 📋 WORKFLOW RECOMMANDÉ
 

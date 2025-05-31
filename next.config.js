@@ -10,8 +10,8 @@ const nextConfig = {
     experimental: {
         optimizeCss: true,
         optimizePackageImports: [
-            'lucide-react', 
-            'date-fns', 
+            'lucide-react',
+            'date-fns',
             '@radix-ui/react-*',
             '@ant-design/icons',
             '@headlessui/react',
@@ -97,8 +97,7 @@ const nextConfig = {
             };
         }
 
-        // Tree shaking improvements
-        config.optimization.usedExports = true;
+        // Tree shaking improvements - REMOVED usedExports as it conflicts with Next.js 15 cache
         config.optimization.providedExports = true;
         config.optimization.sideEffects = false;
 

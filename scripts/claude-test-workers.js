@@ -25,41 +25,95 @@ function log(message, color = 'reset') {
 class ClaudeTestOrchestrator {
     constructor() {
         this.workersConfig = {
+            // BATCH 1 - CRITIQUE (Parallèle)
             'worker-auth': {
                 focus: 'Authentication & Security Tests',
                 patterns: ['**/auth/**/*.test.*', '**/hooks/**/useAuth*', '**/lib/auth*'],
                 priority: 'CRITICAL',
-                estimatedTime: '15-20 min'
+                estimatedTime: '15-20 min',
+                batch: 1
             },
-            'worker-leaves': {
-                focus: 'Leaves Module Tests',
-                patterns: ['**/leaves/**/*.test.*', '**/modules/leaves/**'],
+            'worker-leaves-core': {
+                focus: 'Leaves Core Services',
+                patterns: ['**/leaves/services/**/*.test.*'],
+                priority: 'CRITICAL', 
+                estimatedTime: '20-25 min',
+                batch: 1
+            },
+            'worker-leaves-hooks': {
+                focus: 'Leaves Hooks & Components',
+                patterns: ['**/leaves/hooks/**/*.test.*', '**/leaves/components/**/*.test.*'],
+                priority: 'CRITICAL',
+                estimatedTime: '15-20 min', 
+                batch: 1
+            },
+            'worker-services-core': {
+                focus: 'Core Services (Primary)',
+                patterns: ['**/services/**/*Service.test.*', '**/services/**/audit*', '**/services/**/logger*'],
+                priority: 'CRITICAL',
+                estimatedTime: '15-20 min',
+                batch: 1
+            },
+            
+            // BATCH 2 - HAUTE (Parallèle après Batch 1)
+            'worker-services-business': {
+                focus: 'Business Services',
+                patterns: ['**/services/**/planning*', '**/services/**/validation*', '**/services/**/business*'],
                 priority: 'HIGH',
-                estimatedTime: '20-25 min'
+                estimatedTime: '15-20 min',
+                batch: 2
             },
-            'worker-services': {
-                focus: 'Core Services Tests',
-                patterns: ['**/services/**/*.test.*', '!**/*comprehensive*'],
+            'worker-components-ui': {
+                focus: 'UI Components Core',
+                patterns: ['**/components/**/*.test.*', '!**/components/**/bloc*', '!**/components/**/planning*'],
                 priority: 'HIGH',
-                estimatedTime: '15-20 min'
+                estimatedTime: '10-15 min',
+                batch: 2
             },
-            'worker-components': {
-                focus: 'UI Components Tests',
-                patterns: ['**/components/**/*.test.*'],
-                priority: 'MEDIUM',
-                estimatedTime: '10-15 min'
+            'worker-components-planning': {
+                focus: 'Planning Components',
+                patterns: ['**/components/**/planning*', '**/components/**/bloc*', '**/components/**/calendar*'],
+                priority: 'HIGH',
+                estimatedTime: '15-20 min',
+                batch: 2
             },
-            'worker-hooks': {
-                focus: 'Custom Hooks Tests',
-                patterns: ['**/hooks/**/*.test.*', '!**/useAuth*'],
+            'worker-hooks-core': {
+                focus: 'Core Hooks (Non-Auth)',
+                patterns: ['**/hooks/**/*.test.*', '!**/useAuth*', '!**/leaves/**'],
+                priority: 'HIGH',
+                estimatedTime: '10-15 min',
+                batch: 2
+            },
+            
+            // BATCH 3 - MOYENNE (Nettoyage)
+            'worker-utils': {
+                focus: 'Utils & Helpers',
+                patterns: ['**/utils/**/*.test.*', '**/lib/**/*.test.*', '!**/auth/**'],
                 priority: 'MEDIUM',
-                estimatedTime: '10-15 min'
+                estimatedTime: '10-15 min',
+                batch: 3
+            },
+            'worker-types': {
+                focus: 'Types & Validation',
+                patterns: ['**/types/**/*.test.*', '**/validation/**/*.test.*'],
+                priority: 'MEDIUM',
+                estimatedTime: '5-10 min',
+                batch: 3
             },
             'worker-integration': {
                 focus: 'Integration & E2E Tests',
                 patterns: ['**/integration/**', '**/e2e/**', '**/*.integration.*'],
                 priority: 'LOW',
-                estimatedTime: '25-30 min'
+                estimatedTime: '25-30 min',
+                batch: 3
+            },
+            'worker-cleanup': {
+                focus: 'Miscellaneous & Edge Cases',
+                patterns: ['**/*.test.*'],
+                priority: 'LOW',
+                estimatedTime: '15-20 min',
+                batch: 3,
+                isCleanup: true
             }
         };
     }
@@ -364,23 +418,43 @@ Bon courage aux workers! 🤖⚡`;
     }
 
     generateMissionSummary(analysis, categorized) {
-        log('\n🎯 MISSION CLAUDE WORKERS - RÉSUMÉ', 'magenta');
-        log('═══════════════════════════════════════', 'magenta');
+        log('\n🎯 MISSION CLAUDE WORKERS - RÉSUMÉ INDUSTRIEL', 'magenta');
+        log('═══════════════════════════════════════════════', 'magenta');
         
         log(`📊 Tests en échec: ${analysis.totalFailing}`, 'red');
         
+        // Organiser par batches
+        const batches = {};
         Object.entries(categorized).forEach(([workerName, config]) => {
             if (config.files.length > 0) {
+                const batch = config.batch || 1;
+                if (!batches[batch]) batches[batch] = [];
+                batches[batch].push({workerName, config});
+            }
+        });
+
+        // Afficher par batches
+        Object.keys(batches).sort().forEach(batch => {
+            log(`\n🔄 BATCH ${batch} (Parallèle - ${batches[batch].length} workers)`, 'cyan');
+            
+            batches[batch].forEach(({workerName, config}) => {
                 const priority = config.priority === 'CRITICAL' ? '🚨' : 
                                config.priority === 'HIGH' ? '🔥' : 
                                config.priority === 'MEDIUM' ? '⚡' : '📝';
                 
-                log(`${priority} ${workerName}: ${config.files.length} fichiers (${config.estimatedTime})`, 'yellow');
-            }
+                log(`   ${priority} ${workerName}: ${config.files.length} fichiers (${config.estimatedTime})`, 'yellow');
+            });
         });
 
-        log('\n🚀 Prompts générés dans ./claude-workers-prompts/', 'green');
-        log('📋 Ouvrir README.md pour les instructions détaillées', 'blue');
+        // Calcul timeline
+        const maxTimePerBatch = Math.max(...Object.values(batches).map(batch => 
+            Math.max(...batch.map(w => parseInt(w.config.estimatedTime.split('-')[1]) || 20))
+        ));
+        const totalTime = Object.keys(batches).length * maxTimePerBatch;
+
+        log(`\n⏱️  TIMELINE ESTIMÉE: ${totalTime} minutes (${Math.ceil(totalTime/60)}h) avec parallélisation`, 'green');
+        log(`🚀 Prompts générés dans ./claude-workers-prompts/`, 'green');
+        log(`📋 Ouvrir README.md pour workflow par batches`, 'blue');
     }
 
     run() {

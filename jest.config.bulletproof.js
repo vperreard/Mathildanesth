@@ -2,6 +2,18 @@
 module.exports = {
     rootDir: '.',
     testEnvironment: 'jsdom',
+    testEnvironmentOptions: {
+        url: 'http://localhost:3000',
+        beforeLoad: (window) => {
+            // Assurer que document.addEventListener existe
+            if (!window.document.addEventListener) {
+                window.document.addEventListener = () => {};
+            }
+            if (!window.document.removeEventListener) {
+                window.document.removeEventListener = () => {};
+            }
+        }
+    },
     setupFiles: ['<rootDir>/jest.polyfills.js'],
     setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
     

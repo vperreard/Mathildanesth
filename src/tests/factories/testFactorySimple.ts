@@ -19,6 +19,7 @@ export class TestFactory {
       status: overrides.status || 'PENDING',
       startDate: overrides.startDate || new Date('2024-06-01'),
       endDate: overrides.endDate || new Date('2024-06-05'),
+      countedDays: overrides.countedDays || 5,
       reason: overrides.reason || 'Congés annuels',
       comment: overrides.comment || null,
       approvedBy: overrides.approvedBy || null,
@@ -29,6 +30,13 @@ export class TestFactory {
       updatedAt: overrides.updatedAt || new Date(),
       ...overrides,
     }),
+
+    createForUser: (userId: number, overrides: any = {}) => {
+      return TestFactory.Leave.create({
+        userId,
+        ...overrides,
+      });
+    },
 
     createBatch: (count: number, userId?: number, overrides: any = {}) => {
       return Array.from({ length: count }, (_, i) =>

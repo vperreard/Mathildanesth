@@ -1,169 +1,222 @@
-import User, { UserAttributes, UserRole } from '@/models/User';
-import { Op } from 'sequelize';
-import { logError } from './errorLoggingService';
-import { ErrorSeverity, ErrorDetails } from '@/hooks/useErrorHandler';
+/**
+ * Service Utilisateur - Migration vers Prisma (Phase 3)
+ * Remplace l'ancien service Sequelize par la version Prisma optimisée
+ */
 
-const buildUserServiceErrorDetails = (error: any, context?: Record<string, any>): Omit<ErrorDetails, 'timestamp' | 'retry'> => {
-    const isSequelizeError = error.name?.startsWith('Sequelize');
-    let message = 'Erreur inconnue dans le service utilisateur.';
-    let code = 'USER_SERVICE_ERROR';
-    const severity: ErrorSeverity = 'error';
+// Import du nouveau service Prisma
+import {
+    UserServicePrisma,
+    UserWithProfile,
+    CreateUserInput,
+    UpdateUserInput,
+    UserSearchFilters,
+    cleanupPrisma
+} from './userService-prisma';
 
-    if (error instanceof Error) {
-        message = error.message;
-    }
-    if (isSequelizeError) {
-        code = error.name;
-    }
+// Import types séparément pour les re-exports
+import type {
+    UserWithProfile as PrismaUserWithProfile,
+    CreateUserInput as PrismaCreateUserInput,
+    UpdateUserInput as PrismaUpdateUserInput,
+    UserSearchFilters as PrismaUserSearchFilters
+} from './userService-prisma';
 
-    const errorContext = {
-        ...(isSequelizeError && { originalError: error.original?.message }),
-        ...context,
-    };
-
-    return {
-        message: message,
-        code: code,
-        severity: severity,
-        context: errorContext,
-    };
+// Types compatibles avec l'ancienne interface
+export type {
+    PrismaUserWithProfile as UserAttributes,
+    PrismaCreateUserInput,
+    PrismaUpdateUserInput,
+    PrismaUserSearchFilters,
+    UserWithProfile
 };
 
+/**
+ * Service Utilisateur Unifié - Wrapper vers Prisma
+ * Maintient la compatibilité avec l'ancienne interface Sequelize
+ */
 export class UserService {
-    static async create(userData: Omit<UserAttributes, 'createdAt' | 'updatedAt'> & { id?: number }) {
-        const operationKey = 'UserService.create';
-        try {
-            return await User.create(userData);
-        } catch (error) {
-            const errorDetails = buildUserServiceErrorDetails(error, { email: userData.email });
-            logError(operationKey, { ...errorDetails, timestamp: new Date() });
-            throw error;
-        }
+
+    /**
+     * Créer un nouvel utilisateur
+     */
+    static async createUser(userData: PrismaCreateUserInput): Promise<PrismaUserWithProfile> {
+        return UserServicePrisma.createUser(userData);
     }
 
-    static async findAll() {
-        const operationKey = 'UserService.findAll';
-        try {
-            return await User.findAll({
-                attributes: { exclude: ['password'] },
-                order: [['createdAt', 'DESC']],
-            });
-        } catch (error) {
-            const errorDetails = buildUserServiceErrorDetails(error);
-            logError(operationKey, { ...errorDetails, timestamp: new Date() });
-            throw error;
-        }
+    /**
+     * Trouver un utilisateur par ID
+     */
+    static async findUserById(userId: number): Promise<PrismaUserWithProfile | null> {
+        return UserServicePrisma.findUserById(userId);
     }
 
-    static async findById(id: number) {
-        const operationKey = 'UserService.findById';
-        try {
-            const user = await User.findByPk(id, {
-                attributes: { exclude: ['password'] },
-            });
-            if (!user) {
-                const notFoundError = new Error('Utilisateur non trouvé');
-                (notFoundError as any).code = 'USER_NOT_FOUND';
-                throw notFoundError;
+    /**
+     * Trouver un utilisateur par login
+     */
+    static async findUserByLogin(login: string) {
+        return UserServicePrisma.findUserByLogin(login);
+    }
+
+    /**
+     * Trouver un utilisateur par email
+     */
+    static async findUserByEmail(email: string) {
+        return UserServicePrisma.findUserByEmail(email);
+    }
+
+    /**
+     * Mettre à jour un utilisateur
+     */
+    static async updateUser(userId: number, userData: PrismaUpdateUserInput): Promise<PrismaUserWithProfile> {
+        return UserServicePrisma.updateUser(userId, userData);
+    }
+
+    /**
+     * Supprimer un utilisateur (soft delete)
+     */
+    static async deleteUser(userId: number): Promise<boolean> {
+        return UserServicePrisma.deleteUser(userId);
+    }
+
+    /**
+     * Supprimer définitivement un utilisateur
+     */
+    static async hardDeleteUser(userId: number): Promise<boolean> {
+        return UserServicePrisma.hardDeleteUser(userId);
+    }
+
+    /**
+     * Rechercher des utilisateurs avec filtres
+     */
+    static async searchUsers(filters: PrismaUserSearchFilters = {}) {
+        return UserServicePrisma.searchUsers(filters);
+    }
+
+    /**
+     * Lister tous les utilisateurs actifs
+     */
+    static async getAllActiveUsers(): Promise<PrismaUserWithProfile[]> {
+        return UserServicePrisma.getAllActiveUsers();
+    }
+
+    /**
+     * Vérifier le mot de passe d'un utilisateur
+     */
+    static async verifyPassword(user: any, candidatePassword: string): Promise<boolean> {
+        return UserServicePrisma.verifyPassword(user, candidatePassword);
+    }
+
+    /**
+     * Changer le mot de passe d'un utilisateur
+     */
+    static async changePassword(userId: number, newPassword: string): Promise<boolean> {
+        return UserServicePrisma.changePassword(userId, newPassword);
+    }
+
+    /**
+     * Obtenir les statistiques des utilisateurs
+     */
+    static async getUserStats() {
+        return UserServicePrisma.getUserStats();
+    }
+
+    // === MÉTHODES DE COMPATIBILITÉ SEQUELIZE ===
+
+    /**
+     * @deprecated Utilisez findUserByLogin à la place
+     */
+    static async findOne(where: any) {
+        if (where.login) {
+            return this.findUserByLogin(where.login);
+        }
+        if (where.email) {
+            return this.findUserByEmail(where.email);
+        }
+        if (where.id) {
+            return this.findUserById(where.id);
+        }
+        throw new Error('Critère de recherche non supporté dans la migration Prisma');
+    }
+
+    /**
+     * @deprecated Utilisez searchUsers à la place
+     */
+    static async findAll(options: any = {}) {
+        const filters: PrismaUserSearchFilters = {};
+
+        if (options.where) {
+            if (options.where.isActive !== undefined) {
+                filters.isActive = options.where.isActive;
             }
-            return user;
-        } catch (error) {
-            const errorDetails = buildUserServiceErrorDetails(error, { userId: id });
-            logError(operationKey, { ...errorDetails, timestamp: new Date() });
-            throw error;
-        }
-    }
-
-    static async findByEmail(email: string) {
-        const operationKey = 'UserService.findByEmail';
-        try {
-            const user = await User.findOne({
-                where: { email },
-            });
-            if (!user) {
-                const notFoundError = new Error('Utilisateur non trouvé');
-                (notFoundError as any).code = 'USER_NOT_FOUND';
-                throw notFoundError;
+            if (options.where.role) {
+                filters.role = options.where.role;
             }
-            return user;
-        } catch (error) {
-            const errorDetails = buildUserServiceErrorDetails(error, { email });
-            logError(operationKey, { ...errorDetails, timestamp: new Date() });
-            throw error;
         }
+
+        if (options.limit) {
+            filters.limit = options.limit;
+        }
+
+        const result = await this.searchUsers(filters);
+        return result.users;
     }
 
-    static async update(id: number, userData: Partial<UserAttributes>) {
-        const operationKey = 'UserService.update';
-        try {
-            const [updated] = await User.update(userData, {
-                where: { id },
-            });
-            if (!updated) {
-                const notFoundError = new Error('Utilisateur non trouvé pour la mise à jour');
-                (notFoundError as any).code = 'USER_NOT_FOUND';
-                throw notFoundError;
-            }
-            return await this.findById(id);
-        } catch (error) {
-            const errorDetails = buildUserServiceErrorDetails(error, { userId: id });
-            logError(operationKey, { ...errorDetails, timestamp: new Date() });
-            throw error;
-        }
+    /**
+     * @deprecated Utilisez createUser à la place
+     */
+    static async create(userData: any) {
+        // Mapping des champs Sequelize vers Prisma
+        const prismaData: PrismaCreateUserInput = {
+            nom: userData.lastName || userData.nom,
+            prenom: userData.firstName || userData.prenom,
+            login: userData.login,
+            email: userData.email,
+            password: userData.password,
+            role: userData.role,
+            departmentId: userData.departmentId,
+            siteIds: userData.siteIds
+        };
+
+        return this.createUser(prismaData);
     }
 
-    static async delete(id: number) {
-        const operationKey = 'UserService.delete';
-        try {
-            const deleted = await User.destroy({
-                where: { id },
-            });
-            if (!deleted) {
-                const notFoundError = new Error('Utilisateur non trouvé pour la suppression');
-                (notFoundError as any).code = 'USER_NOT_FOUND';
-                throw notFoundError;
-            }
-            return true;
-        } catch (error) {
-            const errorDetails = buildUserServiceErrorDetails(error, { userId: id });
-            logError(operationKey, { ...errorDetails, timestamp: new Date() });
-            throw error;
+    /**
+     * @deprecated Utilisez updateUser à la place
+     */
+    static async update(userData: any, options: any) {
+        if (!options.where?.id) {
+            throw new Error('ID utilisateur requis pour la mise à jour');
         }
+
+        const updateData: PrismaUpdateUserInput = {
+            nom: userData.lastName || userData.nom,
+            prenom: userData.firstName || userData.prenom,
+            login: userData.login,
+            email: userData.email,
+            password: userData.password,
+            role: userData.role,
+            departmentId: userData.departmentId,
+            siteIds: userData.siteIds,
+            isActive: userData.isActive
+        };
+
+        return this.updateUser(options.where.id, updateData);
     }
 
-    static async findByRole(role: UserRole) {
-        const operationKey = 'UserService.findByRole';
-        try {
-            return await User.findAll({
-                where: { role },
-                attributes: { exclude: ['password'] },
-                order: [['createdAt', 'DESC']],
-            });
-        } catch (error) {
-            const errorDetails = buildUserServiceErrorDetails(error, { role });
-            logError(operationKey, { ...errorDetails, timestamp: new Date() });
-            throw error;
+    /**
+     * @deprecated Utilisez deleteUser à la place
+     */
+    static async destroy(options: any) {
+        if (!options.where?.id) {
+            throw new Error('ID utilisateur requis pour la suppression');
         }
-    }
 
-    static async search(query: string) {
-        const operationKey = 'UserService.search';
-        try {
-            return await User.findAll({
-                where: {
-                    [Op.or]: [
-                        { firstName: { [Op.iLike]: `%${query}%` } },
-                        { lastName: { [Op.iLike]: `%${query}%` } },
-                        { email: { [Op.iLike]: `%${query}%` } },
-                    ],
-                },
-                attributes: { exclude: ['password'] },
-                order: [['createdAt', 'DESC']],
-            });
-        } catch (error) {
-            const errorDetails = buildUserServiceErrorDetails(error, { query });
-            logError(operationKey, { ...errorDetails, timestamp: new Date() });
-            throw error;
-        }
+        return this.deleteUser(options.where.id);
     }
-} 
+}
+
+// Export du cleanup Prisma
+export { cleanupPrisma };
+
+// Export par défaut pour compatibilité
+export default UserService; 

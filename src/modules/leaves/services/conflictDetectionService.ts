@@ -314,7 +314,7 @@ export class ConflictDetectionService {
         const userLeaves = existingLeaves.filter(leave =>
             leave.userId === user.id &&
             leave.id !== leaveRequest.id &&
-            [LeaveStatus.APPROUVE, LeaveStatus.EN_ATTENTE].includes(leave.status)
+            [LeaveStatus.APPROVED, LeaveStatus.PENDING].includes(leave.status)
         );
 
         // Convertir les dates de la demande une seule fois
@@ -390,7 +390,7 @@ export class ConflictDetectionService {
                 // Vérifier si ce membre a un congé approuvé ce jour-là
                 return existingLeaves.some(leave => {
                     // Ne considérer que les congés approuvés
-                    if (leave.status !== LeaveStatus.APPROUVE) {
+                    if (leave.status !== LeaveStatus.APPROVED) {
                         return false;
                     }
 
@@ -486,7 +486,7 @@ export class ConflictDetectionService {
 
             const unavailableBackups = availableBackups.filter(backup => {
                 return existingLeaves.some(leave => {
-                    if (leave.status !== LeaveStatus.APPROUVE || leave.userId !== backup.id) {
+                    if (leave.status !== LeaveStatus.APPROVED || leave.userId !== backup.id) {
                         return false;
                     }
 

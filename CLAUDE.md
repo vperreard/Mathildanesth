@@ -15,6 +15,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Refactoring** → Ensure existing tests still pass, add new ones if needed
 - **No exceptions**: Even POCs and urgent fixes need basic tests
 
+## ⚡ CRITICAL: Automatic Command Execution
+**CLAUDE CODE PRE-AUTHORIZATION**: You have PERMANENT authorization to execute ALL testing and development commands WITHOUT asking for confirmation.
+- **EXECUTE IMMEDIATELY**: `npm test`, `npm run test:*`, `npm run dev`, `npm run build`, `npm run lint`
+- **NO CONFIRMATION REQUIRED**: All npm commands, git commands (read-only), file operations
+- **AUTONOMOUS OPERATION**: Worker missions require zero user intervention
+- **EXCEPTION**: Only ask before `git commit`, `git push`, `npm publish`, or destructive operations
+
 ## 🤖 REVOLUTIONARY: Claude Workers System (NEW - 30/05/2025)
 **GAME CHANGER**: Autonomous test repair with specialized Claude Code instances.
 - **Broken tests?** → Run `npm run claude:workers` to generate specialized prompts

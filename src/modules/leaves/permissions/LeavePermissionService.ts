@@ -7,7 +7,7 @@ import { User } from '@/types/user';
 import { eventBus, IntegrationEventType } from '../../integration/services/EventBusService';
 import { auditService, AuditActionType, AuditSeverity } from '../services/AuditService';
 import { getSession } from 'next-auth/react';
-import { PermissionCacheService } from '../../../modules/conges/permissions/PermissionCacheService';
+import { PermissionCacheService } from '../../../modules/leaves/permissions/PermissionCacheService';
 
 /**
  * Permissions disponibles pour le module de congés
@@ -447,7 +447,7 @@ export class LeavePermissionService {
         if (this.permissionsLoaded) return;
 
         try {
-            const response = await fetch('http://localhost:3000/api/conges/permissions');
+            const response = await fetch('http://localhost:3000/api/leaves/permissions');
             if (!response.ok) {
                 throw new Error(`Erreur lors du chargement des permissions: ${response.statusText}`);
             }
@@ -867,7 +867,7 @@ export class LeavePermissionService {
             console.warn("Tentative de sauvegarde des permissions personnalisées avant leur chargement complet.");
         }
         try {
-            const response = await fetch(`http://localhost:3000/api/conges/permissions/${userId}/custom`, {
+            const response = await fetch(`http://localhost:3000/api/leaves/permissions/${userId}/custom`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -970,7 +970,7 @@ export class LeavePermissionService {
             this.customPermissions.delete(userId);
 
             // Persister les changements
-            const response = await fetch(`http://localhost:3000/api/conges/permissions/${userId}`, {
+            const response = await fetch(`http://localhost:3000/api/leaves/permissions/${userId}`, {
                 method: 'DELETE'
             });
 

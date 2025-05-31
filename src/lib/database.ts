@@ -1,20 +1,36 @@
-import { Sequelize } from 'sequelize';
-import dotenv from 'dotenv';
+/**
+ * Database Connection - Sequelize (Phase 3 - DÉPRÉCIÉ)
+ * @deprecated Utilisez le client Prisma à la place
+ */
 
-dotenv.config();
+// Avertissement de dépréciation
+if (process.env.NODE_ENV === 'development') {
+    console.warn(
+        '⚠️  DÉPRÉCIATION: src/lib/database.ts utilise Sequelize (obsolète).\n' +
+        '   → Utilisez le client Prisma depuis @/lib/prisma à la place.\n' +
+        '   → Ce fichier sera supprimé dans une version future.'
+    );
+}
 
-const sequelize = new Sequelize(
-    process.env.DATABASE_URL || 'postgres://localhost:5432/mathildanesth',
-    {
-        dialect: 'postgres',
-        logging: process.env.NODE_ENV === 'development' ? console.log : false,
-        pool: {
-            max: 5,
-            min: 0,
-            acquire: 30000,
-            idle: 10000,
-        },
-    }
-);
+// Import conditionnel pour éviter les erreurs en Edge Runtime
+import { ifRuntimeSupports } from './runtime-detector';
+
+const sequelize = ifRuntimeSupports('sequelize', () => {
+    const { Sequelize } = require('sequelize');
+    
+    return new Sequelize(
+        process.env.DATABASE_URL || 'postgres://localhost:5432/mathildanesth',
+        {
+            dialect: 'postgres',
+            logging: process.env.NODE_ENV === 'development' ? console.log : false,
+            pool: {
+                max: 5,
+                min: 0,
+                acquire: 30000,
+                idle: 10000,
+            },
+        }
+    );
+}, null);
 
 export default sequelize; 
