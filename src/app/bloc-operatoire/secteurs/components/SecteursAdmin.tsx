@@ -386,11 +386,32 @@ export default function SecteursAdmin() {
         return [];
       }
 
-      // Priorité aux zones de sites
+      // Déterminer le secteur actif
+      const activeSecteurId = active.id.toString().replace('secteur-', '');
+      const activeSecteur = secteurs.find(s => s.id === activeSecteurId);
+
+      // Séparer les collisions par type
       const siteCollisions = allCollisions.filter((collision: any) =>
         collision.id.toString().startsWith('site-')
       );
+      const secteurCollisions = allCollisions.filter(
+        (collision: any) =>
+          collision.id.toString().startsWith('secteur-') && collision.id !== active.id
+      );
 
+      // PRIORITÉ 1: Drop secteur-à-secteur (même site pour réorganisation)
+      if (secteurCollisions.length > 0) {
+        const targetSecteurId = secteurCollisions[0].id.toString().replace('secteur-', '');
+        const targetSecteur = secteurs.find(s => s.id === targetSecteurId);
+
+        // Si même site → réorganisation interne
+        if (activeSecteur?.siteId === targetSecteur?.siteId) {
+          console.log('🔄 Drop secteur-à-secteur (même site) détecté:', secteurCollisions[0].id);
+          return secteurCollisions;
+        }
+      }
+
+      // PRIORITÉ 2: Drop secteur-à-site (changement de site)
       if (siteCollisions.length > 0) {
         console.log('🏢 Drop secteur-à-site détecté:', siteCollisions[0].id);
         return siteCollisions;
@@ -455,6 +476,7 @@ export default function SecteursAdmin() {
         supervisionSpeciale: sector.supervisionSpeciale || false,
         siteId: sector.siteId,
         siteName: sector.site?.name,
+        displayOrder: sector.displayOrder || 0,
       }));
 
       const mappedSalles = sallesData.map((room: any) => ({
@@ -706,12 +728,30 @@ export default function SecteursAdmin() {
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    // Gestion du déplacement des secteurs
+    // Gestion du déplacement des secteurs vers un site
     if (activeId.startsWith('secteur-') && overId.startsWith('site-')) {
       const secteurId = activeId.replace('secteur-', '');
       const siteId = overId.replace('site-', '');
 
       await handleMoveSecteurToSite(secteurId, siteId === 'null' ? null : siteId);
+    }
+
+    // Gestion de la réorganisation des secteurs au sein du même site
+    else if (activeId.startsWith('secteur-') && overId.startsWith('secteur-')) {
+      const activeSecteurId = activeId.replace('secteur-', '');
+      const targetSecteurId = overId.replace('secteur-', '');
+
+      // Vérifier que les secteurs sont dans le même site
+      const activeSecteur = secteurs.find(s => s.id === parseInt(activeSecteurId));
+      const targetSecteur = secteurs.find(s => s.id === parseInt(targetSecteurId));
+
+      if (
+        activeSecteur &&
+        targetSecteur &&
+        (activeSecteur as any).siteId === (targetSecteur as any).siteId
+      ) {
+        await handleReorganizeSecteursInSite(activeSecteurId, targetSecteurId);
+      }
     }
 
     // Gestion du déplacement des salles vers un secteur
@@ -760,7 +800,7 @@ export default function SecteursAdmin() {
 
       // Mettre à jour l'état local
       setSecteurs(prev =>
-        prev.map(s => (s.id === secteurId ? ({ ...s, siteId: newSiteId } as any) : s))
+        prev.map(s => (s.id === parseInt(secteurId) ? ({ ...s, siteId: newSiteId } as any) : s))
       );
 
       toast({
@@ -772,6 +812,82 @@ export default function SecteursAdmin() {
       toast({
         title: 'Erreur',
         description: 'Impossible de déplacer le secteur.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Réorganiser les secteurs au sein du même site
+  const handleReorganizeSecteursInSite = async (
+    activeSecteurId: string,
+    targetSecteurId: string
+  ) => {
+    try {
+      const activeSecteur = secteurs.find(s => s.id === parseInt(activeSecteurId));
+      const targetSecteur = secteurs.find(s => s.id === parseInt(targetSecteurId));
+
+      if (
+        !activeSecteur ||
+        !targetSecteur ||
+        (activeSecteur as any).siteId !== (targetSecteur as any).siteId
+      ) {
+        return;
+      }
+
+      // Récupérer tous les secteurs du même site, triés par displayOrder
+      const secteursDuSite = secteurs
+        .filter(s => (s as any).siteId === (activeSecteur as any).siteId)
+        .sort((a, b) => ((a as any).displayOrder || 0) - ((b as any).displayOrder || 0));
+
+      const activeIndex = secteursDuSite.findIndex(s => s.id === parseInt(activeSecteurId));
+      const targetIndex = secteursDuSite.findIndex(s => s.id === parseInt(targetSecteurId));
+
+      if (activeIndex === -1 || targetIndex === -1) return;
+
+      // Créer le nouvel ordre
+      const newOrder = [...secteursDuSite];
+      const [removed] = newOrder.splice(activeIndex, 1);
+      newOrder.splice(targetIndex, 0, removed);
+
+      // Mettre à jour les displayOrder
+      const updatedSecteurs = newOrder.map((secteur, index) => ({
+        ...secteur,
+        displayOrder: index,
+      }));
+
+      // Mettre à jour l'état local immédiatement pour un feedback visuel rapide
+      setSecteurs(prev =>
+        prev.map(s => {
+          const updated = updatedSecteurs.find(us => us.id === s.id);
+          return updated ? ({ ...updated } as any) : s;
+        })
+      );
+
+      // Mettre à jour en base seulement le secteur déplacé
+      await makeAuthenticatedRequest(`/api/operating-sectors/${activeSecteurId}`, {
+        method: 'PUT',
+        body: {
+          displayOrder:
+            updatedSecteurs.find(s => s.id === parseInt(activeSecteurId))?.displayOrder || 0,
+        },
+      });
+
+      toast({
+        title: 'Secteurs réorganisés',
+        description:
+          "L'ordre des secteurs a été mis à jour pour améliorer la présentation des plannings.",
+      });
+
+      console.log(
+        `Réorganisation interne: secteur ${activeSecteurId} déplacé à la position du secteur ${targetSecteurId}`
+      );
+    } catch (error) {
+      console.error('Erreur lors de la réorganisation des secteurs:', error);
+      // Recharger les données en cas d'erreur
+      loadData();
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de réorganiser les secteurs.',
         variant: 'destructive',
       });
     }
@@ -1073,6 +1189,7 @@ export default function SecteursAdmin() {
                 <SortableContext
                   items={secteurs
                     .filter(s => (s as any).siteId === site.id)
+                    .sort((a, b) => ((a as any).displayOrder || 0) - ((b as any).displayOrder || 0))
                     .map(s => `secteur-${s.id}`)}
                   strategy={verticalListSortingStrategy}
                 >
@@ -1080,6 +1197,9 @@ export default function SecteursAdmin() {
                     <div className="space-y-3">
                       {secteurs
                         .filter(secteur => (secteur as any).siteId === site.id)
+                        .sort(
+                          (a, b) => ((a as any).displayOrder || 0) - ((b as any).displayOrder || 0)
+                        )
                         .map(secteur => (
                           <div key={secteur.id} className="space-y-2">
                             <SortableSecteurItem
@@ -1139,13 +1259,19 @@ export default function SecteursAdmin() {
               </h3>
 
               <SortableContext
-                items={secteurs.filter(s => !(s as any).siteId).map(s => `secteur-${s.id}`)}
+                items={secteurs
+                  .filter(s => !(s as any).siteId)
+                  .sort((a, b) => ((a as any).displayOrder || 0) - ((b as any).displayOrder || 0))
+                  .map(s => `secteur-${s.id}`)}
                 strategy={verticalListSortingStrategy}
               >
                 <DroppableSiteZone siteId="null" isDragMode={isDragMode}>
                   <div className="space-y-3">
                     {secteurs
                       .filter(secteur => !(secteur as any).siteId)
+                      .sort(
+                        (a, b) => ((a as any).displayOrder || 0) - ((b as any).displayOrder || 0)
+                      )
                       .map(secteur => (
                         <div key={secteur.id} className="space-y-2">
                           <SortableSecteurItem

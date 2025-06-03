@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { checkUserRole } from '@/lib/auth/authorization';
+import { checkUserRole } from '@/lib/auth-server-utils';
+import type { UserRole } from '@/lib/auth-client-utils';
 
 // Rôles autorisés
-const ALLOWED_ROLES_GET = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'USER'];
-const ALLOWED_ROLES_WRITE = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'];
+const ALLOWED_ROLES_GET: UserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'USER'];
+const ALLOWED_ROLES_WRITE: UserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'];
 
 interface Context {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // GET : Récupérer un secteur spécifique
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest, context: Context) {
       );
     }
 
-    const { id } = context.params;
+    const { id } = await context.params;
     const sectorId = parseInt(id);
 
     if (isNaN(sectorId)) {
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest, context: Context) {
       where: { id: sectorId },
       include: {
         site: true,
-        operatingRooms: true,
+        rooms: true,
       },
     });
 
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest, context: Context) {
 
     return NextResponse.json(sector);
   } catch (error) {
-    console.error(`Erreur GET /api/operating-sectors/${context.params.id}:`, error);
+    console.error('Erreur GET /api/operating-sectors/[id]:', error);
     return NextResponse.json({ message: 'Erreur interne du serveur' }, { status: 500 });
   }
 }
@@ -60,7 +61,7 @@ export async function PUT(request: NextRequest, context: Context) {
       );
     }
 
-    const { id } = context.params;
+    const { id } = await context.params;
     const sectorId = parseInt(id);
 
     if (isNaN(sectorId)) {
@@ -68,10 +69,14 @@ export async function PUT(request: NextRequest, context: Context) {
     }
 
     const body = await request.json();
-    const { name, colorCode, isActive, description, rules, siteId } = body;
+    const { name, colorCode, isActive, description, rules, siteId, displayOrder } = body;
 
-    if (!name?.trim()) {
-      return NextResponse.json({ message: 'Le nom du secteur est requis' }, { status: 400 });
+    // Le nom n'est requis que si on n'est pas en train de juste déplacer le secteur
+    if (name !== undefined && !name?.trim()) {
+      return NextResponse.json(
+        { message: 'Le nom du secteur ne peut pas être vide' },
+        { status: 400 }
+      );
     }
 
     // Vérifier si le secteur existe
@@ -83,8 +88,8 @@ export async function PUT(request: NextRequest, context: Context) {
       return NextResponse.json({ message: 'Secteur non trouvé' }, { status: 404 });
     }
 
-    // Vérifier l'unicité du nom
-    if (name.trim() !== existingSector.name) {
+    // Vérifier l'unicité du nom seulement si le nom est fourni et différent
+    if (name !== undefined && name.trim() !== existingSector.name) {
       const duplicateSector = await prisma.operatingSector.findFirst({
         where: {
           name: name.trim(),
@@ -100,27 +105,37 @@ export async function PUT(request: NextRequest, context: Context) {
       }
     }
 
+    // Préparer les données de mise à jour (seulement les champs fournis)
+    const updateData: any = {};
+
+    if (name !== undefined) updateData.name = name.trim();
+    if (colorCode !== undefined) updateData.colorCode = colorCode;
+    if (isActive !== undefined) updateData.isActive = isActive;
+    if (description !== undefined) updateData.description = description;
+    if (rules !== undefined) updateData.rules = rules;
+    if (siteId !== undefined) updateData.siteId = siteId;
+    if (displayOrder !== undefined) updateData.displayOrder = displayOrder;
+
     // Mettre à jour le secteur
     const updatedSector = await prisma.operatingSector.update({
       where: { id: sectorId },
-      data: {
-        name: name.trim(),
-        colorCode: colorCode || '#000000',
-        isActive: isActive === undefined ? true : isActive,
-        description: description || '',
-        rules: rules || {},
-        siteId: siteId || existingSector.siteId,
-      },
+      data: updateData,
       include: {
         site: true,
-        operatingRooms: true,
+        rooms: true,
       },
     });
 
     return NextResponse.json(updatedSector);
   } catch (error) {
-    console.error(`Erreur PUT /api/operating-sectors/${context.params.id}:`, error);
-    return NextResponse.json({ message: 'Erreur interne du serveur' }, { status: 500 });
+    console.error('Erreur PUT /api/operating-sectors/[id]:', error);
+    return NextResponse.json(
+      {
+        message: 'Erreur interne du serveur',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -135,7 +150,7 @@ export async function DELETE(request: NextRequest, context: Context) {
       );
     }
 
-    const { id } = context.params;
+    const { id } = await context.params;
     const sectorId = parseInt(id);
 
     if (isNaN(sectorId)) {
@@ -181,7 +196,7 @@ export async function DELETE(request: NextRequest, context: Context) {
 
     return NextResponse.json({ message: 'Secteur supprimé avec succès' });
   } catch (error) {
-    console.error(`Erreur DELETE /api/operating-sectors/${context.params.id}:`, error);
+    console.error('Erreur DELETE /api/operating-sectors/[id]:', error);
     return NextResponse.json({ message: 'Erreur interne du serveur' }, { status: 500 });
   }
 }
