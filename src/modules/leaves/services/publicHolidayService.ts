@@ -698,5 +698,8 @@ class PublicHolidayService {
 // Export de l'instance unique
 export const publicHolidayService = PublicHolidayService.getInstance();
 
+// Export des fonctions utilitaires
+export const getPublicHolidays = (year?: number) => publicHolidayService.getPublicHolidays(year);
+
 // Export pour les tests
 export default PublicHolidayService; 

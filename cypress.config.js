@@ -285,5 +285,7 @@ module.exports = defineConfig({
         apiUrl: 'http://localhost:3000/api',
         testMode: 'e2e',
         testDatabaseUrl: process.env.TEST_DATABASE_URL || 'postgresql://mathildanesth_user:mathildanesth_password@localhost:5433/mathildanesth_test',
+        CYPRESS: 'true',
+        NODE_ENV: 'test',
     },
 }); 

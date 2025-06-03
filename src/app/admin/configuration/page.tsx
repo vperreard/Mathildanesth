@@ -4,22 +4,18 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
-    Settings,
     Calendar,
     FileText,
     Award,
     Activity,
-    Grid,
+    LayoutGrid as Grid,
     Share2,
     Layout,
     Map,
     TableProperties,
     Users,
-    Clock,
     Shield,
     AlertTriangle,
-    Bell,
-    Home,
     ArrowLeft,
     ChevronRight
 } from 'lucide-react';

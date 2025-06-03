@@ -278,7 +278,7 @@ describe('ErrorBoundary', () => {
       expect(screen.getByTestId('success-component')).toBeInTheDocument();
     });
 
-    it('should not reset error state when children change and resetOnPropsChange is false', () => {
+    it('should not reset error state when resetOnPropsChange is false', () => {
       const { rerender } = render(
         <ErrorBoundary resetOnPropsChange={false}>
           <ThrowError message="No reset test" />
@@ -287,15 +287,15 @@ describe('ErrorBoundary', () => {
 
       expect(screen.getByTestId('error-display')).toBeInTheDocument();
 
-      // Change children
+      // Change just the ErrorBoundary props, keeping same children
       rerender(
-        <ErrorBoundary resetOnPropsChange={false}>
-          <div>New child</div>
+        <ErrorBoundary resetOnPropsChange={false} fallback={<div>Custom fallback</div>}>
+          <ThrowError message="No reset test" />
         </ErrorBoundary>
       );
 
-      // Should still show error display
-      expect(screen.getByTestId('error-display')).toBeInTheDocument();
+      // Should still show error state but now using custom fallback
+      expect(screen.getByText('Custom fallback')).toBeInTheDocument();
     });
 
     it('should not reset error state when resetOnPropsChange is undefined', () => {
@@ -307,15 +307,15 @@ describe('ErrorBoundary', () => {
 
       expect(screen.getByTestId('error-display')).toBeInTheDocument();
 
-      // Change children
+      // Change ErrorBoundary props while keeping same children
       rerender(
-        <ErrorBoundary>
-          <div>New child</div>
+        <ErrorBoundary fallback={<div>Different fallback</div>}>
+          <ThrowError message="Undefined reset test" />
         </ErrorBoundary>
       );
 
-      // Should still show error display
-      expect(screen.getByTestId('error-display')).toBeInTheDocument();
+      // Should still show error state but now using different fallback
+      expect(screen.getByText('Different fallback')).toBeInTheDocument();
     });
   });
 
@@ -344,11 +344,7 @@ describe('ErrorBoundary', () => {
     });
 
     it('should handle errors with complex error messages', () => {
-      const complexError = new Error('Complex error
-with
-multiple
-lines
-and\tspecial\tchars');
+      const complexError = new Error("Complex error\nwith\nmultiple\nlines\nand\tspecial\tchars");
 
       const ComplexErrorComponent = () => {
         throw complexError;

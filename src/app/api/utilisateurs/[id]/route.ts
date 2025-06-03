@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'; // Import nommé
+import { prisma } from '../../../../lib/prisma'; // Import nommé
 import { Role, ProfessionalRole, Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 // import bcrypt from 'bcrypt'; // Import dynamique pour éviter les erreurs de bundling
@@ -42,10 +42,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     try {
         const user = await prisma.user.findUnique({
             where: { id },
-            select: { // Inclure nouveaux champs
+            select: { // Inclure champs existants
                 id: true, nom: true, prenom: true, login: true, email: true, role: true, professionalRole: true,
-                tempsPartiel: true, pourcentageTempsPartiel: true, joursTravailles: true,
-                dateEntree: true, dateSortie: true, actif: true, createdAt: true, updatedAt: true,
+                tempsPartiel: true, pourcentageTempsPartiel: true, workPattern: true, workOnMonthType: true,
+                dateEntree: true, dateSortie: true, actif: true, createdAt: true, updatedAt: true, phoneNumber: true, alias: true
             }
         });
 
@@ -97,9 +97,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         const {
             nom, prenom, email, /* login, */ role, professionalRole, // Exclure login de la déstructuration principale
             tempsPartiel, pourcentageTempsPartiel,
-            joursTravaillesSemainePaire,
-            joursTravaillesSemaineImpaire,
-            dateEntree, dateSortie, actif, password, phoneNumber,
+            dateEntree, dateSortie, actif, password, phoneNumber, alias,
             // Récupérer explicitement workPattern et workOnMonthType si envoyés
             workPattern, workOnMonthType
         } = body;
@@ -131,8 +129,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         if (pourcentageTempsPartiel !== undefined) {
             dataToUpdate.pourcentageTempsPartiel = tempsPartiel === false ? null : (parseFloat(pourcentageTempsPartiel) || null);
         }
-        if (joursTravaillesSemainePaire !== undefined) dataToUpdate.joursTravaillesSemainePaire = joursTravaillesSemainePaire;
-        if (joursTravaillesSemaineImpaire !== undefined) dataToUpdate.joursTravaillesSemaineImpaire = joursTravaillesSemaineImpaire;
+        if (alias !== undefined) dataToUpdate.alias = alias || null;
         if (dateEntree !== undefined) dataToUpdate.dateEntree = dateEntree ? new Date(dateEntree) : null;
         if (dateSortie !== undefined) dataToUpdate.dateSortie = dateSortie ? new Date(dateSortie) : null;
         if (actif !== undefined) dataToUpdate.actif = !!actif;
@@ -164,12 +161,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             select: {
                 id: true, nom: true, prenom: true, email: true, login: true, role: true,
                 professionalRole: true, actif: true, mustChangePassword: true,
-                tempsPartiel: true, pourcentageTempsPartiel: true,
-                joursTravaillesSemainePaire: true,
-                joursTravaillesSemaineImpaire: true,
+                tempsPartiel: true, pourcentageTempsPartiel: true, alias: true,
                 dateEntree: true, dateSortie: true, phoneNumber: true,
-                workPattern: true,
-                workOnMonthType: true,
+                workPattern: true, workOnMonthType: true,
             }
         });
 

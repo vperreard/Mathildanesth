@@ -1,23 +1,33 @@
 import Pusher from 'pusher';
 import PusherClient from 'pusher-js';
 
+// Check if Pusher is configured
+const isPusherConfigured = !!(
+    process.env.PUSHER_APP_ID &&
+    process.env.PUSHER_KEY &&
+    process.env.PUSHER_SECRET &&
+    process.env.NEXT_PUBLIC_PUSHER_KEY
+);
+
 // Configuration du serveur Pusher (côté backend)
-export const pusherServer = new Pusher({
-    appId: process.env.PUSHER_APP_ID || '',
-    key: process.env.PUSHER_KEY || '',
-    secret: process.env.PUSHER_SECRET || '',
+export const pusherServer = isPusherConfigured ? new Pusher({
+    appId: process.env.PUSHER_APP_ID!,
+    key: process.env.PUSHER_KEY!,
+    secret: process.env.PUSHER_SECRET!,
     cluster: process.env.PUSHER_CLUSTER || 'eu',
     useTLS: true,
-});
+}) : null;
 
-// Client Pusher (côté frontend)
-export const pusherClient = new PusherClient(
-    process.env.NEXT_PUBLIC_PUSHER_KEY || '',
-    {
-        cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'eu',
-        forceTLS: true,
-    }
-);
+// Client Pusher (côté frontend) - only initialize if configured
+export const pusherClient = (typeof window !== 'undefined' && isPusherConfigured && process.env.NEXT_PUBLIC_PUSHER_KEY) 
+    ? new PusherClient(
+        process.env.NEXT_PUBLIC_PUSHER_KEY,
+        {
+            cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'eu',
+            forceTLS: true,
+        }
+    ) 
+    : null;
 
 // Canaux de notification
 export const CHANNELS = {
@@ -49,6 +59,11 @@ export const EVENTS = {
 export const subscribeToChannel = (channelName: string, events: Record<string, (data: any) => void>) => {
     if (!channelName) {
         console.error('Nom de canal requis pour s\'abonner');
+        return () => { };
+    }
+
+    if (!pusherClient) {
+        console.log('Pusher non configuré, WebSocket désactivé');
         return () => { };
     }
 
@@ -89,6 +104,11 @@ export const triggerEvent = async (
         return;
     }
 
+    if (!pusherServer) {
+        console.log('Pusher serveur non configuré, événement ignoré');
+        return;
+    }
+
     try {
         await pusherServer.trigger(channelName, eventName, data);
     } catch (error) {
@@ -104,5 +124,9 @@ export const triggerEvent = async (
  * @returns Données d'authentification
  */
 export const authorizeChannel = (socketId: string, channel: string, userData: any) => {
+    if (!pusherServer) {
+        console.log('Pusher serveur non configuré, autorisation ignorée');
+        return null;
+    }
     return pusherServer.authorizeChannel(socketId, channel, userData);
 }; 

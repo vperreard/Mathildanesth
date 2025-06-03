@@ -4,17 +4,20 @@
 **Spécialité**: Leaves Core Services
 **Priorité**: 🚨 CRITIQUE
 **Temps estimé**: 20-25 min
-**Fichiers à réparer**: 2
+**Fichiers à réparer**: 5
 
 ## 📋 FICHIERS EN ÉCHEC
-- src/modules/leaves/services/__tests__/leaveService.comprehensive.test.ts
-- src/modules/leaves/services/__tests__/leaveService.comprehensive.test.ts
+- src/modules/leaves/services/__tests__/publicHolidayService.test.ts
+- src/modules/leaves/services/__tests__/quotaManagementService.test.ts
+- src/modules/leaves/services/__tests__/conflictRecommendationService.test.ts
+- src/modules/leaves/services/__tests__/leaveService.integration.test.ts
+- src/modules/leaves/services/__tests__/AuditService.test.ts
 
 ## 🛠️ INSTRUCTIONS PRÉCISES
 
 ### Étape 1: Diagnostic
 ```bash
-npm run test:fast -- --testPathPattern="src\/modules\/leaves\/services\/__tests__\/leaveService.comprehensive.test.ts"
+npm run test:fast -- --testPathPattern="src\/modules\/leaves\/services\/__tests__\/publicHolidayService.test.ts"
 ```
 
 ### Étape 2: Analyse des Erreurs
@@ -69,7 +72,7 @@ npm run test:bulletproof
 ```
 WORKER: worker-leaves-core
 STATUS: ✅ SUCCÈS / ❌ ÉCHEC
-FICHIERS RÉPARÉS: X/2
+FICHIERS RÉPARÉS: X/5
 TEMPS RÉEL: XX minutes
 PROBLÈMES RÉSOLUS:
 - Problem 1: Description + Solution

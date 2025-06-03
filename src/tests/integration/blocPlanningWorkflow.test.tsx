@@ -230,7 +230,7 @@ describe('Workflow de planification du bloc opératoire', () => {
         mockGetAllSupervisionRules.mockResolvedValue(mockRules);
     });
 
-    test('permet la création et la validation d'un planning journalier', async () => {
+    test('permet la creation et la validation d un planning journalier', async () => {
         // Mock de la fonction onPlanningChange
         const onPlanningChange = jest.fn();
 

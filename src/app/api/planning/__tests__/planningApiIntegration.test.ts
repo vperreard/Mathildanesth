@@ -52,7 +52,7 @@ jest.mock('@/services/planningGenerator', () => ({
 
 // Mock WebSocket pour les notifications temps réel
 const mockWebSocketSend = jest.fn();
-jest.mock('@/lib/websocket', () => ({
+jest.mock('@/lib/socket', () => ({
   WebSocketService: {
     broadcast: jest.fn(),
     sendToUser: mockWebSocketSend,
@@ -386,7 +386,7 @@ describe('Planning API Integration Tests', () => {
 
       const { prisma } = require('@/lib/prisma');
       const { PlanningService } = require('@/services/planningService');
-      const { WebSocketService } = require('@/lib/websocket');
+      const { WebSocketService } = require('@/lib/socket');
 
       PlanningService.validateAssignments.mockResolvedValue([]);
       prisma.attribution.createMany.mockResolvedValue({ count: 1 });
@@ -637,7 +637,7 @@ describe('Planning API Integration Tests', () => {
   });
 
     it('should broadcast planning changes to connected users', async () => {
-      const { WebSocketService } = require('@/lib/websocket');
+      const { WebSocketService } = require('@/lib/socket');
 
       const planningUpdate = {
         type: 'PLANNING_UPDATED',
@@ -661,7 +661,7 @@ describe('Planning API Integration Tests', () => {
     });
 
     it('should notify specific users of their assignment changes', async () => {
-      const { WebSocketService } = require('@/lib/websocket');
+      const { WebSocketService } = require('@/lib/socket');
 
       const userSpecificUpdate = {
         type: 'ASSIGNMENT_CHANGED',
@@ -685,7 +685,7 @@ describe('Planning API Integration Tests', () => {
     });
 
     it('should handle WebSocket connection failures gracefully', async () => {
-      const { WebSocketService } = require('@/lib/websocket');
+      const { WebSocketService } = require('@/lib/socket');
 
       // Simulate connection failure
       WebSocketService.broadcast.mockImplementation(() => {

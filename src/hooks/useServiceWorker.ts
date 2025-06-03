@@ -58,7 +58,7 @@ export const useServiceWorker = () => {
 
         const registerSW = async () => {
             try {
-                const registration = await navigator.serviceWorker.register('/sw-optimized.js', {
+                const registration = await navigator.serviceWorker.register('/sw.js', {
                     scope: '/'
                 });
 

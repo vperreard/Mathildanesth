@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Check, X, ArrowUp, ArrowDown, Info } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check, X, ArrowUp, ArrowDown, Info, Users } from 'lucide-react';
 import Button from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'react-hot-toast';
+import Link from 'next/link';
+import { apiClient } from '@/utils/apiClient';
 
 interface Site {
     id: string;
@@ -42,13 +44,8 @@ export default function SitesPage() {
         setError(null);
 
         try {
-            const response = await fetch('http://localhost:3000/api/sites');
-
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la récupération des sites: ${response.status}`);
-            }
-
-            const data = await response.json();
+            const response = await apiClient.get('/api/sites');
+            const data = response.data;
 
             // Trier les sites par ordre d'affichage puis par nom
             const sortedSites = [...data].sort((a, b) => {
@@ -78,25 +75,14 @@ export default function SitesPage() {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/api/sites', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: newSiteName.trim(),
-                    description: newSiteDescription.trim() || undefined,
-                    colorCode: newSiteColor || undefined,
-                    isActive: true,
-                }),
+            const response = await apiClient.post('/api/sites', {
+                name: newSiteName.trim(),
+                description: newSiteDescription.trim() || undefined,
+                colorCode: newSiteColor || undefined,
+                isActive: true,
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `Erreur ${response.status}`);
-            }
-
-            const newSite = await response.json();
+            const newSite = response.data;
 
             // Mettre à jour la liste des sites
             setSites(prev => [...prev, newSite].sort((a, b) => a.name.localeCompare(b.name)));
@@ -122,25 +108,14 @@ export default function SitesPage() {
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/api/sites/${currentSite.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: currentSite.name,
-                    description: currentSite.description || undefined,
-                    colorCode: currentSite.colorCode || undefined,
-                    isActive: currentSite.isActive,
-                }),
+            const response = await apiClient.put(`/api/sites/${currentSite.id}`, {
+                name: currentSite.name,
+                description: currentSite.description || undefined,
+                colorCode: currentSite.colorCode || undefined,
+                isActive: currentSite.isActive,
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `Erreur ${response.status}`);
-            }
-
-            const updatedSite = await response.json();
+            const updatedSite = response.data;
 
             // Mettre à jour la liste des sites
             setSites(prev =>
@@ -168,14 +143,7 @@ export default function SitesPage() {
         if (!currentSite) return;
 
         try {
-            const response = await fetch(`http://localhost:3000/api/sites/${currentSite.id}`, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `Erreur ${response.status}`);
-            }
+            await apiClient.delete(`/api/sites/${currentSite.id}`);
 
             // Mettre à jour la liste des sites
             setSites(prev => prev.filter(site => site.id !== currentSite.id));
@@ -220,23 +188,12 @@ export default function SitesPage() {
 
         // Envoyer la nouvelle ordre au serveur
         try {
-            const response = await fetch('http://localhost:3000/api/sites/reorder', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    siteOrders: updatedSites.map((site, index) => ({
-                        id: site.id,
-                        displayOrder: index
-                    }))
-                }),
+            await apiClient.post('/api/sites/reorder', {
+                siteOrders: updatedSites.map((site, index) => ({
+                    id: site.id,
+                    displayOrder: index
+                }))
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `Erreur ${response.status}`);
-            }
 
             // Pas besoin de mettre à jour la liste des sites car déjà fait avec setSites
         } catch (error) {
@@ -291,10 +248,18 @@ export default function SitesPage() {
         <div className="container mx-auto p-6">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Gestion des sites</h1>
-                <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    <span>Ajouter un site</span>
-                </Button>
+                <div className="flex gap-3">
+                    <Link href="/admin/site-assignments">
+                        <Button variant="outline" className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            <span>Gérer les affectations</span>
+                        </Button>
+                    </Link>
+                    <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
+                        <Plus className="h-4 w-4" />
+                        <span>Ajouter un site</span>
+                    </Button>
+                </div>
             </div>
 
             {/* Liste des sites */}
@@ -411,6 +376,9 @@ export default function SitesPage() {
                 <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>Créer un nouveau site</DialogTitle>
+                        <DialogDescription>
+                            Ajoutez un nouveau site d'anesthésie à votre établissement.
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
@@ -485,6 +453,9 @@ export default function SitesPage() {
                 <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>Modifier le site</DialogTitle>
+                        <DialogDescription>
+                            Modifiez les informations du site sélectionné.
+                        </DialogDescription>
                     </DialogHeader>
                     {currentSite && (
                         <div className="space-y-4 py-4">
@@ -587,6 +558,9 @@ export default function SitesPage() {
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>Confirmer la suppression</DialogTitle>
+                        <DialogDescription>
+                            Cette action est irréversible.
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
                         <p className="text-gray-700">

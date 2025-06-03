@@ -1,0 +1,143 @@
+{
+  "audit_date": "2025-06-01T06:12:02.974Z",
+  "summary": {
+    "total_errors": 20,
+    "total_warnings": 0,
+    "total_screenshots": 0
+  },
+  "errors": [
+    {
+      "type": "console_error",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/lib-src_app_g.css?v=1748758312223' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "url": "http://localhost:3000/",
+      "timestamp": "2025-06-01T06:11:52.419Z"
+    },
+    {
+      "type": "console_error",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/vendor-node_modules_n.css?v=1748758312223' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "url": "http://localhost:3000/",
+      "timestamp": "2025-06-01T06:11:52.441Z"
+    },
+    {
+      "type": "console_error",
+      "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "url": "http://localhost:3000/",
+      "timestamp": "2025-06-01T06:11:52.693Z"
+    },
+    {
+      "type": "request_failed",
+      "url": "http://localhost:3000/api/auth/me",
+      "failure": "net::ERR_ABORTED",
+      "page_url": "http://localhost:3000/",
+      "timestamp": "2025-06-01T06:11:52.693Z"
+    },
+    {
+      "type": "console_error",
+      "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "url": "http://localhost:3000/",
+      "timestamp": "2025-06-01T06:11:52.999Z"
+    },
+    {
+      "type": "console_error",
+      "message": "Error while trying to use the following icon from the Manifest: http://localhost:3000/icons/icon-144x144.png (Download error or resource isn't a valid image)",
+      "url": "http://localhost:3000/",
+      "timestamp": "2025-06-01T06:11:53.086Z"
+    },
+    {
+      "type": "console_error",
+      "message": "Error while trying to use the following icon from the Manifest: http://localhost:3000/icons/icon-144x144.png (Download error or resource isn't a valid image)",
+      "url": "http://localhost:3000/",
+      "timestamp": "2025-06-01T06:11:53.277Z"
+    },
+    {
+      "type": "console_error",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://localhost:3000/",
+      "timestamp": "2025-06-01T06:11:53.426Z"
+    },
+    {
+      "type": "console_error",
+      "message": "Erreur API (getUserPreferences): JSHandle@error",
+      "url": "http://localhost:3000/",
+      "timestamp": "2025-06-01T06:11:53.452Z"
+    },
+    {
+      "type": "console_error",
+      "message": "Erreur lors du chargement des préférences: JSHandle@error",
+      "url": "http://localhost:3000/",
+      "timestamp": "2025-06-01T06:11:53.455Z"
+    },
+    {
+      "type": "navigation_error",
+      "page": "home",
+      "url": "http://localhost:3000/",
+      "message": "Attempted to use detached Frame 'D59754F16CF2FE2B6867F3BA3D25C4D0'.",
+      "timestamp": "2025-06-01T06:11:55.963Z"
+    },
+    {
+      "type": "navigation_error",
+      "page": "planning",
+      "url": "http://localhost:3000/planning",
+      "message": "Attempted to use detached Frame 'D59754F16CF2FE2B6867F3BA3D25C4D0'.",
+      "timestamp": "2025-06-01T06:11:56.965Z"
+    },
+    {
+      "type": "navigation_error",
+      "page": "conges",
+      "url": "http://localhost:3000/conges",
+      "message": "Attempted to use detached Frame 'D59754F16CF2FE2B6867F3BA3D25C4D0'.",
+      "timestamp": "2025-06-01T06:11:57.965Z"
+    },
+    {
+      "type": "navigation_error",
+      "page": "parametres",
+      "url": "http://localhost:3000/parametres",
+      "message": "Attempted to use detached Frame 'D59754F16CF2FE2B6867F3BA3D25C4D0'.",
+      "timestamp": "2025-06-01T06:11:58.968Z"
+    },
+    {
+      "type": "navigation_error",
+      "page": "utilisateurs",
+      "url": "http://localhost:3000/utilisateurs",
+      "message": "Attempted to use detached Frame 'D59754F16CF2FE2B6867F3BA3D25C4D0'.",
+      "timestamp": "2025-06-01T06:11:59.969Z"
+    },
+    {
+      "type": "navigation_error",
+      "page": "admin",
+      "url": "http://localhost:3000/admin",
+      "message": "Attempted to use detached Frame 'D59754F16CF2FE2B6867F3BA3D25C4D0'.",
+      "timestamp": "2025-06-01T06:12:00.972Z"
+    },
+    {
+      "type": "navigation_error",
+      "page": "admin-trames",
+      "url": "http://localhost:3000/admin/trames",
+      "message": "Attempted to use detached Frame 'D59754F16CF2FE2B6867F3BA3D25C4D0'.",
+      "timestamp": "2025-06-01T06:12:01.973Z"
+    },
+    {
+      "type": "form_test_error",
+      "form": "create-leave",
+      "url": "/conges/new",
+      "message": "Attempted to use detached Frame 'D59754F16CF2FE2B6867F3BA3D25C4D0'.",
+      "timestamp": "2025-06-01T06:12:02.974Z"
+    },
+    {
+      "type": "form_test_error",
+      "form": "create-user",
+      "url": "/utilisateurs/new",
+      "message": "Attempted to use detached Frame 'D59754F16CF2FE2B6867F3BA3D25C4D0'.",
+      "timestamp": "2025-06-01T06:12:02.974Z"
+    },
+    {
+      "type": "form_test_error",
+      "form": "settings",
+      "url": "/parametres",
+      "message": "Attempted to use detached Frame 'D59754F16CF2FE2B6867F3BA3D25C4D0'.",
+      "timestamp": "2025-06-01T06:12:02.974Z"
+    }
+  ],
+  "warnings": [],
+  "screenshots": []
+}

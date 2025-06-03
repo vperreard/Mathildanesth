@@ -4,25 +4,17 @@
 **Spécialité**: Types & Validation
 **Priorité**: ⚡ MOYENNE
 **Temps estimé**: 5-10 min
-**Fichiers à réparer**: 10
+**Fichiers à réparer**: 2
 
 ## 📋 FICHIERS EN ÉCHEC
-- src/types/__tests__/type-0.test.ts
-- src/types/__tests__/type-1.test.ts
-- src/types/__tests__/type-2.test.ts
-- src/types/__tests__/type-3.test.ts
-- src/types/__tests__/type-4.test.ts
-- src/types/__tests__/type-5.test.ts
-- src/types/__tests__/type-6.test.ts
-- src/types/__tests__/type-7.test.ts
-- src/types/__tests__/type-8.test.ts
-- src/types/__tests__/type-9.test.ts
+- src/types/__tests__/user.test.ts
+- src/types/__tests__/specialty.test.ts
 
 ## 🛠️ INSTRUCTIONS PRÉCISES
 
 ### Étape 1: Diagnostic
 ```bash
-npm run test:fast -- --testPathPattern="src\/types\/__tests__\/type-0.test.ts"
+npm run test:fast -- --testPathPattern="src\/types\/__tests__\/user.test.ts"
 ```
 
 ### Étape 2: Analyse des Erreurs
@@ -77,7 +69,7 @@ npm run test:bulletproof
 ```
 WORKER: worker-types
 STATUS: ✅ SUCCÈS / ❌ ÉCHEC
-FICHIERS RÉPARÉS: X/10
+FICHIERS RÉPARÉS: X/2
 TEMPS RÉEL: XX minutes
 PROBLÈMES RÉSOLUS:
 - Problem 1: Description + Solution

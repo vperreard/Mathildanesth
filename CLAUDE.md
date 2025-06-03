@@ -22,13 +22,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **AUTONOMOUS OPERATION**: Worker missions require zero user intervention
 - **EXCEPTION**: Only ask before `git commit`, `git push`, `npm publish`, or destructive operations
 
-## 🤖 REVOLUTIONARY: Claude Workers System (NEW - 30/05/2025)
-**GAME CHANGER**: Autonomous test repair with specialized Claude Code instances.
-- **Broken tests?** → Run `npm run claude:workers` to generate specialized prompts
-- **Parallel repair** → Deploy multiple Claude instances with different specializations
-- **90% time saved** → 45-60 min instead of 3-4 hours manual repair
-- **Quality guaranteed** → Each worker validates its repairs autonomously
-- **Documentation**: See `CLAUDE_WORKERS_GUIDE.md` for complete usage guide
+## 🗂️ CRITICAL: File Organization Rules
+**IMPORTANT**: NEVER create files at the root directory. Always follow the clean project structure.
+
+### ❌ FORBIDDEN: Files at Project Root
+- **NO .md files** at root (except CLAUDE.md and README.md)
+- **NO temporary scripts** (test-*.js, debug-*.js, create-*.js, etc.)
+- **NO generated reports** (*-report.*, *-analysis.*, *-coverage.*)
+- **NO duplicate configs** (multiple jest.config.*, next.config.* variants)
+
+### ✅ REQUIRED: Proper File Placement
+- **Documentation** → `/docs/` subdirectories
+- **Temporary scripts** → `/scripts/` or delete after use
+- **Reports/Analysis** → `/docs/05_reports/` or temp files to delete
+- **Config variants** → `/config/` subdirectories
+- **Test files** → Next to source code or `/src/__tests__/`
+
+### 🧹 Auto-Cleanup Rules
+- **Delete temporary files** immediately after use
+- **Move reports** to docs/05_reports/ if keeping them
+- **Organize scripts** in proper directories
+- **Ask before creating** any file that might clutter the root
+
+## 🤖 Claude Workers System (⚠️ SUSPENDED - En attente de stabilisation)
+**TEMPORAIREMENT DÉSACTIVÉ** jusqu'au 10/01/2025
+- **Raison**: Focus sur simplicité maximale pendant stabilisation
+- **Réactivation**: Après achievement 100% tests green
+- **Alternative actuelle**: Réparation manuelle directe et simple
+- **Documentation**: `CLAUDE_WORKERS_GUIDE.md` (pour référence future)
 
 ## Project Overview
 
@@ -254,7 +275,12 @@ npm run test:critical                    # Test all critical modules
 2. **For migrations**: Always test locally with `npx prisma migrate dev`
 3. **For API changes**: Update TypeScript types in `/src/types/`
 4. **For UI changes**: Check responsive design and accessibility
-5. **Testing Requirements (Bulletproof Infrastructure)**: 
+5. **File Organization (CRITICAL)**: 
+   - **NEVER create files at root** (use proper directories)
+   - **Clean up temporary files** immediately after use
+   - **Use `/scripts/` for temporary scripts**, delete when done
+   - **Put reports in `/docs/05_reports/`** if keeping them
+6. **Testing Requirements (Bulletproof Infrastructure)**: 
    - **ALWAYS create tests for new code**:
      - New functions/services → Unit tests required
      - New API routes → Integration tests required
@@ -307,18 +333,22 @@ npm run test:critical                    # Test all critical modules
 
 ### Current Priorities (January 2025)
 
-See **[CONSOLIDATED ROADMAP](docs/04_roadmap/ROADMAP.md)** for detailed planning.
+**🚨 PRIORITÉ ABSOLUE : STABILISATION (06-10 Janvier 2025)**
 
-**Phase 1 - Architecture Refactoring** (In Progress):
-1. **Cleanup**: Remove `/demo`, `/diagnostic`, duplicate pages
-2. **Harmonization**: Migrate all UI to French
-3. **Unification**: Single planning system with multiple views
-4. **Simplification**: 3-step template management
+**NOUVELLE APPROCHE** : Tests manuels FIRST, automatisation SECOND
+- Voir **[STRATEGIE_TESTS_MANUELS.md](/STRATEGIE_TESTS_MANUELS.md)** pour protocole détaillé
 
-**Ongoing Priorities**:
-1. **Testing**: Achieve 80% coverage for critical modules
-2. **Performance**: Optimize authentication and planning pages
-3. **Documentation**: Consolidation completed - maintain only ROADMAP.md and KNOWN_ISSUES.md
+**TOUS LES AUTRES DÉVELOPPEMENTS SONT SUSPENDUS** jusqu'à :
+- ✅ 0 bugs bloquants en usage réel
+- ✅ Parcours critiques fonctionnels
+- ✅ Base stable pour automatisation
+
+**Anciennes priorités** (suspendues) :
+- ~~Phase 1 - Architecture Refactoring~~
+- ~~80% coverage pour modules critiques~~
+- ~~Optimisation performances~~
+
+**FOCUS UNIQUE** : Stabilité avant tout. Aucune feature, aucun refactoring.
 
 ### Resources for Development
 

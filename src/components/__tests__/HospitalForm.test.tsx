@@ -100,7 +100,7 @@ describe('HospitalForm', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('error-message')).toBeInTheDocument();
-        expect(screen.getByTestId('error-message')).toHaveTextContent('Veuillez remplir tous les champs obligatoires.');
+        expect(screen.getByTestId('error-message')).toHaveTextContent("Veuillez remplir tous les champs obligatoires.");
       });
       
       // Verify onSubmit was not called due to validation error
@@ -135,7 +135,7 @@ describe('HospitalForm', () => {
       render(<HospitalForm {...defaultProps} />);
 
       // Fill all fields except address
-      await user.type(screen.getByLabelText(/nom de l'hôpital/i), 'Hôpital Test');
+      await user.type(screen.getByLabelText(/nom de l'hôpital/i), "Hôpital Test");
       await user.type(screen.getByLabelText(/ville/i), 'Lyon');
       await user.type(screen.getByLabelText(/code postal/i), '69001');
 
@@ -158,7 +158,7 @@ describe('HospitalForm', () => {
       render(<HospitalForm {...defaultProps} />);
 
       // Fill all fields except city
-      await user.type(screen.getByLabelText(/nom de l'hôpital/i), 'Hôpital Test');
+      await user.type(screen.getByLabelText(/nom de l'hôpital/i), "Hôpital Test");
       await user.type(screen.getByLabelText(/adresse/i), '456 Rue Test');
       await user.type(screen.getByLabelText(/code postal/i), '69001');
 
@@ -181,7 +181,7 @@ describe('HospitalForm', () => {
       render(<HospitalForm {...defaultProps} />);
 
       // Fill all fields except postal code
-      await user.type(screen.getByLabelText(/nom de l'hôpital/i), 'Hôpital Test');
+      await user.type(screen.getByLabelText(/nom de l'hôpital/i), "Hôpital Test");
       await user.type(screen.getByLabelText(/adresse/i), '456 Rue Test');
       await user.type(screen.getByLabelText(/ville/i), 'Lyon');
 
@@ -205,7 +205,7 @@ describe('HospitalForm', () => {
       render(<HospitalForm {...defaultProps} onSubmit={onSubmitMock} />);
 
       // Fill all required fields
-      await user.type(screen.getByLabelText(/nom de l'hôpital/i), 'Hôpital Test');
+      await user.type(screen.getByLabelText(/nom de l'hôpital/i), "Hôpital Test");
       await user.type(screen.getByLabelText(/adresse/i), '456 Rue Test');
       await user.type(screen.getByLabelText(/ville/i), 'Lyon');
       await user.type(screen.getByLabelText(/code postal/i), '69001');
@@ -255,14 +255,14 @@ describe('HospitalForm', () => {
       const user = userEvent.setup();
       render(<HospitalForm {...defaultProps} />);
 
-      await user.type(screen.getByLabelText(/nom de l'hôpital/i), 'Test Hospital');
+      await user.type(screen.getByLabelText(/nom de l'hôpital/i), "Test Hospital");
       await user.type(screen.getByLabelText(/adresse/i), '123 Test Street');
       await user.type(screen.getByLabelText(/ville/i), 'Test City');
       await user.type(screen.getByLabelText(/code postal/i), '12345');
       await user.type(screen.getByLabelText(/téléphone/i), '0123456789');
       await user.type(screen.getByLabelText(/email/i), 'test@example.com');
 
-      expect(screen.getByDisplayValue('Test Hospital')).toBeInTheDocument();
+      expect(screen.getByDisplayValue("Test Hospital")).toBeInTheDocument();
       expect(screen.getByDisplayValue('123 Test Street')).toBeInTheDocument();
       expect(screen.getByDisplayValue('Test City')).toBeInTheDocument();
       expect(screen.getByDisplayValue('12345')).toBeInTheDocument();
@@ -282,7 +282,7 @@ describe('HospitalForm', () => {
       render(<HospitalForm {...defaultProps} onSubmit={onSubmitMock} />);
 
       // Fill all required fields
-      await user.type(screen.getByLabelText(/nom de l'hôpital/i), 'Hôpital Test');
+      await user.type(screen.getByLabelText(/nom de l'hôpital/i), "Hôpital Test");
       await user.type(screen.getByLabelText(/adresse/i), '456 Rue Test');
       await user.type(screen.getByLabelText(/ville/i), 'Lyon');
       await user.type(screen.getByLabelText(/code postal/i), '69001');
@@ -294,7 +294,7 @@ describe('HospitalForm', () => {
 
       await waitFor(() => {
         expect(onSubmitMock).toHaveBeenCalledWith({
-          name: 'Hôpital Test',
+          name: "Hôpital Test",
           address: '456 Rue Test',
           city: 'Lyon',
           postalCode: '69001',
@@ -311,7 +311,7 @@ describe('HospitalForm', () => {
       render(<HospitalForm {...defaultProps} onSubmit={onSubmitMock} />);
 
       // Fill required fields and set as inactive
-      await user.type(screen.getByLabelText(/nom de l'hôpital/i), 'Hôpital Inactif');
+      await user.type(screen.getByLabelText(/nom de l'hôpital/i), "Hôpital Inactif");
       await user.type(screen.getByLabelText(/adresse/i), '789 Rue Inactive');
       await user.type(screen.getByLabelText(/ville/i), 'Marseille');
       await user.type(screen.getByLabelText(/code postal/i), '13001');
@@ -337,7 +337,7 @@ describe('HospitalForm', () => {
       render(<HospitalForm {...defaultProps} onSubmit={onSubmitMock} />);
 
       // Fill required fields
-      await user.type(screen.getByLabelText(/nom de l'hôpital/i), 'Hôpital Test');
+      await user.type(screen.getByLabelText(/nom de l'hôpital/i), "Hôpital Test");
       await user.type(screen.getByLabelText(/adresse/i), '456 Rue Test');
       await user.type(screen.getByLabelText(/ville/i), 'Lyon');
       await user.type(screen.getByLabelText(/code postal/i), '69001');

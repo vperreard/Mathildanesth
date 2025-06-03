@@ -82,10 +82,11 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
       {/* Bouton de notification avec badge */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200 focus:outline-none"
+        className="relative flex items-center justify-center p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         aria-label={showAdminRules ? 'Notifications et règles admin' : 'Notifications'}
+        style={{ width: '36px', height: '36px' }}
       >
-        <Bell className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+        <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400" style={{ width: '20px', height: '20px' }} />
 
         {/* Badge compteur de notifications */}
         {unreadCount > 0 && (

@@ -4,13 +4,13 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Calendar, BarChart3, Settings, Users, ClipboardList, Stethoscope, AlertCircle } from 'lucide-react';
-import AdminRequestsDashboard from '@/components/AdminRequestsDashboard';
-import WeeklyPlanningWidget from '@/components/medical/WeeklyPlanningWidget';
-import { MobileDashboard } from '@/components/dashboard/MobileDashboard';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import AdminRequestsDashboard from '../components/AdminRequestsDashboard';
+import WeeklyPlanningWidget from '../components/medical/WeeklyPlanningWidget';
+import { MobileDashboard } from '../components/dashboard/MobileDashboard';
+import { useAuth } from '../hooks/useAuth';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Skeleton } from '../components/ui/skeleton';
 
 export default function HomePage() {
     const [mounted, setMounted] = useState(false);

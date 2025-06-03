@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { verifyAuthToken } from '@/lib/auth-server-utils';
+import { prisma } from '../../../../lib/prisma';
+import { verifyAuthToken, getAuthTokenServer } from '../../../../lib/auth-server-utils';
 import { startOfWeek, endOfWeek, addDays, format } from 'date-fns';
-import { logger } from '@/lib/logger';
-import { withUserRateLimit } from '@/lib/rateLimit';
 
-// Types pour le planningMedical
+// Types pour le planning médical
 type ShiftType = 'GARDE_24H' | 'ASTREINTE' | 'VACATION' | 'BLOC' | 'CONSULTATION' | 'REPOS' | 'CONGE';
 type ShiftStatus = 'CONFIRME' | 'EN_ATTENTE' | 'URGENT' | 'REMPLACE';
 
@@ -25,17 +23,22 @@ interface MedicalShift {
 /**
  * GET /api/mon-planning/semaine
  * Récupère le planning personnel de la semaine courante
- * Optimisé pour un chargement rapide (<1s)
  */
 async function handler(req: NextRequest) {
     const startTime = Date.now();
 
     try {
         // Vérifier l'authentification
-        const authResult = await verifyAuthToken();
+        const authToken = await getAuthTokenServer();
+        if (!authToken) {
+            return NextResponse.json(
+                { error: 'Non autorisé' },
+                { status: 401 }
+            );
+        }
         
+        const authResult = await verifyAuthToken(authToken);
         if (!authResult.authenticated || !authResult.userId) {
-            logger.warn('Tentative d\'accès non autorisé au planning personnel');
             return NextResponse.json(
                 { error: 'Non autorisé' },
                 { status: 401 }
@@ -54,15 +57,10 @@ async function handler(req: NextRequest) {
         const weekStart = startOfWeek(targetWeek, { weekStartsOn: 1 }); // Lundi
         const weekEnd = endOfWeek(targetWeek, { weekStartsOn: 1 }); // Dimanche
 
-        logger.info(`Chargement planning semaine pour utilisateur ${userId}`, {
-            weekStart: weekStart.toISOString(),
-            weekEnd: weekEnd.toISOString()
-        });
-
-        // Requête optimisée avec sélection des champs nécessaires uniquement
-        const [attributions, leaves, blocPlannings] = await Promise.all([
-            // Récupérer les affectations de la semaine
-            prisma.attribution.findMany({
+        // Requête simplifiée - récupérer seulement les assignments et congés pour l'instant
+        const [assignments, leaves] = await Promise.all([
+            // Récupérer les assignments de la semaine
+            prisma.assignment.findMany({
                 where: {
                     userId: userId,
                     date: {
@@ -73,14 +71,14 @@ async function handler(req: NextRequest) {
                 select: {
                     id: true,
                     date: true,
-                    shiftType: true,
-                    status: true,
+                    type: true,
+                    statut: true,
                     period: true,
-                    replacementUserId: true,
-                    replacementUser: {
+                    heureDebut: true,
+                    heureFin: true,
+                    Location: {
                         select: {
-                            prenom: true,
-                            nom: true
+                            name: true
                         }
                     }
                 },
@@ -102,54 +100,8 @@ async function handler(req: NextRequest) {
                     startDate: true,
                     endDate: true,
                     type: true,
-                    halfDayStart: true,
-                    halfDayEnd: true
-                }
-            }),
-
-            // Récupérer les plannings bloc opératoire
-            prisma.blocPlanningAssignment.findMany({
-                where: {
-                    userId: userId,
-                    blocDayPlanning: {
-                        date: {
-                            gte: weekStart,
-                            lte: weekEnd
-                        }
-                    }
-                },
-                select: {
-                    id: true,
-                    period: true,
-                    blocDayPlanning: {
-                        select: {
-                            date: true,
-                            siteId: true
-                        }
-                    },
-                    room: {
-                        select: {
-                            name: true,
-                            number: true,
-                            operatingSector: {
-                                select: {
-                                    name: true
-                                }
-                            }
-                        }
-                    },
-                    role: true,
-                    supervisedRooms: {
-                        select: {
-                            name: true,
-                            number: true
-                        }
-                    }
-                },
-                orderBy: {
-                    blocDayPlanning: {
-                        date: 'asc'
-                    }
+                    isHalfDay: true,
+                    halfDayPeriod: true
                 }
             })
         ]);
@@ -157,19 +109,17 @@ async function handler(req: NextRequest) {
         // Transformer les données en format médical intuitif
         const shifts: MedicalShift[] = [];
 
-        // Traiter les affectations standards
-        attributions.forEach(attribution => {
+        // Traiter les assignments standards
+        assignments.forEach(assignment => {
             const shift: MedicalShift = {
-                id: `attribution-${attribution.id}`,
-                type: mapShiftType(attribution.shiftType),
-                date: format(attribution.date, 'yyyy-MM-dd'),
-                startTime: getShiftTimes(attribution.shiftType, attribution.period).start,
-                endTime: getShiftTimes(attribution.shiftType, attribution.period).end,
-                status: mapStatus(attribution.status),
-                replacementNeeded: attribution.status === 'PENDING_REPLACEMENT',
-                supervisor: attribution.replacementUser 
-                    ? `${attribution.replacementUser.prenom} ${attribution.replacementUser.nom}`
-                    : undefined
+                id: `assignment-${assignment.id}`,
+                type: mapShiftType(assignment.type),
+                date: format(assignment.date, 'yyyy-MM-dd'),
+                startTime: assignment.heureDebut || '08:00',
+                endTime: assignment.heureFin || '18:00',
+                location: assignment.Location?.name,
+                status: mapStatus(assignment.statut),
+                replacementNeeded: assignment.statut === 'EN_ATTENTE'
             };
             shifts.push(shift);
         });
@@ -183,8 +133,8 @@ async function handler(req: NextRequest) {
                         id: `leave-${leave.id}-${currentDate.toISOString()}`,
                         type: 'CONGE',
                         date: format(currentDate, 'yyyy-MM-dd'),
-                        startTime: leave.halfDayStart && currentDate.getTime() === leave.startDate.getTime() ? '14:00' : '08:00',
-                        endTime: leave.halfDayEnd && currentDate.getTime() === leave.endDate.getTime() ? '12:00' : '18:00',
+                        startTime: leave.isHalfDay && leave.halfDayPeriod === 'AFTERNOON' ? '14:00' : '08:00',
+                        endTime: leave.isHalfDay && leave.halfDayPeriod === 'MORNING' ? '12:00' : '18:00',
                         status: 'CONFIRME',
                         replacementNeeded: false
                     };
@@ -194,24 +144,7 @@ async function handler(req: NextRequest) {
             }
         });
 
-        // Traiter les plannings bloc opératoire
-        blocPlannings.forEach(planning => {
-            const shift: MedicalShift = {
-                id: `bloc-${planning.id}`,
-                type: 'BLOC',
-                date: format(planning.blocDayPlanning.date, 'yyyy-MM-dd'),
-                startTime: planning.period === 'MORNING' ? '08:00' : '14:00',
-                endTime: planning.period === 'MORNING' ? '14:00' : '19:00',
-                location: planning.room?.operatingSector?.name,
-                room: planning.room ? `${planning.room.name} (${planning.room.number})` : undefined,
-                status: 'CONFIRME',
-                replacementNeeded: false,
-                supervisor: planning.role === 'SUPERVISOR' && planning.supervisedRooms.length > 0
-                    ? `Supervision: ${planning.supervisedRooms.map(r => r.number).join(', ')}`
-                    : undefined
-            };
-            shifts.push(shift);
-        });
+        // Note: Affectations bloc opératoire temporairement désactivées car le modèle doit être mis à jour
 
         // Trier les shifts par date et heure
         shifts.sort((a, b) => {
@@ -232,9 +165,8 @@ async function handler(req: NextRequest) {
         };
 
         const responseTime = Date.now() - startTime;
-        logger.info(`Planning semaine chargé en ${responseTime}ms`, { userId, shiftsCount: shifts.length });
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             weekStart: weekStart.toISOString(),
             weekEnd: weekEnd.toISOString(),
             shifts,
@@ -242,8 +174,14 @@ async function handler(req: NextRequest) {
             responseTime
         });
 
+        // Ajouter des headers de cache pour améliorer les performances
+        response.headers.set('Cache-Control', 'private, max-age=300'); // Cache 5 minutes
+        response.headers.set('X-Response-Time', responseTime.toString());
+
+        return response;
+
     } catch (error) {
-        logger.error('Erreur lors du chargement du planning semaine', { error });
+        console.error('Erreur lors du chargement du planning semaine', error);
         return NextResponse.json(
             { error: 'Erreur lors du chargement du planning' },
             { status: 500 }
@@ -252,12 +190,11 @@ async function handler(req: NextRequest) {
 }
 
 // Fonctions utilitaires pour mapper les données
-
 function mapShiftType(shiftType: string): ShiftType {
     const mapping: Record<string, ShiftType> = {
         'GUARD_24H': 'GARDE_24H',
         'ON_CALL': 'ASTREINTE',
-        'SHIFT': 'VACATION',
+        'VACATION': 'VACATION',
         'CONSULTATION': 'CONSULTATION',
         'REST': 'REPOS',
         'LEAVE': 'CONGE'
@@ -269,7 +206,7 @@ function mapStatus(status: string): ShiftStatus {
     const mapping: Record<string, ShiftStatus> = {
         'CONFIRMED': 'CONFIRME',
         'PENDING': 'EN_ATTENTE',
-        'PENDING_REPLACEMENT': 'URGENT',
+        'URGENT': 'URGENT',
         'REPLACED': 'REMPLACE'
     };
     return mapping[status] || 'EN_ATTENTE';
@@ -292,5 +229,4 @@ function getShiftTimes(shiftType: string, period?: string): { start: string; end
     return { start: '08:00', end: '18:00' };
 }
 
-// Export avec rate limiting
-export const GET = withUserRateLimit(handler);
+export const GET = handler;

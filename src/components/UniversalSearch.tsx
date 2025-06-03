@@ -223,25 +223,30 @@ export function UniversalSearch({ compact = false, className = '' }: UniversalSe
   };
 
   if (!isOpen) {
+    if (compact) {
+      return (
+        <button
+          className={`relative flex items-center justify-center p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${className}`}
+          onClick={() => setIsOpen(true)}
+          title="Rechercher (⌘K)"
+          style={{ width: '36px', height: '36px' }}
+        >
+          <Search className="h-5 w-5 text-gray-600 dark:text-gray-400" style={{ width: '20px', height: '20px' }} />
+        </button>
+      );
+    }
+    
     return (
       <Button
         variant="ghost"
-        className={`relative transition-colors ${compact
-          ? 'h-8 w-8 p-0'
-          : 'h-9 px-3 gap-2 text-sm font-normal text-muted-foreground hover:text-foreground'
-          } ${className}`}
+        className={`relative transition-colors h-9 px-3 gap-2 text-sm font-normal text-muted-foreground hover:text-foreground ${className}`}
         onClick={() => setIsOpen(true)}
-        title={compact ? 'Rechercher (⌘K)' : undefined}
       >
-        <Search className={compact ? 'h-4 w-4' : 'h-4 w-4'} />
-        {!compact && (
-          <>
-            <span className="hidden lg:inline">Rechercher...</span>
-            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground lg:flex">
-              <span className="text-xs">⌘</span>K
-            </kbd>
-          </>
-        )}
+        <Search className="h-5 w-5" />
+        <span className="hidden lg:inline">Rechercher...</span>
+        <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground lg:flex">
+          <span className="text-xs">⌘</span>K
+        </kbd>
       </Button>
     );
   }

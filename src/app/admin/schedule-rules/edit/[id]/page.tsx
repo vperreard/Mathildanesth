@@ -8,13 +8,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
 interface EditRulePageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 export default function EditRulePage({ params }: EditRulePageProps) {
-    const { id } = params;
+    const [id, setId] = useState<string>('');
     const router = useRouter();
     const { toast } = useToast();
     const { user } = useAuth();
@@ -28,6 +28,13 @@ export default function EditRulePage({ params }: EditRulePageProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Resolve params Promise
+    useEffect(() => {
+        params.then(resolvedParams => {
+            setId(resolvedParams.id);
+        });
+    }, [params]);
 
     // Charger la règle au chargement de la page
     useEffect(() => {

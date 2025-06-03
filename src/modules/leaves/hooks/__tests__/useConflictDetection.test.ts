@@ -49,7 +49,7 @@ const mockWarningConflict: LeaveConflict = {
     leaveId: mockLeaveId,
     type: ConflictType.SPECIAL_PERIOD,
     severity: ConflictSeverity.AVERTISSEMENT,
-    description: 'Jour férié pendant l'absence',
+    description: 'Jour ferie pendant l absence',
     startDate: createDate(2023, 5, 11).toISOString(),
     endDate: createDate(2023, 5, 11).toISOString(),
     canOverride: true,
@@ -63,7 +63,7 @@ const mockInfoConflict: LeaveConflict = {
     leaveId: mockLeaveId,
     type: ConflictType.TEAM_CAPACITY,
     severity: ConflictSeverity.INFORMATION,
-    description: 'Capacité d'équipe réduite',
+    description: 'Capacite d equipe reduite',
     startDate: createDate(2023, 5, 13).toISOString(),
     endDate: createDate(2023, 5, 13).toISOString(),
     canOverride: true,
@@ -178,7 +178,7 @@ describe('useConflictDetection', () => {
             mockDateValidation.hasError.mockReturnValue(false);
         });
 
-        it('devrait vérifier les conflits et mettre à jour l'état - sans conflits', async () => {
+        it('devrait verifier les conflits et mettre a jour l etat - sans conflits', async () => {
             (checkLeaveConflicts as jest.Mock).mockResolvedValue({ conflicts: [], hasBlockingConflicts: false, hasBlockers: false, hasConflicts: false });
             const { result } = renderHook(() => useConflictDetection({ userId }));
             await result.current.checkConflicts(mockStartDate, mockEndDate);
@@ -187,7 +187,7 @@ describe('useConflictDetection', () => {
             expect(result.current.hasBlockingConflicts).toBe(false);
         });
 
-        it('devrait vérifier les conflits et mettre à jour l'état - avec conflits', async () => {
+        it('devrait verifier les conflits et mettre a jour l etat - avec conflits', async () => {
             const mockResult = { conflicts: [mockBlockingConflict], hasBlockingConflicts: true, hasBlockers: true, hasConflicts: true };
             (checkLeaveConflicts as jest.Mock).mockResolvedValue(mockResult);
             const { result } = renderHook(() => useConflictDetection({ userId }));
@@ -279,7 +279,7 @@ describe('useConflictDetection', () => {
     jest.clearAllMocks();
   });
 
-        it('devrait supprimer un conflit et mettre à jour l'état des conflits bloquants', async () => {
+        it('devrait supprimer un conflit et mettre a jour l etat des conflits bloquants', async () => {
             const { result } = renderHook(() => useConflictDetection({ userId }));
 
             // Créer des objets Date à partir des dates existantes
@@ -321,7 +321,7 @@ describe('useConflictDetection', () => {
     jest.clearAllMocks();
   });
 
-        it('devrait réinitialiser l'état des conflits', async () => {
+        it('devrait reinitialiser l etat des conflits', async () => {
             const { result } = renderHook(() => useConflictDetection({ userId }));
 
             // Créer des objets Date à partir des dates existantes

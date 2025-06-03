@@ -8,9 +8,9 @@
 
 ## 📋 FICHIERS EN ÉCHEC
 - src/hooks/__tests__/useAppearance.test.tsx
-- src/hooks/__tests__/useContextualMessagesWebSocket.test.tsx
-- src/hooks/__tests__/useAppearance.test.tsx
-- src/hooks/__tests__/useContextualMessagesWebSocket.test.tsx
+- src/hooks/__tests__/usePerformanceMetrics.test.tsx
+- src/modules/planning/bloc-operatoire/hooks/__tests__/useValidationRules.test.tsx
+- src/modules/calendar/hooks/__tests__/useCalendarNavigation.test.tsx
 
 ## 🛠️ INSTRUCTIONS PRÉCISES
 

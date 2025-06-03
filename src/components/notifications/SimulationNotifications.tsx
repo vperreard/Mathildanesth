@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { subscribeToChannel } from '@/lib/pusher';
-import { getSession } from 'next-auth/react';
-import { SimulationEvent } from '@/services/simulations/notificationService';
+import { subscribeToChannel } from '../../lib/pusher';
+// import { getSession } from 'next-auth/react'; // Temporairement désactivé
+import { SimulationEvent } from '../../types/simulation-notifications';
 import { Bell, Clock, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '../ui/progress';
+import { Card, CardContent } from '../ui/card';
 import { useRouter } from 'next/navigation';
 
 /**
@@ -34,8 +34,11 @@ export function SimulationNotifications() {
     const [userId, setUserId] = useState<string | null>(null);
     const router = useRouter();
 
-    // Récupérer l'ID de l'utilisateur connecté
+    // Récupérer l'ID de l'utilisateur connecté - Temporairement désactivé
     useEffect(() => {
+        // Temporairement désactivé pour éviter les erreurs getSession
+        console.log('SimulationNotifications: Temporairement désactivé');
+        /*
         const fetchUserId = async () => {
             const session = await getSession();
             if (session && session.user && session.user.email) {
@@ -52,6 +55,7 @@ export function SimulationNotifications() {
         };
 
         fetchUserId();
+        */
     }, []);
 
     // S'abonner au canal de notification lorsque l'ID utilisateur est disponible

@@ -112,15 +112,21 @@ export default function WeeklyPlanningWidget({ userId, className, mockData }: We
             if (mockData) {
                 data = mockData;
             } else {
-                const response = await fetch('http://localhost:3000/api/mon-planning/semaine', {
+                const response = await fetch('/api/mon-planning/semaine', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'include', // Important pour inclure les cookies
+                    // Timeout de 5 secondes
+                    signal: AbortSignal.timeout(5000),
                 });
 
                 if (!response.ok) {
-                    throw new Error('Erreur lors du chargement du planning');
+                    if (response.status === 401) {
+                        throw new Error('Non autorisé - Veuillez vous connecter');
+                    }
+                    throw new Error(`Erreur lors du chargement du planning (${response.status})`);
                 }
 
                 data = await response.json();
@@ -155,9 +161,10 @@ export default function WeeklyPlanningWidget({ userId, className, mockData }: We
 
         } catch (error) {
             console.error('Erreur lors du chargement du planning:', error);
+            const errorMessage = error instanceof Error ? error.message : "Impossible de charger votre planning";
             toast({
                 title: "Erreur",
-                description: "Impossible de charger votre planning",
+                description: errorMessage,
                 variant: "destructive"
             });
         } finally {

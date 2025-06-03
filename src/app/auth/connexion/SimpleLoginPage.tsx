@@ -2,36 +2,31 @@
 
 import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 
 const SimpleLoginPage: React.FC = () => {
     const [loginData, setLoginData] = useState({ login: '', password: '' });
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const { login: authLogin } = useAuth();
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log('[SimpleLoginPage] Form submitted', { login: loginData.login });
         
-        if (isLoading || !loginData.login.trim() || !loginData.password.trim()) return;
+        if (isLoading || !loginData.login.trim() || !loginData.password.trim()) {
+            console.log('[SimpleLoginPage] Validation failed', { isLoading, loginEmpty: !loginData.login.trim(), passwordEmpty: !loginData.password.trim() });
+            return;
+        }
         
         setError(null);
         setIsLoading(true);
 
         try {
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(loginData),
-                credentials: 'include'
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Identifiants invalides');
-            }
-
-            router.replace(data.redirectUrl || '/');
+            // Utiliser le même hook que le header pour partager l'état
+            await authLogin(loginData);
+            console.log('[SimpleLoginPage] Login successful via auth hook');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Une erreur est survenue');
         } finally {

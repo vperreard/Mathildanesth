@@ -17,6 +17,15 @@ import { toast } from 'react-toastify';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
+// Interface pour les sites
+interface Site {
+    id: string;
+    name: string;
+    description?: string;
+    colorCode?: string;
+    isActive: boolean;
+}
+
 // Type pour un chirurgien incluant les spécialités et l'utilisateur lié
 // Assurer la cohérence avec le type attendu par SurgeonForm
 // On garde Omit<Surgeon, 'specialties'> et on type specialties séparément
@@ -37,6 +46,7 @@ const SurgeonsListPanel: React.FC = () => {
     // Gardons la confirmation de suppression si elle est utilisée
     const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; surgeonId: number | null }>({ isOpen: false, surgeonId: null });
     const [showInactive, setShowInactive] = useState<boolean>(false);
+    const [editingSurgeonSites, setEditingSurgeonSites] = useState<Site[]>([]);
 
     const fetchSurgeons = useCallback(async () => {
         setLoading(true);
@@ -73,8 +83,24 @@ const SurgeonsListPanel: React.FC = () => {
         fetchSpecialties();
     }, [fetchSpecialties]);
 
-    const handleOpenForm = (surgeon: SurgeonWithSpecialties | null = null) => {
+    // Fetch sites for the surgeon being edited
+    const fetchSurgeonSites = useCallback(async (surgeonId: number) => {
+        try {
+            const response = await axios.get<Site[]>(`/api/chirurgiens/${surgeonId}/sites`);
+            setEditingSurgeonSites(response.data);
+        } catch (err) {
+            console.error(`Erreur fetchSurgeonSites pour ${surgeonId}:`, err);
+            setEditingSurgeonSites([]); // Réinitialiser en cas d'erreur
+        }
+    }, []);
+
+    const handleOpenForm = async (surgeon: SurgeonWithSpecialties | null = null) => {
         setEditingSurgeon(surgeon);
+        if (surgeon && surgeon.id) {
+            await fetchSurgeonSites(surgeon.id);
+        } else {
+            setEditingSurgeonSites([]);
+        }
         setIsModalOpen(true);
     };
 
@@ -83,12 +109,28 @@ const SurgeonsListPanel: React.FC = () => {
         setIsModalOpen(false);
     };
 
-    const handleCreateSurgeon = async (formData: SurgeonSubmitData) => {
+    const handleCreateSurgeon = async (formData: SurgeonSubmitData, selectedSites?: Site[]) => {
         setIsLoadingSubmit(true);
         setError(null); // Clear previous errors
         try {
-            await axios.post<SurgeonWithSpecialties>('/api/chirurgiens', formData);
-            toast.success("Chirurgien créé avec succès !");
+            const response = await axios.post<SurgeonWithSpecialties>('/api/chirurgiens', formData);
+            const newSurgeon = response.data;
+            
+            // Si des sites sont sélectionnés, les assigner au nouveau chirurgien
+            if (selectedSites && selectedSites.length > 0) {
+                try {
+                    await axios.put(`/api/chirurgiens/${newSurgeon.id}/sites`, {
+                        siteIds: selectedSites.map(site => site.id)
+                    });
+                    toast.success(`Chirurgien créé avec ${selectedSites.length} site(s) assigné(s) !`);
+                } catch (siteErr) {
+                    console.error("Erreur lors de l'assignation des sites:", siteErr);
+                    toast.warning("Chirurgien créé mais erreur lors de l'assignation des sites.");
+                }
+            } else {
+                toast.success("Chirurgien créé avec succès !");
+            }
+            
             fetchSurgeons();
             handleCloseForm();
         } catch (err: any) {
@@ -101,13 +143,28 @@ const SurgeonsListPanel: React.FC = () => {
         }
     };
 
-    const handleUpdateSurgeon = async (formData: SurgeonSubmitData) => {
+    const handleUpdateSurgeon = async (formData: SurgeonSubmitData, selectedSites?: Site[]) => {
         if (!editingSurgeon) return;
         setIsLoadingSubmit(true);
         setError(null); // Clear previous errors
         try {
             await axios.put<SurgeonWithSpecialties>(`/api/chirurgiens/${editingSurgeon.id}`, formData);
-            toast.success("Chirurgien modifié avec succès !");
+            
+            // Gérer la synchronisation des sites
+            if (selectedSites) {
+                try {
+                    await axios.put(`/api/chirurgiens/${editingSurgeon.id}/sites`, {
+                        siteIds: selectedSites.map(site => site.id)
+                    });
+                    toast.success(`Chirurgien modifié avec ${selectedSites.length} site(s) assigné(s) !`);
+                } catch (siteErr) {
+                    console.error("Erreur lors de la synchronisation des sites:", siteErr);
+                    toast.warning("Chirurgien modifié mais erreur lors de la synchronisation des sites.");
+                }
+            } else {
+                toast.success("Chirurgien modifié avec succès !");
+            }
+            
             fetchSurgeons();
             handleCloseForm();
         } catch (err: any) {
@@ -185,6 +242,7 @@ const SurgeonsListPanel: React.FC = () => {
                     <Modal isOpen={isModalOpen} onClose={handleCloseForm} title={editingSurgeon ? 'Modifier le Chirurgien' : 'Ajouter un Chirurgien'}>
                         <SurgeonForm
                             initialData={editingSurgeon}
+                            surgeonSites={editingSurgeonSites}
                             onSubmit={editingSurgeon ? handleUpdateSurgeon : handleCreateSurgeon}
                             onCancel={handleCloseForm}
                             isLoading={isLoadingSubmit}

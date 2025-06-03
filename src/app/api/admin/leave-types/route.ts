@@ -6,7 +6,7 @@ import {
     AuthorizationError,
     AuthenticationError
 } from '@/lib/auth/authorization';
-import { auditService } from '@/services/auditService';
+import { AuditService, AuditAction } from '@/services/AuditService';
 
 /**
  * GET /api/admin/leave-types
@@ -19,8 +19,9 @@ export async function GET(request: Request) {
         const session = await requireAdmin();
         
         // Logger l'action
+        const auditService = new AuditService();
         await auditService.logAction({
-            action: 'READ_LEAVE_TYPES' as any,
+            action: AuditAction.READ_LEAVE_TYPES,
             userId: session.user.id.toString(),
             entityId: 'all',
             entityType: 'leave_type_setting'
@@ -58,8 +59,9 @@ export async function POST(request: Request) {
         const body = await request.json();
 
         // Logger l'action
+        const auditService = new AuditService();
         await auditService.logAction({
-            action: 'CREATE_LEAVE_TYPE' as any,
+            action: AuditAction.CREATE_LEAVE_TYPE,
             userId: session.user.id.toString(),
             entityId: body.code || 'new',
             entityType: 'leave_type_setting',
@@ -117,8 +119,9 @@ export async function PUT(request: Request) {
         const { id, ...updateData } = body;
 
         // Logger l'action
+        const auditService = new AuditService();
         await auditService.logAction({
-            action: 'UPDATE_LEAVE_TYPE' as any,
+            action: AuditAction.UPDATE_LEAVE_TYPE,
             userId: session.user.id.toString(),
             entityId: String(id),
             entityType: 'leave_type_setting',
@@ -166,8 +169,9 @@ export async function DELETE(request: Request) {
         }
 
         // Logger l'action
+        const auditService = new AuditService();
         await auditService.logAction({
-            action: 'DELETE_LEAVE_TYPE' as any,
+            action: AuditAction.DELETE_LEAVE_TYPE,
             userId: session.user.id.toString(),
             entityId: id,
             entityType: 'leave_type_setting'

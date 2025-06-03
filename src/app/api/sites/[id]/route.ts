@@ -17,20 +17,19 @@ function checkAuth(requestHeaders: Headers): { userId: string; userRole: string 
 // GET /api/sites/[id] - Récupérer un site par ID
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    console.log(`\\n--- GET /api/sites/${params.id} START ---`);
+    const { id } = await params;
+    console.log(`\\n--- GET /api/sites/${id} START ---`);
     try {
         const requestHeaders = await headers();
         const auth = checkAuth(requestHeaders);
 
         if (!auth) {
-            console.error(`GET /api/sites/${params.id}: Unauthorized (Middleware headers missing)`);
+            console.error(`GET /api/sites/${id}: Unauthorized (Middleware headers missing)`);
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
-        console.log(`GET /api/sites/${params.id}: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`);
-
-        const id = params.id; // L'ID est une chaîne (cuid)
+        console.log(`GET /api/sites/${id}: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`);
 
         console.log(`GET /api/sites/${id}: Retrieving site from DB...`);
         const site = await prisma.site.findUnique({
@@ -49,8 +48,8 @@ export async function GET(
         return NextResponse.json(site);
 
     } catch (error) {
-        console.error(`Error during GET /api/sites/${params.id}:`, error);
-        console.log(`--- GET /api/sites/${params.id} END (with error) ---\\n`);
+        console.error(`Error during GET /api/sites/${id}:`, error);
+        console.log(`--- GET /api/sites/${id} END (with error) ---\\n`);
         return NextResponse.json({ error: 'Erreur lors de la récupération du site' }, { status: 500 });
     }
 }
@@ -58,24 +57,23 @@ export async function GET(
 // PUT /api/sites/[id] - Mettre à jour un site par ID
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    console.log(`\\n--- PUT /api/sites/${params.id} START ---`);
+    const { id } = await params;
+    console.log(`\\n--- PUT /api/sites/${id} START ---`);
     try {
         const requestHeaders = await headers();
         const auth = checkAuth(requestHeaders);
 
         if (!auth) {
-            console.error(`PUT /api/sites/${params.id}: Unauthorized (Middleware headers missing)`);
+            console.error(`PUT /api/sites/${id}: Unauthorized (Middleware headers missing)`);
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
         if (auth.userRole !== 'ADMIN_TOTAL' && auth.userRole !== 'ADMIN_PARTIEL') {
-            console.error(`PUT /api/sites/${params.id}: Forbidden (Role '${auth.userRole}' not allowed)`);
+            console.error(`PUT /api/sites/${id}: Forbidden (Role '${auth.userRole}' not allowed)`);
             return NextResponse.json({ error: 'Accès interdit pour modifier un site' }, { status: 403 });
         }
-        console.log(`PUT /api/sites/${params.id}: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`);
-
-        const id = params.id;
+        console.log(`PUT /api/sites/${id}: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`);
         const data = await request.json();
         console.log(`PUT /api/sites/${id} - Received data:`, data);
 
@@ -85,14 +83,21 @@ export async function PUT(
         }
 
         console.log(`PUT /api/sites/${id}: Updating site in DB...`);
+        const updateData: any = {
+            name: data.name.trim(),
+            description: data.description,
+            isActive: data.isActive, // Assumer que le frontend envoie toujours une valeur booléenne
+            // displayOrder n'est pas mis à jour ici, géré par une route dédiée /reorder si nécessaire
+        };
+
+        // Ajouter colorCode si fourni
+        if (data.colorCode !== undefined) {
+            updateData.colorCode = data.colorCode;
+        }
+
         const updatedSite = await prisma.site.update({
             where: { id },
-            data: {
-                name: data.name.trim(),
-                description: data.description,
-                isActive: data.isActive, // Assumer que le frontend envoie toujours une valeur booléenne
-                // displayOrder n'est pas mis à jour ici, géré par une route dédiée /reorder si nécessaire
-            },
+            data: updateData,
         });
 
         console.log(`PUT /api/sites/${id}: Site updated successfully.`);
@@ -100,10 +105,10 @@ export async function PUT(
         return NextResponse.json(updatedSite);
 
     } catch (error) {
-        console.error(`Error during PUT /api/sites/${params.id}:`, error);
+        console.error(`Error during PUT /api/sites/${id}:`, error);
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2025') {
-                console.error(`Prisma Error P2025: Record to update not found (ID: ${params.id})`);
+                console.error(`Prisma Error P2025: Record to update not found (ID: ${id})`);
                 return NextResponse.json({ error: 'Site non trouvé pour la mise à jour.' }, { status: 404 });
             }
             if (error.code === 'P2002') {
@@ -116,7 +121,7 @@ export async function PUT(
                 return NextResponse.json({ error: 'Erreur de base de données: Contrainte unique violée.' }, { status: 409 });
             }
         }
-        console.log(`--- PUT /api/sites/${params.id} END (with error) ---\\n`);
+        console.log(`--- PUT /api/sites/${id} END (with error) ---\\n`);
         return NextResponse.json({ error: 'Erreur lors de la mise à jour du site' }, { status: 500 });
     }
 }
@@ -124,24 +129,23 @@ export async function PUT(
 // DELETE /api/sites/[id] - Supprimer un site par ID
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    console.log(`\\n--- DELETE /api/sites/${params.id} START ---`);
+    const { id } = await params;
+    console.log(`\\n--- DELETE /api/sites/${id} START ---`);
     try {
         const requestHeaders = await headers();
         const auth = checkAuth(requestHeaders);
 
         if (!auth) {
-            console.error(`DELETE /api/sites/${params.id}: Unauthorized (Middleware headers missing)`);
+            console.error(`DELETE /api/sites/${id}: Unauthorized (Middleware headers missing)`);
             return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
         }
         if (auth.userRole !== 'ADMIN_TOTAL' && auth.userRole !== 'ADMIN_PARTIEL') {
-            console.error(`DELETE /api/sites/${params.id}: Forbidden (Role '${auth.userRole}' not allowed)`);
+            console.error(`DELETE /api/sites/${id}: Forbidden (Role '${auth.userRole}' not allowed)`);
             return NextResponse.json({ error: 'Accès interdit pour supprimer un site' }, { status: 403 });
         }
-        console.log(`DELETE /api/sites/${params.id}: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`);
-
-        const id = params.id;
+        console.log(`DELETE /api/sites/${id}: Auth check passed (Middleware)! User ID: ${auth.userId}, Role: ${auth.userRole}`);
 
         console.log(`DELETE /api/sites/${id}: Attempting to delete site... (Sectors will be detached)`);
         // Supprimer le site. Grâce à onDelete: SetNull, Prisma va mettre siteId à NULL dans OperatingSector
@@ -154,14 +158,14 @@ export async function DELETE(
         return NextResponse.json({ message: 'Site supprimé avec succès' });
 
     } catch (error) {
-        console.error(`Error during DELETE /api/sites/${params.id}:`, error);
+        console.error(`Error during DELETE /api/sites/${id}:`, error);
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-            console.error(`Prisma Error P2025: Record to delete not found (ID: ${params.id})`);
+            console.error(`Prisma Error P2025: Record to delete not found (ID: ${id})`);
             return NextResponse.json({ error: 'Site non trouvé pour la suppression.' }, { status: 404 });
         }
         // D'autres erreurs Prisma pourraient survenir, mais P2003 (FK violation) ne devrait plus arriver pour les secteurs.
         // S'il y a d'autres relations obligatoires vers Site, il faudrait les gérer.
-        console.log(`--- DELETE /api/sites/${params.id} END (with error) ---\\n`);
+        console.log(`--- DELETE /api/sites/${id} END (with error) ---\\n`);
         return NextResponse.json({ error: 'Erreur lors de la suppression du site' }, { status: 500 });
     }
 } 

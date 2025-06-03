@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { useServiceWorker, useNetworkStatus } from '@/hooks/useServiceWorker';
 
 const ServiceWorkerRegistration: React.FC = () => {
+    // TEMPORAIRE: Désactiver complètement le service worker pour résoudre les erreurs MIME
+    // TODO: Réactiver après résolution des conflits avec Next.js
+    return null;
     const {
         isSupported,
         isInstalled,

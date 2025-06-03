@@ -118,7 +118,7 @@ describe('useAuth Hook', () => {
     it('should throw error when used outside AuthProvider', () => {
       expect(() => {
         renderHook(() => useAuth());
-      }).toThrow('useAuth doit être utilisé à l'intérieur d'un AuthProvider');
+      }).toThrow('useAuth doit être utilisé à l\'intérieur d\'un AuthProvider');
     });
   });
 

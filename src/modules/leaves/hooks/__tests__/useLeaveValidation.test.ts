@@ -8,10 +8,10 @@
  * - Validation de base des congés (dates valides, dans le futur, cohérentes)
  * - Gestion des quotas disponibles
  * - Validation des champs obligatoires
- * - Gestion des messages d'erreur
- * - Périodes d'exclusion (blackout)
+ * - Gestion des messages d erreur
+ * - Périodes d exclusion (blackout)
  * - Mise à jour du contexte
- * - Gestion des propriétés d'utilisateur null
+ * - Gestion des propriétés d utilisateur null
  * - Réinitialisation des erreurs
  */
 
@@ -223,7 +223,7 @@ describe('useLeaveValidation', () => {
         expect(result.current.getErrorType(endFieldName)).toBe(DateValidationErrorType.REQUIRED);
     });
 
-    it('devrait fournir des messages d'erreur corrects', () => {
+    it('devrait fournir des messages d erreur corrects', () => {
         const { result } = renderHook(() => useLeaveValidation());
 
         // Créer une erreur de date passée
@@ -235,7 +235,7 @@ describe('useLeaveValidation', () => {
             );
         });
 
-        // Vérifier le message d'erreur
+        // Vérifier le message d erreur
         expect(result.current.getErrorMessage(startFieldName)).toBe('Les dates passées ne sont pas autorisées');
 
         // Réinitialiser les erreurs
@@ -252,12 +252,12 @@ describe('useLeaveValidation', () => {
             );
         });
 
-        // Vérifier les messages d'erreur
+        // Vérifier les messages d erreur
         expect(result.current.getErrorMessage(startFieldName)).toBe('La date de début doit être antérieure à la date de fin');
         expect(result.current.getErrorMessage(endFieldName)).toBe('La date de fin doit être postérieure à la date de début');
     });
 
-    it('devrait correctement gérer les périodes d'exclusion (blackout)', () => {
+    it('devrait correctement gérer les périodes d exclusion (blackout)', () => {
         const { result } = renderHook(() => useLeaveValidation());
 
         // Créer une période blackout
@@ -314,7 +314,7 @@ describe('useLeaveValidation', () => {
         expect(result.current.context.remainingDays).toBe(15);
     });
 
-    it('devrait gérer correctement les propriétés d'utilisateur null', () => {
+    it('devrait gérer correctement les propriétés d utilisateur null', () => {
         const { result } = renderHook(() => useLeaveValidation());
 
         const userIdWithNull = 'user_with_null';

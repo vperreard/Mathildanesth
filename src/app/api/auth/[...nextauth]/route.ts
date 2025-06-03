@@ -46,6 +46,13 @@ const generateAccessToken = (userId: number): string => {
   return `${timestamp}.${userId}.${randomPart}`;
 };
 
+// Debug logging
+console.log('NextAuth configuration:', {
+  hasSecret: !!process.env.NEXTAUTH_SECRET,
+  url: process.env.NEXTAUTH_URL,
+  nodeEnv: process.env.NODE_ENV
+});
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({

@@ -1,53 +1,19 @@
-import { io, Socket } from 'socket.io-client';
-import { toast } from 'react-toastify';
-
-// 🔧 CORRECTION TYPE ANY : Types spécifiques pour les données de notification
-type NotificationData =
-    | LeaveNotificationData
-    | AssignmentNotificationData
-    | SystemNotificationData
-    | Record<string, unknown>; // Fallback pour les cas non typés
-
-interface LeaveNotificationData {
-    leaveId: string;
-    userId: string;
-    leaveType: string;
-    status: string;
-    startDate: string;
-    endDate: string;
-}
-
-interface AssignmentNotificationData {
-    assignmentId: string;
-    userId: string;
-    date: string;
-    shiftType: string;
-    location?: string;
-}
-
-interface SystemNotificationData {
-    component: string;
-    action: string;
-    timestamp: string;
-    metadata?: Record<string, unknown>;
-}
+// Service de notifications temporairement désactivé pour éviter les erreurs WebSocket
 
 export interface Notification {
     id: string;
     type: 'info' | 'success' | 'warning' | 'error';
     title: string;
     message: string;
-    data?: NotificationData; // 🔧 PLUS DE TYPE ANY
+    data?: any;
     createdAt: Date;
 }
 
 class NotificationService {
-    private socket: Socket | null = null;
     private static instance: NotificationService;
-    private listeners: Map<string, Set<(notification: Notification) => void>> = new Map();
 
     private constructor() {
-        this.initializeSocket();
+        console.log('NotificationService: Complètement désactivé (version temp)');
     }
 
     public static getInstance(): NotificationService {
@@ -57,92 +23,23 @@ class NotificationService {
         return NotificationService.instance;
     }
 
-    private initializeSocket() {
-        if (typeof window !== 'undefined') {
-            this.socket = io(window.location.origin, {
-                path: '/api/ws',
-                reconnection: true,
-                reconnectionAttempts: 5,
-                reconnectionDelay: 1000,
-            });
-
-            this.socket.on('connect', () => {
-                console.log('Connecté au serveur de notifications');
-            });
-
-            this.socket.on('disconnect', () => {
-                console.log('Déconnecté du serveur de notifications');
-            });
-
-            this.socket.on('notification', (notification: Notification) => {
-                this.handleNotification(notification);
-            });
-        }
-    }
-
-    private handleNotification(notification: Notification) {
-        // Afficher la notification avec toast
-        toast[notification.type](notification.message, {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-        });
-
-        // Notifier les écouteurs
-        const listeners = this.listeners.get(notification.type) || new Set();
-        listeners.forEach(listener => listener(notification));
-    }
-
     public subscribe(type: string, callback: (notification: Notification) => void): () => void {
-        if (!this.listeners.has(type)) {
-            this.listeners.set(type, new Set());
-        }
-        this.listeners.get(type)!.add(callback);
-
-        return () => {
-            const listeners = this.listeners.get(type);
-            if (listeners) {
-                listeners.delete(callback);
-            }
-        };
+        console.log('NotificationService.subscribe: Désactivé');
+        return () => {}; // Fonction vide pour le unsubscribe
     }
 
     public unsubscribe(type: string, callback: (notification: Notification) => void): void {
-        const listeners = this.listeners.get(type);
-        if (listeners) {
-            listeners.delete(callback);
-        }
+        console.log('NotificationService.unsubscribe: Désactivé');
     }
 
     public sendNotification(notification: Omit<Notification, 'id' | 'createdAt'>): void {
-        if (this.socket?.connected) {
-            this.socket.emit('sendNotification', {
-                ...notification,
-                id: Math.random().toString(36).substring(2, 9),
-                createdAt: new Date(),
-            });
-        }
+        console.log('NotificationService.sendNotification: Désactivé -', notification.title);
     }
 
-    /**
-     * Méthode pour réinitialiser le service pour les tests
-     * @private Utilisé uniquement pour les tests
-     */
     public resetForTesting(): void {
-        if (process.env.NODE_ENV === 'test') {
-            this.listeners.clear();
-
-            // Réinitialiser les listeners du socket
-            if (this.socket) {
-                this.socket.on('notification', (notification: Notification) => {
-                    this.handleNotification(notification);
-                });
-            }
-        }
+        console.log('NotificationService.resetForTesting: Désactivé');
     }
 }
 
-export const notificationService = NotificationService.getInstance(); 
+export const notificationService = NotificationService.getInstance();
+export default NotificationService;

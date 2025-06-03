@@ -46,13 +46,15 @@ export default function OptimizedDraggableCalendar({
     // Memoize expensive calculations
     const assignmentsByUser = useMemo(() => {
         const map = new Map<string, Attribution[]>();
-        attributions.forEach(attribution => {
-            const userId = attribution.userId;
-            if (!map.has(userId)) {
-                map.set(userId, []);
-            }
-            map.get(userId)!.push(attribution);
-        });
+        if (attributions) {
+            attributions.forEach(attribution => {
+                const userId = attribution.userId;
+                if (!map.has(userId)) {
+                    map.set(userId, []);
+                }
+                map.get(userId)!.push(attribution);
+            });
+        }
         return map;
     }, [attributions]);
 

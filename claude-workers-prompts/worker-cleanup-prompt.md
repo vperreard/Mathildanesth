@@ -4,55 +4,39 @@
 **Spécialité**: Miscellaneous & Edge Cases
 **Priorité**: 📝 BASSE
 **Temps estimé**: 15-20 min
-**Fichiers à réparer**: 40
+**Fichiers à réparer**: 24
 
 ## 📋 FICHIERS EN ÉCHEC
-- src/services/__tests__/service-0.test.ts
-- src/services/__tests__/service-1.test.ts
-- src/services/__tests__/service-2.test.ts
-- src/services/__tests__/service-3.test.ts
-- src/services/__tests__/service-4.test.ts
-- src/services/__tests__/service-5.test.ts
-- src/services/__tests__/service-6.test.ts
-- src/services/__tests__/service-7.test.ts
-- src/services/__tests__/service-8.test.ts
-- src/services/__tests__/service-9.test.ts
-- src/services/__tests__/service-10.test.ts
-- src/services/__tests__/service-11.test.ts
-- src/services/__tests__/service-12.test.ts
-- src/services/__tests__/service-13.test.ts
-- src/services/__tests__/service-14.test.ts
-- src/services/__tests__/service-15.test.ts
-- src/services/__tests__/service-16.test.ts
-- src/services/__tests__/service-17.test.ts
-- src/services/__tests__/service-18.test.ts
-- src/services/__tests__/service-19.test.ts
-- src/services/__tests__/service-20.test.ts
-- src/services/__tests__/service-21.test.ts
-- src/services/__tests__/service-22.test.ts
-- src/services/__tests__/service-23.test.ts
-- src/services/__tests__/service-24.test.ts
-- src/services/__tests__/service-25.test.ts
-- src/services/__tests__/service-26.test.ts
-- src/services/__tests__/service-27.test.ts
-- src/services/__tests__/service-28.test.ts
-- src/services/__tests__/service-29.test.ts
-- src/services/__tests__/service-30.test.ts
-- src/services/__tests__/service-31.test.ts
-- src/services/__tests__/service-32.test.ts
-- src/services/__tests__/service-33.test.ts
-- src/services/__tests__/service-34.test.ts
-- src/services/__tests__/service-35.test.ts
-- src/services/__tests__/service-36.test.ts
-- src/services/__tests__/service-37.test.ts
-- src/services/__tests__/service-38.test.ts
-- src/services/__tests__/service-39.test.ts
+- src/tests/performance/leaveAnalyticsPerformance.test.ts
+- src/services/__tests__/userService.comprehensive.test.ts
+- tests/unit/services/planningGenerator.test.ts
+- tests/unit/modules/leaves/services/notificationService.test.ts
+- tests/unit/services/trameAffectationService.test.ts
+- src/app/api/planning/__tests__/planningApiIntegration.test.ts
+- src/services/__tests__/performanceMonitoring.test.ts
+- src/tests/infrastructure/test-infrastructure-stabilization.test.ts
+- src/modules/dynamicRules/v2/__tests__/RuleEngineV2.test.ts
+- src/tests/regression/critical-workflows.test.ts
+- src/__tests__/infrastructure-test.test.tsx
+- tests/unit/modules/rules/ruleCache.test.ts
+- src/config/__tests__/themes.test.ts
+- src/config/__tests__/api.test.ts
+- src/modules/dynamicRules/v2/__tests__/api/RuleAPI.test.ts
+- src/modules/leaves/quotas/transfer/__tests__/useQuotaTransfer.test.tsx
+- src/app/admin/simulations/advanced-visualizations/__tests__/page.test.tsx
+- src/app/api/simulations/apply/__tests__/route.test.ts
+- src/modules/leaves/permissions/__tests__/LeavePermissionService.test.ts
+- src/modules/leaves/api/__tests__/LeaveReportApi.test.ts
+- src/modules/leaves/permissions/__tests__/LeavePermissionService.extended.test.ts
+- src/modules/leaves/__tests__/performance/riskDetectionPerformance.test.ts
+- src/modules/dynamicRules/v2/__tests__/RuleValidator.test.ts
+- src/modules/dynamicRules/v2/__tests__/ConflictDetector.test.ts
 
 ## 🛠️ INSTRUCTIONS PRÉCISES
 
 ### Étape 1: Diagnostic
 ```bash
-npm run test:fast -- --testPathPattern="src\/services\/__tests__\/service-0.test.ts"
+npm run test:fast -- --testPathPattern="src\/tests\/performance\/leaveAnalyticsPerformance.test.ts"
 ```
 
 ### Étape 2: Analyse des Erreurs
@@ -107,7 +91,7 @@ npm run test:bulletproof
 ```
 WORKER: worker-cleanup
 STATUS: ✅ SUCCÈS / ❌ ÉCHEC
-FICHIERS RÉPARÉS: X/40
+FICHIERS RÉPARÉS: X/24
 TEMPS RÉEL: XX minutes
 PROBLÈMES RÉSOLUS:
 - Problem 1: Description + Solution

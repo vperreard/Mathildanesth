@@ -36,6 +36,13 @@ beforeEach(() => {
   //   cy.task('resetTestDatabase'); // Commenté car géré dans les 'before()' spécifiques
   // }
 
+  // Add global interceptor to add test headers to all API requests
+  cy.intercept('**/api/**', (req) => {
+    req.headers['x-cypress-test'] = 'true';
+    req.headers['x-test-environment'] = 'cypress';
+    req.headers['x-disable-rate-limit'] = 'true';
+  }).as('allApiRequestsWithTestHeaders');
+
   // Configurer les interceptions d'API
   setupApiInterceptions();
 

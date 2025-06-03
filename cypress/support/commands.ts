@@ -131,6 +131,11 @@ declare global {
 
 // Commande pour se connecter via l'interface utilisateur
 Cypress.Commands.add('login', (email: string, password: string) => {
+    // Add Cypress test header to all requests
+    cy.intercept('**/api/**', (req) => {
+        req.headers['x-cypress-test'] = 'true';
+    }).as('apiRequestsWithTestHeader');
+    
     cy.visit('/auth/connexion');
     cy.get('[data-cy=email-input]').type(email);
     cy.get('[data-cy=password-input]').type(password);
@@ -567,7 +572,9 @@ Cypress.Commands.add('waitForApiResponse', (alias: string, retries = 3) => {
 Cypress.Commands.add('cleanState', () => {
     cy.clearCookies();
     cy.clearLocalStorage();
-    cy.clearSessionStorage();
+    cy.window().then((win) => {
+        win.sessionStorage.clear();
+    });
     
     // Nettoyer les interceptions précédentes
     cy.intercept('**/api/**', { statusCode: 200, body: {} }).as('catchAllApi');

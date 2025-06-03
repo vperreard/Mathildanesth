@@ -15,7 +15,7 @@ import {
   Calendar as CalendarIcon,
   Loader2,
   AlertCircle,
-  Swap,
+  ArrowLeftRight as Swap,
   CalendarOff,
   Siren,
   GraduationCap,

@@ -970,7 +970,7 @@ describe('useLeave Hook', () => {
 
             await act(async () => {
                 await expect(result.current.approveLeaveRequest()).rejects.toThrow(
-                    'ID de congé manquant pour l'approbation'
+                    'ID de congé manquant pour l\'approbation'
                 );
             });
             expect(mockedApproveLeave).not.toHaveBeenCalled();
@@ -1086,7 +1086,7 @@ describe('useLeave Hook', () => {
 
             await act(async () => {
                 await expect(result.current.cancelLeaveRequest()).rejects.toThrow(
-                    'ID de congé manquant pour l'annulation'
+                    'ID de congé manquant pour l\'annulation'
                 );
             });
             expect(mockedCancelLeave).not.toHaveBeenCalled();

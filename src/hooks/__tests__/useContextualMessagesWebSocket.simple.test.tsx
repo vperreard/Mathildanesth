@@ -16,6 +16,7 @@ jest.mock('socket.io-client', () => ({
     on: jest.fn(),
     off: jest.fn(),
     emit: jest.fn(),
+    connect: jest.fn(),
     disconnect: jest.fn(),
     connected: false,
   }))

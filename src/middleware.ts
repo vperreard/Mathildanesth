@@ -1,102 +1,102 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
-import type { UserJWTPayload, AuthResult } from '@/lib/auth-client-utils';
-import { handleRedirects } from '@/app/_redirects';
-
-// Cache de vérification des tokens - durée de vie de 5 minutes
-const tokenVerificationCache = new Map<string, { result: AuthResult, timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
-
-    // Gérer les redirections en premier
-    const redirectResponse = handleRedirects(request);
-    if (redirectResponse) {
-        return redirectResponse;
-    }
-
-    // Ignorer les ressources statiques pour éviter un traitement inutile
+    
+    console.log(`[MIDDLEWARE] ${request.method} ${pathname}`);
+    
+    // Ignorer les ressources statiques
     if (
         pathname.includes('/_next/') ||
         pathname.includes('/static/') ||
         pathname.endsWith('.ico') ||
         pathname.endsWith('.png') ||
         pathname.endsWith('.jpg') ||
-        pathname.endsWith('.svg')
+        pathname.endsWith('.svg') ||
+        pathname.endsWith('.css') ||
+        pathname.endsWith('.js')
     ) {
         return NextResponse.next();
     }
-
-    // Journaliser les informations minimales sur la requête en production
-    if (process.env.NODE_ENV !== 'production') {
-        console.log(`[MIDDLEWARE] ${request.method} ${pathname}`);
-    }
-
-    // Extraire les informations du cookie auth_token
+    
+    // Routes publiques
+    const publicRoutes = [
+        '/',
+        '/auth/connexion',
+        '/auth/reset-password',
+        '/api/auth/login',
+        '/api/auth/logout', 
+        '/api/auth/forgot-password',
+        '/api/auth/reset-password',
+        '/api/test-logout',
+        '/sw-killer.js',
+        '/clear-auth-cookie.html',
+        '/manifest.json'
+    ];
+    
+    // Check if public route
+    const isPublicRoute = publicRoutes.some(route => {
+        if (route === '/') {
+            return pathname === '/';
+        }
+        return pathname === route || pathname.startsWith(route + '/') || pathname.startsWith(route + '?');
+    });
+    
+    console.log(`[MIDDLEWARE] isPublicRoute: ${isPublicRoute}`);
+    
+    // Get auth token
     const authCookie = request.cookies.get('auth_token');
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-middleware-timestamp', new Date().toISOString());
-
-    // Si un cookie auth_token est trouvé, vérifier et décoder le token
-    if (authCookie && authCookie.value) {
+    let isAuthenticated = false;
+    let userId: string | null = null;
+    let userRole: string | null = null;
+    
+    // Verify auth token if present
+    if (authCookie?.value) {
         try {
-            // Tenter de récupérer du cache d'abord
-            let authResult: AuthResult;
-            const cacheKey = authCookie.value;
-            const cachedVerification = tokenVerificationCache.get(cacheKey);
-
-            if (cachedVerification && (Date.now() - cachedVerification.timestamp) < CACHE_TTL) {
-                // Utiliser le résultat en cache si valide
-                authResult = cachedVerification.result;
-            } else {
-                // Sinon, vérifier le token et mettre en cache
-                authResult = await verifyAuthToken(authCookie.value);
-                tokenVerificationCache.set(cacheKey, {
-                    result: authResult,
-                    timestamp: Date.now()
-                });
-
-                // Nettoyer le cache si trop grand (éviter les fuites de mémoire)
-                if (tokenVerificationCache.size > 1000) {
-                    const keysToDelete = [...tokenVerificationCache.entries()]
-                        .filter(([_, value]) => Date.now() - value.timestamp > CACHE_TTL)
-                        .map(([key]) => key);
-
-                    keysToDelete.forEach(key => tokenVerificationCache.delete(key));
-                }
-            }
-
-            if (authResult.authenticated && authResult.userId && authResult.role) {
-                // Ajouter les informations utilisateur aux en-têtes
-                requestHeaders.set('x-user-id', authResult.userId.toString());
-                requestHeaders.set('x-user-role', authResult.role);
+            const authResult = await verifyAuthToken(authCookie.value);
+            if (authResult.authenticated && authResult.userId) {
+                isAuthenticated = true;
+                userId = authResult.userId.toString();
+                userRole = authResult.role || null;
+                console.log(`[MIDDLEWARE] User authenticated: ${userId} (${userRole})`);
             }
         } catch (error) {
-            // Log minimal en cas d'erreur
-            console.error('Erreur token:', error instanceof Error ? error.message : 'Inconnu');
+            console.error('[MIDDLEWARE] Token verification failed:', error);
         }
     }
-
-    // Pour les routes API protégées, vérifier l'authentification
-    if (pathname.startsWith('/api/') &&
-        !pathname.startsWith('/api/auth/') &&
-        !pathname.includes('public')) {
-
-        // Autoriser les requêtes de développement avec les en-têtes x-user-role et x-user-id
-        const devBypassHeaders = process.env.NODE_ENV === 'development' &&
-            requestHeaders.has('x-user-role') &&
-            requestHeaders.has('x-user-id');
-
-        if (!authCookie && !devBypassHeaders) {
+    
+    // Check authentication for protected routes
+    if (!pathname.startsWith('/api/') && !isPublicRoute) {
+        console.log(`[MIDDLEWARE] Protected route ${pathname}, authenticated: ${isAuthenticated}`);
+        
+        if (!isAuthenticated) {
+            console.log(`[MIDDLEWARE] Redirecting to login`);
+            const url = new URL('/auth/connexion', request.url);
+            url.searchParams.set('redirect', pathname);
+            return NextResponse.redirect(url);
+        }
+    }
+    
+    // For API routes, add auth headers
+    const requestHeaders = new Headers(request.headers);
+    if (isAuthenticated && userId) {
+        requestHeaders.set('x-user-id', userId);
+        if (userRole) {
+            requestHeaders.set('x-user-role', userRole);
+        }
+    }
+    
+    // Check API authentication
+    if (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth/') && !pathname.includes('public')) {
+        if (!isAuthenticated) {
             return NextResponse.json(
                 { error: 'Authentification requise' },
                 { status: 401 }
             );
         }
     }
-
-    // Continuer avec la requête modifiée
+    
     return NextResponse.next({
         request: {
             headers: requestHeaders,
@@ -104,11 +104,9 @@ export async function middleware(request: NextRequest) {
     });
 }
 
-// Configuration pour que le middleware s'applique aux routes spécifiques
 export const config = {
     matcher: [
-        // Appliquer le middleware à toutes les routes sauf les ressources statiques
         '/((?!_next/static|_next/image|favicon.ico).*)',
         '/(api)/:path*'
     ]
-}; 
+};

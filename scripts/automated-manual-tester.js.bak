@@ -1,0 +1,362 @@
+#!/usr/bin/env node
+
+/**
+ * Navigation Automatique pour Tests Manuels
+ * 
+ * Ce script navigue dans l'application de manière automatique
+ * pour identifier les erreurs runtime sans modifier le code.
+ * 
+ * IMPORTANT: Script READ-ONLY - Aucune action destructrice
+ */
+
+// Charger les variables d'environnement
+require('dotenv').config({ path: '.env.local' });
+
+const puppeteer = require('puppeteer');
+const fs = require('fs').promises;
+const path = require('path');
+
+// Configuration
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const HEADLESS = process.env.HEADLESS === 'true';
+const SLOW_MO = parseInt(process.env.SLOW_MO || '100'); // Ralentir pour voir les actions
+
+// Stockage des erreurs
+const errors = [];
+const warnings = [];
+const networksErrors = [];
+
+// Parcours critiques à tester
+const CRITICAL_PATHS = [
+  {
+    name: 'Page d\'accueil',
+    path: '/',
+    actions: async (page) => {
+      // Vérifier que la page charge
+      await page.waitForSelector("body", { timeout: (2000 });
+      // Vérifier présence éléments clés
+      const hasLoginButton = await page.$('[data-cy="login-button"], a[href*="/auth/login"]');
+      if (hasLoginButton) {
+        console.log('   ✓ Bouton de connexion trouvé');
+      }
+    }
+  },
+  {
+    name: 'Page de connexion',
+    path: '/auth/connexion',
+    actions: async (page) => {
+      // Vérifier présence formulaire
+      await page.waitForSelector("body", { timeout: (1000 });
+      const hasForm = await page.$('form');
+      const hasLoginField = await page.$('input[name="login"], input#login');
+      const hasPasswordField = await page.$('input[type="password"]');
+      
+      if (hasForm && hasLoginField && hasPasswordField) {
+        console.log('   ✓ Formulaire de connexion complet');
+      } else {
+        console.log('   ⚠ Formulaire incomplet');
+      }
+    }
+  },
+  {
+    name: 'Planning (non connecté)',
+    path: '/planning',
+    actions: async (page) => {
+      // Devrait rediriger vers login
+      await page.waitForSelector("body", { timeout: (2000 });
+      const currentUrl = page.url();
+      if (currentUrl.includes('/auth/login')) {
+        console.log('   ✓ Redirection sécurisée vers login');
+      } else {
+        console.log('   ⚠ Page accessible sans auth?');
+      }
+    }
+  },
+  {
+    name: 'Congés (non connecté)',
+    path: '/conges',
+    actions: async (page) => {
+      await page.waitForSelector("body", { timeout: (2000 });
+      const currentUrl = page.url();
+      if (currentUrl.includes('/auth/connexion') || currentUrl.includes('/auth/login')) {
+        console.log('   ✓ Redirection sécurisée vers login');
+      }
+    }
+  },
+  {
+    name: 'Admin (non connecté)',
+    path: '/admin',
+    actions: async (page) => {
+      await page.waitForSelector("body", { timeout: (2000 });
+      const currentUrl = page.url();
+      if (currentUrl.includes('/auth/connexion') || currentUrl.includes('/auth/login')) {
+        console.log('   ✓ Redirection sécurisée vers login');
+      }
+    }
+  },
+  {
+    name: 'API Health Check',
+    path: '/api/health',
+    actions: async (page) => {
+      await page.waitForSelector("body", { timeout: (1000 });
+      // Vérifier si l'API répond
+      const content = await page.content();
+      if (content.includes('ok') || content.includes('healthy')) {
+        console.log('   ✓ API répond correctement');
+      }
+    }
+  }
+];
+
+// Configuration pour test avec connexion (optionnel)
+const TEST_USER = {
+  login: process.env.TEST_USER_LOGIN || 'admin',
+  password: process.env.TEST_USER_PASSWORD || 'password123'
+};
+
+// Parcours avec connexion (désactivé par défaut)
+const AUTHENTICATED_PATHS = [
+  {
+    name: 'Connexion utilisateur test',
+    path: '/auth/connexion',
+    actions: async (page) => {
+      console.log('   🔐 Tentative connexion (READ-ONLY - pas d\'envoi)');
+      // Pour activer : décommenter les lignes suivantes
+      // await page.type('input[name="login"]', TEST_USER.login);
+      // await page.type('input[type="password"]', TEST_USER.password);
+      // await page.click('button[type="submit"]');
+      // await page.waitForNavigation();
+    }
+  },
+  {
+    name: 'Planning (connecté)',
+    path: '/planning',
+    requiresAuth: true,
+    actions: async (page) => {
+      await page.waitForSelector("body", { timeout: (2000 });
+      const hasCalendar = await page.$('.calendar, [data-cy="planning-calendar"]');
+      if (hasCalendar) {
+        console.log('   ✓ Calendrier planning affiché');
+      }
+    }
+  },
+  {
+    name: 'Mes congés',
+    path: '/conges/mes-demandes',
+    requiresAuth: true,
+    actions: async (page) => {
+      await page.waitForSelector("body", { timeout: (2000 });
+      const hasLeavesList = await page.$('[data-cy="leaves-list"], .leaves-container');
+      if (hasLeavesList) {
+        console.log('   ✓ Liste des congés affichée');
+      }
+    }
+  }
+];
+
+async function testPath(browser, pathConfig) {
+  const page = await browser.newPage();
+  const pathErrors = [];
+  const pathWarnings = [];
+  const pathNetworkErrors = [];
+
+  // Intercepter les erreurs console
+  page.on('console', msg => {
+    const type = msg.type();
+    const text = msg.text();
+    
+    if (type === 'error') {
+      pathErrors.push({
+        path: pathConfig.path,
+        message: text,
+        timestamp: new Date().toISOString()
+      });
+    } else if (type === 'warning') {
+      pathWarnings.push({
+        path: pathConfig.path,
+        message: text,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  // Intercepter les erreurs de page
+  page.on('pageerror', error => {
+    pathErrors.push({
+      path: pathConfig.path,
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // Intercepter les erreurs réseau
+  page.on('requestfailed', request => {
+    pathNetworkErrors.push({
+      path: pathConfig.path,
+      url: request.url(),
+      failure: request.failure(),
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  try {
+    console.log(`\n📍 Test: ${pathConfig.name} (${pathConfig.path})`);
+    
+    // Navigation
+    const response = await page.goto(`${BASE_URL}${pathConfig.path}`, {
+      waitUntil: 'networkidle2',
+      timeout: 30000
+    });
+
+    console.log(`   Status: ${response.status()}`);
+
+    // Exécuter les actions spécifiques
+    if (pathConfig.actions) {
+      await pathConfig.actions(page);
+    }
+
+    // Capture d'écran si erreur
+    if (pathErrors.length > 0) {
+      const screenshotPath = `tests/e2e/screenshots/error-${Date.now()}.png`;
+      await page.screenshot({ path: screenshotPath, fullPage: true });
+      console.log(`   📸 Screenshot sauvegardée: ${screenshotPath}`);
+    }
+
+  } catch (error) {
+    console.error(`   ❌ Erreur lors du test: ${error.message}`);
+    pathErrors.push({
+      path: pathConfig.path,
+      message: `Navigation error: ${error.message}`,
+      timestamp: new Date().toISOString()
+    });
+  } finally {
+    await page.close();
+  }
+
+  // Ajouter aux erreurs globales
+  errors.push(...pathErrors);
+  warnings.push(...pathWarnings);
+  networksErrors.push(...pathNetworkErrors);
+
+  // Résumé pour ce path
+  console.log(`   Erreurs: ${pathErrors.length}`);
+  console.log(`   Warnings: ${pathWarnings.length}`);
+  console.log(`   Erreurs réseau: ${pathNetworkErrors.length}`);
+}
+
+async function generateReport() {
+  const report = {
+    timestamp: new Date().toISOString(),
+    baseUrl: BASE_URL,
+    summary: {
+      totalErrors: errors.length,
+      totalWarnings: warnings.length,
+      totalNetworkErrors: networksErrors.length,
+      pathsTested: CRITICAL_PATHS.length
+    },
+    errors,
+    warnings,
+    networksErrors
+  };
+
+  // Sauvegarder le rapport
+  const reportPath = path.join('results', 'manual-test-report.json');
+  await fs.mkdir('results', { recursive: true });
+  await fs.writeFile(reportPath, JSON.stringify(report, null, 2));
+
+  // Générer un résumé markdown
+  const summaryPath = path.join('results', 'manual-test-summary.md');
+  const summary = `# Rapport de Test Manuel Automatisé
+
+## 📅 Date: ${new Date().toLocaleString('fr-FR')}
+
+## 📊 Résumé
+- **Erreurs totales**: ${errors.length}
+- **Warnings totaux**: ${warnings.length}
+- **Erreurs réseau**: ${networksErrors.length}
+- **Parcours testés**: ${CRITICAL_PATHS.length}
+
+## ❌ Erreurs Critiques
+${errors.slice(0, 10).map(e => `- **${e.path}**: ${e.message}`).join('\n') || 'Aucune erreur critique'}
+
+## ⚠️ Warnings Principaux
+${warnings.slice(0, 5).map(w => `- **${w.path}**: ${w.message}`).join('\n') || 'Aucun warning'}
+
+## 🌐 Erreurs Réseau
+${networksErrors.slice(0, 5).map(n => `- **${n.path}**: ${n.url} - ${n.failure?.errorText}`).join('\n') || 'Aucune erreur réseau'}
+
+## 🎯 Prochaines Actions
+1. Corriger les erreurs critiques en priorité
+2. Investiguer les erreurs réseau
+3. Réduire les warnings console
+
+---
+*Rapport généré automatiquement - Ne modifie aucun code source*
+`;
+
+  await fs.writeFile(summaryPath, summary);
+
+  console.log(`\n📄 Rapport sauvegardé: ${reportPath}`);
+  console.log(`📄 Résumé sauvegardé: ${summaryPath}`);
+}
+
+async function main() {
+  console.log('🤖 Démarrage du Test Manuel Automatisé');
+  console.log(`📍 URL de base: ${BASE_URL}`);
+  console.log(`👁️  Mode: ${HEADLESS ? 'Headless' : 'Visible'}`);
+  console.log('');
+
+  // Vérifier que le serveur est accessible
+  try {
+    const testBrowser = await puppeteer.launch();
+    const testPage = await testBrowser.newPage();
+    await testPage.goto(BASE_URL, { timeout: 10000 });
+    await testPage.close();
+    await testBrowser.close();
+  } catch (error) {
+    console.error('❌ Le serveur n\'est pas accessible. Lancez "npm run dev" d\'abord.');
+    process.exit(1);
+  }
+
+  // Lancer le navigateur principal
+  const browser = await puppeteer.launch({
+    headless: HEADLESS,
+    slowMo: SLOW_MO,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+
+  try {
+    // Tester chaque parcours
+    for (const pathConfig of CRITICAL_PATHS) {
+      await testPath(browser, pathConfig);
+    }
+
+    // Générer le rapport
+    await generateReport();
+
+    // Résumé final
+    console.log('\n' + '='.repeat(50));
+    console.log('📊 RÉSUMÉ FINAL');
+    console.log('='.repeat(50));
+    console.log(`✅ Parcours testés: ${CRITICAL_PATHS.length}`);
+    console.log(`❌ Erreurs totales: ${errors.length}`);
+    console.log(`⚠️  Warnings totaux: ${warnings.length}`);
+    console.log(`🌐 Erreurs réseau: ${networksErrors.length}`);
+
+    // Code de sortie basé sur les erreurs
+    process.exit(errors.length > 0 ? 1 : 0);
+
+  } finally {
+    await browser.close();
+  }
+}
+
+// Gestion des erreurs non capturées
+process.on('unhandledRejection', (error) => {
+  console.error('Erreur non gérée:', error);
+  process.exit(1);
+});
+
+// Lancer le script
+main().catch(console.error);

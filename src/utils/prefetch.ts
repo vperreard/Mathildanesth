@@ -5,7 +5,7 @@
 import { getClientAuthToken } from '@/lib/auth-client-utils';
 
 // Fonction pour précharger les données depuis une API
-export async function prefetchData<T>(url: string): Promise<T> {
+export async function prefetchData<T>(url: string): Promise<T | null> {
     try {
         const token = getClientAuthToken();
         const headers: HeadersInit = {
@@ -23,13 +23,19 @@ export async function prefetchData<T>(url: string): Promise<T> {
         });
 
         if (!response.ok) {
+            // Si c'est une erreur 404, on retourne null au lieu de throw
+            if (response.status === 404) {
+                console.log(`Ressource non trouvée pour ${url}, ignorée`);
+                return null;
+            }
             throw new Error(`Erreur HTTP: ${response.status}`);
         }
 
         return response.json();
     } catch (error) {
         console.error(`Erreur de préchargement pour ${url}:`, error);
-        throw error;
+        // Ne pas propager l'erreur pour éviter de casser le préchargement
+        return null;
     }
 }
 
@@ -104,13 +110,18 @@ export function prefetchUserData(userId: string) {
         return;
     }
 
-    Promise.allSettled([
-        prefetchData(`/api/utilisateurs/${userId}`),
-        // TODO: Réactiver quand ces routes seront implémentées
-        // prefetchData(`/api/utilisateurs/${userId}/skills`),
-        // prefetchData(`/api/utilisateurs/${userId}/conges`),
-        // prefetchData(`/api/utilisateurs/${userId}/calendrier-settings`)
-    ]).catch(() => { });
+    // Pour l'instant, on ignore le prefetch de l'utilisateur car il cause des erreurs
+    // TODO: Fix the API route to handle prefetch requests properly
+    console.log(`Préchargement utilisateur ${userId} temporairement désactivé`);
+    return;
+
+    // Promise.allSettled([
+    //     prefetchData(`/api/utilisateurs/${userId}`),
+    //     // TODO: Réactiver quand ces routes seront implémentées
+    //     // prefetchData(`/api/utilisateurs/${userId}/skills`),
+    //     // prefetchData(`/api/utilisateurs/${userId}/conges`),
+    //     // prefetchData(`/api/utilisateurs/${userId}/calendrier-settings`)
+    // ]).catch(() => { });
 }
 
 // Précharger les ressources statiques critiques

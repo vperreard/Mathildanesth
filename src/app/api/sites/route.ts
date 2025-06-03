@@ -96,6 +96,11 @@ export async function POST(request: NextRequest) {
             (createData as any).description = data.description;
         }
 
+        if (data.colorCode !== undefined) {
+            // Ajouter la couleur si elle est fournie
+            (createData as any).colorCode = data.colorCode;
+        }
+
         const newSite = await prisma.site.create({
             data: createData,
         });

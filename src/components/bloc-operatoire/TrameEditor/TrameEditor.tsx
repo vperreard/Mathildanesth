@@ -427,4 +427,5 @@ const TrameEditor: React.FC<TrameEditorProps> = ({
     );
 };
 
-export default TrameEditor; 
+export default TrameEditor;
+export { TrameEditor }; 

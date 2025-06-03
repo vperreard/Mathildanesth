@@ -6,6 +6,16 @@ import { User } from '@/types/user';
 import axios from 'axios';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
+import SiteSelector from '@/components/ui/SiteSelector';
+
+// Interface pour les sites
+interface Site {
+    id: string;
+    name: string;
+    description?: string;
+    colorCode?: string;
+    isActive: boolean;
+}
 
 // Interface Surgeon avec les spécialités correctement typées
 interface SurgeonWithSpecialties extends Omit<Surgeon, 'specialties'> {
@@ -41,10 +51,11 @@ const STATUS_OPTIONS = Object.values(UserStatus);
 type LinkableUser = Pick<User, 'id' | 'nom' | 'prenom' | 'login'>;
 
 interface SurgeonFormProps {
-    onSubmit: (data: SurgeonSubmitData) => Promise<void>;
+    onSubmit: (data: SurgeonSubmitData, selectedSites?: Site[]) => Promise<void>;
     onCancel: () => void;
     isLoading?: boolean;
     initialData?: SurgeonWithSpecialties | null;
+    surgeonSites?: Site[]; // Sites actuels du chirurgien
 }
 
 export default function SurgeonForm({
@@ -52,6 +63,7 @@ export default function SurgeonForm({
     onCancel,
     isLoading = false,
     initialData = null,
+    surgeonSites = [],
 }: SurgeonFormProps) {
     // Initialiser l'état interne du formulaire
     const [formData, setFormData] = useState<SurgeonFormDataInternal>(() => ({
@@ -72,6 +84,7 @@ export default function SurgeonForm({
     const [error, setError] = useState<string | null>(null);
     const [loadingSpecialties, setLoadingSpecialties] = useState(false);
     const [availableSpecialties, setAvailableSpecialties] = useState<Specialty[]>([]);
+    const [selectedSites, setSelectedSites] = useState<Site[]>(surgeonSites || []);
 
     const isEditMode = initialData !== null;
 
@@ -189,7 +202,7 @@ export default function SurgeonForm({
         };
 
         try {
-            await onSubmit(dataToSubmit);
+            await onSubmit(dataToSubmit, selectedSites);
         } catch (err: any) {
             setError(err.response?.data?.message || err.message || 'Une erreur est survenue lors de la sauvegarde.');
         }
@@ -360,6 +373,17 @@ export default function SurgeonForm({
                 {initialData?.userId && (
                     <p className="text-xs text-gray-500 mt-1">Pour délier, sélectionnez "-- Non lié --".</p>
                 )}
+            </div>
+
+            {/* Sélecteur de sites */}
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Sites d'affectation
+                </label>
+                <SiteSelector
+                    value={selectedSites}
+                    onChange={setSelectedSites}
+                />
             </div>
 
             <div className="flex justify-end space-x-3 pt-6">

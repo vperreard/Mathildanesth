@@ -27,7 +27,7 @@ jest.mock('socket.io-client', () => {
     };
 });
 
-describe.skip('Tests d'intégration WebSocket avec Authentification', () => {
+describe.skip('Tests d integration WebSocket avec Authentification', () => {
     let mockSocket: any;
     const mockUser = {
         id: 999,
@@ -133,7 +133,7 @@ describe.skip('Tests d'intégration WebSocket avec Authentification', () => {
         await authPromise;
     });
 
-    it('rejette l'authentification avec un token invalide', async () => {
+    it('rejette l authentification avec un token invalide', async () => {
         const authErrorPromise = new Promise<void>((resolve) => {
             mockSocket.on('connect', () => {
                 // Envoyer des informations d'authentification invalides
@@ -161,7 +161,7 @@ describe.skip('Tests d'intégration WebSocket avec Authentification', () => {
         await authErrorPromise;
     });
 
-    it('empêche de joindre une room protégée sans authentification', async () => {
+    it('empeche de joindre une room protegee sans authentification', async () => {
         const roomPromise = new Promise<void>((resolve) => {
             mockSocket.on('connect', () => {
                 // Essayer de rejoindre une room sans être authentifié
@@ -222,7 +222,7 @@ describe.skip('Tests d'intégration WebSocket avec Authentification', () => {
         await roomJoinPromise;
     });
 
-    it('maintient l'authentification lors de la reconnexion', async () => {
+    it('maintient l authentification lors de la reconnexion', async () => {
         let connectionCount = 0;
         
         const reconnectPromise = new Promise<void>((resolve) => {

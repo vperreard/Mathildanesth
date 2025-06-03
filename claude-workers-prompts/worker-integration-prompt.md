@@ -4,25 +4,38 @@
 **Spécialité**: Integration & E2E Tests
 **Priorité**: 📝 BASSE
 **Temps estimé**: 25-30 min
-**Fichiers à réparer**: 10
+**Fichiers à réparer**: 23
 
 ## 📋 FICHIERS EN ÉCHEC
-- src/integration/__tests__/integration-0.test.ts
-- src/integration/__tests__/integration-1.test.ts
-- src/integration/__tests__/integration-2.test.ts
-- src/integration/__tests__/integration-3.test.ts
-- src/integration/__tests__/integration-4.test.ts
-- src/integration/__tests__/integration-5.test.ts
-- src/integration/__tests__/integration-6.test.ts
-- src/integration/__tests__/integration-7.test.ts
-- src/integration/__tests__/integration-8.test.ts
-- src/integration/__tests__/integration-9.test.ts
+- src/context/__tests__/AuthContext.integration.test.tsx
+- src/tests/__tests__/integration.comprehensive.test.ts
+- src/tests/integration/api/leaves/conflict.test.ts
+- src/tests/integration/migration-check.test.ts
+- src/context/__tests__/ThemeContext.integration.test.tsx
+- src/modules/dynamicRules/v2/__tests__/integration/RuleBuilderIntegration.test.tsx
+- src/tests/integration/api/users/route.test.ts
+- src/tests/integration/api/simulations/run.test.ts
+- src/tests/integration/api/leaves/types.test.ts
+- src/tests/integration/api/leaves/route.test.ts
+- src/tests/integration/api/planning/generate.test.ts
+- src/tests/integration/api/leaves/quotas.test.ts
+- src/tests/integration/api/planning/bloc.test.ts
+- src/tests/integration/api/leaves/balance.test.ts
+- src/tests/integration/api/auth/protected-routes-security.test.ts
+- src/tests/integration/api/auth/logout.test.ts
+- src/tests/integration/api/auth/me.test.ts
+- src/tests/integration/api/auth/change-password.test.ts
+- src/tests/integration/api/auth/login.test.ts
+- src/tests/integration/api/auth/auth-security-integration.test.ts
+- src/tests/integration/api/assignments/route.test.ts
+- src/modules/leaves/__tests__/integration/riskDetectionSystem.test.ts
+- src/modules/integration/services/__tests__/LeaveModuleIntegration.test.ts
 
 ## 🛠️ INSTRUCTIONS PRÉCISES
 
 ### Étape 1: Diagnostic
 ```bash
-npm run test:fast -- --testPathPattern="src\/integration\/__tests__\/integration-0.test.ts"
+npm run test:fast -- --testPathPattern="src\/context\/__tests__\/AuthContext.integration.test.tsx"
 ```
 
 ### Étape 2: Analyse des Erreurs
@@ -84,7 +97,7 @@ npm run test:bulletproof
 ```
 WORKER: worker-integration
 STATUS: ✅ SUCCÈS / ❌ ÉCHEC
-FICHIERS RÉPARÉS: X/10
+FICHIERS RÉPARÉS: X/23
 TEMPS RÉEL: XX minutes
 PROBLÈMES RÉSOLUS:
 - Problem 1: Description + Solution

@@ -123,16 +123,28 @@ class ClaudeTestOrchestrator {
         
         try {
             // Exécuter les tests et capturer les échecs
-            const result = execSync('npm run test:fast 2>&1', { encoding: 'utf8' });
-            return this.parseTestResults(result);
+            const result = execSync('npm test 2>&1', { encoding: 'utf8', timeout: 60000 });
+            const parsed = this.parseTestResults(result);
+            log(`Debug: Tests succeeded, found ${parsed.totalFailing} failing files`, 'yellow');
+            return parsed;
         } catch (error) {
-            return this.parseTestResults(error.stdout + error.stderr);
+            const output = (error.stdout || '') + (error.stderr || '');
+            const parsed = this.parseTestResults(output);
+            log(`Debug: Tests failed with exit code, found ${parsed.totalFailing} failing files`, 'yellow');
+            return parsed;
         }
     }
 
     parseTestResults(output) {
         const failingFiles = [];
         const lines = output.split('\n');
+        
+        // Debug: log lines that contain FAIL
+        const failLines = lines.filter(line => line.includes('FAIL'));
+        if (failLines.length > 0) {
+            log(`Debug: Found ${failLines.length} FAIL lines:`, 'yellow');
+            failLines.slice(0, 5).forEach(line => log(`  ${line}`, 'yellow'));
+        }
         
         lines.forEach(line => {
             // Détecter les fichiers en échec

@@ -80,16 +80,18 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
             return;
         }
 
-        const isSelected = selectedSites.some(s => s.id === site.id);
+        const currentSites = selectedSites || [];
+        const isSelected = currentSites.some(s => s.id === site.id);
         if (isSelected) {
-            onSitesChange(selectedSites.filter(s => s.id !== site.id));
+            onSitesChange(currentSites.filter(s => s.id !== site.id));
         } else {
-            onSitesChange([...selectedSites, site]);
+            onSitesChange([...currentSites, site]);
         }
     };
 
     const removeSite = (siteId: string) => {
-        onSitesChange(selectedSites.filter(s => s.id !== siteId));
+        const currentSites = selectedSites || [];
+        onSitesChange(currentSites.filter(s => s.id !== siteId));
     };
 
     const clearAll = () => {
@@ -138,7 +140,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                 `}
             >
                 <div className="flex flex-wrap gap-1 min-h-[1.5rem]">
-                    {selectedSites.length === 0 ? (
+                    {!selectedSites || selectedSites.length === 0 ? (
                         <span className="text-gray-500">{placeholder}</span>
                     ) : (
                         selectedSites.map(site => (
@@ -196,7 +198,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
                         />
-                        {multiple && selectedSites.length > 0 && (
+                        {multiple && selectedSites && selectedSites.length > 0 && (
                             <button
                                 type="button"
                                 onClick={clearAll}
@@ -215,7 +217,7 @@ const SiteSelector: React.FC<SiteSelectorProps> = ({
                             </div>
                         ) : (
                             filteredSites.map(site => {
-                                const isSelected = selectedSites.some(s => s.id === site.id);
+                                const isSelected = selectedSites ? selectedSites.some(s => s.id === site.id) : false;
                                 return (
                                     <button
                                         key={site.id}

@@ -3,24 +3,9 @@ import { Notification, NotificationType, SimulationStatus } from '@prisma/client
 import { pusherServer } from '@/lib/pusher';
 import { prisma } from '@/lib/prisma';
 
-/**
- * Événements de notification pour les simulations
- */
-export enum SimulationEvent {
-    STARTED = 'simulation.started',
-    PROGRESS = 'simulation.progress',
-    COMPLETED = 'simulation.completed',
-    FAILED = 'simulation.failed'
-}
+import { SimulationEvent, SimulationProgress } from '@/types/simulation-notifications';
 
-export interface SimulationProgress {
-    scenarioId: string;
-    progress: number; // 0-100
-    status: 'queued' | 'running' | 'completed' | 'failed';
-    currentStep?: string;
-    estimatedTimeRemaining?: number; // en secondes
-    message?: string;
-}
+export { SimulationEvent, SimulationProgress };
 
 export class SimulationNotificationService {
     // Mise à jour du statut de la simulation dans la base de données

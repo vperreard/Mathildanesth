@@ -1,0 +1,277 @@
+{
+  "timestamp": "2025-06-03T05:45:06.553Z",
+  "baseUrl": "http://localhost:3000",
+  "summary": {
+    "totalErrors": 38,
+    "totalWarnings": 0,
+    "totalNetworkErrors": 9,
+    "pathsTested": 10
+  },
+  "errors": [
+    {
+      "path": "/",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/lib-src_app_globals_css-9ddc9a6a.css?v=1748929442550' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:02.953Z"
+    },
+    {
+      "path": "/",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/vendor-node_modules_n.css?v=1748929442550' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:03.013Z"
+    },
+    {
+      "path": "/",
+      "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "timestamp": "2025-06-03T05:44:03.106Z"
+    },
+    {
+      "path": "/auth/connexion",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/lib-src_app_globals_css-9ddc9a6a.css?v=1748929447970' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:08.120Z"
+    },
+    {
+      "path": "/auth/connexion",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/vendor-node_modules_n.css?v=1748929447970' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:08.178Z"
+    },
+    {
+      "path": "/auth/connexion",
+      "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "timestamp": "2025-06-03T05:44:08.277Z"
+    },
+    {
+      "path": "/planning",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/lib-n.css?v=1748929454988' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:15.424Z"
+    },
+    {
+      "path": "/planning",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/vendor-node_modules_n.css?v=1748929454988' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:15.565Z"
+    },
+    {
+      "path": "/planning",
+      "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "timestamp": "2025-06-03T05:44:15.790Z"
+    },
+    {
+      "path": "/conges",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/lib-n.css?v=1748929460955' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:21.256Z"
+    },
+    {
+      "path": "/conges",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/vendor-node_modules_n.css?v=1748929460955' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:21.315Z"
+    },
+    {
+      "path": "/conges",
+      "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "timestamp": "2025-06-03T05:44:21.438Z"
+    },
+    {
+      "path": "/admin",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/lib-n.css?v=1748929466852' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:27.058Z"
+    },
+    {
+      "path": "/admin",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/vendor-node_modules_n.css?v=1748929466852' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:27.125Z"
+    },
+    {
+      "path": "/admin",
+      "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "timestamp": "2025-06-03T05:44:27.246Z"
+    },
+    {
+      "path": "/api/health",
+      "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "timestamp": "2025-06-03T05:44:31.110Z"
+    },
+    {
+      "path": "/auth/connexion",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/lib-n.css?v=1748929473779' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:33.933Z"
+    },
+    {
+      "path": "/auth/connexion",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/vendor-node_modules_n.css?v=1748929473779' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:33.989Z"
+    },
+    {
+      "path": "/auth/connexion",
+      "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "timestamp": "2025-06-03T05:44:34.101Z"
+    },
+    {
+      "path": "/auth/connexion",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/lib-n.css?v=1748929482592' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:42.807Z"
+    },
+    {
+      "path": "/auth/connexion",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/vendor-node_modules_n.css?v=1748929482592' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:42.934Z"
+    },
+    {
+      "path": "/planning",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/lib-n.css?v=1748929488018' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:48.389Z"
+    },
+    {
+      "path": "/planning",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/vendor-node_modules_n.css?v=1748929488018' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:48.452Z"
+    },
+    {
+      "path": "/planning",
+      "message": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "timestamp": "2025-06-03T05:44:51.013Z"
+    },
+    {
+      "path": "/planning",
+      "message": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "timestamp": "2025-06-03T05:44:51.040Z"
+    },
+    {
+      "path": "/planning",
+      "message": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "timestamp": "2025-06-03T05:44:51.040Z"
+    },
+    {
+      "path": "/conges",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/lib-n.css?v=1748929493630' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:53.942Z"
+    },
+    {
+      "path": "/conges",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/vendor-node_modules_n.css?v=1748929493630' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:54.000Z"
+    },
+    {
+      "path": "/conges",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "timestamp": "2025-06-03T05:44:57.340Z"
+    },
+    {
+      "path": "/conges",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "timestamp": "2025-06-03T05:44:57.340Z"
+    },
+    {
+      "path": "/conges",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/lib-n.css?v=1748929497249' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:57.477Z"
+    },
+    {
+      "path": "/conges",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/vendor-node_modules_n.css?v=1748929497249' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:44:57.538Z"
+    },
+    {
+      "path": "/conges",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "timestamp": "2025-06-03T05:44:57.912Z"
+    },
+    {
+      "path": "/conges",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "timestamp": "2025-06-03T05:44:57.912Z"
+    },
+    {
+      "path": "/conges",
+      "message": "Erreur lors du chargement du solde de congés: JSHandle@object",
+      "timestamp": "2025-06-03T05:44:57.918Z"
+    },
+    {
+      "path": "/conges",
+      "message": "Erreur lors du chargement des congés: JSHandle@object",
+      "timestamp": "2025-06-03T05:44:57.925Z"
+    },
+    {
+      "path": "/dashboard",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/lib-n.css?v=1748929501834' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:45:01.973Z"
+    },
+    {
+      "path": "/dashboard",
+      "message": "Refused to execute script from 'http://localhost:3000/_next/static/css/vendor-node_modules_n.css?v=1748929501834' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+      "timestamp": "2025-06-03T05:45:02.030Z"
+    }
+  ],
+  "warnings": [],
+  "networksErrors": [
+    {
+      "path": "/",
+      "url": "http://localhost:3000/api/auth/me",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      },
+      "timestamp": "2025-06-03T05:44:03.107Z"
+    },
+    {
+      "path": "/auth/connexion",
+      "url": "http://localhost:3000/api/auth/me",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      },
+      "timestamp": "2025-06-03T05:44:08.277Z"
+    },
+    {
+      "path": "/planning",
+      "url": "http://localhost:3000/api/auth/me",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      },
+      "timestamp": "2025-06-03T05:44:15.790Z"
+    },
+    {
+      "path": "/conges",
+      "url": "http://localhost:3000/api/auth/me",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      },
+      "timestamp": "2025-06-03T05:44:21.438Z"
+    },
+    {
+      "path": "/admin",
+      "url": "http://localhost:3000/api/auth/me",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      },
+      "timestamp": "2025-06-03T05:44:27.246Z"
+    },
+    {
+      "path": "/auth/connexion",
+      "url": "http://localhost:3000/api/auth/me",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      },
+      "timestamp": "2025-06-03T05:44:34.101Z"
+    },
+    {
+      "path": "/auth/connexion",
+      "url": "http://localhost:3000/dashboard?_rsc=w79we",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      },
+      "timestamp": "2025-06-03T05:44:42.787Z"
+    },
+    {
+      "path": "/conges",
+      "url": "http://localhost:3000/api/conges?userId=29",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      },
+      "timestamp": "2025-06-03T05:44:57.462Z"
+    },
+    {
+      "path": "/conges",
+      "url": "http://localhost:3000/api/conges/balance?userId=29&year=2025",
+      "failure": {
+        "errorText": "net::ERR_ABORTED"
+      },
+      "timestamp": "2025-06-03T05:44:57.462Z"
+    }
+  ]
+}

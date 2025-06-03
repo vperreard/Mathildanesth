@@ -27,7 +27,7 @@ jest.mock('next/server', () => ({
     }
 }));
 
-describe('GET /api/conges/types', () => {
+describe('GET /api/leaves/types', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -36,12 +36,12 @@ describe('GET /api/conges/types', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        const route = await import('@/app/api/conges/types/route');
+        const route = await import('@/app/api/leaves/types/route');
         handler = route.GET;
     });
 
     const createRequest = () => {
-        return new NextRequest('http://localhost:3000/api/conges/types', {
+        return new NextRequest('http://localhost:3000/api/leaves/types', {
             method: 'GET',
             headers: {
                 'cookie': 'auth-token=valid_token',
@@ -82,21 +82,21 @@ describe('GET /api/conges/types', () => {
         expect(response.status).toBe(200);
         expect(data).toEqual(mockLeaveTypes);
         expect(mockedPrisma.leaveTypeSetting.findMany).toHaveBeenCalledWith({
-            where: { isActive: true },
+            where: { 
+                isActive: true,
+                isUserSelectable: true 
+            },
+            select: {
+                id: true,
+                code: true,
+                label: true,
+                description: true,
+            },
             orderBy: { label: 'asc' },
         });
     });
 
-    it('should return 401 for unauthenticated user', async () => {
-        mockedGetUserFromCookie.mockResolvedValue(null);
-
-        const request = createRequest();
-        const response = await handler(request);
-        const data = await response.json();
-
-        expect(response.status).toBe(401);
-        expect(data.error).toBe('Non autorisé');
-    });
+    // This API route is public and doesn't require authentication
 
     it('should handle empty leave types', async () => {
         const mockUser = { id: 1 };
@@ -125,6 +125,6 @@ describe('GET /api/conges/types', () => {
         const data = await response.json();
 
         expect(response.status).toBe(500);
-        expect(data.error).toBe('Erreur lors de la récupération des types de congés');
+        expect(data.error).toBe('Erreur serveur lors de la récupération des types de congés.');
     });
 });

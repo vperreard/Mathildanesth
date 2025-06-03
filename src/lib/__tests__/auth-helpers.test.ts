@@ -39,23 +39,14 @@ const fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(() =>
     }) as any
 );
 
-describe('Utilitaires d'authentification', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
+describe('Utilitaires d\'authentification', () => {
     beforeEach(() => {
-    jest.clearAllMocks();
         jest.clearAllMocks();
         mockLocalStorage.clear();
         fetchSpy.mockClear();
     });
 
     describe('getAuthToken', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
         it('récupère le token depuis next-auth.session-token cookie', () => {
             (Cookies.get as jest.Mock).mockImplementation((name) => {
                 if (name === 'next-auth.session-token') return 'token-from-nextauth-cookie';
@@ -151,7 +142,7 @@ describe('Utilitaires d'authentification', () => {
             expect(mockLocalStorage.getItem).toHaveBeenCalledWith('auth_token');
         });
 
-        it('retourne null si aucun token n'est trouvé', () => {
+        it('retourne null si aucun token n\'est trouvé', () => {
             (Cookies.get as jest.Mock).mockReturnValue(null);
 
             const token = getAuthToken({});
@@ -159,7 +150,7 @@ describe('Utilitaires d'authentification', () => {
             expect(token).toBeNull();
         });
 
-        it('gère les erreurs lors de l'accès au localStorage', () => {
+        it('gère les erreurs lors de l\'accès au localStorage', () => {
             (Cookies.get as jest.Mock).mockReturnValue(null);
 
             // Simuler une erreur lors de l'accès au localStorage
@@ -174,11 +165,7 @@ describe('Utilitaires d'authentification', () => {
     });
 
     describe('createAuthHeaders', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-        it('crée des en-têtes HTTP avec le token d'authentification', () => {
+        it('crée des en-têtes HTTP avec le token d\'authentification', () => {
             (Cookies.get as jest.Mock).mockReturnValue('test-auth-token');
 
             const headers = createAuthHeaders({ user: { id: 1 } });
@@ -189,7 +176,7 @@ describe('Utilitaires d'authentification', () => {
             });
         });
 
-        it('crée des en-têtes HTTP sans token quand aucun n'est disponible', () => {
+        it('crée des en-têtes HTTP sans token quand aucun n\'est disponible', () => {
             (Cookies.get as jest.Mock).mockReturnValue(null);
 
             const headers = createAuthHeaders({});
@@ -203,13 +190,7 @@ describe('Utilitaires d'authentification', () => {
     });
 
     describe('fetchWithAuth', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
         beforeEach(() => {
-    jest.clearAllMocks();
-    jest.clearAllMocks();
             // Réinitialiser le mock de fetch pour chaque test
             fetchSpy.mockImplementation(() =>
                 Promise.resolve({
@@ -219,7 +200,7 @@ describe('Utilitaires d'authentification', () => {
             );
         });
 
-        it('appelle fetch avec les en-têtes d'authentification', async () => {
+        it('appelle fetch avec les en-têtes d\'authentification', async () => {
             (Cookies.get as jest.Mock).mockReturnValue('test-token');
 
             const session = { user: { id: 1 } };
@@ -234,7 +215,7 @@ describe('Utilitaires d'authentification', () => {
             });
         });
 
-        it('fusionne les en-têtes personnalisés avec ceux d'authentification', async () => {
+        it('fusionne les en-têtes personnalisés avec ceux d\'authentification', async () => {
             (Cookies.get as jest.Mock).mockReturnValue('test-token');
 
             const session = { user: { id: 1 } };

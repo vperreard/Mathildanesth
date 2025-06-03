@@ -5,6 +5,7 @@
       "password": "Test123!",
       "nom": "Test",
       "prenom": "Admin",
+      "login": "admin",
       "role": "ADMIN_TOTAL",
       "professionalRole": "MAR",
       "actif": true
@@ -14,6 +15,7 @@
       "password": "Test123!",
       "nom": "Martin",
       "prenom": "Jean",
+      "login": "medecin",
       "role": "USER",
       "professionalRole": "MAR",
       "actif": true
@@ -23,6 +25,7 @@
       "password": "Test123!",
       "nom": "Dupont",
       "prenom": "Pierre",
+      "login": "chirurgien",
       "role": "USER",
       "professionalRole": "MAR",
       "actif": true
@@ -32,6 +35,7 @@
       "password": "Test123!",
       "nom": "Durand",
       "prenom": "Marie",
+      "login": "iade",
       "role": "USER",
       "professionalRole": "IADE",
       "actif": true

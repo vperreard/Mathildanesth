@@ -14,11 +14,9 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const toggleMenu = useCallback(() => {
-        console.log('[DropdownMenu] toggleMenu called, current isOpen:', isOpen, '->', !isOpen);
         setIsOpen(prev => !prev);
     }, [isOpen]);
     const closeMenuCallback = useCallback(() => {
-        console.log('[DropdownMenu] closeMenuCallback called. Setting isOpen to false.');
         setIsOpen(false);
     }, []);
 
@@ -53,20 +51,16 @@ export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({
     onToggle
 }) => {
     const handleClick = (event: React.MouseEvent) => {
-        console.log('[DropdownMenuTrigger] handleClick. Calling onToggle.');
         onToggle?.();
     };
 
     if (asChild && React.isValidElement(children)) {
         const childOnClick = children.props.onClick;
-        console.log('[DropdownMenuTrigger] asChild=true, cloning child:', children.type);
         return React.cloneElement(children as React.ReactElement<any>, {
             ...children.props,
             onClick: (e: React.MouseEvent) => {
-                console.log('[DropdownMenuTrigger] Child (cloned) onClick fired.');
                 handleClick(e);
                 if (childOnClick) {
-                    console.log('[DropdownMenuTrigger] Calling original child onClick.');
                     childOnClick(e);
                 }
             },
@@ -166,14 +160,24 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
     disabled = false,
     onItemActionComplete
 }) => {
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        if (disabled) return;
+    const [isProcessing, setIsProcessing] = useState(false);
+    
+    const handleClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
+        if (disabled || isProcessing) return;
+        
+        setIsProcessing(true);
         console.log('[DropdownMenuItem] handleClick');
-        if (onClick) {
-            onClick(event);
+        
+        try {
+            if (onClick) {
+                await onClick(event);
+            }
+            console.log('[DropdownMenuItem] Action complete, calling onItemActionComplete to close menu.');
+            onItemActionComplete?.();
+        } finally {
+            // Reset après un délai pour éviter les double-clics
+            setTimeout(() => setIsProcessing(false), 300);
         }
-        console.log('[DropdownMenuItem] Action complete, calling onItemActionComplete to close menu.');
-        onItemActionComplete?.();
     };
     return (
         <button

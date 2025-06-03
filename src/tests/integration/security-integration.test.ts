@@ -1,7 +1,5 @@
 /**
  * @jest-environment node
- * Comprehensive Security Integration Tests
- * Medical Application - Critical Security Requirements
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';

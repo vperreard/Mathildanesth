@@ -73,7 +73,9 @@ if (isServer) {
         };
     }
 
-    console.warn('Accès à prisma depuis le navigateur. Ceci est uniquement pour la référence TypeScript et ne fonctionnera pas.');
+    if (process.env.NODE_ENV === 'development') {
+        console.warn('Accès à prisma depuis le navigateur. Ceci est uniquement pour la référence TypeScript et ne fonctionnera pas.');
+    }
 }
 
 export { prismaInstance as prisma }; 

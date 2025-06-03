@@ -47,9 +47,9 @@ interface SimulationScenario {
     parametersJson: Record<string, unknown>;
 }
 
-export default function ScenarioDetailsPage({ params }: { params: { scenarioId: string } }) {
+export default function ScenarioDetailsPage({ params }: { params: Promise<{ scenarioId: string }> }) {
     const router = useRouter();
-    const { scenarioId } = params;
+    const [scenarioId, setScenarioId] = useState<string>('');
     const [scenario, setScenario] = useState<SimulationScenario | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isRunning, setIsRunning] = useState(false);
@@ -65,6 +65,13 @@ export default function ScenarioDetailsPage({ params }: { params: { scenarioId: 
     });
     const [isApplyingFilters, setIsApplyingFilters] = useState(false);
     const [filteredResults, setFilteredResults] = useState<SimulationResult[]>([]);
+
+    // Resolve params Promise
+    useEffect(() => {
+        params.then(resolvedParams => {
+            setScenarioId(resolvedParams.scenarioId);
+        });
+    }, [params]);
 
     // Charger les données du scénario
     useEffect(() => {

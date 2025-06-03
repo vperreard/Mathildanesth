@@ -4,17 +4,20 @@
 **Spécialité**: Utils & Helpers
 **Priorité**: ⚡ MOYENNE
 **Temps estimé**: 10-15 min
-**Fichiers à réparer**: 2
+**Fichiers à réparer**: 5
 
 ## 📋 FICHIERS EN ÉCHEC
-- src/lib/__tests__/xss-protection.test.ts
-- src/lib/__tests__/xss-protection.test.ts
+- src/utils/__tests__/prefetch.test.ts
+- src/utils/__tests__/dateUtils.test.ts
+- src/utils/__tests__/apiClient.test.ts
+- src/utils/__tests__/logger.test.ts
+- src/modules/calendar/utils/__tests__/calendarUtils.test.ts
 
 ## 🛠️ INSTRUCTIONS PRÉCISES
 
 ### Étape 1: Diagnostic
 ```bash
-npm run test:fast -- --testPathPattern="src\/lib\/__tests__\/xss-protection.test.ts"
+npm run test:fast -- --testPathPattern="src\/utils\/__tests__\/prefetch.test.ts"
 ```
 
 ### Étape 2: Analyse des Erreurs
@@ -69,7 +72,7 @@ npm run test:bulletproof
 ```
 WORKER: worker-utils
 STATUS: ✅ SUCCÈS / ❌ ÉCHEC
-FICHIERS RÉPARÉS: X/2
+FICHIERS RÉPARÉS: X/5
 TEMPS RÉEL: XX minutes
 PROBLÈMES RÉSOLUS:
 - Problem 1: Description + Solution

@@ -64,22 +64,19 @@ describe('Vérification de la migration Pages Router → App Router', () => {
         }
     });
 
-    test('La compilation Next.js réussit (pas d'erreurs de conflit de routes)', () => {
+    test('La compilation Next.js reussit (pas d erreurs de conflit de routes)', () => {
         // Ce test vérifie indirectement que Next.js peut compiler sans erreur
         // car les erreurs de conflit de routes causent des échecs de compilation
         expect(true).toBe(true); // Si on arrive ici, c'est que les imports ont fonctionné
     });
 
-    test('Résumé de la migration', () => {
-        console.log('
-🎉 MIGRATION PAGES ROUTER → APP ROUTER COMPLÈTE !
-');
-        console.log('✅ Dossier src/pages/api supprimé');
-        console.log('✅ Routes App Router créées dans src/app/api');
-        console.log('✅ Tests mis à jour pour utiliser App Router');
-        console.log('✅ Scripts et documentation mis à jour');
-        console.log('✅ Architecture Next.js 15+ moderne en place
-');
+    test('Resume de la migration', () => {
+        console.log('🎉 MIGRATION PAGES ROUTER → APP ROUTER COMPLETE !');
+        console.log('✅ Dossier src/pages/api supprime');
+        console.log('✅ Routes App Router creees dans src/app/api');
+        console.log('✅ Tests mis a jour pour utiliser App Router');
+        console.log('✅ Scripts et documentation mis a jour');
+        console.log('✅ Architecture Next.js 15+ moderne en place');
 
         expect(true).toBe(true);
     });

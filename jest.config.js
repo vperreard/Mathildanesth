@@ -2,7 +2,6 @@
 module.exports = {
     rootDir: '.',
     testEnvironment: 'jsdom',
-    setupFiles: ['<rootDir>/jest.polyfills.js'],
     setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
     
     moduleNameMapper: {

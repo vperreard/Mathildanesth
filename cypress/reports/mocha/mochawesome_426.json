@@ -1,0 +1,203 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 5,
+    "passes": 0,
+    "pending": 0,
+    "failures": 5,
+    "start": "2025-06-01T06:45:02.186Z",
+    "end": "2025-06-01T06:45:08.557Z",
+    "duration": 6371,
+    "testsRegistered": 5,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "3540ddfb-8b4a-4d29-aa81-068a6eaa7f11",
+      "title": "",
+      "fullFile": "cypress/e2e/accessibility/accessibility-tests.spec.ts",
+      "file": "cypress/e2e/accessibility/accessibility-tests.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "d58b7fd8-4ea0-44c4-abd3-4e5732114083",
+          "title": "Tests d'accessibilité",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "vérifie l'accessibilité de la page d'accueil",
+              "fullTitle": "Tests d'accessibilité vérifie l'accessibilité de la page d'accueil",
+              "timedOut": null,
+              "duration": 422,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/tableau-de-bord');\n// Injecter et vérifier l'accessibilité\ncy.checkAccessibility();",
+              "err": {
+                "message": "TypeError: cy.checkAccessibility is not a function",
+                "estack": "TypeError: cy.checkAccessibility is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/accessibility/accessibility-tests.spec.ts:26:11)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                "diff": null
+              },
+              "uuid": "d6bb0a8e-7b86-4c0b-890f-f70f86127f8c",
+              "parentUUID": "d58b7fd8-4ea0-44c4-abd3-4e5732114083",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "vérifie l'accessibilité de la page de congés",
+              "fullTitle": "Tests d'accessibilité vérifie l'accessibilité de la page de congés",
+              "timedOut": null,
+              "duration": 414,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/conges');\n// Injecter et vérifier l'accessibilité\ncy.checkAccessibility();",
+              "err": {
+                "message": "TypeError: cy.checkAccessibility is not a function",
+                "estack": "TypeError: cy.checkAccessibility is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/accessibility/accessibility-tests.spec.ts:33:11)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                "diff": null
+              },
+              "uuid": "aa755872-6487-4d96-9e12-41da7801c67f",
+              "parentUUID": "d58b7fd8-4ea0-44c4-abd3-4e5732114083",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "vérifie l'accessibilité de la page de planning",
+              "fullTitle": "Tests d'accessibilité vérifie l'accessibilité de la page de planning",
+              "timedOut": null,
+              "duration": 407,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/planning/hebdomadaire');\n// Injecter et vérifier l'accessibilité\ncy.checkAccessibility();",
+              "err": {
+                "message": "TypeError: cy.checkAccessibility is not a function",
+                "estack": "TypeError: cy.checkAccessibility is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/accessibility/accessibility-tests.spec.ts:40:11)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                "diff": null
+              },
+              "uuid": "db632918-c176-48ef-b668-0acb186a6500",
+              "parentUUID": "d58b7fd8-4ea0-44c4-abd3-4e5732114083",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "vérifie l'accessibilité du calendrier",
+              "fullTitle": "Tests d'accessibilité vérifie l'accessibilité du calendrier",
+              "timedOut": null,
+              "duration": 413,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/calendrier');\n// Injecter et vérifier l'accessibilité\ncy.checkAccessibility();",
+              "err": {
+                "message": "TypeError: cy.checkAccessibility is not a function",
+                "estack": "TypeError: cy.checkAccessibility is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/accessibility/accessibility-tests.spec.ts:47:11)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                "diff": null
+              },
+              "uuid": "a5f2464d-1aa2-4ccb-935e-bb8f2543f6bc",
+              "parentUUID": "d58b7fd8-4ea0-44c4-abd3-4e5732114083",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "vérifie l'accessibilité du formulaire de demande de congés",
+              "fullTitle": "Tests d'accessibilité vérifie l'accessibilité du formulaire de demande de congés",
+              "timedOut": null,
+              "duration": 437,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visitAsAuthenticatedUser('/conges/nouveau');\n// Injecter et vérifier l'accessibilité avec une configuration personnalisée\ncy.checkAccessibility({\n    rules: {\n        'color-contrast': { enabled: true },\n        'label': { enabled: true },\n        'form-field-multiple-labels': { enabled: false }\n    }\n});",
+              "err": {
+                "message": "TypeError: cy.checkAccessibility is not a function",
+                "estack": "TypeError: cy.checkAccessibility is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/accessibility/accessibility-tests.spec.ts:54:11)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                "diff": null
+              },
+              "uuid": "ef07a411-e762-465d-8294-52699d9599b2",
+              "parentUUID": "d58b7fd8-4ea0-44c4-abd3-4e5732114083",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "d6bb0a8e-7b86-4c0b-890f-f70f86127f8c",
+            "aa755872-6487-4d96-9e12-41da7801c67f",
+            "db632918-c176-48ef-b668-0acb186a6500",
+            "a5f2464d-1aa2-4ccb-935e-bb8f2543f6bc",
+            "ef07a411-e762-465d-8294-52699d9599b2"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 2093,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

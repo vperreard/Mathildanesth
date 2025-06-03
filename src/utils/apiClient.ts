@@ -11,12 +11,16 @@ const apiClient = axios.create({
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
-    }
+    },
+    // Important: Envoyer les cookies avec chaque requête
+    withCredentials: true
 });
 
 // Intercepteur pour ajouter le token d'authentification à chaque requête
 apiClient.interceptors.request.use(
     (config) => {
+        // Le token est géré par cookie HTTPOnly, pas besoin de l'ajouter manuellement
+        // Mais on peut toujours vérifier s'il y a un token en localStorage (pour compatibilité)
         const token = getToken();
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -62,4 +66,5 @@ apiClient.interceptors.response.use(
     }
 );
 
+export { apiClient };
 export default apiClient; 

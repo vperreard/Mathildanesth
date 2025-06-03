@@ -13,6 +13,11 @@ export enum AuditAction {
     LEAVE_APPROVED = 'leave:approved',
     LEAVE_REJECTED = 'leave:rejected',
     LEAVE_CANCELLED = 'leave:cancelled',
+    
+    READ_LEAVE_TYPES = 'leave_type:read',
+    CREATE_LEAVE_TYPE = 'leave_type:created',
+    UPDATE_LEAVE_TYPE = 'leave_type:updated',
+    DELETE_LEAVE_TYPE = 'leave_type:deleted',
 
     QUOTA_UPDATED = 'quota:updated',
     QUOTA_TRANSFER = 'quota:transfer',

@@ -4,55 +4,23 @@
 **Spécialité**: Core Services (Primary)
 **Priorité**: 🚨 CRITIQUE
 **Temps estimé**: 15-20 min
-**Fichiers à réparer**: 40
+**Fichiers à réparer**: 8
 
 ## 📋 FICHIERS EN ÉCHEC
-- src/services/__tests__/auditService-0.test.ts
-- src/services/__tests__/auditService-1.test.ts
-- src/services/__tests__/auditService-2.test.ts
-- src/services/__tests__/auditService-3.test.ts
-- src/services/__tests__/auditService-4.test.ts
-- src/services/__tests__/auditService-5.test.ts
-- src/services/__tests__/auditService-6.test.ts
-- src/services/__tests__/auditService-7.test.ts
-- src/services/__tests__/auditService-8.test.ts
-- src/services/__tests__/auditService-9.test.ts
-- src/services/__tests__/auditService-10.test.ts
-- src/services/__tests__/auditService-11.test.ts
-- src/services/__tests__/auditService-12.test.ts
-- src/services/__tests__/auditService-13.test.ts
-- src/services/__tests__/auditService-14.test.ts
-- src/services/__tests__/auditService-15.test.ts
-- src/services/__tests__/auditService-16.test.ts
-- src/services/__tests__/auditService-17.test.ts
-- src/services/__tests__/auditService-18.test.ts
-- src/services/__tests__/auditService-19.test.ts
-- src/services/__tests__/loggerService-0.test.ts
-- src/services/__tests__/loggerService-1.test.ts
-- src/services/__tests__/loggerService-2.test.ts
-- src/services/__tests__/loggerService-3.test.ts
-- src/services/__tests__/loggerService-4.test.ts
-- src/services/__tests__/loggerService-5.test.ts
-- src/services/__tests__/loggerService-6.test.ts
-- src/services/__tests__/loggerService-7.test.ts
-- src/services/__tests__/loggerService-8.test.ts
-- src/services/__tests__/loggerService-9.test.ts
-- src/services/__tests__/loggerService-10.test.ts
-- src/services/__tests__/loggerService-11.test.ts
-- src/services/__tests__/loggerService-12.test.ts
-- src/services/__tests__/loggerService-13.test.ts
-- src/services/__tests__/loggerService-14.test.ts
-- src/services/__tests__/loggerService-15.test.ts
-- src/services/__tests__/loggerService-16.test.ts
-- src/services/__tests__/loggerService-17.test.ts
-- src/services/__tests__/loggerService-18.test.ts
-- src/services/__tests__/loggerService-19.test.ts
+- src/modules/planning/bloc-operatoire/services/__tests__/blocPlanningService.test.ts
+- src/modules/templates/services/__tests__/templateValidationService.test.ts
+- src/modules/planning/services/__tests__/PlanningGeneratorService.test.ts
+- src/modules/templates/services/__tests__/templateIntegrationService.test.ts
+- src/modules/integration/services/__tests__/EventBusService.test.ts
+- src/modules/integration/services/__tests__/LeaveToPlanningService.test.ts
+- src/modules/calendar/services/__tests__/calendarService.test.ts
+- src/modules/analytics/services/__tests__/analyticsService.test.ts
 
 ## 🛠️ INSTRUCTIONS PRÉCISES
 
 ### Étape 1: Diagnostic
 ```bash
-npm run test:fast -- --testPathPattern="src\/services\/__tests__\/auditService-0.test.ts"
+npm run test:fast -- --testPathPattern="src\/modules\/planning\/bloc-operatoire\/services\/__tests__\/blocPlanningService.test.ts"
 ```
 
 ### Étape 2: Analyse des Erreurs
@@ -107,7 +75,7 @@ npm run test:bulletproof
 ```
 WORKER: worker-services-core
 STATUS: ✅ SUCCÈS / ❌ ÉCHEC
-FICHIERS RÉPARÉS: X/40
+FICHIERS RÉPARÉS: X/8
 TEMPS RÉEL: XX minutes
 PROBLÈMES RÉSOLUS:
 - Problem 1: Description + Solution

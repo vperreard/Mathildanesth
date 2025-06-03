@@ -8,7 +8,8 @@ import {
   Grid3X3,
   Activity,
   Clock,
-  Users
+  Users,
+  MapPin
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,6 +61,15 @@ const features = [
     href: '/bloc-operatoire/trameModeles',
     color: 'text-indigo-600',
     bgColor: 'bg-indigo-50',
+  },
+  {
+    title: 'Sites d\'anesthésie',
+    description: 'Gérez les différents sites d\'anesthésie',
+    icon: MapPin,
+    href: '/parametres/sites',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-50',
+    adminOnly: true,
   },
 ];
 

@@ -69,7 +69,7 @@ describe('ApplySimulationModal', () => {
 
         // Assert
         expect(screen.getByText('Appliquer la simulation au planning réel')).toBeInTheDocument();
-        expect(screen.getByText('Supprimer les assignments existantes dans la période')).toBeInTheDocument();
+        expect(screen.getByText('Supprimer les affectations existantes dans la période')).toBeInTheDocument();
         expect(screen.getByText('Inclure les congés validés de la simulation')).toBeInTheDocument();
         expect(screen.getByText('Inclure les gardes et astreintes')).toBeInTheDocument();
         expect(screen.getByText('Appliquer au planning')).toBeInTheDocument();
@@ -92,7 +92,7 @@ describe('ApplySimulationModal', () => {
         render(<ApplySimulationModal {...mockProps} />);
 
         // Les cases à cocher devraient être initialement non cochées ou cochées selon les valeurs par défaut
-        const clearExistingCheckbox = screen.getByLabelText('Supprimer les assignments existantes dans la période');
+        const clearExistingCheckbox = screen.getByLabelText('Supprimer les affectations existantes dans la période');
         const includeLeavesCheckbox = screen.getByLabelText('Inclure les congés validés de la simulation');
         const includeOnCallCheckbox = screen.getByLabelText('Inclure les gardes et astreintes');
 
@@ -111,15 +111,15 @@ describe('ApplySimulationModal', () => {
         expect(includeOnCallCheckbox).not.toBeChecked();
     });
 
-    it('doit soumettre correctement les options à l'API', async () => {
+    it("doit soumettre correctement les options à l'API", async () => {
         // Arrange
         render(<ApplySimulationModal {...mockProps} />);
 
         // Cocher certaines options
-        fireEvent.click(screen.getByLabelText('Supprimer les assignments existantes dans la période'));
+        fireEvent.click(screen.getByLabelText('Supprimer les affectations existantes dans la période'));
 
         // Ajouter des notes
-        fireEvent.change(screen.getByPlaceholderText('Raisons de l'application, notes pour l'équipe, etc.'), {
+        fireEvent.change(screen.getByPlaceholderText("Raisons de l'application, notes pour l'équipe, etc."), {
             target: { value: 'Test notes' }
         });
 
@@ -128,7 +128,7 @@ describe('ApplySimulationModal', () => {
 
         // Assert
         await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledWith('/api/simulations/apply', {
+            expect(global.fetch).toHaveBeenCalledWith('http://localhost:3000/api/simulations/apply', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -162,7 +162,7 @@ describe('ApplySimulationModal', () => {
         });
     });
 
-    it('doit rediriger vers la page du planning hebdomadaire si onSuccess n'est pas fourni', async () => {
+    it("doit rediriger vers la page du planning hebdomadaire si onSuccess n'est pas fourni", async () => {
         // Arrange
         const propsWithoutOnSuccess = { ...mockProps, onSuccess: undefined };
         render(<ApplySimulationModal {...propsWithoutOnSuccess} />);
@@ -178,14 +178,16 @@ describe('ApplySimulationModal', () => {
     });
 
     it('doit afficher une erreur si la requête échoue', async () => {
-        // Arrange
-        (global.fetch as jest.Mock).mockResolvedValue({
-            ok: false,
-            json: jest.fn().mockResolvedValue({
-                error: 'Erreur pendant l'application de la simulation',
-                conflicts: [{ type: 'ERROR', message: 'Détail de l'erreur' }]
+        // Arrange - Override the beforeEach success mock for this test
+        (global.fetch as jest.Mock).mockImplementationOnce(() => 
+            Promise.resolve({
+                ok: false,
+                json: () => Promise.resolve({
+                    error: "Erreur pendant l'application de la simulation",
+                    conflicts: [{ type: 'ERROR', message: "Détail de l'erreur" }]
+                })
             })
-        });
+        );
 
         render(<ApplySimulationModal {...mockProps} />);
 
@@ -194,9 +196,9 @@ describe('ApplySimulationModal', () => {
 
         // Assert
         await waitFor(() => {
-            expect(screen.getByText('Erreur pendant l'application de la simulation')).toBeInTheDocument();
+            expect(screen.getByText("Erreur pendant l'application de la simulation")).toBeInTheDocument();
             expect(mockProps.onClose).not.toHaveBeenCalled();
-        });
+        }, { timeout: 3000 });
     });
 
     it('doit afficher une erreur de serveur si fetch échoue', async () => {
@@ -210,7 +212,7 @@ describe('ApplySimulationModal', () => {
 
         // Assert
         await waitFor(() => {
-            expect(screen.getByText('Une erreur est survenue lors de la communication avec le serveur')).toBeInTheDocument();
+            expect(screen.getByText("Une erreur est survenue lors de la communication avec le serveur")).toBeInTheDocument();
             expect(mockProps.onClose).not.toHaveBeenCalled();
         });
     });

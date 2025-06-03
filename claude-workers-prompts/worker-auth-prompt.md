@@ -4,35 +4,18 @@
 **Spécialité**: Authentication & Security Tests
 **Priorité**: 🚨 CRITIQUE
 **Temps estimé**: 15-20 min
-**Fichiers à réparer**: 20
+**Fichiers à réparer**: 3
 
 ## 📋 FICHIERS EN ÉCHEC
-- src/lib/auth/__tests__/auth-0.test.ts
-- src/lib/auth/__tests__/auth-1.test.ts
-- src/lib/auth/__tests__/auth-2.test.ts
-- src/lib/auth/__tests__/auth-3.test.ts
-- src/lib/auth/__tests__/auth-4.test.ts
-- src/lib/auth/__tests__/auth-5.test.ts
-- src/lib/auth/__tests__/auth-6.test.ts
-- src/lib/auth/__tests__/auth-7.test.ts
-- src/lib/auth/__tests__/auth-8.test.ts
-- src/lib/auth/__tests__/auth-9.test.ts
-- src/lib/auth/__tests__/auth-10.test.ts
-- src/lib/auth/__tests__/auth-11.test.ts
-- src/lib/auth/__tests__/auth-12.test.ts
-- src/lib/auth/__tests__/auth-13.test.ts
-- src/lib/auth/__tests__/auth-14.test.ts
-- src/lib/auth/__tests__/auth-15.test.ts
-- src/lib/auth/__tests__/auth-16.test.ts
-- src/lib/auth/__tests__/auth-17.test.ts
-- src/lib/auth/__tests__/auth-18.test.ts
-- src/lib/auth/__tests__/auth-19.test.ts
+- src/hooks/__tests__/useAuth.test.tsx
+- src/lib/auth/__tests__/authorization.test.ts
+- src/components/auth/__tests__/LoginForm.test.tsx
 
 ## 🛠️ INSTRUCTIONS PRÉCISES
 
 ### Étape 1: Diagnostic
 ```bash
-npm run test:fast -- --testPathPattern="src\/lib\/auth\/__tests__\/auth-0.test.ts"
+npm run test:fast -- --testPathPattern="src\/hooks\/__tests__\/useAuth.test.tsx"
 ```
 
 ### Étape 2: Analyse des Erreurs
@@ -94,7 +77,7 @@ npm run test:bulletproof
 ```
 WORKER: worker-auth
 STATUS: ✅ SUCCÈS / ❌ ÉCHEC
-FICHIERS RÉPARÉS: X/20
+FICHIERS RÉPARÉS: X/3
 TEMPS RÉEL: XX minutes
 PROBLÈMES RÉSOLUS:
 - Problem 1: Description + Solution

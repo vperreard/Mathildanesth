@@ -2,7 +2,7 @@
  * Configuration de l'API
  */
 export const apiConfig = {
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || '/api',
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || '',
     endpoints: {
         users: {
             active: '/utilisateurs/active',
@@ -12,7 +12,7 @@ export const apiConfig = {
             delete: (id: string) => `/utilisateurs/${id}`
         },
         user: {
-            preferences: '/user/preferences'
+            preferences: '/api/user/preferences'
         },
         attributions: {
             list: '/affectations',

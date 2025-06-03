@@ -86,7 +86,7 @@ async function loginHandler(req: NextRequest) {
         const response = NextResponse.json({
             user: userWithoutPassword,
             token: token,
-            redirectUrl: '/tableau-de-bord'
+            redirectUrl: '/dashboard'
         });
 
         // Définir le cookie d'authentification

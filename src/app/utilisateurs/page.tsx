@@ -15,6 +15,15 @@ import { Label } from "@/components/ui/label"; // Import Label
 import { useToast } from "@/components/ui/use-toast"; // Ajout pour les notifications
 import UserTable from '@/components/users/UserTable'; // Import de notre tableau virtualisé
 
+// Interface pour les sites
+interface Site {
+    id: string;
+    name: string;
+    description?: string;
+    colorCode?: string;
+    isActive: boolean;
+}
+
 // Type Role et Interface User déplacés vers src/types/user.ts
 
 // Wrapper pour protéger la page entière
@@ -33,6 +42,7 @@ function UsersPageContent() {
     const [allSkills, setAllSkills] = useState<Skill[]>([]);
     const [editingUserSkills, setEditingUserSkills] = useState<UserSkill[]>([]);
     const [skillsLoading, setSkillsLoading] = useState<boolean>(false);
+    const [editingUserSites, setEditingUserSites] = useState<Site[]>([]);
 
     // Référence pour le formulaire
     const formRef = useRef<HTMLFormElement>(null);
@@ -90,6 +100,21 @@ function UsersPageContent() {
         setSkillsLoading(false);
     }, [toast]);
 
+    // Fetch sites for the user being edited
+    const fetchUserSites = useCallback(async (userId: string) => {
+        if (!userId) {
+            setEditingUserSites([]);
+            return;
+        }
+        try {
+            const response = await axios.get<Site[]>(`/api/utilisateurs/${userId}/sites`);
+            setEditingUserSites(response.data);
+        } catch (err) {
+            console.error(`Erreur fetchUserSites pour ${userId}:`, err);
+            setEditingUserSites([]); // Réinitialiser en cas d'erreur
+        }
+    }, []);
+
     useEffect(() => {
         if (!authLoading && currentUser) {
             fetchUsers();
@@ -100,10 +125,12 @@ function UsersPageContent() {
     useEffect(() => {
         if (editingUser && editingUser.id) {
             fetchUserSkills(editingUser.id);
+            fetchUserSites(editingUser.id);
         } else {
             setEditingUserSkills([]); // Vider si pas d'utilisateur en édition
+            setEditingUserSites([]); // Vider les sites aussi
         }
-    }, [editingUser, fetchUserSkills]);
+    }, [editingUser, fetchUserSkills, fetchUserSites]);
 
     // --- Effet pour scroller vers le formulaire --- 
     useEffect(() => {
@@ -140,7 +167,7 @@ function UsersPageContent() {
         setSuccessMessage(null); // Clear success message
     };
 
-    const handleCreateUser = async (formData: UserFormData, selectedSkills: string[] = []) => {
+    const handleCreateUser = async (formData: UserFormData, selectedSkills: string[] = [], selectedSites: Site[] = []) => {
         setActionLoading('creating');
         setError(null);
         setSuccessMessage(null);
@@ -166,6 +193,24 @@ function UsersPageContent() {
                 }
             }
 
+            // Si des sites sont sélectionnés, les assigner au nouvel utilisateur
+            if (selectedSites.length > 0) {
+                try {
+                    // Assigner les sites sélectionnés
+                    await axios.put(`/api/utilisateurs/${newUser.id}/sites`, {
+                        siteIds: selectedSites.map(site => site.id)
+                    });
+                    toast({ title: "Succès", description: `${selectedSites.length} site(s) assigné(s) à l'utilisateur.` });
+                } catch (err) {
+                    console.error("Erreur lors de l'assignation des sites:", err);
+                    toast({
+                        title: "Attention",
+                        description: "L'utilisateur a été créé mais une erreur est survenue lors de l'assignation des sites.",
+                        variant: "destructive"
+                    });
+                }
+            }
+
             handleApiResponse(newUser);
         } catch (err: any) {
             setActionLoading(null);
@@ -177,7 +222,7 @@ function UsersPageContent() {
         }
     };
 
-    const handleUpdateUser = async (formData: UserFormData, selectedSkills: string[] = []) => {
+    const handleUpdateUser = async (formData: UserFormData, selectedSkills: string[] = [], selectedSites: Site[] = []) => {
         if (!editingUser) return;
         const userId = editingUser.id;
         setActionLoading(userId);
@@ -218,6 +263,27 @@ function UsersPageContent() {
                 toast({
                     title: "Attention",
                     description: "L'utilisateur a été mis à jour mais une erreur est survenue lors de la synchronisation des compétences.",
+                    variant: "destructive"
+                });
+            }
+
+            // Gérer la synchronisation des sites
+            try {
+                // Assigner les sites sélectionnés
+                await axios.put(`/api/utilisateurs/${userId}/sites`, {
+                    siteIds: selectedSites.map(site => site.id)
+                });
+                if (selectedSites.length > 0) {
+                    toast({
+                        title: "Succès",
+                        description: `${selectedSites.length} site(s) assigné(s) à l'utilisateur.`
+                    });
+                }
+            } catch (err) {
+                console.error("Erreur lors de la synchronisation des sites:", err);
+                toast({
+                    title: "Attention",
+                    description: "L'utilisateur a été mis à jour mais une erreur est survenue lors de la synchronisation des sites.",
                     variant: "destructive"
                 });
             }
@@ -327,6 +393,7 @@ function UsersPageContent() {
                         allSkills={allSkills}
                         userSkills={editingUserSkills}
                         skillsLoading={skillsLoading}
+                        userSites={editingUserSites}
                         onSubmit={isCreating ? handleCreateUser : handleUpdateUser}
                         onCancel={handleCancelForm}
                         isLoading={actionLoading !== null}

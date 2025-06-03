@@ -40,7 +40,7 @@ function SurgeonsPageContent() {
 // Garder la protection de la route
 export default function ProtectedSurgeonsPage() {
     return (
-        <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.MANAGER]}>
+        <ProtectedRoute allowedRoles={['ADMIN_TOTAL', 'ADMIN_PARTIEL']}>
             <SurgeonsPageContent />
         </ProtectedRoute>
     );

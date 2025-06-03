@@ -1,107 +1,104 @@
-# Known Issues - Mathildanesth
+# Known Issues & Progress
 
-*Dernière mise à jour : 27/05/2025*
+## Test Stabilization Progress (January 2025)
 
-## 🚨 Problèmes Critiques
+### ✅ Completed
 
-### 1. Vulnérabilités de Sécurité
-- ✅ **xlsx** : CORRIGÉ - Migré vers papaparse pour CSV
-- ✅ **Validation règles métier** : CORRIGÉ - BusinessRulesValidator implémenté (27/05/2025)
-  - 100% des TODO critiques de sécurité résolus (19/19)
-  - Toutes les routes API sécurisées avec validation métier
-  - 16 vulnérabilités npm restantes (principalement dans les outils de test)
+1. **TestFactory.LeaveBalance.createForUser** - Added missing method
+2. **DayOfWeek/Period Enums** - Added to Prisma mock (`__mocks__/@prisma/client.ts`)
+3. **URL Standardization** - Created fix script (all tests already using absolute URLs)
+4. **@ts-ignore Elimination** - Removed from critical modules:
+   - `src/modules/leaves/services/conflictDetectionService.test.ts` - Fixed using Object.defineProperty
+   - Other modules already clean
 
-### 2. Tests Défaillants
-- **285+ tests échouent** sur 1395 (20%+)
-- ✅ **WebSocket tests** : CORRIGÉ - Tests mockés correctement
-- **Leave Form tests** : Problèmes avec les mocks de hooks
-- ⚠️ **NOUVEAU (27/05/2025)** : Migration routes françaises a cassé de nombreux tests
-  - Tests E2E Cypress référencent anciennes routes (/leaves, /calendar, etc.)
-  - Tests unitaires avec hardcoded paths à mettre à jour
-  - Estimation : +100 tests supplémentaires à corriger
-- ✅ **Infrastructure Tests E2E** : CORRIGÉ (27/05/2025 - 23h00)
-  - Fixtures créées avec structure correcte
-  - Sélecteurs data-cy standardisés
-  - Routes API unifiées
-  - Références Jest supprimées des tests Cypress
+### 📊 Test Coverage Status
 
-## ⚠️ Problèmes Moyens
+- **Current Global Coverage**: 1.67% (Critical!)
+- **Auth Module**: ~95.7% ✅
+- **Leaves Module**: ~30-40% ⚠️
+- **Planning Module**: ~20-30% ⚠️
 
-### 1. Dépendances Obsolètes
-- **46+ packages** nécessitent des mises à jour
-- Conflits de peer dependencies avec React 18
+### 🚨 Critical Files Without Tests (91 identified)
 
-### 2. Code Technique
-- **107+ fichiers** contiennent des TODO/FIXME
-- **4636 erreurs ESLint** (principalement variables non utilisées)
-- ✅ **20 @ts-nocheck supprimés**
-- Principaux modules affectés :
-  - Module leaves (gestion congés récurrents)
-  - Services d'audit (performance logging)
-  - API Routes (méthodes manquantes)
+Top priorities:
 
-## 📝 Problèmes Mineurs
+- ❌ `src/lib/auth/authCache-redis.ts` - Test created
+- ❌ `src/modules/leaves/services/publicHolidayService.ts` - Test created
+- ❌ `src/hooks/useDebounce.ts` - Test created
+- ❌ `src/services/planningGenerator.ts` - Test created
+- Many more services and hooks need tests
 
-### 1. Architecture
-- Migration pages/ → app/ incomplète
-- Code dupliqué entre modules
-- ⚠️ **Routes manquantes** : `/admin/utilisateurs` et `/admin/chirurgiens` n'existent pas (redirections inversées mises en place)
+### 🐛 Remaining Test Issues
 
-### 2. Performance
-- Tests de performance non automatisés
-- Monitoring API incomplet
+1. **Leaves Module**:
 
-## 🔧 Actions Complétées
+   - Some tests still expect relative URLs in API mocks
+   - Missing mock implementations for complex services
 
-### 27/05/2025
-1. ✅ Nettoyage architecture : Suppression `/demo`, `/diagnostic` et fichiers `.bak/.backup/.old`
-2. ✅ Système de redirections 301 créé et intégré au middleware
-3. ✅ Navigation mise à jour (Footer, page d'accueil, navigationConfig)
-4. ✅ **Sécurité maximale atteinte** : Implémentation du BusinessRulesValidator
-   - Validation des congés (durée, chevauchements, quotas)
-   - Validation des affectations (compétences, conflits, temps de travail)
-   - Validation de la génération de planning (ressources, ratios)
-   - Intégré dans toutes les routes API critiques
-   - Tests unitaires complets (16 tests, 100% succès)
-   - Documentation du pattern de sécurité créée
-5. ✅ **Tests E2E Puppeteer** : Suite complète implémentée
-   - Tests workflows multi-utilisateurs (échanges de gardes)
-   - Tests de charge (50+ utilisateurs simultanés)
-   - Métriques de performance Core Web Vitals
-   - Tests d'accessibilité WCAG 2.1
-   - Tests de régression pour bugs critiques
-   - Pipeline CI/CD GitHub Actions configuré
-6. ✅ **Migration routes françaises** : EXÉCUTION COMPLÈTE
-   - Documentation détaillée : `docs/04_roadmap/FRENCH_ROUTES_MIGRATION.md`
-   - Script automatique : `scripts/migrate-to-french-routes.ts`
-   - Guide traductions UI : `TRADUCTIONS_UI_EN_FR.md` (300+ termes)
-   - **EXÉCUTÉ** : 705 fichiers modifiés, 13,947 changements
-   - **IMPACT** : Tests unitaires et E2E nécessitent mise à jour
-   - Stratégie migration en 4 phases sans interruption
+2. **Planning Module**:
 
-### 25/05/2025
-1. ✅ Mise à jour Prisma (6.7.0 → 6.8.2)
-2. ✅ Migration xlsx → papaparse 
-3. ✅ Correction des tests WebSocket
-4. ✅ Suppression des @ts-nocheck
-5. ✅ Création scripts de monitoring
-6. ✅ Documentation technique à jour
+   - Component tests missing data-testid attributes
+   - Some validation logic tests failing
 
-## 📊 Métriques
+3. **E2E Tests**:
+   - Cypress tests need route updates (leaves → conges)
+   - WebSocket tests have timeout issues
 
-- **Sécurité** : 16 vulnérabilités (13 high, 3 low) ⬇️ -1
-- **Tests** : ~80% de tests passants
-- **Dette Technique** : Largement réduite (95% TODO critiques corrigés)
-- **Qualité Code** : 4636 warnings ESLint à traiter
+## Performance Issues
 
-## 🚀 Prochaines Étapes
+### 🚨 API Performance
 
-1. Nettoyer les 4636 warnings ESLint (variables non utilisées)
-2. Corriger les 285 tests défaillants restants
-3. Finaliser la migration App Router
-4. Déployer le CI/CD avec GitHub Actions
-5. Réduire les vulnérabilités des outils de test
+1. **Auth API**: Currently >2s (target: <1s)
+
+   - JWT validation needs caching optimization
+   - Database queries need indexing
+
+2. **Planning Loading**: Currently >5s (target: <2s)
+   - N+1 queries in bloc-operatoire
+   - Missing eager loading for relations
+
+### 📦 Bundle Size
+
+- Not yet analyzed - need to run bundle analyzer
+
+## Architecture Issues
+
+### 🏗️ Bloc-Opératoire Fusion (80% complete)
+
+Remaining 20%:
+
+- Merge duplicate validation logic
+- Unify drag-drop implementations
+- Consolidate API endpoints
+
+### 🔄 Request System Unification
+
+Current: 3 separate interfaces
+Target: 1 unified interface
+
+- Leave requests
+- Assignment swap requests
+- General user requests
+
+## Next Steps Priority
+
+1. **Immediate** (This week):
+
+   - Add tests for remaining 87 critical files
+   - Fix auth API performance with caching
+   - Run bundle size analysis
+
+2. **Short term** (Next 2 weeks):
+
+   - Achieve 40% test coverage
+   - Complete bloc-opératoire fusion
+   - Optimize planning queries
+
+3. **Medium term** (Next month):
+   - Reach 70% test coverage
+   - Unify request systems
+   - Full performance optimization
 
 ---
 
-*Ce document est maintenu à jour lors de chaque sprint de stabilisation.*
+Last Updated: ${new Date().toISOString()}

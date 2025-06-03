@@ -10,15 +10,15 @@ import {
     extractValidationErrors
 } from '../errorHandling';
 
-describe('Système de gestion d'erreurs', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+describe("Système de gestion d'erreurs", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
     describe('createError', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
 
         it('crée une erreur standardisée avec le type et le message', () => {
             const error = createError(ErrorType.NETWORK, 'Erreur de connexion');
@@ -47,9 +47,9 @@ describe('Système de gestion d'erreurs', () => {
     });
 
     describe('formatUserMessage', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
 
         it('renvoie le userMessage si fourni', () => {
             const error: AppError = {
@@ -61,7 +61,7 @@ describe('Système de gestion d'erreurs', () => {
             expect(formatUserMessage(error)).toBe('Message personnalisé');
         });
 
-        it('génère un message en fonction du type d'erreur - NETWORK', () => {
+        it("génère un message en fonction du type d'erreur - NETWORK", () => {
             const error: AppError = {
                 type: ErrorType.NETWORK,
                 message: 'Échec de la requête'
@@ -70,7 +70,7 @@ describe('Système de gestion d'erreurs', () => {
             expect(formatUserMessage(error)).toContain('problème de connexion');
         });
 
-        it('génère un message en fonction du type d'erreur - AUTHENTICATION', () => {
+        it("génère un message en fonction du type d'erreur - AUTHENTICATION", () => {
             const error: AppError = {
                 type: ErrorType.AUTHENTICATION,
                 message: 'Token invalide'
@@ -79,7 +79,7 @@ describe('Système de gestion d'erreurs', () => {
             expect(formatUserMessage(error)).toContain('authentification');
         });
 
-        it('génère un message en fonction du type d'erreur - UNKNOWN', () => {
+        it("génère un message en fonction du type d'erreur - UNKNOWN", () => {
             const error: AppError = {
                 type: ErrorType.UNKNOWN,
                 message: 'Erreur inconnue'
@@ -90,15 +90,15 @@ describe('Système de gestion d'erreurs', () => {
     });
 
     describe('logError', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
 
         let consoleErrorSpy: jest.SpyInstance;
 
         beforeEach(() => {
-    jest.clearAllMocks();
-    jest.clearAllMocks();
+            jest.clearAllMocks();
+            jest.clearAllMocks();
             consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         });
 
@@ -106,7 +106,7 @@ describe('Système de gestion d'erreurs', () => {
             consoleErrorSpy.mockRestore();
         });
 
-        it('journalise l'erreur avec son type et message', () => {
+        it("journalise l'erreur avec son type et message", () => {
             const error: AppError = {
                 type: ErrorType.SERVER,
                 message: 'Erreur serveur'
@@ -118,7 +118,7 @@ describe('Système de gestion d'erreurs', () => {
             expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Erreur serveur'));
         });
 
-        it('journalise l'erreur originale si présente', () => {
+        it("journalise l'erreur originale si présente", () => {
             const originalError = new Error('Erreur originale');
             const error: AppError = {
                 type: ErrorType.SERVER,
@@ -131,7 +131,7 @@ describe('Système de gestion d'erreurs', () => {
             expect(consoleErrorSpy).toHaveBeenCalledWith('Erreur originale:', originalError);
         });
 
-        it('journalise les détails si présents', () => {
+        it("journalise les détails si présents", () => {
             const details = { id: 123, code: 'CUSTOM_ERROR' };
             const error: AppError = {
                 type: ErrorType.SERVER,
@@ -146,16 +146,16 @@ describe('Système de gestion d'erreurs', () => {
     });
 
     describe('handleError', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
 
         let logErrorSpy: jest.SpyInstance;
         let onErrorMock: jest.Mock;
 
         beforeEach(() => {
-    jest.clearAllMocks();
-    jest.clearAllMocks();
+            jest.clearAllMocks();
+            jest.clearAllMocks();
             logErrorSpy = jest.spyOn(console, 'error').mockImplementation();
             onErrorMock = jest.fn();
         });
@@ -203,11 +203,11 @@ describe('Système de gestion d'erreurs', () => {
     });
 
     describe('isErrorType', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
 
-        it('retourne true si l'erreur est du type spécifié', () => {
+        it("retourne true si l'erreur est du type spécifié", () => {
             const error: AppError = {
                 type: ErrorType.VALIDATION,
                 message: 'Données invalides'
@@ -216,7 +216,7 @@ describe('Système de gestion d'erreurs', () => {
             expect(isErrorType(error, ErrorType.VALIDATION)).toBe(true);
         });
 
-        it('retourne false si l'erreur n'est pas du type spécifié', () => {
+        it("retourne false si l'erreur n'est pas du type spécifié", () => {
             const error: AppError = {
                 type: ErrorType.VALIDATION,
                 message: 'Données invalides'
@@ -234,11 +234,11 @@ describe('Système de gestion d'erreurs', () => {
     });
 
     describe('extractValidationErrors', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
 
-        it('extrait les détails d'erreur de validation', () => {
+        it("extrait les détails d'erreur de validation", () => {
             const error: AppError = {
                 type: ErrorType.VALIDATION,
                 message: 'Données invalides',
@@ -256,7 +256,7 @@ describe('Système de gestion d'erreurs', () => {
             });
         });
 
-        it('convertit les valeurs non-string en string', () => {
+        it("convertit les valeurs non-string en string", () => {
             const error: AppError = {
                 type: ErrorType.VALIDATION,
                 message: 'Données invalides',
@@ -274,7 +274,7 @@ describe('Système de gestion d'erreurs', () => {
             });
         });
 
-        it('retourne null si ce n'est pas une erreur de validation', () => {
+        it("retourne null si ce n'est pas une erreur de validation", () => {
             const error: AppError = {
                 type: ErrorType.NETWORK,
                 message: 'Erreur réseau',
@@ -286,7 +286,7 @@ describe('Système de gestion d'erreurs', () => {
             expect(validationErrors).toBeNull();
         });
 
-        it('retourne null si aucun détail n'est fourni', () => {
+        it("retourne null si aucun détail n'est fourni", () => {
             const error: AppError = {
                 type: ErrorType.VALIDATION,
                 message: 'Données invalides'

@@ -14,7 +14,7 @@ interface PermissionGuardProps {
   showError?: boolean;
 }
 
-export default function PermissionGuard({
+function PermissionGuard({
   children,
   requiredRole,
   requiredPermission,
@@ -106,3 +106,6 @@ export default function PermissionGuard({
   // Tout est OK, afficher le contenu
   return <>{children}</>;
 }
+
+export default PermissionGuard;
+export { PermissionGuard };

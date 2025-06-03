@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client';
 import { withAuth } from '@/middleware/authorization';
 import { logger } from '@/lib/logger';
 import { requirePlanningPermission, AuthenticationError, AuthorizationError, logSecurityAction } from '@/lib/auth/authorization';
-import { auditService, AuditAction } from '@/services/auditService';
+import { AuditService, AuditAction } from '@/services/AuditService';
 
 // PUT /api/affectation-modeles/{affectationModeleId} - Mettre à jour une AffectationModele
 export const PUT = withAuth({
@@ -157,6 +157,7 @@ export const DELETE = withAuth({
 
         // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour suppression (déjà fait via withAuth)
         // Logger l'action de suppression
+        const auditService = new AuditService();
         await auditService.logAction({
             action: 'DELETE_AFFECTATION_MODELE' as any,
             userId: userId.toString(),

@@ -234,9 +234,21 @@ export default function SpecialtyManager() {
                                 </TableCell>
                                 <TableCell>
                                     {specialty.surgeons && specialty.surgeons.length > 0 ? (
-                                        <span className="text-sm">
-                                            {specialty.surgeons.length} chirurgien{specialty.surgeons.length > 1 ? 's' : ''}
-                                        </span>
+                                        <div className="flex flex-wrap items-center gap-1">
+                                            {specialty.surgeons.slice(0, 3).map((surgeon) => (
+                                                <div
+                                                    key={surgeon.id}
+                                                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
+                                                >
+                                                    <span>{surgeon.prenom} {surgeon.nom}</span>
+                                                </div>
+                                            ))}
+                                            {specialty.surgeons.length > 3 && (
+                                                <span className="text-xs font-medium text-gray-500">
+                                                    +{specialty.surgeons.length - 3}
+                                                </span>
+                                            )}
+                                        </div>
                                     ) : (
                                         <span className="text-gray-400 text-sm">Aucun</span>
                                     )}

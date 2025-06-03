@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X } from 'lucide-react';
-import { useNotifications } from '@/hooks/useNotifications';
-import { useSession } from 'next-auth/react';
-import { createAuthHeaders } from '@/lib/auth-helpers';
+// import { useNotifications } from '../../hooks/useNotifications'; // Temporairement désactivé
+import { useAuth } from '../../hooks/useAuth';
+import Cookies from 'js-cookie';
 
 interface Notification {
     id: number;
@@ -20,22 +20,27 @@ export const NotificationCenter: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
-    const { sendNotification } = useNotifications();
-    const { data: session } = useSession();
+    // Temporairement désactivé pour éviter les erreurs
+    // const { sendNotification } = useNotifications();
+    const { user } = useAuth();
 
     useEffect(() => {
         fetchNotifications();
-    }, [session]);
+    }, [user]);
 
     const fetchNotifications = async () => {
-        if (!session) {
+        if (!user) {
             // Ne pas essayer de récupérer les notifications si l'utilisateur n'est pas connecté
             return;
         }
 
         try {
             const apiBaseUrl = window.location.origin;
-            const headers = createAuthHeaders(session);
+            const token = Cookies.get('jwt_token');
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(token && { 'Authorization': `Bearer ${token}` })
+            };
 
             const response = await fetch(`${apiBaseUrl}/api/notifications`, {
                 headers
@@ -61,11 +66,15 @@ export const NotificationCenter: React.FC = () => {
     };
 
     const markAsRead = async (id: number) => {
-        if (!session) return;
+        if (!user) return;
 
         try {
             const apiBaseUrl = window.location.origin;
-            const headers = createAuthHeaders(session);
+            const token = Cookies.get('jwt_token');
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(token && { 'Authorization': `Bearer ${token}` })
+            };
 
             const response = await fetch(`${apiBaseUrl}/api/notifications/${id}/read`, {
                 method: 'POST',
@@ -86,11 +95,15 @@ export const NotificationCenter: React.FC = () => {
     };
 
     const clearAll = async () => {
-        if (!session) return;
+        if (!user) return;
 
         try {
             const apiBaseUrl = window.location.origin;
-            const headers = createAuthHeaders(session);
+            const token = Cookies.get('jwt_token');
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(token && { 'Authorization': `Bearer ${token}` })
+            };
 
             const response = await fetch(`${apiBaseUrl}/api/notifications/clear`, {
                 method: 'POST',

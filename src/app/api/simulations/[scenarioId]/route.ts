@@ -7,7 +7,7 @@ import {
     AuthorizationError,
     AuthenticationError
 } from '@/lib/auth/authorization';
-import { auditService } from '@/services/auditService';
+import { AuditService } from '@/services/AuditService';
 
 // Schéma de validation pour la mise à jour d'un scénario
 const updateScenarioSchema = z.object({
@@ -28,6 +28,7 @@ export async function GET(request: NextRequest, { params }: { params: { scenario
         const session = await requireSimulationPermission('read');
         
         // Logger l'action
+        const auditService = new AuditService();
         await auditService.logAction({
             action: 'READ_SIMULATION' as any,
             userId: session.user.id.toString(),
@@ -101,6 +102,7 @@ export async function PUT(request: NextRequest, { params }: { params: { scenario
         const session = await requireSimulationPermission('update', existingScenario.createdBy.id);
         
         // Logger l'action
+        const auditService = new AuditService();
         await auditService.logAction({
             action: 'UPDATE_SIMULATION' as any,
             userId: session.user.id.toString(),
@@ -153,6 +155,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { scena
         const session = await requireSimulationPermission('delete', existingScenario.createdBy.id);
         
         // Logger l'action
+        const auditService = new AuditService();
         await auditService.logAction({
             action: 'DELETE_SIMULATION' as any,
             userId: session.user.id.toString(),

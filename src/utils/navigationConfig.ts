@@ -112,6 +112,18 @@ export const adminNavigation: NavigationGroup[] = [
         description: 'MARs, IADEs, chirurgiens'
       },
       {
+        href: '/parametres/chirurgiens',
+        label: 'Chirurgiens',
+        icon: Users,
+        description: 'Gestion des chirurgiens'
+      },
+      {
+        href: '/parametres/specialites',
+        label: 'Spécialités',
+        icon: ClipboardList,
+        description: 'Gestion des spécialités'
+      },
+      {
         href: '/bloc-operatoire',
         label: 'Bloc Opératoire',
         icon: Building2,

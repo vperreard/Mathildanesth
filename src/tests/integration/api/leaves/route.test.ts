@@ -174,8 +174,8 @@ describe('/api/conges', () => {
                     id: 1,
                     userId: 1,
                     leaveTypeCode: 'CP',
-                    startDate: new Date('2024-01-01'),
-                    endDate: new Date('2024-01-05'),
+                    startDate: '2024-01-01T00:00:00.000Z',
+                    endDate: '2024-01-05T00:00:00.000Z',
                     status: LeaveStatus.APPROVED,
                     countedDays: 5,
                     leaveType: {
@@ -232,7 +232,16 @@ describe('/api/conges', () => {
 
             expect(response.status).toBe(200);
             expect(mockedPrisma.leave.findMany).toHaveBeenCalledWith({
-                include: expect.any(Object),
+                where: {},
+                include: {
+                    leaveType: true,
+                    user: {
+                        select: {
+                            nom: true,
+                            prenom: true,
+                        },
+                    },
+                },
                 orderBy: { startDate: 'desc' },
             });
         });
@@ -290,7 +299,7 @@ describe('/api/conges', () => {
                 userId: 1,
                 status: LeaveStatus.PENDING,
                 countedDays: 5,
-                createdAt: new Date(),
+                createdAt: '2025-05-31T20:32:49.275Z',
             };
 
             mockedGetUserFromCookie.mockResolvedValue(mockUser as any);

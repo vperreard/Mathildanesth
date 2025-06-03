@@ -43,7 +43,7 @@ async function authorizeRequest(req: NextRequest) {
     }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const authResult = await authorizeRequest(request);
     if (authResult.error) {
         return NextResponse.json({ error: authResult.error }, { status: authResult.status });
@@ -99,7 +99,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const authResult = await authorizeRequest(request);
     if (authResult.error) {
         return NextResponse.json({ error: authResult.error }, { status: authResult.status });

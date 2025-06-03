@@ -187,7 +187,27 @@ const Header = memo(function Header() {
                         <User className="h-4 w-4" />
                         <div className="flex-1">
                           <div className="font-medium">Personnel</div>
-                          <div className="text-xs text-slate-500">Gestion des utilisateurs</div>
+                          <div className="text-xs text-slate-500">MARs et IADEs</div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem>
+                      <Link href="/parametres/chirurgiens" className="flex items-center gap-2 w-full">
+                        <User className="h-4 w-4" />
+                        <div className="flex-1">
+                          <div className="font-medium">Chirurgiens</div>
+                          <div className="text-xs text-slate-500">Gestion des chirurgiens</div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem>
+                      <Link href="/parametres/specialites" className="flex items-center gap-2 w-full">
+                        <Activity className="h-4 w-4" />
+                        <div className="flex-1">
+                          <div className="font-medium">Spécialités</div>
+                          <div className="text-xs text-slate-500">Spécialités chirurgicales</div>
                         </div>
                       </Link>
                     </DropdownMenuItem>

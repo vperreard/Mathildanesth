@@ -4,35 +4,18 @@
 **Spécialité**: Leaves Hooks & Components
 **Priorité**: 🚨 CRITIQUE
 **Temps estimé**: 15-20 min
-**Fichiers à réparer**: 20
+**Fichiers à réparer**: 3
 
 ## 📋 FICHIERS EN ÉCHEC
-- src/modules/leaves/hooks/__tests__/use-leave-0.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-1.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-2.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-3.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-4.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-5.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-6.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-7.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-8.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-9.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-10.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-11.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-12.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-13.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-14.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-15.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-16.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-17.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-18.test.tsx
-- src/modules/leaves/hooks/__tests__/use-leave-19.test.tsx
+- src/modules/leaves/components/__tests__/LeaveForm.comprehensive.test.tsx
+- src/modules/leaves/components/__tests__/LeaveConflictRecommendation.test.tsx
+- src/modules/leaves/components/__tests__/LeaveForm.test.tsx
 
 ## 🛠️ INSTRUCTIONS PRÉCISES
 
 ### Étape 1: Diagnostic
 ```bash
-npm run test:fast -- --testPathPattern="src\/modules\/leaves\/hooks\/__tests__\/use-leave-0.test.tsx"
+npm run test:fast -- --testPathPattern="src\/modules\/leaves\/components\/__tests__\/LeaveForm.comprehensive.test.tsx"
 ```
 
 ### Étape 2: Analyse des Erreurs
@@ -87,7 +70,7 @@ npm run test:bulletproof
 ```
 WORKER: worker-leaves-hooks
 STATUS: ✅ SUCCÈS / ❌ ÉCHEC
-FICHIERS RÉPARÉS: X/20
+FICHIERS RÉPARÉS: X/3
 TEMPS RÉEL: XX minutes
 PROBLÈMES RÉSOLUS:
 - Problem 1: Description + Solution

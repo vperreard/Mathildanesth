@@ -145,7 +145,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       setUser(response.data.user);
-      router.push('/');
+      // Utiliser l'URL de redirection fournie par l'API ou /dashboard par défaut
+      const redirectUrl = response.data.redirectUrl || '/dashboard';
+      router.push(redirectUrl);
       return response.data.user;
     } catch (error) {
       console.error('Erreur de connexion:', error);

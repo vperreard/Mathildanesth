@@ -8,28 +8,28 @@ const mockBcryptCompare = jest.fn();
 
 // Mock modules BEFORE any imports
 jest.mock('@prisma/client', () => ({
-    PrismaClient: jest.fn(() => ({
-        user: {
-            findUnique: mockFindUnique,
-        },
-    })),
+  PrismaClient: jest.fn(() => ({
+    user: {
+      findUnique: mockFindUnique,
+    },
+  })),
 }));
 
 jest.mock('bcrypt', () => ({
-    compare: mockBcryptCompare,
+  compare: mockBcryptCompare,
 }));
 
 // Import after mocks are set up
 import * as jose from 'jose';
 
 const mockUser = {
-    id: 1,
-    login: 'test.medecin',
-    email: 'test@hospital.fr',
-    password: '$2b$10$hashedpassword',
-    role: 'MEDECIN',
-    nom: 'Test',
-    prenom: 'Medecin',
+  id: 1,
+  login: 'test.medecin',
+  email: 'test@hospital.fr',
+  password: '$2b$10$hashedpassword',
+  role: 'MEDECIN',
+  nom: 'Test',
+  prenom: 'Medecin',
 };
 
 // Track tokens created with wrong secret to simulate signature validation
@@ -47,41 +47,41 @@ const authModule = {
   createToken: jest.fn().mockImplementation(async (payload, expiresIn = '24h') => {
     const login = (payload.login || 'user').replace(/\./g, '_'); // Replace dots to avoid splitting issues
     const token = `mock.jwt.token.${payload.userId}.${payload.role}.${login}`;
-    
+
     // Track expired tokens
     if (expiresIn === '0s') {
       expiredTokens.push(token);
     }
-    
+
     return token;
   }),
   verifyToken: jest.fn().mockImplementation(async (token) => {
     if (token === 'invalid-token' || token === 'invalid.jwt.token') {
       throw new Error('Token invalide ou malformé');
     }
-    
+
     // Check if this is an expired token
     if (expiredTokens.includes(token)) {
       throw new Error('Token expiré');
     }
-    
+
     // Handle JWT tokens (3 parts separated by dots)
     const jwtParts = token.split('.');
     if (jwtParts.length === 3) {
       try {
         // If it looks like a real JWT, try to decode (just for testing)
         const payload = JSON.parse(atob(jwtParts[1]));
-        
+
         // Check if token is expired (exp claim in seconds)
         if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
           throw new Error('Token expiré');
         }
-        
+
         // Check if this is a token created with wrong secret
         if (tokensWithWrongSecret.includes(token)) {
           throw new Error('Token invalide ou malformé');
         }
-        
+
         return {
           userId: payload.userId || 1,
           login: payload.login || 'test.medecin',
@@ -96,7 +96,7 @@ const authModule = {
         throw new Error('Token invalide ou malformé');
       }
     }
-    
+
     // Handle mock tokens (6 parts: mock.jwt.token.userId.role.login)
     if (jwtParts.length === 6) {
       const login = jwtParts[5].replace(/_/g, '.'); // Restore dots in login
@@ -108,7 +108,7 @@ const authModule = {
         exp: Math.floor(Date.now() / 1000) + 86400
       };
     }
-    
+
     return {
       userId: 1,
       login: 'test.medecin',
@@ -169,565 +169,565 @@ const authModule = {
   }
 };
 
-describe('Module d'Authentification JWT (mocked)', () => {
+describe("Module d'Authentification JWT (mocked)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.clearAllMocks();
+    resetTokenTracking();
+    // Reset environment variable
+    process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing';
+    // Clear USE_MOCK_AUTH to ensure we use Prisma in tests
+    delete process.env.USE_MOCK_AUTH;
+    // Force production mode for auth tests
+    process.env.NODE_ENV = 'test';
+  });
+
+  afterEach(() => {
+    delete process.env.JWT_SECRET;
+  });
+
+  describe('createToken', () => {
     beforeEach(() => {
-    jest.clearAllMocks();
+      jest.clearAllMocks();
+    });
+
+    it('should create a valid JWT token with correct payload', async () => {
+      const payload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role: mockUser.role,
+      };
+
+      const token = await authModule.createToken(payload);
+
+      expect(token).toBeTruthy();
+      expect(typeof token).toBe('string');
+      expect(token.split('.')).toHaveLength(6); // Mock JWT has 6 parts
+    });
+
+    it('should create token with custom expiration', async () => {
+      const payload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role: mockUser.role,
+      };
+
+      const token = await authModule.createToken(payload, '2h');
+      const decodedToken = await authModule.verifyToken(token);
+
+      expect(decodedToken.userId).toBe(payload.userId);
+      expect(decodedToken.login).toBe(payload.login);
+      expect(decodedToken.role).toBe(payload.role);
+    });
+
+    it('should include standard JWT claims', async () => {
+      const payload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role: mockUser.role,
+      };
+
+      const token = await authModule.createToken(payload);
+      const decodedToken = await authModule.verifyToken(token);
+
+      expect(decodedToken.iat).toBeDefined(); // Issued at
+      expect(decodedToken.exp).toBeDefined(); // Expiration
+      expect(decodedToken.exp! > decodedToken.iat!).toBe(true);
+    });
+
+    it('should handle different user roles correctly', async () => {
+      const roles = ['MEDECIN', 'INFIRMIER', 'ADMIN', 'CADRE'];
+
+      for (const role of roles) {
+        const payload = {
+          userId: mockUser.id,
+          login: mockUser.login,
+          role,
+        };
+
+        const token = await authModule.createToken(payload);
+        const decodedToken = await authModule.verifyToken(token);
+
+        expect(decodedToken.role).toBe(role);
+      }
+    });
+  });
+
+  describe('verifyToken', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should verify and decode a valid token', async () => {
+      const payload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role: mockUser.role,
+      };
+
+      const token = await authModule.createToken(payload);
+      const decodedToken = await authModule.verifyToken(token);
+
+      expect(decodedToken.userId).toBe(payload.userId);
+      expect(decodedToken.login).toBe(payload.login);
+      expect(decodedToken.role).toBe(payload.role);
+    });
+
+    it('should reject an invalid token', async () => {
+      const invalidToken = 'invalid.jwt.token';
+
+      await expect(authModule.verifyToken(invalidToken)).rejects.toThrow('Token invalide ou malformé');
+    });
+
+    it('should reject a token with invalid signature', async () => {
+      // Create token with different secret
+      const wrongSecret = new TextEncoder().encode('wrong-secret');
+      const payload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role: mockUser.role,
+      };
+
+      const tokenWithWrongSecret = await new jose.SignJWT({ ...payload })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('1h')
+        .sign(wrongSecret);
+
+      // Add to list of tokens with wrong secret
+      tokensWithWrongSecret.push(tokenWithWrongSecret);
+
+      await expect(authModule.verifyToken(tokenWithWrongSecret)).rejects.toThrow('Token invalide ou malformé');
+    });
+
+    it('should reject an expired token', async () => {
+      const payload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role: mockUser.role,
+      };
+
+      // Create token that expires immediately
+      const expiredToken = await authModule.createToken(payload, '0s');
+
+      // Wait a bit to ensure expiration
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      await expect(authModule.verifyToken(expiredToken)).rejects.toThrow('Token expiré');
+    });
+
+    it('should reject token with missing required fields', async () => {
+      const incompletePayload = {
+        userId: mockUser.id,
+        // Missing login and role
+      };
+
+      const secretKey = new TextEncoder().encode(process.env.JWT_SECRET!);
+      const tokenWithIncompletePayload = await new jose.SignJWT(incompletePayload)
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('1h')
+        .sign(secretKey);
+
+      await expect(authModule.verifyToken(tokenWithIncompletePayload)).rejects.toThrow('Token invalide ou malformé');
+    });
+
+    it('should reject token with wrong data types', async () => {
+      const invalidPayload = {
+        userId: 'should-be-number',
+        login: 123, // should be string
+        role: mockUser.role,
+      };
+
+      const secretKey = new TextEncoder().encode(process.env.JWT_SECRET!);
+      const tokenWithInvalidPayload = await new jose.SignJWT(invalidPayload)
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('1h')
+        .sign(secretKey);
+
+      await expect(authModule.verifyToken(tokenWithInvalidPayload)).rejects.toThrow('Token invalide ou malformé');
+    });
+  });
+
+  describe('NextAuth Configuration', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('Credentials Provider', () => {
+      beforeEach(() => {
         jest.clearAllMocks();
-        resetTokenTracking();
-        // Reset environment variable
-        process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing';
-        // Clear USE_MOCK_AUTH to ensure we use Prisma in tests
-        delete process.env.USE_MOCK_AUTH;
-        // Force production mode for auth tests
-        process.env.NODE_ENV = 'test';
+      });
+
+      let authorizeFunction: any;
+
+      beforeEach(() => {
+        jest.clearAllMocks();
+        jest.clearAllMocks();
+        const credentialsProvider = authModule.authOptions.providers[0] as any;
+        authorizeFunction = credentialsProvider.authorize;
+      });
+
+      it.skip('should authenticate user with valid credentials - SKIPPED: Module mocking issue with PrismaClient', async () => {
+        // Setup mock Prisma to return user
+        mockFindUnique.mockResolvedValue(mockUser);
+        mockBcryptCompare.mockResolvedValue(true);
+
+        const credentials = {
+          login: mockUser.login,
+          password: 'correct-password',
+        };
+
+        const result = await authorizeFunction(credentials);
+
+        // Debug - let's see what happened
+        if (!result) {
+          console.log('Result is null');
+          console.log('mockFindUnique was called:', mockFindUnique.mock.calls.length, 'times');
+          console.log('mockBcryptCompare was called:', mockBcryptCompare.mock.calls.length, 'times');
+        }
+
+        // Since the mocks might not be properly injected due to module loading issues,
+        // we'll just verify the result instead of the mock calls
+        expect(result).toBeTruthy();
+        expect(result.id).toBe(mockUser.id.toString());
+        expect(result.name).toBe(`${mockUser.prenom} ${mockUser.nom}`);
+        expect(result.email).toBe(mockUser.email);
+        expect(result.role).toBe(mockUser.role);
+      });
+
+      it('should reject authentication with invalid password', async () => {
+        const credentials = {
+          login: mockUser.login,
+          password: 'wrongpassword',
+        };
+
+        mockFindUnique.mockResolvedValue(mockUser);
+        mockBcryptCompare.mockResolvedValue(false);
+
+        const result = await authorizeFunction(credentials);
+
+        expect(result).toBeNull();
+      });
+
+      it('should reject authentication for non-existent user', async () => {
+        const credentials = {
+          login: 'nonexistent.user',
+          password: 'password',
+        };
+
+        mockFindUnique.mockResolvedValue(null);
+
+        const result = await authorizeFunction(credentials);
+
+        expect(result).toBeNull();
+      });
+
+      it('should reject authentication with missing credentials', async () => {
+        const testCases = [
+          { login: null, password: 'password' },
+          { login: 'user', password: null },
+          { login: null, password: null },
+          {},
+          null,
+        ];
+
+        for (const credentials of testCases) {
+          const result = await authorizeFunction(credentials);
+          expect(result).toBeNull();
+        }
+      });
+
+      it('should handle database errors gracefully', async () => {
+        const credentials = {
+          login: mockUser.login,
+          password: 'password',
+        };
+
+        mockFindUnique.mockRejectedValue(new Error('Database connection error'));
+
+        const result = await authorizeFunction(credentials);
+
+        expect(result).toBeNull();
+      });
+
+      it('should handle bcrypt errors gracefully', async () => {
+        const credentials = {
+          login: mockUser.login,
+          password: 'password',
+        };
+
+        mockFindUnique.mockResolvedValue(mockUser);
+        mockBcryptCompare.mockRejectedValue(new Error('Bcrypt error'));
+
+        const result = await authorizeFunction(credentials);
+
+        expect(result).toBeNull();
+      });
     });
 
-    afterEach(() => {
-        delete process.env.JWT_SECRET;
+    describe('JWT Callback', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('should add user data to JWT token', async () => {
+        const jwtCallback = authModule.authOptions.callbacks?.jwt;
+        expect(jwtCallback).toBeDefined();
+
+        const token = {};
+        const user = {
+          id: mockUser.id.toString(),
+          role: mockUser.role,
+        };
+
+        const result = await jwtCallback!({ token, user } as any);
+
+        expect(result.userId).toBe(mockUser.id);
+        expect(result.role).toBe(mockUser.role);
+      });
+
+      it('should preserve existing token when no user provided', async () => {
+        const jwtCallback = authModule.authOptions.callbacks?.jwt;
+        expect(jwtCallback).toBeDefined();
+
+        const existingToken = {
+          userId: 999,
+          role: 'EXISTING_ROLE',
+          other: 'data',
+        };
+
+        const result = await jwtCallback!({ token: existingToken } as any);
+
+        expect(result).toEqual(existingToken);
+      });
     });
 
-    describe('createToken', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+    describe('Session Callback', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('should add user data to session', async () => {
+        const sessionCallback = authModule.authOptions.callbacks?.session;
+        expect(sessionCallback).toBeDefined();
+
+        const session = {
+          user: {
+            name: 'Test User',
+            email: 'test@hospital.fr',
+          },
+        };
+
+        const token = {
+          userId: mockUser.id,
+          role: mockUser.role,
+        };
+
+        const result = await sessionCallback!({ session, token } as any);
+
+        // Use optional chaining pour gérer le type union
+        if (result.user && 'id' in result.user) {
+          expect(result.user.id).toBe(mockUser.id);
+          expect(result.user.role).toBe(mockUser.role);
+          expect(result.user.name).toBe('Test User'); // Preserve existing data
+        }
+      });
+
+      it('should handle missing session user gracefully', async () => {
+        const sessionCallback = authModule.authOptions.callbacks?.session;
+        expect(sessionCallback).toBeDefined();
+
+        const session = {}; // No user property
+        const token = {
+          userId: mockUser.id,
+          role: mockUser.role,
+        };
+
+        const result = await sessionCallback!({ session, token } as any);
+
+        expect(result).toEqual(session); // Should return session unchanged
+      });
+    });
   });
 
-        it('should create a valid JWT token with correct payload', async () => {
-            const payload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role: mockUser.role,
-            };
-
-            const token = await authModule.createToken(payload);
-
-            expect(token).toBeTruthy();
-            expect(typeof token).toBe('string');
-            expect(token.split('.')).toHaveLength(6); // Mock JWT has 6 parts
-        });
-
-        it('should create token with custom expiration', async () => {
-            const payload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role: mockUser.role,
-            };
-
-            const token = await authModule.createToken(payload, '2h');
-            const decodedToken = await authModule.verifyToken(token);
-
-            expect(decodedToken.userId).toBe(payload.userId);
-            expect(decodedToken.login).toBe(payload.login);
-            expect(decodedToken.role).toBe(payload.role);
-        });
-
-        it('should include standard JWT claims', async () => {
-            const payload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role: mockUser.role,
-            };
-
-            const token = await authModule.createToken(payload);
-            const decodedToken = await authModule.verifyToken(token);
-
-            expect(decodedToken.iat).toBeDefined(); // Issued at
-            expect(decodedToken.exp).toBeDefined(); // Expiration
-            expect(decodedToken.exp! > decodedToken.iat!).toBe(true);
-        });
-
-        it('should handle different user roles correctly', async () => {
-            const roles = ['MEDECIN', 'INFIRMIER', 'ADMIN', 'CADRE'];
-
-            for (const role of roles) {
-                const payload = {
-                    userId: mockUser.id,
-                    login: mockUser.login,
-                    role,
-                };
-
-                const token = await authModule.createToken(payload);
-                const decodedToken = await authModule.verifyToken(token);
-
-                expect(decodedToken.role).toBe(role);
-            }
-        });
+  describe('Security Tests', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
     });
 
-    describe('verifyToken', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+    it('should use secure algorithm (HS256)', async () => {
+      // Since we're using mocks, we'll just verify that token creation works
+      // In a real implementation, this would verify the JWT algorithm
+      const payload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role: mockUser.role,
+      };
 
-        it('should verify and decode a valid token', async () => {
-            const payload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role: mockUser.role,
-            };
+      const token = await authModule.createToken(payload);
 
-            const token = await authModule.createToken(payload);
-            const decodedToken = await authModule.verifyToken(token);
-
-            expect(decodedToken.userId).toBe(payload.userId);
-            expect(decodedToken.login).toBe(payload.login);
-            expect(decodedToken.role).toBe(payload.role);
-        });
-
-        it('should reject an invalid token', async () => {
-            const invalidToken = 'invalid.jwt.token';
-
-            await expect(authModule.verifyToken(invalidToken)).rejects.toThrow('Token invalide ou malformé');
-        });
-
-        it('should reject a token with invalid signature', async () => {
-            // Create token with different secret
-            const wrongSecret = new TextEncoder().encode('wrong-secret');
-            const payload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role: mockUser.role,
-            };
-
-            const tokenWithWrongSecret = await new jose.SignJWT({ ...payload })
-                .setProtectedHeader({ alg: 'HS256' })
-                .setIssuedAt()
-                .setExpirationTime('1h')
-                .sign(wrongSecret);
-
-            // Add to list of tokens with wrong secret
-            tokensWithWrongSecret.push(tokenWithWrongSecret);
-
-            await expect(authModule.verifyToken(tokenWithWrongSecret)).rejects.toThrow('Token invalide ou malformé');
-        });
-
-        it('should reject an expired token', async () => {
-            const payload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role: mockUser.role,
-            };
-
-            // Create token that expires immediately
-            const expiredToken = await authModule.createToken(payload, '0s');
-
-            // Wait a bit to ensure expiration
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            await expect(authModule.verifyToken(expiredToken)).rejects.toThrow('Token expiré');
-        });
-
-        it('should reject token with missing required fields', async () => {
-            const incompletePayload = {
-                userId: mockUser.id,
-                // Missing login and role
-            };
-
-            const secretKey = new TextEncoder().encode(process.env.JWT_SECRET!);
-            const tokenWithIncompletePayload = await new jose.SignJWT(incompletePayload)
-                .setProtectedHeader({ alg: 'HS256' })
-                .setIssuedAt()
-                .setExpirationTime('1h')
-                .sign(secretKey);
-
-            await expect(authModule.verifyToken(tokenWithIncompletePayload)).rejects.toThrow('Token invalide ou malformé');
-        });
-
-        it('should reject token with wrong data types', async () => {
-            const invalidPayload = {
-                userId: 'should-be-number',
-                login: 123, // should be string
-                role: mockUser.role,
-            };
-
-            const secretKey = new TextEncoder().encode(process.env.JWT_SECRET!);
-            const tokenWithInvalidPayload = await new jose.SignJWT(invalidPayload)
-                .setProtectedHeader({ alg: 'HS256' })
-                .setIssuedAt()
-                .setExpirationTime('1h')
-                .sign(secretKey);
-
-            await expect(authModule.verifyToken(tokenWithInvalidPayload)).rejects.toThrow('Token invalide ou malformé');
-        });
+      // Verify token is created and is a string
+      expect(token).toBeTruthy();
+      expect(typeof token).toBe('string');
+      expect(token.includes('mock.jwt.token')).toBe(true);
     });
 
-    describe('NextAuth Configuration', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+    it('should not include sensitive data in token payload', async () => {
+      const payload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role: mockUser.role,
+      };
 
-        describe('Credentials Provider', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+      const token = await authModule.createToken(payload);
+      const decodedToken = await authModule.verifyToken(token);
 
-            let authorizeFunction: any;
-
-            beforeEach(() => {
-    jest.clearAllMocks();
-    jest.clearAllMocks();
-                const credentialsProvider = authModule.authOptions.providers[0] as any;
-                authorizeFunction = credentialsProvider.authorize;
-            });
-
-            it.skip('should authenticate user with valid credentials - SKIPPED: Module mocking issue with PrismaClient', async () => {
-                // Setup mock Prisma to return user
-                mockFindUnique.mockResolvedValue(mockUser);
-                mockBcryptCompare.mockResolvedValue(true);
-
-                const credentials = {
-                    login: mockUser.login,
-                    password: 'correct-password',
-                };
-
-                const result = await authorizeFunction(credentials);
-
-                // Debug - let's see what happened
-                if (!result) {
-                    console.log('Result is null');
-                    console.log('mockFindUnique was called:', mockFindUnique.mock.calls.length, 'times');
-                    console.log('mockBcryptCompare was called:', mockBcryptCompare.mock.calls.length, 'times');
-                }
-
-                // Since the mocks might not be properly injected due to module loading issues,
-                // we'll just verify the result instead of the mock calls
-                expect(result).toBeTruthy();
-                expect(result.id).toBe(mockUser.id.toString());
-                expect(result.name).toBe(`${mockUser.prenom} ${mockUser.nom}`);
-                expect(result.email).toBe(mockUser.email);
-                expect(result.role).toBe(mockUser.role);
-            });
-
-            it('should reject authentication with invalid password', async () => {
-                const credentials = {
-                    login: mockUser.login,
-                    password: 'wrongpassword',
-                };
-
-                mockFindUnique.mockResolvedValue(mockUser);
-                mockBcryptCompare.mockResolvedValue(false);
-
-                const result = await authorizeFunction(credentials);
-
-                expect(result).toBeNull();
-            });
-
-            it('should reject authentication for non-existent user', async () => {
-                const credentials = {
-                    login: 'nonexistent.user',
-                    password: 'password',
-                };
-
-                mockFindUnique.mockResolvedValue(null);
-
-                const result = await authorizeFunction(credentials);
-
-                expect(result).toBeNull();
-            });
-
-            it('should reject authentication with missing credentials', async () => {
-                const testCases = [
-                    { login: null, password: 'password' },
-                    { login: 'user', password: null },
-                    { login: null, password: null },
-                    {},
-                    null,
-                ];
-
-                for (const credentials of testCases) {
-                    const result = await authorizeFunction(credentials);
-                    expect(result).toBeNull();
-                }
-            });
-
-            it('should handle database errors gracefully', async () => {
-                const credentials = {
-                    login: mockUser.login,
-                    password: 'password',
-                };
-
-                mockFindUnique.mockRejectedValue(new Error('Database connection error'));
-
-                const result = await authorizeFunction(credentials);
-
-                expect(result).toBeNull();
-            });
-
-            it('should handle bcrypt errors gracefully', async () => {
-                const credentials = {
-                    login: mockUser.login,
-                    password: 'password',
-                };
-
-                mockFindUnique.mockResolvedValue(mockUser);
-                mockBcryptCompare.mockRejectedValue(new Error('Bcrypt error'));
-
-                const result = await authorizeFunction(credentials);
-
-                expect(result).toBeNull();
-            });
-        });
-
-        describe('JWT Callback', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-            it('should add user data to JWT token', async () => {
-                const jwtCallback = authModule.authOptions.callbacks?.jwt;
-                expect(jwtCallback).toBeDefined();
-
-                const token = {};
-                const user = {
-                    id: mockUser.id.toString(),
-                    role: mockUser.role,
-                };
-
-                const result = await jwtCallback!({ token, user } as any);
-
-                expect(result.userId).toBe(mockUser.id);
-                expect(result.role).toBe(mockUser.role);
-            });
-
-            it('should preserve existing token when no user provided', async () => {
-                const jwtCallback = authModule.authOptions.callbacks?.jwt;
-                expect(jwtCallback).toBeDefined();
-
-                const existingToken = {
-                    userId: 999,
-                    role: 'EXISTING_ROLE',
-                    other: 'data',
-                };
-
-                const result = await jwtCallback!({ token: existingToken } as any);
-
-                expect(result).toEqual(existingToken);
-            });
-        });
-
-        describe('Session Callback', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-            it('should add user data to session', async () => {
-                const sessionCallback = authModule.authOptions.callbacks?.session;
-                expect(sessionCallback).toBeDefined();
-
-                const session = {
-                    user: {
-                        name: 'Test User',
-                        email: 'test@hospital.fr',
-                    },
-                };
-
-                const token = {
-                    userId: mockUser.id,
-                    role: mockUser.role,
-                };
-
-                const result = await sessionCallback!({ session, token } as any);
-
-                // Use optional chaining pour gérer le type union
-                if (result.user && 'id' in result.user) {
-                    expect(result.user.id).toBe(mockUser.id);
-                    expect(result.user.role).toBe(mockUser.role);
-                    expect(result.user.name).toBe('Test User'); // Preserve existing data
-                }
-            });
-
-            it('should handle missing session user gracefully', async () => {
-                const sessionCallback = authModule.authOptions.callbacks?.session;
-                expect(sessionCallback).toBeDefined();
-
-                const session = {}; // No user property
-                const token = {
-                    userId: mockUser.id,
-                    role: mockUser.role,
-                };
-
-                const result = await sessionCallback!({ session, token } as any);
-
-                expect(result).toEqual(session); // Should return session unchanged
-            });
-        });
+      // Ensure no sensitive data is included
+      expect(decodedToken).not.toHaveProperty('password');
+      expect(decodedToken).not.toHaveProperty('email');
+      // The mock includes basic user info but not sensitive data
+      expect(decodedToken).toHaveProperty('userId');
+      expect(decodedToken).toHaveProperty('role');
     });
 
-    describe('Security Tests', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+    it('should prevent timing attacks on token verification', async () => {
+      const validPayload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role: mockUser.role,
+      };
+
+      const validToken = await authModule.createToken(validPayload);
+      const invalidToken = 'completely.invalid.token';
+
+      const startValid = Date.now();
+      try {
+        await authModule.verifyToken(validToken);
+      } catch (e) {
+        // Token might be expired, that's ok for timing test
+      }
+      const validTime = Date.now() - startValid;
+
+      const startInvalid = Date.now();
+      try {
+        await authModule.verifyToken(invalidToken);
+      } catch (e) {
+        // Expected to fail
+      }
+      const invalidTime = Date.now() - startInvalid;
+
+      // Both should take roughly the same time (within 100ms difference)
+      expect(Math.abs(validTime - invalidTime)).toBeLessThan(100);
+    });
   });
 
-        it('should use secure algorithm (HS256)', async () => {
-            // Since we're using mocks, we'll just verify that token creation works
-            // In a real implementation, this would verify the JWT algorithm
-            const payload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role: mockUser.role,
-            };
-
-            const token = await authModule.createToken(payload);
-            
-            // Verify token is created and is a string
-            expect(token).toBeTruthy();
-            expect(typeof token).toBe('string');
-            expect(token.includes('mock.jwt.token')).toBe(true);
-        });
-
-        it('should not include sensitive data in token payload', async () => {
-            const payload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role: mockUser.role,
-            };
-
-            const token = await authModule.createToken(payload);
-            const decodedToken = await authModule.verifyToken(token);
-
-            // Ensure no sensitive data is included
-            expect(decodedToken).not.toHaveProperty('password');
-            expect(decodedToken).not.toHaveProperty('email');
-            // The mock includes basic user info but not sensitive data
-            expect(decodedToken).toHaveProperty('userId');
-            expect(decodedToken).toHaveProperty('role');
-        });
-
-        it('should prevent timing attacks on token verification', async () => {
-            const validPayload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role: mockUser.role,
-            };
-
-            const validToken = await authModule.createToken(validPayload);
-            const invalidToken = 'completely.invalid.token';
-
-            const startValid = Date.now();
-            try {
-                await authModule.verifyToken(validToken);
-            } catch (e) {
-                // Token might be expired, that's ok for timing test
-            }
-            const validTime = Date.now() - startValid;
-
-            const startInvalid = Date.now();
-            try {
-                await authModule.verifyToken(invalidToken);
-            } catch (e) {
-                // Expected to fail
-            }
-            const invalidTime = Date.now() - startInvalid;
-
-            // Both should take roughly the same time (within 100ms difference)
-            expect(Math.abs(validTime - invalidTime)).toBeLessThan(100);
-        });
+  describe('Integration avec Rôles Médicaux', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
     });
 
-    describe('Integration avec Rôles Médicaux', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+    const medicalRoles = ['MEDECIN', 'INFIRMIER', 'CADRE', 'ADMIN'];
+
+    it.each(medicalRoles)('should handle %s role correctly', async (role) => {
+      const payload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role,
+      };
+
+      const token = await authModule.createToken(payload);
+      const decodedToken = await authModule.verifyToken(token);
+
+      expect(decodedToken.role).toBe(role);
+      expect(typeof decodedToken.userId).toBe('number');
+      expect(typeof decodedToken.login).toBe('string');
+    });
+
+    it('should reject invalid medical roles', async () => {
+      const invalidRole = 'INVALID_ROLE';
+      const payload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role: invalidRole,
+      };
+
+      // This should still work for token creation (validation should be elsewhere)
+      const token = await authModule.createToken(payload);
+      const decodedToken = await authModule.verifyToken(token);
+
+      expect(decodedToken.role).toBe(invalidRole);
+      // Role validation should be handled at the application level, not JWT level
+    });
   });
 
-        const medicalRoles = ['MEDECIN', 'INFIRMIER', 'CADRE', 'ADMIN'];
-
-        it.each(medicalRoles)('should handle %s role correctly', async (role) => {
-            const payload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role,
-            };
-
-            const token = await authModule.createToken(payload);
-            const decodedToken = await authModule.verifyToken(token);
-
-            expect(decodedToken.role).toBe(role);
-            expect(typeof decodedToken.userId).toBe('number');
-            expect(typeof decodedToken.login).toBe('string');
-        });
-
-        it('should reject invalid medical roles', async () => {
-            const invalidRole = 'INVALID_ROLE';
-            const payload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role: invalidRole,
-            };
-
-            // This should still work for token creation (validation should be elsewhere)
-            const token = await authModule.createToken(payload);
-            const decodedToken = await authModule.verifyToken(token);
-
-            expect(decodedToken.role).toBe(invalidRole);
-            // Role validation should be handled at the application level, not JWT level
-        });
+  describe('Performance Tests', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
     });
 
-    describe('Performance Tests', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+    it('should create tokens quickly (< 50ms)', async () => {
+      const payload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role: mockUser.role,
+      };
+
+      const start = Date.now();
+      await authModule.createToken(payload);
+      const duration = Date.now() - start;
+
+      expect(duration).toBeLessThan(50);
+    });
+
+    it('should verify tokens quickly (< 50ms)', async () => {
+      const payload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role: mockUser.role,
+      };
+
+      const token = await authModule.createToken(payload);
+
+      const start = Date.now();
+      await authModule.verifyToken(token);
+      const duration = Date.now() - start;
+
+      expect(duration).toBeLessThan(50);
+    });
+
+    it('should handle multiple concurrent token operations', async () => {
+      const payload = {
+        userId: mockUser.id,
+        login: mockUser.login,
+        role: mockUser.role,
+      };
+
+      // Create multiple tokens concurrently
+      const promises = Array.from({ length: 10 }, () => authModule.createToken(payload));
+      const tokens = await Promise.all(promises);
+
+      expect(tokens).toHaveLength(10);
+      tokens.forEach(token => {
+        expect(token).toBeTruthy();
+        expect(typeof token).toBe('string');
+      });
+
+      // Verify all tokens concurrently
+      const verifyPromises = tokens.map(token => authModule.verifyToken(token));
+      const decodedTokens = await Promise.all(verifyPromises);
+
+      decodedTokens.forEach(decodedToken => {
+        expect(decodedToken.userId).toBe(payload.userId);
+        expect(decodedToken.login).toBe(payload.login);
+        expect(decodedToken.role).toBe(payload.role);
+      });
+    });
   });
-
-        it('should create tokens quickly (< 50ms)', async () => {
-            const payload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role: mockUser.role,
-            };
-
-            const start = Date.now();
-            await authModule.createToken(payload);
-            const duration = Date.now() - start;
-
-            expect(duration).toBeLessThan(50);
-        });
-
-        it('should verify tokens quickly (< 50ms)', async () => {
-            const payload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role: mockUser.role,
-            };
-
-            const token = await authModule.createToken(payload);
-
-            const start = Date.now();
-            await authModule.verifyToken(token);
-            const duration = Date.now() - start;
-
-            expect(duration).toBeLessThan(50);
-        });
-
-        it('should handle multiple concurrent token operations', async () => {
-            const payload = {
-                userId: mockUser.id,
-                login: mockUser.login,
-                role: mockUser.role,
-            };
-
-            // Create multiple tokens concurrently
-            const promises = Array.from({ length: 10 }, () => authModule.createToken(payload));
-            const tokens = await Promise.all(promises);
-
-            expect(tokens).toHaveLength(10);
-            tokens.forEach(token => {
-                expect(token).toBeTruthy();
-                expect(typeof token).toBe('string');
-            });
-
-            // Verify all tokens concurrently
-            const verifyPromises = tokens.map(token => authModule.verifyToken(token));
-            const decodedTokens = await Promise.all(verifyPromises);
-
-            decodedTokens.forEach(decodedToken => {
-                expect(decodedToken.userId).toBe(payload.userId);
-                expect(decodedToken.login).toBe(payload.login);
-                expect(decodedToken.role).toBe(payload.role);
-            });
-        });
-    });
 });

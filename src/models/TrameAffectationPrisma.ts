@@ -264,3 +264,6 @@ export class TrameAffectationPrisma {
 // Export pour compatibilité
 export default TrameAffectationPrisma;
 export { TrameAffectationPrisma as TrameAffectation };
+
+// Export des types manquants pour compatibilité
+export { PeriodeType, TrameAffectationAttributes };

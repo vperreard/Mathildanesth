@@ -16,7 +16,7 @@ const updateAbsenceSchema = z.object({
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -27,7 +27,8 @@ export async function GET(
             );
         }
 
-        const absenceId = params.id;
+        const resolvedParams = await params;
+        const absenceId = resolvedParams.id;
         const userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : session.user.id;
 
         if (typeof userId !== 'number' || isNaN(userId)) {
@@ -67,7 +68,7 @@ export async function GET(
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -78,7 +79,8 @@ export async function PATCH(
             );
         }
 
-        const absenceId = params.id;
+        const resolvedParams = await params;
+        const absenceId = resolvedParams.id;
         const userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : session.user.id;
 
         if (typeof userId !== 'number' || isNaN(userId)) {
@@ -138,7 +140,7 @@ export async function PATCH(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -149,7 +151,8 @@ export async function DELETE(
             );
         }
 
-        const absenceId = params.id;
+        const resolvedParams = await params;
+        const absenceId = resolvedParams.id;
         const userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : session.user.id;
 
         if (typeof userId !== 'number' || isNaN(userId)) {

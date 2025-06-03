@@ -1,0 +1,192 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 0,
+    "pending": 0,
+    "failures": 2,
+    "start": "2025-06-01T07:18:28.079Z",
+    "end": "2025-06-01T07:18:32.936Z",
+    "duration": 4857,
+    "testsRegistered": 5,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 1,
+    "hasOther": true,
+    "skipped": 3,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "8fe8427c-d714-4f0f-91f8-c0ed22c39be2",
+      "title": "",
+      "fullFile": "cypress/e2e/performance/advanced-performance-monitoring.spec.ts",
+      "file": "cypress/e2e/performance/advanced-performance-monitoring.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "a6853598-baac-4e11-9243-adbd5ccd230e",
+          "title": "Monitoring Avancé des Performances",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "surveille les performances en temps réel lors de l'utilisation normale",
+              "fullTitle": "Monitoring Avancé des Performances surveille les performances en temps réel lors de l'utilisation normale",
+              "timedOut": null,
+              "duration": 133,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('📈 Surveillance temps réel des performances');\n// Démarrer le monitoring\nvar sessionStartTime = performance.now();\n// Workflow utilisateur normal avec monitoring\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\n// Mesurer les Core Web Vitals réels\ncy.window().then(function (win) {\n    // Simuler la mesure LCP via observer\n    cy.wrap(null).then(function () {\n        var navigation = win.performance.getEntriesByType('navigation')[0];\n        if (navigation) {\n            var lcp = navigation.loadEventEnd - navigation.navigationStart;\n            cy.task('logAdvancedPerformance', {\n                type: 'core-web-vitals',\n                metric: 'LCP',\n                value: lcp,\n                threshold: ADVANCED_THRESHOLDS.LCP,\n                status: lcp < ADVANCED_THRESHOLDS.LCP ? 'EXCELLENT' : lcp < ADVANCED_THRESHOLDS.LCP * 1.5 ? 'GOOD' : 'POOR',\n                timestamp: Date.now()\n            });\n            expect(lcp).to.be.lessThan(ADVANCED_THRESHOLDS.LCP);\n        }\n    });\n});\n// Test de connexion avec monitoring complet\nvar authStartTime = performance.now();\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url({ timeout: 10000 }).should('include', '/tableau-de-bord').then(function () {\n    var authDuration = performance.now() - authStartTime;\n    cy.task('logAdvancedPerformance', {\n        type: 'user-flow',\n        action: 'complete-authentication',\n        duration: authDuration,\n        threshold: ADVANCED_THRESHOLDS.authFlow,\n        status: authDuration < ADVANCED_THRESHOLDS.authFlow ? 'EXCELLENT' : 'SLOW',\n        timestamp: Date.now()\n    });\n    expect(authDuration).to.be.lessThan(ADVANCED_THRESHOLDS.authFlow);\n});\n// Navigation monitoring\nvar pages = [\n    { selector: '[data-cy=nav-planning]', url: '/planning', name: 'planning' },\n    { selector: '[data-cy=nav-conges]', url: '/conges', name: 'leaves' },\n    { selector: '[data-cy=nav-tableau-de-bord]', url: '/tableau-de-bord', name: 'dashboard' }\n];\npages.forEach(function (page) {\n    var navStartTime = performance.now();\n    cy.get(page.selector).click();\n    cy.url().should('include', page.url).then(function () {\n        var navDuration = performance.now() - navStartTime;\n        cy.task('logAdvancedPerformance', {\n            type: 'navigation-monitoring',\n            page: page.name,\n            duration: navDuration,\n            threshold: ADVANCED_THRESHOLDS.navigation,\n            status: navDuration < ADVANCED_THRESHOLDS.navigation ? 'FAST' : 'SLOW',\n            timestamp: Date.now()\n        });\n        expect(navDuration).to.be.lessThan(ADVANCED_THRESHOLDS.navigation);\n    });\n    cy.wait(200); // Pause réaliste entre navigations\n});",
+              "err": {
+                "message": "CypressError: `cy.task('exportPerformanceMetrics')` failed with the following error:\n\nThe task 'exportPerformanceMetrics' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after each` hook we are skipping the remaining tests in the current suite: `Monitoring Avancé des Perfo...`",
+                "estack": "CypressError: `cy.task('exportPerformanceMetrics')` failed with the following error:\n\nThe task 'exportPerformanceMetrics' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after each` hook we are skipping the remaining tests in the current suite: `Monitoring Avancé des Perfo...`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137237:72)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/performance/advanced-performance-monitoring.spec.ts:408:11)",
+                "diff": null
+              },
+              "uuid": "c6fa1f6c-f703-4d45-87dd-28356ee0a712",
+              "parentUUID": "a6853598-baac-4e11-9243-adbd5ccd230e",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "détecte et analyse les goulots d'étranglement",
+              "fullTitle": "Monitoring Avancé des Performances détecte et analyse les goulots d'étranglement",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('🔍 Détection des goulots d\\'\\u00e9tranglement');\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\n// Analyser les ressources lentes\ncy.window().then(function (win) {\n    var resourceEntries = win.performance.getEntriesByType('resource');\n    resourceEntries.forEach(function (resource) {\n        var isSlowResource = resource.duration > 1000;\n        var isCriticalResource = resource.name.includes('/api/') ||\n            resource.name.includes('.js') ||\n            resource.name.includes('.css');\n        if (isSlowResource && isCriticalResource) {\n            cy.task('logAdvancedPerformance', {\n                type: 'bottleneck-detection',\n                resource: resource.name,\n                duration: resource.duration,\n                transferSize: resource.transferSize,\n                initiatorType: resource.initiatorType,\n                severity: resource.duration > 2000 ? 'CRITICAL' : 'WARNING',\n                timestamp: Date.now()\n            });\n            // Alerter sur les ressources critiques lentes\n            if (resource.duration > 2000) {\n                cy.log(\"\\u26A0\\uFE0F BOTTLENECK CRITIQUE: \".concat(resource.name, \" - \").concat(resource.duration, \"ms\"));\n            }\n        }\n    });\n});\n// Test de charge progressive\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url().should('include', '/tableau-de-bord');\n// Simulation de charge avec multiples actions simultanées\nvar concurrentActions = [\n    function () { return cy.get('[data-cy=nav-planning]').click(); },\n    function () { return cy.get('[data-cy=nav-conges]').click(); },\n    function () { return cy.get('[data-cy=user-menu]').click(); }\n];\nvar loadTestStart = performance.now();\n// Exécuter actions rapidement\nconcurrentActions.forEach(function (action, index) {\n    cy.wait(100 * index).then(function () {\n        action();\n    });\n});\ncy.wait(2000).then(function () {\n    var loadTestDuration = performance.now() - loadTestStart;\n    cy.task('logAdvancedPerformance', {\n        type: 'load-test',\n        scenario: 'concurrent-navigation',\n        duration: loadTestDuration,\n        actions: concurrentActions.length,\n        averageActionTime: loadTestDuration / concurrentActions.length,\n        status: loadTestDuration < 3000 ? 'STABLE' : 'UNSTABLE',\n        timestamp: Date.now()\n    });\n});",
+              "err": {},
+              "uuid": "6f7e2a74-6254-4d78-b232-7577aa0b7461",
+              "parentUUID": "a6853598-baac-4e11-9243-adbd5ccd230e",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "surveille l'usage mémoire et détecte les fuites",
+              "fullTitle": "Monitoring Avancé des Performances surveille l'usage mémoire et détecte les fuites",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('🧠 Surveillance mémoire et détection de fuites');\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url().should('include', '/tableau-de-bord');\n// Mesure mémoire initiale\ncy.window().then(function (win) {\n    if ('memory' in win.performance) {\n        var initialMemory_1 = win.performance.memory.usedJSHeapSize;\n        // Cycle intensif pour détecter les fuites\n        var memoryTestCycles_1 = 20;\n        var _loop_1 = function (i) {\n            cy.get('[data-cy=nav-planning]').click();\n            cy.url().should('include', '/planning');\n            cy.get('[data-cy=nav-conges]').click();\n            cy.url().should('include', '/conges');\n            cy.get('[data-cy=nav-tableau-de-bord]').click();\n            cy.url().should('include', '/tableau-de-bord');\n            // Mesure intermédiaire tous les 5 cycles\n            if (i % 5 === 0) {\n                cy.window().then(function (cycleWin) {\n                    if ('memory' in cycleWin.performance) {\n                        var cycleMemory = cycleWin.performance.memory.usedJSHeapSize;\n                        var memoryGrowth = ((cycleMemory - initialMemory_1) / initialMemory_1) * 100;\n                        cy.task('logAdvancedPerformance', {\n                            type: 'memory-monitoring',\n                            cycle: i,\n                            initialMemory: initialMemory_1,\n                            currentMemory: cycleMemory,\n                            growthPercent: memoryGrowth,\n                            status: memoryGrowth < ADVANCED_THRESHOLDS.memoryGrowth ? 'HEALTHY' : 'LEAK_SUSPECTED',\n                            timestamp: Date.now()\n                        });\n                    }\n                });\n            }\n        };\n        for (var i = 0; i < memoryTestCycles_1; i++) {\n            _loop_1(i);\n        }\n        // Mesure finale\n        cy.window().then(function (finalWin) {\n            if ('memory' in finalWin.performance) {\n                var finalMemory = finalWin.performance.memory.usedJSHeapSize;\n                var totalGrowth = ((finalMemory - initialMemory_1) / initialMemory_1) * 100;\n                cy.task('logAdvancedPerformance', {\n                    type: 'memory-leak-analysis',\n                    initialMemory: initialMemory_1,\n                    finalMemory: finalMemory,\n                    totalGrowthPercent: totalGrowth,\n                    cycles: memoryTestCycles_1,\n                    memoryPerCycle: (finalMemory - initialMemory_1) / memoryTestCycles_1,\n                    leakDetected: totalGrowth > ADVANCED_THRESHOLDS.memoryGrowth,\n                    severity: totalGrowth > 50 ? 'CRITICAL' : totalGrowth > 25 ? 'WARNING' : 'NORMAL',\n                    timestamp: Date.now()\n                });\n                // Seuil de croissance acceptable\n                expect(totalGrowth).to.be.lessThan(ADVANCED_THRESHOLDS.memoryGrowth);\n            }\n        });\n    }\n});",
+              "err": {},
+              "uuid": "9ade14d2-077e-4788-b5f0-1f76cb6e6e2f",
+              "parentUUID": "a6853598-baac-4e11-9243-adbd5ccd230e",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "mesure les performances sur différents appareils simulés",
+              "fullTitle": "Monitoring Avancé des Performances mesure les performances sur différents appareils simulés",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('📱 Test multi-appareils');\nvar deviceProfiles = [\n    { name: 'Desktop-High-End', viewport: [1920, 1080], cpu: 'fast', network: 'fast' },\n    { name: 'Laptop-Standard', viewport: [1366, 768], cpu: 'standard', network: 'standard' },\n    { name: 'Tablet-iPad', viewport: [768, 1024], cpu: 'slow', network: 'slow' },\n    { name: 'Mobile-iPhone', viewport: [375, 667], cpu: 'slow', network: '3g' }\n];\ndeviceProfiles.forEach(function (device) {\n    cy.log(\"Testing on \".concat(device.name));\n    // Configurer le viewport\n    cy.viewport(device.viewport[0], device.viewport[1]);\n    // Simuler les conditions réseau (si supporté)\n    if (device.network === '3g') {\n        cy.intercept('**/api/**', { delay: 200 }); // Simuler latence 3G\n    }\n    var deviceTestStart = performance.now();\n    cy.visit('/auth/connexion');\n    cy.waitForPageLoad();\n    // Test de connexion sur cet appareil\n    cy.safeType('[data-cy=email-input]', 'admin@example.com');\n    cy.safeType('[data-cy=password-input]', 'Test123!');\n    cy.safeClick('[data-cy=submit-button]');\n    cy.url({ timeout: 15000 }).should('include', '/tableau-de-bord').then(function () {\n        var deviceTestDuration = performance.now() - deviceTestStart;\n        // Seuils adaptés par type d'appareil\n        var deviceThreshold = device.cpu === 'fast' ? 2000 :\n            device.cpu === 'standard' ? 3000 : 5000;\n        cy.task('logAdvancedPerformance', {\n            type: 'device-performance',\n            device: device.name,\n            viewport: device.viewport,\n            cpuProfile: device.cpu,\n            networkProfile: device.network,\n            duration: deviceTestDuration,\n            threshold: deviceThreshold,\n            status: deviceTestDuration < deviceThreshold ? 'OPTIMAL' : 'SUBOPTIMAL',\n            timestamp: Date.now()\n        });\n        expect(deviceTestDuration).to.be.lessThan(deviceThreshold);\n    });\n    // Test navigation sur cet appareil\n    var navTestStart = performance.now();\n    cy.get('[data-cy=nav-planning]').click();\n    cy.url().should('include', '/planning').then(function () {\n        var navDuration = performance.now() - navTestStart;\n        var navThreshold = device.cpu === 'fast' ? 1000 : 2000;\n        cy.task('logAdvancedPerformance', {\n            type: 'device-navigation',\n            device: device.name,\n            action: 'navigate-to-planning',\n            duration: navDuration,\n            threshold: navThreshold,\n            status: navDuration < navThreshold ? 'SMOOTH' : 'LAGGY',\n            timestamp: Date.now()\n        });\n        expect(navDuration).to.be.lessThan(navThreshold);\n    });\n});",
+              "err": {},
+              "uuid": "608434fd-fb7c-40ea-9833-8ab21cf6f294",
+              "parentUUID": "a6853598-baac-4e11-9243-adbd5ccd230e",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "génère un rapport de performance complet",
+              "fullTitle": "Monitoring Avancé des Performances génère un rapport de performance complet",
+              "timedOut": null,
+              "duration": 136,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('📄 Génération rapport de performance');\n// Exécuter un workflow complet pour collecter des données\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url().should('include', '/tableau-de-bord');\n// Navigation complète\ncy.get('[data-cy=nav-planning]').click();\ncy.url().should('include', '/planning');\ncy.get('[data-cy=nav-conges]').click();\ncy.url().should('include', '/conges');\n// Générer le rapport final\ncy.task('generatePerformanceReport', {\n    sessionId: Date.now(),\n    testSuite: 'Advanced Performance Monitoring',\n    thresholds: ADVANCED_THRESHOLDS,\n    timestamp: Date.now()\n}).then(function (report) {\n    // Vérifier que le rapport contient les données attendues\n    expect(report).to.have.property('summary');\n    expect(report).to.have.property('metrics');\n    expect(report).to.have.property('recommendations');\n    // Vérifier les scores de performance\n    expect(report.summary.overallScore).to.be.greaterThan(80);\n});",
+              "err": {
+                "message": "CypressError: `cy.task('generateConsolidatedReport')` failed with the following error:\n\nThe task 'generateConsolidatedReport' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after all` hook we are skipping the remaining tests in the current suite: `Monitoring Avancé des Perfo...`\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail",
+                "estack": "CypressError: `cy.task('generateConsolidatedReport')` failed with the following error:\n\nThe task 'generateConsolidatedReport' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after all` hook we are skipping the remaining tests in the current suite: `Monitoring Avancé des Perfo...`\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137237:72)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/performance/advanced-performance-monitoring.spec.ts:417:11)",
+                "diff": null
+              },
+              "uuid": "9f0132d0-edbc-409a-9566-5f6c5424e02b",
+              "parentUUID": "a6853598-baac-4e11-9243-adbd5ccd230e",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "c6fa1f6c-f703-4d45-87dd-28356ee0a712",
+            "9f0132d0-edbc-409a-9566-5f6c5424e02b"
+          ],
+          "pending": [],
+          "skipped": [
+            "6f7e2a74-6254-4d78-b232-7577aa0b7461",
+            "9ade14d2-077e-4788-b5f0-1f76cb6e6e2f",
+            "608434fd-fb7c-40ea-9833-8ab21cf6f294"
+          ],
+          "duration": 269,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

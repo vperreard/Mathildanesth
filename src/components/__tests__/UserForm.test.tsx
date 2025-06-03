@@ -98,7 +98,7 @@ describe('UserForm', () => {
       expect(screen.getByLabelText('Email *')).toBeInTheDocument();
       expect(screen.getByLabelText('Téléphone')).toBeInTheDocument();
       expect(screen.getByLabelText('Login *')).toBeInTheDocument();
-      expect(screen.getByLabelText('Rôle d'accès *')).toBeInTheDocument();
+      expect(screen.getByLabelText("Rôle d'accès *")).toBeInTheDocument();
       expect(screen.getByLabelText('Rôle Professionnel *')).toBeInTheDocument();
       expect(screen.getByLabelText('Mot de Passe *')).toBeInTheDocument();
     });
@@ -239,7 +239,7 @@ describe('UserForm', () => {
     it('should allow role editing when canEditRole is true', () => {
       render(<UserForm {...defaultProps} canEditRole={true} />);
 
-      const roleSelect = screen.getByLabelText('Rôle d'accès *');
+      const roleSelect = screen.getByLabelText("Rôle d'accès *");
       expect(roleSelect).not.toBeDisabled();
     });
 
@@ -255,7 +255,7 @@ describe('UserForm', () => {
       const user = userEvent.setup();
       render(<UserForm {...defaultProps} />);
 
-      const roleSelect = screen.getByLabelText('Rôle d'accès *');
+      const roleSelect = screen.getByLabelText("Rôle d'accès *");
       await user.selectOptions(roleSelect, Role.ADMIN_TOTAL);
 
       // Professional role should be updated accordingly
@@ -528,7 +528,7 @@ describe('UserForm', () => {
     it('should disable submit button while loading', () => {
       render(<UserForm {...defaultProps} isLoading={true} />);
 
-      const submitButton = screen.getByRole('button', { name: /enregistr/i });
+      const submitButton = screen.getByRole('button', { name: /création/i });
       expect(submitButton).toBeDisabled();
     });
   });
@@ -574,7 +574,7 @@ describe('UserForm', () => {
       render(<UserForm {...defaultProps} />);
 
       const nameField = screen.getByLabelText('Nom *');
-      expect(nameField).toHaveAttribute('aria-required', 'true');
+      expect(nameField).toHaveAttribute('required');
 
       const emailField = screen.getByLabelText(/email/i);
       expect(emailField).toHaveAttribute('type', 'email');
@@ -609,7 +609,7 @@ describe('UserForm', () => {
       // HTML5 validation will prevent form submission, check that required fields are invalid
       const nameField = screen.getByLabelText('Nom *');
       expect(nameField).toBeInvalid();
-      expect(nameField).toHaveAttribute('aria-required', 'true');
+      expect(nameField).toHaveAttribute('required');
     });
   });
 

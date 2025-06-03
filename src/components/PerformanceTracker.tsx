@@ -79,9 +79,11 @@ export function PerformanceTracker() {
                 const observer = new PerformanceObserver((list) => {
                     const entries = list.getEntries();
                     entries.forEach(entry => {
-                        // Filtrer les ressources qui prennent plus de 2 secondes à charger
-                        if (entry.duration > 2000) {
-                            console.warn(`[Performance] Ressource lente: ${entry.name} (${entry.duration.toFixed(2)}ms)`);
+                        // Filtrer les ressources qui prennent plus de 3 secondes à charger
+                        // Exclure les appels API connus pour être lents (skills, reports, etc.)
+                        if (entry.duration > 3000 && !entry.name.includes('/api/skills') && !entry.name.includes('/api/reports')) {
+                            // Log désactivé temporairement pour éviter le spam en développement
+                            // console.warn(`[Performance] Ressource lente: ${entry.name} (${entry.duration.toFixed(2)}ms)`);
                         }
                     });
                 });

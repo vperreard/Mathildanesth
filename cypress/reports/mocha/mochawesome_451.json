@@ -1,0 +1,203 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 5,
+    "passes": 0,
+    "pending": 0,
+    "failures": 5,
+    "start": "2025-06-01T07:20:44.432Z",
+    "end": "2025-06-01T07:21:02.227Z",
+    "duration": 17795,
+    "testsRegistered": 5,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "3c8c3d71-3efc-452b-bcc8-755f16b03ff9",
+      "title": "",
+      "fullFile": "cypress/e2e/performance/load-testing.spec.ts",
+      "file": "cypress/e2e/performance/load-testing.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "da94febe-0bca-44aa-8601-938bf3f2d003",
+          "title": "Tests de charge et performance",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "teste la charge sur l'authentification",
+              "fullTitle": "Tests de charge et performance teste la charge sur l'authentification",
+              "timedOut": null,
+              "duration": 1348,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "var startTime = performance.now();\nvar users = [];\nvar _loop_1 = function (i) {\n    cy.log(\"D\\u00E9marrage utilisateur simul\\u00E9 \".concat(i + 1));\n    cy.visit('/auth/connexion', { timeout: 10000 });\n    cy.waitForPageLoad();\n    cy.safeType('[data-cy=email-input]', \"user\".concat(i, \"@example.com\"));\n    cy.safeType('[data-cy=password-input]', 'Test123!');\n    var loginStartTime = performance.now();\n    cy.safeClick('[data-cy=submit-button]');\n    cy.wait('@loadLogin').then(function () {\n        var loginDuration = performance.now() - loginStartTime;\n        cy.task('logPerformance', {\n            type: 'load-test',\n            name: \"concurrent-login-user-\".concat(i),\n            duration: loginDuration,\n            timestamp: Date.now(),\n            status: loginDuration < LOAD_TEST_CONFIG.max_response_time ? 'PASS' : 'SLOW'\n        });\n        // Chaque connexion doit rester < 2s même sous charge\n        expect(loginDuration).to.be.lessThan(LOAD_TEST_CONFIG.max_response_time);\n    });\n    // Délai entre utilisateurs\n    cy.wait(500);\n};\n// Simuler plusieurs connexions simultanées\nfor (var i = 0; i < 5; i++) {\n    _loop_1(i);\n}\nvar totalDuration = performance.now() - startTime;\ncy.task('logPerformance', {\n    type: 'load-test',\n    name: 'total-concurrent-logins',\n    duration: totalDuration,\n    timestamp: Date.now(),\n    status: totalDuration < 15000 ? 'PASS' : 'SLOW'\n});",
+              "err": {
+                "message": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.wait()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command",
+                "estack": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.wait()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command\n    at cy.<computed> [as wait] (http://localhost:3000/__cypress/runner/cypress_runner.js:140233:64)\n    at eval (webpack://mathildanesth/./cypress/e2e/performance/load-testing.spec.ts:22:15)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:139116:12)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at onBeforeRequest (http://localhost:3000/__cypress/runner/cypress_runner.js:139115:64)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:138793:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at $Cypress.<anonymous> (http://localhost:3000/__cypress/runner/cypress_runner.js:138756:59)\n    at EventEmitter.emit (http://localhost:3000/__cypress/runner/cypress_runner.js:143280:19)\n    at parent.<computed> [as emit] (http://localhost:3000/__cypress/runner/cypress_runner.js:142186:31)\n    at tw.<anonymous> (http://localhost:3000/__/assets/index-DkiLHQJA.js:5413:105394)\n    at t.emit (http://localhost:3000/__/assets/index-DkiLHQJA.js:1272:60438)\n    at <unknown> (http://localhost:3000/__/assets/index-DkiLHQJA.js:1273:35681)\n    at async Object.n [as send] (http://localhost:3000/__/assets/index-DkiLHQJA.js:1273:35633)\nFrom Your Spec Code:\n    at _loop_1 (webpack://mathildanesth/./cypress/e2e/performance/load-testing.spec.ts:35:15)\n    at Context.eval (http://localhost:3000/__cypress/tests?p=cypress/e2e/performance/load-testing.spec.ts:55:13)",
+                "diff": null
+              },
+              "uuid": "6f03054f-d564-4b6e-88f3-76a538892555",
+              "parentUUID": "da94febe-0bca-44aa-8601-938bf3f2d003",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "teste la charge sur les APIs critiques",
+              "fullTitle": "Tests de charge et performance teste la charge sur les APIs critiques",
+              "timedOut": null,
+              "duration": 1399,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Connexion préalable\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url().should('include', '/tableau-de-bord');\n// Test de charge sur les APIs\nvar apiEndpoints = [\n    { url: '/api/planning', name: 'planning' },\n    { url: '/api/conges', name: 'leaves' },\n    { url: '/api/users/me', name: 'profile' }\n];\napiEndpoints.forEach(function (endpoint) {\n    cy.log(\"Test de charge API: \".concat(endpoint.name));\n    var _loop_2 = function (i) {\n        var requestStart = performance.now();\n        cy.request({\n            method: 'GET',\n            url: endpoint.url,\n            failOnStatusCode: false\n        }).then(function (response) {\n            var requestDuration = performance.now() - requestStart;\n            cy.task('logPerformance', {\n                type: 'api-load-test',\n                name: \"\".concat(endpoint.name, \"-request-\").concat(i),\n                duration: requestDuration,\n                timestamp: Date.now(),\n                status: requestDuration < 500 ? 'PASS' : 'SLOW'\n            });\n            // API doit répondre en < 500ms même sous charge\n            expect(requestDuration).to.be.lessThan(500);\n            expect(response.status).to.be.oneOf([200, 401, 404]); // Status valides\n        });\n        cy.wait(100); // Délai entre requêtes\n    };\n    // Série de requêtes rapides\n    for (var i = 0; i < 10; i++) {\n        _loop_2(i);\n    }\n});",
+              "err": {
+                "message": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.wait()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command",
+                "estack": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.wait()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command\n    at cy.<computed> [as wait] (http://localhost:3000/__cypress/runner/cypress_runner.js:140233:64)\n    at eval (webpack://mathildanesth/./cypress/e2e/performance/load-testing.spec.ts:22:15)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:139116:12)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at onBeforeRequest (http://localhost:3000/__cypress/runner/cypress_runner.js:139115:64)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:138793:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at $Cypress.<anonymous> (http://localhost:3000/__cypress/runner/cypress_runner.js:138756:59)\n    at EventEmitter.emit (http://localhost:3000/__cypress/runner/cypress_runner.js:143280:19)\n    at parent.<computed> [as emit] (http://localhost:3000/__cypress/runner/cypress_runner.js:142186:31)\n    at tw.<anonymous> (http://localhost:3000/__/assets/index-DkiLHQJA.js:5413:105394)\n    at t.emit (http://localhost:3000/__/assets/index-DkiLHQJA.js:1272:60438)\n    at <unknown> (http://localhost:3000/__/assets/index-DkiLHQJA.js:1273:35681)\n    at async Object.n [as send] (http://localhost:3000/__/assets/index-DkiLHQJA.js:1273:35633)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/performance/load-testing.spec.ts:75:11)",
+                "diff": null
+              },
+              "uuid": "83ce43a9-07cb-449d-8fb9-9318acf7022b",
+              "parentUUID": "da94febe-0bca-44aa-8601-938bf3f2d003",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "teste la résistance aux erreurs sous charge",
+              "fullTitle": "Tests de charge et performance teste la résistance aux erreurs sous charge",
+              "timedOut": null,
+              "duration": 1408,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Simuler des erreurs réseau intermittentes\nvar errorCount = 0;\ncy.intercept('POST', '**/api/auth/login', function (req) {\n    errorCount++;\n    if (errorCount % 3 === 0) {\n        // 1 erreur sur 3\n        req.reply({ statusCode: 500, body: { error: 'Erreur serveur simulée' } });\n    }\n    else {\n        req.reply({ fixture: 'auth-response.json' });\n    }\n}).as('flakyLogin');\n// Tester la récupération après erreurs\nfor (var attempt = 0; attempt < 6; attempt++) {\n    cy.log(\"Tentative de connexion \".concat(attempt + 1));\n    cy.visit('/auth/connexion');\n    cy.waitForPageLoad();\n    cy.safeType('[data-cy=email-input]', 'admin@example.com');\n    cy.safeType('[data-cy=password-input]', 'Test123!');\n    cy.safeClick('[data-cy=submit-button]');\n    cy.wait('@flakyLogin').then(function (interception) {\n        var _a;\n        if (((_a = interception.response) === null || _a === void 0 ? void 0 : _a.statusCode) === 200) {\n            // Connexion réussie\n            cy.url({ timeout: 10000 }).should('include', '/tableau-de-bord');\n            cy.log('✅ Connexion réussie après erreur');\n        }\n        else {\n            // Erreur attendue\n            cy.waitForElement('[data-cy=error-message]');\n            cy.get('[data-cy=error-message]').should('be.visible');\n            cy.log('❌ Erreur gérée correctement');\n        }\n    });\n    cy.wait(500);\n}",
+              "err": {
+                "message": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.wait()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command",
+                "estack": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.wait()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command\n    at cy.<computed> [as wait] (http://localhost:3000/__cypress/runner/cypress_runner.js:140233:64)\n    at eval (webpack://mathildanesth/./cypress/e2e/performance/load-testing.spec.ts:22:15)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:139116:12)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at onBeforeRequest (http://localhost:3000/__cypress/runner/cypress_runner.js:139115:64)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:138793:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at $Cypress.<anonymous> (http://localhost:3000/__cypress/runner/cypress_runner.js:138756:59)\n    at EventEmitter.emit (http://localhost:3000/__cypress/runner/cypress_runner.js:143280:19)\n    at parent.<computed> [as emit] (http://localhost:3000/__cypress/runner/cypress_runner.js:142186:31)\n    at tw.<anonymous> (http://localhost:3000/__/assets/index-DkiLHQJA.js:5413:105394)\n    at t.emit (http://localhost:3000/__/assets/index-DkiLHQJA.js:1272:60438)\n    at <unknown> (http://localhost:3000/__/assets/index-DkiLHQJA.js:1273:35681)\n    at async Object.n [as send] (http://localhost:3000/__/assets/index-DkiLHQJA.js:1273:35633)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/performance/load-testing.spec.ts:140:15)",
+                "diff": null
+              },
+              "uuid": "2018ab6f-4b1b-4287-83af-22db6e33f166",
+              "parentUUID": "da94febe-0bca-44aa-8601-938bf3f2d003",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "teste les performances avec cache désactivé",
+              "fullTitle": "Tests de charge et performance teste les performances avec cache désactivé",
+              "timedOut": null,
+              "duration": 1388,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Désactiver le cache pour tester les performances sans optimisations\ncy.visit('/auth/connexion', {\n    onBeforeLoad: function (win) {\n        // Désactiver le cache du navigateur\n        if (win.navigator.serviceWorker) {\n            win.navigator.serviceWorker.getRegistrations().then(function (registrations) {\n                registrations.forEach(function (registration) {\n                    registration.unregister();\n                });\n            });\n        }\n    }\n});\n// Forcer rechargement sans cache\ncy.reload(true);\nvar startTime = performance.now();\ncy.waitForPageLoad();\ncy.window().then(function () {\n    var pageLoadTime = performance.now() - startTime;\n    cy.task('logPerformance', {\n        type: 'no-cache-test',\n        name: 'login-page-no-cache',\n        duration: pageLoadTime,\n        timestamp: Date.now(),\n        status: pageLoadTime < 5000 ? 'PASS' : 'SLOW'\n    });\n    // Sans cache, le chargement doit rester < 5s\n    expect(pageLoadTime).to.be.lessThan(5000);\n});\n// Test de navigation sans cache\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\nvar navStartTime = performance.now();\ncy.url().should('include', '/tableau-de-bord').then(function () {\n    var navTime = performance.now() - navStartTime;\n    cy.task('logPerformance', {\n        type: 'no-cache-test',\n        name: 'dashboard-nav-no-cache',\n        duration: navTime,\n        timestamp: Date.now(),\n        status: navTime < 3000 ? 'PASS' : 'SLOW'\n    });\n    expect(navTime).to.be.lessThan(3000);\n});",
+              "err": {
+                "message": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.wait()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command",
+                "estack": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.wait()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command\n    at cy.<computed> [as wait] (http://localhost:3000/__cypress/runner/cypress_runner.js:140233:64)\n    at eval (webpack://mathildanesth/./cypress/e2e/performance/load-testing.spec.ts:22:15)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:139116:12)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at onBeforeRequest (http://localhost:3000/__cypress/runner/cypress_runner.js:139115:64)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:138793:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at $Cypress.<anonymous> (http://localhost:3000/__cypress/runner/cypress_runner.js:138756:59)\n    at EventEmitter.emit (http://localhost:3000/__cypress/runner/cypress_runner.js:143280:19)\n    at parent.<computed> [as emit] (http://localhost:3000/__cypress/runner/cypress_runner.js:142186:31)\n    at tw.<anonymous> (http://localhost:3000/__/assets/index-DkiLHQJA.js:5413:105394)\n    at t.emit (http://localhost:3000/__/assets/index-DkiLHQJA.js:1272:60438)\n    at <unknown> (http://localhost:3000/__/assets/index-DkiLHQJA.js:1273:35681)\n    at async Object.n [as send] (http://localhost:3000/__/assets/index-DkiLHQJA.js:1273:35633)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/performance/load-testing.spec.ts:166:11)",
+                "diff": null
+              },
+              "uuid": "9bcb65f7-6abe-4368-9a77-a9d229d49549",
+              "parentUUID": "da94febe-0bca-44aa-8601-938bf3f2d003",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "teste la performance avec connexion lente simulée",
+              "fullTitle": "Tests de charge et performance teste la performance avec connexion lente simulée",
+              "timedOut": null,
+              "duration": 319,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Simuler une connexion lente\ncy.intercept('**/*', function (req) {\n    // Ajouter 500-1000ms de latence\n    var latency = Math.random() * 500 + 500;\n    cy.wait(latency);\n    req.continue();\n}).as('slowNetwork');\nvar startTime = performance.now();\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.window().then(function () {\n    var slowPageLoadTime = performance.now() - startTime;\n    cy.task('logPerformance', {\n        type: 'slow-network-test',\n        name: 'login-page-slow-network',\n        duration: slowPageLoadTime,\n        timestamp: Date.now(),\n        status: slowPageLoadTime < 10000 ? 'PASS' : 'SLOW'\n    });\n    // Avec connexion lente, doit rester utilisable < 10s\n    expect(slowPageLoadTime).to.be.lessThan(10000);\n});\n// Test d'interaction sur connexion lente\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\nvar loginStartTime = performance.now();\ncy.safeClick('[data-cy=submit-button]');\ncy.url({ timeout: 15000 }).should('include', '/tableau-de-bord').then(function () {\n    var slowLoginTime = performance.now() - loginStartTime;\n    cy.task('logPerformance', {\n        type: 'slow-network-test',\n        name: 'login-process-slow-network',\n        duration: slowLoginTime,\n        timestamp: Date.now(),\n        status: slowLoginTime < 8000 ? 'PASS' : 'SLOW'\n    });\n    expect(slowLoginTime).to.be.lessThan(8000);\n});",
+              "err": {
+                "message": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.wait()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command",
+                "estack": "CypressError: Cypress detected that you returned a promise from a command while also invoking one or more cy commands in that promise.\n\nThe command that returned the promise was:\n\n  > `cy.visit()`\n\nThe cy command you invoked inside the promise was:\n\n  > `cy.wait()`\n\nBecause Cypress commands are already promise-like, you don't need to wrap them or return your own promise.\n\nCypress will resolve your command with whatever the final Cypress command yields.\n\nThe reason this is an error instead of a warning is because Cypress internally queues commands serially whereas Promises execute as soon as they are invoked. Attempting to reconcile this would prevent Cypress from ever resolving.\n\nhttps://on.cypress.io/returning-promise-and-commands-in-another-command\n    at cy.<computed> [as wait] (http://localhost:3000/__cypress/runner/cypress_runner.js:140233:64)\n    at eval (webpack://mathildanesth/./cypress/e2e/performance/load-testing.spec.ts:226:15)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:139116:12)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at onBeforeRequest (http://localhost:3000/__cypress/runner/cypress_runner.js:139115:64)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:138793:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at $Cypress.<anonymous> (http://localhost:3000/__cypress/runner/cypress_runner.js:138756:59)\n    at EventEmitter.emit (http://localhost:3000/__cypress/runner/cypress_runner.js:143280:19)\n    at parent.<computed> [as emit] (http://localhost:3000/__cypress/runner/cypress_runner.js:142186:31)\n    at tw.<anonymous> (http://localhost:3000/__/assets/index-DkiLHQJA.js:5413:105394)\n    at t.emit (http://localhost:3000/__/assets/index-DkiLHQJA.js:1272:60438)\n    at <unknown> (http://localhost:3000/__/assets/index-DkiLHQJA.js:1273:35681)\n    at async Object.n [as send] (http://localhost:3000/__/assets/index-DkiLHQJA.js:1273:35633)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/performance/load-testing.spec.ts:232:11)",
+                "diff": null
+              },
+              "uuid": "37f44b12-1c6c-49ba-91aa-7e1fe30fcee3",
+              "parentUUID": "da94febe-0bca-44aa-8601-938bf3f2d003",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "6f03054f-d564-4b6e-88f3-76a538892555",
+            "83ce43a9-07cb-449d-8fb9-9318acf7022b",
+            "2018ab6f-4b1b-4287-83af-22db6e33f166",
+            "9bcb65f7-6abe-4368-9a77-a9d229d49549",
+            "37f44b12-1c6c-49ba-91aa-7e1fe30fcee3"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 5862,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

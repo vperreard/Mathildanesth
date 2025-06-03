@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { apiClient } from '@/utils/apiClient';
 
 interface Site {
     id: string;
@@ -32,14 +33,8 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`http://localhost:3000/api/utilisateurs/${userId}/sites`);
-
-            if (!response.ok) {
-                throw new Error('Erreur lors de la récupération des sites');
-            }
-
-            const data = await response.json();
-            setSites(data.sites || []);
+            const response = await apiClient.get(`/api/utilisateurs/${userId}/sites`);
+            setSites(response.data.sites || []);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
@@ -56,21 +51,8 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`http://localhost:3000/api/utilisateurs/${userId}/sites`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ siteIds }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erreur lors de la mise à jour');
-            }
-
-            const data = await response.json();
-            setSites(data.user.sites || []);
+            const response = await apiClient.put(`/api/utilisateurs/${userId}/sites`, { siteIds });
+            setSites(response.data.user.sites || []);
             return true;
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
@@ -89,21 +71,8 @@ export function useUserSiteAssignments(userId: number | string): SiteAssignments
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`http://localhost:3000/api/utilisateurs/${userId}/sites`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ siteIds }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erreur lors de l\'ajout');
-            }
-
-            const data = await response.json();
-            setSites(data.user.sites || []);
+            const response = await apiClient.post(`/api/utilisateurs/${userId}/sites`, { siteIds });
+            setSites(response.data.user.sites || []);
             return true;
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
@@ -153,14 +122,8 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`http://localhost:3000/api/chirurgiens/${surgeonId}/sites`);
-
-            if (!response.ok) {
-                throw new Error('Erreur lors de la récupération des sites');
-            }
-
-            const data = await response.json();
-            setSites(data.sites || []);
+            const response = await apiClient.get(`/api/chirurgiens/${surgeonId}/sites`);
+            setSites(response.data.sites || []);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
             setError(errorMessage);
@@ -177,21 +140,8 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`http://localhost:3000/api/chirurgiens/${surgeonId}/sites`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ siteIds }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erreur lors de la mise à jour');
-            }
-
-            const data = await response.json();
-            setSites(data.surgeon.sites || []);
+            const response = await apiClient.put(`/api/chirurgiens/${surgeonId}/sites`, { siteIds });
+            setSites(response.data.surgeon.sites || []);
             return true;
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
@@ -210,21 +160,8 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`http://localhost:3000/api/chirurgiens/${surgeonId}/sites`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ siteIds }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erreur lors de l\'ajout');
-            }
-
-            const data = await response.json();
-            setSites(data.surgeon.sites || []);
+            const response = await apiClient.post(`/api/chirurgiens/${surgeonId}/sites`, { siteIds });
+            setSites(response.data.surgeon.sites || []);
             return true;
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
@@ -243,21 +180,10 @@ export function useSurgeonSiteAssignments(surgeonId: number | string): SiteAssig
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`http://localhost:3000/api/chirurgiens/${surgeonId}/sites`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ siteIds }),
+            const response = await apiClient.delete(`/api/chirurgiens/${surgeonId}/sites`, {
+                data: { siteIds }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erreur lors de la suppression');
-            }
-
-            const data = await response.json();
-            setSites(data.surgeon.sites || []);
+            setSites(response.data.surgeon.sites || []);
             return true;
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';

@@ -6,7 +6,7 @@ import {
     AuthorizationError,
     AuthenticationError
 } from '@/lib/auth/authorization';
-import { auditService } from '@/services/auditService';
+import { AuditService } from '@/services/AuditService';
 
 interface ContextualMessageUpdateInput {
     content: string;
@@ -45,6 +45,7 @@ export async function PUT(req: NextRequest, { params }: { params: { messageId: s
         }
 
         // Logger l'action de mise à jour
+        const auditService = new AuditService();
         await auditService.logAction({
             action: 'UPDATE_CONTEXTUAL_MESSAGE' as any,
             userId: session.user.id.toString(),
@@ -115,6 +116,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { messageId
         }
 
         // Logger l'action de suppression
+        const auditService = new AuditService();
         await auditService.logAction({
             action: 'DELETE_CONTEXTUAL_MESSAGE' as any,
             userId: session.user.id.toString(),

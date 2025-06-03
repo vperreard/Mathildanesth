@@ -18,13 +18,13 @@ jest.mock('next/server', () => {
     };
 });
 
-describe('Middleware d'authentification', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+describe('Middleware d\'authentification', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
     beforeEach(() => {
-    jest.clearAllMocks();
+        jest.clearAllMocks();
         jest.clearAllMocks();
     });
 
@@ -55,7 +55,7 @@ describe('Middleware d'authentification', () => {
         } as unknown as NextRequest;
     };
 
-    it('autorise les requêtes à l'API WebSocket sans authentification', async () => {
+    it('autorise les requêtes à l\'API WebSocket sans authentification', async () => {
         // Configurer le mock
         (getAuthTokenServer as jest.Mock).mockResolvedValue(null);
 
@@ -118,7 +118,7 @@ describe('Middleware d'authentification', () => {
         );
     });
 
-    it('autorise l'accès WebSocket pour les utilisateurs authentifiés', async () => {
+    it('autorise l\'accès WebSocket pour les utilisateurs authentifiés', async () => {
         // Configurer les mocks - token valide
         const mockToken = 'valid-admin-token';
         (getAuthTokenServer as jest.Mock).mockResolvedValue(mockToken);
@@ -151,7 +151,7 @@ describe('Middleware d'authentification', () => {
         expect(nextResponse.headers.get('X-Auth-Token')).toBe(mockToken);
     });
 
-    it('permet l'accès à la route du webhook contextuel-messages même sans authentification', async () => {
+    it('permet l\'accès à la route du webhook contextuel-messages même sans authentification', async () => {
         // Configurer les mocks - pas de token
         (getAuthTokenServer as jest.Mock).mockResolvedValue(null);
 

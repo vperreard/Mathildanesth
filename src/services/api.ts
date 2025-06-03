@@ -1,6 +1,7 @@
 import { User } from '../types/user';
 import { Attribution, ValidationResult } from '../types/attribution';
 import { apiConfig } from '../config/api';
+import Cookies from 'js-cookie';
 
 // Définir un type pour la réponse de l'API de génération
 interface GeneratePlanningResponse {
@@ -16,6 +17,24 @@ export class ApiService {
 
     private constructor() { }
 
+    /**
+     * Construit l'URL complète pour un endpoint
+     */
+    private getUrl(endpoint: string): string {
+        return endpoint.startsWith('/api/') ? endpoint : `${apiConfig.baseUrl}${endpoint}`;
+    }
+
+    /**
+     * Obtient les headers avec authentification
+     */
+    private getAuthHeaders(): HeadersInit {
+        const token = Cookies.get('jwt_token');
+        return {
+            ...apiConfig.headers,
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        };
+    }
+
     public static getInstance(): ApiService {
         if (!ApiService.instance) {
             ApiService.instance = new ApiService();
@@ -28,8 +47,8 @@ export class ApiService {
      */
     async getActiveUsers(): Promise<User[]> {
         try {
-            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.users.active}`, {
-                headers: apiConfig.headers,
+            const response = await fetch(this.getUrl(apiConfig.endpoints.users.active), {
+                headers: this.getAuthHeaders(),
                 credentials: 'include'
             });
             if (!response.ok) {
@@ -53,7 +72,7 @@ export class ApiService {
                     endDate.toISOString()
                 )}`,
                 {
-                    headers: apiConfig.headers,
+                    headers: this.getAuthHeaders(),
                     credentials: 'include'
                 }
             );
@@ -74,7 +93,7 @@ export class ApiService {
         try {
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.attributions.create}`, {
                 method: 'POST',
-                headers: apiConfig.headers,
+                headers: this.getAuthHeaders(),
                 body: JSON.stringify(attributions),
                 credentials: 'include'
             });
@@ -94,7 +113,7 @@ export class ApiService {
         try {
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.planning.generate}`, {
                 method: 'POST',
-                headers: apiConfig.headers,
+                headers: this.getAuthHeaders(),
                 body: JSON.stringify(parameters),
                 credentials: 'include'
             });
@@ -124,7 +143,7 @@ export class ApiService {
         try {
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.planning.validate}`, {
                 method: 'POST',
-                headers: apiConfig.headers,
+                headers: this.getAuthHeaders(),
                 body: JSON.stringify(attributions),
                 credentials: 'include'
             });
@@ -145,7 +164,7 @@ export class ApiService {
         try {
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.planning.approve}`, {
                 method: 'POST',
-                headers: apiConfig.headers,
+                headers: this.getAuthHeaders(),
                 body: JSON.stringify(attributions),
                 credentials: 'include'
             });
@@ -163,10 +182,16 @@ export class ApiService {
      */
     async getUserPreferences(): Promise<any> {
         try {
-            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.user.preferences}`, {
-                headers: apiConfig.headers,
-                credentials: 'include'
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondes de timeout
+            
+            const response = await fetch(this.getUrl(apiConfig.endpoints.user.preferences), {
+                headers: this.getAuthHeaders(),
+                credentials: 'include',
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`Erreur lors de la récupération des préférences (${response.status}): ${errorText}`);
@@ -185,9 +210,9 @@ export class ApiService {
      */
     async saveUserPreferences(preferences: any): Promise<{ success: boolean }> {
         try {
-            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.user.preferences}`, {
-                method: 'PUT',
-                headers: apiConfig.headers,
+            const response = await fetch(this.getUrl(apiConfig.endpoints.user.preferences), {
+                method: 'POST',
+                headers: this.getAuthHeaders(),
                 body: JSON.stringify(preferences),
                 credentials: 'include'
             });
@@ -210,7 +235,7 @@ export class ApiService {
         try {
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.attributions.batch}`, {
                 method: 'POST',
-                headers: apiConfig.headers,
+                headers: this.getAuthHeaders(),
                 body: JSON.stringify({ attributions }),
                 credentials: 'include'
             });

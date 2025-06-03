@@ -81,7 +81,7 @@ describe('useLeaveQuota', () => {
         (calculateLeaveCountedDays as jest.Mock).mockResolvedValue(mockCalculationDetails);
     });
 
-    it('devrait initialiser correctement l'état', () => {
+    it('devrait initialiser correctement l etat', () => {
         const { result } = renderHook(() => useLeaveQuota({ userId }));
 
         expect(result.current.loading).toBe(false);

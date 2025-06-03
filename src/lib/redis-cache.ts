@@ -46,7 +46,13 @@ class RedisCacheService {
     private connectionPromise: Promise<void> | null = null;
 
     constructor() {
-        this.initializeClient();
+        // Désactivé Redis en développement pour éviter les erreurs
+        if (process.env.NODE_ENV === 'development') {
+            console.warn('Redis désactivé en mode développement - utilisation du cache mémoire');
+            this.isConnected = false;
+        } else {
+            this.initializeClient();
+        }
     }
 
     private async initializeClient(): Promise<void> {

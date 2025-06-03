@@ -13,8 +13,8 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { LayoutErrorFallback } from '@/components/Calendar/ErrorFallbacks';
 // Correction du chemin d'importation de ThemeProvider
 import { ThemeProvider } from '@/context/ThemeContext';
-// Import des composants clients pour les notifications
-import { ClientNotificationCenter, ClientSimulationNotifications } from '@/components/notifications/ClientNotifications';
+// Import des composants clients pour les notifications - Temporairement désactivé
+// import { ClientNotificationCenter, ClientSimulationNotifications } from '@/components/notifications/ClientNotifications';
 // Import du wrapper client pour le préchargeur
 import ClientPrefetcherWrapper from '@/components/ClientPrefetcherWrapper';
 // Import du tracker de performance client
@@ -30,7 +30,12 @@ import { ProductionLayout } from '@/components/layout/ProductionLayout';
 // Suppression du préchargeur chargé dynamiquement (déplacé dans le composant client)
 
 // Suppression des configurations de polices Next.js
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  preload: true,
+  fallback: ['system-ui', 'arial']
+});
 
 // const montserrat = Montserrat({
 //     subsets: ['latin'],
@@ -111,6 +116,9 @@ export default function RootLayout({
                 {/* Resource hints pour les performances */}
                 <link rel="prefetch" href="/api/auth/me" />
                 <link rel="prefetch" href="/auth/connexion" />
+                
+                {/* SW Killer - Temporaire pour résoudre les problèmes de cache */}
+                <script src="/sw-killer.js" defer></script>
             </head>
             <body className="transition-colors duration-300">
                 <AuthProvider>
@@ -125,8 +133,9 @@ export default function RootLayout({
 
                                 {/* Notifications et composants globaux */}
                                 <NotificationToast />
-                                <ClientNotificationCenter />
-                                <ClientSimulationNotifications />
+                                {/* Temporairement désactivé pour éviter les erreurs de session */}
+                                {/* <ClientNotificationCenter />
+                                <ClientSimulationNotifications /> */}
 
                                 {/* Préchargeur de routes et données via un wrapper client */}
                                 <ClientPrefetcherWrapper />

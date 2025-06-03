@@ -49,6 +49,9 @@
       ],
       "@context/*": [
         "./src/context/*"
+      ],
+      "next-auth/react": [
+        "./src/lib/next-auth-react"
       ]
     },
     "baseUrl": ".",

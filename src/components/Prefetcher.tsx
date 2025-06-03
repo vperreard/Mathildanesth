@@ -36,9 +36,10 @@ export default function Prefetcher() {
                 window.requestIdleCallback(() => prefetchCommonData()) :
                 setTimeout(() => prefetchCommonData(), 2000);
 
-            // Précharger les données de l'utilisateur si connecté
+            // Précharger les données de l'utilisateur si connecté (temporairement désactivé)
             if (user?.id) {
-                setTimeout(() => prefetchUserData(user.id), 3000);
+                console.log(`Préchargement utilisateur ${user.id} temporairement désactivé`);
+                // setTimeout(() => prefetchUserData(String(user.id)), 3000);
             }
         } else {
             console.log('Utilisateur non authentifié, préchargement des données ignoré');
@@ -63,24 +64,24 @@ export default function Prefetcher() {
             switch (mainSection) {
                 case 'utilisateurs':
                     // Dans la section utilisateurs, précharger les compétences
-                    fetch('http://localhost:3000/api/skills', { headers }).catch(() => { });
+                    fetch('/api/skills', { headers }).catch(() => { });
                     break;
 
                 case 'calendar':
                 case 'planning':
                     // Pour la planification, précharger les congés et utilisateurs
-                    fetch('http://localhost:3000/api/leaves', { headers }).catch(() => { });
-                    fetch('http://localhost:3000/api/utilisateurs', { headers }).catch(() => { });
+                    fetch('/api/leaves', { headers }).catch(() => { });
+                    fetch('/api/utilisateurs', { headers }).catch(() => { });
                     break;
 
                 case 'leaves':
                     // Pour les congés, précharger les types de congés
-                    fetch('http://localhost:3000/api/leaves/types', { headers }).catch(() => { });
+                    fetch('/api/leaves/types', { headers }).catch(() => { });
                     break;
 
                 case 'parametres':
                     // Pour les paramètres, précharger les configurations
-                    fetch('http://localhost:3000/api/admin/configuration', { headers }).catch(() => { });
+                    fetch('/api/admin/configuration', { headers }).catch(() => { });
                     break;
 
                 case '':

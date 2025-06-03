@@ -1,0 +1,131 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 1,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-06-01T07:21:17.206Z",
+    "end": "2025-06-01T07:22:01.258Z",
+    "duration": 44052,
+    "testsRegistered": 2,
+    "passPercent": 50,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "3b49fd02-dc85-4b35-b6eb-a7240e7b8b6b",
+      "title": "",
+      "fullFile": "cypress/e2e/performance/public-pages-benchmark.cy.js",
+      "file": "cypress/e2e/performance/public-pages-benchmark.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "4ba3b6e9-2afd-4e57-9a65-49dae4884605",
+          "title": "Benchmark des pages publiques",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "Mesure les temps de chargement des pages publiques",
+              "fullTitle": "Benchmark des pages publiques Mesure les temps de chargement des pages publiques",
+              "timedOut": null,
+              "duration": 5608,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Liste des pages publiques à tester\nconst publicPages = ['/', '/login', '/auth/connexion'];\n// Tester chaque page\npublicPages.forEach(page => {\n  // Mesurer le temps de navigation complet\n  const startTime = Date.now();\n  cy.visit(page, {\n    failOnStatusCode: false,\n    timeout: 30000\n  });\n  cy.get('body', {\n    timeout: 30000\n  }).should('be.visible');\n  cy.window().then(() => {\n    const loadTime = Date.now() - startTime;\n    // Enregistrer la métrique\n    cy.task('logPerformance', {\n      type: 'page',\n      name: page,\n      duration: loadTime,\n      timestamp: Date.now()\n    });\n    // Montrer le résultat\n    cy.log(`📊 Page publique ${page}: ${loadTime}ms`);\n  });\n});",
+              "err": {},
+              "uuid": "aa8da337-5404-42a9-b2a2-55e0d79d39c5",
+              "parentUUID": "4ba3b6e9-2afd-4e57-9a65-49dae4884605",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Mesure les performances des opérations publiques",
+              "fullTitle": "Benchmark des pages publiques Mesure les performances des opérations publiques",
+              "timedOut": null,
+              "duration": 12709,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Tester le temps de chargement initial de l'application\nconst startTimeApp = Date.now();\ncy.visit('/', {\n  failOnStatusCode: false,\n  timeout: 30000\n});\ncy.get('body', {\n  timeout: 30000\n}).should('be.visible');\ncy.window().then(() => {\n  const appLoadTime = Date.now() - startTimeApp;\n  cy.task('logPerformance', {\n    type: 'app',\n    name: 'initial-load',\n    duration: appLoadTime,\n    timestamp: Date.now()\n  });\n  cy.log(`⚡ Chargement initial: ${appLoadTime}ms`);\n});\n// Tester la réactivité de la page de login\ncy.visit('/login', {\n  failOnStatusCode: false,\n  timeout: 30000\n});\n// Mesurer le temps de réponse des champs de formulaire\nconst startTimeInput = Date.now();\ncy.get('input', {\n  timeout: 10000\n}).first().type('test@example.com');\ncy.window().then(() => {\n  const inputResponseTime = Date.now() - startTimeInput;\n  cy.task('logPerformance', {\n    type: 'interaction',\n    name: 'input-response',\n    duration: inputResponseTime,\n    timestamp: Date.now()\n  });\n  cy.log(`⌨️ Réponse input: ${inputResponseTime}ms`);\n});",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `input`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `input`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/performance/public-pages-benchmark.cy.js:58:11)",
+                "diff": null
+              },
+              "uuid": "3eb60693-986d-425c-8fe9-5f59e8f5552d",
+              "parentUUID": "4ba3b6e9-2afd-4e57-9a65-49dae4884605",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "aa8da337-5404-42a9-b2a2-55e0d79d39c5"
+          ],
+          "failures": [
+            "3eb60693-986d-425c-8fe9-5f59e8f5552d"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 18317,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

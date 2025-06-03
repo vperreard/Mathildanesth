@@ -282,7 +282,7 @@ describe('Calendar Component - Tests Complets pour Système Médical', () => {
       expect(day20).toHaveClass('bg-primary', 'text-primary-foreground');
     });
 
-    it('devrait identifier la date d'aujourd'hui', () => {
+    it("devrait identifier la date d'aujourd'hui", () => {
       render(<Calendar />);
 
       const today = screen.getByTestId('day-15'); // Mock: aujourd'hui = 15
@@ -337,7 +337,7 @@ describe('Calendar Component - Tests Complets pour Système Médical', () => {
       expect(day).toHaveClass('custom-day-class');
     });
 
-    it('devrait maintenir l'accessibilité pour les lecteurs d'écran', () => {
+    it("devrait maintenir l'accessibilité pour les lecteurs d'écran", () => {
       render(<Calendar />);
 
       const days = screen.getAllByRole('button');
@@ -488,7 +488,7 @@ describe('Calendar Component - Tests Complets pour Système Médical', () => {
     });
   });
 
-  describe('GESTION D'ERREURS ET CAS LIMITES', () => {
+  describe("GESTION D'ERREURS ET CAS LIMITES", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -543,12 +543,12 @@ describe('Calendar Component - Tests Complets pour Système Médical', () => {
     });
   });
 
-  describe('TESTS D'INTÉGRATION COMPOSANT', () => {
+  describe("TESTS D'INTÉGRATION COMPOSANT", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-    it('devrait s'intégrer correctement avec les modals médicales', async () => {
+    it("devrait s'intégrer correctement avec les modals médicales", async () => {
       const onDateSelect = jest.fn();
       
       const TestWrapper = () => {

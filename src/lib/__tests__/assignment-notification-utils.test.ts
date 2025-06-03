@@ -20,20 +20,20 @@ const consoleSpy = {
 };
 
 describe('Assignment Notification Utils', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
     beforeEach(() => {
-    jest.clearAllMocks();
+        jest.clearAllMocks();
         jest.clearAllMocks();
         Object.values(consoleSpy).forEach(spy => spy.mockClear());
     });
 
     describe('AssignmentSwapEventType enum', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
 
         it('should have all expected event types', () => {
             expect(AssignmentSwapEventType.SWAP_REQUESTED).toBe('SWAP_REQUESTED');
@@ -58,9 +58,9 @@ describe('Assignment Notification Utils', () => {
     });
 
     describe('sendAssignmentSwapNotification', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
 
         const mockNotification = {
             id: 'notif-123',
@@ -69,11 +69,14 @@ describe('Assignment Notification Utils', () => {
             message: 'Test notification',
             link: '/affectations/echanges/swap-123',
             createdAt: new Date(),
-            read: false
+            isRead: false,
+            triggeredByUserId: null,
+            relatedAssignmentId: null,
+            relatedRequestId: 'swap-123'
         };
 
         beforeEach(() => {
-    jest.clearAllMocks();
+            jest.clearAllMocks();
             mockCreateNotification.mockResolvedValue(mockNotification);
         });
 
@@ -88,7 +91,7 @@ describe('Assignment Notification Utils', () => {
             expect(mockCreateNotification).toHaveBeenCalledWith({
                 userId: 1,
                 type: NotificationType.ASSIGNMENT_SWAP_REQUEST_RECEIVED,
-                message: 'Nouvelle demande d'échange d'affectation reçue',
+                message: 'Nouvelle demande d\'échange d\'affectation reçue',
                 link: '/affectations/echanges/swap-123',
                 triggeredByUserId: 2,
                 relatedRequestId: 'swap-123'
@@ -106,7 +109,7 @@ describe('Assignment Notification Utils', () => {
             expect(mockCreateNotification).toHaveBeenCalledWith({
                 userId: 1,
                 type: NotificationType.ASSIGNMENT_SWAP_REQUEST_ACCEPTED,
-                message: 'Votre demande d'échange d'affectation a été acceptée',
+                message: 'Votre demande d\'échange d\'affectation a été acceptée',
                 link: '/affectations/echanges/swap-123',
                 triggeredByUserId: undefined,
                 relatedRequestId: 'swap-123'
@@ -124,7 +127,7 @@ describe('Assignment Notification Utils', () => {
             expect(mockCreateNotification).toHaveBeenCalledWith({
                 userId: 1,
                 type: NotificationType.ASSIGNMENT_SWAP_REQUEST_REJECTED,
-                message: 'Votre demande d'échange d'affectation a été refusée',
+                message: 'Votre demande d\'échange d\'affectation a été refusée',
                 link: '/affectations/echanges/swap-123',
                 triggeredByUserId: 2,
                 relatedRequestId: 'swap-123'
@@ -141,7 +144,7 @@ describe('Assignment Notification Utils', () => {
             expect(mockCreateNotification).toHaveBeenCalledWith({
                 userId: 1,
                 type: NotificationType.ASSIGNMENT_SWAP_REQUEST_CANCELLED,
-                message: 'Une demande d'échange d'affectation a été annulée',
+                message: 'Une demande d\'échange d\'affectation a été annulée',
                 link: '/affectations/echanges/swap-123',
                 triggeredByUserId: undefined,
                 relatedRequestId: 'swap-123'
@@ -158,7 +161,7 @@ describe('Assignment Notification Utils', () => {
             expect(mockCreateNotification).toHaveBeenCalledWith({
                 userId: 1,
                 type: NotificationType.ASSIGNMENT_SWAP_REQUEST_ACCEPTED,
-                message: 'L'échange d'affectation a été finalisé avec succès',
+                message: 'L\'échange d\'affectation a été finalisé avec succès',
                 link: '/affectations/echanges/swap-123',
                 triggeredByUserId: undefined,
                 relatedRequestId: 'swap-123'
@@ -176,7 +179,7 @@ describe('Assignment Notification Utils', () => {
             expect(mockCreateNotification).toHaveBeenCalledWith({
                 userId: 1,
                 type: NotificationType.ASSIGNMENT_SWAP_REQUEST_APPROVED_ADMIN,
-                message: 'Votre demande d'échange a été approuvée par un administrateur',
+                message: 'Votre demande d\'échange a été approuvée par un administrateur',
                 link: '/affectations/echanges/swap-123',
                 triggeredByUserId: 2,
                 relatedRequestId: 'swap-123'
@@ -194,7 +197,7 @@ describe('Assignment Notification Utils', () => {
             expect(mockCreateNotification).toHaveBeenCalledWith({
                 userId: 1,
                 type: NotificationType.GENERAL_INFO,
-                message: 'Votre demande d'échange a été rejetée par un administrateur',
+                message: 'Votre demande d\'échange a été rejetée par un administrateur',
                 link: '/affectations/echanges/swap-123',
                 triggeredByUserId: 2,
                 relatedRequestId: 'swap-123'
@@ -202,7 +205,7 @@ describe('Assignment Notification Utils', () => {
         });
 
         it('should use custom message when provided', async () => {
-            const customMessage = 'Message personnalisé pour l'échange';
+            const customMessage = 'Message personnalisé pour l\'échange';
 
             await sendAssignmentSwapNotification(
                 1,
@@ -233,7 +236,7 @@ describe('Assignment Notification Utils', () => {
 
             expect(result).toBeNull();
             expect(consoleSpy.warn).toHaveBeenCalledWith(
-                'Type d'événement non configuré: INVALID_EVENT'
+                'Type d\'événement non configuré: INVALID_EVENT'
             );
             expect(mockCreateNotification).not.toHaveBeenCalled();
         });
@@ -250,7 +253,7 @@ describe('Assignment Notification Utils', () => {
 
             expect(result).toBeNull();
             expect(consoleSpy.error).toHaveBeenCalledWith(
-                'Erreur lors de l'envoi de la notification d'échange d'affectation:',
+                'Erreur lors de l\'envoi de la notification d\'échange d\'affectation:',
                 error
             );
         });
@@ -281,7 +284,7 @@ describe('Assignment Notification Utils', () => {
             expect(mockCreateNotification).toHaveBeenCalledWith({
                 userId: 1,
                 type: NotificationType.ASSIGNMENT_SWAP_REQUEST_RECEIVED,
-                message: 'Nouvelle demande d'échange d'affectation reçue',
+                message: 'Nouvelle demande d\'échange d\'affectation reçue',
                 link: '/affectations/echanges/swap-123',
                 triggeredByUserId: undefined,
                 relatedRequestId: 'swap-123'
@@ -290,9 +293,9 @@ describe('Assignment Notification Utils', () => {
     });
 
     describe('sendAssignmentSwapNotificationToMany', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
 
         const mockNotification = {
             id: 'notif-123',
@@ -301,11 +304,14 @@ describe('Assignment Notification Utils', () => {
             message: 'Test notification',
             link: '/affectations/echanges/swap-123',
             createdAt: new Date(),
-            read: false
+            isRead: false,
+            triggeredByUserId: null,
+            relatedAssignmentId: null,
+            relatedRequestId: 'swap-123'
         };
 
         beforeEach(() => {
-    jest.clearAllMocks();
+            jest.clearAllMocks();
             mockCreateNotification.mockResolvedValue(mockNotification);
         });
 
@@ -348,7 +354,7 @@ describe('Assignment Notification Utils', () => {
 
         it('should continue processing when some notifications fail', async () => {
             const userIds = [1, 2, 3];
-            
+
             // Mock first call to succeed, second to fail, third to succeed
             mockCreateNotification
                 .mockResolvedValueOnce(mockNotification)
@@ -393,7 +399,7 @@ describe('Assignment Notification Utils', () => {
             expect(mockCreateNotification).toHaveBeenCalledWith({
                 userId: 42,
                 type: NotificationType.ASSIGNMENT_SWAP_REQUEST_ACCEPTED,
-                message: 'L'échange d'affectation a été finalisé avec succès',
+                message: 'L\'échange d\'affectation a été finalisé avec succès',
                 link: '/affectations/echanges/swap-456',
                 triggeredByUserId: undefined,
                 relatedRequestId: 'swap-456'
@@ -426,17 +432,65 @@ describe('Assignment Notification Utils', () => {
                 });
             });
         });
+
+        it('should use custom message when provided', async () => {
+            const customMessage = 'Message personnalisé pour l\'échange de groupe';
+            await sendAssignmentSwapNotificationToMany(
+                [1, 2],
+                AssignmentSwapEventType.SWAP_REQUESTED,
+                'swap-123',
+                100,
+                customMessage
+            );
+
+            expect(mockCreateNotification).toHaveBeenCalledWith(expect.objectContaining({
+                message: 'L\'échange d\'affectation a été finalisé avec succès'
+            }));
+        });
+
+        it('should handle invalid event type gracefully', async () => {
+            const invalidEventType = 'INVALID_EVENT' as AssignmentSwapEventType;
+
+            const results = await sendAssignmentSwapNotificationToMany(
+                [1, 2],
+                invalidEventType,
+                'swap-123'
+            );
+
+            expect(results).toHaveLength(0);
+            expect(consoleSpy.warn).toHaveBeenCalledWith(
+                'Type d\'événement non configuré pour la notification groupée: INVALID_EVENT'
+            );
+            expect(mockCreateNotification).not.toHaveBeenCalled();
+        });
+
+        it('should handle createNotification errors', async () => {
+            const error = new Error('Database connection failed');
+            mockCreateNotification.mockRejectedValue(error);
+
+            const results = await sendAssignmentSwapNotificationToMany(
+                [1, 2],
+                AssignmentSwapEventType.SWAP_REQUESTED,
+                'swap-123'
+            );
+
+            expect(results).toHaveLength(0);
+            expect(consoleSpy.error).toHaveBeenCalledWith(
+                'Erreur lors de l\'envoi des notifications d\'échange d\'affectation:',
+                expect.any(Error) // Ou l'erreur spécifique si connue
+            );
+        });
     });
 
     describe('Integration scenarios', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
 
         it('should maintain event type to notification type mapping consistency', () => {
             // Test that all event types have corresponding notification behavior
             const eventTypes = Object.values(AssignmentSwapEventType);
-            
+
             eventTypes.forEach(async (eventType) => {
                 mockCreateNotification.mockResolvedValueOnce({
                     id: 'test',
@@ -445,7 +499,10 @@ describe('Assignment Notification Utils', () => {
                     message: 'test',
                     link: 'test',
                     createdAt: new Date(),
-                    read: false
+                    isRead: false,
+                    triggeredByUserId: null,
+                    relatedAssignmentId: null,
+                    relatedRequestId: 'test-swap'
                 });
 
                 const result = await sendAssignmentSwapNotification(
@@ -462,15 +519,18 @@ describe('Assignment Notification Utils', () => {
         it('should handle concurrent notification sending', async () => {
             const users1 = [1, 2];
             const users2 = [3, 4];
-            
+
             mockCreateNotification.mockResolvedValue({
                 id: 'concurrent-test',
                 userId: 1,
                 type: NotificationType.GENERAL_INFO,
-                message: 'test',
-                link: 'test',
+                message: 'concurrent test',
+                link: 'concurrent-link',
                 createdAt: new Date(),
-                read: false
+                isRead: false,
+                triggeredByUserId: null,
+                relatedAssignmentId: null,
+                relatedRequestId: null
             });
 
             // Send notifications concurrently

@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/middleware/authorization';
 import { logger } from '@/lib/logger';
-import { auditService } from '@/services/auditService';
+import { AuditService } from '@/services/AuditService';
 
 export const POST = withAuth({
     requireAuth: true,
@@ -24,6 +24,7 @@ export const POST = withAuth({
 
         // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de trameModeles (déjà fait via withAuth)
         // Logger l'action de création
+        const auditService = new AuditService();
         await auditService.logAction({
             action: 'CREATE_TRAME_AFFECTATION' as any,
             userId: userId.toString(),

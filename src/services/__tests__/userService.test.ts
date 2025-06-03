@@ -2,7 +2,7 @@ import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals
 import {
   setupTestEnvironment,
   cleanupTestEnvironment,
-  mockPrismaClient,
+  createMockPrismaClient,
   mockLogger,
   mockBcrypt,
   testDataFactories,
@@ -11,9 +11,8 @@ import {
 } from '../../test-utils/standardMocks';
 
 // Mock dependencies with standard mocks
-const mockPrismaClient = mockPrisma();
 jest.mock('@/lib/prisma', () => ({
-  prisma: mockPrismaClient,
+  prisma: createMockPrismaClient(),
 }));
 
 const mockLoggerClient = mockLogger();
@@ -38,9 +37,9 @@ describe('UserService - Stable Tests', () => {
     jest.clearAllMocks();
   });
 
-  const prisma = mockPrismaClient;
-  const logger = mockLoggerClient;
-  const bcrypt = mockBcryptClient;
+  const prisma = createMockPrismaClient();
+  const logger = mockLogger();
+  const bcrypt = mockBcrypt();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -126,7 +125,7 @@ describe('UserService - Stable Tests', () => {
         throw new Error('Invalid parameters');
       }
       
-      let data = { ...updateData };
+      const data = { ...updateData };
       if (updateData.password) {
         data.password = await bcrypt.hash(updateData.password, 10);
       }

@@ -456,7 +456,7 @@ describe('UnifiedRequestForm', () => {
       );
 
       // Fill required fields
-      await user.type(screen.getByLabelText(/objet/i), 'Congés d'été');
+      await user.type(screen.getByLabelText(/objet/i), "Congés d'été");
       await user.type(screen.getByLabelText(/description/i), 'Demande de congés pour vacances');
       await user.type(screen.getByLabelText(/date de début/i), '2024-07-01');
       await user.type(screen.getByLabelText(/date de fin/i), '2024-07-15');
@@ -468,7 +468,7 @@ describe('UnifiedRequestForm', () => {
         expect(mockedAxios.post).toHaveBeenCalledWith('/api/unified-requests', {
           userId: 123,
           type: UnifiedRequestType.LEAVE,
-          subject: 'Congés d'été',
+          subject: "Congés d'été",
           description: 'Demande de congés pour vacances',
           startDate: '2024-07-01',
           endDate: '2024-07-15',

@@ -1,0 +1,644 @@
+{
+  "stats": {
+    "suites": 7,
+    "tests": 19,
+    "passes": 0,
+    "pending": 0,
+    "failures": 19,
+    "start": "2025-06-01T06:47:51.973Z",
+    "end": "2025-06-01T06:54:22.893Z",
+    "duration": 390920,
+    "testsRegistered": 19,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "18328154-893d-47cc-b636-8d093b0734be",
+      "title": "",
+      "fullFile": "cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts",
+      "file": "cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "ba6df0a9-f89b-4efb-b80a-b1fc9f6a1178",
+          "title": "Gestion des plannings bloc opératoire",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [],
+          "suites": [
+            {
+              "uuid": "15f5ff8a-1e8c-4b6d-a123-b88d88cbde98",
+              "title": "Visualisation du planning",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "affiche correctement la vue hebdomadaire du planning",
+                  "fullTitle": "Gestion des plannings bloc opératoire Visualisation du planning affiche correctement la vue hebdomadaire du planning",
+                  "timedOut": null,
+                  "duration": 16192,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Vérifier les éléments principaux\ncy.get('[data-testid=planning-header]').should('be.visible');\ncy.get('[data-testid=week-selector]').should('be.visible');\ncy.get('[data-testid=planning-grid]').should('be.visible');\n// Vérifier l'affichage des salles d'opération\ncy.get('[data-testid=operating-rooms-list]').within(function () {\n    cy.contains('Salle 1').should('exist');\n    cy.contains('Salle 2').should('exist');\n    cy.contains('Salle Urgences').should('exist');\n});\n// Vérifier l'affichage des jours de la semaine\nvar jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];\njours.forEach(function (jour) {\n    cy.get('[data-testid=planning-grid]').contains(jour).should('exist');\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=planning-header]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=planning-header]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:24:52)",
+                    "diff": null
+                  },
+                  "uuid": "01a42539-3d79-46b2-b4db-a637ec0655bc",
+                  "parentUUID": "15f5ff8a-1e8c-4b6d-a123-b88d88cbde98",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "permet de naviguer entre les semaines",
+                  "fullTitle": "Gestion des plannings bloc opératoire Visualisation du planning permet de naviguer entre les semaines",
+                  "timedOut": null,
+                  "duration": 16200,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Noter la semaine actuelle\ncy.get('[data-testid=current-week-label]')\n    .invoke('text')\n    .then(function (currentWeek) {\n    // Aller à la semaine suivante\n    cy.get('[data-testid=next-week-button]').click();\n    // Vérifier que la semaine a changé\n    cy.get('[data-testid=current-week-label]')\n        .invoke('text')\n        .should('not.equal', currentWeek);\n    // Revenir à la semaine précédente\n    cy.get('[data-testid=prev-week-button]').click();\n    // Vérifier qu'on est revenu à la semaine initiale\n    cy.get('[data-testid=current-week-label]')\n        .invoke('text')\n        .should('equal', currentWeek);\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=current-week-label]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=current-week-label]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:44:15)",
+                    "diff": null
+                  },
+                  "uuid": "7a2583a9-2d86-439c-a8f5-32a69bc50a8e",
+                  "parentUUID": "15f5ff8a-1e8c-4b6d-a123-b88d88cbde98",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "permet de filtrer par secteur",
+                  "fullTitle": "Gestion des plannings bloc opératoire Visualisation du planning permet de filtrer par secteur",
+                  "timedOut": null,
+                  "duration": 16243,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Sélectionner un secteur spécifique\ncy.get('[data-testid=sector-filter]').select('Chirurgie');\n// Vérifier que seules les salles du secteur sont affichées\ncy.get('[data-testid=operating-rooms-list]').within(function () {\n    cy.contains('Salle 1').should('exist');\n    cy.contains('Salle 2').should('exist');\n    cy.contains('Endoscopie').should('not.exist');\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=sector-filter]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=sector-filter]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:67:15)",
+                    "diff": null
+                  },
+                  "uuid": "b8a4f5a8-8b24-48ca-84cf-9b7b76529117",
+                  "parentUUID": "15f5ff8a-1e8c-4b6d-a123-b88d88cbde98",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "01a42539-3d79-46b2-b4db-a637ec0655bc",
+                "7a2583a9-2d86-439c-a8f5-32a69bc50a8e",
+                "b8a4f5a8-8b24-48ca-84cf-9b7b76529117"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 48635,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "dc1a3160-d16d-48c6-b0fc-2c5bd81fc83f",
+              "title": "Création d'affectations",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "permet de créer une affectation par glisser-déposer",
+                  "fullTitle": "Gestion des plannings bloc opératoire Création d'affectations permet de créer une affectation par glisser-déposer",
+                  "timedOut": null,
+                  "duration": 1197,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Sélectionner un chirurgien dans la liste\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Dupont')\n    .as('surgeon');\n// Glisser-déposer sur un créneau\ncy.get('@surgeon').drag('[data-testid=slot-monday-morning-room1]');\n// Vérifier que l'affectation est créée\ncy.get('[data-testid=slot-monday-morning-room1]').within(function () {\n    cy.contains('Dr Dupont').should('exist');\n    cy.get('[data-testid=assignment-badge]').should('have.class', 'assigned');\n});\n// Vérifier la notification de succès\ncy.get('[data-testid=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Affectation créée avec succès');",
+                  "err": {
+                    "message": "TypeError: cy.get(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:86:31)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "6ab28b75-d653-4e0d-8f3f-542bf55ddca3",
+                  "parentUUID": "dc1a3160-d16d-48c6-b0fc-2c5bd81fc83f",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "permet de créer une affectation via le formulaire",
+                  "fullTitle": "Gestion des plannings bloc opératoire Création d'affectations permet de créer une affectation via le formulaire",
+                  "timedOut": null,
+                  "duration": 16291,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Cliquer sur un créneau vide\ncy.get('[data-testid=slot-tuesday-afternoon-room2]').click();\n// Remplir le formulaire d'affectation\ncy.get('[data-testid=assignment-modal]').within(function () {\n    cy.get('[data-testid=surgeon-select]').select('Dr Martin');\n    cy.get('[data-testid=specialty-select]').select('Orthopédie');\n    cy.get('[data-testid=assignment-type]').select('Intervention');\n    cy.get('[data-testid=notes-input]').type('Prothèse de hanche');\n    cy.get('[data-testid=submit-assignment]').click();\n});\n// Vérifier que l'affectation est créée\ncy.get('[data-testid=slot-tuesday-afternoon-room2]').within(function () {\n    cy.contains('Dr Martin').should('exist');\n    cy.contains('Orthopédie').should('exist');\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=slot-tuesday-afternoon-room2]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=slot-tuesday-afternoon-room2]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:102:15)",
+                    "diff": null
+                  },
+                  "uuid": "2d1717b2-f9e9-441e-be46-690eabc0baaa",
+                  "parentUUID": "dc1a3160-d16d-48c6-b0fc-2c5bd81fc83f",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "valide les règles métier lors de la création",
+                  "fullTitle": "Gestion des plannings bloc opératoire Création d'affectations valide les règles métier lors de la création",
+                  "timedOut": null,
+                  "duration": 1219,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Essayer d'affecter un chirurgien déjà occupé\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Dupont')\n    .drag('[data-testid=slot-monday-morning-room1]');\n// Essayer de l'affecter à nouveau au même moment\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Dupont')\n    .drag('[data-testid=slot-monday-morning-room2]');\n// Vérifier l'avertissement de conflit\ncy.get('[data-testid=conflict-warning]')\n    .should('be.visible')\n    .and('contain', 'Dr Dupont est déjà affecté à ce créneau');",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:124:17)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "e8ce6b8a-18bc-49ca-a06d-b8d6a4401e94",
+                  "parentUUID": "dc1a3160-d16d-48c6-b0fc-2c5bd81fc83f",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "vérifie les compétences pour les salles spécialisées",
+                  "fullTitle": "Gestion des plannings bloc opératoire Création d'affectations vérifie les compétences pour les salles spécialisées",
+                  "timedOut": null,
+                  "duration": 1210,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Essayer d'affecter un chirurgien non qualifié en endoscopie\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Orthopédiste')\n    .drag('[data-testid=slot-wednesday-morning-endoscopy]');\n// Vérifier l'avertissement de compétence\ncy.get('[data-testid=skill-warning]')\n    .should('be.visible')\n    .and('contain', 'Dr Orthopédiste n\\'est pas qualifié pour l\\'endoscopie');",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:141:17)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "54784bad-1ae4-4608-a65d-e187b004147a",
+                  "parentUUID": "dc1a3160-d16d-48c6-b0fc-2c5bd81fc83f",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "6ab28b75-d653-4e0d-8f3f-542bf55ddca3",
+                "2d1717b2-f9e9-441e-be46-690eabc0baaa",
+                "e8ce6b8a-18bc-49ca-a06d-b8d6a4401e94",
+                "54784bad-1ae4-4608-a65d-e187b004147a"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 19917,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "bf13e875-6ee4-4717-89ef-13e64af58f5d",
+              "title": "Modification d'affectations",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "permet de modifier une affectation existante",
+                  "fullTitle": "Gestion des plannings bloc opératoire Modification d'affectations permet de modifier une affectation existante",
+                  "timedOut": null,
+                  "duration": 1261,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Créer d'abord une affectation\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Dupont')\n    .drag('[data-testid=slot-thursday-morning-room1]');\n// Double-cliquer pour modifier\ncy.get('[data-testid=slot-thursday-morning-room1]').dblclick();\n// Modifier les détails\ncy.get('[data-testid=assignment-modal]').within(function () {\n    cy.get('[data-testid=specialty-select]').select('Neurochirurgie');\n    cy.get('[data-testid=notes-input]').clear().type('Intervention modifiée');\n    cy.get('[data-testid=update-assignment]').click();\n});\n// Vérifier les modifications\ncy.get('[data-testid=slot-thursday-morning-room1]').within(function () {\n    cy.contains('Neurochirurgie').should('exist');\n});",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:155:17)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "24d15697-a111-473f-96f3-eb942bbfb1e9",
+                  "parentUUID": "bf13e875-6ee4-4717-89ef-13e64af58f5d",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "permet de déplacer une affectation par glisser-déposer",
+                  "fullTitle": "Gestion des plannings bloc opératoire Modification d'affectations permet de déplacer une affectation par glisser-déposer",
+                  "timedOut": null,
+                  "duration": 1268,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Créer une affectation\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Martin')\n    .drag('[data-testid=slot-friday-morning-room1]');\n// Déplacer l'affectation vers un autre créneau\ncy.get('[data-testid=slot-friday-morning-room1]')\n    .find('[data-testid=assignment-badge]')\n    .drag('[data-testid=slot-friday-afternoon-room2]');\n// Vérifier le déplacement\ncy.get('[data-testid=slot-friday-morning-room1]')\n    .should('not.contain', 'Dr Martin');\ncy.get('[data-testid=slot-friday-afternoon-room2]')\n    .should('contain', 'Dr Martin');",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:177:17)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "ebe2ac9c-04c1-4c29-97c6-462bc26d5e32",
+                  "parentUUID": "bf13e875-6ee4-4717-89ef-13e64af58f5d",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "propose des créneaux alternatifs en cas de conflit",
+                  "fullTitle": "Gestion des plannings bloc opératoire Modification d'affectations propose des créneaux alternatifs en cas de conflit",
+                  "timedOut": null,
+                  "duration": 1330,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Créer deux affectations\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Dupont')\n    .drag('[data-testid=slot-monday-morning-room1]');\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Martin')\n    .drag('[data-testid=slot-monday-morning-room2]');\n// Essayer de déplacer la première sur la seconde\ncy.get('[data-testid=slot-monday-morning-room1]')\n    .find('[data-testid=assignment-badge]')\n    .drag('[data-testid=slot-monday-morning-room2]');\n// Vérifier les suggestions\ncy.get('[data-testid=alternative-slots-modal]').within(function () {\n    cy.contains('Créneaux alternatifs disponibles').should('exist');\n    cy.get('[data-testid=alternative-slot]').should('have.length.greaterThan', 0);\n    // Choisir une alternative\n    cy.get('[data-testid=alternative-slot]').first().click();\n});",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:195:17)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "7cb23996-34ed-4314-8446-5a3940d9cf59",
+                  "parentUUID": "bf13e875-6ee4-4717-89ef-13e64af58f5d",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "24d15697-a111-473f-96f3-eb942bbfb1e9",
+                "ebe2ac9c-04c1-4c29-97c6-462bc26d5e32",
+                "7cb23996-34ed-4314-8446-5a3940d9cf59"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 3859,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "36724411-1ba4-4395-a625-dfabca3977bb",
+              "title": "Suppression d'affectations",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "permet de supprimer une affectation",
+                  "fullTitle": "Gestion des plannings bloc opératoire Suppression d'affectations permet de supprimer une affectation",
+                  "timedOut": null,
+                  "duration": 1344,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Créer une affectation\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Dupont')\n    .drag('[data-testid=slot-wednesday-morning-room1]');\n// Cliquer droit pour supprimer\ncy.get('[data-testid=slot-wednesday-morning-room1]')\n    .find('[data-testid=assignment-badge]')\n    .rightclick();\ncy.get('[data-testid=context-menu]')\n    .contains('Supprimer')\n    .click();\n// Confirmer la suppression\ncy.get('[data-testid=confirm-delete-modal]').within(function () {\n    cy.get('[data-testid=confirm-delete-button]').click();\n});\n// Vérifier la suppression\ncy.get('[data-testid=slot-wednesday-morning-room1]')\n    .should('not.contain', 'Dr Dupont');",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:222:17)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "b9381706-6647-4708-83cf-2b37b0e49584",
+                  "parentUUID": "36724411-1ba4-4395-a625-dfabca3977bb",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "permet de supprimer plusieurs affectations en lot",
+                  "fullTitle": "Gestion des plannings bloc opératoire Suppression d'affectations permet de supprimer plusieurs affectations en lot",
+                  "timedOut": null,
+                  "duration": 1373,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Créer plusieurs affectations\n['room1', 'room2', 'room3'].forEach(function (room, index) {\n    cy.get('[data-testid=surgeons-list]')\n        .contains(\"Dr Test\".concat(index + 1))\n        .drag(\"[data-testid=slot-thursday-morning-\".concat(room, \"]\"));\n});\n// Activer le mode sélection multiple\ncy.get('[data-testid=multi-select-toggle]').click();\n// Sélectionner plusieurs affectations\ncy.get('[data-testid^=slot-thursday-morning]')\n    .find('[data-testid=assignment-badge]')\n    .click({ multiple: true });\n// Supprimer en lot\ncy.get('[data-testid=bulk-delete-button]').click();\ncy.get('[data-testid=confirm-bulk-delete-button]').click();\n// Vérifier la suppression\n['room1', 'room2', 'room3'].forEach(function (room) {\n    cy.get(\"[data-testid=slot-thursday-morning-\".concat(room, \"]\"))\n        .should('be.empty');\n});",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:248:21)\n    at Array.forEach (<anonymous>)\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:245:40)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                    "diff": null
+                  },
+                  "uuid": "97682c06-9d07-41fa-8b12-d78eb41997c1",
+                  "parentUUID": "36724411-1ba4-4395-a625-dfabca3977bb",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "b9381706-6647-4708-83cf-2b37b0e49584",
+                "97682c06-9d07-41fa-8b12-d78eb41997c1"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 2717,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "e26dd944-d6ae-4d38-9ebd-b5518d73fb89",
+              "title": "Validation des règles métier",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "vérifie la règle de supervision pour les internes",
+                  "fullTitle": "Gestion des plannings bloc opératoire Validation des règles métier vérifie la règle de supervision pour les internes",
+                  "timedOut": null,
+                  "duration": 1354,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Affecter un interne seul\ncy.get('[data-testid=surgeons-list]')\n    .contains('Interne Durand')\n    .drag('[data-testid=slot-monday-morning-room1]');\n// Vérifier l'avertissement de supervision\ncy.get('[data-testid=supervision-warning]')\n    .should('be.visible')\n    .and('contain', 'Un interne doit être supervisé par un senior');\n// Ajouter un senior\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Senior')\n    .drag('[data-testid=slot-monday-morning-room1]');\n// Vérifier que l'avertissement disparaît\ncy.get('[data-testid=supervision-warning]').should('not.exist');",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:276:17)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "8f22e442-29df-48ee-91f6-1d229dcfeaec",
+                  "parentUUID": "e26dd944-d6ae-4d38-9ebd-b5518d73fb89",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "vérifie les temps de repos obligatoires",
+                  "fullTitle": "Gestion des plannings bloc opératoire Validation des règles métier vérifie les temps de repos obligatoires",
+                  "timedOut": null,
+                  "duration": 1320,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Affecter un chirurgien en garde de nuit\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Dupont')\n    .drag('[data-testid=slot-sunday-night-emergency]');\n// Essayer de l'affecter le lendemain matin\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Dupont')\n    .drag('[data-testid=slot-monday-morning-room1]');\n// Vérifier l'avertissement de repos\ncy.get('[data-testid=rest-time-warning]')\n    .should('be.visible')\n    .and('contain', 'Temps de repos insuffisant après une garde');",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:296:17)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "ef3a0f7f-ef9a-4bba-a2d6-599c94b75d09",
+                  "parentUUID": "e26dd944-d6ae-4d38-9ebd-b5518d73fb89",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "vérifie le nombre maximum d'heures hebdomadaires",
+                  "fullTitle": "Gestion des plannings bloc opératoire Validation des règles métier vérifie le nombre maximum d'heures hebdomadaires",
+                  "timedOut": null,
+                  "duration": 1283,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Affecter un chirurgien sur de nombreux créneaux\nvar slots = [\n    'monday-morning', 'monday-afternoon',\n    'tuesday-morning', 'tuesday-afternoon',\n    'wednesday-morning', 'wednesday-afternoon',\n    'thursday-morning', 'thursday-afternoon',\n    'friday-morning', 'friday-afternoon'\n];\nslots.forEach(function (slot) {\n    cy.get('[data-testid=surgeons-list]')\n        .contains('Dr Workaholic')\n        .drag(\"[data-testid=slot-\".concat(slot, \"-room1]\"));\n});\n// Vérifier l'avertissement de dépassement d'heures\ncy.get('[data-testid=hours-limit-warning]')\n    .should('be.visible')\n    .and('contain', 'Limite d\\'heures hebdomadaires dépassée');",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:322:21)\n    at Array.forEach (<anonymous>)\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:319:18)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                    "diff": null
+                  },
+                  "uuid": "d25bac16-a1bc-4306-a84f-3e526e31cebd",
+                  "parentUUID": "e26dd944-d6ae-4d38-9ebd-b5518d73fb89",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "8f22e442-29df-48ee-91f6-1d229dcfeaec",
+                "ef3a0f7f-ef9a-4bba-a2d6-599c94b75d09",
+                "d25bac16-a1bc-4306-a84f-3e526e31cebd"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 3957,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "e41996d4-bc15-4e22-a81c-1df708bda0b9",
+              "title": "Fonctionnalités avancées",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "permet de copier le planning d'une semaine",
+                  "fullTitle": "Gestion des plannings bloc opératoire Fonctionnalités avancées permet de copier le planning d'une semaine",
+                  "timedOut": null,
+                  "duration": 1416,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Créer quelques affectations\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Dupont')\n    .drag('[data-testid=slot-monday-morning-room1]');\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Martin')\n    .drag('[data-testid=slot-tuesday-afternoon-room2]');\n// Copier le planning\ncy.get('[data-testid=planning-actions-menu]').click();\ncy.get('[data-testid=copy-week-planning]').click();\n// Aller à la semaine suivante\ncy.get('[data-testid=next-week-button]').click();\n// Coller le planning\ncy.get('[data-testid=planning-actions-menu]').click();\ncy.get('[data-testid=paste-week-planning]').click();\n// Vérifier que les affectations sont copiées\ncy.get('[data-testid=slot-monday-morning-room1]')\n    .should('contain', 'Dr Dupont');\ncy.get('[data-testid=slot-tuesday-afternoon-room2]')\n    .should('contain', 'Dr Martin');",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:337:17)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "1a368710-084a-4ffd-a7a3-c16694cb285c",
+                  "parentUUID": "e41996d4-bc15-4e22-a81c-1df708bda0b9",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "permet d'exporter le planning en PDF",
+                  "fullTitle": "Gestion des plannings bloc opératoire Fonctionnalités avancées permet d'exporter le planning en PDF",
+                  "timedOut": null,
+                  "duration": 16824,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Ouvrir le menu d'export\ncy.get('[data-testid=export-planning-button]').click();\n// Configurer l'export\ncy.get('[data-testid=export-modal]').within(function () {\n    cy.get('[data-testid=export-format-pdf]').check();\n    cy.get('[data-testid=include-notes]').check();\n    cy.get('[data-testid=export-confirm]').click();\n});\n// Vérifier le téléchargement\ncy.readFile('cypress/downloads/planning-bloc-operatoire.pdf')\n    .should('exist');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=export-planning-button]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=export-planning-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:363:15)",
+                    "diff": null
+                  },
+                  "uuid": "477422d4-bfc3-4e91-8acc-e03e545cbdf9",
+                  "parentUUID": "e41996d4-bc15-4e22-a81c-1df708bda0b9",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "affiche les statistiques du planning",
+                  "fullTitle": "Gestion des plannings bloc opératoire Fonctionnalités avancées affiche les statistiques du planning",
+                  "timedOut": null,
+                  "duration": 16599,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Créer plusieurs affectations\n// ... (affectations créées)\n// Ouvrir les statistiques\ncy.get('[data-testid=planning-stats-button]').click();\n// Vérifier l'affichage des statistiques\ncy.get('[data-testid=stats-modal]').within(function () {\n    cy.contains('Taux d\\'occupation').should('exist');\n    cy.contains('Heures par chirurgien').should('exist');\n    cy.contains('Répartition par spécialité').should('exist');\n    cy.get('[data-testid=occupation-chart]').should('be.visible');\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=planning-stats-button]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=planning-stats-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:382:15)",
+                    "diff": null
+                  },
+                  "uuid": "199a5635-1c38-4bcf-971e-a17b7a058279",
+                  "parentUUID": "e41996d4-bc15-4e22-a81c-1df708bda0b9",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "permet de générer un planning automatique",
+                  "fullTitle": "Gestion des plannings bloc opératoire Fonctionnalités avancées permet de générer un planning automatique",
+                  "timedOut": null,
+                  "duration": 16410,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Ouvrir l'assistant de génération\ncy.get('[data-testid=auto-generate-button]').click();\n// Configurer les paramètres\ncy.get('[data-testid=generation-modal]').within(function () {\n    cy.get('[data-testid=respect-preferences]').check();\n    cy.get('[data-testid=balance-workload]').check();\n    cy.get('[data-testid=optimize-skills]').check();\n    cy.get('[data-testid=generate-planning]').click();\n});\n// Attendre la génération\ncy.get('[data-testid=generation-progress]').should('be.visible');\ncy.get('[data-testid=generation-complete]', { timeout: 30000 })\n    .should('be.visible');\n// Vérifier que des affectations ont été créées\ncy.get('[data-testid^=slot-]')\n    .find('[data-testid=assignment-badge]')\n    .should('have.length.greaterThan', 10);",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=auto-generate-button]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=auto-generate-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/bloc-operatoire/bloc-planning-management.spec.ts:395:15)",
+                    "diff": null
+                  },
+                  "uuid": "4cff3167-0c4e-4a73-8a88-9ac69b5f3481",
+                  "parentUUID": "e41996d4-bc15-4e22-a81c-1df708bda0b9",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "1a368710-084a-4ffd-a7a3-c16694cb285c",
+                "477422d4-bfc3-4e91-8acc-e03e545cbdf9",
+                "199a5635-1c38-4bcf-971e-a17b7a058279",
+                "4cff3167-0c4e-4a73-8a88-9ac69b5f3481"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 51249,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            }
+          ],
+          "passes": [],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 0,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

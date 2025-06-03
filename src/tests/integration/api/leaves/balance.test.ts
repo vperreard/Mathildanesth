@@ -1,11 +1,5 @@
 import { NextRequest } from 'next/server';
-import {
-    expectToBeUndefined,
-    expectToBe,
-    expectToEqual,
-    expectToBeDefined,
-    expectArrayContaining
-} from '@/tests/utils/assertions';
+// Using standard Jest assertions instead of custom ones
 
 // Mock NextResponse pour éviter les problèmes de polyfill
 jest.mock('next/server', () => ({
@@ -159,7 +153,7 @@ const GET = jest.fn(async (request: NextRequest) => {
     return NextResponse.json({ balances: { ANNUAL: balances[0] }, totals, metadata }, { status: 200 });
 });
 
-describe('GET /api/conges/balance', () => {
+describe('GET /api/leaves/balance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -194,7 +188,7 @@ describe('GET /api/conges/balance', () => {
 
     it('should return correct leave balances', async () => {
         // Créer une requête NextRequest pour App Router
-        const request = new NextRequest(`http://localhost:3000/api/conges/balance?userId=101&year=${currentYear}`, {
+        const request = new NextRequest(`http://localhost:3000/api/leaves/balance?userId=101&year=${currentYear}`, {
             method: 'GET'
         });
 
@@ -202,43 +196,43 @@ describe('GET /api/conges/balance', () => {
         const data = await response.json();
 
         // Valider le format de la réponse selon l'API
-        expectToBeDefined(data.balances);
-        expectToBeDefined(data.totals);
-        expectToBeDefined(data.metadata);
+        expect(data.balances).toBeDefined();
+        expect(data.totals).toBeDefined();
+        expect(data.metadata).toBeDefined();
 
         const annualBalance = data.balances.ANNUAL;
-        expectToBeDefined(annualBalance);
+        expect(annualBalance).toBeDefined();
         if (annualBalance) {
-            expectToBe(annualBalance.label, 'Congé Annuel (Balance Test)');
-            expectToBe(annualBalance.initial, 25);
-            expectToBe(annualBalance.used, 5);
-            expectToBe(annualBalance.pending, 2);
-            expectToBe(annualBalance.remaining, 18);
+            expect(annualBalance.label).toBe('Congé Annuel (Balance Test)');
+            expect(annualBalance.initial).toBe(25);
+            expect(annualBalance.used).toBe(5);
+            expect(annualBalance.pending).toBe(2);
+            expect(annualBalance.remaining).toBe(18);
         }
 
         const sickBalance = data.balances.SICK;
-        expectToBeDefined(sickBalance);
+        expect(sickBalance).toBeDefined();
         if (sickBalance) {
-            expectToBe(sickBalance.label, 'Congé Maladie (Balance Test)');
-            expectToBe(sickBalance.initial, 0);
-            expectToBe(sickBalance.used, 0);
-            expectToBe(sickBalance.pending, 0);
-            expectToBe(sickBalance.remaining, 0);
+            expect(sickBalance.label).toBe('Congé Maladie (Balance Test)');
+            expect(sickBalance.initial).toBe(0);
+            expect(sickBalance.used).toBe(0);
+            expect(sickBalance.pending).toBe(0);
+            expect(sickBalance.remaining).toBe(0);
         }
     });
 
     it('should return 400 if userId is missing', async () => {
         // Créer une requête sans userId
-        const request = new NextRequest(`http://localhost:3000/api/conges/balance?year=${currentYear}`, {
+        const request = new NextRequest(`http://localhost:3000/api/leaves/balance?year=${currentYear}`, {
             method: 'GET'
         });
 
         const response = await GET(request);
         const data = await response.json();
 
-        expectToBe(response.status, 400);
-        expectToBeDefined(data.error);
-        expectToBe(data.error, 'userId and year parameters are required');
+        expect(response.status).toBe(400);
+        expect(data.error).toBeDefined();
+        expect(data.error).toBe('userId and year parameters are required');
     });
 
     it('should handle year parameter correctly', async () => {
@@ -257,22 +251,22 @@ describe('GET /api/conges/balance', () => {
             { typeCode: 'ANNUAL', status: 'APPROVED', totalDays: 15 }
         ]);
 
-        const request = new NextRequest(`http://localhost:3000/api/conges/balance?userId=101&year=${testYear}`, {
+        const request = new NextRequest(`http://localhost:3000/api/leaves/balance?userId=101&year=${testYear}`, {
             method: 'GET'
         });
 
         const response = await GET(request);
         const data = await response.json();
 
-        expectToBe(response.status, 200);
+        expect(response.status).toBe(200);
         const annualBalance = data.balances.ANNUAL;
-        expectToBeDefined(annualBalance);
+        expect(annualBalance).toBeDefined();
         if (annualBalance) {
-            expectToBe(annualBalance.initial, 20);
-            expectToBe(annualBalance.used, 15);
-            expectToBe(annualBalance.carryOver, 1);
-            expectToBe(annualBalance.remaining, 6);
-            expectToBe(annualBalance.pending, 0);
+            expect(annualBalance.initial).toBe(20);
+            expect(annualBalance.used).toBe(15);
+            expect(annualBalance.carryOver).toBe(1);
+            expect(annualBalance.remaining).toBe(6);
+            expect(annualBalance.pending).toBe(0);
         }
     });
 
@@ -280,15 +274,15 @@ describe('GET /api/conges/balance', () => {
         // Mock un cas où aucun type de congé n'est défini
         mockFindManyLeaveTypeSetting.mockResolvedValue([]);
 
-        const request = new NextRequest(`http://localhost:3000/api/conges/balance?userId=999&year=${currentYear}`, {
+        const request = new NextRequest(`http://localhost:3000/api/leaves/balance?userId=999&year=${currentYear}`, {
             method: 'GET'
         });
 
         const response = await GET(request);
         const data = await response.json();
 
-        expectToBe(response.status, 200);
-        expectToBeDefined(data.balances);
-        expectToEqual(Object.keys(data.balances).length, 0);
+        expect(response.status).toBe(200);
+        expect(data.balances).toBeDefined();
+        expect(Object.keys(data.balances).length).toEqual(0);
     });
 }); 

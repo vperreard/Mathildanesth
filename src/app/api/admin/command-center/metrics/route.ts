@@ -33,33 +33,56 @@ async function handler(req: NextRequest) {
       }
     });
 
-    // Récupérer les violations de règles actives
-    const ruleViolations = await prisma.ruleViolation.count({
+    // Récupérer les violations de règles actives (using RuleConflict model)
+    const ruleViolations = await prisma.ruleConflict.count({
       where: {
-        resolvedAt: null,
+        resolved: false,
         createdAt: { gte: subDays(today, 7) }
       }
     });
 
-    // Récupérer les demandes en attente
-    const pendingRequests = await prisma.leaveRequest.count({
+    // Récupérer les demandes en attente (using Leave model with PENDING status)
+    const pendingRequests = await prisma.leave.count({
       where: {
         status: 'PENDING'
       }
     });
 
-    // Récupérer les alertes critiques
-    const criticalAlerts = await prisma.alert.findMany({
+    // Récupérer les alertes critiques (using LeaveRequestAlert model)
+    const leaveAlerts = await prisma.leaveRequestAlert.findMany({
       where: {
-        severity: { in: ['high', 'medium'] },
-        resolved: false,
-        createdAt: { gte: subDays(today, 2) }
+        generatedAt: { gte: subDays(today, 2) }
       },
       orderBy: {
-        severity: 'desc'
+        generatedAt: 'desc'
       },
-      take: 10
+      take: 10,
+      include: {
+        leave: {
+          include: {
+            user: {
+              select: {
+                nom: true,
+                prenom: true
+              }
+            }
+          }
+        }
+      }
     });
+
+    // Transform to expected alert format
+    const criticalAlerts = leaveAlerts.map(alert => ({
+      id: alert.id.toString(),
+      type: 'absence' as const,
+      severity: alert.ruleCode.includes('CRITICAL') ? 'high' as const : 'medium' as const,
+      title: `Alerte congé - ${alert.leave.user.nom} ${alert.leave.user.prenom}`,
+      description: alert.messageDetails,
+      timestamp: alert.generatedAt,
+      actionRequired: true,
+      actionType: 'validate' as const,
+      relatedId: alert.leaveId
+    }));
 
     // Calculer les tendances hebdomadaires
     const previousWeekAbsences = await prisma.leave.count({
@@ -70,7 +93,7 @@ async function handler(req: NextRequest) {
       }
     });
 
-    const previousWeekViolations = await prisma.ruleViolation.count({
+    const previousWeekViolations = await prisma.ruleConflict.count({
       where: {
         createdAt: {
           gte: subWeeks(today, 2),
@@ -99,17 +122,7 @@ async function handler(req: NextRequest) {
       overloadedStaff,
       ruleViolations,
       pendingRequests,
-      criticalAlerts: criticalAlerts.map(alert => ({
-        id: alert.id,
-        type: alert.type,
-        severity: alert.severity,
-        title: alert.title,
-        description: alert.description,
-        timestamp: alert.createdAt,
-        actionRequired: alert.actionRequired,
-        actionType: alert.actionType,
-        relatedId: alert.relatedId
-      })),
+      criticalAlerts,
       weeklyTrends
     });
 

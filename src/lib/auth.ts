@@ -192,4 +192,40 @@ export async function verifyToken(token: string): Promise<TokenPayload & jose.JW
         
         throw new Error('Token invalide ou malformé');
     }
+}
+
+/**
+ * Récupère l'utilisateur depuis le cookie de session
+ */
+export async function getUserFromCookie(request: any): Promise<any> {
+    try {
+        // Récupérer le token depuis les cookies
+        const token = request.cookies?.get?.('auth-token')?.value || 
+                     request.headers?.get?.('authorization')?.replace('Bearer ', '');
+        
+        if (!token) {
+            return null;
+        }
+
+        // Vérifier le token
+        const payload = await verifyToken(token);
+        
+        // En mode développement, retourner un utilisateur mockΓ
+        if (IS_DEV_MODE) {
+            return devUsers.find(u => u.id === payload.userId) || null;
+        }
+
+        // Récupérer l'utilisateur depuis la base de données
+        if (prismaClient) {
+            const user = await prismaClient.user.findUnique({
+                where: { id: payload.userId }
+            });
+            return user;
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Erreur lors de la récupération de l\'utilisateur:', error);
+        return null;
+    }
 } 
