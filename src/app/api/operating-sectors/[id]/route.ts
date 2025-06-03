@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { checkUserRole } from '@/lib/auth/authorization';
 
 // Rôles autorisés
-const ALLOWED_ROLES_GET = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'MAR', 'IADE'];
+const ALLOWED_ROLES_GET = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'USER'];
 const ALLOWED_ROLES_WRITE = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'];
 
 interface Context {

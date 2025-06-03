@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 
 interface PermissionGuardProps {
   children: ReactNode;
-  requiredRole?: 'ADMIN' | 'USER';
+  requiredRole?: 'ADMIN_TOTAL' | 'ADMIN_PARTIEL' | 'USER';
   requiredPermission?: string;
   fallbackUrl?: string;
   showError?: boolean;
@@ -55,15 +55,11 @@ function PermissionGuard({
   const hasRequiredRole = () => {
     if (!requiredRole) return true;
 
-    // Hiérarchie des rôles : ADMIN_TOTAL > ADMIN_PARTIEL > ADMIN > USER
+    // Hiérarchie des rôles simplifiée : ADMIN_TOTAL > ADMIN_PARTIEL > USER
     const roleHierarchy = {
-      ADMIN_TOTAL: 4,
-      ADMIN_PARTIEL: 3,
-      ADMIN: 2,
+      ADMIN_TOTAL: 3,
+      ADMIN_PARTIEL: 2,
       USER: 1,
-      MAR: 1,
-      IADE: 1,
-      CHIRURGIEN: 1,
     };
 
     const userLevel = roleHierarchy[user.role as keyof typeof roleHierarchy] || 0;
@@ -96,8 +92,8 @@ function PermissionGuard({
   // Vérifier une permission spécifique (extensible pour le futur)
   if (requiredPermission) {
     // TODO: Implémenter la logique de permissions granulaires
-    // Pour l'instant, on considère que ADMIN et niveaux supérieurs ont toutes les permissions
-    const isAdmin = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'ADMIN'].includes(user.role);
+    // Pour l'instant, on considère que les ADMIN ont toutes les permissions
+    const isAdmin = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(user.role);
     if (!isAdmin) {
       if (showError) {
         return (
