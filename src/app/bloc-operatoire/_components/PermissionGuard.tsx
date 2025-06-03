@@ -19,7 +19,7 @@ function PermissionGuard({
   requiredRole,
   requiredPermission,
   fallbackUrl = '/bloc-operatoire',
-  showError = true
+  showError = true,
 }: PermissionGuardProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
@@ -39,15 +39,11 @@ function PermissionGuard({
       return (
         <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Authentification requise
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Authentification requise</h2>
           <p className="text-gray-600 mb-4">
             Vous devez être connecté pour accéder à cette section.
           </p>
-          <Button onClick={() => router.push('/auth/connexion')}>
-            Se connecter
-          </Button>
+          <Button onClick={() => router.push('/auth/connexion')}>Se connecter</Button>
         </div>
       );
     }
@@ -55,17 +51,37 @@ function PermissionGuard({
     return null;
   }
 
-  // Vérifier le rôle
-  if (requiredRole && user.role !== requiredRole) {
+  // Vérifier le rôle avec hiérarchie
+  const hasRequiredRole = () => {
+    if (!requiredRole) return true;
+
+    // Hiérarchie des rôles : ADMIN_TOTAL > ADMIN_PARTIEL > ADMIN > USER
+    const roleHierarchy = {
+      ADMIN_TOTAL: 4,
+      ADMIN_PARTIEL: 3,
+      ADMIN: 2,
+      USER: 1,
+      MAR: 1,
+      IADE: 1,
+      CHIRURGIEN: 1,
+    };
+
+    const userLevel = roleHierarchy[user.role as keyof typeof roleHierarchy] || 0;
+    const requiredLevel = roleHierarchy[requiredRole as keyof typeof roleHierarchy] || 0;
+
+    return userLevel >= requiredLevel;
+  };
+
+  if (requiredRole && !hasRequiredRole()) {
     if (showError) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
           <AlertCircle className="h-12 w-12 text-yellow-500 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Permissions insuffisantes
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Permissions insuffisantes</h2>
           <p className="text-gray-600 mb-4">
             Vous n'avez pas les permissions nécessaires pour accéder à cette section.
+            <br />
+            Rôle requis: {requiredRole} - Votre rôle: {user.role}
           </p>
           <Button variant="outline" onClick={() => router.push(fallbackUrl)}>
             Retour
@@ -80,8 +96,9 @@ function PermissionGuard({
   // Vérifier une permission spécifique (extensible pour le futur)
   if (requiredPermission) {
     // TODO: Implémenter la logique de permissions granulaires
-    // Pour l'instant, on considère que ADMIN a toutes les permissions
-    if (user.role !== 'ADMIN') {
+    // Pour l'instant, on considère que ADMIN et niveaux supérieurs ont toutes les permissions
+    const isAdmin = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'ADMIN'].includes(user.role);
+    if (!isAdmin) {
       if (showError) {
         return (
           <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
