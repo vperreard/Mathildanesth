@@ -89,12 +89,21 @@ function PermissionGuard({
     return null;
   }
 
-  // Vérifier une permission spécifique (extensible pour le futur)
+  // Vérifier une permission spécifique
   if (requiredPermission) {
-    // TODO: Implémenter la logique de permissions granulaires
-    // Pour l'instant, on considère que les ADMIN ont toutes les permissions
-    const isAdmin = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(user.role);
-    if (!isAdmin) {
+    // Importer le système de permissions
+    const { hasPermission, parsePermission } = await import('@/lib/permissions');
+
+    // Vérifier si la permission est valide
+    const permission = parsePermission(requiredPermission);
+    if (!permission) {
+      console.error(`Permission invalide: ${requiredPermission}`);
+      router.replace(fallbackUrl);
+      return null;
+    }
+
+    // Vérifier si l'utilisateur a la permission
+    if (!hasPermission(user.role, permission)) {
       if (showError) {
         return (
           <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
