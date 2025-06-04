@@ -32,34 +32,64 @@ async function verifyContextPermissions(
   action: 'read' | 'write' = 'write'
 ): Promise<boolean> {
   try {
-    // 🔐 CORRECTION DES TODO CRITIQUES : Vérifications de permissions fines
+    // Récupérer l'utilisateur pour vérifier son rôle
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+
+    if (!user) {
+      return false;
+    }
+
+    // Les admins ont accès à tout
+    const isAdmin = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(user.role);
+    if (isAdmin) {
+      return true;
+    }
 
     if (assignmentId) {
-      // Vérifier si l'utilisateur peut commenter cette affectation
+      // Vérifier si l'utilisateur peut accéder à cette affectation
       const attribution = await prisma.attribution.findUnique({
         where: { id: assignmentId },
         select: { userId: true },
       });
 
-      // L'utilisateur peut commenter ses propres affectations ou les admins peuvent tout commenter
+      // L'utilisateur peut accéder à ses propres affectations
       return attribution?.userId === userId;
     }
 
     if (requestId) {
-      // Vérifier si l'utilisateur peut commenter cette requête
+      // Vérifier si l'utilisateur peut accéder à cette requête
       const userRequest = await prisma.userRequest.findUnique({
         where: { id: requestId },
         select: { userId: true },
       });
 
-      // L'utilisateur peut commenter ses propres requêtes ou les admins peuvent tout commenter
+      // L'utilisateur peut accéder à ses propres requêtes
       return userRequest?.userId === userId;
     }
 
     if (contextDate) {
-      // Pour les messages liés à une date, on peut être plus permissif
-      // ou implémenter une logique métier spécifique
-      return true; // À ajuster selon les règles métier
+      // Pour les messages liés à une date
+      if (action === 'read') {
+        // Lecture : tous les utilisateurs peuvent lire les messages publics d'une date
+        return true;
+      } else {
+        // Écriture : seuls les utilisateurs ayant une affectation ce jour peuvent écrire
+        const hasAssignmentOnDate = await prisma.attribution.findFirst({
+          where: {
+            userId: userId,
+            startDate: {
+              lte: new Date(contextDate),
+            },
+            endDate: {
+              gte: new Date(contextDate),
+            },
+          },
+        });
+        return !!hasAssignmentOnDate;
+      }
     }
 
     return false;
@@ -106,7 +136,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions fines
+    // Vérifications de permissions fines
     const hasPermission = await verifyContextPermissions(
       userId,
       assignmentId,
@@ -291,7 +321,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions de lecture
+    // Vérifications de permissions de lecture
     const hasPermission = await verifyContextPermissions(
       userId,
       assignmentId || undefined,
