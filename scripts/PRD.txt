@@ -1,0 +1,205 @@
+# PRD - Mathildanesth : Application de Planning Médical pour Équipes d'Anesthésie
+
+## Overview
+Mathildanesth est une application web de gestion de planning pour les équipes d'anesthésie (MARs et IADEs) dans les hôpitaux. Elle résout le problème complexe de la planification des gardes, vacations et congés tout en respectant les contraintes légales, médicales et organisationnelles.
+
+**Problème résolu** : La planification manuelle des équipes d'anesthésie est chronophage, source d'erreurs, et ne permet pas d'optimiser la couverture des blocs opératoires.
+
+**Pour qui** : Administrateurs hospitaliers, chefs de service d'anesthésie, MARs (Médecins Anesthésistes-Réanimateurs), IADEs (Infirmiers Anesthésistes Diplômés d'État).
+
+**Valeur** : Gain de temps (80% de réduction du temps de planification), équité dans la répartition des gardes, respect automatique des contraintes légales, amélioration de la satisfaction des équipes.
+
+## Core Features
+
+### 1. Gestion des Plannings (Module Planning)
+- **Quoi** : Interface drag-and-drop pour créer et modifier les plannings mensuels
+- **Pourquoi** : Permet une visualisation claire et une modification rapide des affectations
+- **Comment** : Calendrier interactif avec validation en temps réel des règles métier
+
+### 2. Gestion des Congés (Module Leaves)
+- **Quoi** : Système complet de demande, validation et suivi des congés
+- **Pourquoi** : Centralise les demandes et automatise le calcul des quotas
+- **Comment** : Workflow de validation multi-niveaux avec notifications automatiques
+
+### 3. Gestion du Bloc Opératoire
+- **Quoi** : Affectation du personnel aux salles d'opération et secteurs
+- **Pourquoi** : Assure une couverture optimale des besoins chirurgicaux
+- **Comment** : Système de templates réutilisables et drag-and-drop entre secteurs
+- **Modes d'affectation** :
+  - Mode "trame fixe" : MAR affecté à salle/chirurgien spécifique
+  - Mode "rotation" : Affectation comptabilisée pour équité
+- **Rôles MAR** :
+  - Anesthésie directe (seul en salle)
+  - Supervision IADE (1-3 salles max selon secteur)
+  - Mixte (anesthésie + supervision salle adjacente)
+
+### 4. Système de Règles Dynamiques
+- **Quoi** : Moteur de règles configurable pour les contraintes de planning
+- **Pourquoi** : Permet l'adaptation aux spécificités de chaque établissement
+- **Comment** : Interface de configuration avec validation en temps réel
+
+### 5. Tableaux de Bord et Rapports
+- **Quoi** : Visualisation des métriques clés et génération de rapports
+- **Pourquoi** : Aide à la prise de décision et au suivi réglementaire
+- **Comment** : Dashboards temps réel avec export PDF/Excel
+
+## User Experience
+
+### Personas
+1. **Dr. Martin (Chef de service)**
+   - Besoin : Vue d'ensemble, validation rapide, respect des contraintes
+   - Frustration : Perte de temps en ajustements manuels
+
+2. **Sophie (IADE)**
+   - Besoin : Consulter son planning, poser des congés facilement
+   - Frustration : Manque de visibilité sur ses affectations
+
+3. **Claire (Administratrice)**
+   - Besoin : Générer les plannings rapidement, gérer les remplacements
+   - Frustration : Complexité des règles à respecter
+
+### Flux Utilisateurs Clés
+1. **Création de planning mensuel** : Import template → Ajustements → Validation → Publication
+2. **Demande de congé** : Sélection dates → Vérification quotas → Soumission → Notification
+3. **Remplacement urgent** : Alerte absence → Recherche remplaçant → Affectation → Notification
+
+### Contraintes Métier Spécifiques
+- **Repos post-garde** : 24h minimum après une garde finissant à 8h
+- **Équité long terme** : Compteurs annuels et pluriannuels pour gardes pénibles (nuits, WE, fériés)
+- **Rotation équitable** : Éviter que les mêmes personnes aient toujours les mêmes créneaux
+- **Indisponibilités** : Déclaration AVANT génération des gardes/astreintes
+- **Préférences configurables** : Option activable/désactivable par équipe (risque de plannings "à la carte")
+- **Demandes OFF** : Demi-journées ou journées complètes soumises à validation admin
+- **Remplacements urgents** :
+  - Pool de remplaçants habituels externes
+  - Remplacements internes : IADEs en heures sup, réorganisation des MARs
+  - Redistribution possible des supervisions pour libérer un MAR
+- **Gestion spécifique IADEs** :
+  - Import planning fixe annuel roulant sur X semaines
+  - 1 "IADE volant" par semaine : planning modifiable lors de la génération
+  - 1 IADE "GF" (Grande journée Fermeture) par jour : peut rester tard
+  - IADE GF doit faire salle entière (même chirurgien matin/après-midi)
+  - Équité des GF proportionnelle au temps de travail
+- **Temps de travail MARs** :
+  - Temps plein : disponible lundi-vendredi
+  - Mi-temps : 3 modes (semaine coupée, 1 semaine/2, 1 mois/2)
+  - Équité des OFF proportionnelle au temps de travail
+
+### UI/UX Considerations
+- Design médical épuré (bleu/blanc)
+- Interface responsive pour tablettes et smartphones
+- Accessibilité WCAG 2.1
+- Mode sombre pour gardes de nuit
+- **Mobile First** : Consultation ET actions depuis smartphone (congés, échanges gardes)
+- Progressive Web App pour utilisation offline
+
+## Technical Architecture
+
+### Composants Système
+- **Frontend** : Next.js 14 avec TypeScript
+- **Backend** : API Routes Next.js
+- **Base de données** : PostgreSQL avec Prisma ORM
+- **Cache** : Redis pour performances
+- **Auth** : JWT avec cookies HTTPOnly
+
+### Modèles de Données
+- Users (rôles, compétences, préférences)
+- Planning (affectations, créneaux)
+- Leaves (congés, quotas, validations)
+- OperatingRooms (salles, secteurs)
+- Rules (contraintes configurables)
+
+### APIs et Intégrations
+- API REST pour toutes les opérations
+- WebSockets pour notifications temps réel
+- Export iCal pour synchronisation calendriers
+- Pas d'intégration avec systèmes existants (RH, paie) dans un premier temps
+- Import/export manuel via Excel/CSV si nécessaire
+
+### Infrastructure
+- Hébergement : Cloud (AWS/Vercel)
+- CDN pour assets statiques
+- Backup automatique quotidien
+- Monitoring avec alertes
+
+## Development Roadmap
+
+### Phase 1 - MVP (Actuel)
+- ✓ Authentification et gestion utilisateurs
+- ✓ Module congés fonctionnel
+- ✓ Planning basique avec drag-and-drop
+- ✓ Gestion des salles d'opération
+- → Stabilisation et correction bugs
+
+### Phase 2 - Fonctionnalités Prioritaires
+- **Génération automatique intelligente des plannings** (PRIORITÉ #1)
+  - Algorithme avec hiérarchie de contraintes :
+    1. **Contraintes légales** (non négociable) : préférer cases vides que violations
+    2. **Indisponibilités déclarées** : respect total + compteur pour éviter abus
+    3. **Équité multi-niveaux** :
+       - Court terme : équilibrer demi-journées travaillées/OFF sur la semaine
+       - Long terme : équilibrer gardes pénibles sur l'année
+    4. **Optimisation RH** : minimiser le ratio personnel/salles (éviter 3 pour 2 salles)
+  - Maximisation des journées/demi-journées OFF (facteur qualité de vie)
+  - Suggestions de modifications en cas de conflit
+- Performance (< 200ms chargement)
+- Tests automatisés (80% coverage)
+- Documentation utilisateur
+
+### Phase 3 - Améliorations
+- Notifications temps réel
+- Tableaux de bord analytiques
+- Export/Import Excel avancé
+- Migration routes en français
+
+### Phase 4 - Fonctionnalités Avancées
+- Application mobile PWA complète
+- Multi-établissements
+- Intégrations externes (si besoin)
+
+## Logical Dependency Chain
+
+1. **Foundation** : Auth → Users → Roles → Permissions
+2. **Core Planning** : Calendar → Assignments → Drag-drop → Validation
+3. **Leaves System** : Quotas → Requests → Workflow → Notifications
+4. **Operating Rooms** : Sectors → Rooms → Templates → Assignments
+5. **Rules Engine** : Rule definitions → Validation → Real-time checks
+6. **Reporting** : Data aggregation → Dashboards → Exports
+
+## Risks and Mitigations
+
+### Risques Techniques
+- **Performance avec grandes équipes** : Implémenter pagination et lazy loading
+- **Complexité des règles** : Système de règles modulaire et testable
+- **Compatibilité navigateurs** : Tests cross-browser automatisés
+
+### Risques Métier
+- **Résistance au changement** : Formation et accompagnement utilisateurs
+- **Conformité réglementaire** : Audit régulier avec juriste santé
+- **Données sensibles** : Chiffrement et conformité RGPD
+
+### Contraintes Ressources
+- **Budget limité** : Priorisation MVP et développement itératif
+- **Équipe réduite** : Automatisation maximum et code réutilisable
+- **Déploiement** : Phase 1 = établissement pilote, Phase 2 = potentielle commercialisation
+- **Modèle économique** : À définir ultérieurement
+- **Timeline** : Lancement production visé pour 2026 (6+ mois), pas de pression temporelle
+
+## Appendix
+
+### Recherche Terrain
+- Interviews avec 15 professionnels d'anesthésie
+- Analyse de 3 solutions concurrentes
+- Étude des contraintes légales (Code du travail santé)
+
+### Spécifications Techniques
+- Performance : Time to Interactive < 3s
+- Disponibilité : 99.9% uptime
+- Sécurité : Authentification 2FA, logs d'audit
+- Scalabilité : Support jusqu'à 500 utilisateurs simultanés
+
+### Métriques de Succès
+- Réduction 80% du temps de planification
+- Satisfaction utilisateur > 4.5/5
+- 0 erreur de conformité réglementaire
+- ROI positif en 6 mois

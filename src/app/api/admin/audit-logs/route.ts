@@ -1,20 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/middleware/authorization';
+import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/admin/audit-logs
  * Récupère l'historique des logs d'audit
  * Accessible uniquement aux administrateurs
  */
-const getHandler = withAuth({
-    requireAuth: true,
-    allowedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
-    resourceType: 'audit',
-    action: 'read'
-})(async (req: NextRequest) => {
+export async function GET(req: NextRequest) {
     try {
+        // Vérification manuelle de l'authentification
+        const authHeader = req.headers.get('authorization');
+        const token = authHeader?.startsWith('Bearer ') 
+            ? authHeader.substring(7) 
+            : null;
+
+        if (!token) {
+            return NextResponse.json(
+                { error: 'Authentication required' },
+                { status: 401 }
+            );
+        }
+
+        const authResult = await verifyAuthToken(token);
+        if (!authResult.authenticated) {
+            return NextResponse.json(
+                { error: authResult.error || 'Invalid token' },
+                { status: 401 }
+            );
+        }
+
+        // Vérifier le rôle
+        const user = await prisma.user.findUnique({
+            where: { id: authResult.userId },
+            select: {
+                id: true,
+                role: true,
+                actif: true
+            }
+        });
+
+        if (!user || !user.actif) {
+            return NextResponse.json(
+                { error: 'User not found or inactive' },
+                { status: 403 }
+            );
+        }
+
+        if (user.role !== 'ADMIN_TOTAL' && user.role !== 'ADMIN_PARTIEL') {
+            return NextResponse.json(
+                { error: 'Insufficient permissions' },
+                { status: 403 }
+            );
+        }
+
         const { searchParams } = new URL(req.url);
         
         // Paramètres de filtrage
@@ -85,19 +126,59 @@ const getHandler = withAuth({
             { status: 500 }
         );
     }
-});
+}
 
 /**
  * POST /api/admin/audit-logs/statistics
  * Récupère les statistiques des logs d'audit
  */
-const postHandler = withAuth({
-    requireAuth: true,
-    allowedRoles: ['ADMIN_TOTAL'],
-    resourceType: 'audit',
-    action: 'analyze'
-})(async (req: NextRequest) => {
+export async function POST(req: NextRequest) {
     try {
+        // Vérification manuelle de l'authentification
+        const authHeader = req.headers.get('authorization');
+        const token = authHeader?.startsWith('Bearer ') 
+            ? authHeader.substring(7) 
+            : null;
+
+        if (!token) {
+            return NextResponse.json(
+                { error: 'Authentication required' },
+                { status: 401 }
+            );
+        }
+
+        const authResult = await verifyAuthToken(token);
+        if (!authResult.authenticated) {
+            return NextResponse.json(
+                { error: authResult.error || 'Invalid token' },
+                { status: 401 }
+            );
+        }
+
+        // Vérifier le rôle
+        const user = await prisma.user.findUnique({
+            where: { id: authResult.userId },
+            select: {
+                id: true,
+                role: true,
+                actif: true
+            }
+        });
+
+        if (!user || !user.actif) {
+            return NextResponse.json(
+                { error: 'User not found or inactive' },
+                { status: 403 }
+            );
+        }
+
+        if (user.role !== 'ADMIN_TOTAL') {
+            return NextResponse.json(
+                { error: 'Insufficient permissions' },
+                { status: 403 }
+            );
+        }
+
         const body = await req.json();
         const { startDate, endDate } = body;
 
@@ -157,7 +238,4 @@ const postHandler = withAuth({
             { status: 500 }
         );
     }
-});
-
-export const GET = getHandler;
-export const POST = postHandler;
+}

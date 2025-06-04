@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth';
 
 
 // Récupérer une règle de planning par ID
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
 
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // Mettre à jour une règle de planning
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
 
@@ -133,7 +133,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 // Supprimer une règle de planning
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
 

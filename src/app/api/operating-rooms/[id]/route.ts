@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { headers } from 'next/headers';
-import { verifyAuthToken } from '@/lib/auth-utils';
-import { OperatingRoomSchema } from '@/modules/planning/bloc-operatoire/models/BlocModels';
-import { BlocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
+import { checkUserRole } from '@/lib/auth-server-utils';
+import type { UserRole } from '@/lib/auth-client-utils';
 
 // Contexte pour les paramètres d'URL
 interface Context {
@@ -12,68 +10,7 @@ interface Context {
     };
 }
 
-const planningService = new BlocPlanningService();
-
-// Fonction utilitaire pour normaliser les noms de secteurs (identique à route.ts)
-const normalizeSectorName = (name: string): string => {
-    // Enlever les espaces invisibles et normaliser les espaces multiples
-    const normalized = name.trim().replace(/\s+/g, ' ');
-
-    // Traitement spécial pour Endoscopie
-    if (normalized.toLowerCase().includes("endoscopie")) {
-        return "Endoscopie";
-    }
-
-    return normalized;
-};
-
-// Fonction utilitaire pour trouver un secteur (identique à route.ts)
-const findSector = async (sectorId?: number, sectorName?: string) => {
-    if (sectorId) {
-        // Recherche directe par ID
-        return prisma.operatingSector.findUnique({ where: { id: sectorId } });
-    } else if (sectorName) {
-        // Normaliser le nom pour la recherche
-        const normalizedName = normalizeSectorName(sectorName);
-
-        // D'abord, essayer une recherche exacte
-        let sector = await prisma.operatingSector.findFirst({
-            where: { name: normalizedName }
-        });
-
-        // Si pas de résultat, essayer une recherche insensible à la casse
-        if (!sector) {
-            sector = await prisma.operatingSector.findFirst({
-                where: {
-                    name: {
-                        contains: normalizedName,
-                        mode: 'insensitive'
-                    }
-                }
-            });
-        }
-
-        // Cas spécial pour Endoscopie
-        if (!sector && normalizedName.toLowerCase().includes('endo')) {
-            sector = await prisma.operatingSector.findFirst({
-                where: {
-                    name: {
-                        contains: 'Endoscopie',
-                        mode: 'insensitive'
-                    }
-                }
-            });
-
-            if (sector) {
-                console.log(`Secteur Endoscopie trouvé par recherche partielle: ${sector.name}`);
-            }
-        }
-
-        return sector;
-    }
-
-    return null;
-};
+const ALLOWED_ROLES: UserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'USER'];
 
 // GET : Récupérer une salle spécifique
 export async function GET(request: Request, context: Context) {
@@ -107,18 +44,15 @@ export async function GET(request: Request, context: Context) {
 // PUT : Mettre à jour une salle
 export async function PUT(request: Request, context: Context) {
     try {
-        // Vérifier l'authentification
-        const authResult = await verifyAuthToken();
+        // Vérifier l'authentification comme dans l'API utilisateurs
+        const authCheck = await checkUserRole(ALLOWED_ROLES);
 
-        if (!authResult.authenticated) {
-            // Vérifier si l'en-tête x-user-role est présent (pour le développement)
-            const headersList = await headers();
-            const userRole = headersList.get('x-user-role');
-
-            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
-                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-            }
-            console.log('[DEV MODE] Authentification par en-tête uniquement pour PUT /api/operating-rooms');
+        if (!authCheck.hasRequiredRole) {
+            console.log("Vérification d'autorisation échouée:", authCheck.error);
+            return NextResponse.json(
+                { error: authCheck.error || 'Authentification requise' },
+                { status: 401 }
+            );
         }
 
         // Récupérer l'ID
@@ -143,25 +77,12 @@ export async function PUT(request: Request, context: Context) {
         const body = await request.json();
         console.log(`PUT /api/operating-rooms/${id} - Body reçu:`, body);
 
-        try {
-            // Valider avec le schéma Zod
-            OperatingRoomSchema.parse(body);
-        } catch (validationError) {
-            console.error("Erreur de validation Zod:", validationError);
-            return NextResponse.json({ error: 'Les données sont invalides', details: validationError }, { status: 400 });
-        }
+        // Extraire les données validées (compatible avec SallesAdmin)
+        const { name, number, operatingSectorId, isActive } = body;
 
-        // Validation spécifique du champ type
-        const validTypes = ['STANDARD', 'FIV', 'CONSULTATION'];
-        if (body.type && !validTypes.includes(body.type)) {
-            return NextResponse.json({
-                error: 'Type de salle invalide',
-                details: `Le type doit être l'un des suivants: ${validTypes.join(', ')}`
-            }, { status: 400 });
+        if (!name || !operatingSectorId) {
+            return NextResponse.json({ error: 'Nom et secteur requis' }, { status: 400 });
         }
-
-        // Extraire les données validées
-        const { name, number, sector, sectorId, colorCode, isActive, supervisionRules, type } = body;
 
         // Vérifier si le numéro est déjà utilisé par une autre salle
         if (number !== existingRoom.number) {
@@ -179,11 +100,13 @@ export async function PUT(request: Request, context: Context) {
             }
         }
 
-        // Trouver le secteur soit par ID soit par nom
-        const sectorEntity = await findSector(sectorId, sector);
+        // Vérifier que le secteur existe
+        const sectorEntity = await prisma.operatingSector.findUnique({
+            where: { id: operatingSectorId }
+        });
 
         if (!sectorEntity) {
-            console.error(`Secteur non trouvé: ID=${sectorId || 'non fourni'}, nom=${sector || 'non fourni'}`);
+            console.error(`Secteur non trouvé: ID=${operatingSectorId}`);
             return NextResponse.json({ error: 'Secteur introuvable. Veuillez sélectionner un secteur valide.' }, { status: 400 });
         }
 
@@ -194,10 +117,7 @@ export async function PUT(request: Request, context: Context) {
                 name: name.trim(),
                 number: number.trim(),
                 operatingSectorId: sectorEntity.id,
-                colorCode: colorCode || null,
-                isActive: isActive === undefined ? true : isActive,
-                supervisionRules: supervisionRules || existingRoom.supervisionRules,
-                roomType: type || 'STANDARD', // Utilisation du bon nom de champ
+                isActive: isActive !== undefined ? isActive : true,
             },
             include: { operatingSector: true }
         });
@@ -215,18 +135,15 @@ export async function PUT(request: Request, context: Context) {
 // DELETE : Supprimer une salle
 export async function DELETE(request: Request, context: Context) {
     try {
-        // Vérifier l'authentification
-        const authResult = await verifyAuthToken();
+        // Vérifier l'authentification comme dans l'API utilisateurs
+        const authCheck = await checkUserRole(ALLOWED_ROLES);
 
-        if (!authResult.authenticated) {
-            // Vérifier si l'en-tête x-user-role est présent (pour le développement)
-            const headersList = await headers();
-            const userRole = headersList.get('x-user-role');
-
-            if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
-                return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-            }
-            console.log('[DEV MODE] Authentification par en-tête uniquement pour DELETE /api/operating-rooms');
+        if (!authCheck.hasRequiredRole) {
+            console.log("Vérification d'autorisation échouée:", authCheck.error);
+            return NextResponse.json(
+                { error: authCheck.error || 'Authentification requise' },
+                { status: 401 }
+            );
         }
 
         const { id } = await context.params;

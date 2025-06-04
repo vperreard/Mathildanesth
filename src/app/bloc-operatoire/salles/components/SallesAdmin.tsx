@@ -36,24 +36,23 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 import { OperatingRoom, BlocSector } from '@/types/bloc-planning-types';
 
 // Schéma de validation pour le formulaire de salle
 const salleFormSchema = z.object({
-    id: z.string().optional(),
-    numero: z.string().min(1, 'Le numéro de salle est requis'),
-    nom: z.string().min(1, 'Le nom de la salle est requis'),
-    secteurId: z.string().min(1, 'Le secteur est requis'),
-    estActif: z.boolean().default(true),
+    id: z.number().optional(),
+    number: z.string().min(1, 'Le numéro de salle est requis'),
+    name: z.string().min(1, 'Le nom de la salle est requis'),
+    operatingSectorId: z.number().min(1, 'Le secteur est requis'),
+    isActive: z.boolean().default(true),
 });
 
-type SalleFormValues = z.infer<typeof salleFormSchema>;
 
 export default function SallesAdmin() {
     const [salles, setSalles] = useState<OperatingRoom[]>([]);
@@ -64,13 +63,13 @@ export default function SallesAdmin() {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
-    const form = useForm<SalleFormValues>({
+    const form = useForm({
         resolver: zodResolver(salleFormSchema),
         defaultValues: {
-            numero: '',
-            nom: '',
-            secteurId: '',
-            estActif: true,
+            number: '',
+            name: '',
+            operatingSectorId: 0,
+            isActive: true,
         },
     });
 
@@ -79,10 +78,23 @@ export default function SallesAdmin() {
         loadData();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const loadData = () => {
+    const loadData = async () => {
         try {
-            const sallesData = blocPlanningService.getAllOperatingRooms();
-            const secteursData = blocPlanningService.getAllSectors();
+            setIsLoading(true);
+            
+            // Charger les salles via l'API
+            const sallesResponse = await fetch('/api/operating-rooms');
+            if (!sallesResponse.ok) {
+                throw new Error('Erreur lors du chargement des salles');
+            }
+            const sallesData = await sallesResponse.json();
+            
+            // Charger les secteurs via l'API
+            const secteursResponse = await fetch('/api/operating-sectors');
+            if (!secteursResponse.ok) {
+                throw new Error('Erreur lors du chargement des secteurs');
+            }
+            const secteursData = await secteursResponse.json();
 
             setSalles(sallesData);
             setSecteurs(secteursData);
@@ -93,26 +105,28 @@ export default function SallesAdmin() {
                 title: 'Erreur de chargement',
                 description: 'Impossible de charger les données des salles et secteurs',
             });
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const handleEditSalle = (salle: OperatingRoom) => {
         form.reset({
             id: salle.id,
-            numero: salle.numero,
-            nom: salle.nom,
-            secteurId: salle.secteurId,
-            estActif: salle.estActif,
+            number: salle.number || '',
+            name: salle.name || '',
+            operatingSectorId: salle.operatingSectorId || 0,
+            isActive: salle.isActive !== undefined ? salle.isActive : true,
         });
         setIsDialogOpen(true);
     };
 
     const handleAddSalle = () => {
         form.reset({
-            numero: '',
-            nom: '',
-            secteurId: '',
-            estActif: true,
+            number: '',
+            name: '',
+            operatingSectorId: 0,
+            isActive: true,
         });
         setIsDialogOpen(true);
     };
@@ -127,16 +141,19 @@ export default function SallesAdmin() {
 
         setIsLoading(true);
         try {
-            const success = blocPlanningService.deleteOperatingRoom(salleToDelete.id);
-            if (success) {
-                toast({
-                    title: 'Salle supprimée',
-                    description: `La salle ${salleToDelete.nom} a été supprimée avec succès`,
-                });
-                loadData();
-            } else {
-                throw new Error('Échec de la suppression');
+            const response = await fetch(`/api/operating-rooms/${salleToDelete.id}`, {
+                method: 'DELETE',
+            });
+            
+            if (!response.ok) {
+                throw new Error('Erreur lors de la suppression');
             }
+            
+            toast({
+                title: 'Salle supprimée',
+                description: `La salle ${salleToDelete.name} a été supprimée avec succès`,
+            });
+            await loadData();
         } catch (error) {
             console.error('Erreur lors de la suppression:', error);
             toast({
@@ -151,30 +168,50 @@ export default function SallesAdmin() {
         }
     };
 
-    const onSubmit = async (values: SalleFormValues) => {
+    const onSubmit = async (values: any) => {
         setIsLoading(true);
         try {
             if (values.id) {
                 // Mise à jour d'une salle existante
-                const updatedSalle = blocPlanningService.updateOperatingRoom(values.id, values);
-                if (updatedSalle) {
-                    toast({
-                        title: 'Salle mise à jour',
-                        description: `La salle ${updatedSalle.nom} a été mise à jour avec succès`,
-                    });
-                } else {
-                    throw new Error('Échec de la mise à jour');
+                const response = await fetch(`/api/operating-rooms/${values.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(values),
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la mise à jour');
                 }
+                
+                const updatedSalle = await response.json();
+                toast({
+                    title: 'Salle mise à jour',
+                    description: `La salle ${updatedSalle.name || values.name} a été mise à jour avec succès`,
+                });
             } else {
                 // Création d'une nouvelle salle
-                const newSalle = blocPlanningService.createOperatingRoom(values);
+                const response = await fetch('/api/operating-rooms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(values),
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la création');
+                }
+                
+                const newSalle = await response.json();
                 toast({
                     title: 'Salle créée',
-                    description: `La salle ${newSalle.nom} a été créée avec succès`,
+                    description: `La salle ${newSalle.name || values.name} a été créée avec succès`,
                 });
             }
 
-            loadData();
+            await loadData();
             setIsDialogOpen(false);
         } catch (error) {
             console.error('Erreur lors de l\'enregistrement:', error);
@@ -188,14 +225,14 @@ export default function SallesAdmin() {
         }
     };
 
-    const getSecteurNom = (secteurId: string) => {
+    const getSecteurNom = (secteurId: number) => {
         const secteur = secteurs.find(s => s.id === secteurId);
-        return secteur ? secteur.nom : 'Secteur inconnu';
+        return secteur ? secteur.name : 'Secteur inconnu';
     };
 
-    const getSecteurCouleur = (secteurId: string) => {
+    const getSecteurCouleur = (secteurId: number) => {
         const secteur = secteurs.find(s => s.id === secteurId);
-        return secteur ? secteur.couleur : '#CCCCCC';
+        return secteur ? secteur.colorCode : '#CCCCCC';
     };
 
     return (
@@ -203,7 +240,7 @@ export default function SallesAdmin() {
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold">Liste des salles d'opération</h2>
                 <Button onClick={handleAddSalle} className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-5 w-5" />
                     Ajouter une salle
                 </Button>
             </div>
@@ -214,7 +251,10 @@ export default function SallesAdmin() {
                     <p className="text-muted-foreground text-center mb-4">
                         Aucune salle d'opération n'a été configurée
                     </p>
-                    <Button onClick={handleAddSalle} variant="outline">Ajouter une première salle</Button>
+                    <Button onClick={handleAddSalle} variant="outline" className="flex items-center gap-2">
+                        <Plus className="h-5 w-5" />
+                        Ajouter une première salle
+                    </Button>
                 </div>
             ) : (
                 <div className="border rounded-md">
@@ -231,38 +271,39 @@ export default function SallesAdmin() {
                         <TableBody>
                             {salles.map((salle) => (
                                 <TableRow key={salle.id}>
-                                    <TableCell className="font-medium">{salle.numero}</TableCell>
-                                    <TableCell>{salle.nom}</TableCell>
+                                    <TableCell className="font-medium">{salle.number}</TableCell>
+                                    <TableCell>{salle.name}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <span
                                                 className="w-3 h-3 rounded-full"
-                                                style={{ backgroundColor: getSecteurCouleur(salle.secteurId) }}
+                                                style={{ backgroundColor: getSecteurCouleur(salle.operatingSectorId) }}
                                             />
-                                            {getSecteurNom(salle.secteurId)}
+                                            {getSecteurNom(salle.operatingSectorId)}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={salle.estActif ? "default" : "secondary"}>
-                                            {salle.estActif ? 'Active' : 'Inactive'}
+                                        <Badge variant={salle.isActive ? "default" : "secondary"}>
+                                            {salle.isActive ? 'Active' : 'Inactive'}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
                                             <Button
                                                 variant="outline"
-                                                size="icon"
+                                                className="h-10 w-10 p-0"
                                                 onClick={() => handleEditSalle(salle)}
+                                                title="Modifier la salle"
                                             >
-                                                <Edit className="h-4 w-4" />
+                                                <Edit className="h-5 w-5" />
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                size="icon"
-                                                className="text-destructive"
+                                                className="h-10 w-10 p-0 text-red-500 hover:text-red-700 hover:border-red-300"
                                                 onClick={() => handleDeleteClick(salle)}
+                                                title="Supprimer la salle"
                                             >
-                                                <Trash2 className="h-4 w-4" />
+                                                <Trash2 className="h-5 w-5" />
                                             </Button>
                                         </div>
                                     </TableCell>
@@ -289,7 +330,7 @@ export default function SallesAdmin() {
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
-                                name="numero"
+                                name="number"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Numéro de salle</FormLabel>
@@ -306,7 +347,7 @@ export default function SallesAdmin() {
 
                             <FormField
                                 control={form.control}
-                                name="nom"
+                                name="name"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Nom de la salle</FormLabel>
@@ -323,14 +364,14 @@ export default function SallesAdmin() {
 
                             <FormField
                                 control={form.control}
-                                name="secteurId"
+                                name="operatingSectorId"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Secteur</FormLabel>
                                         <Select
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                            value={field.value}
+                                            onValueChange={(value) => field.onChange(parseInt(value))}
+                                            defaultValue={field.value?.toString()}
+                                            value={field.value?.toString()}
                                         >
                                             <FormControl>
                                                 <SelectTrigger>
@@ -339,13 +380,13 @@ export default function SallesAdmin() {
                                             </FormControl>
                                             <SelectContent>
                                                 {secteurs.map(secteur => (
-                                                    <SelectItem key={secteur.id} value={secteur.id}>
+                                                    <SelectItem key={secteur.id} value={secteur.id.toString()}>
                                                         <div className="flex items-center gap-2">
                                                             <span
                                                                 className="w-3 h-3 rounded-full"
-                                                                style={{ backgroundColor: secteur.couleur }}
+                                                                style={{ backgroundColor: secteur.colorCode }}
                                                             />
-                                                            {secteur.nom}
+                                                            {secteur.name}
                                                         </div>
                                                     </SelectItem>
                                                 ))}
@@ -361,7 +402,7 @@ export default function SallesAdmin() {
 
                             <FormField
                                 control={form.control}
-                                name="estActif"
+                                name="isActive"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                                         <div className="space-y-0.5">
@@ -371,14 +412,10 @@ export default function SallesAdmin() {
                                             </FormDescription>
                                         </div>
                                         <FormControl>
-                                            <div className="flex items-center space-x-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={field.value}
-                                                    onChange={field.onChange}
-                                                    className="h-4 w-4 rounded border-gray-300"
-                                                />
-                                            </div>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
                                         </FormControl>
                                     </FormItem>
                                 )}
@@ -414,9 +451,9 @@ export default function SallesAdmin() {
 
                     {salleToDelete && (
                         <div className="py-4">
-                            <p><strong>Numéro :</strong> {salleToDelete.numero}</p>
-                            <p><strong>Nom :</strong> {salleToDelete.nom}</p>
-                            <p><strong>Secteur :</strong> {getSecteurNom(salleToDelete.secteurId)}</p>
+                            <p><strong>Numéro :</strong> {salleToDelete.number}</p>
+                            <p><strong>Nom :</strong> {salleToDelete.name}</p>
+                            <p><strong>Secteur :</strong> {getSecteurNom(salleToDelete.operatingSectorId)}</p>
                         </div>
                     )}
 

@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth';
 
 
 // Récupérer un type d'affectation par ID
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
 
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // Mettre à jour un type d'affectation
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
 
@@ -132,7 +132,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 // Supprimer un type d'affectation
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
 

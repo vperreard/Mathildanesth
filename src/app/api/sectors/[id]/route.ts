@@ -37,7 +37,7 @@ function checkAuth(requestHeaders: Headers): { userId: string; userRole: string 
 // --- GET /api/sectors/[id] (Prisma - JSON Rules) ---
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     console.log(`\n--- GET /api/sectors/${params.id} START (Prisma - JSON Rules) ---`);
     try {
@@ -100,7 +100,7 @@ export async function GET(
 // --- PUT /api/sectors/[id] (Prisma - JSON Rules) ---
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     console.log(`\n--- PUT /api/sectors/${params.id} START (Prisma - JSON Rules) ---`);
     try {
@@ -196,7 +196,7 @@ export async function PUT(
 // --- DELETE /api/sectors/[id] (Prisma - JSON Rules) ---
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     console.log(`\n--- DELETE /api/sectors/${params.id} START (Prisma - JSON Rules) ---`);
     try {

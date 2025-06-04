@@ -3,9 +3,14 @@
  * @deprecated Utilisez TrameAffectationPrisma à la place
  */
 
-// Import du nouveau modèle Prisma
-export { TrameAffectationPrisma as TrameAffectation, PeriodeType, TrameAffectationAttributes } from './TrameAffectationPrisma';
+// Import et ré-export du nouveau modèle Prisma
+export { TrameAffectationPrisma as TrameAffectation } from './TrameAffectationPrisma';
 export { default } from './TrameAffectationPrisma';
+
+// Ré-export des types depuis TrameAffectationPrisma  
+import { PeriodeType as PT, TrameAffectationAttributes as TAA } from './TrameAffectationPrisma';
+export type PeriodeType = PT;
+export type TrameAffectationAttributes = TAA;
 
 // Avertissement de dépréciation
 if (process.env.NODE_ENV === 'development') {

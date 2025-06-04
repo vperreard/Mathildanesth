@@ -13,6 +13,7 @@ export interface SimulationProgress {
     currentStep?: string;
     totalSteps?: number;
     estimatedTimeRemaining?: number;
+    message?: string;
 }
 
 export interface SimulationNotification {
@@ -24,3 +25,6 @@ export interface SimulationNotification {
     userId?: number;
     timestamp?: Date;
 }
+
+// Export explicite des types
+export type { SimulationProgress as SimulationProgressType };

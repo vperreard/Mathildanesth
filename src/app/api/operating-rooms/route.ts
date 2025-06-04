@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { checkUserRole } from '@/lib/auth-server-utils';
 import type { UserRole } from '@/lib/auth-client-utils';
 import { PrismaClient, Prisma } from '@prisma/client';
+import { verifyAuthToken } from '@/lib/auth-utils';
 
 import { prisma } from '@/lib/prisma';
 
@@ -71,50 +72,39 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Récupérer et vérifier le token JWT
-    const authToken = request.headers.get('Authorization')?.replace('Bearer ', '');
+    // Vérifier l'authentification comme dans l'API utilisateurs
+    const authCheck = await checkUserRole(ALLOWED_ROLES);
 
-    if (!authToken) {
-      return NextResponse.json({ error: 'Non autorisé - Token manquant' }, { status: 401 });
-    }
-
-    const authResult = await verifyAuthToken(authToken);
-    if (!authResult.authenticated) {
+    if (!authCheck.hasRequiredRole) {
+      console.log("Vérification d'autorisation échouée:", authCheck.error);
       return NextResponse.json(
-        { error: authResult.error || 'Non autorisé - Token invalide' },
+        { error: authCheck.error || 'Authentification requise' },
         { status: 401 }
       );
     }
-    // L'utilisateur est authentifié, on peut continuer
-    // authResult.userId et authResult.role sont disponibles si nécessaire
 
     const data = await request.json();
-    const { name, number, operatingSectorId, siteId } = data;
+    const { name, number, operatingSectorId } = data;
 
-    if (!name || !siteId) {
-      return NextResponse.json({ error: 'Nom et ID de site requis' }, { status: 400 });
+    if (!name || !operatingSectorId) {
+      return NextResponse.json({ error: 'Nom et secteur requis' }, { status: 400 });
     }
 
-    // Récupérer le secteur pour vérifier qu'il existe
-    // Si operatingSectorId est fourni
-    if (operatingSectorId) {
-      const sector = await prisma.operatingSector.findUnique({
-        where: { id: operatingSectorId },
-      });
-
-      if (!sector) {
-        return NextResponse.json({ error: 'Secteur opératoire non trouvé' }, { status: 404 });
-      }
-    }
-
-    // Vérifier que le site existe
-    const site = await prisma.site.findUnique({
-      where: { id: siteId },
+    // Récupérer le secteur pour vérifier qu'il existe et obtenir le siteId
+    const sector = await prisma.operatingSector.findUnique({
+      where: { id: operatingSectorId },
     });
 
-    if (!site) {
-      return NextResponse.json({ error: 'Site non trouvé' }, { status: 404 });
+    if (!sector) {
+      return NextResponse.json({ error: 'Secteur opératoire non trouvé' }, { status: 404 });
     }
+
+    if (!sector.siteId) {
+      return NextResponse.json({ error: 'Le secteur doit être associé à un site' }, { status: 400 });
+    }
+
+    // Utiliser le siteId du secteur
+    const siteId = sector.siteId;
 
     // Préparer les données pour la création
     const createData: any = {

@@ -10,10 +10,10 @@ import { createNotification } from '@/lib/notifications';
  */
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const leaveId = params.id;
+        const { id: leaveId } = await params;
         if (!leaveId) {
             return NextResponse.json({ error: 'ID de congé manquant' }, { status: 400 });
         }

@@ -10,7 +10,7 @@ const hasRequiredRole = (): boolean => {
 };
 
 // --- PUT : Modifier une spécialité ---
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     if (!hasRequiredRole()) {
         return new NextResponse(JSON.stringify({ message: 'Accès non autorisé' }), { status: 403 });
     }
@@ -53,7 +53,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 // --- DELETE : Supprimer une spécialité ---
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     if (!hasRequiredRole()) {
         return new NextResponse(JSON.stringify({ message: 'Accès non autorisé' }), { status: 403 });
     }

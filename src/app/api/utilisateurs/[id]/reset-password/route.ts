@@ -15,10 +15,10 @@ const hasRequiredRole = (allowedRoles: string[]): boolean => {
 };
 
 // --- Fonction PUT pour réinitialiser le mot de passe ---
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const requestHeaders = headers();
     const requesterRoleString = requestHeaders.get('x-user-role');
-    const targetUserIdString = params.id;
+    const { id: targetUserIdString } = await params;
 
     // 1. Vérifier le rôle du demandeur
     if (!requesterRoleString || !['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(requesterRoleString)) {

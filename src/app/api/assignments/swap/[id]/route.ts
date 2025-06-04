@@ -11,9 +11,9 @@ import { prisma } from "@/lib/prisma";
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = await Promise.resolve(params);
+    const { id } = await params;
     console.log(`\n--- GET /api/affectations/echange/${id} START ---`);
 
     // Authentification
@@ -104,9 +104,9 @@ export async function GET(
  */
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = params;
+    const { id } = await params;
     console.log(`\n--- PUT /api/affectations/echange/${id} START ---`);
 
     // Authentification
@@ -316,9 +316,9 @@ export async function PUT(
  */
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = params;
+    const { id } = await params;
     console.log(`\n--- DELETE /api/affectations/echange/${id} START ---`);
 
     // Authentification

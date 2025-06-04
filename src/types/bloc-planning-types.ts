@@ -70,13 +70,13 @@ export interface ValidationResult {
  * Secteur du bloc opératoire
  */
 export interface BlocSector {
-    id: string;
-    nom: string;
+    id: number;
+    name: string;
     description?: string;
-    couleur: string;
+    colorCode: string;
     specialites?: string[];
     salles: string[];
-    estActif: boolean;
+    isActive: boolean;
     requiresSpecificSkills?: boolean;
     supervisionSpeciale?: boolean;
 }
@@ -85,11 +85,11 @@ export interface BlocSector {
  * Salle d'opération
  */
 export interface OperatingRoom {
-    id: string;
-    numero: string;
-    nom: string;
-    secteurId: string;
-    estActif: boolean;
+    id: number;
+    number: string;
+    name: string;
+    operatingSectorId: number;
+    isActive: boolean;
 }
 
 /**

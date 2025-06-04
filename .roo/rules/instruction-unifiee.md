@@ -1,0 +1,103 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Roo Code Rules Améliorées - Mathildanesth
+
+## A. Compréhension & Planification
+- Commence toujours par **comprendre** la demande puis **planifie** ta réponse : réfléchis aux étapes, aux outils nécessaires et aux impacts sur le code.
+- Planifie et réfléchis **avant** chaque appel d'outil ; à la fin de chaque étape, réfléchis rapidement au résultat pour ajuster la suite.
+
+## B. Continuité & Reprise
+- Si tu es interrompu malgré toi (timeout, limite), **reprends immédiatement** là où tu t'es arrêté, sans attendre de question supplémentaire.
+- Tu peux découper ton travail en **plusieurs messages automatiques** si le volume est trop important ; ne demande pas la permission de continuer.
+
+## C. Qualité du Code & Tests (NOUVEAU - PRIORITAIRE)
+
+### Tests obligatoires
+- **TOUJOURS** écrire des tests unitaires pour chaque nouvelle fonction/composant
+- Utiliser Jest pour les tests unitaires, Cypress pour les tests E2E
+- Maintenir une couverture de tests > 70%
+- **JAMAIS** de code en production sans tests correspondants
+
+### Standards TypeScript
+- **INTERDICTION ABSOLUE** d'utiliser `@ts-ignore` - trouver la solution typée
+- Préférer `as Type` seulement quand nécessaire et documenté
+- Typer explicitement les paramètres et retours de fonctions
+- Utiliser les types Prisma générés
+
+### Architecture Next.js
+- **UNIQUEMENT App Router** - ne pas mélanger avec Pages Router
+- Structure modulaire cohérente sous `/src/modules/`
+- Services dans `/src/services/` pour la logique métier complexe
+- Composants réutilisables dans `/src/components/`
+
+## D. Conventions Spécifiques Mathildanesth
+
+### Structure des modules
+```
+src/modules/[module-name]/
+├── components/         # Composants UI du module
+├── services/          # Logique métier
+├── types/            # Types TypeScript
+├── tests/            # Tests du module
+└── README.md         # Documentation du module
+```
+
+### Nommage
+- Composants : PascalCase (`LeaveForm.tsx`)
+- Services : camelCase (`leaveService.ts`)
+- Types : PascalCase avec suffixe (`LeaveRequestType`)
+- Hooks : `use` + PascalCase (`useLeaveCalculation`)
+
+### Gestion d'erreurs
+- Utiliser des Result types ou Error boundaries
+- **Jamais** de `throw new Error()` sans gestion
+- Logger les erreurs avec winston/pino
+
+## E. Usage des Outils & Contexte
+- Lorsque tu n'es pas certain du contenu d'un fichier ou d'un point technique, utilise les outils de Roo Code pour **lire** ou **chercher** ; ne devine pas.
+- **Consulte toujours** la documentation existante du module avant de modifier
+- Vérifie la cohérence avec l'architecture existante
+- Lors de modifications, affiche uniquement les **diffs ou parties modifiées**
+
+## F. Processus de Développement
+
+### Avant toute modification
+1. Lire la documentation du module concerné
+2. Identifier les tests existants à maintenir
+3. Planifier les nouveaux tests nécessaires
+
+### Pendant le développement
+1. Écrire le test d'abord (TDD when possible)
+2. Implémenter le code
+3. Refactorer si nécessaire
+4. Documenter les changements
+
+### Après chaque modification
+1. Vérifier que tous les tests passent
+2. Vérifier la compilation TypeScript sans erreur
+3. Mettre à jour la documentation si nécessaire
+
+## G. Terminaison & Validation
+- À chaque fois que tu termines ta réponse par une question, ou que tu attends une validation, lance systématiquement le tool interactive_feedback
+- **CONDITION DE TERMINAISON** : Une tâche est complète SEULEMENT si :
+  - Le code compile sans erreurs TypeScript
+  - Les tests sont écrits ET passent
+  - La documentation est mise à jour
+  - Aucun `@ts-ignore` n'a été introduit
+  - L'architecture reste cohérente
+
+## H. Règles de Performance
+- Utiliser React.memo pour les composants lourds
+- Optimiser les requêtes Prisma (éviter N+1)
+- Implémenter le cache Redis pour les données fréquentes
+- Utiliser Next.js Image pour les optimisations
+
+## I. Sécurité (pour app médicale)
+- Valider TOUS les inputs utilisateur
+- Utiliser Zod pour la validation des schémas
+- Chiffrer les données sensibles
+- Implémenter rate limiting sur les APIs
+- Logger les accès aux données patients

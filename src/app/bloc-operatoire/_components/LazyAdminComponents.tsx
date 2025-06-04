@@ -6,9 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 // Lazy loading des composants admin lourds
 const SallesAdmin = lazy(() => 
-  import('../salles/components/SallesAdmin').then(mod => ({ 
-    default: mod.default || mod.SallesAdmin 
-  }))
+  import('../salles/components/SallesAdmin')
 );
 
 const SecteursAdmin = lazy(() => 
@@ -24,9 +22,7 @@ const ReglesSupervisionAdmin = lazy(() =>
 );
 
 const OperatingRoomForm = lazy(() => 
-  import('../salles/components/OperatingRoomForm').then(mod => ({ 
-    default: mod.default || mod.OperatingRoomForm 
-  }))
+  import('../salles/components/OperatingRoomForm')
 );
 
 // Loading fallback optimisé

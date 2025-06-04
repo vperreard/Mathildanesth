@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, memo, useCallback } from 'react';
+import React, { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { apiClient } from '@/utils/apiClient';
 import {
   DndContext,
@@ -317,6 +317,12 @@ export default function SecteursAdmin() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<any>(null);
 
+  // Ref pour throttling de la collision detection
+  const lastCollisionDetectionTime = useRef<number>(0);
+  const lastCollisionResult = useRef<any>(null);
+  const lastLoggedCollision = useRef<string>('');
+  const COLLISION_THROTTLE_MS = 100; // Throttle collision detection à 100ms (plus agressif)
+
   // Capteurs pour le drag & drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -327,8 +333,16 @@ export default function SecteursAdmin() {
   );
 
   // Collision detection personnalisée pour gérer les trois cas : secteurs, salles ET sites
-  const customCollisionDetection = (args: any) => {
+  const customCollisionDetection = useCallback((args: any) => {
     const { active, droppableContainers } = args;
+    
+    // Throttling pour éviter les détections excessives
+    const now = Date.now();
+    if (now - lastCollisionDetectionTime.current < COLLISION_THROTTLE_MS) {
+      // Retourner le dernier résultat si on est dans la période de throttling
+      return lastCollisionResult.current || [];
+    }
+    lastCollisionDetectionTime.current = now;
 
     // Si on drag une salle
     if (active.id.toString().startsWith('salle-')) {
@@ -336,6 +350,7 @@ export default function SecteursAdmin() {
       const allCollisions = rectIntersection(args);
 
       if (allCollisions.length === 0) {
+        lastCollisionResult.current = [];
         return [];
       }
 
@@ -360,20 +375,24 @@ export default function SecteursAdmin() {
         // Si même secteur → réorganisation interne
         if (activeSalle?.secteurId === targetSalle?.secteurId) {
           console.log('🔄 Drop salle-à-salle (même secteur) détecté:', salleCollisions[0].id);
+          lastCollisionResult.current = salleCollisions;
           return salleCollisions;
         }
         // Si secteurs différents → changement de secteur AVEC position précise
         else {
           console.log('🏥 Drop cross-secteur sur salle détecté:', salleCollisions[0].id);
+          lastCollisionResult.current = salleCollisions;
           return salleCollisions;
         }
       }
       // Sinon, drop sur zone de secteur vide (à la fin)
       else if (secteurCollisions.length > 0) {
         console.log('🏥 Drop salle-à-secteur (zone vide) détecté:', secteurCollisions[0].id);
+        lastCollisionResult.current = secteurCollisions;
         return secteurCollisions;
       }
 
+      lastCollisionResult.current = allCollisions;
       return allCollisions;
     }
 
@@ -383,6 +402,7 @@ export default function SecteursAdmin() {
       const allCollisions = rectIntersection(args);
 
       if (allCollisions.length === 0) {
+        lastCollisionResult.current = [];
         return [];
       }
 
@@ -406,23 +426,36 @@ export default function SecteursAdmin() {
 
         // Si même site → réorganisation interne
         if (activeSecteur?.siteId === targetSecteur?.siteId) {
-          console.log('🔄 Drop secteur-à-secteur (même site) détecté:', secteurCollisions[0].id);
+          const collisionKey = `secteur-${secteurCollisions[0].id}`;
+          if (lastLoggedCollision.current !== collisionKey) {
+            console.log('🔄 Drop secteur-à-secteur (même site) détecté:', secteurCollisions[0].id);
+            lastLoggedCollision.current = collisionKey;
+          }
+          lastCollisionResult.current = secteurCollisions;
           return secteurCollisions;
         }
       }
 
       // PRIORITÉ 2: Drop secteur-à-site (changement de site)
       if (siteCollisions.length > 0) {
-        console.log('🏢 Drop secteur-à-site détecté:', siteCollisions[0].id);
+        const collisionKey = `site-${siteCollisions[0].id}`;
+        if (lastLoggedCollision.current !== collisionKey) {
+          console.log('🏢 Drop secteur-à-site détecté:', siteCollisions[0].id);
+          lastLoggedCollision.current = collisionKey;
+        }
+        lastCollisionResult.current = siteCollisions;
         return siteCollisions;
       }
 
+      lastCollisionResult.current = allCollisions;
       return allCollisions;
     }
 
     // Pour les autres cas, utiliser la détection normale
-    return closestCorners(args);
-  };
+    const result = closestCorners(args);
+    lastCollisionResult.current = result;
+    return result;
+  }, [secteurs, salles]); // Dependencies pour useCallback
 
   // Charger les données initiales
   useEffect(() => {
@@ -698,6 +731,9 @@ export default function SecteursAdmin() {
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveId(active.id as string);
+    
+    // Reset le log de collision pour un nouveau drag
+    lastLoggedCollision.current = '';
 
     console.log('DragStart - Active:', active.id);
 
@@ -798,10 +834,8 @@ export default function SecteursAdmin() {
         },
       });
 
-      // Mettre à jour l'état local
-      setSecteurs(prev =>
-        prev.map(s => (s.id === parseInt(secteurId) ? ({ ...s, siteId: newSiteId } as any) : s))
-      );
+      // Recharger les données depuis l'API pour être sûr de la synchronisation
+      await loadData();
 
       toast({
         title: 'Secteur déplacé',
@@ -855,14 +889,6 @@ export default function SecteursAdmin() {
         displayOrder: index,
       }));
 
-      // Mettre à jour l'état local immédiatement pour un feedback visuel rapide
-      setSecteurs(prev =>
-        prev.map(s => {
-          const updated = updatedSecteurs.find(us => us.id === s.id);
-          return updated ? ({ ...updated } as any) : s;
-        })
-      );
-
       // Mettre à jour en base seulement le secteur déplacé
       await makeAuthenticatedRequest(`/api/operating-sectors/${activeSecteurId}`, {
         method: 'PUT',
@@ -871,6 +897,9 @@ export default function SecteursAdmin() {
             updatedSecteurs.find(s => s.id === parseInt(activeSecteurId))?.displayOrder || 0,
         },
       });
+
+      // Recharger les données depuis l'API pour être sûr de la synchronisation
+      await loadData();
 
       toast({
         title: 'Secteurs réorganisés',

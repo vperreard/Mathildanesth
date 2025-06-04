@@ -53,9 +53,9 @@ async function parseRequestBody(request: NextRequest) {
 // GET /api/trameModeles/[id] - Récupérer une trameModele spécifique
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = await Promise.resolve(params);
+    const { id } = await params;
     try {
         // Vérifier l'authentification
         const authResult = await verifyAuthToken();
@@ -106,7 +106,7 @@ export async function GET(
 // PUT /api/trameModeles/[id] - Mettre à jour une trameModele spécifique
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const { id: trameIdToUpdate } = await Promise.resolve(params);
     try {
@@ -375,9 +375,9 @@ export async function PUT(
 // DELETE /api/trameModeles/[id] - Supprimer une trameModele spécifique
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = params;
+    const { id } = await params;
     try {
         const authResult = await verifyAuthToken();
         if (!authResult.authenticated) {
