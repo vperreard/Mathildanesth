@@ -44,9 +44,9 @@ export const createMockPrismaClient = () => ({
   operatingSector: createMockModel(),
   operatingRoomType: createMockModel(),
   sectorCategory: createMockModel(),
-  
+
   // Méthodes Prisma client
-  $transaction: jest.fn((fn) => {
+  $transaction: jest.fn(fn => {
     if (typeof fn === 'function') {
       return fn(createMockPrismaClient());
     }
@@ -108,24 +108,32 @@ export const createMockRouter = () => ({
 // Mock useRouter hook
 export const mockUseRouter = () => {
   const router = createMockRouter();
-  (require('next/router') as any).useRouter = jest.fn(() => router);
+  jest.doMock('next/router', () => ({
+    useRouter: jest.fn(() => router),
+  }));
   return router;
 };
 
-// Mock useSearchParams hook  
-export const mockUseSearchParams = (params = {}) => {
+// Mock useSearchParams hook
+export const mockUseSearchParams = (params: Record<string, string> = {}) => {
   const searchParams = new URLSearchParams(params);
-  (require('next/navigation') as any).useSearchParams = jest.fn(() => searchParams);
+  jest.doMock('next/navigation', () => ({
+    ...jest.requireActual('next/navigation'),
+    useSearchParams: jest.fn(() => searchParams),
+  }));
   return searchParams;
 };
 
 // Mock usePathname hook
 export const mockUsePathname = (pathname = '/') => {
-  (require('next/navigation') as any).usePathname = jest.fn(() => pathname);
+  jest.doMock('next/navigation', () => ({
+    ...jest.requireActual('next/navigation'),
+    usePathname: jest.fn(() => pathname),
+  }));
   return pathname;
 };
 
-// Mock Auth Utils standardisé  
+// Mock Auth Utils standardisé
 export const createMockAuthUtils = () => ({
   getClientAuthToken: jest.fn(),
   setClientAuthToken: jest.fn(),
@@ -226,7 +234,9 @@ export const testDataFactories = {
     active: true,
     createdAt: new Date('2025-01-01'),
     updatedAt: new Date('2025-01-01'),
-    toJSON: function() { return this; },
+    toJSON: function () {
+      return this;
+    },
     ...overrides,
   }),
 
@@ -239,7 +249,13 @@ export const testDataFactories = {
   }),
 
   errorResponse: (message = 'Error', status = 500) => {
-    const error = new Error(message) as any;
+    const error = new Error(message) as Error & {
+      response?: {
+        status: number;
+        statusText: string;
+        data: { error: string };
+      };
+    };
     error.response = {
       status,
       statusText: status === 500 ? 'Internal Server Error' : 'Error',
@@ -298,9 +314,11 @@ export const createMockAuth0 = () => ({
 
 // Mock MSW Server
 export const setupMSWServer = () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { rest } = require('msw');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { setupServer } = require('msw/node');
-  
+
   const server = setupServer(
     rest.get('/api/*', (req, res, ctx) => {
       return res(ctx.json({ data: 'mocked' }));
@@ -309,7 +327,7 @@ export const setupMSWServer = () => {
       return res(ctx.json({ success: true }));
     })
   );
-  
+
   return server;
 };
 
@@ -326,17 +344,17 @@ export const setupTestEnvironment = () => {
       clone: jest.fn(),
     });
   }
-  
+
   // Setup console mocks pour tests silencieux
   const originalConsole = global.console;
   global.console = {
     ...originalConsole,
     log: jest.fn(),
-    warn: jest.fn(), 
+    warn: jest.fn(),
     error: jest.fn(),
     info: jest.fn(),
     debug: jest.fn(),
-  };
+  } as Console;
 
   // Setup environment variables
   process.env.JWT_SECRET = 'test-secret';
@@ -344,11 +362,11 @@ export const setupTestEnvironment = () => {
   process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
   process.env.NEXTAUTH_SECRET = 'test-nextauth-secret';
   process.env.NEXTAUTH_URL = 'http://localhost:3000';
-  
+
   // Setup global mocks
   mockWebSocket();
   mockSocketIO();
-  
+
   return {
     restoreConsole: () => {
       global.console = originalConsole;
@@ -360,13 +378,13 @@ export const setupTestEnvironment = () => {
 export const cleanupTestEnvironment = () => {
   jest.clearAllMocks();
   jest.resetAllMocks();
-  
+
   // Reset environment
   delete process.env.JWT_SECRET;
   delete process.env.NEXTAUTH_SECRET;
   delete process.env.NEXTAUTH_URL;
   process.env.NODE_ENV = 'test';
-  
+
   // Clear timers
   jest.useRealTimers();
 };
@@ -381,7 +399,7 @@ export const mockReactQuery = () => {
     refetch: jest.fn(),
     isSuccess: true,
   });
-  
+
   const mockUseMutation = jest.fn().mockReturnValue({
     mutate: jest.fn(),
     mutateAsync: jest.fn(),
@@ -392,7 +410,7 @@ export const mockReactQuery = () => {
     data: undefined,
     reset: jest.fn(),
   });
-  
+
   jest.doMock('@tanstack/react-query', () => ({
     useQuery: mockUseQuery,
     useMutation: mockUseMutation,
@@ -403,9 +421,9 @@ export const mockReactQuery = () => {
       refetchQueries: jest.fn(),
     })),
     QueryClient: jest.fn(),
-    QueryClientProvider: ({ children }: any) => children,
+    QueryClientProvider: ({ children }: { children: React.ReactNode }) => children,
   }));
-  
+
   return { mockUseQuery, mockUseMutation };
 };
 
@@ -413,19 +431,21 @@ export const mockReactQuery = () => {
 export const mockUIComponents = () => {
   // Mock react-day-picker
   jest.doMock('react-day-picker', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const React = require('react');
     return {
-      DayPicker: ({ children, ...props }: any) => React.createElement('div', { 'data-testid': 'day-picker', ...props }, children),
+      DayPicker: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) =>
+        React.createElement('div', { 'data-testid': 'day-picker', ...props }, children),
     };
   });
-  
+
   // Mock date-fns
   jest.doMock('date-fns', () => ({
-    format: jest.fn((date) => date.toISOString().split('T')[0]),
-    parseISO: jest.fn((str) => new Date(str)),
+    format: jest.fn(date => date.toISOString().split('T')[0]),
+    parseISO: jest.fn(str => new Date(str)),
     isValid: jest.fn(() => true),
-    startOfDay: jest.fn((date) => date),
-    endOfDay: jest.fn((date) => date),
+    startOfDay: jest.fn(date => date),
+    endOfDay: jest.fn(date => date),
     addDays: jest.fn((date, days) => new Date(date.getTime() + days * 24 * 60 * 60 * 1000)),
     subDays: jest.fn((date, days) => new Date(date.getTime() - days * 24 * 60 * 60 * 1000)),
     differenceInDays: jest.fn(() => 1),
@@ -433,13 +453,16 @@ export const mockUIComponents = () => {
     isAfter: jest.fn(() => false),
     isBefore: jest.fn(() => false),
   }));
-  
+
   // Mock recharts
   jest.doMock('recharts', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const React = require('react');
     return {
-      ResponsiveContainer: ({ children }: any) => React.createElement('div', { 'data-testid': 'responsive-container' }, children),
-      BarChart: ({ children }: any) => React.createElement('div', { 'data-testid': 'bar-chart' }, children),
+      ResponsiveContainer: ({ children }: { children?: React.ReactNode }) =>
+        React.createElement('div', { 'data-testid': 'responsive-container' }, children),
+      BarChart: ({ children }: { children?: React.ReactNode }) =>
+        React.createElement('div', { 'data-testid': 'bar-chart' }, children),
       Bar: () => React.createElement('div', { 'data-testid': 'bar' }),
       XAxis: () => React.createElement('div', { 'data-testid': 'x-axis' }),
       YAxis: () => React.createElement('div', { 'data-testid': 'y-axis' }),
@@ -450,10 +473,10 @@ export const mockUIComponents = () => {
 };
 
 // Helper pour mock responses standardisées
-export const mockSuccessResponse = (data: any) => 
+export const mockSuccessResponse = <T = unknown>(data: T) =>
   Promise.resolve(testDataFactories.apiResponse(data));
 
-export const mockErrorResponse = (message: string, status = 500) => 
+export const mockErrorResponse = (message: string, status = 500) =>
   Promise.reject(testDataFactories.errorResponse(message, status));
 
 // Types pour TypeScript
@@ -479,34 +502,41 @@ export interface MockPrismaClient {
   operatingSector: ReturnType<typeof createMockModel>;
   operatingRoomType: ReturnType<typeof createMockModel>;
   sectorCategory: ReturnType<typeof createMockModel>;
-  $transaction: jest.MockedFunction<any>;
-  $connect: jest.MockedFunction<any>;
-  $disconnect: jest.MockedFunction<any>;
-  $executeRaw: jest.MockedFunction<any>;
-  $executeRawUnsafe: jest.MockedFunction<any>;
-  $queryRaw: jest.MockedFunction<any>;
-  $queryRawUnsafe: jest.MockedFunction<any>;
+  $transaction: jest.MockedFunction<(fn: unknown) => Promise<unknown>>;
+  $connect: jest.MockedFunction<() => Promise<void>>;
+  $disconnect: jest.MockedFunction<() => Promise<void>>;
+  $executeRaw: jest.MockedFunction<(...args: unknown[]) => Promise<number>>;
+  $executeRawUnsafe: jest.MockedFunction<(query: string, ...values: unknown[]) => Promise<number>>;
+  $queryRaw: jest.MockedFunction<(...args: unknown[]) => Promise<unknown[]>>;
+  $queryRawUnsafe: jest.MockedFunction<(query: string, ...values: unknown[]) => Promise<unknown[]>>;
 }
 
 export interface MockAxios {
-  get: jest.MockedFunction<any>;
-  post: jest.MockedFunction<any>;
-  put: jest.MockedFunction<any>;
-  delete: jest.MockedFunction<any>;
-  patch: jest.MockedFunction<any>;
+  get: jest.MockedFunction<(url: string, config?: unknown) => Promise<unknown>>;
+  post: jest.MockedFunction<(url: string, data?: unknown, config?: unknown) => Promise<unknown>>;
+  put: jest.MockedFunction<(url: string, data?: unknown, config?: unknown) => Promise<unknown>>;
+  delete: jest.MockedFunction<(url: string, config?: unknown) => Promise<unknown>>;
+  patch: jest.MockedFunction<(url: string, data?: unknown, config?: unknown) => Promise<unknown>>;
   interceptors: {
-    request: { use: jest.MockedFunction<any> };
-    response: { use: jest.MockedFunction<any> };
+    request: { use: jest.MockedFunction<(config: unknown) => unknown> };
+    response: {
+      use: jest.MockedFunction<
+        (
+          onFulfilled?: (response: unknown) => unknown,
+          onRejected?: (error: unknown) => unknown
+        ) => void
+      >;
+    };
   };
-  defaults: any;
+  defaults: Record<string, unknown>;
 }
 
 export interface MockSocket {
-  on: jest.MockedFunction<any>;
-  off: jest.MockedFunction<any>;
-  emit: jest.MockedFunction<any>;
-  connect: jest.MockedFunction<any>;
-  disconnect: jest.MockedFunction<any>;
+  on: jest.MockedFunction<(event: string, handler: (...args: unknown[]) => void) => void>;
+  off: jest.MockedFunction<(event: string, handler?: (...args: unknown[]) => void) => void>;
+  emit: jest.MockedFunction<(event: string, ...args: unknown[]) => void>;
+  connect: jest.MockedFunction<() => void>;
+  disconnect: jest.MockedFunction<() => void>;
   connected: boolean;
   id: string;
 }
@@ -544,7 +574,7 @@ export type { MockPrismaClient, MockAxios };
 export const defaultJestSetup = () => {
   const testEnv = setupTestEnvironment();
   const mocks = mockAllCommonDependencies();
-  
+
   return {
     ...testEnv,
     ...mocks,
