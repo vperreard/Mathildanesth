@@ -14,28 +14,43 @@ const updateRuleSchema = z.object({
   priority: z.number().min(0).max(100).optional(),
   enabled: z.boolean().optional(),
   status: z.enum(['draft', 'active', 'archived', 'pending_approval']).optional(),
-  conditions: z.array(z.object({
-    field: z.string(),
-    operator: z.string(),
-    value: z.any()
-  })).optional(),
-  actions: z.array(z.object({
-    type: z.string(),
-    target: z.string().optional(),
-    value: z.any().optional(),
-    message: z.string().optional(),
-    metadata: z.record(z.any()).optional()
-  })).optional(),
-  effectiveDate: z.string().optional().transform(str => str ? new Date(str) : undefined),
-  expirationDate: z.string().nullable().optional().transform(str => str ? new Date(str) : null),
+  conditions: z
+    .array(
+      z.object({
+        field: z.string(),
+        operator: z.string(),
+        value: z.any(),
+      })
+    )
+    .optional(),
+  actions: z
+    .array(
+      z.object({
+        type: z.string(),
+        target: z.string().optional(),
+        value: z.any().optional(),
+        message: z.string().optional(),
+        metadata: z.record(z.any()).optional(),
+      })
+    )
+    .optional(),
+  effectiveDate: z
+    .string()
+    .optional()
+    .transform(str => (str ? new Date(str) : undefined)),
+  expirationDate: z
+    .string()
+    .nullable()
+    .optional()
+    .transform(str => (str ? new Date(str) : null)),
   tags: z.array(z.string()).optional(),
-  contexts: z.array(z.string()).optional()
+  contexts: z.array(z.string()).optional(),
 });
 
 // GET /api/admin/rules/v2/[ruleId] - Get rule details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { ruleId: string } }
+  { params }: { params: Promise<{ ruleId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -48,22 +63,19 @@ export async function GET(
       include: {
         _count: {
           select: {
-            versions: true
-          }
-        }
-      }
+            versions: true,
+          },
+        },
+      },
     });
 
     if (!rule) {
-      return NextResponse.json(
-        { error: 'Règle non trouvée' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Règle non trouvée' }, { status: 404 });
     }
 
     // Get latest metrics
     const metrics = await prisma.ruleMetrics.findUnique({
-      where: { ruleId: params.ruleId }
+      where: { ruleId: params.ruleId },
     });
 
     // Get conflicts
@@ -75,10 +87,9 @@ export async function GET(
         ...rule,
         versionCount: rule._count.versions,
         metrics,
-        conflicts
-      }
+        conflicts,
+      },
     });
-
   } catch (error) {
     console.error('Error fetching rule:', error);
     return NextResponse.json(
@@ -91,7 +102,7 @@ export async function GET(
 // PUT /api/admin/rules/v2/[ruleId] - Update rule
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { ruleId: string } }
+  { params }: { params: Promise<{ ruleId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -104,14 +115,11 @@ export async function PUT(
 
     // Get current rule
     const currentRule = await prisma.planningRule.findUnique({
-      where: { id: params.ruleId }
+      where: { id: params.ruleId },
     });
 
     if (!currentRule) {
-      return NextResponse.json(
-        { error: 'Règle non trouvée' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Règle non trouvée' }, { status: 404 });
     }
 
     // Check for conflicts
@@ -126,8 +134,8 @@ export async function PUT(
         ...validatedData,
         version: { increment: 1 },
         updatedBy: session.user.id,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     // Create version
@@ -146,19 +154,19 @@ export async function PUT(
         details: {
           ruleId: params.ruleId,
           changes: Object.keys(validatedData),
-          conflicts: conflicts.length
-        }
-      }
+          conflicts: conflicts.length,
+        },
+      },
     });
 
     return NextResponse.json({
       rule: updated,
       conflicts,
-      message: conflicts.length > 0
-        ? `Règle mise à jour avec ${conflicts.length} conflit(s) potentiel(s)`
-        : 'Règle mise à jour avec succès'
+      message:
+        conflicts.length > 0
+          ? `Règle mise à jour avec ${conflicts.length} conflit(s) potentiel(s)`
+          : 'Règle mise à jour avec succès',
     });
-
   } catch (error) {
     console.error('Error updating rule:', error);
     if (error instanceof z.ZodError) {
@@ -177,7 +185,7 @@ export async function PUT(
 // DELETE /api/admin/rules/v2/[ruleId] - Delete rule
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { ruleId: string } }
+  { params }: { params: Promise<{ ruleId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -187,14 +195,11 @@ export async function DELETE(
 
     // Check if rule exists
     const rule = await prisma.planningRule.findUnique({
-      where: { id: params.ruleId }
+      where: { id: params.ruleId },
     });
 
     if (!rule) {
-      return NextResponse.json(
-        { error: 'Règle non trouvée' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Règle non trouvée' }, { status: 404 });
     }
 
     // Soft delete by archiving
@@ -203,8 +208,8 @@ export async function DELETE(
       data: {
         status: 'archived',
         updatedBy: session.user.id,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     // Log activity
@@ -214,15 +219,14 @@ export async function DELETE(
         action: 'DELETE_RULE',
         details: {
           ruleId: params.ruleId,
-          ruleName: rule.name
-        }
-      }
+          ruleName: rule.name,
+        },
+      },
     });
 
     return NextResponse.json({
-      message: 'Règle archivée avec succès'
+      message: 'Règle archivée avec succès',
     });
-
   } catch (error) {
     console.error('Error deleting rule:', error);
     return NextResponse.json(
@@ -235,7 +239,7 @@ export async function DELETE(
 // PATCH /api/admin/rules/v2/[ruleId] - Quick actions (enable/disable, status change)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { ruleId: string } }
+  { params }: { params: Promise<{ ruleId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -262,10 +266,7 @@ export async function PATCH(
         actionName = 'CHANGE_RULE_PRIORITY';
         break;
       default:
-        return NextResponse.json(
-          { error: 'Action non reconnue' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Action non reconnue' }, { status: 400 });
     }
 
     updateData.updatedBy = session.user.id;
@@ -273,7 +274,7 @@ export async function PATCH(
 
     const updated = await prisma.planningRule.update({
       where: { id: params.ruleId },
-      data: updateData
+      data: updateData,
     });
 
     // Log activity
@@ -283,21 +284,17 @@ export async function PATCH(
         action: actionName,
         details: {
           ruleId: params.ruleId,
-          value
-        }
-      }
+          value,
+        },
+      },
     });
 
     return NextResponse.json({
       rule: updated,
-      message: 'Action effectuée avec succès'
+      message: 'Action effectuée avec succès',
     });
-
   } catch (error) {
     console.error('Error performing quick action:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de l\'exécution de l\'action' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Erreur lors de l'exécution de l'action" }, { status: 500 });
   }
 }

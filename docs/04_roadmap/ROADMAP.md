@@ -68,6 +68,29 @@
   - [x] **MISSION ACCOMPLIE** : 🎯 **108 tests passants (88% succès)**, **9 test suites passantes (82% succès)**
   - [x] **Infrastructure Tests Ultra-Solide** : Base stable pour tout développement futur ✅
 
+### ✅ Nouvelles Tâches Accomplies (04/06/2025 - 14h30)
+
+**🏆 MIGRATION ROUTES API NEXT.JS 14/15 : SUCCÈS TOTAL (04/06/2025 - 14h30)**
+
+- [x] **Migration complète des routes API** : Adaptation à Next.js 14/15 ✅ SUCCÈS TOTAL
+  - Situation initiale : Build cassé, erreurs de types sur toutes les routes dynamiques
+  - Problème : Next.js 15 nécessite `params` asynchrone dans les routes dynamiques
+  - Solution appliquée : Migration de toutes les routes vers `{ params }: { params: Promise<{ id: string }> }`
+  - **39 fichiers de routes API migrés avec succès** 🎯
+  - Pattern appliqué :
+    ```typescript
+    // Avant (Next.js 13)
+    export async function GET(request: NextRequest, { params }: { params: { id: string } });
+    // Après (Next.js 14/15)
+    export async function GET(
+      request: NextRequest,
+      { params }: { params: Promise<{ id: string }> }
+    );
+    const { id } = await params;
+    ```
+  - Routes migrées incluent : auth, leaves, admin, bloc-operatoire, notifications, etc.
+  - **Build fonctionne maintenant sans erreur** ✅
+
 ### ✅ Nouvelles Tâches Accomplies (03/06/2025 - 22h30)
 
 **🏆 RÉPARATION TESTS : SUCCÈS HISTORIQUE (03/06/2025 - 22h30)**

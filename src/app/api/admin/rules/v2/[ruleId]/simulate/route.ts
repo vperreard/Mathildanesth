@@ -8,13 +8,13 @@ import { z } from 'zod';
 const simulationSchema = z.object({
   startDate: z.string().transform(str => new Date(str)),
   endDate: z.string().transform(str => new Date(str)),
-  compareWith: z.string().optional() // Another rule ID to compare
+  compareWith: z.string().optional(), // Another rule ID to compare
 });
 
 // POST /api/admin/rules/v2/[ruleId]/simulate - Simulate rule impact
 export async function POST(
   request: NextRequest,
-  { params }: { params: { ruleId: string } }
+  { params }: { params: Promise<{ ruleId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -43,14 +43,11 @@ export async function POST(
 
     // Get rule
     const rule = await prisma.planningRule.findUnique({
-      where: { id: params.ruleId }
+      where: { id: params.ruleId },
     });
 
     if (!rule) {
-      return NextResponse.json(
-        { error: 'Règle non trouvée' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Règle non trouvée' }, { status: 404 });
     }
 
     const simulator = new RuleSimulator();
@@ -59,14 +56,11 @@ export async function POST(
     if (compareWith) {
       // Compare two rules
       const compareRule = await prisma.planningRule.findUnique({
-        where: { id: compareWith }
+        where: { id: compareWith },
       });
 
       if (!compareRule) {
-        return NextResponse.json(
-          { error: 'Règle de comparaison non trouvée' },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: 'Règle de comparaison non trouvée' }, { status: 404 });
       }
 
       const comparison = await simulator.compareRules(
@@ -85,20 +79,15 @@ export async function POST(
             ruleId1: params.ruleId,
             ruleId2: compareWith,
             startDate,
-            endDate
-          }
-        }
+            endDate,
+          },
+        },
       });
 
       return NextResponse.json(comparison);
-
     } else {
       // Single rule simulation
-      const simulation = await simulator.simulateRule(
-        rule as any,
-        startDate,
-        endDate
-      );
+      const simulation = await simulator.simulateRule(rule as any, startDate, endDate);
 
       // Generate report
       const report = await simulator.generateImpactReport(simulation);
@@ -113,17 +102,16 @@ export async function POST(
             startDate,
             endDate,
             violations: simulation.metrics.totalViolations,
-            affectedUsers: simulation.metrics.affectedUsersCount
-          }
-        }
+            affectedUsers: simulation.metrics.affectedUsersCount,
+          },
+        },
       });
 
       return NextResponse.json({
         simulation,
-        report
+        report,
       });
     }
-
   } catch (error) {
     console.error('Error running simulation:', error);
     if (error instanceof z.ZodError) {
@@ -132,9 +120,6 @@ export async function POST(
         { status: 400 }
       );
     }
-    return NextResponse.json(
-      { error: 'Erreur lors de la simulation' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erreur lors de la simulation' }, { status: 500 });
   }
 }

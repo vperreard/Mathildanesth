@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { withAuth, SecurityChecks } from '@/middleware/authorization';
+import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { LeaveStatus } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { auditService, AuditAction } from '@/services/OptimizedAuditService';
@@ -9,135 +9,124 @@ import { auditService, AuditAction } from '@/services/OptimizedAuditService';
  * POST /api/conges/[leaveId]/reject
  * Rejeter une demande de congé - ADMIN uniquement
  */
-export const POST = withAuth({
-    requireAuth: true,
-    allowedRoles: ['ADMIN_TOTAL', 'ADMIN_PARTIEL'],
-    resourceType: 'leave',
-    action: 'reject'
-})(async (req: NextRequest, context: { params: { leaveId: string } }) => {
-    try {
-        const leaveId = parseInt(context.params.leaveId);
-        const userId = parseInt(req.headers.get('x-user-id') || '0');
-        const { reason } = await req.json();
+export async function POST(req: NextRequest, { params }: { params: Promise<{ leaveId: string }> }) {
+  try {
+    const { leaveId: leaveIdStr } = await params;
+    const leaveId = parseInt(leaveIdStr);
 
-        // Vérifier que le congé existe
-        const leave = await prisma.leave.findUnique({
-            where: { id: leaveId },
-            include: { user: true }
-        });
+    // Vérification de l'authentification
+    const authHeader = req.headers.get('authorization');
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
 
-        if (!leave) {
-            return NextResponse.json(
-                { error: 'Leave request not found' },
-                { status: 404 }
-            );
-        }
-
-        // Vérifier que le congé est en attente
-        if (leave.status !== LeaveStatus.PENDING) {
-            return NextResponse.json(
-                { error: 'Leave request is not pending' },
-                { status: 400 }
-            );
-        }
-
-        // Validation de la raison de rejet
-        if (!reason || reason.trim().length < 10) {
-            return NextResponse.json(
-                { error: 'Rejection reason must be at least 10 characters' },
-                { status: 400 }
-            );
-        }
-
-        // Mettre à jour le statut
-        const updatedLeave = await prisma.leave.update({
-            where: { id: leaveId },
-            data: {
-                status: LeaveStatus.REJECTED,
-                rejectedById: userId,
-                rejectedAt: new Date(),
-                rejectionReason: reason
-            },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        email: true
-                    }
-                }
-            }
-        });
-
-        // Logger l'action
-        logger.info('Leave request rejected', {
-            leaveId,
-            userId: leave.userId,
-            rejectedBy: userId,
-            reason
-        });
-
-        // Log d'audit pour le rejet
-        await auditService.logDataModification(
-            AuditAction.LEAVE_REJECTED,
-            'Leave',
-            leaveId,
-            userId,
-            { status: leave.status },
-            { status: LeaveStatus.REJECTED, rejectionReason: reason },
-            {
-                ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
-                userAgent: req.headers.get('user-agent') || 'unknown',
-                targetUserId: leave.userId,
-                reason,
-                metadata: {
-                    startDate: leave.startDate.toISOString(),
-                    endDate: leave.endDate.toISOString(),
-                    type: leave.type,
-                    duration: `${Math.ceil((leave.endDate.getTime() - leave.startDate.getTime()) / (1000 * 60 * 60 * 24))} jours`
-                }
-            }
-        );
-
-        // Créer une notification pour l'utilisateur
-        await prisma.notification.create({
-            data: {
-                userId: leave.userId,
-                type: 'LEAVE_REJECTED',
-                title: 'Demande de congé refusée',
-                message: `Votre demande de congé du ${leave.startDate.toLocaleDateString()} au ${leave.endDate.toLocaleDateString()} a été refusée. Raison: ${reason}`,
-                link: `/conges/${leaveId}`,
-                isRead: false
-            }
-        });
-
-        return NextResponse.json({
-            success: true,
-            data: updatedLeave
-        });
-
-    } catch (error) {
-        logger.error('Error rejecting leave', error);
-        
-        // Log d'audit pour l'échec
-        await auditService.logAction({
-            action: AuditAction.ERROR_OCCURRED,
-            entityId: context.params.leaveId,
-            entityType: 'Leave',
-            userId,
-            severity: 'ERROR',
-            success: false,
-            details: {
-                errorMessage: error instanceof Error ? error.message : 'Unknown error',
-                action: 'leave_rejection',
-                metadata: { leaveId: context.params.leaveId }
-            }
-        });
-        
-        return NextResponse.json(
-            { error: 'Internal server error' },
-            { status: 500 }
-        );
+    if (!token) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-});
+
+    const authResult = await verifyAuthToken(token);
+    if (!authResult.authenticated) {
+      return NextResponse.json({ error: authResult.error || 'Invalid token' }, { status: 401 });
+    }
+
+    // Vérifier le rôle
+    const user = await prisma.user.findUnique({
+      where: { id: authResult.userId },
+      select: {
+        id: true,
+        role: true,
+        actif: true,
+        nom: true,
+        prenom: true,
+      },
+    });
+
+    if (!user || !user.actif) {
+      return NextResponse.json({ error: 'User not found or inactive' }, { status: 403 });
+    }
+
+    if (user.role !== 'ADMIN_TOTAL' && user.role !== 'ADMIN_PARTIEL') {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
+    const { reason } = await req.json();
+
+    // Vérifier que le congé existe
+    const leave = await prisma.leave.findUnique({
+      where: { id: leaveId },
+      include: { user: true },
+    });
+
+    if (!leave) {
+      return NextResponse.json({ error: 'Congé non trouvé' }, { status: 404 });
+    }
+
+    // Vérifier que le congé est en attente
+    if (leave.status !== LeaveStatus.PENDING) {
+      return NextResponse.json(
+        { error: 'Seuls les congés en attente peuvent être rejetés' },
+        { status: 400 }
+      );
+    }
+
+    // Rejeter le congé
+    const updatedLeave = await prisma.leave.update({
+      where: { id: leaveId },
+      data: {
+        status: LeaveStatus.REJECTED,
+        rejectionReason: reason,
+        reviewedAt: new Date(),
+        reviewedBy: user.id,
+      },
+    });
+
+    // Logger l'action
+    await auditService.logAction({
+      action: AuditAction.LEAVE_REJECTED,
+      entityType: 'leave',
+      entityId: leaveId.toString(),
+      userId: user.id,
+      details: {
+        leaveType: leave.type,
+        userName:
+          leave.user?.nom && leave.user?.prenom
+            ? `${leave.user.prenom} ${leave.user.nom}`
+            : `User ${leave.userId}`,
+        startDate: leave.startDate,
+        endDate: leave.endDate,
+        reason: reason,
+      },
+    });
+
+    logger.info('Leave rejected', {
+      leaveId,
+      rejectedBy: user.id,
+      reason,
+    });
+
+    // Créer une notification pour l'utilisateur
+    if (leave.userId) {
+      await prisma.notification.create({
+        data: {
+          userId: leave.userId,
+          type: 'LEAVE_REQUEST_STATUS_CHANGED',
+          title: 'Demande de congé rejetée',
+          message: `Votre demande de congé du ${leave.startDate.toLocaleDateString('fr-FR')} au ${leave.endDate.toLocaleDateString('fr-FR')} a été rejetée. Raison: ${reason}`,
+          contextId: leaveId.toString(),
+          metadata: {
+            leaveId,
+            status: 'REJECTED',
+            rejectedBy: user.id,
+            reason,
+          },
+        },
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      leave: updatedLeave,
+    });
+  } catch (error) {
+    logger.error('Error rejecting leave', error);
+    return NextResponse.json({ error: 'Erreur lors du rejet du congé' }, { status: 500 });
+  }
+}

@@ -7,14 +7,8 @@ import type { UserRole } from '@/lib/auth-client-utils';
 const ALLOWED_ROLES_GET: UserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL', 'USER'];
 const ALLOWED_ROLES_WRITE: UserRole[] = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'];
 
-interface Context {
-  params: Promise<{
-    id: string;
-  }>;
-}
-
 // GET : Récupérer un secteur spécifique
-export async function GET(request: NextRequest, context: Context) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authCheck = await checkUserRole(ALLOWED_ROLES_GET);
     if (!authCheck.hasRequiredRole) {
@@ -24,7 +18,7 @@ export async function GET(request: NextRequest, context: Context) {
       );
     }
 
-    const { id } = await context.params;
+    const { id } = await params;
     const sectorId = parseInt(id);
 
     if (isNaN(sectorId)) {
@@ -51,7 +45,7 @@ export async function GET(request: NextRequest, context: Context) {
 }
 
 // PUT : Mettre à jour un secteur spécifique
-export async function PUT(request: NextRequest, context: Context) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authCheck = await checkUserRole(ALLOWED_ROLES_WRITE);
     if (!authCheck.hasRequiredRole) {
@@ -61,7 +55,7 @@ export async function PUT(request: NextRequest, context: Context) {
       );
     }
 
-    const { id } = await context.params;
+    const { id } = await params;
     const sectorId = parseInt(id);
 
     if (isNaN(sectorId)) {
@@ -140,7 +134,10 @@ export async function PUT(request: NextRequest, context: Context) {
 }
 
 // DELETE : Supprimer un secteur spécifique
-export async function DELETE(request: NextRequest, context: Context) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const authCheck = await checkUserRole(['ADMIN_TOTAL']);
     if (!authCheck.hasRequiredRole) {
@@ -150,7 +147,7 @@ export async function DELETE(request: NextRequest, context: Context) {
       );
     }
 
-    const { id } = await context.params;
+    const { id } = await params;
     const sectorId = parseInt(id);
 
     if (isNaN(sectorId)) {

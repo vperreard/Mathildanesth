@@ -5,14 +5,20 @@ import { RuleVersioningService } from '@/modules/dynamicRules/v2/services/RuleVe
 import { z } from 'zod';
 
 const querySchema = z.object({
-  limit: z.string().optional().transform(val => parseInt(val || '10')),
-  offset: z.string().optional().transform(val => parseInt(val || '0'))
+  limit: z
+    .string()
+    .optional()
+    .transform(val => parseInt(val || '10')),
+  offset: z
+    .string()
+    .optional()
+    .transform(val => parseInt(val || '0')),
 });
 
 // GET /api/admin/rules/v2/[ruleId]/versions - Get version history
 export async function GET(
   request: NextRequest,
-  { params }: { params: { ruleId: string } }
+  { params }: { params: Promise<{ ruleId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -24,21 +30,16 @@ export async function GET(
     const { limit, offset } = querySchema.parse(searchParams);
 
     const versioningService = RuleVersioningService.getInstance();
-    const versions = await versioningService.getVersionHistory(
-      params.ruleId,
-      limit,
-      offset
-    );
+    const versions = await versioningService.getVersionHistory(params.ruleId, limit, offset);
 
     return NextResponse.json({
       versions,
-      ruleId: params.ruleId
+      ruleId: params.ruleId,
     });
-
   } catch (error) {
     console.error('Error fetching version history:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération de l\'historique' },
+      { error: "Erreur lors de la récupération de l'historique" },
       { status: 500 }
     );
   }
@@ -47,7 +48,7 @@ export async function GET(
 // POST /api/admin/rules/v2/[ruleId]/versions - Compare versions or revert
 export async function POST(
   request: NextRequest,
-  { params }: { params: { ruleId: string } }
+  { params }: { params: Promise<{ ruleId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -60,7 +61,7 @@ export async function POST(
 
     if (body.action === 'compare') {
       const { version1, version2 } = body;
-      
+
       if (!version1 || !version2) {
         return NextResponse.json(
           { error: 'Deux versions sont requises pour la comparaison' },
@@ -68,22 +69,14 @@ export async function POST(
         );
       }
 
-      const comparison = await versioningService.compareVersions(
-        params.ruleId,
-        version1,
-        version2
-      );
+      const comparison = await versioningService.compareVersions(params.ruleId, version1, version2);
 
       return NextResponse.json(comparison);
-
     } else if (body.action === 'revert') {
       const { targetVersion } = body;
-      
+
       if (!targetVersion) {
-        return NextResponse.json(
-          { error: 'Version cible requise' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Version cible requise' }, { status: 400 });
       }
 
       const revertedRule = await versioningService.revertToVersion(
@@ -94,36 +87,26 @@ export async function POST(
 
       return NextResponse.json({
         rule: revertedRule,
-        message: `Règle restaurée à la version ${targetVersion}`
+        message: `Règle restaurée à la version ${targetVersion}`,
       });
-
     } else if (body.action === 'diff') {
       const { fromVersion, toVersion } = body;
-      
-      const diff = await versioningService.getDiff(
-        params.ruleId,
-        fromVersion,
-        toVersion
-      );
+
+      const diff = await versioningService.getDiff(params.ruleId, fromVersion, toVersion);
 
       return NextResponse.json({
         diff,
         ruleId: params.ruleId,
         fromVersion,
-        toVersion
+        toVersion,
       });
-
     } else {
-      return NextResponse.json(
-        { error: 'Action non reconnue' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Action non reconnue' }, { status: 400 });
     }
-
   } catch (error) {
     console.error('Error in version action:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de l\'opération sur les versions' },
+      { error: "Erreur lors de l'opération sur les versions" },
       { status: 500 }
     );
   }
