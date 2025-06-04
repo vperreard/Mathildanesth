@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { RuleConflict, RuleSeverity } from '../../../../modules/rules/types/rule';
 
-const prisma = new PrismaClient();
 
 /**
  * GET /api/rules/conflicts

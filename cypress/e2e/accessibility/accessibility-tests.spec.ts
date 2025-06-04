@@ -20,14 +20,14 @@ describe('Tests d\'accessibilité', () => {
     });
 
     it('vérifie l\'accessibilité de la page d\'accueil', () => {
-        cy.visitAsAuthenticatedUser('/dashboard');
+        cy.visitAsAuthenticatedUser('/tableau-de-bord');
 
         // Injecter et vérifier l'accessibilité
         cy.checkAccessibility();
     });
 
     it('vérifie l\'accessibilité de la page de congés', () => {
-        cy.visitAsAuthenticatedUser('/leaves');
+        cy.visitAsAuthenticatedUser('/conges');
 
         // Injecter et vérifier l'accessibilité
         cy.checkAccessibility();
@@ -41,14 +41,14 @@ describe('Tests d\'accessibilité', () => {
     });
 
     it('vérifie l\'accessibilité du calendrier', () => {
-        cy.visitAsAuthenticatedUser('/calendar');
+        cy.visitAsAuthenticatedUser('/calendrier');
 
         // Injecter et vérifier l'accessibilité
         cy.checkAccessibility();
     });
 
     it('vérifie l\'accessibilité du formulaire de demande de congés', () => {
-        cy.visitAsAuthenticatedUser('/leaves/new');
+        cy.visitAsAuthenticatedUser('/conges/nouveau');
 
         // Injecter et vérifier l'accessibilité avec une configuration personnalisée
         cy.checkAccessibility({

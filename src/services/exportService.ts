@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import { exportSimulationResults, exportLeaveData, exportPlanningData } from '@/services/exportServiceV2';
 import { format as dateFormat } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -16,7 +16,7 @@ declare module 'jspdf' {
 
 // Types pour les données à exporter
 interface SimulationResultExportOptions {
-    format: 'pdf' | 'excel';
+    format: 'pdf' | 'csv';
     includeRawData?: boolean;
     fileName?: string;
 }
@@ -55,7 +55,7 @@ export async function exportSimulationResults(
         case 'pdf':
             blob = await exportToPDF(data, finalFileName);
             break;
-        case 'excel':
+        case 'csv':
             blob = await exportToExcel(data, finalFileName);
             break;
         default:
@@ -145,22 +145,22 @@ async function exportToPDF(data: SimulationExportData, fileName: string): Promis
         });
     }
 
-    // Ajouter les affectations par utilisateur
+    // Ajouter les gardes/vacations par utilisateur
     if (data.userAssignments && data.userAssignments.length > 0) {
         const currentY = doc.previousAutoTable?.finalY || 85;
         doc.setFontSize(14);
-        doc.text('Affectations par utilisateur', 14, currentY + 10);
+        doc.text('Gardes/Vacations par utilisateur', 14, currentY + 10);
 
         const assignmentsData = data.userAssignments.map(user => [
             user.userName || 'Inconnu',
-            user.assignments.toString(),
+            user.attributions.toString(),
             user.hours ? user.hours.toFixed(1) + 'h' : '0h',
             user.conflicts.toString()
         ]);
 
         doc.autoTable({
             startY: currentY + 15,
-            head: [['Nom', 'Affectations', 'Heures', 'Conflits']],
+            head: [['Nom', 'Gardes/Vacations', 'Heures', 'Conflits']],
             body: assignmentsData,
             theme: 'grid',
             headStyles: { fillColor: [91, 192, 222] }
@@ -239,21 +239,21 @@ async function exportToExcel(data: SimulationExportData, fileName: string): Prom
         XLSX.utils.book_append_sheet(workbook, conflictsSheet, 'Conflits');
     }
 
-    // Feuille des affectations par utilisateur
+    // Feuille des gardes/vacations par utilisateur
     if (data.userAssignments && data.userAssignments.length > 0) {
-        const assignmentsData = [['Nom', 'Affectations', 'Heures', 'Conflits']];
+        const assignmentsData = [['Nom', 'Gardes/Vacations', 'Heures', 'Conflits']];
 
         data.userAssignments.forEach(user => {
             assignmentsData.push([
                 user.userName || 'Inconnu',
-                user.assignments,
+                user.attributions,
                 user.hours ? user.hours.toFixed(1) : 0,
                 user.conflicts
             ]);
         });
 
         const assignmentsSheet = XLSX.utils.aoa_to_sheet(assignmentsData);
-        XLSX.utils.book_append_sheet(workbook, assignmentsSheet, 'Affectations');
+        XLSX.utils.book_append_sheet(workbook, assignmentsSheet, 'Gardes/Vacations');
     }
 
     // Convertir en Blob

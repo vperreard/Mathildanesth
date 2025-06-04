@@ -98,7 +98,7 @@ export default function NewTemplatePage() {
                 parametersJson: formData.parametersJson
             });
 
-            toast.success('Template créé avec succès');
+            toast.success('Modèle créé avec succès');
             router.push('/admin/simulations/templates');
         } catch (error: any) {
             toast.error(`Erreur lors de la création du template: ${error.message}`);
@@ -117,7 +117,7 @@ export default function NewTemplatePage() {
             <form onSubmit={handleSubmit}>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Nouveau Template de Simulation</CardTitle>
+                        <CardTitle>Nouveau Modèle de Simulation</CardTitle>
                         <CardDescription>
                             Créez un template réutilisable pour vos scénarios de simulation de planning
                         </CardDescription>

@@ -91,15 +91,15 @@ export interface UserAvailability {
 }
 
 /**
- * Template de planning
+ * Modèle de planning
  */
 export interface PlanningTemplate {
     id: string;
-    name: string;                  // Nom du modèle
+    name: string;                  // Nom du template
     description: string;           // Description
     department: string;            // Service concerné
     durationDays: number;          // Durée en jours
-    events: PlanningTemplateEvent[]; // Événements du modèle
+    events: PlanningTemplateEvent[]; // Événements du template
     createdBy: string;             // Créé par
     createdAt: Date;
     updatedAt: Date;

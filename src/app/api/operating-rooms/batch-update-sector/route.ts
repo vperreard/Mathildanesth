@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth-utils';
 import { headers } from 'next/headers';
-import { prisma } from '@/lib/prisma';
-
-const prismaClient = new PrismaClient();
 
 interface RoomSectorUpdate {
     id: number;

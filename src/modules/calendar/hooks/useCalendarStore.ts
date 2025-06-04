@@ -29,7 +29,7 @@ import {
     addEvent,
     updateEvent as updateStoreEvent,
     removeEvent
-} from '../store/calendarSlice';
+} from '../store/calendrierSlice';
 
 interface UseCalendarStoreOptions {
     autoLoad?: boolean;

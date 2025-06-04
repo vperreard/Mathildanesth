@@ -7,7 +7,7 @@ Le module Calendar fournit un ensemble complet de composants pour gérer la plan
 ## Structure du module
 
 ```
-src/modules/calendar/
+src/modules/calendrier/
 ├── components/          # Composants React du module
 │   ├── feedback/        # Composants de feedback visuel
 │   │   ├── SkeletonLoader.tsx    # Placeholders de chargement
@@ -35,7 +35,7 @@ Le module implémente un système cohérent de feedback visuel pour améliorer l
 Affiche des placeholders animés pendant le chargement initial des données.
 
 ```tsx
-import { SkeletonLoader } from '@/modules/calendar/components/feedback';
+import { SkeletonLoader } from '@/modules/calendrier/components/feedback';
 
 // Usage simple
 <SkeletonLoader width="100%" height="20px" count={3} />
@@ -51,7 +51,7 @@ import { SkeletonLoader } from '@/modules/calendar/components/feedback';
 Affiche un indicateur de chargement rotatif pour les opérations asynchrones.
 
 ```tsx
-import { Spinner, CalendarLoadingSpinner, FormSubmitSpinner } from '@/modules/calendar/components/feedback';
+import { Spinner, CalendarLoadingSpinner, FormSubmitSpinner } from '@/modules/calendrier/components/feedback';
 
 // Spinner standard
 <Spinner size="md" color="primary" />
@@ -69,7 +69,7 @@ import { Spinner, CalendarLoadingSpinner, FormSubmitSpinner } from '@/modules/ca
 Affiche la progression des opérations longues.
 
 ```tsx
-import { ProgressBar, ImportProgress, OperationSaveProgress } from '@/modules/calendar/components/feedback';
+import { ProgressBar, ImportProgress, OperationSaveProgress } from '@/modules/calendrier/components/feedback';
 
 // Barre de progression standard
 <ProgressBar 
@@ -90,7 +90,7 @@ import { ProgressBar, ImportProgress, OperationSaveProgress } from '@/modules/ca
 Affiche des notifications temporaires pour les confirmations et erreurs.
 
 ```tsx
-import { Toast, useToast } from '@/modules/calendar/components/feedback';
+import { Toast, useToast } from '@/modules/calendrier/components/feedback';
 
 // Utilisation du hook
 const { showSuccess, showError, showWarning, showInfo, ToastContainer } = useToast();
@@ -113,7 +113,7 @@ return (
 Affiche des infobulles contextuelles pour l'aide utilisateur.
 
 ```tsx
-import { Tooltip, TooltipIcon, HelpTooltip } from '@/modules/calendar/components/feedback';
+import { Tooltip, TooltipIcon, HelpTooltip } from '@/modules/calendrier/components/feedback';
 
 // Tooltip standard
 <Tooltip content="Information supplémentaire" position="top">
@@ -132,7 +132,7 @@ import { Tooltip, TooltipIcon, HelpTooltip } from '@/modules/calendar/components
 Visualisation et planification des opérations dans les différentes salles du bloc opératoire.
 
 ```tsx
-import { OperationRoomSchedule } from '@/modules/calendar/components';
+import { OperationRoomSchedule } from '@/modules/calendrier/components';
 
 <OperationRoomSchedule 
   sectors={sectors}
@@ -147,7 +147,7 @@ import { OperationRoomSchedule } from '@/modules/calendar/components';
 Formulaire pour créer ou modifier une opération chirurgicale.
 
 ```tsx
-import { OperationForm } from '@/modules/calendar/components';
+import { OperationForm } from '@/modules/calendrier/components';
 
 <OperationForm
   initialValues={initialValues}

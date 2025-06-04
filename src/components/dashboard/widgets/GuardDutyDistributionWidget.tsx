@@ -1,164 +1,177 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { GuardDutyStatsResponse, DutyDistributionStat, UserDutyDistribution } from '@/modules/analytics/services/analyticsService'; // Ajuster le chemin si nécessaire
-import { ProfessionalRole } from '@prisma/client';
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Shield, Clock, Loader2, AlertTriangle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePickerComponent as DatePicker } from '@/components/ui/date-picker';
-import Button from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
+import { GuardDutyDistribution } from '@/services/analyticsService';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#A4DE6C', '#D0ED57', '#FF6B6B'];
+// Type pour les options de visualisation
+type ViewMode = 'guardCount' | 'onCallCount' | 'totalHours' | 'weightedScore';
 
-interface GuardDutyDistributionWidgetProps {
-    defaultSiteId?: string;
-    // Autres props de configuration si nécessaire
-}
-
-export const GuardDutyDistributionWidget: React.FC<GuardDutyDistributionWidgetProps> = ({ defaultSiteId }) => {
-    const [data, setData] = useState<GuardDutyStatsResponse | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+export default function GuardDutyDistributionWidget() {
+    const [data, setData] = useState<GuardDutyDistribution[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<ViewMode>('weightedScore');
 
-    const [startDate, setStartDate] = useState<Date | null>(startOfMonth(subMonths(new Date(), 1)));
-    const [endDate, setEndDate] = useState<Date | null>(endOfMonth(subMonths(new Date(), 1)));
-    const [siteId, setSiteId] = useState<string | undefined>(defaultSiteId);
-    // TODO: Ajouter un sélecteur pour les rôles si nécessaire
-    const [selectedRoles, setSelectedRoles] = useState<ProfessionalRole[]>([]);
+    // Charger les données
+    useEffect(() => {
+        const fetchData = async () => {
+            setIsLoading(true);
+            setError(null);
 
-    const fetchData = async () => {
-        if (!startDate || !endDate) {
-            setError("Les dates de début et de fin sont requises.");
-            return;
-        }
-        setIsLoading(true);
-        setError(null);
-        try {
-            const params = new URLSearchParams();
-            params.append('startDate', format(startDate, 'yyyy-MM-dd'));
-            params.append('endDate', format(endDate, 'yyyy-MM-dd'));
-            if (siteId) params.append('siteId', siteId);
-            if (selectedRoles.length > 0) params.append('roles', selectedRoles.join(','));
+            try {
+                const response = await fetch('http://localhost:3000/api/analytics/duty-distribution');
 
-            const response = await fetch(`/api/analytics/duty-distribution?${params.toString()}`);
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to fetch data');
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la récupération des données');
+                }
+
+                const result = await response.json();
+                setData(result.data);
+            } catch (err: any) {
+                console.error('Erreur lors du chargement des données:', err);
+                setError(err.message || 'Erreur inconnue');
+            } finally {
+                setIsLoading(false);
             }
-            const result: GuardDutyStatsResponse = await response.json();
-            setData(result);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred');
-        } finally {
-            setIsLoading(false);
+        };
+
+        fetchData();
+    }, []);
+
+    // Obtenir les labels pour l'axe X et les champs selon le mode de visualisation
+    const getAxisConfig = () => {
+        switch (viewMode) {
+            case 'guardCount':
+                return {
+                    dataKey: 'guardCount',
+                    color: '#8884d8',
+                    label: 'Nombre de gardes',
+                    icon: <Shield className="h-4 w-4 mr-2" />
+                };
+            case 'onCallCount':
+                return {
+                    dataKey: 'onCallCount',
+                    color: '#82ca9d',
+                    label: 'Nombre d\'astreintes',
+                    icon: <Clock className="h-4 w-4 mr-2" />
+                };
+            case 'totalHours':
+                return {
+                    dataKey: 'totalHours',
+                    color: '#ffc658',
+                    label: 'Heures totales',
+                    icon: <Clock className="h-4 w-4 mr-2" />
+                };
+            case 'weightedScore':
+            default:
+                return {
+                    dataKey: 'weightedScore',
+                    color: '#ff7300',
+                    label: 'Score pondéré',
+                    icon: <Shield className="h-4 w-4 mr-2" />
+                };
         }
     };
 
-    useEffect(() => {
-        if (startDate && endDate) {
-            fetchData();
-        }
-    }, [startDate, endDate, siteId, selectedRoles]);
+    const { dataKey, color, label, icon } = getAxisConfig();
 
-    const chartDataByActivityType = useMemo(() => {
-        if (!data?.byActivityType) return [];
-        return data.byActivityType.map(item => ({
-            name: item.activityTypeCodeOrName,
-            total: item.totalAssignments,
-            average: parseFloat(item.averageAssignmentsPerUser.toFixed(2)),
-        }));
-    }, [data]);
+    // Préparer les données pour le graphique
+    const chartData = [...data]
+        .sort((a, b) => (b[dataKey as keyof GuardDutyDistribution] as number) - (a[dataKey as keyof GuardDutyDistribution] as number))
+        .slice(0, 7); // Limiter à 7 utilisateurs pour la lisibilité
 
-    // TODO: Ajouter un composant Table plus sophistiqué avec pagination/tri si nécessaire
+    if (isLoading) {
+        return (
+            <Card className="w-full h-80">
+                <CardHeader>
+                    <CardTitle>Distribution des gardes et astreintes</CardTitle>
+                    <CardDescription>Chargement des données...</CardDescription>
+                </CardHeader>
+                <CardContent className="flex items-center justify-center h-56">
+                    <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (error) {
+        return (
+            <Card className="w-full h-80">
+                <CardHeader>
+                    <CardTitle>Distribution des gardes et astreintes</CardTitle>
+                    <CardDescription>Une erreur est survenue</CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col items-center justify-center h-56 gap-2">
+                    <AlertTriangle className="h-10 w-10 text-red-500" />
+                    <p className="text-red-500">{error}</p>
+                </CardContent>
+            </Card>
+        );
+    }
+
     return (
         <Card className="w-full">
-            <CardHeader>
-                <CardTitle>Répartition Gardes/Astreintes</CardTitle>
-                <CardDescription>
-                    Analyse de la distribution des gardes et astreintes par type et par utilisateur.
-                </CardDescription>
+            <CardHeader className="pb-2">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <CardTitle>Distribution des gardes et astreintes</CardTitle>
+                        <CardDescription>Analyse sur les 3 derniers mois</CardDescription>
+                    </div>
+                    <Select
+                        value={viewMode}
+                        onValueChange={(value: string) => setViewMode(value as ViewMode)}
+                    >
+                        <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Choisir une métrique" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="guardCount">Nombre de gardes</SelectItem>
+                            <SelectItem value="onCallCount">Nombre d'astreintes</SelectItem>
+                            <SelectItem value="totalHours">Heures totales</SelectItem>
+                            <SelectItem value="weightedScore">Score pondéré</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </CardHeader>
             <CardContent>
-                <div className="grid md:grid-cols-3 gap-4 mb-6 items-end">
-                    <div>
-                        <label htmlFor="startDate-duty" className="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
-                        <DatePicker selected={startDate} onSelect={setStartDate} />
-                    </div>
-                    <div>
-                        <label htmlFor="endDate-duty" className="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
-                        <DatePicker selected={endDate} onSelect={setEndDate} />
-                    </div>
-                    {/* TODO: Ajouter sélecteur de site et de rôles ici */}
-                    <Button onClick={fetchData} disabled={isLoading || !startDate || !endDate} className="self-end">
-                        {isLoading ? 'Chargement...' : 'Rafraîchir'}
-                    </Button>
+                <div className="flex items-center mb-2 text-sm">
+                    {icon}
+                    <span>{label} par personne</span>
                 </div>
 
-                {error && <p className="text-red-500">Erreur: {error}</p>}
-
-                {isLoading && !data && <p>Chargement des données...</p>}
-
-                {data && (
-                    <div className="space-y-8">
-                        <div>
-                            <h3 className="text-lg font-semibold mb-2">Distribution par Type d'Activité</h3>
-                            {chartDataByActivityType.length > 0 ? (
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <BarChart data={chartDataByActivityType}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="name" />
-                                        <YAxis yAxisId="left" orientation="left" stroke="#8884d8" label={{ value: 'Total Affectations', angle: -90, position: 'insideLeft' }} />
-                                        <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" label={{ value: 'Moyenne par Utilisateur', angle: -90, position: 'insideRight' }} />
-                                        <Tooltip />
-                                        <Legend />
-                                        <Bar yAxisId="left" dataKey="total" fill="#8884d8" name="Total Affectations" />
-                                        <Bar yAxisId="right" dataKey="average" fill="#82ca9d" name="Moyenne par Utilisateur" />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            ) : <p>Aucune donnée de répartition par type d'activité pour la période sélectionnée.</p>}
-                        </div>
-
-                        <div>
-                            <h3 className="text-lg font-semibold mb-2">Distribution par Utilisateur</h3>
-                            {data.byUser.length > 0 ? (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Utilisateur</TableHead>
-                                            <TableHead className="text-right">Total Gardes/Astreintes</TableHead>
-                                            <TableHead>Détail (Type: Nombre)</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {data.byUser.map(userStat => (
-                                            <TableRow key={userStat.userId}>
-                                                <TableCell>{userStat.userName}</TableCell>
-                                                <TableCell className="text-right">{userStat.totalDuties}</TableCell>
-                                                <TableCell>
-                                                    {userStat.distribution.map((dist, index) => (
-                                                        <span key={dist.activityTypeCodeOrName} className="mr-2 whitespace-nowrap">
-                                                            {dist.activityTypeCodeOrName}: {dist.count}
-                                                            {index < userStat.distribution.length - 1 ? ';' : ''}
-                                                        </span>
-                                                    ))}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            ) : <p>Aucune donnée de répartition par utilisateur pour la période sélectionnée.</p>}
-                        </div>
-                        {startDate && endDate && (
-                            <div className="text-sm text-gray-500 mt-4">
-                                <p>Période du {format(startDate, 'dd/MM/yyyy')} au {format(endDate, 'dd/MM/yyyy')}.</p>
-                                <p>Types d'affectation ciblés: {data.summary.targetAssignmentTypes.join(', ') || 'N/A'}.</p>
-                                <p>Total affectations analysées: {data.summary.totalAssignments}. Utilisateurs concernés: {data.summary.totalUsersWithAssignments}.</p>
-                            </div>
-                        )}
-                    </div>
-                )}
+                <div className="h-[350px] mt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                            data={chartData}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 70 }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis
+                                dataKey="userName"
+                                angle={-45}
+                                textAnchor="end"
+                                height={70}
+                                interval={0}
+                            />
+                            <YAxis />
+                            <Tooltip
+                                formatter={(value, name) => [value, label]}
+                                labelFormatter={(value) => `Utilisateur: ${value}`}
+                            />
+                            <Bar
+                                dataKey={dataKey}
+                                fill={color}
+                                name={label}
+                                radius={[4, 4, 0, 0]}
+                            />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
             </CardContent>
         </Card>
     );
-}; 
+} 

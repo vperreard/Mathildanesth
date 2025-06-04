@@ -25,7 +25,7 @@ const parseCsv = (filePath) => {
 
 async function seedUsers() {
     console.log('Importation des utilisateurs...');
-    const usersData = parseCsv(path.join(process.cwd(), 'prisma/seed_data/users.csv'));
+    const usersData = parseCsv(path.join(process.cwd(), 'prisma/seed_data/utilisateurs.csv'));
 
     for (const userData of usersData) {
         try {
@@ -71,7 +71,7 @@ async function seedUsers() {
 
 async function seedSurgeons() {
     console.log('Importation des chirurgiens...');
-    const surgeonsData = parseCsv(path.join(process.cwd(), 'prisma/seed_data/surgeons.csv'));
+    const surgeonsData = parseCsv(path.join(process.cwd(), 'prisma/seed_data/chirurgiens.csv'));
 
     for (const surgeonData of surgeonsData) {
         try {

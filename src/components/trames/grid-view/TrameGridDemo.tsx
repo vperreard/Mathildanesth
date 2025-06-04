@@ -1,211 +1,229 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { InfoIcon } from 'lucide-react';
+import TrameGridView from './TrameGridView';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import Button from '@/components/ui/button';
+import { PlusIcon } from 'lucide-react';
+import NewTrameModal from './NewTrameModal';
+import { toast } from '@/components/ui/use-toast';
 
-// Import dynamique pour éviter les problèmes SSR avec react-beautiful-dnd
-const TrameGridView = dynamic(() => import('./TrameGridView'), { ssr: false });
+// Définition des types pour les données de démonstration
+interface RequiredStaff {
+    id: string;
+    affectationId: string;
+    role: 'MAR' | 'SURGEON' | 'IADE' | 'IBODE';
+    count: number;
+    userId?: string;
+}
 
-// Importer uniquement les types
-import type { TrameModele } from './TrameGridView';
+interface AffectationModele {
+    id: string;
+    trameId: string;
+    roomId?: string;
+    activityTypeId: string;
+    period: 'MORNING' | 'AFTERNOON' | 'FULL_DAY';
+    dayOverride?: number;
+    weekTypeOverride?: 'ALL' | 'EVEN' | 'ODD';
+    requiredStaff: RequiredStaff[];
+    isActive: boolean;
+}
 
-// Données simulées pour la démo
-const mockTrame: TrameModele = {
-    id: 'trame1',
-    name: 'Trame Bloc Orthopédie - Semaines Paires',
-    description: 'Trame standard pour le bloc orthopédie, semaines paires',
-    siteId: 'site1',
-    weekType: 'EVEN',
-    activeDays: [1, 2, 3, 4, 5], // Lundi à vendredi
-    effectiveStartDate: new Date('2025-01-01'),
-    effectiveEndDate: new Date('2025-12-31'),
-    affectations: [
-        // Salle 1, Lundi
+interface TrameModele {
+    id: string;
+    name: string;
+    description?: string;
+    siteId: string;
+    weekType: 'ALL' | 'EVEN' | 'ODD';
+    activeDays: number[]; // 0 = Sunday, 1 = Monday, etc.
+    isActive: boolean;
+    effectiveStartDate: Date;
+    effectiveEndDate?: Date;
+    affectations: AffectationModele[];
+}
+
+const TrameGridDemo: React.FC = () => {
+    // Données de démonstration pour le composant
+    const demoData: TrameModele[] = [
         {
-            id: 'aff1',
-            trameId: 'trame1',
-            roomId: 'room1',
-            activityTypeId: 'activity1',
-            period: 'MORNING',
+            id: 'demo-1',
+            name: 'TrameModele Bloc A - Semaine Standard',
+            description: 'Planning hebdomadaire standard pour le bloc A',
+            siteId: 'site-1',
+            weekType: 'ALL',
+            activeDays: [1, 2, 3, 4, 5], // Lundi à vendredi
             isActive: true,
-            requiredStaff: [
+            effectiveStartDate: new Date('2025-01-01'),
+            effectiveEndDate: new Date('2025-12-31'),
+            affectations: [
                 {
-                    id: 'staff1',
-                    affectationId: 'aff1',
-                    role: 'MAR',
-                    count: 1,
-                    userId: 'user1'
+                    id: 'aff-1',
+                    trameId: 'demo-1',
+                    roomId: 'room1',
+                    activityTypeId: 'activity1',
+                    period: 'MORNING',
+                    dayOverride: 1,
+                    isActive: true,
+                    requiredStaff: [
+                        {
+                            id: 'rs-1',
+                            affectationId: 'aff-1',
+                            role: 'MAR',
+                            count: 1,
+                            userId: 'user1'
+                        },
+                        {
+                            id: 'rs-2',
+                            affectationId: 'aff-1',
+                            role: 'IADE',
+                            count: 2,
+                            userId: 'user5'
+                        }
+                    ]
                 },
                 {
-                    id: 'staff2',
-                    affectationId: 'aff1',
-                    role: 'SURGEON',
-                    count: 1,
-                    userId: 'user3'
-                },
-                {
-                    id: 'staff3',
-                    affectationId: 'aff1',
-                    role: 'IADE',
-                    count: 1,
-                    userId: 'user5'
+                    id: 'aff-2',
+                    trameId: 'demo-1',
+                    roomId: 'room2',
+                    activityTypeId: 'activity2',
+                    period: 'FULL_DAY',
+                    dayOverride: 2,
+                    isActive: true,
+                    requiredStaff: [
+                        {
+                            id: 'rs-3',
+                            affectationId: 'aff-2',
+                            role: 'SURGEON',
+                            count: 1,
+                            userId: 'user3'
+                        },
+                        {
+                            id: 'rs-4',
+                            affectationId: 'aff-2',
+                            role: 'IBODE',
+                            count: 2,
+                            userId: 'user6'
+                        }
+                    ]
                 }
             ]
         },
         {
-            id: 'aff2',
-            trameId: 'trame1',
-            roomId: 'room1',
-            activityTypeId: 'activity1',
-            period: 'AFTERNOON',
+            id: 'demo-2',
+            name: 'TrameModele Bloc B - Semaines Paires',
+            description: 'Planning pour les semaines paires du bloc B',
+            siteId: 'site-1',
+            weekType: 'EVEN',
+            activeDays: [1, 3, 5], // Lundi, mercredi, vendredi
             isActive: true,
-            requiredStaff: [
+            effectiveStartDate: new Date('2025-01-01'),
+            effectiveEndDate: new Date('2025-12-31'),
+            affectations: [
                 {
-                    id: 'staff4',
-                    affectationId: 'aff2',
-                    role: 'MAR',
-                    count: 1,
-                    userId: 'user1'
-                },
-                {
-                    id: 'staff5',
-                    affectationId: 'aff2',
-                    role: 'SURGEON',
-                    count: 1,
-                    userId: 'user3'
-                },
-                {
-                    id: 'staff6',
-                    affectationId: 'aff2',
-                    role: 'IADE',
-                    count: 1,
-                    userId: 'user5'
-                }
-            ]
-        },
-        // Salle 2, Lundi
-        {
-            id: 'aff3',
-            trameId: 'trame1',
-            roomId: 'room2',
-            activityTypeId: 'activity1',
-            period: 'MORNING',
-            isActive: true,
-            requiredStaff: [
-                {
-                    id: 'staff7',
-                    affectationId: 'aff3',
-                    role: 'MAR',
-                    count: 1,
-                    userId: 'user2'
-                }
-            ]
-        },
-        {
-            id: 'aff4',
-            trameId: 'trame1',
-            roomId: 'room2',
-            activityTypeId: 'activity1',
-            period: 'AFTERNOON',
-            isActive: true,
-            requiredStaff: [
-                {
-                    id: 'staff8',
-                    affectationId: 'aff4',
-                    role: 'MAR',
-                    count: 1,
-                    userId: 'user2'
-                }
-            ]
-        },
-        // Salle 3, Fermée le Lundi
-        {
-            id: 'aff5',
-            trameId: 'trame1',
-            roomId: 'room3',
-            activityTypeId: 'activity1',
-            period: 'FULL_DAY',
-            dayOverride: 1, // Lundi
-            isActive: false,
-            requiredStaff: []
-        },
-        // Salle 2, Mardi
-        {
-            id: 'aff6',
-            trameId: 'trame1',
-            roomId: 'room2',
-            activityTypeId: 'activity1',
-            period: 'FULL_DAY',
-            dayOverride: 2, // Mardi
-            isActive: true,
-            requiredStaff: [
-                {
-                    id: 'staff9',
-                    affectationId: 'aff6',
-                    role: 'MAR',
-                    count: 1,
-                    userId: 'user2'
-                },
-                {
-                    id: 'staff10',
-                    affectationId: 'aff6',
-                    role: 'SURGEON',
-                    count: 1,
-                    userId: 'user4'
-                },
-                {
-                    id: 'staff11',
-                    affectationId: 'aff6',
-                    role: 'IADE',
-                    count: 1,
-                    userId: 'user6'
+                    id: 'aff-3',
+                    trameId: 'demo-2',
+                    roomId: 'room3',
+                    activityTypeId: 'activity3',
+                    period: 'AFTERNOON',
+                    dayOverride: 3,
+                    isActive: true,
+                    requiredStaff: [
+                        {
+                            id: 'rs-5',
+                            affectationId: 'aff-3',
+                            role: 'MAR',
+                            count: 1,
+                            userId: 'user2'
+                        }
+                    ]
                 }
             ]
         }
-    ]
-};
+    ];
 
-const TrameGridDemo: React.FC = () => {
-    const [trame, setTrame] = useState<TrameModele>(mockTrame);
-    const [isLoading, setIsLoading] = useState(true);
+    // État pour le mode de visualisation
+    const [selectedTrameId, setSelectedTrameId] = useState<string>(demoData[0].id);
+    const [showNewTrameModal, setShowNewTrameModal] = useState(false);
 
-    // Simuler le chargement des données
-    useEffect(() => {
-        // Simuler un délai de chargement
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 500);
-
-        return () => clearTimeout(timer);
-    }, []);
-
-    // Gérer les modifications de la trame
-    const handleTrameChange = (updatedTrame: TrameModele) => {
-        console.log('Trame mise à jour:', updatedTrame);
-        setTrame(updatedTrame);
-    };
-
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center min-h-[300px]">
-                <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
-            </div>
-        );
-    }
+    // Données de démonstration pour les sites
+    const demoSites = [
+        { id: 'site-1', name: 'Hôpital Nord' },
+        { id: 'site-2', name: 'Clinique Est' },
+        { id: 'site-3', name: 'Centre Médical Sud' }
+    ];
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-2xl font-bold mb-6">Démo Interface Grille de Trames</h1>
+        <Card className="w-full">
+            <CardHeader>
+                <CardTitle>Démonstration de la Vue en Grille</CardTitle>
+                <Alert className="mt-4">
+                    <InfoIcon className="h-4 w-4" />
+                    <AlertTitle>Mode démonstration</AlertTitle>
+                    <AlertDescription>
+                        Cette vue utilise des données factices pour illustrer les fonctionnalités de l'interface en grille.
+                    </AlertDescription>
+                </Alert>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <Select
+                            value={selectedTrameId}
+                            onValueChange={setSelectedTrameId}
+                        >
+                            <SelectTrigger className="w-[250px]">
+                                <SelectValue placeholder="Sélectionner une trameModele" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {demoData.map(trameModele => (
+                                    <SelectItem key={trameModele.id} value={trameModele.id}>
+                                        {trameModele.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
 
-            <div className="bg-white shadow-md rounded-lg p-6">
-                {TrameGridView && (
-                    <TrameGridView
-                        trame={trame}
-                        onTrameChange={handleTrameChange}
+                        <Button
+                            onClick={() => setShowNewTrameModal(true)}
+                            variant="default"
+                        >
+                            <PlusIcon className="h-4 w-4 mr-2" />
+                            Nouvelle TrameModele
+                        </Button>
+                    </div>
+
+                    {demoData.length > 0 ? (
+                        <TrameGridView
+                            trameModele={demoData.find(t => t.id === selectedTrameId) || demoData[0]}
+                            readOnly={false}
+                            onTrameChange={(updatedTrame) => console.log('TrameModele mise à jour:', updatedTrame)}
+                        />
+                    ) : (
+                        <div className="text-center p-8">
+                            <p>Aucune donnée de démonstration disponible.</p>
+                        </div>
+                    )}
+                </div>
+
+                {showNewTrameModal && (
+                    <NewTrameModal
+                        isOpen={showNewTrameModal}
+                        onClose={() => setShowNewTrameModal(false)}
+                        onSuccess={(newTrameId) => {
+                            setShowNewTrameModal(false);
+                            toast({
+                                title: "Nouvelle trameModele créée",
+                                description: "La trameModele a été ajoutée avec succès (simulation)",
+                            });
+                        }}
+                        sites={demoSites}
                     />
                 )}
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
 };
 

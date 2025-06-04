@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AppearancePreferences, VisualTheme } from '@/types/user';
-import { ApiService } from '@/services/api';
+import { AppearancePreferences, VisualTheme } from '../types/user';
+import { ApiService } from '../services/api';
+import { useAuth } from './useAuth';
 
 interface UseAppearanceProps {
     initialPreferences?: AppearancePreferences;
@@ -73,15 +74,29 @@ const themeValues = {
 };
 
 export function useAppearance({ initialPreferences }: UseAppearanceProps = {}) {
+    const { isAuthenticated, user } = useAuth();
     const [preferences, setPreferences] = useState<AppearancePreferences>(
         initialPreferences || defaultPreferences
     );
     const [loading, setLoading] = useState<boolean>(true);
 
-    // Charger les préférences depuis l'API au montage du composant
+    // Charger les préférences depuis l'API au montage du composant (temporairement désactivé)
     useEffect(() => {
+        // Temporairement désactivé pour éviter les erreurs Failed to fetch
+        console.log('Chargement des préférences API temporairement désactivé - utilisation des préférences par défaut');
+        setLoading(false);
+        
+        // TODO: Réactiver une fois l'authentification stabilisée
+        /*
         async function loadPreferences() {
             try {
+                // Vérifier si l'utilisateur est authentifié
+                if (!isAuthenticated || !user) {
+                    console.log('Utilisateur non authentifié, utilisation des préférences par défaut');
+                    setLoading(false);
+                    return;
+                }
+
                 const apiService = new ApiService();
                 const userPreferences = await apiService.getUserPreferences();
 
@@ -90,13 +105,15 @@ export function useAppearance({ initialPreferences }: UseAppearanceProps = {}) {
                 }
             } catch (error) {
                 console.error('Erreur lors du chargement des préférences:', error);
+                // En cas d'erreur, utiliser les préférences par défaut
             } finally {
                 setLoading(false);
             }
         }
 
         loadPreferences();
-    }, []);
+        */
+    }, [isAuthenticated, user]);
 
     // Appliquer les préférences à chaque changement
     useEffect(() => {

@@ -1,0 +1,532 @@
+{
+  "stats": {
+    "suites": 6,
+    "tests": 15,
+    "passes": 0,
+    "pending": 0,
+    "failures": 15,
+    "start": "2025-06-01T06:59:11.412Z",
+    "end": "2025-06-01T07:11:34.750Z",
+    "duration": 743338,
+    "testsRegistered": 15,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "37257631-3134-4a47-947c-cf4185b65a88",
+      "title": "",
+      "fullFile": "cypress/e2e/leaves/leave-crud-operations.spec.ts",
+      "file": "cypress/e2e/leaves/leave-crud-operations.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "7d51b9a3-1b14-40fd-a3f5-dd4773da1a1c",
+          "title": "Gestion complète des congés - CRUD",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [],
+          "suites": [
+            {
+              "uuid": "78b6af6d-dc90-4c1a-84a2-313df9b47a18",
+              "title": "Création de congés",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "permet de créer une demande de congé simple",
+                  "fullTitle": "Gestion complète des congés - CRUD Création de congés permet de créer une demande de congé simple",
+                  "timedOut": null,
+                  "duration": 16332,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Cliquer sur le bouton pour créer une nouvelle demande\ncy.get('[data-testid=create-leave-button]').click();\n// Remplir le formulaire\ncy.get('[data-testid=leave-type-select]').select('Congé annuel');\ncy.get('[data-testid=leave-start-date]').type('2025-06-01');\ncy.get('[data-testid=leave-end-date]').type('2025-06-07');\ncy.get('[data-testid=leave-reason]').type('Vacances familiales');\n// Soumettre le formulaire\ncy.get('[data-testid=submit-leave-button]').click();\n// Vérifier la notification de succès\ncy.get('[data-testid=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Demande de congé créée avec succès');\n// Vérifier que la demande apparaît dans la liste\ncy.get('[data-testid=leaves-table]').within(function () {\n    cy.contains('01/06/2025 - 07/06/2025').should('exist');\n    cy.contains('Congé annuel').should('exist');\n    cy.contains('En attente').should('exist');\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:24:15)",
+                    "diff": null
+                  },
+                  "uuid": "be4f91d7-3f70-44ae-8f25-ea375db12a72",
+                  "parentUUID": "78b6af6d-dc90-4c1a-84a2-313df9b47a18",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "empêche la création de congés avec des dates invalides",
+                  "fullTitle": "Gestion complète des congés - CRUD Création de congés empêche la création de congés avec des dates invalides",
+                  "timedOut": null,
+                  "duration": 16318,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=create-leave-button]').click();\n// Essayer de créer un congé avec une date de fin avant la date de début\ncy.get('[data-testid=leave-type-select]').select('Congé annuel');\ncy.get('[data-testid=leave-start-date]').type('2025-06-10');\ncy.get('[data-testid=leave-end-date]').type('2025-06-05');\n// Soumettre le formulaire\ncy.get('[data-testid=submit-leave-button]').click();\n// Vérifier le message d'erreur\ncy.get('[data-testid=form-error]')\n    .should('be.visible')\n    .and('contain', 'La date de fin doit être après la date de début');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:49:15)",
+                    "diff": null
+                  },
+                  "uuid": "ec6fb47e-7ff9-47f9-92c8-d9b21262404c",
+                  "parentUUID": "78b6af6d-dc90-4c1a-84a2-313df9b47a18",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "vérifie les quotas disponibles avant la création",
+                  "fullTitle": "Gestion complète des congés - CRUD Création de congés vérifie les quotas disponibles avant la création",
+                  "timedOut": null,
+                  "duration": 16415,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=create-leave-button]').click();\n// Sélectionner un type de congé\ncy.get('[data-testid=leave-type-select]').select('Congé annuel');\n// Vérifier l'affichage du quota restant\ncy.get('[data-testid=quota-remaining]')\n    .should('be.visible')\n    .and('contain', 'jours restants');\n// Tenter de créer un congé dépassant le quota\ncy.get('[data-testid=leave-start-date]').type('2025-06-01');\ncy.get('[data-testid=leave-end-date]').type('2025-12-31'); // Beaucoup trop de jours\ncy.get('[data-testid=submit-leave-button]').click();\n// Vérifier l'avertissement\ncy.get('[data-testid=quota-warning]')\n    .should('be.visible')\n    .and('contain', 'Quota insuffisant');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:66:15)",
+                    "diff": null
+                  },
+                  "uuid": "7032101b-e7e7-4869-ac4d-f863453ca429",
+                  "parentUUID": "78b6af6d-dc90-4c1a-84a2-313df9b47a18",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "be4f91d7-3f70-44ae-8f25-ea375db12a72",
+                "ec6fb47e-7ff9-47f9-92c8-d9b21262404c",
+                "7032101b-e7e7-4869-ac4d-f863453ca429"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 49065,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "b14d2740-c2dc-41a8-b472-cda889b88a1b",
+              "title": "Modification de congés",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "permet de modifier une demande de congé en attente",
+                  "fullTitle": "Gestion complète des congés - CRUD Modification de congés permet de modifier une demande de congé en attente",
+                  "timedOut": null,
+                  "duration": 16411,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Trouver une demande en attente et cliquer sur modifier\ncy.get('[data-testid=leaves-table]').within(function () {\n    cy.get('[data-testid=leave-status-pending]')\n        .first()\n        .parent('tr')\n        .find('[data-testid=edit-leave-button]')\n        .click();\n});\n// Modifier les dates\ncy.get('[data-testid=leave-end-date]').clear().type('2025-06-14');\ncy.get('[data-testid=leave-reason]').clear().type('Vacances prolongées');\n// Sauvegarder les modifications\ncy.get('[data-testid=save-leave-button]').click();\n// Vérifier la notification\ncy.get('[data-testid=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Demande de congé modifiée avec succès');\n// Vérifier que les modifications sont visibles\ncy.get('[data-testid=leaves-table]').within(function () {\n    cy.contains('14/06/2025').should('exist');\n    cy.contains('Vacances prolongées').should('exist');\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=leaves-table]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=leaves-table]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:92:15)",
+                    "diff": null
+                  },
+                  "uuid": "7329b888-53c7-4fb1-93a8-20de94e14eca",
+                  "parentUUID": "b14d2740-c2dc-41a8-b472-cda889b88a1b",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "empêche la modification des congés approuvés",
+                  "fullTitle": "Gestion complète des congés - CRUD Modification de congés empêche la modification des congés approuvés",
+                  "timedOut": null,
+                  "duration": 16459,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Trouver une demande approuvée\ncy.get('[data-testid=leaves-table]').within(function () {\n    cy.get('[data-testid=leave-status-approved]')\n        .first()\n        .parent('tr')\n        .find('[data-testid=edit-leave-button]')\n        .should('be.disabled');\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=leaves-table]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=leaves-table]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:121:15)",
+                    "diff": null
+                  },
+                  "uuid": "276f6b0c-827e-4611-a4d0-bdf7b7147ee3",
+                  "parentUUID": "b14d2740-c2dc-41a8-b472-cda889b88a1b",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "empêche la modification des congés passés",
+                  "fullTitle": "Gestion complète des congés - CRUD Modification de congés empêche la modification des congés passés",
+                  "timedOut": null,
+                  "duration": 16411,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Filtrer pour voir les congés passés\ncy.get('[data-testid=filter-past-leaves]').click();\n// Vérifier que les boutons de modification sont désactivés\ncy.get('[data-testid=leaves-table]').within(function () {\n    cy.get('[data-testid=edit-leave-button]').each(function ($btn) {\n        cy.wrap($btn).should('be.disabled');\n    });\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=filter-past-leaves]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=filter-past-leaves]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:132:15)",
+                    "diff": null
+                  },
+                  "uuid": "073bfd61-162b-4595-9f75-23b731b23cd6",
+                  "parentUUID": "b14d2740-c2dc-41a8-b472-cda889b88a1b",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "7329b888-53c7-4fb1-93a8-20de94e14eca",
+                "276f6b0c-827e-4611-a4d0-bdf7b7147ee3",
+                "073bfd61-162b-4595-9f75-23b731b23cd6"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 49281,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "01c7018f-2ff6-4715-b295-41856141d698",
+              "title": "Suppression de congés",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "permet de supprimer une demande de congé en attente",
+                  "fullTitle": "Gestion complète des congés - CRUD Suppression de congés permet de supprimer une demande de congé en attente",
+                  "timedOut": null,
+                  "duration": 16467,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Trouver une demande en attente et cliquer sur supprimer\ncy.get('[data-testid=leaves-table]').within(function () {\n    cy.get('[data-testid=leave-status-pending]')\n        .first()\n        .parent('tr')\n        .find('[data-testid=delete-leave-button]')\n        .click();\n});\n// Confirmer la suppression dans la modal\ncy.get('[data-testid=confirm-delete-modal]').within(function () {\n    cy.contains('Êtes-vous sûr de vouloir supprimer cette demande de congé ?');\n    cy.get('[data-testid=confirm-delete-button]').click();\n});\n// Vérifier la notification\ncy.get('[data-testid=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Demande de congé supprimée avec succès');\n// Vérifier que la demande n'apparaît plus\ncy.get('[data-testid=leaves-table]').should('not.contain', 'La demande supprimée');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=leaves-table]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=leaves-table]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:146:15)",
+                    "diff": null
+                  },
+                  "uuid": "ab04d250-ff53-43fb-b5db-465f5561ec7b",
+                  "parentUUID": "01c7018f-2ff6-4715-b295-41856141d698",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "empêche la suppression des congés approuvés",
+                  "fullTitle": "Gestion complète des congés - CRUD Suppression de congés empêche la suppression des congés approuvés",
+                  "timedOut": null,
+                  "duration": 16472,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Trouver une demande approuvée\ncy.get('[data-testid=leaves-table]').within(function () {\n    cy.get('[data-testid=leave-status-approved]')\n        .first()\n        .parent('tr')\n        .find('[data-testid=delete-leave-button]')\n        .should('not.exist');\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=leaves-table]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=leaves-table]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:171:15)",
+                    "diff": null
+                  },
+                  "uuid": "964dda97-1e4b-4cb4-8de7-1e89cf6d4038",
+                  "parentUUID": "01c7018f-2ff6-4715-b295-41856141d698",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "restaure les quotas après suppression",
+                  "fullTitle": "Gestion complète des congés - CRUD Suppression de congés restaure les quotas après suppression",
+                  "timedOut": null,
+                  "duration": 16643,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Noter le quota initial\ncy.get('[data-testid=quota-display]')\n    .invoke('text')\n    .then(function (initialQuota) {\n    // Supprimer une demande en attente\n    cy.get('[data-testid=leaves-table]').within(function () {\n        cy.get('[data-testid=leave-status-pending]')\n            .first()\n            .parent('tr')\n            .find('[data-testid=delete-leave-button]')\n            .click();\n    });\n    // Confirmer la suppression\n    cy.get('[data-testid=confirm-delete-button]').click();\n    // Vérifier que le quota a été restauré\n    cy.get('[data-testid=quota-display]')\n        .invoke('text')\n        .should('not.equal', initialQuota);\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=quota-display]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=quota-display]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:182:15)",
+                    "diff": null
+                  },
+                  "uuid": "7ff62443-59f8-47ce-bdad-fecbc95d7dc9",
+                  "parentUUID": "01c7018f-2ff6-4715-b295-41856141d698",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "ab04d250-ff53-43fb-b5db-465f5561ec7b",
+                "964dda97-1e4b-4cb4-8de7-1e89cf6d4038",
+                "7ff62443-59f8-47ce-bdad-fecbc95d7dc9"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 49582,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "b9204dbc-cd94-41c9-9c82-97e21670f899",
+              "title": "Validation des règles métier",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "détecte les conflits avec d'autres congés",
+                  "fullTitle": "Gestion complète des congés - CRUD Validation des règles métier détecte les conflits avec d'autres congés",
+                  "timedOut": null,
+                  "duration": 16511,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=create-leave-button]').click();\n// Essayer de créer un congé qui chevauche avec un congé existant\ncy.get('[data-testid=leave-type-select]').select('Congé annuel');\ncy.get('[data-testid=leave-start-date]').type('2025-07-15');\ncy.get('[data-testid=leave-end-date]').type('2025-07-25');\n// Vérifier l'avertissement de conflit\ncy.get('[data-testid=conflict-warning]')\n    .should('be.visible')\n    .and('contain', 'Conflit détecté avec d\\'autres congés');\n// Afficher les détails du conflit\ncy.get('[data-testid=show-conflict-details]').click();\ncy.get('[data-testid=conflict-details]').within(function () {\n    cy.contains('Congé existant').should('exist');\n    cy.contains('Dr Dupont').should('exist');\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:207:15)",
+                    "diff": null
+                  },
+                  "uuid": "1ff97881-b83f-4140-a9ce-c20d6a187ee4",
+                  "parentUUID": "b9204dbc-cd94-41c9-9c82-97e21670f899",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "vérifie le nombre minimum de personnel présent",
+                  "fullTitle": "Gestion complète des congés - CRUD Validation des règles métier vérifie le nombre minimum de personnel présent",
+                  "timedOut": null,
+                  "duration": 16580,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=create-leave-button]').click();\n// Créer un congé pendant une période critique\ncy.get('[data-testid=leave-type-select]').select('Congé annuel');\ncy.get('[data-testid=leave-start-date]').type('2025-12-24');\ncy.get('[data-testid=leave-end-date]').type('2025-12-26');\n// Vérifier l'avertissement de personnel minimum\ncy.get('[data-testid=minimum-staff-warning]')\n    .should('be.visible')\n    .and('contain', 'Personnel minimum non respecté');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:228:15)",
+                    "diff": null
+                  },
+                  "uuid": "8d889e93-a20c-4745-a62f-f3c12fb34f58",
+                  "parentUUID": "b9204dbc-cd94-41c9-9c82-97e21670f899",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "affiche les recommandations pour les périodes alternatives",
+                  "fullTitle": "Gestion complète des congés - CRUD Validation des règles métier affiche les recommandations pour les périodes alternatives",
+                  "timedOut": null,
+                  "duration": 16419,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=create-leave-button]').click();\n// Sélectionner des dates avec conflits\ncy.get('[data-testid=leave-type-select]').select('Congé annuel');\ncy.get('[data-testid=leave-start-date]').type('2025-08-01');\ncy.get('[data-testid=leave-end-date]').type('2025-08-15');\n// Vérifier les recommandations\ncy.get('[data-testid=alternative-dates-suggestion]')\n    .should('be.visible')\n    .and('contain', 'Périodes alternatives suggérées');\n// Cliquer sur une suggestion\ncy.get('[data-testid=suggested-date-1]').click();\n// Vérifier que les dates sont mises à jour\ncy.get('[data-testid=leave-start-date]').should('have.value', '2025-08-16');\ncy.get('[data-testid=leave-end-date]').should('have.value', '2025-08-30');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:242:15)",
+                    "diff": null
+                  },
+                  "uuid": "a4f4488e-a7c5-4cac-b79c-52f524fdd315",
+                  "parentUUID": "b9204dbc-cd94-41c9-9c82-97e21670f899",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "1ff97881-b83f-4140-a9ce-c20d6a187ee4",
+                "8d889e93-a20c-4745-a62f-f3c12fb34f58",
+                "a4f4488e-a7c5-4cac-b79c-52f524fdd315"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 49510,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "21c8a1c3-ce33-4da2-9fce-0c85f7ea7367",
+              "title": "Fonctionnalités avancées",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "permet l'export des congés en CSV",
+                  "fullTitle": "Gestion complète des congés - CRUD Fonctionnalités avancées permet l'export des congés en CSV",
+                  "timedOut": null,
+                  "duration": 16466,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Cliquer sur le bouton d'export\ncy.get('[data-testid=export-leaves-button]').click();\n// Sélectionner les options d'export\ncy.get('[data-testid=export-modal]').within(function () {\n    cy.get('[data-testid=export-format-csv]').check();\n    cy.get('[data-testid=export-date-range]').check();\n    cy.get('[data-testid=export-start-date]').type('2025-01-01');\n    cy.get('[data-testid=export-end-date]').type('2025-12-31');\n    cy.get('[data-testid=confirm-export-button]').click();\n});\n// Vérifier que le fichier est téléchargé\ncy.readFile('cypress/downloads/conges-export-2025.csv').should('exist');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=export-leaves-button]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=export-leaves-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:266:15)",
+                    "diff": null
+                  },
+                  "uuid": "14b1ef6f-a7a7-4c95-a51a-a7661d148fd4",
+                  "parentUUID": "21c8a1c3-ce33-4da2-9fce-0c85f7ea7367",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "permet de filtrer et rechercher les congés",
+                  "fullTitle": "Gestion complète des congés - CRUD Fonctionnalités avancées permet de filtrer et rechercher les congés",
+                  "timedOut": null,
+                  "duration": 16559,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Filtrer par type de congé\ncy.get('[data-testid=filter-leave-type]').select('Congé maladie');\ncy.get('[data-testid=leaves-table]').within(function () {\n    cy.get('tbody tr').each(function ($row) {\n        cy.wrap($row).should('contain', 'Congé maladie');\n    });\n});\n// Rechercher par nom d'utilisateur\ncy.get('[data-testid=search-leaves]').type('Martin');\ncy.get('[data-testid=leaves-table]').within(function () {\n    cy.get('tbody tr').should('have.length.greaterThan', 0);\n    cy.contains('Dr Martin').should('exist');\n});\n// Filtrer par statut\ncy.get('[data-testid=filter-status]').select('Approuvé');\ncy.get('[data-testid=leaves-table]').within(function () {\n    cy.get('[data-testid=leave-status-approved]').should('exist');\n    cy.get('[data-testid=leave-status-pending]').should('not.exist');\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=filter-leave-type]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=filter-leave-type]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:283:15)",
+                    "diff": null
+                  },
+                  "uuid": "da299ed3-6c0b-4403-8adf-7bf625f15782",
+                  "parentUUID": "21c8a1c3-ce33-4da2-9fce-0c85f7ea7367",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "affiche l'historique complet d'une demande",
+                  "fullTitle": "Gestion complète des congés - CRUD Fonctionnalités avancées affiche l'historique complet d'une demande",
+                  "timedOut": null,
+                  "duration": 16660,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Cliquer sur une demande pour voir les détails\ncy.get('[data-testid=leaves-table]').within(function () {\n    cy.get('tbody tr').first().click();\n});\n// Vérifier l'affichage de l'historique\ncy.get('[data-testid=leave-history-modal]').within(function () {\n    cy.contains('Historique de la demande').should('exist');\n    cy.get('[data-testid=history-timeline]').should('exist');\n    cy.contains('Créée le').should('exist');\n    cy.contains('Modifiée le').should('exist');\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=leaves-table]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=leaves-table]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/leave-crud-operations.spec.ts:307:15)",
+                    "diff": null
+                  },
+                  "uuid": "74318244-1011-4eae-8baf-98b0ea5dc11d",
+                  "parentUUID": "21c8a1c3-ce33-4da2-9fce-0c85f7ea7367",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "14b1ef6f-a7a7-4c95-a51a-a7661d148fd4",
+                "da299ed3-6c0b-4403-8adf-7bf625f15782",
+                "74318244-1011-4eae-8baf-98b0ea5dc11d"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 49685,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            }
+          ],
+          "passes": [],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 0,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

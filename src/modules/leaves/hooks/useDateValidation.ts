@@ -1,210 +1,191 @@
-import { useState, useCallback, useEffect } from 'react';
-import { formatDate, parseDate, isDateWeekend } from '@/utils/dateUtils';
-import { calculateWorkingDays, isBusinessDay } from '../services/leaveCalculator';
-import { publicHolidayService } from '../services/publicHolidayService';
-import { format, isAfter, isBefore, isSameDay, isValid } from 'date-fns';
-import { WorkSchedule } from '../../profiles/types/workSchedule';
-import { LeaveDateValidationOptions } from '../types/leave';
-import { getLogger } from '@/utils/logger';
+import { useState, useCallback } from 'react';
 
-export interface DateValidationConfig {
-    startDate: Date | string | null;
-    endDate: Date | string | null;
-    workSchedule?: WorkSchedule;
-    options?: LeaveDateValidationOptions;
-    minDays?: number;
-    maxDays?: number;
+// Simplified date validation hook for leaves module
+export interface DateValidationOptions {
+    required?: boolean;
     allowPastDates?: boolean;
-    maxFutureDays?: number; // Nombre maximal de jours dans le futur
+    minDuration?: number;
+    businessDaysOnly?: boolean;
+}
+
+export interface DateValidationError {
+    field: string;
+    message: string;
+    type: string;
 }
 
 export interface DateValidationResult {
     isValid: boolean;
-    errors: {
-        startDate?: string[];
-        endDate?: string[];
-        period?: string[];
-    };
-    warnings: {
-        startDate?: string[];
-        endDate?: string[];
-        period?: string[];
-    };
+    errors: DateValidationError[];
     workingDays: number;
-    hasHolidays: boolean;
-    hasWeekends: boolean;
-    holidayCount: number;
-    weekendCount: number;
 }
 
 /**
- * Hook pour valider les dates de congés
+ * Simple date validation hook for the leaves module
+ * Provides basic date validation functionality for other hooks
  */
-export const useDateValidation = ({
-    startDate,
-    endDate,
-    workSchedule,
-    options = {},
-    minDays = 1,
-    maxDays,
-    allowPastDates = false,
-    maxFutureDays
-}: DateValidationConfig): DateValidationResult => {
-    const [result, setResult] = useState<DateValidationResult>({
-        isValid: false,
-        errors: {},
-        warnings: {},
-        workingDays: 0,
-        hasHolidays: false,
-        hasWeekends: false,
-        holidayCount: 0,
-        weekendCount: 0
-    });
+export const useDateValidation = () => {
+    const [errors, setErrors] = useState<DateValidationError[]>([]);
 
-    const validateDates = useCallback(async () => {
-        const logger = await getLogger();
-        logger.info('Validating dates...', { startDate, endDate, options, minDays, maxDays });
+    /**
+     * Reset all validation errors
+     */
+    const resetErrors = useCallback(() => {
+        setErrors([]);
+    }, []);
 
-        const errors: { startDate?: string[]; endDate?: string[]; period?: string[] } = {};
-        const warnings: { startDate?: string[]; endDate?: string[]; period?: string[] } = {};
-        let workingDaysCount = 0;
-        let holidays: any[] = [];
-        let weekends: Date[] = [];
-        let holidayCount = 0;
-        let weekendCount = 0;
-        let calculationError = false;
+    /**
+     * Validate a single date
+     */
+    const validateDate = useCallback((
+        date: Date | null,
+        fieldName: string,
+        options: DateValidationOptions = {}
+    ): boolean => {
+        const newErrors: DateValidationError[] = [];
 
-        // Valider et parser les dates
-        const start = parseDate(startDate);
-        const end = parseDate(endDate);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        if (!start) {
-            errors.startDate = [...(errors.startDate || []), "La date de début est requise"];
-        }
-
-        if (!end) {
-            errors.endDate = [...(errors.endDate || []), "La date de fin est requise"];
-        }
-
-        if (start && end && isAfter(start, end)) {
-            errors.period = [...(errors.period || []), "La date de début doit être antérieure ou égale à la date de fin"];
-        }
-
-        if (!start || !end || errors.period?.length) {
-            logger.warn('Basic date validation failed (missing dates or end before start)', { errors });
-            setResult({
-                isValid: false, errors, warnings, workingDays: 0,
-                hasHolidays: false, hasWeekends: false, holidayCount: 0, weekendCount: 0
+        // Check if date is required
+        if (options.required && !date) {
+            newErrors.push({
+                field: fieldName,
+                message: 'Cette date est requise',
+                type: 'required'
             });
-            return;
+            setErrors(prev => [...prev.filter(e => e.field !== fieldName), ...newErrors]);
+            return false;
         }
 
-        if (!allowPastDates && isBefore(start, today) && !isSameDay(start, today)) {
-            errors.startDate = [...(errors.startDate || []), "La date de début ne peut pas être dans le passé"];
+        if (!date) {
+            // If not required and null, it's valid
+            setErrors(prev => prev.filter(e => e.field !== fieldName));
+            return true;
         }
 
-        if (!allowPastDates && isBefore(end, today) && !isSameDay(end, today)) {
-            errors.endDate = [...(errors.endDate || []), "La date de fin ne peut pas être dans le passé"];
-        }
-
-        if (maxFutureDays) {
-            const maxFutureDate = new Date(today);
-            maxFutureDate.setDate(today.getDate() + maxFutureDays);
-            if (isAfter(start, maxFutureDate)) {
-                warnings.startDate = [...(warnings.startDate || []), `La date de début est plus de ${maxFutureDays} jours dans le futur`];
-            }
-            if (isAfter(end, maxFutureDate)) {
-                warnings.endDate = [...(warnings.endDate || []), `La date de fin est plus de ${maxFutureDays} jours dans le futur`];
-            }
-        }
-
-        if (errors.startDate?.length || errors.endDate?.length) {
-            logger.warn('Date validation failed (past/future checks)', { errors, warnings });
-            setResult({
-                isValid: false, errors, warnings, workingDays: 0,
-                hasHolidays: false, hasWeekends: false, holidayCount: 0, weekendCount: 0
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+            newErrors.push({
+                field: fieldName,
+                message: 'Date invalide',
+                type: 'invalid'
             });
-            return;
+            setErrors(prev => [...prev.filter(e => e.field !== fieldName), ...newErrors]);
+            return false;
         }
 
-        try {
-            logger.info('Calculating working days...');
-            workingDaysCount = await calculateWorkingDays(start, end, {
-                countHolidaysOnWeekends: options.countHolidaysOnWeekends ?? false
-            });
+        // Check past dates if not allowed
+        if (!options.allowPastDates) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const dateToCheck = new Date(date);
+            dateToCheck.setHours(0, 0, 0, 0);
 
-            if (workingDaysCount === null) {
-                logger.error('calculateWorkingDays returned null');
-                throw new Error("Impossible de calculer les jours ouvrables");
+            if (dateToCheck < today) {
+                newErrors.push({
+                    field: fieldName,
+                    message: 'Les dates passées ne sont pas autorisées',
+                    type: 'past_date'
+                });
+                setErrors(prev => [...prev.filter(e => e.field !== fieldName), ...newErrors]);
+                return false;
             }
-            logger.info(`Working days calculated: ${workingDaysCount}`);
-
-            logger.info('Fetching public holidays...');
-            const formattedStart = format(start, 'yyyy-MM-dd');
-            const formattedEnd = format(end, 'yyyy-MM-dd');
-            holidays = await publicHolidayService.getPublicHolidaysInRange(formattedStart, formattedEnd);
-            holidayCount = holidays.length;
-            logger.info(`Public holidays fetched: ${holidayCount}`);
-
-            logger.info('Calculating weekends...');
-            const oneDay = 24 * 60 * 60 * 1000;
-            const diffDays = Math.round(Math.abs((end.getTime() - start.getTime()) / oneDay)) + 1;
-            const dates: Date[] = [];
-            for (let i = 0; i < diffDays; i++) {
-                const date = new Date(start);
-                date.setDate(start.getDate() + i);
-                dates.push(date);
-            }
-            weekends = dates.filter(date => isDateWeekend(date));
-            weekendCount = weekends.length;
-            logger.info(`Weekends calculated: ${weekendCount}`);
-
-        } catch (calcErr) {
-            const errorObj = calcErr instanceof Error ? calcErr : new Error(String(calcErr));
-            logger.error('Error during working days/holiday/weekend calculation', { error: errorObj.message, stack: errorObj.stack });
-            errors.period = [...(errors.period || []), "Erreur interne lors du calcul des jours."];
-            calculationError = true;
         }
 
-        if (!calculationError) {
-            if (workingDaysCount < minDays && options.minWorkingDays !== false) {
-                if (options.allowPeriodsWithNoWorkingDays && workingDaysCount === 0) {
-                    warnings.period = [...(warnings.period || []), `Aucun jour ouvrable dans cette période`];
+        // If all checks pass, remove any existing errors for this field
+        setErrors(prev => prev.filter(e => e.field !== fieldName));
+        return true;
+    }, []);
+
+    /**
+     * Validate a date range
+     */
+    const validateDateRange = useCallback((
+        startDate: Date | null,
+        endDate: Date | null,
+        startFieldName: string,
+        endFieldName: string,
+        options: DateValidationOptions = {}
+    ): boolean => {
+        let isValid = true;
+
+        // Validate individual dates first
+        const startValid = validateDate(startDate, startFieldName, options);
+        const endValid = validateDate(endDate, endFieldName, options);
+
+        if (!startValid || !endValid) {
+            return false;
+        }
+
+        // If both dates are null and not required, it's valid
+        if (!startDate && !endDate && !options.required) {
+            return true;
+        }
+
+        // If we have both dates, validate the range
+        if (startDate && endDate) {
+            if (startDate > endDate) {
+                const rangeError: DateValidationError = {
+                    field: startFieldName,
+                    message: 'La date de début doit être antérieure à la date de fin',
+                    type: 'range_invalid'
+                };
+                setErrors(prev => [...prev.filter(e => e.field !== startFieldName || e.type !== 'range_invalid'), rangeError]);
+                isValid = false;
+            } else {
+                // Remove any existing range errors
+                setErrors(prev => prev.filter(e => !(e.field === startFieldName && e.type === 'range_invalid')));
+            }
+
+            // Check minimum duration if specified
+            if (options.minDuration && isValid) {
+                const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                if (diffDays < options.minDuration) {
+                    const durationError: DateValidationError = {
+                        field: endFieldName,
+                        message: `La période doit durer au moins ${options.minDuration} jour(s)`,
+                        type: 'min_duration'
+                    };
+                    setErrors(prev => [...prev.filter(e => e.field !== endFieldName || e.type !== 'min_duration'), durationError]);
+                    isValid = false;
                 } else {
-                    errors.period = [...(errors.period || []), `La période doit contenir au moins ${minDays} jour(s) ouvrable(s)`];
+                    // Remove any existing duration errors
+                    setErrors(prev => prev.filter(e => !(e.field === endFieldName && e.type === 'min_duration')));
                 }
             }
-            if (maxDays !== undefined && workingDaysCount > maxDays) {
-                errors.period = [...(errors.period || []), `La période ne peut pas dépasser ${maxDays} jours ouvrables`];
-            }
         }
 
-        const finalIsValid = Object.values(errors).every(errorList => !errorList || errorList.length === 0);
+        return isValid;
+    }, [validateDate]);
 
-        if (!finalIsValid) {
-            logger.warn('Final date validation failed', { errors, warnings, calculationError });
-        } else {
-            logger.info('Final date validation successful');
-        }
+    /**
+     * Get all current errors
+     */
+    const getAllErrors = useCallback(() => {
+        return errors;
+    }, [errors]);
 
-        setResult({
-            isValid: finalIsValid,
-            errors,
-            warnings,
-            workingDays: workingDaysCount ?? 0,
-            hasHolidays: holidayCount > 0,
-            hasWeekends: weekendCount > 0,
-            holidayCount,
-            weekendCount
-        });
+    /**
+     * Check if there are any errors
+     */
+    const hasErrors = useCallback(() => {
+        return errors.length > 0;
+    }, [errors]);
 
-    }, [startDate, endDate, workSchedule, options, minDays, maxDays, allowPastDates, maxFutureDays]);
+    /**
+     * Get errors for a specific field
+     */
+    const getFieldErrors = useCallback((fieldName: string) => {
+        return errors.filter(error => error.field === fieldName);
+    }, [errors]);
 
-    useEffect(() => {
-        validateDates();
-    }, [validateDates]);
-
-    return result;
-}; 
+    return {
+        validateDate,
+        validateDateRange,
+        resetErrors,
+        getAllErrors,
+        hasErrors,
+        getFieldErrors,
+        errors
+    };
+};

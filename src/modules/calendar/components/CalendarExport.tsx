@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CalendarEventType, CalendarExportFormat, ExportOptions } from '../types/event';
-// import { exportCalendarEvents, downloadBlob } from '../services/calendarService'; // COMMENTÉ
+// import { exportCalendarEvents, downloadBlob } from '../services/calendrierService'; // COMMENTÉ
 import { format as formatDate } from 'date-fns';
 import { fr } from 'date-fns/locale';
 // import { useDateValidation } from '../../../hooks/useDateValidation'; // COMMENTÉ

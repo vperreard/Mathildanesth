@@ -71,7 +71,10 @@ export class OperatingSectorService {
                 console.warn(`ID de secteur invalide fourni: ${id}`);
                 return null;
             }
-            const sectorPrisma = await this.realService.getOperatingSectorById(numericId, false);
+
+            // Utiliser getAllOperatingSectors et filtrer par ID
+            const allSectors = await this.realService.getAllOperatingSectors(false);
+            const sectorPrisma = allSectors.find(sector => sector.id === numericId);
 
             if (!sectorPrisma) {
                 return null;
@@ -173,5 +176,5 @@ export class OperatingSectorService {
     */
 }
 
-// Exporter une instance pour une utilisation facile (singleton pattern simple)
-// export const operatingSectorService = new OperatingSectorService(); // Déjà fait dans le hook 
+// Instance exportée du service
+export const operatingSectorService = new OperatingSectorService(); 

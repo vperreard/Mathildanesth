@@ -2,27 +2,25 @@
 
 import { useTheme } from '@/context/ThemeContext';
 import { Sun, Moon } from 'lucide-react';
-import Button from '@/components/ui/button';
 
 export function ThemeSwitcher() {
     const { theme, setTheme } = useTheme();
 
     return (
-        <Button
-            variant={theme === 'light' ? "ghost" : "ghost"}
-            size="icon"
+        <button
+            className={`relative flex items-center justify-center p-2 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${theme === 'light'
+                ? 'text-gray-600 hover:bg-gray-100'
+                : 'text-gray-400 hover:bg-slate-700'
+                }`}
             onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
             aria-label={theme === 'light' ? 'Passer au thème sombre' : 'Passer au thème clair'}
-            className={`rounded-full transition-colors duration-200 ${theme === 'light'
-                    ? 'text-primary-600 hover:text-secondary-600 hover:bg-primary-50'
-                    : 'text-gray-400 hover:text-gray-100 dark:hover:bg-slate-700'
-                }`}
+            style={{ width: '36px', height: '36px' }}
         >
             {theme === 'light' ? (
-                <Moon className="h-5 w-5 text-secondary-600 hover:text-tertiary-500" />
+                <Moon className="h-5 w-5" style={{ width: '20px', height: '20px' }} />
             ) : (
-                <Sun className="h-5 w-5" />
+                <Sun className="h-5 w-5" style={{ width: '20px', height: '20px' }} />
             )}
-        </Button>
+        </button>
     );
 } 

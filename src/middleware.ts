@@ -1,68 +1,102 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
-import type { UserJWTPayload, AuthResult } from '@/lib/auth-client-utils';
 
 export async function middleware(request: NextRequest) {
-    // Journaliser les informations sur la requête
-    const url = request.nextUrl.href;
-    const method = request.method;
     const pathname = request.nextUrl.pathname;
-
-    console.log('=========================================');
-    console.log(`[MIDDLEWARE TS] EXÉCUTÉ: ${method} ${pathname}`);
-    console.log(`URL complète: ${url}`);
-    console.log('Headers originaux:');
-    request.headers.forEach((value, key) => {
-        console.log(`  ${key}: ${value}`);
+    
+    console.log(`[MIDDLEWARE] ${request.method} ${pathname}`);
+    
+    // Ignorer les ressources statiques
+    if (
+        pathname.includes('/_next/') ||
+        pathname.includes('/static/') ||
+        pathname.endsWith('.ico') ||
+        pathname.endsWith('.png') ||
+        pathname.endsWith('.jpg') ||
+        pathname.endsWith('.svg') ||
+        pathname.endsWith('.css') ||
+        pathname.endsWith('.js')
+    ) {
+        return NextResponse.next();
+    }
+    
+    // Routes publiques
+    const publicRoutes = [
+        '/',
+        '/auth/connexion',
+        '/auth/reset-password',
+        '/api/auth/login',
+        '/api/auth/logout', 
+        '/api/auth/forgot-password',
+        '/api/auth/reset-password',
+        '/api/test-logout',
+        '/sw-killer.js',
+        '/clear-auth-cookie.html',
+        '/manifest.json'
+    ];
+    
+    // Check if public route
+    const isPublicRoute = publicRoutes.some(route => {
+        if (route === '/') {
+            return pathname === '/';
+        }
+        return pathname === route || pathname.startsWith(route + '/') || pathname.startsWith(route + '?');
     });
-    console.log('=========================================');
-
-    // Extraire les informations du cookie auth_token
+    
+    console.log(`[MIDDLEWARE] isPublicRoute: ${isPublicRoute}`);
+    
+    // Get auth token
     const authCookie = request.cookies.get('auth_token');
-    console.log('Cookie auth_token trouvé:', authCookie ? 'Oui' : 'Non');
-
-    // Ajouter un en-tête pour confirmer que le middleware a été exécuté
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-middleware-executed', 'true');
-    requestHeaders.set('x-middleware-timestamp', new Date().toISOString());
-
-    // Si un cookie auth_token est trouvé, vérifier et décoder le token
-    if (authCookie && authCookie.value) {
+    let isAuthenticated = false;
+    let userId: string | null = null;
+    let userRole: string | null = null;
+    
+    // Verify auth token if present
+    if (authCookie?.value) {
         try {
-            const authResult: AuthResult = await verifyAuthToken(authCookie.value);
-
-            if (authResult.authenticated && authResult.userId && authResult.role) {
-                // Ajouter les informations utilisateur aux en-têtes
-                requestHeaders.set('x-user-id', authResult.userId.toString());
-                requestHeaders.set('x-user-role', authResult.role);
-                console.log('En-têtes ajoutés avec les informations utilisateur (ID et rôle)');
-            } else {
-                console.warn('Token invalide ou expiré selon le middleware');
+            const authResult = await verifyAuthToken(authCookie.value);
+            if (authResult.authenticated && authResult.userId) {
+                isAuthenticated = true;
+                userId = authResult.userId.toString();
+                userRole = authResult.role || null;
+                console.log(`[MIDDLEWARE] User authenticated: ${userId} (${userRole})`);
             }
         } catch (error) {
-            console.error('Erreur lors de la vérification du token dans le middleware:', error);
+            console.error('[MIDDLEWARE] Token verification failed:', error);
         }
     }
-
-    // Pour les routes API protégées, vérifier l'authentification
-    if (pathname.startsWith('/api/') &&
-        !pathname.startsWith('/api/auth/') &&
-        !pathname.includes('public')) {
-
-        // MODIFICATION: Autoriser les requêtes de développement avec les en-têtes x-user-role et x-user-id
-        const devBypassHeaders = process.env.NODE_ENV === 'development' &&
-            requestHeaders.has('x-user-role') &&
-            requestHeaders.has('x-user-id');
-
-        if (!authCookie && !devBypassHeaders) {
+    
+    // Check authentication for protected routes
+    if (!pathname.startsWith('/api/') && !isPublicRoute) {
+        console.log(`[MIDDLEWARE] Protected route ${pathname}, authenticated: ${isAuthenticated}`);
+        
+        if (!isAuthenticated) {
+            console.log(`[MIDDLEWARE] Redirecting to login`);
+            const url = new URL('/auth/connexion', request.url);
+            url.searchParams.set('redirect', pathname);
+            return NextResponse.redirect(url);
+        }
+    }
+    
+    // For API routes, add auth headers
+    const requestHeaders = new Headers(request.headers);
+    if (isAuthenticated && userId) {
+        requestHeaders.set('x-user-id', userId);
+        if (userRole) {
+            requestHeaders.set('x-user-role', userRole);
+        }
+    }
+    
+    // Check API authentication
+    if (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth/') && !pathname.includes('public')) {
+        if (!isAuthenticated) {
             return NextResponse.json(
                 { error: 'Authentification requise' },
                 { status: 401 }
             );
         }
     }
-
-    // Continuer avec la requête modifiée
+    
     return NextResponse.next({
         request: {
             headers: requestHeaders,
@@ -70,10 +104,9 @@ export async function middleware(request: NextRequest) {
     });
 }
 
-// Configuration pour que le middleware s'applique aux routes spécifiques
-// Utilisation d'un matcher plus simple pour tester
 export const config = {
     matcher: [
         '/((?!_next/static|_next/image|favicon.ico).*)',
+        '/(api)/:path*'
     ]
-}; 
+};

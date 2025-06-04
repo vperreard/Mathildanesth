@@ -4,10 +4,10 @@ import { connectToDatabase } from '@/lib/mongodb';
 // GET /api/rules/[id] - Récupérer une règle par ID
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { id } = params;
+        const { id } = await params;
 
         const { db } = await connectToDatabase();
         const collection = db.collection('rules');
@@ -34,10 +34,10 @@ export async function GET(
 // PUT /api/rules/[id] - Mettre à jour une règle
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { id } = params;
+        const { id } = await params;
         const ruleData = await req.json();
 
         const { db } = await connectToDatabase();
@@ -75,10 +75,10 @@ export async function PUT(
 // DELETE /api/rules/[id] - Supprimer une règle
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { id } = params;
+        const { id } = await params;
 
         const { db } = await connectToDatabase();
         const collection = db.collection('rules');

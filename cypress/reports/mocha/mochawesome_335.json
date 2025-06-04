@@ -1,0 +1,203 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 5,
+    "passes": 0,
+    "pending": 0,
+    "failures": 5,
+    "start": "2025-05-20T20:00:24.298Z",
+    "end": "2025-05-20T20:01:01.184Z",
+    "duration": 36886,
+    "testsRegistered": 5,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "e8261df5-b9cf-49ef-b06f-b3b50139b45b",
+      "title": "",
+      "fullFile": "cypress/e2e/conges/leave-management.spec.ts",
+      "file": "cypress/e2e/conges/leave-management.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "f3fb9645-ca3f-4b38-bfdb-46bfac7e245d",
+          "title": "Gestion des congés",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "permet de créer une nouvelle demande de congés",
+              "fullTitle": "Gestion des congés permet de créer une nouvelle demande de congés",
+              "timedOut": null,
+              "duration": 6123,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter en tant que médecin\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page de demande de congés\ncy.visitAsAuthenticatedUser('/conges/nouveau');\n// Remplir le formulaire de demande\ncy.get('[data-cy=leave-type-select]').click();\ncy.get('[data-cy=leave-type-option-conges]').click();\n// Sélectionner les dates\nvar tomorrow = new Date();\ntomorrow.setDate(tomorrow.getDate() + 1);\nvar nextWeek = new Date();\nnextWeek.setDate(nextWeek.getDate() + 7);\ncy.selectDate('[data-cy=start-date-input]', tomorrow);\ncy.selectDate('[data-cy=end-date-input]', nextWeek);\n// Ajouter un commentaire\ncy.get('[data-cy=leave-notes]').type('Congés pour raisons personnelles');\n// Intercepter la requête de création\ncy.intercept('POST', '**/api/conges').as('createLeave');\n// Soumettre la demande\ncy.get('[data-cy=submit-leave-request]').click();\n// Attendre la réponse de l'API\ncy.wait('@createLeave').its('response.statusCode').should('eq', 201);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Demande de congés soumise avec succès');\n// Vérifier que la demande apparaît dans la liste des congés\ncy.visitAsAuthenticatedUser('/conges');\ncy.get('[data-cy=leave-list]').should('contain', 'Congés pour raisons personnelles');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=leave-type-select]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=leave-type-select]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/conges/leave-management.spec.ts:34:11)",
+                "diff": null
+              },
+              "uuid": "6526623c-3b24-4a98-8a03-e376d189fce3",
+              "parentUUID": "f3fb9645-ca3f-4b38-bfdb-46bfac7e245d",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet à un administrateur de valider une demande de congés",
+              "fullTitle": "Gestion des congés permet à un administrateur de valider une demande de congés",
+              "timedOut": null,
+              "duration": 9509,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter en tant qu'administrateur\ncy.loginByApi(adminUser.email, adminUser.password);\n// Accéder à la page de gestion des congés\ncy.visitAsAuthenticatedUser('/admin/conges');\n// Chercher une demande en attente\ncy.get('[data-cy=pending-leaves-tab]').click();\n// Sélectionner la première demande en attente\ncy.get('[data-cy=leave-item]:contains(\"Vacances d\\'été\")').first().as('targetLeave');\n// Ouvrir le menu d'actions\ncy.get('@targetLeave').find('[data-cy=leave-actions]').click();\ncy.get('[data-cy=approve-leave-action]').click();\n// Intercepter la requête d'approbation\ncy.intercept('PUT', '**/api/conges/**/approve').as('approveLeave');\n// Confirmer l'approbation\ncy.get('[data-cy=confirm-approve-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@approveLeave').its('response.statusCode').should('eq', 200);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Demande de congés approuvée');\n// Vérifier que la demande apparaît dans l'onglet des congés approuvés\ncy.get('[data-cy=approved-leaves-tab]').click();\ncy.get('[data-cy=leave-list]').should('contain', 'Vacances d\\'été');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=pending-leaves-tab]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=pending-leaves-tab]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/conges/leave-management.spec.ts:77:11)",
+                "diff": null
+              },
+              "uuid": "9258ab68-e3dc-489e-a845-90501a6ac6ba",
+              "parentUUID": "f3fb9645-ca3f-4b38-bfdb-46bfac7e245d",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet à un administrateur de rejeter une demande de congés",
+              "fullTitle": "Gestion des congés permet à un administrateur de rejeter une demande de congés",
+              "timedOut": null,
+              "duration": 4848,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter en tant qu'administrateur\ncy.loginByApi(adminUser.email, adminUser.password);\n// Accéder à la page de gestion des congés\ncy.visitAsAuthenticatedUser('/admin/conges');\n// Chercher une demande en attente\ncy.get('[data-cy=pending-leaves-tab]').click();\n// Sélectionner la première demande en attente\ncy.get('[data-cy=leave-item]:contains(\"Vacances de Noël\")').first().as('targetLeave');\n// Ouvrir le menu d'actions\ncy.get('@targetLeave').find('[data-cy=leave-actions]').click();\ncy.get('[data-cy=reject-leave-action]').click();\n// Remplir le motif de rejet\ncy.get('[data-cy=rejection-reason]').type('Personnel insuffisant pour cette période');\n// Intercepter la requête de rejet\ncy.intercept('PUT', '**/api/conges/**/reject').as('rejectLeave');\n// Confirmer le rejet\ncy.get('[data-cy=confirm-reject-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@rejectLeave').its('response.statusCode').should('eq', 200);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Demande de congés rejetée');\n// Vérifier que la demande apparaît dans l'onglet des congés rejetés\ncy.get('[data-cy=rejected-leaves-tab]').click();\ncy.get('[data-cy=leave-list]').should('contain', 'Vacances de Noël');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=pending-leaves-tab]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=pending-leaves-tab]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/conges/leave-management.spec.ts:113:11)",
+                "diff": null
+              },
+              "uuid": "3873a1f9-d5b3-426d-b72d-c701a5f1ee24",
+              "parentUUID": "f3fb9645-ca3f-4b38-bfdb-46bfac7e245d",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet à un utilisateur de modifier une demande en attente",
+              "fullTitle": "Gestion des congés permet à un utilisateur de modifier une demande en attente",
+              "timedOut": null,
+              "duration": 13424,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page de gestion des congés\ncy.visitAsAuthenticatedUser('/conges');\n// Trouver une demande en attente et cliquer dessus\ncy.get('[data-cy=leave-item]:contains(\"Vacances de Noël\")').click();\n// Cliquer sur le bouton Modifier\ncy.get('[data-cy=edit-leave-button]').click();\n// Modifier la date de fin\nvar newEndDate = new Date('2024-12-28T23:59:59.999Z');\ncy.selectDate('[data-cy=end-date-input]', newEndDate);\n// Modifier les notes\ncy.get('[data-cy=leave-notes]').clear().type('Vacances de Noël prolongées');\n// Intercepter la requête de mise à jour\ncy.intercept('PUT', '**/api/conges/**').as('updateLeave');\n// Soumettre les modifications\ncy.get('[data-cy=submit-leave-request]').click();\n// Attendre la réponse de l'API\ncy.wait('@updateLeave').its('response.statusCode').should('eq', 200);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Demande de congés mise à jour');\n// Vérifier que les modifications sont visibles\ncy.visitAsAuthenticatedUser('/conges');\ncy.get('[data-cy=leave-item]:contains(\"Vacances de Noël prolongées\")').should('be.visible');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/conges\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/conges\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:145:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)",
+                "diff": null
+              },
+              "uuid": "f608aefb-6e7f-4605-96d6-62b82079c96b",
+              "parentUUID": "f3fb9645-ca3f-4b38-bfdb-46bfac7e245d",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet à un utilisateur d'annuler une demande en attente",
+              "fullTitle": "Gestion des congés permet à un utilisateur d'annuler une demande en attente",
+              "timedOut": null,
+              "duration": 441,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page de gestion des congés\ncy.visitAsAuthenticatedUser('/conges');\n// Trouver une demande en attente et cliquer dessus\ncy.get('[data-cy=leave-item]:contains(\"Vacances de Noël\")').click();\n// Cliquer sur le bouton Annuler\ncy.get('[data-cy=cancel-leave-button]').click();\n// Intercepter la requête d'annulation\ncy.intercept('DELETE', '**/api/conges/**').as('cancelLeave');\n// Confirmer l'annulation\ncy.get('[data-cy=confirm-cancel-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@cancelLeave').its('response.statusCode').should('eq', 200);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Demande de congés annulée');\n// Vérifier que la demande n'apparaît plus\ncy.get('[data-cy=leave-item]:contains(\"Vacances de Noël\")').should('not.exist');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/conges\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/conges\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:145:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)",
+                "diff": null
+              },
+              "uuid": "b0d90c3d-6df4-46f9-8e01-9485acbb1fd8",
+              "parentUUID": "f3fb9645-ca3f-4b38-bfdb-46bfac7e245d",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "6526623c-3b24-4a98-8a03-e376d189fce3",
+            "9258ab68-e3dc-489e-a845-90501a6ac6ba",
+            "3873a1f9-d5b3-426d-b72d-c701a5f1ee24",
+            "f608aefb-6e7f-4605-96d6-62b82079c96b",
+            "b0d90c3d-6df4-46f9-8e01-9485acbb1fd8"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 34345,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

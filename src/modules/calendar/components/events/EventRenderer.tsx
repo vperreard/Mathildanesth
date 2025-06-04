@@ -55,7 +55,7 @@ export const EventRenderer: React.FC<EventInfo> = ({ eventInfo }) => {
             typeClass = 'event-oncall';
             break;
         case CalendarEventType.ASSIGNMENT:
-            typeClass = 'event-assignment';
+            typeClass = 'event-attribution';
             break;
         default:
             typeClass = '';

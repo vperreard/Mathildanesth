@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateRecurringDates } from '@/modules/leaves/utils/recurringLeavesUtils';
-import { getPublicHolidays } from '@/services/calendarService';
+import { getPublicHolidays } from '@/modules/leaves/services/publicHolidayService';
 
 /**
- * POST /api/leaves/recurring/preview
+ * POST /api/conges/recurrents/preview
  * Prévisualise les occurrences d'une demande de congés récurrente sans la sauvegarder
  */
 export async function POST(request: NextRequest) {

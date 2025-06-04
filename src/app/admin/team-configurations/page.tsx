@@ -18,7 +18,7 @@ export default function TeamConfigurationsPage() {
         const fetchConfigurations = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('/api/admin/team-configurations');
+                const response = await fetch('http://localhost:3000/api/admin/team-configurations');
 
                 if (!response.ok) {
                     throw new Error('Erreur lors de la récupération des configurations');
@@ -44,7 +44,7 @@ export default function TeamConfigurationsPage() {
         }
 
         try {
-            const response = await fetch(`/api/admin/team-configurations?id=${id}`, {
+            const response = await fetch(`http://localhost:3000/api/admin/team-configurations?id=${id}`, {
                 method: 'DELETE',
             });
 
@@ -64,7 +64,7 @@ export default function TeamConfigurationsPage() {
     // Gérer l'activation/désactivation d'une configuration
     const handleToggleActive = async (id: string, isActive: boolean) => {
         try {
-            const response = await fetch(`/api/admin/team-configurations?id=${id}`, {
+            const response = await fetch(`http://localhost:3000/api/admin/team-configurations?id=${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ export default function TeamConfigurationsPage() {
     // Gérer la définition de la configuration par défaut
     const handleSetDefault = async (id: string) => {
         try {
-            const response = await fetch(`/api/admin/team-configurations?id=${id}`, {
+            const response = await fetch(`http://localhost:3000/api/admin/team-configurations?id=${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ export default function TeamConfigurationsPage() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Configurations d'équipe</h1>
                 <Link
-                    href="/admin/team-configurations/new"
+                    href="/admin/team-configurations/nouveau"
                     className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
                 >
                     Nouvelle configuration
@@ -167,7 +167,7 @@ export default function TeamConfigurationsPage() {
                     <p className="text-gray-500">Aucune configuration disponible.</p>
                     <p className="mt-2">
                         <Link
-                            href="/admin/team-configurations/new"
+                            href="/admin/team-configurations/nouveau"
                             className="text-blue-500 hover:underline"
                         >
                             Créer une nouvelle configuration

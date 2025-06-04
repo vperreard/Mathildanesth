@@ -1,0 +1,157 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 3,
+    "passes": 0,
+    "pending": 0,
+    "failures": 3,
+    "start": "2025-06-01T07:39:30.442Z",
+    "end": "2025-06-01T07:39:35.307Z",
+    "duration": 4865,
+    "testsRegistered": 3,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "e45554b0-287f-4b92-856d-168851034adc",
+      "title": "",
+      "fullFile": "cypress/e2e/workflows/complete-user-workflow.spec.ts",
+      "file": "cypress/e2e/workflows/complete-user-workflow.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "853a2f1b-0d2d-4338-8d2b-834d825f01be",
+          "title": "Workflow complet utilisateur",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "permet un workflow complet : connexion → consultation planning → demande congé → validation",
+              "fullTitle": "Workflow complet utilisateur permet un workflow complet : connexion → consultation planning → demande congé → validation",
+              "timedOut": null,
+              "duration": 492,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// ÉTAPE 1: Connexion\ncy.log('🔐 ÉTAPE 1: Connexion utilisateur');\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', testUser.email);\ncy.safeType('[data-cy=password-input]', testUser.password);\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('login');\ncy.url({ timeout: 15000 }).should('include', '/tableau-de-bord');\n// Vérifier l'authentification\ncy.waitForElement('[data-cy=user-name]');\ncy.get('[data-cy=user-name]').should('contain', testUser.nom);\n// ÉTAPE 2: Navigation vers le planning\ncy.log('📅 ÉTAPE 2: Consultation du planning');\ncy.get('[data-cy=nav-planning]').click();\ncy.waitForApiResponse('planningData');\ncy.url().should('include', '/planning');\ncy.waitForElement('[data-cy=planning-calendar]');\n// Vérifier que le planning se charge\ncy.get('[data-cy=planning-calendar]').should('be.visible');\ncy.get('[data-cy=planning-grid]').should('exist');\n// ÉTAPE 3: Demande de congé\ncy.log('🏖️ ÉTAPE 3: Création d\\'une demande de congé');\ncy.get('[data-cy=nav-conges]').click();\ncy.waitForApiResponse('leavesData');\ncy.url().should('include', '/conges');\ncy.waitForElement('[data-cy=create-leave-button]');\n// Ouvrir le formulaire de congé\ncy.safeClick('[data-cy=create-leave-button]');\ncy.waitForElement('[data-cy=leave-modal]');\n// Remplir le formulaire\ncy.get('[data-cy=leave-modal]').within(function () {\n    cy.safeClick('[data-cy=leave-type-select]');\n    cy.get('[data-cy=leave-type-option-conge-annuel]').click();\n    cy.safeType('[data-cy=leave-start-date]', '2025-07-01');\n    cy.safeType('[data-cy=leave-end-date]', '2025-07-05');\n    cy.safeType('[data-cy=leave-reason]', 'Congés d\\'été');\n    cy.safeClick('[data-cy=submit-leave-button]');\n});\ncy.waitForApiResponse('createLeave');\n// Vérifier la notification de succès\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Demande de congé créée');\n// ÉTAPE 4: Vérification de la demande\ncy.log('✅ ÉTAPE 4: Vérification de la demande créée');\ncy.waitForElement('[data-cy=leaves-list]');\ncy.get('[data-cy=leaves-list]').within(function () {\n    cy.get('[data-cy=leave-item]').should('have.length.at.least', 1);\n    cy.get('[data-cy=leave-item]').first().within(function () {\n        cy.get('[data-cy=leave-type]').should('contain', 'Congé annuel');\n        cy.get('[data-cy=leave-status]').should('contain', 'En attente');\n        cy.get('[data-cy=leave-dates]').should('contain', '01/07/2025 - 05/07/2025');\n    });\n});\n// ÉTAPE 5: Retour au planning pour vérifier l'impact\ncy.log('🔄 ÉTAPE 5: Vérification de l\\'impact sur le planning');\ncy.get('[data-cy=nav-planning]').click();\ncy.waitForPageLoad();\n// Vérifier que la demande de congé apparaît dans le planning\ncy.get('[data-cy=planning-calendar]').within(function () {\n    cy.get('[data-cy=leave-indicator]').should('exist');\n    cy.get('[data-cy=pending-leave]').should('be.visible');\n});\n// ÉTAPE 6: Test de déconnexion\ncy.log('🚪 ÉTAPE 6: Déconnexion');\ncy.get('[data-cy=user-menu]').click();\ncy.waitForElement('[data-cy=logout-option]');\ncy.safeClick('[data-cy=logout-option]');\n// Vérifier la redirection vers la page de connexion\ncy.url({ timeout: 10000 }).should('include', '/auth/connexion');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/workflows/complete-user-workflow.spec.ts:27:11)",
+                "diff": null
+              },
+              "uuid": "f3cfcf98-19a2-4e3b-a363-9ad83c493500",
+              "parentUUID": "853a2f1b-0d2d-4338-8d2b-834d825f01be",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "gère les erreurs réseau de manière gracieuse",
+              "fullTitle": "Workflow complet utilisateur gère les erreurs réseau de manière gracieuse",
+              "timedOut": null,
+              "duration": 509,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Test de résilience avec erreurs réseau\ncy.log('🔥 Test de résilience aux erreurs réseau');\n// Simuler une erreur réseau sur le login\ncy.intercept('POST', '**/api/auth/login', { forceNetworkError: true }).as('loginError');\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', testUser.email);\ncy.safeType('[data-cy=password-input]', testUser.password);\ncy.safeClick('[data-cy=submit-button]');\n// Vérifier la gestion d'erreur\ncy.waitForElement('[data-cy=error-message]');\ncy.get('[data-cy=error-message]')\n    .should('be.visible')\n    .and('contain', 'erreur');\n// Récupérer la connexion\ncy.intercept('POST', '**/api/auth/login', { fixture: 'auth-response.json' }).as('loginRetry');\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('loginRetry');\ncy.url({ timeout: 15000 }).should('include', '/tableau-de-bord');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/workflows/complete-user-workflow.spec.ts:125:11)",
+                "diff": null
+              },
+              "uuid": "b318897f-fe39-461d-a5b6-dfa831f7d9c5",
+              "parentUUID": "853a2f1b-0d2d-4338-8d2b-834d825f01be",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "maintient les performances sous charge",
+              "fullTitle": "Workflow complet utilisateur maintient les performances sous charge",
+              "timedOut": null,
+              "duration": 534,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Test de performance lors du workflow\ncy.log('⚡ Test de performance du workflow');\n// Mesurer le temps de connexion\nvar startTime = performance.now();\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', testUser.email);\ncy.safeType('[data-cy=password-input]', testUser.password);\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('login').then(function () {\n    var loginTime = performance.now() - startTime;\n    cy.task('logPerformance', {\n        type: 'workflow',\n        name: 'complete-login',\n        duration: loginTime,\n        timestamp: Date.now(),\n        status: loginTime < 3000 ? 'PASS' : 'SLOW'\n    });\n    // Vérifier que la connexion est rapide (< 3s)\n    expect(loginTime).to.be.lessThan(3000);\n});\n// Test de navigation rapide\nvar navStart = performance.now();\ncy.get('[data-cy=nav-planning]').click();\ncy.waitForApiResponse('planningData').then(function () {\n    var navTime = performance.now() - navStart;\n    cy.task('logPerformance', {\n        type: 'workflow',\n        name: 'navigation-planning',\n        duration: navTime,\n        timestamp: Date.now(),\n        status: navTime < 2000 ? 'PASS' : 'SLOW'\n    });\n    // Navigation doit être < 2s\n    expect(navTime).to.be.lessThan(2000);\n});",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/workflows/complete-user-workflow.spec.ts:153:11)",
+                "diff": null
+              },
+              "uuid": "39ae2ae7-010c-4b55-8df3-74ef6f36904d",
+              "parentUUID": "853a2f1b-0d2d-4338-8d2b-834d825f01be",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "f3cfcf98-19a2-4e3b-a363-9ad83c493500",
+            "b318897f-fe39-461d-a5b6-dfa831f7d9c5",
+            "39ae2ae7-010c-4b55-8df3-74ef6f36904d"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 1535,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

@@ -165,7 +165,7 @@ export interface ColorScheme {
     leave: string;
     duty: string;
     onCall: string;
-    assignment: string;
+    attribution: string;
     holiday: string;
     default: string;
     textColor: string;

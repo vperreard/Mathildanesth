@@ -77,7 +77,7 @@ const RulesList: React.FC<RulesListProps> = ({
     // Application des filtres et du tri
     const filteredAndSortedRules = useMemo(() => {
         // Filtrer par terme de recherche, type et statut d'activité
-        let filtered = rules.filter(rule => {
+        const filtered = rules.filter(rule => {
             const matchesSearch = !searchTerm ||
                 rule.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (rule.description?.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -173,7 +173,7 @@ const RulesList: React.FC<RulesListProps> = ({
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">Règles de planification</h2>
                 <Button
-                    onClick={() => router.push('/admin/schedule-rules/new')}
+                    onClick={() => router.push('/admin/planningMedical-rules/nouveau')}
                     variant="default"
                 >
                     Nouvelle règle
@@ -264,4 +264,5 @@ const RulesList: React.FC<RulesListProps> = ({
     );
 };
 
+export { RulesList };
 export default RulesList; 

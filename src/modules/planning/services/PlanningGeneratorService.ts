@@ -1,4 +1,4 @@
-import { Assignment, AssignmentStatus } from '@/types/assignment';
+import { Attribution, AssignmentStatus } from '@/types/assignment';
 import { ShiftType } from '@/types/common';
 import { User, LeaveStatus } from '@/types/user';
 import { RulesConfiguration } from '@/types/rules';
@@ -10,7 +10,7 @@ export class PlanningGeneratorService {
     private rules: RulesConfiguration;
     protected startDate: Date;
     protected endDate: Date;
-    private assignments: Assignment[] = [];
+    private attributions: Attribution[] = [];
 
     constructor(
         users: User[],
@@ -35,9 +35,9 @@ export class PlanningGeneratorService {
     /**
      * Génère un planning automatique en respectant les contraintes
      */
-    public async generatePlanning(): Promise<Assignment[]> {
+    public async generatePlanning(): Promise<Attribution[]> {
         // Réinitialiser les affectations
-        this.assignments = [];
+        this.attributions = [];
 
         // Générer le planning jour par jour
         let currentDate = new Date(this.startDate);
@@ -46,7 +46,7 @@ export class PlanningGeneratorService {
             currentDate = addDays(currentDate, 1);
         }
 
-        return this.assignments;
+        return this.attributions;
     }
 
     /**
@@ -59,11 +59,63 @@ export class PlanningGeneratorService {
         for (const shiftType of shiftTypes) {
             const availableUsers = this.getAvailableUsers(date, shiftType);
             if (availableUsers.length === 0) {
-                throw new Error(`Aucun utilisateur disponible pour le shift ${shiftType} le ${format(date, 'dd/MM/yyyy', { locale: fr })}`);
+                // Log détaillé pour diagnostic
+                console.warn(`Aucun utilisateur disponible pour le shift ${shiftType} le ${format(date, 'dd/MM/yyyy', { locale: fr })}`);
+                console.warn(`Users total: ${this.users.length}`);
+                console.warn(`Shifts déjà assignés ce jour: ${this.attributions.filter(a => isSameDay(new Date(a.startDate), date)).length}`);
+
+                // Au lieu de lancer une erreur fatale, on essaie des stratégies de fallback
+                const fallbackUser = this.findFallbackUser(date, shiftType);
+                if (fallbackUser) {
+                    console.warn(`Utilisation d'un utilisateur de fallback: ${fallbackUser.firstName || fallbackUser.prenom} ${fallbackUser.lastName || fallbackUser.nom}`);
+                    this.createAssignment(fallbackUser, date, shiftType);
+                } else {
+                    // Si vraiment aucun fallback n'est possible, alors on lance l'erreur
+                    throw new Error(`Aucun utilisateur disponible pour le shift ${shiftType} le ${format(date, 'dd/MM/yyyy', { locale: fr })} - Aucune solution de fallback trouvée`);
+                }
+            } else {
+                const selectedUser = this.selectUserWithLeastAssignments(availableUsers);
+                this.createAssignment(selectedUser, date, shiftType);
             }
-            const selectedUser = this.selectUserWithLeastAssignments(availableUsers);
-            this.createAssignment(selectedUser, date, shiftType);
         }
+    }
+
+    /**
+     * Trouve un utilisateur de fallback en relaxant temporairement certaines contraintes
+     */
+    private findFallbackUser(date: Date, shiftType: ShiftType): User | null {
+        // Première stratégie: ignorer les contraintes de période de repos si c'est le seul problème
+        const usersWithSpecialty = this.users.filter(user => {
+            const available = this.isUserAvailable(user, date, shiftType);
+            const hasSpecialty = this.hasRequiredSpecialty(user, shiftType);
+            return hasSpecialty && available; // On garde les contraintes de disponibilité et spécialité
+        });
+
+        if (usersWithSpecialty.length > 0) {
+            console.warn(`Fallback Strategy 1: Trouvé ${usersWithSpecialty.length} utilisateurs avec spécialité appropriée`);
+            return this.selectUserWithLeastAssignments(usersWithSpecialty);
+        }
+
+        // Deuxième stratégie: prendre n'importe quel utilisateur disponible (ignorer spécialité temporairement)
+        const anyAvailableUsers = this.users.filter(user => this.isUserAvailable(user, date, shiftType));
+        if (anyAvailableUsers.length > 0) {
+            console.warn(`Fallback Strategy 2: Trouvé ${anyAvailableUsers.length} utilisateurs disponibles (spécialité ignorée)`);
+            return this.selectUserWithLeastAssignments(anyAvailableUsers);
+        }
+
+        // Troisième stratégie: prendre n'importe quel utilisateur actif (dernier recours)
+        const activeUsers = this.users.filter(user => !user.leaves?.some(leave =>
+            leave.status === LeaveStatus.APPROVED &&
+            new Date(leave.startDate) <= date &&
+            new Date(leave.endDate) >= date
+        ));
+
+        if (activeUsers.length > 0) {
+            console.warn(`Fallback Strategy 3: Trouvé ${activeUsers.length} utilisateurs non en congé (toutes contraintes ignorées)`);
+            return this.selectUserWithLeastAssignments(activeUsers);
+        }
+
+        return null; // Vraiment aucune solution
     }
 
     /**
@@ -127,7 +179,7 @@ export class PlanningGeneratorService {
         // Vérification des règles d'incompatibilité entre types d'affectations
 
         // 1. Vérifier si l'utilisateur a déjà une affectation le même jour
-        const sameDayAssignments = this.assignments.filter(a =>
+        const sameDayAssignments = this.attributions.filter(a =>
             a.userId === user.id &&
             isSameDay(new Date(a.startDate), date)
         );
@@ -145,7 +197,7 @@ export class PlanningGeneratorService {
             // Règle: Astreinte est compatible avec tout sauf Garde et repos de garde
             if (shiftType.includes('ASTREINTE')) {
                 // Si l'utilisateur est en repos après une garde, refuser l'astreinte
-                const isPreviousDayGarde = this.assignments.some(a =>
+                const isPreviousDayGarde = this.attributions.some(a =>
                     a.userId === user.id &&
                     a.shiftType.includes('GARDE') &&
                     differenceInDays(date, new Date(a.endDate)) <= 1
@@ -201,7 +253,7 @@ export class PlanningGeneratorService {
 
         // Vérifier si l'utilisateur a fait une garde récemment (ne pas proposer 2 gardes consécutives)
         if (shiftType.includes('GARDE')) {
-            const recentGardes = this.assignments.filter(a =>
+            const recentGardes = this.attributions.filter(a =>
                 a.userId === user.id &&
                 a.shiftType.includes('GARDE') &&
                 differenceInDays(date, new Date(a.endDate)) <= this.rules.intervalle.minJoursEntreGardes
@@ -230,9 +282,9 @@ export class PlanningGeneratorService {
             0, 0 // Mettre les secondes et millisecondes à 0 pour être sûr
         );
 
-        const previousAssignments = this.assignments.filter(assignment =>
-            assignment.userId === user.id &&
-            new Date(assignment.endDate) <= shiftStartTime // Utiliser <= shiftStartTime pour inclure les shifts finissant avant le début du nouveau
+        const previousAssignments = this.attributions.filter(attribution =>
+            attribution.userId === user.id &&
+            new Date(attribution.endDate) <= shiftStartTime // Utiliser <= shiftStartTime pour inclure les shifts finissant avant le début du nouveau
         ).sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
 
         if (previousAssignments.length === 0) return true;
@@ -274,8 +326,8 @@ export class PlanningGeneratorService {
      */
     private selectUserWithLeastAssignments(users: User[]): User {
         return users.reduce((selected, current) => {
-            const selectedAssignments = this.assignments.filter(a => a.userId === selected.id).length;
-            const currentAssignments = this.assignments.filter(a => a.userId === current.id).length;
+            const selectedAssignments = this.attributions.filter(a => a.userId === selected.id).length;
+            const currentAssignments = this.attributions.filter(a => a.userId === current.id).length;
             return currentAssignments < selectedAssignments ? current : selected;
         });
     }
@@ -293,8 +345,8 @@ export class PlanningGeneratorService {
         const endDate = new Date(date);
         endDate.setHours(parseInt(endTime.split(':')[0]), parseInt(endTime.split(':')[1]));
 
-        const assignment: Assignment = {
-            id: `assignment-${Date.now()}`,
+        const attribution: Attribution = {
+            id: `attribution-${Date.now()}`,
             userId: user.id,
             shiftType,
             startDate,
@@ -304,7 +356,7 @@ export class PlanningGeneratorService {
             updatedAt: new Date()
         };
 
-        this.assignments.push(assignment);
+        this.attributions.push(attribution);
     }
 
     /**
@@ -341,9 +393,9 @@ export class PlanningGeneratorService {
             const requiredShifts = isWeekendDay ? this.rules.weekendShifts : this.rules.weekdayShifts;
 
             for (const shiftType of requiredShifts) {
-                const shiftAssignments = this.assignments.filter(assignment =>
-                    isSameDay(new Date(assignment.startDate), currentDate) &&
-                    assignment.shiftType === shiftType
+                const shiftAssignments = this.attributions.filter(attribution =>
+                    isSameDay(new Date(attribution.startDate), currentDate) &&
+                    attribution.shiftType === shiftType
                 );
 
                 if (shiftAssignments.length === 0) {
@@ -360,7 +412,7 @@ export class PlanningGeneratorService {
      */
     private validateRestPeriods(errors: string[]): void {
         for (const user of this.users) {
-            const userAssignments = this.assignments
+            const userAssignments = this.attributions
                 .filter(a => a.userId === user.id)
                 .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
@@ -395,11 +447,11 @@ export class PlanningGeneratorService {
      * Vérifie les contraintes de spécialité
      */
     private validateSpecialtyConstraints(errors: string[]): void {
-        for (const assignment of this.assignments) {
-            const user = this.users.find(u => u.id === assignment.userId);
+        for (const attribution of this.attributions) {
+            const user = this.users.find(u => u.id === attribution.userId);
             if (!user) continue;
 
-            const requiredSpecialties = this.rules.shiftSpecialties[assignment.shiftType];
+            const requiredSpecialties = this.rules.shiftSpecialties[attribution.shiftType];
             if (!requiredSpecialties) continue;
 
             // Gestion sécurisée du cas où user.specialties n'est pas défini
@@ -413,7 +465,7 @@ export class PlanningGeneratorService {
                 const lastName = user.lastName || user.nom || '';
                 errors.push(
                     `${firstName} ${lastName} n'a pas la spécialité requise pour le shift ` +
-                    `${assignment.shiftType} le ${format(new Date(assignment.startDate), 'dd/MM/yyyy', { locale: fr })}`
+                    `${attribution.shiftType} le ${format(new Date(attribution.startDate), 'dd/MM/yyyy', { locale: fr })}`
                 );
             }
         }
@@ -426,9 +478,9 @@ export class PlanningGeneratorService {
         const userAssignments = new Map<string, number>();
 
         // Compter les assignations par utilisateur
-        for (const assignment of this.assignments) {
-            const count = userAssignments.get(assignment.userId) || 0;
-            userAssignments.set(assignment.userId, count + 1);
+        for (const attribution of this.attributions) {
+            const count = userAssignments.get(attribution.userId) || 0;
+            userAssignments.set(attribution.userId, count + 1);
         }
 
         // Calculer la moyenne et l'écart type

@@ -23,7 +23,7 @@ interface TramePutRequestBody {
         color: string;
         isActive?: boolean;
         isLocked?: boolean; // Ce champ est sur TramePeriod
-        assignments?: Array<{
+        attributions?: Array<{
             id?: string;
             type: string;
             name: string;
@@ -50,12 +50,12 @@ async function parseRequestBody(request: NextRequest) {
     }
 }
 
-// GET /api/trames/[id] - Récupérer une trame spécifique
+// GET /api/trameModeles/[id] - Récupérer une trameModele spécifique
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = params;
+    const { id } = await params;
     try {
         // Vérifier l'authentification
         const authResult = await verifyAuthToken();
@@ -65,15 +65,15 @@ export async function GET(
             if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
                 return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
             }
-            console.log(`[DEV MODE] Authentification par en-tête uniquement pour GET /api/trames/${id}`);
+            console.log(`[DEV MODE] Authentification par en-tête uniquement pour GET /api/trameModeles/${id}`);
         }
 
-        const trame = await prisma.trameAffectation.findUnique({
+        const trameModele = await prisma.trameAffectation.findUnique({
             where: { id },
             include: {
                 periods: {
                     include: {
-                        assignments: {
+                        attributions: {
                             include: {
                                 posts: true
                             }
@@ -89,26 +89,26 @@ export async function GET(
             }
         });
 
-        if (!trame) {
-            return NextResponse.json({ error: 'Trame non trouvée' }, { status: 404 });
+        if (!trameModele) {
+            return NextResponse.json({ error: 'TrameModele non trouvée' }, { status: 404 });
         }
-        return NextResponse.json(trame);
+        return NextResponse.json(trameModele);
 
     } catch (error) {
-        console.error(`Erreur lors de la récupération de la trame ${id}:`, error);
+        console.error(`Erreur lors de la récupération de la trameModele ${id}:`, error);
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la récupération de la trame' },
+            { error: 'Erreur serveur lors de la récupération de la trameModele' },
             { status: 500 }
         );
     }
 }
 
-// PUT /api/trames/[id] - Mettre à jour une trame spécifique
+// PUT /api/trameModeles/[id] - Mettre à jour une trameModele spécifique
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id: trameIdToUpdate } = params;
+    const { id: trameIdToUpdate } = await Promise.resolve(params);
     try {
         const authResult = await verifyAuthToken();
         if (!authResult.authenticated) {
@@ -117,7 +117,7 @@ export async function PUT(
             if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
                 return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
             }
-            console.log(`[DEV MODE] Authentification par en-tête pour PUT /api/trames/${trameIdToUpdate}`);
+            console.log(`[DEV MODE] Authentification par en-tête pour PUT /api/trameModeles/${trameIdToUpdate}`);
         }
 
         const body = await parseRequestBody(request) as TramePutRequestBody | null;
@@ -125,7 +125,7 @@ export async function PUT(
             return NextResponse.json({ error: 'Corps de la requête invalide ou vide' }, { status: 400 });
         }
 
-        console.log(`[API PUT /api/trames/${trameIdToUpdate}] Body reçu:`, JSON.stringify(body, null, 2));
+        console.log(`[API PUT /api/trameModeles/${trameIdToUpdate}] Body reçu:`, JSON.stringify(body, null, 2));
 
         const updatedTrame = await prisma.$transaction(async (tx) => {
             // Exclure les champs non modifiables directement et le champ version qui n'existe pas
@@ -137,22 +137,22 @@ export async function PUT(
             if (body.startDate !== undefined) trameUpdateData.startDate = new Date(body.startDate);
             if (body.endDate !== undefined) trameUpdateData.endDate = body.endDate ? new Date(body.endDate) : null;
 
-            // 1. Mettre à jour les champs de base de la trame
+            // 1. Mettre à jour les champs de base de la trameModele
             await tx.trameAffectation.update({
                 where: { id: trameIdToUpdate },
                 data: trameUpdateData,
             });
 
-            // Récupérer la trame actuelle avec toutes ses relations
+            // Récupérer la trameModele actuelle avec toutes ses relations
             const existingTrameWithRelations = await tx.trameAffectation.findUnique({
                 where: { id: trameIdToUpdate },
                 include: {
-                    periods: { include: { assignments: { include: { posts: true } } } }
+                    periods: { include: { attributions: { include: { posts: true } } } }
                 }
             });
 
             if (!existingTrameWithRelations) {
-                throw new Error('Trame non trouvée après la mise à jour initiale.');
+                throw new Error('TrameModele non trouvée après la mise à jour initiale.');
             }
 
             // 2. Gérer les périodes
@@ -179,16 +179,16 @@ export async function PUT(
                             }
                         });
 
-                        // 3. Gérer les assignments de cette période
-                        if (periodData.assignments && Array.isArray(periodData.assignments)) {
-                            // Créer une map des assignments existants pour cette période
+                        // 3. Gérer les attributions de cette période
+                        if (periodData.attributions && Array.isArray(periodData.attributions)) {
+                            // Créer une map des attributions existants pour cette période
                             const existingAssignmentsMap = new Map(
-                                existingPeriodsMap.get(periodId)?.assignments.map(assignment => [assignment.id, assignment]) || []
+                                existingPeriodsMap.get(periodId)?.attributions.map(attribution => [attribution.id, attribution]) || []
                             );
 
-                            for (const assignmentData of periodData.assignments) {
+                            for (const assignmentData of periodData.attributions) {
                                 if (assignmentData.id && existingAssignmentsMap.has(assignmentData.id)) {
-                                    // Assignment existant à mettre à jour
+                                    // Attribution existant à mettre à jour
                                     const assignmentId = assignmentData.id;
                                     await tx.trameAssignment.update({
                                         where: { id: assignmentId },
@@ -200,9 +200,9 @@ export async function PUT(
                                         }
                                     });
 
-                                    // 4. Gérer les posts de cet assignment
+                                    // 4. Gérer les posts de cet attribution
                                     if (assignmentData.posts && Array.isArray(assignmentData.posts)) {
-                                        // Créer une map des posts existants pour cet assignment
+                                        // Créer une map des posts existants pour cet attribution
                                         const existingPostsMap = new Map(
                                             existingAssignmentsMap.get(assignmentId)?.posts.map(post => [post.id, post]) || []
                                         );
@@ -250,7 +250,7 @@ export async function PUT(
                                         }
                                     }
                                 } else {
-                                    // Nouvel assignment à créer
+                                    // Nouvel attribution à créer
                                     const newAssignmentId = assignmentData.id || uuidv4();
                                     await tx.trameAssignment.create({
                                         data: {
@@ -275,12 +275,12 @@ export async function PUT(
                                 }
                             }
 
-                            // Supprimer les assignments qui ne sont plus dans la requête
-                            const assignmentIdsToKeep = periodData.assignments
+                            // Supprimer les attributions qui ne sont plus dans la requête
+                            const assignmentIdsToKeep = periodData.attributions
                                 .filter(a => a.id)
                                 .map(a => a.id as string);
 
-                            for (const [assignmentId, assignment] of existingAssignmentsMap.entries()) {
+                            for (const [assignmentId, attribution] of existingAssignmentsMap.entries()) {
                                 if (!assignmentIdsToKeep.includes(assignmentId)) {
                                     await tx.trameAssignment.delete({
                                         where: { id: assignmentId }
@@ -301,8 +301,8 @@ export async function PUT(
                                 isActive: periodData.isActive ?? true,
                                 isLocked: periodData.isLocked ?? false,
                                 trameId: trameIdToUpdate,
-                                assignments: {
-                                    create: periodData.assignments?.map(assignmentData => ({
+                                attributions: {
+                                    create: periodData.attributions?.map(assignmentData => ({
                                         id: assignmentData.id || uuidv4(),
                                         type: assignmentData.type,
                                         name: assignmentData.name,
@@ -339,45 +339,45 @@ export async function PUT(
                 }
             }
 
-            // Retourner la trame mise à jour avec toutes ses relations
+            // Retourner la trameModele mise à jour avec toutes ses relations
             return tx.trameAffectation.findUnique({
                 where: { id: trameIdToUpdate },
                 include: {
-                    periods: { include: { assignments: { include: { posts: true } } } },
+                    periods: { include: { attributions: { include: { posts: true } } } },
                     user: { select: { id: true, email: true } }
                 }
             });
         });
 
         if (!updatedTrame) {
-            return NextResponse.json({ error: 'Échec de la mise à jour de la trame ou trame non trouvée après transaction' }, { status: 404 });
+            return NextResponse.json({ error: 'Échec de la mise à jour de la trameModele ou trameModele non trouvée après transaction' }, { status: 404 });
         }
 
-        console.log(`[API PUT /api/trames/${trameIdToUpdate}] Mise à jour effectuée.`);
+        console.log(`[API PUT /api/trameModeles/${trameIdToUpdate}] Mise à jour effectuée.`);
         return NextResponse.json(updatedTrame);
 
     } catch (error: any) {
         if (error.code === 'P2025') {
-            return NextResponse.json({ error: `Trame avec ID ${trameIdToUpdate} non trouvée.` }, { status: 404 });
+            return NextResponse.json({ error: `TrameModele avec ID ${trameIdToUpdate} non trouvée.` }, { status: 404 });
         }
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            console.error(`Erreur Prisma lors de la mise à jour de la trame ${trameIdToUpdate}:`, error.message, error.code, error.meta);
+            console.error(`Erreur Prisma lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error.message, error.code, error.meta);
             return NextResponse.json({ error: 'Erreur base de données lors de la mise à jour.', details: error.message }, { status: 500 });
         }
-        console.error(`Erreur générique lors de la mise à jour de la trame ${trameIdToUpdate}:`, error);
+        console.error(`Erreur générique lors de la mise à jour de la trameModele ${trameIdToUpdate}:`, error);
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la mise à jour de la trame.', details: error.message || 'Erreur inconnue' },
+            { error: 'Erreur serveur lors de la mise à jour de la trameModele.', details: error.message || 'Erreur inconnue' },
             { status: 500 }
         );
     }
 }
 
-// DELETE /api/trames/[id] - Supprimer une trame spécifique
+// DELETE /api/trameModeles/[id] - Supprimer une trameModele spécifique
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = params;
+    const { id } = await params;
     try {
         const authResult = await verifyAuthToken();
         if (!authResult.authenticated) {
@@ -386,27 +386,27 @@ export async function DELETE(
             if (process.env.NODE_ENV !== 'development' || userRole !== 'ADMIN_TOTAL') {
                 return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
             }
-            console.log(`[DEV MODE] Authentification par en-tête uniquement pour DELETE /api/trames/${id}`);
+            console.log(`[DEV MODE] Authentification par en-tête uniquement pour DELETE /api/trameModeles/${id}`);
         }
 
         const existingTrame = await prisma.trameAffectation.findUnique({ where: { id } });
         if (!existingTrame) {
-            return NextResponse.json({ error: 'Trame non trouvée pour la suppression' }, { status: 404 });
+            return NextResponse.json({ error: 'TrameModele non trouvée pour la suppression' }, { status: 404 });
         }
 
         await prisma.trameAffectation.delete({
             where: { id },
         });
 
-        return NextResponse.json({ message: 'Trame supprimée avec succès' }, { status: 200 });
+        return NextResponse.json({ message: 'TrameModele supprimée avec succès' }, { status: 200 });
 
     } catch (error: any) {
         if (error.code === 'P2025') {
-            return NextResponse.json({ error: 'Trame non trouvée pour la suppression' }, { status: 404 });
+            return NextResponse.json({ error: 'TrameModele non trouvée pour la suppression' }, { status: 404 });
         }
-        console.error(`Erreur lors de la suppression de la trame ${id}:`, error);
+        console.error(`Erreur lors de la suppression de la trameModele ${id}:`, error);
         return NextResponse.json(
-            { error: 'Erreur serveur lors de la suppression de la trame' },
+            { error: 'Erreur serveur lors de la suppression de la trameModele' },
             { status: 500 }
         );
     }

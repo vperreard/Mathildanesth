@@ -52,7 +52,7 @@ type DayOfWeekValue = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY'
 
 import { getClientAuthToken } from "@/lib/auth-client-utils"; // Pour l'authentification
 
-const API_BASE_URL = '/api/trame-modeles'; // Nouvelle URL de base pour l'API
+const API_BASE_URL = '/api/trameModele-modeles'; // Nouvelle URL de base pour l'API
 
 // --- Mock Data Store ---
 // const mockTemplates: PlanningTemplate[] = [ ... ]; // S'assurer que c'est bien commenté ou vide
@@ -95,7 +95,7 @@ const availablePostes = [
 //     // ... ancienne logique ... 
 // };
 
-// DTO pour la création d'une AffectationModele (POST /api/trame-modeles/{id}/affectations)
+// DTO pour la création d'une AffectationModele (POST /api/trameModele-modeles/{id}/gardes/vacations)
 interface AffectationModeleCreateDto {
     activityTypeId: string;
     jourSemaine: DayOfWeekValue; // Utilise notre type alias pour les valeurs de l'enum Prisma
@@ -119,7 +119,7 @@ interface AffectationModeleCreateDto {
     }>;
 }
 
-// Helper pour mapper AffectationModeleDTO (de l'API GET /trame-modeles?includeAffectations=true)
+// Helper pour mapper AffectationModeleDTO (de l'API GET /trameModele-modeles?includeAffectations=true)
 // vers TemplateAffectation (frontend)
 const mapAffectationModeleDtoToTemplateAffectation = (affectationDto: any): TemplateAffectation => {
     const typeAffectation = affectationDto.activityType?.code || affectationDto.activityType?.name || 'INCONNU';
@@ -189,7 +189,7 @@ const mapAffectationModeleDtoToTemplateAffectation = (affectationDto: any): Temp
 const mapTrameModeleDtoToPlanningTemplate = (dto: any): PlanningTemplate => {
     const variations = dto.detailsJson?.frontendVariations || [];
     if (variations.length) {
-        console.log(`[Template Service] ${variations.length} variations trouvées dans detailsJson pour la trame ${dto.id}`);
+        console.log(`[Modèle Service] ${variations.length} variations trouvées dans detailsJson pour la trameModele ${dto.id}`);
     }
 
     return {
@@ -219,10 +219,12 @@ const mapTrameModeleDtoToPlanningTemplate = (dto: any): PlanningTemplate => {
 // --- Service API --- 
 export const templateService = {
     async getTemplates(): Promise<PlanningTemplate[]> {
-        console.log("[Template Service] Appel de getTemplates via API /api/trame-modeles?includeAffectations=true...");
+        console.log("[Modèle Service] Appel de getTemplates via API /api/trameModele-modeles?includeAffectations=true...");
         try {
             const token = await getClientAuthToken();
-            const response = await fetch(`${API_BASE_URL}?includeAffectations=true`, {
+            // Ajouter un timestamp pour éviter le cache
+            const timestamp = Date.now();
+            const response = await fetch(`${API_BASE_URL}?includeAffectations=true&_t=${timestamp}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -230,35 +232,35 @@ export const templateService = {
             });
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: response.statusText }));
-                console.error("[Template Service] Erreur API lors de getTemplates:", response.status, errorData);
-                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de récupérer les trames'}`);
+                console.error("[Modèle Service] Erreur API lors de getTemplates:", response.status, errorData);
+                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de récupérer les trameModeles'}`);
             }
             const dtos: any[] = await response.json(); // Supposer que l'API retourne un tableau de TrameModele
-            console.log("--- Template Service --- GET --- DTOs bruts reçus de l'API ---");
+            console.log("--- Modèle Service --- GET --- DTOs bruts reçus de l'API ---");
             console.log(JSON.stringify(dtos, null, 2));
             console.log("-----------------------------------------------------------");
             if (!Array.isArray(dtos)) {
-                console.error("[Template Service] ERREUR : la réponse de l'API n'est pas un array! Reçu:", dtos);
+                console.error("[Modèle Service] ERREUR : la réponse de l'API n'est pas un array! Reçu:", dtos);
                 return [];
             }
-            const templates = dtos.map(mapTrameModeleDtoToPlanningTemplate);
-            console.log(`[Template Service] ${templates.length} templates mappés avec succès depuis l'API.`);
-            return templates;
+            const modèles = dtos.map(mapTrameModeleDtoToPlanningTemplate);
+            console.log(`[Modèle Service] ${modèles.length} modèles mappés avec succès depuis l'API.`);
+            return modèles;
         } catch (error) {
-            console.error("[Template Service] Erreur DANS getTemplates (API):");
+            console.error("[Modèle Service] Erreur DANS getTemplates (API):");
             // Ne pas logguer l'objet error directement ici en production côté client pour éviter fuite d'infos
             if (error instanceof Error) {
                 console.error(error.message);
                 throw error; // Rethrow pour que le composant puisse gérer
             } else {
                 console.error("Une erreur inconnue est survenue dans getTemplates.");
-                throw new Error("Une erreur inconnue est survenue lors de la récupération des trames.");
+                throw new Error("Une erreur inconnue est survenue lors de la récupération des trameModeles.");
             }
         }
     },
 
     async getTemplateById(id: string): Promise<PlanningTemplate | null> {
-        console.log(`[Template Service] Fetching template by ID: ${id} via API /api/trame-modeles/${id}?includeAffectations=true...`);
+        console.log(`[Modèle Service] Fetching modèle by ID: ${id} via API /api/trameModele-modeles/${id}?includeAffectations=true...`);
         try {
             const token = await getClientAuthToken();
             const response = await fetch(`${API_BASE_URL}/${id}?includeAffectations=true`, {
@@ -270,19 +272,19 @@ export const templateService = {
             if (!response.ok) {
                 if (response.status === 404) return null;
                 const errorData = await response.json().catch(() => ({ error: response.statusText }));
-                console.error("[Template Service] Erreur API lors de getTemplateById:", response.status, errorData);
-                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de récupérer la trame'}`);
+                console.error("[Modèle Service] Erreur API lors de getTemplateById:", response.status, errorData);
+                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de récupérer la trameModele'}`);
             }
             const dto: any = await response.json(); // Supposer que l'API retourne un TrameModele
             return mapTrameModeleDtoToPlanningTemplate(dto);
         } catch (error) {
-            console.error(`[Template Service] Erreur DANS getTemplateById (API, id: ${id}):`);
+            console.error(`[Modèle Service] Erreur DANS getTemplateById (API, id: ${id}):`);
             if (error instanceof Error) {
                 console.error(error.message);
                 throw error;
             } else {
                 console.error("Une erreur inconnue est survenue dans getTemplateById.");
-                throw new Error("Une erreur inconnue est survenue lors de la récupération de la trame.");
+                throw new Error("Une erreur inconnue est survenue lors de la récupération de la trameModele.");
             }
         }
     },
@@ -291,7 +293,7 @@ export const templateService = {
         templateData: PlanningTemplate,
         availableFullActivityTypes: FullActivityType[] // Nécessaire pour trouver activityTypeId
     ): Promise<PlanningTemplate> {
-        console.log(`[Template Service] Appel de saveTemplate pour: ${templateData.nom} via API /api/trame-modeles...`);
+        console.log(`[Modèle Service] Appel de saveTemplate pour: ${templateData.nom} via API /api/trameModele-modeles...`);
         const isCreating = !templateData.id || templateData.id === 'new';
         let trameModeleId = isCreating ? null : templateData.id;
         let savedOrUpdatedTrameModeleDto: any;
@@ -365,18 +367,18 @@ export const templateService = {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: response.statusText }));
-                throw new Error(errorData.error || `Erreur API (${response.status}): Impossible de sauvegarder les métadonnées de la trame.`);
+                throw new Error(errorData.error || `Erreur API (${response.status}): Impossible de sauvegarder les métadonnées de la trameModele.`);
             }
             savedOrUpdatedTrameModeleDto = await response.json();
             trameModeleId = String(savedOrUpdatedTrameModeleDto.id); // Obtenir l'ID réel
-            console.log(`[Template Service] Métadonnées de la trame ${isCreating ? 'créées' : 'mises à jour'} avec succès. ID: ${trameModeleId}`);
+            console.log(`[Modèle Service] Métadonnées de la trameModele ${isCreating ? 'créées' : 'mises à jour'} avec succès. ID: ${trameModeleId}`);
 
         } catch (error) {
-            console.error(`[Template Service] Erreur lors de la sauvegarde des métadonnées de la trame:`, error);
+            console.error(`[Modèle Service] Erreur lors de la sauvegarde des métadonnées de la tableau de service:`, error);
             throw error; // Rethrow pour que le composant parent puisse gérer
         }
 
-        // --- Étape 2 & 3: Supprimer les anciennes affectations et créer les nouvelles ---
+        // --- Étape 2 & 3: Supprimer les anciennes gardes/vacations et créer les nouvelles ---
         if (!trameModeleId) {
             // Ne devrait pas arriver si l'étape 1 a réussi
             throw new Error("ID de TrameModele non disponible après sauvegarde des métadonnées.");
@@ -384,11 +386,11 @@ export const templateService = {
 
         try {
             const token = await getClientAuthToken();
-            // 2a. Récupérer les affectations existantes
-            const existingAffectationsResponse = await fetch(`${API_BASE_URL}/${trameModeleId}/affectations`, {
+            // 2a. Récupérer les gardes/vacations existantes
+            const existingAffectationsResponse = await fetch(`${API_BASE_URL}/${trameModeleId}/gardes/vacations`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (!existingAffectationsResponse.ok) throw new Error("Impossible de récupérer les affectations existantes.");
+            if (!existingAffectationsResponse.ok) throw new Error("Impossible de récupérer les gardes/vacations existantes.");
             const existingAffectations: any[] = await existingAffectationsResponse.json();
 
             // 2b. Supprimer chaque affectation existante
@@ -406,25 +408,25 @@ export const templateService = {
                 })
             );
             await Promise.all(deletePromises);
-            console.log(`[Template Service] ${existingAffectations.length} affectations existantes supprimées pour la trame ${trameModeleId}.`);
+            console.log(`[Modèle Service] ${existingAffectations.length} gardes/vacations existantes supprimées pour la trameModele ${trameModeleId}.`);
 
-            // 3. Créer les nouvelles affectations
-            console.log(`[Template Service] Tentative de création de ${templateData.affectations.length} nouvelles affectations pour la trame ${trameModeleId}...`);
+            // 3. Créer les nouvelles gardes/vacations
+            console.log(`[Modèle Service] Tentative de création de ${templateData.affectations.length} nouvelles gardes/vacations pour la trameModele ${trameModeleId}...`);
             const createdAffectations: any[] = [];
             for (const affectation of templateData.affectations) {
                 // Utiliser la nouvelle fonction de mapping
                 const affectationDto = mapTemplateAffectationToApiDto(
                     affectation,
-                    templateData.typeSemaine as TypeSemaineTrameValue, // typeSemaine de la trame parente
+                    templateData.typeSemaine as TypeSemaineTrameValue, // typeSemaine de la trameModele parente
                     availableFullActivityTypes // Passer les types d'activité disponibles
                 );
 
                 if (!affectationDto) {
-                    console.warn(`[Template Service] Impossible de mapper l'affectation (jour: ${affectation.jour}, type: ${affectation.type}), elle sera ignorée.`);
+                    console.warn(`[Modèle Service] Impossible de mapper l'affectation (jour: ${affectation.jour}, type: ${affectation.type}), elle sera ignorée.`);
                     continue;
                 }
 
-                const createResponse = await fetch(`${API_BASE_URL}/${trameModeleId}/affectations`, {
+                const createResponse = await fetch(`${API_BASE_URL}/${trameModeleId}/gardes/vacations`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -445,11 +447,11 @@ export const templateService = {
                 createdAffectations.push(createdAffectation);
             }
 
-            console.log(`[Template Service] ${createdAffectations.length} nouvelles affectations créées pour la trame ${trameModeleId}.`);
+            console.log(`[Modèle Service] ${createdAffectations.length} nouvelles gardes/vacations créées pour la trameModele ${trameModeleId}.`);
 
-            // Log pour débugage des affectations et postes
-            console.log(`[Template Service DEBUG] Affectations sauvegardées:`, createdAffectations.length);
-            console.log(`[Template Service DEBUG] Exemple première affectation si existe:`,
+            // Log pour débugage des gardes/vacations et postes
+            console.log(`[Modèle Service DEBUG] Gardes/Vacations sauvegardées:`, createdAffectations.length);
+            console.log(`[Modèle Service DEBUG] Exemple première affectation si existe:`,
                 createdAffectations.length > 0 ? JSON.stringify(createdAffectations[0], null, 2) : 'aucune affectation');
 
             // Créer un mappage entre les anciens IDs d'affectation (frontendAffectationId) et les nouveaux IDs
@@ -461,11 +463,11 @@ export const templateService = {
                 }
             });
 
-            console.log(`[Template Service] Mappage des IDs d'affectation créé:`, affectationIdMapping);
+            console.log(`[Modèle Service] Mappage des IDs d'affectation créé:`, affectationIdMapping);
 
             // Si des variations existent, mettre à jour leurs références d'affectationId
             if (templateData.variations && templateData.variations.length > 0 && Object.keys(affectationIdMapping).length > 0) {
-                console.log(`[Template Service] Mise à jour des références d'affectationId dans ${templateData.variations.length} variations...`);
+                console.log(`[Modèle Service] Mise à jour des références d'affectationId dans ${templateData.variations.length} variations...`);
 
                 // Créer un nouvel objet detailsJson avec les variations mises à jour
                 const updatedVariations = templateData.variations.map(v => {
@@ -477,7 +479,7 @@ export const templateService = {
                     };
                 });
 
-                // Récupérer d'abord la trame complète pour obtenir le detailsJson actuel
+                // Récupérer d'abord la trameModele complète pour obtenir le detailsJson actuel
                 const trameResponse = await fetch(`${API_BASE_URL}/${trameModeleId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -485,7 +487,7 @@ export const templateService = {
                 });
 
                 if (!trameResponse.ok) {
-                    console.error(`[Template Service] Erreur lors de la récupération de la trame pour mise à jour des variations:`, await trameResponse.text());
+                    console.error(`[Modèle Service] Erreur lors de la récupération de la trameModele pour mise à jour des variations:`, await trameResponse.text());
                 } else {
                     const trameData = await trameResponse.json();
                     // Préserver les autres données dans detailsJson tout en mettant à jour frontendVariations
@@ -507,22 +509,22 @@ export const templateService = {
                     });
 
                     if (!updateResponse.ok) {
-                        console.error(`[Template Service] Erreur lors de la mise à jour des références d'affectationId dans les variations:`, await updateResponse.text());
+                        console.error(`[Modèle Service] Erreur lors de la mise à jour des références d'affectationId dans les variations:`, await updateResponse.text());
                     } else {
-                        console.log(`[Template Service] Références d'affectationId mises à jour avec succès dans les variations.`);
+                        console.log(`[Modèle Service] Références d'affectationId mises à jour avec succès dans les variations.`);
                     }
                 }
             }
 
         } catch (error) {
-            console.error(`[Template Service] Erreur lors de la gestion des affectations pour la trame ${trameModeleId}:`, error);
-            // Que faire ici? La trame a été sauvegardée, mais les affectations ont échoué.
-            // Peut-être retourner la trame avec un avertissement ou relancer une erreur spécifique.
-            throw new Error(`Erreur lors de la sauvegarde des affectations : ${error instanceof Error ? error.message : String(error)}`);
+            console.error(`[Modèle Service] Erreur lors de la gestion des gardes/vacations pour la trameModele ${trameModeleId}:`, error);
+            // Que faire ici? La trameModele a été sauvegardée, mais les gardes/vacations ont échoué.
+            // Peut-être retourner la trameModele avec un avertissement ou relancer une erreur spécifique.
+            throw new Error(`Erreur lors de la sauvegarde des affectations: ${error instanceof Error ? error.message : String(error)}`);
         }
 
-        // --- Étape 3: Sauvegarder les variations (extensions des affectations) ---
-        console.log(`[Template Service] ${templateData.variations?.length || 0} variations incluses dans le payload initial de la trame ${trameModeleId}.`);
+        // --- Étape 3: Sauvegarder les variations (extensions des gardes/vacations) ---
+        console.log(`[Modèle Service] ${templateData.variations?.length || 0} variations incluses dans le payload initial de la trameModele ${trameModeleId}.`);
 
         // Note: Les variations sont maintenant sauvegardées dans le detailsJson dès la création/mise à jour initiale
         // Nous n'avons donc pas besoin de faire une mise à jour séparée ici.
@@ -530,26 +532,26 @@ export const templateService = {
         // Si pour une raison quelconque les variations n'ont pas été correctement sauvegardées,
         // nous pourrions ajouter un mécanisme de vérification et correction ici.
 
-        // Pour une meilleure UX, on recharge la trame complète après toutes les opérations.
-        console.log(`[Template Service DEBUG] Chargement de la trame complète après sauvegarde...`);
+        // Pour une meilleure UX, on recharge la trameModele complète après toutes les opérations.
+        console.log(`[Modèle Service DEBUG] Chargement de la trameModele complète après sauvegarde...`);
         const finalTrame = await this.getTemplateById(trameModeleId as string);
 
         if (!finalTrame) {
             // Cela ne devrait pas arriver si tout s'est bien passé.
-            console.error(`[Template Service] CRITICAL: La trame ${trameModeleId} sauvegardée n'a pas pu être récupérée après la gestion des affectations.`);
-            // Retourner au moins ce qui a été sauvegardé au niveau des métadonnées, avec les affectations locales pour éviter un crash total
+            console.error(`[Modèle Service] CRITICAL: La trameModele ${trameModeleId} sauvegardée n'a pas pu être récupérée après la gestion des gardes/vacations.`);
+            // Retourner au moins ce qui a été sauvegardé au niveau des métadonnées, avec les gardes/vacations locales pour éviter un crash total
             const fallbackTrame = mapTrameModeleDtoToPlanningTemplate(savedOrUpdatedTrameModeleDto);
-            fallbackTrame.affectations = templateData.affectations; // Garder les affectations du frontend en dernier recours
+            fallbackTrame.affectations = templateData.affectations; // Garder les gardes/vacations du frontend en dernier recours
             return fallbackTrame;
         }
 
-        console.log(`[Template Service DEBUG] Trame chargée avec ${finalTrame.affectations.length || 0} affectations.`);
-        console.log(`[Template Service DEBUG] Exemple première affectation si existe:`, finalTrame.affectations.length ? JSON.stringify(finalTrame.affectations[0], null, 2) : 'aucune affectation');
+        console.log(`[Modèle Service DEBUG] Tableau de service chargée avec ${finalTrame.affectations.length || 0} gardes/vacations.`);
+        console.log(`[Modèle Service DEBUG] Exemple première affectation si existe:`, finalTrame.affectations.length ? JSON.stringify(finalTrame.affectations[0], null, 2) : 'aucune affectation');
         return finalTrame;
     },
 
     async deleteTemplate(id: string): Promise<void> {
-        console.log(`[Template Service] Appel de deleteTemplate pour ID: ${id} via API /api/trame-modeles...`);
+        console.log(`[Modèle Service] Appel de deleteTemplate pour ID: ${id} via API /api/trameModele-modeles...`);
         try {
             const token = await getClientAuthToken();
             const response = await fetch(`${API_BASE_URL}/${id}`, {
@@ -560,18 +562,18 @@ export const templateService = {
             });
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: response.statusText }));
-                console.error("[Template Service] Erreur API lors de deleteTemplate:", response.status, errorData);
-                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de supprimer la trame'}`);
+                console.error("[Modèle Service] Erreur API lors de deleteTemplate:", response.status, errorData);
+                throw new Error(`Erreur API (${response.status}): ${errorData.error || 'Impossible de supprimer la trameModele'}`);
             }
             // Pas de contenu à retourner pour un DELETE réussi (200 ou 204)
         } catch (error) {
-            console.error(`[Template Service] Erreur DANS deleteTemplate (API, id: ${id}):`);
+            console.error(`[Modèle Service] Erreur DANS deleteTemplate (API, id: ${id}):`);
             if (error instanceof Error) {
                 console.error(error.message);
                 throw error;
             } else {
                 console.error("Une erreur inconnue est survenue dans deleteTemplate.");
-                throw new Error("Une erreur inconnue est survenue lors de la suppression de la trame.");
+                throw new Error("Une erreur inconnue est survenue lors de la suppression de la trameModele.");
             }
         }
     },
@@ -581,10 +583,10 @@ export const templateService = {
 
     // Exemple: duplicateTemplate pourrait appeler GET puis POST avec un nom modifié.
     async duplicateTemplate(id: string, availableFullActivityTypes: FullActivityType[]): Promise<PlanningTemplate> {
-        console.log(`[Template Service] Tentative de duplication pour ID: ${id}`);
+        console.log(`[Modèle Service] Tentative de duplication pour ID: ${id}`);
         const originalTemplate = await this.getTemplateById(id);
         if (!originalTemplate) {
-            throw new Error("Trame originale non trouvée pour la duplication.");
+            throw new Error("Tableau de service originale non trouvée pour la duplication.");
         }
 
         const duplicatedMetaData: PlanningTemplate = {
@@ -608,10 +610,10 @@ export const templateService = {
 
     // Fonctions utilitaires qui étaient dans le mock, à conserver si utiles globalement
     async getAvailableAffectationTypes(): Promise<FullActivityType[]> { // MODIFIÉ: Type de retour
-        console.log("[Template Service] Appel de getAvailableAffectationTypes via API /api/activity-types...");
+        console.log("[Modèle Service] Appel de getAvailableAffectationTypes via API /api/activity-types...");
         try {
             const token = await getClientAuthToken();
-            const response = await fetch('/api/activity-types', {
+            const response = await fetch('http://localhost:3000/api/activity-types', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -620,24 +622,24 @@ export const templateService = {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: response.statusText }));
-                console.error("[Template Service] Erreur API lors de getAvailableAffectationTypes:", response.status, errorData);
+                console.error("[Modèle Service] Erreur API lors de getAvailableAffectationTypes:", response.status, errorData);
                 throw new Error(`Erreur API (${response.status}): ${errorData.error || "Impossible de récupérer les types d'activité"}`);
             }
 
             const activityTypesFromApi: FullActivityType[] = await response.json(); // MODIFIÉ: Utiliser FullActivityType
 
             if (!Array.isArray(activityTypesFromApi)) {
-                console.error("[Template Service] ERREUR : la réponse de /api/activity-types n'est pas un array! Reçu:", activityTypesFromApi);
+                console.error("[Modèle Service] ERREUR : la réponse de /api/activity-types n'est pas un array! Reçu:", activityTypesFromApi);
                 return []; // Retourner vide en cas d'erreur de format
             }
 
-            console.log("[Template Service] Types d'activité (complets) récupérés:", activityTypesFromApi);
+            console.log("[Modèle Service] Types d'activité (complets) récupérés:", activityTypesFromApi);
             return activityTypesFromApi;
 
         } catch (error) {
-            console.error("[Template Service] Erreur DANS getAvailableAffectationTypes (API):", error);
+            console.error("[Modèle Service] Erreur DANS getAvailableAffectationTypes (API):", error);
             if (error instanceof Error) {
-                console.warn("[Template Service] Retourne un tableau vide pour availableFullActivityTypes suite à une erreur API.", error.message);
+                console.warn("[Modèle Service] Retourne un tableau vide pour availableFullActivityTypes suite à une erreur API.", error.message);
                 return [];
             } else {
                 console.error("Une erreur inconnue est survenue dans getAvailableAffectationTypes.");
@@ -660,9 +662,9 @@ export const templateService = {
 };
 
 /**
- * Mapper une affectation template côté client (TemplateAffectation) vers le format API
+ * Mapper une affectation modèle côté client (TemplateAffectation) vers le format API
  * @param affectation - L'affectation à mapper
- * @param trameTypeSemaine - Le type de semaine de la trame parente (TOUTES, PAIRES, IMPAIRES)
+ * @param trameTypeSemaine - Le type de semaine de la trameModele parente (TOUTES, PAIRES, IMPAIRES)
  * @returns L'objet DTO prêt à être envoyé à l'API
  */
 const mapTemplateAffectationToApiDto = (
@@ -672,13 +674,13 @@ const mapTemplateAffectationToApiDto = (
 ): AffectationModeleCreateDto | null => {
     const activityType = availableActivityTypes.find((at: FullActivityType) => at.code === affectation.type);
     if (!activityType) {
-        console.error(`[Template Service] mapTemplateAffectationToApiDto: ActivityType avec le code '${affectation.type}' non trouvé.`);
+        console.error(`[Modèle Service] mapTemplateAffectationToApiDto: ActivityType avec le code '${affectation.type}' non trouvé.`);
         return null;
     }
 
     const mappedJourSemaine = dayOfWeekMapping[affectation.jour.toUpperCase() as keyof typeof dayOfWeekMapping];
     if (!mappedJourSemaine) {
-        console.error(`[Template Service] mapTemplateAffectationToApiDto: Jour de la semaine invalide ou non mappé: '${affectation.jour}'`);
+        console.error(`[Modèle Service] mapTemplateAffectationToApiDto: Jour de la semaine invalide ou non mappé: '${affectation.jour}'`);
         return null;
     }
 
@@ -704,8 +706,8 @@ const mapTemplateAffectationToApiDto = (
         }];
     }
 
-    console.log(`[Template Service DEBUG] personnelRequisConfig simplifié avant création du DTO:`, JSON.stringify(personnelRequis, null, 2));
-    console.log(`[Template Service DEBUG] Nombre total de postes requis calculé: ${nombrePostesRequis}`);
+    console.log(`[Modèle Service DEBUG] personnelRequisConfig simplifié avant création du DTO:`, JSON.stringify(personnelRequis, null, 2));
+    console.log(`[Modèle Service DEBUG] Nombre total de postes requis calculé: ${nombrePostesRequis}`);
 
     let periode: PeriodValue = 'JOURNEE_ENTIERE'; // Valeur par défaut
     if (affectation.configuration?.heureDebut && affectation.configuration?.heureFin) {

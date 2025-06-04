@@ -1,0 +1,9 @@
+{
+  "instances": {},
+  "globalStats": {
+    "totalCycles": 0,
+    "totalFixedProblems": 0,
+    "lastPerfectRun": null,
+    "projectHealth": "UNKNOWN"
+  }
+}

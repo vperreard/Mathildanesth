@@ -172,7 +172,7 @@ export default function QuotaAdvancedManagement({ userId }: QuotaAdvancedManagem
                 <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push('/leaves/new')}
+                    onClick={() => router.push('/conges/nouveau')}
                     className="mt-4"
                 >
                     Faire une nouvelle demande

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Auth Cookie</title>
+</head>
+<body>
+    <h1>Clearing Auth Cookie...</h1>
+    <script>
+        // Clear the auth_token cookie
+        document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'auth_token=; path=/; domain=localhost; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        
+        // Clear all cookies for good measure
+        document.cookie.split(";").forEach(function(c) { 
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+        
+        console.log('Auth cookie cleared');
+        
+        // Redirect to /planning after clearing
+        setTimeout(() => {
+            window.location.href = '/planning';
+        }, 1000);
+    </script>
+    <p>Cookie cleared. Redirecting to /planning...</p>
+</body>
+</html>

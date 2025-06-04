@@ -19,9 +19,18 @@ export interface AuthResult {
 
 const AUTH_TOKEN_KEY = 'auth_token';
 
-// --- Fonctions pour la gestion du token côté CLIENT (localStorage) ---
+// --- Fonctions pour la gestion du token côté CLIENT (cookies et localStorage) ---
 export function getClientAuthToken(): string | null {
     if (typeof window !== 'undefined') {
+        // Essayer d'abord dans les cookies (auth_token)
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === AUTH_TOKEN_KEY) {
+                return decodeURIComponent(value);
+            }
+        }
+        // Si pas trouvé dans les cookies, essayer localStorage comme fallback
         return localStorage.getItem(AUTH_TOKEN_KEY);
     }
     return null;

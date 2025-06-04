@@ -1,0 +1,211 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 0,
+    "pending": 0,
+    "failures": 2,
+    "start": "2025-06-01T06:45:09.432Z",
+    "end": "2025-06-01T06:45:10.832Z",
+    "duration": 1400,
+    "testsRegistered": 6,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 1,
+    "hasOther": true,
+    "skipped": 4,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "434da406-f065-4463-b342-8128fe1d50bc",
+      "title": "",
+      "fullFile": "cypress/e2e/accessibility/advanced-wcag-compliance.spec.ts",
+      "file": "cypress/e2e/accessibility/advanced-wcag-compliance.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "a90588c8-06d8-4c3a-8b41-691ad6cfb913",
+          "title": "Conformité WCAG 2.1 AA Avancée",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "valide la conformité WCAG complète sur toutes les pages critiques",
+              "fullTitle": "Conformité WCAG 2.1 AA Avancée valide la conformité WCAG complète sur toutes les pages critiques",
+              "timedOut": null,
+              "duration": 122,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('♿️ Test WCAG complet - Pages critiques');\nvar criticalPages = [\n    { path: '/auth/connexion', name: 'Connexion', priority: 'critical' },\n    { path: '/tableau-de-bord', name: 'Tableau de bord', priority: 'critical', requiresAuth: true },\n    { path: '/planning', name: 'Planning', priority: 'critical', requiresAuth: true },\n    { path: '/conges', name: 'Congés', priority: 'high', requiresAuth: true },\n    { path: '/bloc-operatoire', name: 'Bloc opératoire', priority: 'critical', requiresAuth: true }\n];\ncriticalPages.forEach(function (page) {\n    cy.log(\"Testing accessibility on \".concat(page.name));\n    if (page.requiresAuth) {\n        // Authentification préalable\n        cy.visit('/auth/connexion');\n        cy.waitForPageLoad();\n        cy.safeType('[data-cy=email-input]', 'admin@example.com');\n        cy.safeType('[data-cy=password-input]', 'Test123!');\n        cy.safeClick('[data-cy=submit-button]');\n        cy.url().should('include', '/tableau-de-bord');\n    }\n    // Navigation vers la page à tester\n    cy.visit(page.path);\n    cy.waitForPageLoad();\n    cy.injectAxe();\n    // Test WCAG AA complet\n    cy.checkA11y(null, {\n        rules: accessibilityRules.critical.reduce(function (acc, rule) {\n            acc[rule] = { enabled: true };\n            return acc;\n        }, {})\n    }, function (violations) {\n        // Logger les violations pour analyse\n        cy.task('logAccessibilityViolation', {\n            page: page.name,\n            path: page.path,\n            priority: page.priority,\n            violations: violations.map(function (v) { return ({\n                id: v.id,\n                impact: v.impact,\n                description: v.description,\n                nodes: v.nodes.length,\n                help: v.help\n            }); }),\n            timestamp: Date.now()\n        });\n    });\n    // Tests spécifiques par page\n    switch (page.name) {\n        case 'Connexion':\n            cy.testLoginFormAccessibility();\n            break;\n        case 'Planning':\n            cy.testPlanningAccessibility();\n            break;\n        case 'Bloc opératoire':\n            cy.testBlocOperatoireAccessibility();\n            break;\n    }\n});",
+              "err": {
+                "message": "CypressError: `cy.task('generateAccessibilityReport')` failed with the following error:\n\nThe task 'generateAccessibilityReport' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after each` hook we are skipping the remaining tests in the current suite: `Conformité WCAG 2.1 AA Avancée`",
+                "estack": "CypressError: `cy.task('generateAccessibilityReport')` failed with the following error:\n\nThe task 'generateAccessibilityReport' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after each` hook we are skipping the remaining tests in the current suite: `Conformité WCAG 2.1 AA Avancée`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137237:72)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/accessibility/advanced-wcag-compliance.spec.ts:394:11)",
+                "diff": null
+              },
+              "uuid": "6cdae26e-03b5-40bb-8164-4e9adb31d10e",
+              "parentUUID": "a90588c8-06d8-4c3a-8b41-691ad6cfb913",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "teste la navigation complète au clavier pour utilisateurs non-voyants",
+              "fullTitle": "Conformité WCAG 2.1 AA Avancée teste la navigation complète au clavier pour utilisateurs non-voyants",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('⌨️ Navigation clavier complète');\n// Test de navigation séquentielle complète\nvar keyboardNavigation = {\n    currentIndex: 0,\n    focusableElements: [],\n    navigationPath: []\n};\n// Identifier tous les éléments focusables\ncy.get('body').then(function ($body) {\n    var focusableSelectors = [\n        'input:not([disabled]):not([type=\"hidden\"])',\n        'button:not([disabled])',\n        'select:not([disabled])',\n        'textarea:not([disabled])',\n        'a[href]',\n        '[tabindex]:not([tabindex=\"-1\"])',\n        '[contenteditable]'\n    ].join(', ');\n    var focusableElements = $body.find(focusableSelectors).toArray();\n    keyboardNavigation.focusableElements = focusableElements;\n    cy.log(\"Found \".concat(focusableElements.length, \" focusable elements\"));\n});\n// Test de navigation TAB complète\ncy.get('body').focus();\n// Parcourir tous les éléments avec TAB\nfor (var i = 0; i < 20; i++) { // Limiter pour les tests\n    cy.get('body').tab();\n    cy.focused().then(function ($focused) {\n        if ($focused.length > 0) {\n            var elementInfo = {\n                tagName: $focused[0].tagName,\n                type: $focused[0].type,\n                id: $focused[0].id,\n                'data-cy': $focused[0].getAttribute('data-cy'),\n                'aria-label': $focused[0].getAttribute('aria-label'),\n                visible: $focused.is(':visible')\n            };\n            keyboardNavigation.navigationPath.push(elementInfo);\n            // Vérifier que l'élément est visible et a un focus visible\n            cy.wrap($focused)\n                .should('be.visible')\n                .and('satisfy', function ($el) {\n                var styles = window.getComputedStyle($el[0]);\n                var hasOutline = styles.outline !== 'none' && styles.outline !== '';\n                var hasBoxShadow = styles.boxShadow !== 'none';\n                var hasCustomFocus = $el.hasClass('focus-visible') || $el.hasClass('focused');\n                return hasOutline || hasBoxShadow || hasCustomFocus;\n            });\n        }\n    });\n    cy.wait(100); // Pause pour stabilité\n}\n// Vérifier la logique de navigation\ncy.wrap(keyboardNavigation.navigationPath).should('have.length.at.least', 5);\n// Test de navigation inverse (Shift+Tab)\ncy.log('Test navigation inverse Shift+Tab');\nfor (var i = 0; i < 5; i++) {\n    cy.get('body').type('{shift}{tab}');\n    cy.focused().should('be.visible');\n    cy.wait(100);\n}",
+              "err": {},
+              "uuid": "ee1137a7-19f1-488f-9a7d-a7a882d2e253",
+              "parentUUID": "a90588c8-06d8-4c3a-8b41-691ad6cfb913",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "teste l'accessibilité pour les lecteurs d'écran",
+              "fullTitle": "Conformité WCAG 2.1 AA Avancée teste l'accessibilité pour les lecteurs d'écran",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('🔊 Test lecteurs d\\'\\u00e9cran');\n// Test de la structure sémantique\ncy.get('main').should('exist').and('have.attr', 'role', 'main');\ncy.get('nav').should('exist').and('have.attr', 'role', 'navigation');\ncy.get('header').should('exist').and('have.attr', 'role', 'banner');\n// Test de la hiérarchie des titres\ncy.get('h1').should('have.length', 1); // Un seul h1 par page\n// Vérifier l'ordre logique des titres\ncy.get('h1, h2, h3, h4, h5, h6').then(function ($headings) {\n    var headingLevels = [];\n    $headings.each(function (_, heading) {\n        headingLevels.push(parseInt(heading.tagName.substring(1)));\n    });\n    // Vérifier qu'il n'y a pas de saut de niveau\n    for (var i = 1; i < headingLevels.length; i++) {\n        var diff = headingLevels[i] - headingLevels[i - 1];\n        expect(diff).to.be.at.most(1); // Pas de saut de plus d'un niveau\n    }\n});\n// Test des landmarks ARIA\nvar requiredLandmarks = ['main', 'navigation', 'banner'];\nrequiredLandmarks.forEach(function (landmark) {\n    cy.get(\"[role=\\\"\".concat(landmark, \"\\\"]\")).should('exist');\n});\n// Test des labels et descriptions\ncy.get('input, select, textarea').each(function ($input) {\n    cy.wrap($input).should('satisfy', function ($el) {\n        var hasLabel = $el.attr('aria-label') ||\n            $el.attr('aria-labelledby') ||\n            Cypress.$(\"label[for=\\\"\".concat($el.attr('id'), \"\\\"]\")).length > 0;\n        return hasLabel;\n    });\n});\n// Test des boutons et liens\ncy.get('button, [role=\"button\"], a').each(function ($element) {\n    cy.wrap($element).should('satisfy', function ($el) {\n        var hasAccessibleName = $el.attr('aria-label') ||\n            $el.text().trim() ||\n            $el.attr('title') ||\n            $el.find('img[alt]').length > 0;\n        return hasAccessibleName;\n    });\n});",
+              "err": {},
+              "uuid": "a76deadf-0980-4c4f-93a8-7fe0b53f65a3",
+              "parentUUID": "a90588c8-06d8-4c3a-8b41-691ad6cfb913",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "teste la conformité pour les utilisateurs à mobilité réduite",
+              "fullTitle": "Conformité WCAG 2.1 AA Avancée teste la conformité pour les utilisateurs à mobilité réduite",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('🖱️ Test mobilité réduite');\n// Test des zones de clic suffisamment grandes (WCAG 2.5.5)\ncy.get('button, [role=\"button\"], a, input[type=\"checkbox\"], input[type=\"radio\"]')\n    .each(function ($element) {\n    cy.wrap($element).then(function ($el) {\n        var rect = $el[0].getBoundingClientRect();\n        var minSize = 44; // Pixels minimum recommandés\n        // Vérifier la taille minimale\n        expect(rect.width).to.be.at.least(minSize, \"Element width too small: \".concat(rect.width, \"px\"));\n        expect(rect.height).to.be.at.least(minSize, \"Element height too small: \".concat(rect.height, \"px\"));\n    });\n});\n// Test de l'espacement entre éléments interactifs\ncy.get('button, [role=\"button\"], a').then(function ($elements) {\n    for (var i = 0; i < $elements.length - 1; i++) {\n        var rect1 = $elements[i].getBoundingClientRect();\n        var rect2 = $elements[i + 1].getBoundingClientRect();\n        // Calculer la distance entre éléments\n        var distance = Math.min(Math.abs(rect2.left - rect1.right), Math.abs(rect2.top - rect1.bottom));\n        // Distance minimale recommandée\n        if (distance < 100) { // Si les éléments sont proches\n            expect(distance).to.be.at.least(8, 'Elements too close for motor impaired users');\n        }\n    }\n});\n// Test de la persistance du focus\ncy.get('[data-cy=email-input]').focus();\ncy.wait(500);\ncy.focused().should('have.attr', 'data-cy', 'email-input');\n// Test du timeout suffisant pour les actions\nvar longActionStart = performance.now();\ncy.get('[data-cy=email-input]').type('test@example.com', { delay: 200 }); // Frappe lente\ncy.window().then(function () {\n    var actionDuration = performance.now() - longActionStart;\n    // L'interface doit rester responsive même avec saisie lente\n    expect(actionDuration).to.be.lessThan(10000);\n});",
+              "err": {},
+              "uuid": "8f5830af-a477-4ff7-888f-3ea2e83c8a03",
+              "parentUUID": "a90588c8-06d8-4c3a-8b41-691ad6cfb913",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "teste l'accessibilité pour les troubles cognitifs",
+              "fullTitle": "Conformité WCAG 2.1 AA Avancée teste l'accessibilité pour les troubles cognitifs",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('🧠 Test troubles cognitifs');\n// Test de la cohérence de l'interface\ncy.get('[data-cy=submit-button]').then(function ($submitButtons) {\n    // Vérifier la cohérence des boutons de soumission\n    var firstButtonText = $submitButtons.first().text().trim();\n    var firstButtonClass = $submitButtons.first().attr('class');\n    $submitButtons.each(function (_, button) {\n        var buttonText = Cypress.$(button).text().trim();\n        var buttonClass = Cypress.$(button).attr('class');\n        // Les boutons similaires doivent avoir un style cohérent\n        if (buttonText.includes('Valider') || buttonText.includes('Envoyer')) {\n            expect(buttonClass).to.include('primary'); // Style cohérent\n        }\n    });\n});\n// Test des messages d'aide et instructions\ncy.get('form').within(function () {\n    // Vérifier la présence d'instructions claires\n    cy.get('[data-cy=form-instructions], .help-text, [aria-describedby]')\n        .should('exist')\n        .and('be.visible');\n});\n// Test de la prévention des erreurs\ncy.get('[data-cy=email-input]').type('email-invalide');\ncy.get('[data-cy=password-input]').type('123'); // Mot de passe trop court\n// Vérifier la validation en temps réel (aide cognitive)\ncy.get('[data-cy=email-input]').should('have.attr', 'aria-invalid', 'true');\ncy.get('[aria-live=\"polite\"], [role=\"alert\"]').should('exist');\n// Test de la simplicité des messages d'erreur\ncy.get('[data-cy=error-message]').should(function ($error) {\n    var errorText = $error.text();\n    expect(errorText).to.not.be.empty;\n    expect(errorText.length).to.be.lessThan(100); // Messages concis\n    expect(errorText).to.match(/[.!]$/); // Ponctuation correcte\n});",
+              "err": {},
+              "uuid": "78c7bf7f-19cb-4f06-b14c-1482cfe51621",
+              "parentUUID": "a90588c8-06d8-4c3a-8b41-691ad6cfb913",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "teste l'accessibilité sur appareils mobiles",
+              "fullTitle": "Conformité WCAG 2.1 AA Avancée teste l'accessibilité sur appareils mobiles",
+              "timedOut": null,
+              "duration": 130,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('📱 Test accessibilité mobile');\nvar mobileViewports = [\n    { width: 375, height: 667, name: 'iPhone SE' },\n    { width: 414, height: 896, name: 'iPhone 11' },\n    { width: 360, height: 640, name: 'Android' }\n];\nmobileViewports.forEach(function (viewport) {\n    cy.viewport(viewport.width, viewport.height);\n    cy.reload();\n    cy.waitForPageLoad();\n    cy.injectAxe();\n    cy.log(\"Testing mobile accessibility on \".concat(viewport.name));\n    // Test WCAG mobile\n    cy.checkA11y(null, {\n        rules: {\n            'target-size': { enabled: true }, // Taille des cibles tactiles\n            'orientation': { enabled: true }, // Support rotation\n            'reflow': { enabled: true } // Adaptation contenu\n        }\n    });\n    // Test des éléments tactiles\n    cy.get('button, [role=\"button\"], a, input').each(function ($element) {\n        cy.wrap($element).then(function ($el) {\n            var rect = $el[0].getBoundingClientRect();\n            // Taille minimale pour tactile (WCAG 2.5.5)\n            expect(rect.width).to.be.at.least(44);\n            expect(rect.height).to.be.at.least(44);\n        });\n    });\n    // Test du zoom jusqu'à 200% (WCAG 1.4.4)\n    cy.get('meta[name=\"viewport\"]').should('have.attr', 'content')\n        .and('not.include', 'maximum-scale=1')\n        .and('not.include', 'user-scalable=no');\n});",
+              "err": {
+                "message": "CypressError: `cy.task('generateConsolidatedAccessibilityReport')` failed with the following error:\n\nThe task 'generateConsolidatedAccessibilityReport' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after all` hook we are skipping the remaining tests in the current suite: `Conformité WCAG 2.1 AA Avancée`\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail",
+                "estack": "CypressError: `cy.task('generateConsolidatedAccessibilityReport')` failed with the following error:\n\nThe task 'generateConsolidatedAccessibilityReport' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after all` hook we are skipping the remaining tests in the current suite: `Conformité WCAG 2.1 AA Avancée`\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137237:72)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/accessibility/advanced-wcag-compliance.spec.ts:404:11)",
+                "diff": null
+              },
+              "uuid": "b96b34d7-9296-4722-b790-6d422f6c50e7",
+              "parentUUID": "a90588c8-06d8-4c3a-8b41-691ad6cfb913",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "6cdae26e-03b5-40bb-8164-4e9adb31d10e",
+            "b96b34d7-9296-4722-b790-6d422f6c50e7"
+          ],
+          "pending": [],
+          "skipped": [
+            "ee1137a7-19f1-488f-9a7d-a7a882d2e253",
+            "a76deadf-0980-4c4f-93a8-7fe0b53f65a3",
+            "8f5830af-a477-4ff7-888f-3ea2e83c8a03",
+            "78c7bf7f-19cb-4f06-b14c-1482cfe51621"
+          ],
+          "duration": 252,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

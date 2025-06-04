@@ -170,8 +170,7 @@ const DraggablePoste: React.FC<DraggablePosteProps> = ({
 /**
  * Composant pour configurer une affectation spécifique
  */
-const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({
-    affectation,
+const AssignmentConfigPanel: React.FC<AssignmentConfigPanelProps> = ({ affectation,
     onChange: onChangeProp,
     availablePostes,
     isLoading = false

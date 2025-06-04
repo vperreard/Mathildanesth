@@ -1,0 +1,323 @@
+{
+    "metadata": {
+        "lastUpdated": "2025-01-25",
+        "version": "1.0.0",
+        "totalRoutes": 42,
+        "testedRoutes": 8,
+        "coveragePercentage": 19.0,
+        "criticalRoutes": 15,
+        "criticalCoverage": 53.3
+    },
+    "workflows": {
+        "authentication": {
+            "name": "Authentification & Sécurité",
+            "priority": "CRITICAL",
+            "status": "PARTIAL",
+            "coverage": 37.5,
+            "lastValidated": "2025-01-25",
+            "routes": {
+                "/auth/connexion": {
+                    "name": "Page de connexion",
+                    "method": "GET",
+                    "testStatus": "TESTED",
+                    "lastTested": "2025-01-25",
+                    "testFile": "auth.e2e.test.js",
+                    "scenarios": [
+                        {
+                            "name": "Affichage formulaire connexion",
+                            "status": "PASSED",
+                            "accessibility": "TESTED"
+                        },
+                        {
+                            "name": "Connexion valide",
+                            "status": "PARTIAL",
+                            "notes": "Timeouts à ajuster"
+                        },
+                        {
+                            "name": "Connexion échouée",
+                            "status": "PARTIAL",
+                            "notes": "Messages d'erreur"
+                        }
+                    ]
+                },
+                "POST /api/auth/connexion": {
+                    "name": "API Authentification",
+                    "method": "POST",
+                    "testStatus": "TESTED",
+                    "scenarios": [
+                        {
+                            "name": "Login réussi",
+                            "status": "PARTIAL"
+                        },
+                        {
+                            "name": "Credentials invalides",
+                            "status": "PARTIAL"
+                        }
+                    ]
+                },
+                "/api/auth/deconnexion": {
+                    "name": "Déconnexion",
+                    "method": "POST",
+                    "testStatus": "PLANNED",
+                    "priority": "HIGH"
+                }
+            }
+        },
+        "leaves_management": {
+            "name": "Gestion des Congés",
+            "priority": "CRITICAL",
+            "status": "IN_PROGRESS",
+            "coverage": 16.7,
+            "lastValidated": "2025-01-25",
+            "routes": {
+                "/conges": {
+                    "name": "Page principale congés",
+                    "method": "GET",
+                    "testStatus": "TESTING",
+                    "lastTested": "2025-01-25",
+                    "testFile": "leaves.e2e.test.js",
+                    "scenarios": [
+                        {
+                            "name": "Accès page congés",
+                            "status": "FAILING",
+                            "notes": "Problèmes build Next.js"
+                        },
+                        {
+                            "name": "Affichage solde congés",
+                            "status": "SKIPPED"
+                        },
+                        {
+                            "name": "Liste des demandes",
+                            "status": "SKIPPED"
+                        }
+                    ]
+                },
+                "/api/conges": {
+                    "name": "API Liste congés",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED",
+                    "dependency": "/conges"
+                },
+                "/api/conges/balance": {
+                    "name": "API Solde congés",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED",
+                    "dependency": "/conges"
+                },
+                "POST /api/conges": {
+                    "name": "Création demande congé",
+                    "method": "POST",
+                    "testStatus": "PLANNED",
+                    "priority": "CRITICAL",
+                    "scenarios": [
+                        {
+                            "name": "Formulaire création",
+                            "status": "NOT_TESTED",
+                            "notes": "Modal à tester"
+                        },
+                        {
+                            "name": "Validation champs",
+                            "status": "NOT_TESTED"
+                        },
+                        {
+                            "name": "Soumission réussie",
+                            "status": "NOT_TESTED"
+                        }
+                    ]
+                }
+            }
+        },
+        "planning_bloc": {
+            "name": "Planning Bloc Opératoire",
+            "priority": "CRITICAL",
+            "status": "NOT_STARTED",
+            "coverage": 0,
+            "routes": {
+                "/planning/hebdomadaire": {
+                    "name": "Planning hebdomadaire",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED",
+                    "priority": "CRITICAL",
+                    "scenarios": [
+                        {
+                            "name": "Affichage planning",
+                            "status": "NOT_TESTED"
+                        },
+                        {
+                            "name": "Navigation semaines",
+                            "status": "NOT_TESTED"
+                        },
+                        {
+                            "name": "Filtres salles/secteurs",
+                            "status": "NOT_TESTED"
+                        }
+                    ]
+                },
+                "/bloc-operatoire": {
+                    "name": "Gestion bloc opératoire",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED",
+                    "priority": "HIGH"
+                },
+                "/api/planning/affectations": {
+                    "name": "API Affectations",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED",
+                    "priority": "CRITICAL"
+                },
+                "POST /api/planning/affectations": {
+                    "name": "Création affectation",
+                    "method": "POST",
+                    "testStatus": "NOT_TESTED",
+                    "priority": "CRITICAL"
+                }
+            }
+        },
+        "user_management": {
+            "name": "Gestion Utilisateurs",
+            "priority": "HIGH",
+            "status": "NOT_STARTED",
+            "coverage": 0,
+            "routes": {
+                "/utilisateurs": {
+                    "name": "Liste utilisateurs",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED",
+                    "roles": [
+                        "ADMIN_TOTAL"
+                    ]
+                },
+                "/profil": {
+                    "name": "Profil utilisateur",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED",
+                    "priority": "MEDIUM"
+                },
+                "/api/utilisateurs": {
+                    "name": "API Utilisateurs",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED"
+                }
+            }
+        },
+        "administration": {
+            "name": "Administration",
+            "priority": "HIGH",
+            "status": "NOT_STARTED",
+            "coverage": 0,
+            "routes": {
+                "/admin": {
+                    "name": "Dashboard admin",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED",
+                    "roles": [
+                        "ADMIN_TOTAL"
+                    ]
+                },
+                "/parametres": {
+                    "name": "Paramètres système",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED",
+                    "priority": "MEDIUM"
+                },
+                "/admin/jours-feries": {
+                    "name": "Gestion jours fériés",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED"
+                }
+            }
+        },
+        "statistics_reports": {
+            "name": "Statistiques & Rapports",
+            "priority": "MEDIUM",
+            "status": "NOT_STARTED",
+            "coverage": 0,
+            "routes": {
+                "/statistiques": {
+                    "name": "Dashboard statistiques",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED"
+                },
+                "/api/analytics": {
+                    "name": "API Analytics",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED"
+                }
+            }
+        },
+        "notifications": {
+            "name": "Notifications",
+            "priority": "MEDIUM",
+            "status": "NOT_STARTED",
+            "coverage": 0,
+            "routes": {
+                "/notifications": {
+                    "name": "Centre de notifications",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED"
+                },
+                "/api/notifications": {
+                    "name": "API Notifications",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED"
+                }
+            }
+        },
+        "calendar_integration": {
+            "name": "Intégration Calendrier",
+            "priority": "MEDIUM",
+            "status": "NOT_STARTED",
+            "coverage": 0,
+            "routes": {
+                "/calendrier": {
+                    "name": "Vue calendrier",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED"
+                },
+                "/api/calendrier": {
+                    "name": "API Calendrier",
+                    "method": "GET",
+                    "testStatus": "NOT_TESTED"
+                }
+            }
+        }
+    },
+    "testCategories": {
+        "functional": {
+            "name": "Tests Fonctionnels",
+            "routes": 28,
+            "tested": 5,
+            "coverage": 17.9
+        },
+        "security": {
+            "name": "Tests Sécurité",
+            "routes": 8,
+            "tested": 2,
+            "coverage": 25.0
+        },
+        "accessibility": {
+            "name": "Tests Accessibilité",
+            "routes": 15,
+            "tested": 2,
+            "coverage": 13.3
+        },
+        "performance": {
+            "name": "Tests Performance",
+            "routes": 10,
+            "tested": 0,
+            "coverage": 0
+        }
+    },
+    "validationRules": {
+        "minCriticalCoverage": 80,
+        "minOverallCoverage": 60,
+        "maxFailingTests": 5,
+        "mandatoryTests": [
+            "/auth/connexion",
+            "POST /api/auth/connexion",
+            "/conges",
+            "POST /api/conges",
+            "/planning/hebdomadaire"
+        ]
+    }
+}

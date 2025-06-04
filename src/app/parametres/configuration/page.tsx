@@ -69,7 +69,7 @@ const ProfessionalRoleManagementPanel = dynamic(() => import('./ProfessionalRole
 });
 
 const TramesConfigPanel = dynamic(() => import('./TramesConfigPanel'), {
-    loading: () => <div>Chargement des trames...</div>
+    loading: () => <div>Chargement des trameModeles...</div>
 });
 
 // Ajout de l'import dynamique pour le nouveau panneau combiné
@@ -149,7 +149,7 @@ const menuItems: ConfigMenuItem[] = [
         hoverColor: 'hover:from-primary-400 hover:via-secondary-400 hover:to-tertiary-400'
     },
     {
-        id: 'assignments',
+        id: 'attributions',
         label: 'Affectations',
         icon: <Share2 className="h-5 w-5" />,
         color: 'bg-gradient-to-r from-primary-500 to-secondary-500',
@@ -163,8 +163,8 @@ const menuItems: ConfigMenuItem[] = [
         hoverColor: 'hover:from-tertiary-400 hover:to-primary-400'
     },
     {
-        id: 'trames',
-        label: 'Trames',
+        id: 'trameModeles',
+        label: 'TrameModeles',
         icon: <Clock className="h-5 w-5" />,
         color: 'bg-gradient-to-r from-secondary-500 to-tertiary-500',
         hoverColor: 'hover:from-secondary-400 hover:to-tertiary-400'
@@ -232,12 +232,16 @@ const ConfigurationPanelPage: React.FC = () => {
                 return <PlanningRulesConfigPanel />;
             case 'fatigue-management':
                 return preloadedComponents.has('fatigue-management') || selectedItem === 'fatigue-management' ? <FatigueManagementPanel /> : null;
-            case 'assignments':
+            case 'attributions':
                 return <AssignmentsConfigPanel />;
             case 'weekly-planning':
                 return preloadedComponents.has('weekly-planning') || selectedItem === 'weekly-planning' ? <WeeklyPlanningConfigPanel /> : null;
-            case 'trames':
-                return preloadedComponents.has('trames') || selectedItem === 'trames' ? <TramesConfigPanel /> : null;
+            case 'trameModeles':
+                typeof window !== 'undefined' && window.location.replace('/parametres/trameModeles');
+                return <div className="p-6 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p>Redirection vers la nouvelle interface des trameModeles...</p>
+                </div>;
             case 'header':
                 return <HeaderConfigPanel />;
             case 'others':

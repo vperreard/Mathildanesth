@@ -1,71 +1,116 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken, getAuthTokenServer } from '@/lib/auth-server-utils';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
+import { withUserRateLimit } from '@/lib/rateLimit';
+import { AuthCacheService } from '@/lib/auth/authCache';
 
-export async function GET(req: NextRequest) {
-    let prisma: PrismaClient | null = null;
-    try {
-        console.log("## API /auth/me: Début de la vérification d'authentification");
-        console.log("## API /auth/me: JWT_SECRET =", process.env.JWT_SECRET ? "[défini]" : "[NON DÉFINI]");
+async function handler(req: NextRequest) {
+  const startTime = Date.now();
 
-        let tokenFromHeader: string | null = null;
-        const authHeader = req.headers.get('Authorization');
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            tokenFromHeader = authHeader.replace('Bearer ', '');
-        }
+  try {
+    // Optimized token extraction
+    let token: string | null = null;
 
-        let tokenFromCookie: string | null = null;
-        if (!tokenFromHeader) {
-            tokenFromCookie = await getAuthTokenServer();
-        }
-
-        const authToken: string | null = tokenFromHeader ? tokenFromHeader : tokenFromCookie;
-        const source = tokenFromHeader ? 'Header Authorization' : (tokenFromCookie ? 'Cookie httpOnly' : 'Aucun');
-
-        if (!authToken) {
-            console.warn('API ME: Token non trouvé (ni header, ni cookie).');
-            return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
-        }
-
-        console.log(`API ME: Token trouvé via ${source}. Vérification...`);
-
-        const authResult = await verifyAuthToken(authToken);
-
-        if (!authResult.authenticated || !authResult.userId) {
-            console.warn(`API ME: Échec vérification token. Erreur: ${authResult.error}`);
-            return NextResponse.json({ error: authResult.error || 'Session invalide ou expirée' }, { status: 401 });
-        }
-
-        console.log(`API ME: Token vérifié. User ID: ${authResult.userId}, Rôle: ${authResult.role}`);
-
-        prisma = new PrismaClient();
-        const user = await prisma.user.findUnique({
-            where: { id: authResult.userId },
-            select: {
-                id: true,
-                login: true,
-                email: true,
-                nom: true,
-                prenom: true,
-                role: true,
-            },
-        });
-
-        if (!user) {
-            console.warn(`API ME: Utilisateur non trouvé en BDD pour ID: ${authResult.userId}`);
-            return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
-        }
-
-        console.log(`API ME: Utilisateur ${user.login} récupéré avec succès.`);
-        return NextResponse.json({ user });
-
-    } catch (error) {
-        console.error('## API /auth/me: Erreur générale:', error);
-        return NextResponse.json(
-            { authenticated: false, error: 'Erreur serveur' },
-            { status: 500 }
-        );
-    } finally {
-        await prisma?.$disconnect();
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7); // Faster than replace
     }
-} 
+
+    if (!token) {
+      token = await getAuthTokenServer();
+    }
+
+    if (!token) {
+      return NextResponse.json(
+        {
+          error: 'Non authentifié',
+          authenticated: false,
+        },
+        { status: 401 }
+      );
+    }
+
+    // Check cache first for better performance
+    const cachedAuth = await AuthCacheService.getCachedAuthToken(token);
+    if (cachedAuth && cachedAuth.userId) {
+      // Try to get cached user data
+      const cachedUser = await AuthCacheService.getCachedUserData(cachedAuth.userId.toString());
+      if (cachedUser) {
+        return NextResponse.json(
+          {
+            user: cachedUser,
+            authenticated: true,
+          },
+          {
+            headers: {
+              'X-Response-Time': `${Date.now() - startTime}ms`,
+              'X-Cache': 'HIT',
+            },
+          }
+        );
+      }
+    }
+
+    // Verify token if not in cache
+    const authResult = await verifyAuthToken(token);
+
+    if (!authResult.authenticated || !authResult.userId) {
+      return NextResponse.json(
+        {
+          error: authResult.error || 'Session invalide ou expirée',
+          authenticated: false,
+        },
+        { status: 401 }
+      );
+    }
+
+    // Cache the auth token for future requests
+    if (authResult.decodedToken) {
+      await AuthCacheService.cacheAuthToken(token, authResult.decodedToken);
+    }
+
+    // Optimized user query
+    const user = await prisma.user.findUnique({
+      where: { id: authResult.userId },
+      select: {
+        id: true,
+        login: true,
+        email: true,
+        nom: true,
+        prenom: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          error: 'Utilisateur non trouvé',
+          authenticated: false,
+        },
+        { status: 404 }
+      );
+    }
+
+    // Cache user data for future requests
+    await AuthCacheService.cacheUserData(authResult.userId.toString(), user);
+
+    return NextResponse.json(
+      {
+        user,
+        authenticated: true,
+      },
+      {
+        headers: {
+          'X-Response-Time': `${Date.now() - startTime}ms`,
+          'X-Cache': 'MISS',
+        },
+      }
+    );
+  } catch (error) {
+    console.error('API /auth/me error:', error);
+    return NextResponse.json({ authenticated: false, error: 'Erreur serveur' }, { status: 500 });
+  }
+}
+
+export const GET = withUserRateLimit(handler);

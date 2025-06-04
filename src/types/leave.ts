@@ -1,22 +1,54 @@
 /**
  * Types globaux pour la gestion des congés
+ * Note: Ces types sont maintenant exportés depuis /src/modules/leaves/types/leave.ts
+ * Ce fichier maintient seulement la rétrocompatibilité pour les imports existants
  */
 
+// Re-export des types principaux depuis le module leaves
+export { 
+  LeaveType, 
+  LeaveStatus, 
+  RecurrenceFrequency, 
+  RecurrenceEndType,
+  LeaveDuration,
+  LeaveDocumentType
+} from '../modules/leaves/types/leave';
+
+// Re-export des interfaces principales depuis le module leaves
+export { 
+  Leave,
+  LeaveRequest, 
+  LeaveBalance,
+  LeaveFilters,
+  PaginatedLeaveResults,
+  LeaveAllowanceCheckResult,
+  LeaveDocument,
+  LeaveComment,
+  LeaveResponse,
+  LeaveStats,
+  LeaveNotification,
+  Holiday,
+  RecurrencePattern,
+  LeaveWithUser,
+  LeaveHistory,
+  LeaveBalanceAdjustment,
+  RecurringLeaveRequest,
+  LeaveCalculationDetails,
+  LeaveCalculationOptions,
+  LeaveDateValidationOptions,
+  DayDetail,
+  WeeklyLeaveBreakdown,
+  PublicHolidayDetail,
+  LeaveDayType
+} from '../modules/leaves/types/leave';
+
 /**
- * Interface représentant un congé
+ * Interface de création de congé (rétrocompatibilité)
  */
-export interface Leave {
-    id: string;
-    userId: string;
-    startDate: Date;
-    endDate: Date;
-    type: string;
-    status: string;
-    reason?: string;
-    workingDaysCount: number;
-    countedDays: number;
-    isRecurring: boolean;
-    recurrencePattern?: any;
-    createdAt: Date;
-    updatedAt: Date;
-} 
+export interface CreateLeaveRequest {
+  userId: string;
+  startDate: Date;
+  endDate: Date;
+  type: string;
+  reason?: string;
+}

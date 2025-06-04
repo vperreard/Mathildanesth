@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { defaultDisplayConfig } from '@/app/planning/hebdomadaire/defaultConfig';
-import { DisplayConfig } from '@/app/planning/hebdomadaire/types';
-import { verifyAuthToken, getAuthTokenServer } from '@/lib/auth-server-utils';
-import type { AuthResult } from '@/lib/auth-client-utils';
+import { prisma } from '../../../../lib/prisma';
+import { verifyAuthToken, getAuthTokenServer } from '../../../../lib/auth-server-utils';
 
-const prisma = new PrismaClient();
-
-async function updateUserPreferences(userId: number, preferences: any) {
-    // ... (implémentation existante)
-}
+// Configuration par défaut simple
+const defaultPreferences = {
+    defaultView: 'month',
+    showWeekends: true,
+    showHolidays: true,
+    colorScheme: 'default',
+    notifications: {
+        email: true,
+        sound: false,
+        browser: true
+    }
+};
 
 export async function GET(request: NextRequest) {
     try {
@@ -20,24 +24,31 @@ export async function GET(request: NextRequest) {
         if (!authToken) {
             return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
         }
+        
         const authResult = await verifyAuthToken(authToken);
         if (!authResult.authenticated || !authResult.userId) {
             return NextResponse.json({ error: authResult.error || 'Session invalide' }, { status: 401 });
         }
 
-        // const user = await prisma.user.findUnique({
-        //     where: { id: authResult.userId },
-        //     select: { preferences: true } // Problème de type ici
-        // });
+        // Chercher les paramètres de calendrier utilisateur
+        const userSettings = await prisma.userCalendarSettings.findUnique({
+            where: { userId: authResult.userId }
+        });
 
-        // if (!user) {
-        //     return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
-        // }
-
-        // const currentPreferences = user.preferences as DisplayConfig || defaultDisplayConfig; // Problème de type ici
-        // return NextResponse.json(currentPreferences);
-        console.warn("API GET /user/preferences: Logique des préférences utilisateur temporairement commentée suite à des erreurs de type.");
-        return NextResponse.json(defaultDisplayConfig); // Retourner la config par défaut en attendant
+        // Si pas de paramètres, retourner la config par défaut
+        const currentPreferences = userSettings ? {
+            defaultView: userSettings.defaultView,
+            showWeekends: userSettings.showWeekends,
+            showHolidays: userSettings.showHolidays,
+            colorScheme: userSettings.colorScheme,
+            notifications: userSettings.notifications as any
+        } : defaultPreferences;
+        
+        return NextResponse.json(currentPreferences, {
+            headers: {
+                'Cache-Control': 'private, max-age=300'
+            }
+        });
 
     } catch (error) {
         console.error("Erreur GET /api/user/preferences:", error);
@@ -54,18 +65,42 @@ export async function POST(request: NextRequest) {
         if (!authToken) {
             return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
         }
+        
         const authResult = await verifyAuthToken(authToken);
         if (!authResult.authenticated || !authResult.userId) {
             return NextResponse.json({ error: authResult.error || 'Session invalide' }, { status: 401 });
         }
 
-        // const preferences = await request.json();
-        // await updateUserPreferences(authResult.userId, preferences); // Logique d'update commentée
-        console.warn("API POST /user/preferences: Logique d'update des préférences utilisateur temporairement commentée.");
-        return NextResponse.json({ message: 'Mise à jour des préférences temporairement désactivée' });
+        const preferences = await request.json();
+        
+        // Mettre à jour ou créer les paramètres de calendrier utilisateur
+        await prisma.userCalendarSettings.upsert({
+            where: { userId: authResult.userId },
+            update: {
+                defaultView: preferences.defaultView || 'month',
+                showWeekends: preferences.showWeekends ?? true,
+                showHolidays: preferences.showHolidays ?? true,
+                colorScheme: preferences.colorScheme || 'default',
+                notifications: preferences.notifications || { email: true, sound: false, browser: true },
+                updatedAt: new Date()
+            },
+            create: {
+                userId: authResult.userId,
+                defaultView: preferences.defaultView || 'month',
+                showWeekends: preferences.showWeekends ?? true,
+                showHolidays: preferences.showHolidays ?? true,
+                colorScheme: preferences.colorScheme || 'default',
+                notifications: preferences.notifications || { email: true, sound: false, browser: true }
+            }
+        });
+        
+        return NextResponse.json({ 
+            message: 'Préférences mises à jour avec succès',
+            preferences 
+        });
 
     } catch (error) {
         console.error("Erreur POST /api/user/preferences:", error);
         return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
     }
-} 
+}

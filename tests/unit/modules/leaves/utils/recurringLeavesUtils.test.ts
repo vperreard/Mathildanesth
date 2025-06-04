@@ -1,3 +1,53 @@
+// Mock date-fns
+jest.mock('date-fns', () => ({
+    addDays: jest.fn((date, days) => {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    }),
+    addWeeks: jest.fn((date, weeks) => {
+        const result = new Date(date);
+        result.setDate(result.getDate() + weeks * 7);
+        return result;
+    }),
+    addMonths: jest.fn((date, months) => {
+        const result = new Date(date);
+        result.setMonth(result.getMonth() + months);
+        return result;
+    }),
+    addYears: jest.fn((date, years) => {
+        const result = new Date(date);
+        result.setFullYear(result.getFullYear() + years);
+        return result;
+    }),
+    format: jest.fn((date, formatStr) => {
+        const d = new Date(date);
+        if (formatStr === 'dd/MM/yyyy') {
+            return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+        }
+        return d.toISOString();
+    }),
+    isAfter: jest.fn((date1, date2) => new Date(date1) > new Date(date2)),
+    isBefore: jest.fn((date1, date2) => new Date(date1) < new Date(date2)),
+    isEqual: jest.fn((date1, date2) => new Date(date1).getTime() === new Date(date2).getTime()),
+    isWeekend: jest.fn((date) => {
+        const day = new Date(date).getDay();
+        return day === 0 || day === 6;
+    }),
+    differenceInDays: jest.fn((date1, date2) => {
+        const diff = new Date(date1).getTime() - new Date(date2).getTime();
+        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    }),
+    getDate: jest.fn((date) => new Date(date).getDate()),
+    getDay: jest.fn((date) => new Date(date).getDay()),
+    getWeekOfMonth: jest.fn((date) => Math.ceil(new Date(date).getDate() / 7)),
+    setDate: jest.fn((date, day) => {
+        const result = new Date(date);
+        result.setDate(day);
+        return result;
+    })
+}));
+
 import {
     generateRecurringDates,
     formatRecurrencePattern,
@@ -11,6 +61,8 @@ import {
     LeaveStatus,
     LeaveType
 } from '../../../../../src/modules/leaves/types/leave';
+
+// Import des fonctions date-fns mockées
 import { addDays, addMonths, addWeeks, addYears, format } from 'date-fns';
 
 describe('recurringLeavesUtils', () => {
@@ -28,6 +80,7 @@ describe('recurringLeavesUtils', () => {
             requestDate: new Date(),
             createdAt: new Date(),
             updatedAt: new Date(),
+            countedDays: 2,
             isRecurring: true,
             recurrencePattern: {
                 frequency: RecurrenceFrequency.WEEKLY,
@@ -110,6 +163,7 @@ describe('recurringLeavesUtils', () => {
         test('devrait générer des occurrences quotidiennes', () => {
             const request = {
                 ...baseRequest,
+                countedDays: 2,
                 recurrencePattern: {
                     frequency: RecurrenceFrequency.DAILY,
                     interval: 2, // tous les 2 jours
@@ -139,6 +193,7 @@ describe('recurringLeavesUtils', () => {
                 patternEndDate: new Date('2023-09-16'),
                 startDate: new Date('2023-09-15'),
                 endDate: new Date('2023-09-16'),
+                countedDays: 2,
                 recurrencePattern: {
                     frequency: RecurrenceFrequency.MONTHLY,
                     interval: 1,
@@ -167,6 +222,7 @@ describe('recurringLeavesUtils', () => {
                 patternEndDate: new Date('2023-09-16'),
                 startDate: new Date('2023-09-15'),
                 endDate: new Date('2023-09-16'),
+                countedDays: 2,
                 recurrencePattern: {
                     frequency: RecurrenceFrequency.YEARLY,
                     interval: 1,
@@ -189,6 +245,7 @@ describe('recurringLeavesUtils', () => {
         test('devrait respecter le nombre maximum d\'occurrences', () => {
             const request = {
                 ...baseRequest,
+                countedDays: 2,
                 recurrencePattern: {
                     frequency: RecurrenceFrequency.WEEKLY,
                     interval: 1,

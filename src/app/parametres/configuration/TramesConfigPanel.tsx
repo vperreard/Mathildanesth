@@ -28,7 +28,7 @@ interface Post {
     minCount: number;
 }
 
-interface Assignment {
+interface Attribution {
     id: string;
     type: AssignmentType;
     name: string;
@@ -44,11 +44,11 @@ interface TramePeriod {
     endTime: string;
     color: string;
     isActive: boolean;
-    assignments: Assignment[];
+    attributions: Attribution[];
     isLocked: boolean;
 }
 
-interface Trame {
+interface TrameModele {
     id: string;
     name: string;
     description: string;
@@ -59,11 +59,11 @@ interface Trame {
     isLocked: boolean;
 }
 
-const MOCK_TRAMES: Trame[] = [
+const MOCK_TRAMES: TrameModele[] = [
     {
         id: '1',
-        name: 'Trame Standard Semaine',
-        description: 'Trame standard pour les jours de semaine',
+        name: 'TrameModele Standard Semaine',
+        description: 'TrameModele standard pour les jours de semaine',
         weekType: 'ALL',
         dayType: 'WEEKDAY',
         isActive: true,
@@ -77,7 +77,7 @@ const MOCK_TRAMES: Trame[] = [
                 color: '#4CAF50',
                 isActive: true,
                 isLocked: false,
-                assignments: [
+                attributions: [
                     {
                         id: '1-1-1',
                         type: 'CS1',
@@ -139,7 +139,7 @@ const MOCK_TRAMES: Trame[] = [
                 color: '#2196F3',
                 isActive: true,
                 isLocked: false,
-                assignments: [
+                attributions: [
                     {
                         id: '1-2-1',
                         type: 'CS1',
@@ -197,8 +197,8 @@ const MOCK_TRAMES: Trame[] = [
     },
     {
         id: '2',
-        name: 'Trame Weekend',
-        description: 'Trame pour les weekends',
+        name: 'TrameModele Weekend',
+        description: 'TrameModele pour les weekends',
         weekType: 'ALL',
         dayType: 'WEEKEND',
         isActive: true,
@@ -212,7 +212,7 @@ const MOCK_TRAMES: Trame[] = [
                 color: '#9C27B0',
                 isActive: true,
                 isLocked: false,
-                assignments: [
+                attributions: [
                     {
                         id: '2-1-1',
                         type: 'GARDE',
@@ -240,7 +240,7 @@ const MOCK_TRAMES: Trame[] = [
                 color: '#FF9800',
                 isActive: true,
                 isLocked: false,
-                assignments: [
+                attributions: [
                     {
                         id: '2-2-1',
                         type: 'ASTREINTE',
@@ -295,12 +295,12 @@ const DAY_TYPES = [
 const TramesConfigPanel: React.FC = () => {
     const { user } = useAuth();
     const isAdmin = user?.role === 'ADMIN_TOTAL';
-    const [trames, setTrames] = useState<Trame[]>([]);
+    const [trameModeles, setTrames] = useState<TrameModele[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [selectedTrame, setSelectedTrame] = useState<Trame | null>(null);
+    const [selectedTrame, setSelectedTrame] = useState<TrameModele | null>(null);
     const [editingPeriod, setEditingPeriod] = useState<TramePeriod | null>(null);
-    const [formData, setFormData] = useState<Partial<Trame>>({
+    const [formData, setFormData] = useState<Partial<TrameModele>>({
         name: '',
         description: '',
         weekType: 'ALL',
@@ -339,18 +339,18 @@ const TramesConfigPanel: React.FC = () => {
             setSaving(true);
 
             if (selectedTrame) {
-                setTrames(prev => prev.map(trame =>
-                    trame.id === selectedTrame.id ? { ...trame, ...formData } : trame
+                setTrames(prev => prev.map(trameModele =>
+                    trameModele.id === selectedTrame.id ? { ...trame, ...formData } : trameModele
                 ));
-                toast.success('Trame mise à jour avec succès');
+                toast.success('TrameModele mise à jour avec succès');
             } else {
-                const newTrame: Trame = {
-                    ...formData as Trame,
+                const newTrame: TrameModele = {
+                    ...formData as TrameModele,
                     id: Date.now().toString(),
                     periods: []
                 };
                 setTrames(prev => [...prev, newTrame]);
-                toast.success('Nouvelle trame créée avec succès');
+                toast.success('Nouvelle trameModele créée avec succès');
             }
 
             setFormData({
@@ -371,24 +371,24 @@ const TramesConfigPanel: React.FC = () => {
         }
     };
 
-    const handleEdit = (trame: Trame) => {
+    const handleEdit = (trameModele: TrameModele) => {
         if (!isAdmin) {
-            toast.error('Vous n\'avez pas les droits pour modifier cette trame');
+            toast.error('Vous n\'avez pas les droits pour modifier cette trameModele');
             return;
         }
-        setFormData(trame);
-        setSelectedTrame(trame);
+        setFormData(trameModele);
+        setSelectedTrame(trameModele);
     };
 
     const handleDelete = async (id: string) => {
         if (!isAdmin) {
-            toast.error('Vous n\'avez pas les droits pour supprimer cette trame');
+            toast.error('Vous n\'avez pas les droits pour supprimer cette trameModele');
             return;
         }
 
         try {
-            setTrames(prev => prev.filter(trame => trame.id !== id));
-            toast.success('Trame supprimée avec succès');
+            setTrames(prev => prev.filter(trameModele => trameModele.id !== id));
+            toast.success('TrameModele supprimée avec succès');
         } catch (error) {
             console.error('Erreur lors de la suppression:', error);
             toast.error('Erreur lors de la suppression');
@@ -418,7 +418,7 @@ const TramesConfigPanel: React.FC = () => {
             color: '#4CAF50',
             isActive: true,
             isLocked: false,
-            assignments: []
+            attributions: []
         };
         setFormData(prev => ({
             ...prev,
@@ -457,7 +457,7 @@ const TramesConfigPanel: React.FC = () => {
     };
 
     const handleNewTrame = () => {
-        console.log("TramesConfigPanel - handleNewTrame - Création d'une nouvelle trame");
+        console.log("TramesConfigPanel - handleNewTrame - Création d'une nouvelle trameModele");
         setSelectedTrame(null);
         setFormData({
             name: '',
@@ -482,8 +482,8 @@ const TramesConfigPanel: React.FC = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow">
                 <div>
-                    <h2 className="text-2xl font-bold">Gestion des Trames</h2>
-                    <p className="text-gray-600 mt-1">Configurez les trames horaires pour les affectations</p>
+                    <h2 className="text-2xl font-bold">Gestion des TrameModeles</h2>
+                    <p className="text-gray-600 mt-1">Configurez les trameModeles horaires pour les affectations</p>
                 </div>
                 {isAdmin ? (
                     <Button
@@ -491,11 +491,11 @@ const TramesConfigPanel: React.FC = () => {
                         className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
                     >
                         <Plus className="h-4 w-4" />
-                        Nouvelle Trame
+                        Nouvelle TrameModele
                     </Button>
                 ) : (
                     <div className="text-sm text-gray-500">
-                        Connectez-vous en tant qu'administrateur pour créer des trames
+                        Connectez-vous en tant qu'administrateur pour créer des trameModeles
                     </div>
                 )}
             </div>
@@ -508,7 +508,7 @@ const TramesConfigPanel: React.FC = () => {
                         </div>
                         <div className="ml-3">
                             <p className="text-sm text-yellow-700">
-                                Vous n'avez pas les droits d'administrateur nécessaires pour modifier les trames.
+                                Vous n'avez pas les droits d'administrateur nécessaires pour modifier les trameModeles.
                                 Veuillez contacter un administrateur pour effectuer des modifications.
                             </p>
                         </div>
@@ -520,7 +520,7 @@ const TramesConfigPanel: React.FC = () => {
             {(selectedTrame === null || selectedTrame) && (
                 <div className="bg-white rounded-lg shadow p-6 space-y-4">
                     <h3 className="text-lg font-semibold">
-                        {selectedTrame ? 'Modifier la Trame' : 'Nouvelle Trame'}
+                        {selectedTrame ? 'Modifier la TrameModele' : 'Nouvelle TrameModele'}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -531,7 +531,7 @@ const TramesConfigPanel: React.FC = () => {
                                 name="name"
                                 value={formData.name}
                                 onChange={handleFormChange}
-                                placeholder="Nom de la trame"
+                                placeholder="Nom de la trameModele"
                                 error={errors.name}
                             />
                         </div>
@@ -583,7 +583,7 @@ const TramesConfigPanel: React.FC = () => {
                                 name="description"
                                 value={formData.description}
                                 onChange={handleFormChange}
-                                placeholder="Description de la trame"
+                                placeholder="Description de la trameModele"
                             />
                         </div>
                     </div>
@@ -631,7 +631,7 @@ const TramesConfigPanel: React.FC = () => {
                                         </div>
                                         <div>
                                             <label className="block text-sm text-gray-600">Affectations</label>
-                                            <p className="text-sm">{period.assignments.length} affectation(s)</p>
+                                            <p className="text-sm">{period.attributions.length} affectation(s)</p>
                                         </div>
                                     </div>
                                 </div>
@@ -660,14 +660,14 @@ const TramesConfigPanel: React.FC = () => {
                 </div>
             )}
 
-            {/* Liste des trames */}
+            {/* Liste des trameModeles */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="p-4 border-b">
-                    <h3 className="text-lg font-medium">Trames existantes</h3>
+                    <h3 className="text-lg font-medium">TrameModeles existantes</h3>
                     <p className="text-sm text-gray-500 mt-1">
-                        {trames.length === 0
-                            ? "Aucune trame n'a été créée. Cliquez sur 'Nouvelle Trame' pour commencer."
-                            : `${trames.length} trame(s) configurée(s)`}
+                        {trameModeles.length === 0
+                            ? "Aucune trameModele n'a été créée. Cliquez sur 'Nouvelle TrameModele' pour commencer."
+                            : `${trameModeles.length} trameModele(s) configurée(s)`}
                     </p>
                 </div>
                 <table className="min-w-full divide-y divide-gray-200">
@@ -699,41 +699,41 @@ const TramesConfigPanel: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {trames.map((trame) => (
-                            <tr key={trame.id}>
+                        {trameModeles.map((trameModele) => (
+                            <tr key={trameModele.id}>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm font-medium text-gray-900">
-                                        {trame.name}
+                                        {trameModele.name}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="text-sm text-gray-500">
-                                        {trame.description}
+                                        {trameModele.description}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm text-gray-500">
-                                        {WEEK_TYPES.find(t => t.value === trame.weekType)?.label}
+                                        {WEEK_TYPES.find(t => t.value === trameModele.weekType)?.label}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm text-gray-500">
-                                        {DAY_TYPES.find(t => t.value === trame.dayType)?.label}
+                                        {DAY_TYPES.find(t => t.value === trameModele.dayType)?.label}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="text-sm text-gray-500">
-                                        {trame.periods.length} période(s)
+                                        {trameModele.periods.length} période(s)
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
-                                        {trame.isLocked && (
+                                        {trameModele.isLocked && (
                                             <Lock className="h-4 w-4 text-gray-400 mr-1" />
                                         )}
-                                        <span className={`px-2 py-1 rounded-full text-xs ${trame.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                        <span className={`px-2 py-1 rounded-full text-xs ${trameModele.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                                             }`}>
-                                            {trame.isActive ? 'Active' : 'Inactive'}
+                                            {trameModele.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                     </div>
                                 </td>
@@ -743,9 +743,9 @@ const TramesConfigPanel: React.FC = () => {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => handleEdit(trame)}
+                                                onClick={() => handleEdit(trameModele)}
                                                 className="flex items-center gap-1"
-                                                disabled={trame.isLocked}
+                                                disabled={trameModele.isLocked}
                                             >
                                                 <Pencil className="h-4 w-4" />
                                                 Modifier
@@ -753,9 +753,9 @@ const TramesConfigPanel: React.FC = () => {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => handleDelete(trame.id)}
+                                                onClick={() => handleDelete(trameModele.id)}
                                                 className="flex items-center gap-1 text-red-600 hover:text-red-700"
-                                                disabled={trame.isLocked}
+                                                disabled={trameModele.isLocked}
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                                 Supprimer

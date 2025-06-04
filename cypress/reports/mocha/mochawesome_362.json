@@ -1,0 +1,177 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 4,
+    "passes": 0,
+    "pending": 1,
+    "failures": 3,
+    "start": "2025-05-27T20:28:40.808Z",
+    "end": "2025-05-27T20:28:55.330Z",
+    "duration": 14522,
+    "testsRegistered": 4,
+    "passPercent": 0,
+    "pendingPercent": 25,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "68c100dd-ca65-4eb2-87f6-b0781c4ae6a6",
+      "title": "",
+      "fullFile": "cypress/e2e/login.spec.ts",
+      "file": "cypress/e2e/login.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "5a274bac-5468-438c-8044-9aab022a8734",
+          "title": "Page de connexion",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "affiche correctement le formulaire de connexion",
+              "fullTitle": "Page de connexion affiche correctement le formulaire de connexion",
+              "timedOut": null,
+              "duration": 4946,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Vérifier que les éléments du formulaire sont présents\ncy.get('[data-testid=login-email-input]').should('be.visible');\ncy.get('[data-testid=login-password-input]').should('be.visible');\ncy.get('[data-testid=login-submit-button]').should('be.visible');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-testid=login-email-input]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-testid=login-email-input]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/login.spec.ts:10:50)",
+                "diff": null
+              },
+              "uuid": "8d432907-6a1e-4c6e-9e4d-d6e7c305a1bf",
+              "parentUUID": "5a274bac-5468-438c-8044-9aab022a8734",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "affiche une erreur pour des identifiants invalides",
+              "fullTitle": "Page de connexion affiche une erreur pour des identifiants invalides",
+              "timedOut": null,
+              "duration": 4693,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Tenter une connexion avec des identifiants invalides\ncy.get('[data-testid=login-email-input]').type('utilisateur.invalide@example.com');\ncy.get('[data-testid=login-password-input]').type('mot_de_passe_incorrect');\ncy.get('[data-testid=login-submit-button]').click();\n// Vérifier qu'un message d'erreur s'affiche\ncy.get('[data-testid=login-error-message]')\n    .should('be.visible')\n    .and('contain.text', 'Erreur de connexion');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-testid=login-email-input]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-testid=login-email-input]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/login.spec.ts:17:11)",
+                "diff": null
+              },
+              "uuid": "d8d60a13-fd71-454e-80fa-6989aa1263c8",
+              "parentUUID": "5a274bac-5468-438c-8044-9aab022a8734",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "connecte l'utilisateur avec des identifiants valides",
+              "fullTitle": "Page de connexion connecte l'utilisateur avec des identifiants valides",
+              "timedOut": null,
+              "duration": 4630,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Intercepter la requête de connexion\ncy.intercept('POST', '**/api/auth/connexion').as('loginRequest');\n// Connexion avec des identifiants valides (utiliser admin des fixtures)\ncy.get('[data-testid=login-email-input]').type('admin');\ncy.get('[data-testid=login-password-input]').type('Test123!');\ncy.get('[data-testid=login-submit-button]').click();\n// Vérifier que la requête de connexion a été effectuée\ncy.wait('@loginRequest').then(function (interception) {\n    var _a, _b;\n    // Pour l'instant, accepter aussi l'erreur 500 (problème d'API)\n    expect((_a = interception.response) === null || _a === void 0 ? void 0 : _a.statusCode).to.be.oneOf([200, 500]);\n    if (((_b = interception.response) === null || _b === void 0 ? void 0 : _b.statusCode) === 200) {\n        // Si connexion réussie, vérifier la redirection\n        cy.url().should('satisfy', function (url) {\n            return url.includes('/tableau-de-bord') || url.includes('/planning') || url.includes('/');\n        });\n    }\n    else {\n        // Si erreur 500, vérifier qu'on reste sur la page de login avec un message d'erreur\n        cy.url().should('include', '/auth/connexion');\n        cy.get('[data-testid=login-error-message]').should('be.visible');\n    }\n});",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-testid=login-email-input]`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-testid=login-email-input]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/login.spec.ts:32:11)",
+                "diff": null
+              },
+              "uuid": "3bd6b6b6-96a4-4667-a87f-0ec285b7cbf6",
+              "parentUUID": "5a274bac-5468-438c-8044-9aab022a8734",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet la navigation vers la page de récupération de mot de passe",
+              "fullTitle": "Page de connexion permet la navigation vers la page de récupération de mot de passe",
+              "timedOut": null,
+              "duration": 0,
+              "state": "pending",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": true,
+              "context": null,
+              "code": "// SKIP: Fonctionnalité non implémentée - pas de lien mot de passe oublié\n// Cliquer sur le lien de récupération de mot de passe\ncy.get('[data-cy=forgot-password-link]').click();\n// Vérifier la redirection vers la page de récupération\ncy.url().should('include', '/auth/reset-password');",
+              "err": {},
+              "uuid": "14543b21-043e-4e18-909d-26ef611cdd4e",
+              "parentUUID": "5a274bac-5468-438c-8044-9aab022a8734",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "8d432907-6a1e-4c6e-9e4d-d6e7c305a1bf",
+            "d8d60a13-fd71-454e-80fa-6989aa1263c8",
+            "3bd6b6b6-96a4-4667-a87f-0ec285b7cbf6"
+          ],
+          "pending": [
+            "14543b21-043e-4e18-909d-26ef611cdd4e"
+          ],
+          "skipped": [],
+          "duration": 14269,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

@@ -76,7 +76,7 @@
                   "fail": true,
                   "pending": false,
                   "context": null,
-                  "code": "cy.visitAsAuthenticatedUser('/leaves');\n// Vérifier que les cartes de congés s'affichent en une colonne\ncy.get('[data-cy=leave-item]').should('have.css', 'width', '100%');",
+                  "code": "cy.visitAsAuthenticatedUser('/conges');\n// Vérifier que les cartes de congés s'affichent en une colonne\ncy.get('[data-cy=leave-item]').should('have.css', 'width', '100%');",
                   "err": {
                     "message": "AssertionError: Timed out retrying after 20000ms: Expected to find element: `[data-cy=main-content]`, but never found it.",
                     "estack": "AssertionError: Timed out retrying after 20000ms: Expected to find element: `[data-cy=main-content]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:136:57)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
@@ -98,7 +98,7 @@
                   "fail": true,
                   "pending": false,
                   "context": null,
-                  "code": "cy.visitAsAuthenticatedUser('/calendar');\n// Vérifier que la vue par défaut est différente sur mobile\ncy.get('[data-cy=calendar-day-view]').should('be.visible');\n// Vérifier que les contrôles du calendrier sont adaptés\ncy.get('[data-cy=calendar-controls]').should('have.css', 'flex-direction', 'column');",
+                  "code": "cy.visitAsAuthenticatedUser('/calendrier');\n// Vérifier que la vue par défaut est différente sur mobile\ncy.get('[data-cy=calendar-day-view]').should('be.visible');\n// Vérifier que les contrôles du calendrier sont adaptés\ncy.get('[data-cy=calendar-controls]').should('have.css', 'flex-direction', 'column');",
                   "err": {
                     "message": "AssertionError: Timed out retrying after 20000ms: Expected to find element: `[data-cy=main-content]`, but never found it.",
                     "estack": "AssertionError: Timed out retrying after 20000ms: Expected to find element: `[data-cy=main-content]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:136:57)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",
@@ -165,7 +165,7 @@
                   "fail": true,
                   "pending": false,
                   "context": null,
-                  "code": "cy.visitAsAuthenticatedUser('/leaves');\n// Vérifier que les cartes de congés s'affichent en grille\ncy.get('[data-cy=leave-grid]').should('have.css', 'grid-template-columns');",
+                  "code": "cy.visitAsAuthenticatedUser('/conges');\n// Vérifier que les cartes de congés s'affichent en grille\ncy.get('[data-cy=leave-grid]').should('have.css', 'grid-template-columns');",
                   "err": {
                     "message": "AssertionError: Timed out retrying after 20000ms: Expected to find element: `[data-cy=main-content]`, but never found it.",
                     "estack": "AssertionError: Timed out retrying after 20000ms: Expected to find element: `[data-cy=main-content]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:136:57)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140147:43)",

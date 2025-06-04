@@ -1,0 +1,41 @@
+{
+  "planning": {
+    "id": 1,
+    "name": "Planning Juillet 2025",
+    "startDate": "2025-07-01",
+    "endDate": "2025-07-31",
+    "assignments": [
+      {
+        "id": 1,
+        "userId": 1,
+        "date": "2025-07-01",
+        "shift": "JOUR",
+        "room": "Salle 1",
+        "type": "GARDE"
+      },
+      {
+        "id": 2,
+        "userId": 1,
+        "date": "2025-07-02",
+        "shift": "NUIT",
+        "room": "Salle 2",
+        "type": "ASTREINTE"
+      }
+    ],
+    "constraints": [
+      {
+        "type": "MAX_CONSECUTIVE_DAYS",
+        "value": 5
+      },
+      {
+        "type": "MIN_REST_HOURS",
+        "value": 11
+      }
+    ]
+  },
+  "statistics": {
+    "totalAssignments": 45,
+    "coverage": 0.98,
+    "violations": 0
+  }
+}

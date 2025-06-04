@@ -46,7 +46,7 @@ const ErrorDashboard: React.FC = () => {
             setLoading(true);
             try {
                 // Remplacer par un appel API réel
-                const response = await fetch(`/api/admin/errors?timeRange=${timeRange}&filter=${filter}`);
+                const response = await fetch(`http://localhost:3000/api/admin/errors?timeRange=${timeRange}&filter=${filter}`);
                 if (!response.ok) {
                     throw new Error('Erreur lors du chargement des données');
                 }
@@ -101,7 +101,7 @@ const ErrorDashboard: React.FC = () => {
     const markAsResolved = async (errorId: string) => {
         try {
             // Remplacer par un appel API réel
-            const response = await fetch(`/api/admin/errors/${errorId}/resolve`, {
+            const response = await fetch(`http://localhost:3000/api/admin/errors/${errorId}/resolve`, {
                 method: 'POST',
             });
             if (!response.ok) {

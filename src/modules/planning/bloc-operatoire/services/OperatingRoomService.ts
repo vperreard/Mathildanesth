@@ -64,7 +64,9 @@ export class OperatingRoomService {
                 return null;
             }
 
-            const roomPrisma = await this.realService.getOperatingRoomById(numericId, true);
+            // Utiliser getAllOperatingRooms et filtrer par ID
+            const allRooms = await this.realService.getAllOperatingRooms(true);
+            const roomPrisma = allRooms.find(room => room.id === numericId);
 
             if (!roomPrisma) {
                 return null;
@@ -183,4 +185,5 @@ export const getOperatingRoomsBySector = async (sectorId: number): Promise<Opera
 
 */
 
-// export const operatingRoomService = new OperatingRoomService(); // Déjà fait dans le hook 
+// Instance exportée du service
+export const operatingRoomService = new OperatingRoomService(); 

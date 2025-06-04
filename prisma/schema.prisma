@@ -8,195 +8,105 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- NOUVELLES ÉNUMÉRATIONS ---
-enum ActivityCategory {
-  BLOC_OPERATOIRE
-  CONSULTATION
-  GARDE
-  ASTREINTE
-  REUNION
-  FORMATION
-  ADMINISTRATIF
-  AUTRE
-}
-
-enum Period {
-  MATIN
-  APRES_MIDI
-  JOURNEE_ENTIERE
-  // NUIT // Optionnel pour plus tard
-}
-
-enum BlocPlanningStatus {
-  DRAFT
-  VALIDATION_REQUESTED
-  VALIDATED
-  MODIFIED_AFTER_VALIDATION
-  LOCKED
-  ARCHIVED
-}
-
-enum BlocStaffRole {
-  MAR
-  IADE
-}
-
-enum ConflictSeverity {
-  WARNING
-  ERROR
-}
-
-// AJOUTS POUR TRAME MODELE
-enum RecurrenceTypeTrame {
-  AUCUNE
-  HEBDOMADAIRE
-  // MENSUELLE // Pour plus tard si besoin
-}
-
-enum TypeSemaineTrame {
-  TOUTES
-  PAIRES
-  IMPAIRES
-}
-
-// Nouvelle énumération pour les rôles des trames modèles
-enum TrameRoleType {
-  MAR
-  IADE
-  CHIRURGIEN
-  TOUS // Option par défaut ou si la trame s'applique à tous
-}
-
-// --- NOUVEAUX MODÈLES POUR LES TRAMES DE PLANNING BLOC (isolés) ---
 model TrameModele {
-  id           Int                         @id @default(autoincrement())
-  name         String                      @unique
-  description  String?
-  siteId       String?
-  site         Site?                       @relation("SiteTrameModeles", fields: [siteId], references: [id])
-  
-  isActive     Boolean                     @default(true)
-
-  dateDebutEffet      DateTime
-  dateFinEffet        DateTime?
-  recurrenceType      RecurrenceTypeTrame @default(HEBDOMADAIRE)
-  joursSemaineActifs  Int[]
-  typeSemaine         TypeSemaineTrame @default(TOUTES)
-
-  // Ajout du champ roles
-  roles               TrameRoleType[] @default([TOUS])
-  
-  // Champ pour stocker les variations et d'autres données JSON personnalisées
-  detailsJson         Json?
-
-  affectations AffectationModele[]
-  createdAt    DateTime                    @default(now())
-  updatedAt    DateTime                    @updatedAt
+  id                 Int                 @id @default(autoincrement())
+  name               String              @unique
+  description        String?
+  siteId             String?
+  isActive           Boolean             @default(true)
+  dateDebutEffet     DateTime
+  dateFinEffet       DateTime?
+  recurrenceType     RecurrenceTypeTrame @default(HEBDOMADAIRE)
+  joursSemaineActifs Int[]
+  typeSemaine        TypeSemaineTrame    @default(TOUTES)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  roles              TrameRoleType[]     @default([TOUS])
+  detailsJson        Json?
+  affectations       AffectationModele[]
+  site               Site?               @relation("SiteTrameModeles", fields: [siteId], references: [id])
 
   @@map("trame_modeles")
 }
 
 model AffectationModele {
-  id                  Int               @id @default(autoincrement())
-  trameModeleId       Int
-  trameModele         TrameModele       @relation(fields: [trameModeleId], references: [id], onDelete: Cascade)
-
-  activityTypeId      String
-  activityType        ActivityType      @relation("ActivityTypeAffectationModeles", fields: [activityTypeId], references: [id])
-
-  jourSemaine         DayOfWeek
-  periode             Period
-  typeSemaine         TypeSemaineTrame
-
-  operatingRoomId     Int?
-  operatingRoom       OperatingRoom?    @relation("OperatingRoomAffectationModeles", fields: [operatingRoomId], references: [id], onDelete: SetNull)
-  locationId          Int?
-
-  priorite            Int      @default(5)
-  isActive            Boolean  @default(true)
-  detailsJson         Json?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  personnelRequis     PersonnelRequisModele[]
+  id              Int                     @id @default(autoincrement())
+  trameModeleId   Int
+  activityTypeId  String
+  jourSemaine     DayOfWeek
+  periode         Period
+  typeSemaine     TypeSemaineTrame
+  operatingRoomId Int?
+  locationId      Int?
+  priorite        Int                     @default(5)
+  isActive        Boolean                 @default(true)
+  detailsJson     Json?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  activityType    ActivityType            @relation("ActivityTypeAffectationModeles", fields: [activityTypeId], references: [id])
+  operatingRoom   OperatingRoom?          @relation("OperatingRoomAffectationModeles", fields: [operatingRoomId], references: [id])
+  trameModele     TrameModele             @relation(fields: [trameModeleId], references: [id], onDelete: Cascade)
+  personnelRequis PersonnelRequisModele[]
 
   @@map("affectation_modeles")
 }
 
 model PersonnelRequisModele {
-  id                        Int      @id @default(autoincrement())
-  affectationModeleId       Int
-  affectationModele         AffectationModele @relation(fields: [affectationModeleId], references: [id], onDelete: Cascade)
-
-  roleGenerique             String
-  professionalRoleId        String?
-  professionalRoleConfig    ProfessionalRoleConfig? @relation("RoleConfigPourPersonnelRequis", fields: [professionalRoleId], references: [code])
-  specialtyId               Int?
-  specialty                 Specialty? @relation("SpecialtyPourPersonnelRequis", fields: [specialtyId], references: [id])
-  
-  nombreRequis              Int      @default(1)
-
-  personnelHabituelUserId   Int?
-  userHabituel              User?    @relation("UserHabituelPourPersonnelRequis", fields: [personnelHabituelUserId], references: [id], onDelete: SetNull)
-  personnelHabituelSurgeonId Int?
-  surgeonHabituel           Surgeon? @relation("SurgeonHabituelPourPersonnelRequis", fields: [personnelHabituelSurgeonId], references: [id], onDelete: SetNull)
+  id                          Int                     @id @default(autoincrement())
+  affectationModeleId         Int
+  roleGenerique               String
+  professionalRoleId          String?
+  specialtyId                 Int?
+  nombreRequis                Int                     @default(1)
+  personnelHabituelUserId     Int?
+  personnelHabituelSurgeonId  Int?
   personnelHabituelNomExterne String?
-  
   notes                       String?
-  createdAt                   DateTime @default(now())
-  updatedAt                   DateTime @updatedAt
+  createdAt                   DateTime                @default(now())
+  updatedAt                   DateTime                @updatedAt
+  affectationModele           AffectationModele       @relation(fields: [affectationModeleId], references: [id], onDelete: Cascade)
+  surgeonHabituel             Surgeon?                @relation("SurgeonHabituelPourPersonnelRequis", fields: [personnelHabituelSurgeonId], references: [id])
+  userHabituel                User?                   @relation("UserHabituelPourPersonnelRequis", fields: [personnelHabituelUserId], references: [id])
+  professionalRoleConfig      ProfessionalRoleConfig? @relation("RoleConfigPourPersonnelRequis", fields: [professionalRoleId], references: [code])
+  specialty                   Specialty?              @relation("SpecialtyPourPersonnelRequis", fields: [specialtyId], references: [id])
 
   @@map("personnel_requis_modeles")
 }
 
-// --- NOUVEAUX MODÈLES SPÉCIFIQUES AU PLANNING DU BLOC OPÉRATOIRE V2 ---
 model BlocDayPlanning {
-  id     String             @id @default(uuid())
-  date   DateTime
-  siteId String
-  site   Site               @relation(fields: [siteId], references: [id])
-  status BlocPlanningStatus @default(DRAFT)
-
-  assignments BlocRoomAssignment[]
-  conflicts   BlocPlanningConflict[]
-
-  lockedAt       DateTime?
-  lockedByUserId Int?
-  // lockedByUser   User? @relation(fields: [lockedByUserId], references: [id])
-
+  id                String                 @id @default(uuid())
+  date              DateTime
+  siteId            String
+  status            BlocPlanningStatus     @default(DRAFT)
+  lockedAt          DateTime?
+  lockedByUserId    Int?
   validatedAt       DateTime?
   validatedByUserId Int?
-  // validatedByUser User? @relation(fields: [validatedByUserId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  site              Site                   @relation(fields: [siteId], references: [id])
+  conflicts         BlocPlanningConflict[]
+  assignments       BlocRoomAssignment[]
 
   @@unique([siteId, date])
   @@map("bloc_day_plannings")
 }
 
 model BlocRoomAssignment {
-  id                String          @id @default(uuid())
-  blocDayPlanningId String
-  blocDayPlanning   BlocDayPlanning @relation(fields: [blocDayPlanningId], references: [id], onDelete: Cascade)
-
-  operatingRoomId Int
-  operatingRoom   OperatingRoom @relation(fields: [operatingRoomId], references: [id])
-  period          Period
-
-  chirurgienId Int?
-  surgeon      Surgeon? @relation(fields: [chirurgienId], references: [id])
-
-  expectedSpecialty String?
-
-  staffAssignments BlocStaffAssignment[]
-
+  id                           String                @id @default(uuid())
+  blocDayPlanningId            String
+  operatingRoomId              Int
+  period                       Period
+  chirurgienId                 Int?
+  expectedSpecialty            String?
   sourceBlocTrameAffectationId Int?
-  // sourceBlocTrameAffectation BlocAffectationHabituelle? @relation(fields: [sourceBlocTrameAffectationId], references: [id], onDelete: SetNull) 
-
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  notes                        String?
+  createdAt                    DateTime              @default(now())
+  updatedAt                    DateTime              @updatedAt
+  blocDayPlanning              BlocDayPlanning       @relation(fields: [blocDayPlanningId], references: [id], onDelete: Cascade)
+  surgeon                      Surgeon?              @relation(fields: [chirurgienId], references: [id])
+  operatingRoom                OperatingRoom         @relation(fields: [operatingRoomId], references: [id])
+  staffAssignments             BlocStaffAssignment[]
 
   @@map("bloc_room_assignments")
 }
@@ -204,174 +114,159 @@ model BlocRoomAssignment {
 model BlocStaffAssignment {
   id                   String             @id @default(uuid())
   blocRoomAssignmentId String
+  userId               Int
+  role                 BlocStaffRole
+  isPrimaryAnesthetist Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
   blocRoomAssignment   BlocRoomAssignment @relation(fields: [blocRoomAssignmentId], references: [id], onDelete: Cascade)
-
-  userId Int
-  user   User          @relation(fields: [userId], references: [id])
-  role   BlocStaffRole
-
-  isPrimaryAnesthetist Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user                 User               @relation(fields: [userId], references: [id])
 
   @@map("bloc_staff_assignments")
 }
 
 model BlocPlanningConflict {
-  id                String          @id @default(uuid())
-  blocDayPlanningId String
-  blocDayPlanning   BlocDayPlanning @relation(fields: [blocDayPlanningId], references: [id], onDelete: Cascade)
-
+  id                       String           @id @default(uuid())
+  blocDayPlanningId        String
   relatedRoomAssignmentId  String?
   relatedStaffAssignmentId String?
   relatedUserId            Int?
   relatedSurgeonId         Int?
-
-  type     String
-  message  String
-  severity ConflictSeverity
-
-  isResolved       Boolean   @default(false)
-  resolvedAt       DateTime?
-  resolvedByUserId Int?
-  resolvedByUser   User?     @relation("ResolvedBy", fields: [resolvedByUserId], references: [id], onDelete: SetNull)
-  resolutionNotes  String?
-
-  isForceResolved       Boolean   @default(false)
-  forceResolvedAt       DateTime?
-  forceResolvedByUserId Int?
-  forceResolvedByUser   User?     @relation("ForcedBy", fields: [forceResolvedByUserId], references: [id], onDelete: SetNull)
-  forceResolutionNotes  String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  type                     String
+  message                  String
+  severity                 ConflictSeverity
+  isResolved               Boolean          @default(false)
+  resolvedAt               DateTime?
+  resolvedByUserId         Int?
+  resolutionNotes          String?
+  isForceResolved          Boolean          @default(false)
+  forceResolvedAt          DateTime?
+  forceResolvedByUserId    Int?
+  forceResolutionNotes     String?
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+  blocDayPlanning          BlocDayPlanning  @relation(fields: [blocDayPlanningId], references: [id], onDelete: Cascade)
+  forceResolvedByUser      User?            @relation("ForcedBy", fields: [forceResolvedByUserId], references: [id])
+  resolvedByUser           User?            @relation("ResolvedBy", fields: [resolvedByUserId], references: [id])
 
   @@map("bloc_planning_conflicts")
 }
 
 model User {
-  id                            Int                         @id @default(autoincrement())
-  nom                           String
-  prenom                        String
-  login                         String                      @unique
-  email                         String                      @unique
-  password                      String
-  role                          Role                        @default(USER)
-  professionalRole              ProfessionalRole
-  tempsPartiel                  Boolean                     @default(false)
-  pourcentageTempsPartiel       Float?
-  dateEntree                    DateTime?
-  dateSortie                    DateTime?
-  actif                         Boolean                     @default(true)
-  createdAt                     DateTime                    @default(now())
-  updatedAt                     DateTime                    @updatedAt
-  mustChangePassword            Boolean                     @default(false)
-  phoneNumber                   String?
-  alias                         String?
-  workOnMonthType               WeekType?
-  workPattern                   WorkPatternType             @default(FULL_TIME)
-  joursTravaillesSemaineImpaire Json                        @default("[]")
-  joursTravaillesSemainePaire   Json                        @default("[]")
-  displayPreferences            Json?
-  lastLogin                     DateTime?
-  departmentId                  String?
-  Absence                       Absence[]
-  assignments                   Assignment[]
-  dashboards                    Dashboard[]
-  duties                        Duty[]
-  loginLogs                     LoginLog[]
-  notifications                 Notification[]              @relation("UserNotifications")
-  onCalls                       OnCall[]
-  createdRules                  Rule[]                      @relation("CreatedRules")
-  updatedRules                  Rule[]                      @relation("UpdatedRules")
-  tramesCreated                 TrameAffectation[]          @relation("CreatedTrames")
-  auditLogs                     AuditLog[]
-  leaveBalances                 LeaveBalance[]              @relation("UserLeaveBalances")
-  approvedLeaves                Leave[]                     @relation("ApprovedLeaves")
-  leaves                        Leave[]
-  plannedAbsences               PlannedAbsence[]
-  validatedAbsences             PlannedAbsence[]            @relation("ValidatedAbsences")
-  approvedCarryOvers            QuotaCarryOver[]            @relation("ApprovedCarryOvers")
-  quotaCarryOvers               QuotaCarryOver[]            @relation("UserQuotaCarryOvers")
-  approvedTransfers             QuotaTransfer[]             @relation("ApprovedTransfers")
-  quotaTransfers                QuotaTransfer[]             @relation("UserQuotaTransfers")
-  regularAssignments            RegularAssignment[]
-  surgeonProfile                Surgeon?
-  calendarSettings              UserCalendarSettings?
-  department                    Department?                 @relation(fields: [departmentId], references: [id])
-  sites                         Site[]                      @relation("SiteUsers")
-  blocStaffAssignments          BlocStaffAssignment[]
-  blocPlanningConflictsResolved BlocPlanningConflict[]      @relation("ResolvedBy")
-  blocPlanningConflictsForced   BlocPlanningConflict[]      @relation("ForcedBy")
-  personnelRequisModelesCommeHabituel PersonnelRequisModele[] @relation("UserHabituelPourPersonnelRequis")
-  canSuperviseOphtalmo          Boolean                     @default(false)
-  canSuperviseEndo              Boolean                     @default(false)
-
-  CreatedIncompatibilities PersonnelIncompatibility[] @relation("CreatedIncompatibilities")
-  incompatibilitiesAsUser1 PersonnelIncompatibility[] @relation("User1Incompatibilities")
-  incompatibilitiesAsUser2 PersonnelIncompatibility[] @relation("User2Incompatibilities")
-
-  userRequests     UserRequest[]
-  assignedRequests UserRequest[] @relation("AssignedRequests")
-
-  // Relation aux compétences utilisateur
-  userSkills UserSkill[]
-
-  initiatedSwapRequests AssignmentSwapRequest[] @relation("InitiatedSwapRequests")
-  receivedSwapRequests  AssignmentSwapRequest[] @relation("ReceivedSwapRequests")
-
-  assignedSkills UserSkill[] @relation("AssignedSkillsByAdmin")
-
-  createdSimulationScenarios     SimulationScenario[]           @relation("UserSimulationScenarios")
-  createdSimulationTemplates     SimulationTemplate[]           @relation("UserSimulationTemplates")
-
-  triggeredNotifications        Notification[]              @relation("TriggeredByUserNotifications")
-  authoredMessages              ContextualMessage[]         @relation("AuthoredMessages")
-
-  // Relations pour TeamConfiguration
-  teamMembership                TeamConfiguration[]         @relation("TeamMembers")
-  teamResponsibilities          TeamConfiguration[]         @relation("TeamResponsibles")
-
-  notificationPreferences       NotificationPreference? @relation("UserNotificationPreferences")
+  id                                  Int                        @id @default(autoincrement())
+  nom                                 String
+  prenom                              String
+  login                               String                     @unique
+  email                               String                     @unique
+  password                            String
+  role                                Role                       @default(USER)
+  professionalRole                    ProfessionalRole
+  tempsPartiel                        Boolean                    @default(false)
+  pourcentageTempsPartiel             Float?
+  dateEntree                          DateTime?
+  dateSortie                          DateTime?
+  actif                               Boolean                    @default(true)
+  createdAt                           DateTime                   @default(now())
+  updatedAt                           DateTime                   @updatedAt
+  mustChangePassword                  Boolean                    @default(false)
+  phoneNumber                         String?
+  alias                               String?
+  workOnMonthType                     WeekType?
+  workPattern                         WorkPatternType            @default(FULL_TIME)
+  joursTravaillesSemaineImpaire       Json                       @default("[]")
+  joursTravaillesSemainePaire         Json                       @default("[]")
+  displayPreferences                  Json?
+  lastLogin                           DateTime?
+  departmentId                        String?
+  canSuperviseEndo                    Boolean                    @default(false)
+  canSuperviseOphtalmo                Boolean                    @default(false)
+  Absence                             Absence[]
+  initiatedSwapRequests               AssignmentSwapRequest[]    @relation("InitiatedSwapRequests")
+  receivedSwapRequests                AssignmentSwapRequest[]    @relation("ReceivedSwapRequests")
+  dashboards                          Dashboard[]
+  duties                              Duty[]
+  loginLogs                           LoginLog[]
+  onCalls                             OnCall[]
+  createdRules                        Rule[]                     @relation("CreatedRules")
+  updatedRules                        Rule[]                     @relation("UpdatedRules")
+  createdSimulationScenarios          SimulationScenario[]       @relation("UserSimulationScenarios")
+  tramesCreated                       TrameAffectation[]         @relation("CreatedTrames")
+  assignments                         Assignment[]
+  auditLogs                           AuditLog[]
+  blocPlanningConflictsForced         BlocPlanningConflict[]     @relation("ForcedBy")
+  blocPlanningConflictsResolved       BlocPlanningConflict[]     @relation("ResolvedBy")
+  blocStaffAssignments                BlocStaffAssignment[]
+  authoredMessages                    ContextualMessage[]        @relation("AuthoredMessages")
+  leaveBalances                       LeaveBalance[]             @relation("UserLeaveBalances")
+  approvedLeaves                      Leave[]                    @relation("ApprovedLeaves")
+  leaves                              Leave[]
+  notificationPreferences             NotificationPreference?    @relation("UserNotificationPreferences")
+  triggeredNotifications              Notification[]             @relation("TriggeredByUserNotifications")
+  notifications                       Notification[]             @relation("UserNotifications")
+  CreatedIncompatibilities            PersonnelIncompatibility[] @relation("CreatedIncompatibilities")
+  incompatibilitiesAsUser1            PersonnelIncompatibility[] @relation("User1Incompatibilities")
+  incompatibilitiesAsUser2            PersonnelIncompatibility[] @relation("User2Incompatibilities")
+  personnelRequisModelesCommeHabituel PersonnelRequisModele[]    @relation("UserHabituelPourPersonnelRequis")
+  plannedAbsences                     PlannedAbsence[]
+  validatedAbsences                   PlannedAbsence[]           @relation("ValidatedAbsences")
+  approvedCarryOvers                  QuotaCarryOver[]           @relation("ApprovedCarryOvers")
+  quotaCarryOvers                     QuotaCarryOver[]           @relation("UserQuotaCarryOvers")
+  approvedTransfers                   QuotaTransfer[]            @relation("ApprovedTransfers")
+  quotaTransfers                      QuotaTransfer[]            @relation("UserQuotaTransfers")
+  regularAssignments                  RegularAssignment[]
+  createdSimulationTemplates          SimulationTemplate[]       @relation("UserSimulationTemplates")
+  surgeonProfile                      Surgeon?
+  calendarSettings                    UserCalendarSettings?
+  assignedRequests                    UserRequest[]              @relation("AssignedRequests")
+  userRequests                        UserRequest[]
+  assignedSkills                      UserSkill[]                @relation("AssignedSkillsByAdmin")
+  userSkills                          UserSkill[]
+  department                          Department?                @relation(fields: [departmentId], references: [id])
+  sites                               Site[]                     @relation("SiteUsers")
+  teamMembership                      TeamConfiguration[]        @relation("TeamMembers")
+  teamResponsibilities                TeamConfiguration[]        @relation("TeamResponsibles")
+  systemConfigUpdates                 SystemConfig[]             @relation("SystemConfigUpdates")
+  activityLogs                        ActivityLog[]              @relation("UserActivityLogs")
+  createdRulesTemplates               RulesTemplate[]            @relation("CreatedRulesTemplates")
+  unifiedRequestsAsRequester          UnifiedRequest[]           @relation("UnifiedRequestRequester")
+  unifiedRequestsAsAssignee           UnifiedRequest[]           @relation("UnifiedRequestAssignedTo")
+  unifiedRequestNotifications         UnifiedRequestNotification[] @relation
 
   @@map("users")
 }
 
 model Specialty {
-  id          Int          @id @default(autoincrement())
-  name        String       @unique
-  isPediatric Boolean      @default(false)
-  assignments Assignment[]
-  surgeons    Surgeon[]    @relation("SpecialtyToSurgeon")
+  id                     Int                     @id @default(autoincrement())
+  name                   String                  @unique
+  isPediatric            Boolean                 @default(false)
+  assignments            Assignment[]
   personnelRequisModeles PersonnelRequisModele[] @relation("SpecialtyPourPersonnelRequis")
+  surgeons               Surgeon[]               @relation("SpecialtyToSurgeon")
 }
 
 model Surgeon {
-  id              Int        @id @default(autoincrement())
-  nom             String
-  prenom          String
-  email           String?    @unique
-  phoneNumber     String?
-  status          UserStatus @default(ACTIF)
-  userId          Int?       @unique
-  user            User?      @relation(fields: [userId], references: [id])
-  googleSheetName String?
+  id                                  Int                        @id @default(autoincrement())
+  nom                                 String
+  prenom                              String
+  email                               String?                    @unique
+  phoneNumber                         String?
+  status                              UserStatus                 @default(ACTIF)
+  userId                              Int?                       @unique
+  googleSheetName                     String?
+  absences                            Absence[]
+  assignments                         Assignment[]               @relation("SurgeonAssignments")
+  blocRoomAssignments                 BlocRoomAssignment[]
+  incompatibilitiesAsSurgeon1         PersonnelIncompatibility[] @relation("Surgeon1Incompatibilities")
+  incompatibilitiesAsSurgeon2         PersonnelIncompatibility[] @relation("Surgeon2Incompatibilities")
+  personnelRequisModelesCommeHabituel PersonnelRequisModele[]    @relation("SurgeonHabituelPourPersonnelRequis")
+  plannedAbsences                     PlannedAbsence[]
+  preferences                         SurgeonPreference[]
+  regularAssignments                  RegularAssignment[]
+  user                                User?                      @relation(fields: [userId], references: [id])
+  specialties                         Specialty[]                @relation("SpecialtyToSurgeon")
+  sites                               Site[]                     @relation("SurgeonSites")
 
-  specialties Specialty[] @relation("SpecialtyToSurgeon")
-  sites       Site[]      @relation("SurgeonSites")
-
-  plannedAbsences             PlannedAbsence[]
-  preferences                 SurgeonPreference[]
-  regularAssignments          RegularAssignment[]
-  blocRoomAssignments         BlocRoomAssignment[]
-  absences                    Absence[]
-  personnelRequisModelesCommeHabituel PersonnelRequisModele[] @relation("SurgeonHabituelPourPersonnelRequis")
-  assignments                 Assignment[]                @relation("SurgeonAssignments")
-  // Relations pour PersonnelIncompatibility
-  incompatibilitiesAsSurgeon1 PersonnelIncompatibility[]  @relation("Surgeon1Incompatibilities")
-  incompatibilitiesAsSurgeon2 PersonnelIncompatibility[]  @relation("Surgeon2Incompatibilities")
-
+  @@unique([nom, prenom], name: "unique_nom_prenom")
   @@map("surgeons")
 }
 
@@ -395,43 +290,100 @@ model LoginLog {
 }
 
 model PlanningRule {
-  id            Int      @id @default(autoincrement())
-  category      String
-  name          String
-  description   String?
-  isActive      Boolean  @default(true)
-  priority      Int      @default(1)
-  conditionJSON Json
-  parameterJSON Json
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String           @id @default(cuid())
+  category        String
+  name            String
+  description     String?
+  type            String?          // PLANNING, LEAVE, CONSTRAINT, ALLOCATION, SUPERVISION
+  status          String           @default("draft") // draft, active, archived, pending_approval
+  enabled         Boolean          @default(true)
+  isActive        Boolean          @default(true) // Legacy field, kept for compatibility
+  priority        Int              @default(1)
+  version         Int              @default(1)
+  createdBy       String
+  updatedBy       String
+  effectiveDate   DateTime?
+  expirationDate  DateTime?
+  conditionJSON   Json             // Legacy field
+  parameterJSON   Json             // Legacy field
+  conditions      Json?
+  actions         Json?
+  conditionGroups Json?
+  tags            String[]         @default([])
+  contexts        String[]         @default([])
+  metadata        Json?
+  conflictsWith   String[]         @default([])
+  dependencies    String[]         @default([])
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  versions        RuleVersion[]
+  metrics         RuleMetrics?
+
+  @@index([type])
+  @@index([status])
+  @@index([enabled])
+  @@index([priority])
+  @@index([effectiveDate])
+  @@index([tags])
+  @@index([contexts])
+}
+
+model RuleVersion {
+  id        String       @id @default(cuid())
+  ruleId    String
+  rule      PlanningRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  version   Int
+  changes   Json?
+  createdBy String
+  createdAt DateTime     @default(now())
+  message   String?
+  snapshot  Json
+
+  @@unique([ruleId, version])
+  @@index([ruleId])
+  @@index([createdAt])
+  @@map("rule_versions")
+}
+
+model RuleMetrics {
+  id                  String       @id @default(cuid())
+  ruleId              String       @unique
+  rule                PlanningRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  evaluationCount     Int          @default(0)
+  averageExecutionTime Float       @default(0)
+  successRate         Float        @default(0)
+  lastEvaluatedAt     DateTime?
+  impactedUsersCount  Int          @default(0)
+  violationCount      Int          @default(0)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@index([ruleId])
+  @@index([lastEvaluatedAt])
+  @@map("rule_metrics")
 }
 
 model OperatingRoom {
-  id                 Int      @id @default(autoincrement())
-  name               String // Nom usuel de la salle
-  number             String   @unique // Numéro officiel/identifiant unique
-  description        String?
-  roomType           RoomType @default(STANDARD)
-  capacity           Int      @default(1) // Capacité standard
-  isActive           Boolean  @default(true)
-  displayOrder       Int      @default(0)
-  colorCode          String? // Pour l'affichage
-  supervisionRules   Json? // Règles spécifiques de supervision pour cette salle
-  allowedSpecialties String[] @default([]) // Spécialités autorisées
-
-  siteId String
-  site   Site   @relation("SiteOperatingRooms", fields: [siteId], references: [id])
-
-  operatingSectorId Int?
-  operatingSector   OperatingSector? @relation(fields: [operatingSectorId], references: [id])
-
-  blocRoomAssignments BlocRoomAssignment[]
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  number              String               @unique
+  description         String?
+  roomType            RoomType             @default(STANDARD)
+  capacity            Int                  @default(1)
+  isActive            Boolean              @default(true)
+  displayOrder        Int                  @default(0)
+  colorCode           String?
+  supervisionRules    Json?
+  allowedSpecialties  String[]             @default([])
+  siteId              String
+  operatingSectorId   Int?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  affectationModeles  AffectationModele[]  @relation("OperatingRoomAffectationModeles")
   assignments         Assignment[]
-  affectationModeles  AffectationModele[] @relation("OperatingRoomAffectationModeles")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  blocRoomAssignments BlocRoomAssignment[]
+  operatingSector     OperatingSector?     @relation(fields: [operatingSectorId], references: [id])
+  site                Site                 @relation("SiteOperatingRooms", fields: [siteId], references: [id])
 
   @@index([siteId])
   @@index([operatingSectorId])
@@ -473,9 +425,9 @@ model Location {
   name               String              @unique
   sector             String?
   isActive           Boolean             @default(true)
-  assignments        Assignment[]
   duties             Duty[]
   onCalls            OnCall[]
+  assignments        Assignment[]
   regularAssignments RegularAssignment[]
 }
 
@@ -494,7 +446,7 @@ model LeaveTypeSetting {
 }
 
 model Leave {
-  id                 String      @id @default(cuid())
+  id                 String              @id @default(cuid())
   userId             Int
   startDate          DateTime
   endDate            DateTime
@@ -503,25 +455,23 @@ model Leave {
   status             LeaveStatus
   reason             String?
   comment            String?
-  requestDate        DateTime    @default(now())
+  requestDate        DateTime            @default(now())
   approvalDate       DateTime?
   approvedById       Int?
   countedDays        Float
   calculationDetails Json?
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
-  isRecurring        Boolean?    @default(false)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  isRecurring        Boolean?            @default(false)
   parentId           String?
   recurrencePattern  Json?
-  approvedBy         User?       @relation("ApprovedLeaves", fields: [approvedById], references: [id])
-  parent             Leave?      @relation("RecurringLeaveOccurrences", fields: [parentId], references: [id])
-  occurrences        Leave[]     @relation("RecurringLeaveOccurrences")
-  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  alerts             LeaveRequestAlert[]
-
-  isHalfDay          Boolean?
   halfDayPeriod      String?
+  isHalfDay          Boolean?
+  alerts             LeaveRequestAlert[]
+  approvedBy         User?               @relation("ApprovedLeaves", fields: [approvedById], references: [id])
+  parent             Leave?              @relation("RecurringLeaveOccurrences", fields: [parentId], references: [id])
+  occurrences        Leave[]             @relation("RecurringLeaveOccurrences")
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([startDate, endDate])
@@ -563,38 +513,39 @@ model OnCall {
 }
 
 model Assignment {
-  id                  String             @id @default(uuid())
-  date                DateTime
-  userId              Int? // MAR ou IADE
-  user                User?              @relation(fields: [userId], references: [id])
-  chirurgien          String? // Nom du chirurgien (legacy ou si pas de modèle Surgeon lié)
-  salle               String? // Nom de la salle (legacy ou si pas de modèle OperatingRoom lié)
-  type                String // Ex: BLOC_OPERATION, CONSULTATION, GARDE_JOUR, GARDE_NUIT, ASTREINTE, REPOS_GARDE, FORMATION, CONGRES, MALADIE, MATERNITE, ABS_AUTORISEE, ABS_NON_AUTORISEE, FERIE
-  statut              String? // Ex: PREVU, REALISE, ANNULE
-  heureDebut          String? // Format HH:MM
-  heureFin            String? // Format HH:MM
-  notes               String?
-  specialtyId         Int? // Pour lier à une spécialité
-  specialty           Specialty?         @relation(fields: [specialtyId], references: [id])
-  siteId              String? // Pour lier à un site
-  site                Site?              @relation(fields: [siteId], references: [id])
-  operatingRoomId     Int? // Pour lier à une salle d'opération spécifique
-  operatingRoom       OperatingRoom?     @relation(fields: [operatingRoomId], references: [id])
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
-  blocDayPlanningId   String? // Ajout pour lier à BlocDayPlanning si nécessaire
-  surgeonId           Int?
-  surgeon             Surgeon?           @relation("SurgeonAssignments", fields: [surgeonId], references: [id], onDelete: Cascade)
-  regularAssignmentId Int?
-  regularAssignment   RegularAssignment? @relation("GeneratedFromRegular", fields: [regularAssignmentId], references: [id])
-  Location            Location?          @relation(fields: [locationId], references: [id])
-  locationId          Int?
-
+  id                    String                  @id @default(uuid())
+  date                  DateTime
+  userId                Int?
+  chirurgien            String?
+  salle                 String?
+  activityTypeId        String?
+  type                  String?
+  statut                String?
+  heureDebut            String?
+  heureFin              String?
+  notes                 String?
+  specialtyId           Int?
+  siteId                String?
+  operatingRoomId       Int?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  blocDayPlanningId     String?
+  surgeonId             Int?
+  regularAssignmentId   Int?
+  locationId            Int?
+  period                Period?
   proposedSwapRequests  AssignmentSwapRequest[] @relation("ProposedSwapAssignment")
   requestedSwapRequests AssignmentSwapRequest[] @relation("RequestedSwapAssignment")
-
-  contextualMessages ContextualMessage[] @relation("AssignmentContextualMessages")
-  notifications      Notification[]      @relation("NotificationRelatedAssignment")
+  activityType          ActivityType?           @relation("AssignmentActivityType", fields: [activityTypeId], references: [id])
+  Location              Location?               @relation(fields: [locationId], references: [id])
+  operatingRoom         OperatingRoom?          @relation(fields: [operatingRoomId], references: [id])
+  regularAssignment     RegularAssignment?      @relation("GeneratedFromRegular", fields: [regularAssignmentId], references: [id])
+  site                  Site?                   @relation(fields: [siteId], references: [id])
+  specialty             Specialty?              @relation(fields: [specialtyId], references: [id])
+  surgeon               Surgeon?                @relation("SurgeonAssignments", fields: [surgeonId], references: [id], onDelete: Cascade)
+  user                  User?                   @relation(fields: [userId], references: [id])
+  contextualMessages    ContextualMessage[]     @relation("AssignmentContextualMessages")
+  notifications         Notification[]          @relation("NotificationRelatedAssignment")
 
   @@index([date])
   @@index([userId, date])
@@ -609,13 +560,13 @@ model OperatingSector {
   isActive     Boolean         @default(true)
   description  String?
   rules        Json?
-  category     SectorCategory  @default(STANDARD)
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
-  siteId       String?
   displayOrder Int?
+  siteId       String?
+  category     SectorCategory  @default(STANDARD)
+  site         Site?           @relation(fields: [siteId], references: [id])
   rooms        OperatingRoom[]
-  site         Site?           @relation(fields: [siteId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([siteId])
 }
@@ -639,14 +590,14 @@ model UserCalendarSettings {
 }
 
 model ProfessionalRoleConfig {
-  id                 String   @id
-  code               String   @unique
-  label              String
-  description        String?
-  isActive           Boolean  @default(true)
-  displayPreferences Json?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                     String                  @id
+  code                   String                  @unique
+  label                  String
+  description            String?
+  isActive               Boolean                 @default(true)
+  displayPreferences     Json?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
   personnelRequisModeles PersonnelRequisModele[] @relation("RoleConfigPourPersonnelRequis")
 }
 
@@ -654,16 +605,8 @@ model TeamConfiguration {
   id            String   @id @default(cuid())
   name          String   @unique
   description   String?
-  siteId        String?
-  site          Site?    @relation("SiteTeamConfigurations", fields: [siteId], references: [id])
-  members       User[]   @relation("TeamMembers")
-  responsibles  User[]   @relation("TeamResponsibles")
-  rules         Json     // Règles spécifiques à l'équipe
-  workingHours  Json?    // Horaires de travail type
-  leaveQuotas   Json?    // Quotas de congés spécifiques
-  skillsNeeded  Json?    // Compétences requises pour l'équipe
-  configuration Json?    // Configuration diverse
-
+  isDefault     Boolean  @default(false)
+  isActive      Boolean  @default(true)
   gardes        Json
   consultations Json
   bloc          Json
@@ -682,11 +625,17 @@ model TeamConfiguration {
   algorithme    Json?
   rapports      Json?
   audit         Json?
-  
-  isDefault     Boolean  @default(false)
-  isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  configuration Json?
+  leaveQuotas   Json?
+  rules         Json
+  siteId        String?
+  skillsNeeded  Json?
+  workingHours  Json?
+  site          Site?    @relation("SiteTeamConfigurations", fields: [siteId], references: [id])
+  members       User[]   @relation("TeamMembers")
+  responsibles  User[]   @relation("TeamResponsibles")
 
   @@map("team_configurations")
 }
@@ -697,19 +646,19 @@ model RegularAssignment {
   userId        Int?
   surgeonId     Int?
   locationId    Int?
-  siteId        String?
   weekType      WeekType          @default(ALL)
   active        Boolean           @default(true)
   configuration Json?
   type          String
   dayOfWeek     Int               @default(1)
   period        String
+  siteId        String?
   assignments   Assignment[]      @relation("GeneratedFromRegular")
   location      Location?         @relation(fields: [locationId], references: [id])
+  site          Site?             @relation(fields: [siteId], references: [id])
   surgeon       Surgeon?          @relation(fields: [surgeonId], references: [id])
   trame         TrameAffectation? @relation("TrameAssignments", fields: [trameId], references: [id])
   user          User?             @relation(fields: [userId], references: [id])
-  site          Site?             @relation(fields: [siteId], references: [id])
 
   @@index([userId])
   @@index([surgeonId])
@@ -801,32 +750,23 @@ model PlannedAbsence {
 }
 
 model Notification {
-  id        String    @id @default(cuid())
-  userId    Int // L'utilisateur qui reçoit la notification (doit être Int si User.id est Int)
-  user      User      @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
-
-  type      NotificationType // NOUVEAU CHAMP: utilise l'énumération
-
-  message   String    // Le contenu textuel de la notification
-  link      String?   // Lien optionnel vers l'élément concerné
-  isRead    Boolean   @default(false)
-  createdAt DateTime  @default(now())
-
-  // Qui a déclenché la notification (optionnel)
-  triggeredByUserId Int?
-  triggeredByUser   User?     @relation("TriggeredByUserNotifications", fields: [triggeredByUserId], references: [id], onDelete:SetNull)
-
-  // Contexte de la notification (liens optionnels vers les entités concernées)
+  id                  String           @id @default(cuid())
+  userId              Int
+  type                NotificationType
+  message             String
+  link                String?
+  isRead              Boolean          @default(false)
+  createdAt           DateTime         @default(now())
+  triggeredByUserId   Int?
   relatedAssignmentId String?
-  relatedAssignment   Assignment? @relation("NotificationRelatedAssignment", fields: [relatedAssignmentId], references: [id], onDelete:SetNull)
-
-  relatedRequestId String?
-  relatedRequest    UserRequest? @relation("NotificationRelatedRequest", fields: [relatedRequestId], references: [id], onDelete:SetNull)
-
-  // Ajoutez d'autres liens contextuels si nécessaire (ex: relatedCommentId)
+  relatedRequestId    String?
+  relatedAssignment   Assignment?      @relation("NotificationRelatedAssignment", fields: [relatedAssignmentId], references: [id])
+  relatedRequest      UserRequest?     @relation("NotificationRelatedRequest", fields: [relatedRequestId], references: [id])
+  triggeredByUser     User?            @relation("TriggeredByUserNotifications", fields: [triggeredByUserId], references: [id])
+  user                User             @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead])
-  @@map("notifications") // Assurez-vous que le nom de la table est correct
+  @@map("notifications")
 }
 
 model Dashboard {
@@ -845,18 +785,18 @@ model Dashboard {
 model Absence {
   id           String      @id @default(cuid())
   userId       Int?
-  user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   startDate    DateTime
   endDate      DateTime
-  type         LeaveType
-  status       LeaveStatus
   reason       String?
-  comment      String?
-  requestDate  DateTime    @default(now())
   approvalDate DateTime?
   approvedById Int?
   chirurgienId Int?
+  comment      String?
+  requestDate  DateTime    @default(now())
+  type         LeaveType
+  status       LeaveStatus
   surgeon      Surgeon?    @relation(fields: [chirurgienId], references: [id])
+  user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([endDate])
   @@index([startDate])
@@ -1010,39 +950,367 @@ model Department {
 }
 
 model Site {
-  id           String   @id @default(uuid())
-  name         String   @unique
-  description  String?
-  isActive     Boolean  @default(true)
-  address      String?
-  colorCode    String?
-  timezone     String   @default("Europe/Paris")
-  displayOrder Int?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  operatingRooms     OperatingRoom[]     @relation("SiteOperatingRooms")
+  id                 String              @id @default(uuid())
+  name               String              @unique
+  isActive           Boolean             @default(true)
+  displayOrder       Int?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  address            String?
+  colorCode          String?
+  description        String?
+  timezone           String              @default("Europe/Paris")
   operatingSectors   OperatingSector[]
-  users              User[]              @relation("SiteUsers")
-  trameModeles       TrameModele[]       @relation("SiteTrameModeles")
-  blocDayPlannings   BlocDayPlanning[]
-  UserRequest        UserRequest[]       @relation("SiteUserRequests")
-
-  surgeons           Surgeon[]           @relation("SurgeonSites")
-  regularAssignments RegularAssignment[]
+  activityTypes      ActivityType[]      @relation("SiteActivityTypes")
   assignments        Assignment[]
-
-  activityTypes ActivityType[] @relation("SiteActivityTypes")
-
+  blocDayPlannings   BlocDayPlanning[]
+  operatingRooms     OperatingRoom[]     @relation("SiteOperatingRooms")
+  regularAssignments RegularAssignment[]
   teamConfigurations TeamConfiguration[] @relation("SiteTeamConfigurations")
+  trameModeles       TrameModele[]       @relation("SiteTrameModeles")
+  UserRequest        UserRequest[]       @relation("SiteUserRequests")
+  users              User[]              @relation("SiteUsers")
+  surgeons           Surgeon[]           @relation("SurgeonSites")
+  unifiedRequests    UnifiedRequest[]
 
   @@map("sites")
 }
 
+model PersonnelIncompatibility {
+  id            String              @id @default(cuid())
+  user1Id       Int?
+  surgeon1Id    Int?
+  user2Id       Int?
+  surgeon2Id    Int?
+  type          IncompatibilityType
+  reason        String?
+  startDate     DateTime?
+  endDate       DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  createdBy     Int?
+  createdByUser User?               @relation("CreatedIncompatibilities", fields: [createdBy], references: [id])
+  surgeon1      Surgeon?            @relation("Surgeon1Incompatibilities", fields: [surgeon1Id], references: [id], onDelete: Cascade)
+  surgeon2      Surgeon?            @relation("Surgeon2Incompatibilities", fields: [surgeon2Id], references: [id], onDelete: Cascade)
+  user1         User?               @relation("User1Incompatibilities", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2         User?               @relation("User2Incompatibilities", fields: [user2Id], references: [id], onDelete: Cascade)
+
+  @@index([user1Id, user2Id, type, startDate, endDate])
+  @@index([surgeon1Id, surgeon2Id, type, startDate, endDate])
+  @@index([user1Id, surgeon2Id, type, startDate, endDate])
+  @@map("personnel_incompatibilities")
+}
+
+model RequestType {
+  id                    String        @id @default(uuid())
+  name                  String        @unique
+  description           String?
+  requiresAdminApproval Boolean       @default(true)
+  isActive              Boolean       @default(true)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  userRequests          UserRequest[]
+
+  @@map("request_types")
+}
+
+model UserRequest {
+  id                 String              @id @default(uuid())
+  title              String
+  description        String
+  status             UserRequestStatus   @default(SUBMITTED)
+  adminNotes         String?
+  userId             Int
+  requestTypeId      String
+  assignedToId       Int?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  resolvedAt         DateTime?
+  details            Json?
+  endDate            DateTime?
+  siteId             String?
+  startDate          DateTime?
+  contextualMessages ContextualMessage[] @relation("UserRequestContextualMessages")
+  notifications      Notification[]      @relation("NotificationRelatedRequest")
+  assignedTo         User?               @relation("AssignedRequests", fields: [assignedToId], references: [id])
+  requestType        RequestType         @relation(fields: [requestTypeId], references: [id])
+  site               Site?               @relation("SiteUserRequests", fields: [siteId], references: [id])
+  user               User                @relation(fields: [userId], references: [id])
+
+  @@index([userId, status])
+  @@index([requestTypeId, status])
+  @@index([assignedToId, status])
+  @@map("user_requests")
+}
+
+model AssignmentSwapRequest {
+  id                    String               @id @default(cuid())
+  initiatorUserId       Int
+  proposedAssignmentId  String
+  targetUserId          Int?
+  requestedAssignmentId String?
+  status                AssignmentSwapStatus @default(PENDING)
+  message               String?
+  responseMessage       String?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  expiresAt             DateTime?
+  initiator             User                 @relation("InitiatedSwapRequests", fields: [initiatorUserId], references: [id])
+  proposedAssignment    Assignment           @relation("ProposedSwapAssignment", fields: [proposedAssignmentId], references: [id])
+  requestedAssignment   Assignment?          @relation("RequestedSwapAssignment", fields: [requestedAssignmentId], references: [id])
+  targetUser            User?                @relation("ReceivedSwapRequests", fields: [targetUserId], references: [id])
+
+  @@index([initiatorUserId])
+  @@index([targetUserId])
+  @@index([proposedAssignmentId])
+  @@index([requestedAssignmentId])
+}
+
+model Skill {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  description String?
+  category    String?     @default("general")
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  userSkills  UserSkill[]
+
+  @@index([name])
+  @@index([isActive, name])
+  @@index([category])
+  @@index([category, isActive])
+  @@map("skills")
+}
+
+model UserSkill {
+  id              String   @id @default(cuid())
+  userId          Int
+  skillId         String
+  assignedAt      DateTime @default(now())
+  assignedBy      Int?
+  assignedByAdmin User?    @relation("AssignedSkillsByAdmin", fields: [assignedBy], references: [id])
+  skill           Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId], name: "user_skill_unique_constraint")
+  @@map("user_skills")
+}
+
+model ActivityType {
+  id                   String              @id @default(uuid())
+  name                 String              @unique
+  description          String?
+  category             ActivityCategory    @default(AUTRE)
+  color                String?
+  icon                 String?
+  isActive             Boolean             @default(true)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  code                 String              @unique
+  defaultDurationHours Float?
+  defaultPeriod        Period?
+  siteId               String?             @map("site_id")
+  site                 Site?               @relation("SiteActivityTypes", fields: [siteId], references: [id])
+  affectationModeles   AffectationModele[] @relation("ActivityTypeAffectationModeles")
+  assignments          Assignment[]        @relation("AssignmentActivityType")
+
+  @@map("activity_types")
+}
+
+model SchoolHolidayPeriod {
+  id        Int      @id @default(autoincrement())
+  name      String
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("school_holiday_periods")
+}
+
+model LeaveRequestAlert {
+  id             Int      @id @default(autoincrement())
+  leaveId        String
+  ruleCode       String
+  messageDetails String
+  generatedAt    DateTime @default(now())
+  leave          Leave    @relation(fields: [leaveId], references: [id], onDelete: Cascade)
+
+  @@index([leaveId])
+  @@map("leave_request_alerts")
+}
+
+model SimulationTemplate {
+  id             String   @id @default(uuid())
+  name           String
+  description    String?
+  isPublic       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  createdById    Int
+  parametersJson Json
+  category       String?
+  createdBy      User     @relation("UserSimulationTemplates", fields: [createdById], references: [id])
+
+  @@map("simulation_templates")
+}
+
+model SimulationScenario {
+  id                    String                         @id @default(uuid())
+  name                  String
+  description           String?
+  createdAt             DateTime                       @default(now())
+  updatedAt             DateTime                       @updatedAt
+  createdById           Int?
+  parameters            Json?
+  status                String?                        @default("created")
+  lastProgress          Int?                           @default(0)
+  lastProgressUpdatedAt DateTime?
+  lastMessage           String?
+  createdBy             User?                          @relation("UserSimulationScenarios", fields: [createdById], references: [id])
+  intermediateResults   SimulationIntermediateResult[]
+  results               SimulationResult[]
+}
+
+model SimulationResult {
+  id                 String             @id @default(uuid())
+  scenarioId         String
+  createdAt          DateTime           @default(now())
+  statisticsJson     Json?
+  conflictAlertsJson Json?
+  comparisonDataJson Json?
+  status             SimulationStatus   @default(PENDING)
+  errorMessage       String?
+  executionTime      Int?
+  metricsData        Json?
+  resultData         Json?
+  scenario           SimulationScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  @@map("simulation_results")
+}
+
+model SimulationIntermediateResult {
+  scenarioId String
+  stepName   String
+  data       Json
+  hash       String
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  scenario   SimulationScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  @@id([scenarioId, stepName])
+  @@map("simulation_intermediate_results")
+}
+
+model ContextualMessage {
+  id           String              @id @default(cuid())
+  content      String
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  authorId     Int
+  assignmentId String?
+  contextDate  DateTime?           @db.Date
+  requestId    String?
+  parentId     String?
+  assignment   Assignment?         @relation("AssignmentContextualMessages", fields: [assignmentId], references: [id], onDelete: Cascade)
+  author       User                @relation("AuthoredMessages", fields: [authorId], references: [id], onDelete: Cascade)
+  parent       ContextualMessage?  @relation("Thread", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies      ContextualMessage[] @relation("Thread")
+  request      UserRequest?        @relation("UserRequestContextualMessages", fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([assignmentId])
+  @@index([contextDate])
+  @@index([requestId])
+  @@index([authorId])
+  @@map("contextual_messages")
+}
+
+model NotificationPreference {
+  id                         String   @id @default(cuid())
+  userId                     Int      @unique
+  assignmentReminders        Boolean  @default(true)
+  assignmentSwapRequests     Boolean  @default(true)
+  assignmentSwapResponses    Boolean  @default(true)
+  assignmentSwapAdminActions Boolean  @default(true)
+  contextualMessages         Boolean  @default(true)
+  mentionsInMessages         Boolean  @default(true)
+  planningUpdates            Boolean  @default(true)
+  leaveRequestStatusChanges  Boolean  @default(true)
+  openShifts                 Boolean  @default(false)
+  teamPlanningPublished      Boolean  @default(true)
+  emailEnabled               Boolean  @default(true)
+  inAppEnabled               Boolean  @default(true)
+  pushEnabled                Boolean  @default(false)
+  quietHoursEnabled          Boolean  @default(false)
+  quietHoursStart            String?  @default("22:00")
+  quietHoursEnd              String?  @default("08:00")
+  quietHoursDays             String?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+  user                       User     @relation("UserNotificationPreferences", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+enum ActivityCategory {
+  BLOC_OPERATOIRE
+  CONSULTATION
+  GARDE
+  ASTREINTE
+  REUNION
+  FORMATION
+  ADMINISTRATIF
+  AUTRE
+}
+
+enum Period {
+  MATIN
+  APRES_MIDI
+  JOURNEE_ENTIERE
+}
+
+enum BlocPlanningStatus {
+  DRAFT
+  VALIDATION_REQUESTED
+  VALIDATED
+  MODIFIED_AFTER_VALIDATION
+  LOCKED
+  ARCHIVED
+}
+
+enum BlocStaffRole {
+  MAR
+  IADE
+}
+
+enum ConflictSeverity {
+  WARNING
+  ERROR
+}
+
+enum RecurrenceTypeTrame {
+  AUCUNE
+  HEBDOMADAIRE
+}
+
+enum TypeSemaineTrame {
+  TOUTES
+  PAIRES
+  IMPAIRES
+}
+
+enum TrameRoleType {
+  MAR
+  IADE
+  CHIRURGIEN
+  TOUS
+}
+
 enum Role {
-  USER
-  ADMIN_PARTIEL
   ADMIN_TOTAL
+  ADMIN_PARTIEL
+  USER
 }
 
 enum UserStatus {
@@ -1149,43 +1417,9 @@ enum AbsenceStatus {
   REJECTED
 }
 
-model PersonnelIncompatibility {
-  id         String   @id @default(cuid())
-  // Personne 1 (peut être un User ou un Surgeon)
-  user1Id    Int?
-  user1      User?    @relation("User1Incompatibilities", fields: [user1Id], references: [id], onDelete: Cascade)
-  surgeon1Id Int?
-  surgeon1   Surgeon? @relation("Surgeon1Incompatibilities", fields: [surgeon1Id], references: [id], onDelete: Cascade)
-
-  // Personne 2 (peut être un User ou un Surgeon)
-  user2Id    Int?
-  user2      User?    @relation("User2Incompatibilities", fields: [user2Id], references: [id], onDelete: Cascade)
-  surgeon2Id Int?
-  surgeon2   Surgeon? @relation("Surgeon2Incompatibilities", fields: [surgeon2Id], references: [id], onDelete: Cascade)
-
-  type   IncompatibilityType
-  reason String? // Motif optionnel
-
-  startDate DateTime? // Période de validité
-  endDate   DateTime?
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  createdBy     Int? // ID de l'utilisateur qui a créé la règle
-  createdByUser User?    @relation("CreatedIncompatibilities", fields: [createdBy], references: [id], onDelete: SetNull) // onDelete: SetNull pour ne pas supprimer l'incompatibilité si l'admin est supprimé
-  // S'assurer qu'au moins un ID est fourni pour chaque personne (pas directement faisable avec des attributs simples, logique applicative)
-  // Prévenir les incompatibilités avec soi-même (user1Id != user2Id si surgeon1Id et surgeon2Id sont null, etc.) -> logique applicative
-
-  // Index pour les requêtes courantes
-  @@index([user1Id, user2Id, type, startDate, endDate])
-  @@index([surgeon1Id, surgeon2Id, type, startDate, endDate])
-  @@index([user1Id, surgeon2Id, type, startDate, endDate])
-  @@map("personnel_incompatibilities")
-}
-
 enum IncompatibilityType {
-  BLOQUANT // Ne doivent jamais travailler ensemble sur la même vacation/salle
-  PREFERENTIEL // À éviter si possible, génère un avertissement
+  BLOQUANT
+  PREFERENTIEL
 }
 
 enum SectorCategory {
@@ -1199,55 +1433,6 @@ enum RoomType {
   STANDARD
   FIV
   CONSULTATION
-}
-
-model RequestType {
-  id                    String        @id @default(uuid())
-  name                  String        @unique
-  description           String?
-  requiresAdminApproval Boolean       @default(true)
-  isActive              Boolean       @default(true)
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
-  userRequests          UserRequest[]
-
-  @@map("request_types")
-}
-
-model UserRequest {
-  id          String            @id @default(uuid())
-  title       String // Titre de la requête
-  description String // Description détaillée
-  status      UserRequestStatus @default(SUBMITTED)
-  adminNotes  String? // Notes de l'administrateur
-
-  userId Int // Qui a fait la demande
-  user   User @relation(fields: [userId], references: [id])
-
-  requestTypeId String // Type de requête (lien vers RequestType)
-  requestType   RequestType @relation(fields: [requestTypeId], references: [id])
-
-  assignedToId Int? // Optionnel: à qui la tâche est assignée pour traitement
-  assignedTo   User? @relation("AssignedRequests", fields: [assignedToId], references: [id])
-
-  siteId String? // Site concerné par la requête, si applicable
-  site   Site?   @relation("SiteUserRequests", fields: [siteId], references: [id])
-
-  startDate DateTime?
-  endDate   DateTime?
-  details   Json?
-
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  resolvedAt DateTime?
-
-  contextualMessages ContextualMessage[] @relation("UserRequestContextualMessages")
-  notifications      Notification[]      @relation("NotificationRelatedRequest")
-
-  @@index([userId, status])
-  @@index([requestTypeId, status])
-  @@index([assignedToId, status])
-  @@map("user_requests")
 }
 
 enum UserRequestStatus {
@@ -1267,192 +1452,6 @@ enum AssignmentSwapStatus {
   EXPIRED
 }
 
-model AssignmentSwapRequest {
-  id              String @id @default(cuid())
-  initiatorUserId Int
-  initiator       User   @relation("InitiatedSwapRequests", fields: [initiatorUserId], references: [id])
-
-  proposedAssignmentId String
-  proposedAssignment   Assignment @relation("ProposedSwapAssignment", fields: [proposedAssignmentId], references: [id])
-
-  targetUserId Int?
-  targetUser   User? @relation("ReceivedSwapRequests", fields: [targetUserId], references: [id])
-
-  requestedAssignmentId String?
-  requestedAssignment   Assignment? @relation("RequestedSwapAssignment", fields: [requestedAssignmentId], references: [id])
-
-  status          AssignmentSwapStatus @default(PENDING)
-  message         String?
-  responseMessage String?
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  expiresAt DateTime?
-
-  @@index([initiatorUserId])
-  @@index([targetUserId])
-  @@index([proposedAssignmentId])
-  @@index([requestedAssignmentId])
-}
-
-// --- MODÈLE POUR LES COMPÉTENCES ---
-model Skill {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userSkills UserSkill[] // Relation vers les utilisateurs ayant cette compétence
-
-  @@map("skills")
-}
-
-// --- MODÈLE POUR LES COMPÉTENCES UTILISATEUR (TABLE DE JOINTURE) ---
-model UserSkill {
-  id         String   @id @default(cuid())
-  userId     Int // Référence l'ID de l'utilisateur (Int)
-  skillId    String // Référence l'ID de la compétence (String CUID)
-  assignedAt DateTime @default(now())
-  assignedBy Int? // ID de l'utilisateur (admin) qui a assigné la compétence, optionnel
-
-  user            User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skill           Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
-  assignedByAdmin User? @relation("AssignedSkillsByAdmin", fields: [assignedBy], references: [id], onDelete: SetNull)
-
-  @@unique([userId, skillId], name: "user_skill_unique_constraint") // Assurer que chaque compétence n'est assignée qu'une fois par utilisateur
-  @@map("user_skills")
-}
-
-model ActivityType {
-  id          String           @id @default(uuid())
-  name        String           @unique // Ex: "Garde Anesthésie Pontoise", "Consultation Dr. Durand", "Bloc Salle 3"
-  code        String           @unique // Ajouté: Code unique pour identification métier
-  description String?
-  category    ActivityCategory @default(AUTRE)
-  color       String? // Pour affichage dans le planning, ex: "#FF5733"
-  icon        String? // Nom d'une icône (ex: "BriefcaseIcon") ou slug pour affichage
-  isActive    Boolean          @default(true) // Pour pouvoir désactiver sans supprimer
-
-  defaultDurationHours Float?    // Ajouté: Durée par défaut en heures (ex: 4.0, 8.0, 12.0, 24.0)
-  defaultPeriod        Period?   // Ajouté: Période par défaut (MATIN, APRES_MIDI, JOURNEE_ENTIERE)
-
-  // Relation Many-to-Many avec Site
-  // Une activité peut être disponible sur plusieurs sites, ou aucun (globale)
-  // Relation à UN site (un type d'activité appartient à un site, ou à aucun si global)
-  site   Site?   @relation("SiteActivityTypes", fields: [siteId], references: [id])
-  siteId String? @map("site_id")
-  affectationModeles AffectationModele[] @relation("ActivityTypeAffectationModeles")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("activity_types")
-}
-
-model SchoolHolidayPeriod {
-  id        Int      @id @default(autoincrement())
-  name      String // e.g., "Vacances de Pâques 2025 Zone A"
-  startDate DateTime @db.Date // Store as Date without time
-  endDate   DateTime @db.Date // Store as Date without time
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("school_holiday_periods")
-}
-
-model LeaveRequestAlert {
-  id             Int      @id @default(autoincrement())
-  leaveId        String
-  leave          Leave    @relation(fields: [leaveId], references: [id], onDelete: Cascade)
-  ruleCode       String // e.g., "MAR_THRESHOLD_OFF_HOLIDAYS_EXCEEDED"
-  messageDetails String // e.g., "Currently 3 MAR on leave (threshold: 2)"
-  generatedAt    DateTime @default(now())
-
-  @@index([leaveId])
-  @@map("leave_request_alerts")
-}
-
-// --- MODÈLES POUR LA SIMULATION DE PLANNING ---
-
-model SimulationTemplate {
-  id                  String   @id @default(uuid())
-  name                String
-  description         String?
-  isPublic            Boolean  @default(false)  // Si le template peut être utilisé par tous les utilisateurs
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  createdById         Int
-  createdBy           User     @relation("UserSimulationTemplates", fields: [createdById], references: [id])
-  
-  // Paramètres de base du template
-  parametersJson      Json     // Mêmes paramètres que SimulationScenario
-  
-  // Catégorie pour faciliter le classement/filtrage
-  category            String?  // Ex: "Vacances scolaires", "Effectif réduit", "Planning été"
-  
-  @@map("simulation_templates")
-}
-
-model SimulationScenario {
-  id                  String   @id @default(uuid())
-  name                String
-  description         String?
-  createdAt           DateTime @default(now())
-  createdById         Int
-  createdBy           User     @relation("UserSimulationScenarios", fields: [createdById], references: [id])
-
-  // Paramètres de la simulation
-  // - période de simulation (startDate, endDate)
-  // - règles modifiées (IDs ou définitions complètes)
-  // - effectifs ajustés (ex: liste d'utilisateurs exclus/ajoutés temporairement)
-  // - trames alternatives (IDs de TrameModele à utiliser)
-  // - ... autres paramètres spécifiques
-  parametersJson      Json
-  
-  // Référence optionnelle au template utilisé
-  templateId          String?
-  
-  // Optionnel: Si la simulation part d'un snapshot d'un planning existant (ex: BlocDayPlanning)
-  // basePlanningSnapshotId String?
-
-  results             SimulationResult[]
-
-  @@map("simulation_scenarios")
-}
-
-model SimulationResult {
-  id                  String   @id @default(uuid())
-  scenarioId          String
-  scenario            SimulationScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
-  
-  createdAt           DateTime @default(now())
-  
-  // Le planning "virtuel" généré.
-  // Pourrait être une structure JSON complexe ou pointer vers des versions "simulées" des modèles de planning actuels.
-  // Pour une première version, un JSON stockant les affectations simulées pourrait suffire.
-  // Exemple: { assignments: [...], dailyStats: {...} }
-  generatedPlanningData Json
-  
-  // Statistiques clés issues de la simulation
-  // Exemple: { coverageRate: 0.95, ruleViolations: 5, totalAssignments: 150 }
-  statisticsJson      Json
-  
-  // Alertes de conflits potentiels identifiés
-  // Exemple: [{ ruleId: "...", message: "...", severity: "ERROR" }]
-  conflictAlertsJson  Json?
-  
-  // Optionnel: Données de comparaison avec un planning de référence (actuel ou autre scénario)
-  // Exemple: { diffAssignments: [...], kpiChanges: {...} }
-  comparisonDataJson  Json?
-
-  // État de la simulation (utile si le calcul est long/asynchrone)
-  status              SimulationStatus @default(PENDING)
-  errorMessage        String? // En cas d'échec de la simulation
-
-  @@map("simulation_results")
-}
-
 enum SimulationStatus {
   PENDING
   RUNNING
@@ -1460,122 +1459,142 @@ enum SimulationStatus {
   FAILED
 }
 
-// --- FIN MODÈLES POUR LA SIMULATION DE PLANNING ---
-
-// NOUVELLE ÉNUMÉRATION POUR LES TYPES DE NOTIFICATION
 enum NotificationType {
-  // Messages & Commentaires
   NEW_CONTEXTUAL_MESSAGE
   MENTION_IN_MESSAGE
   NEW_PLANNING_COMMENT
-
-  // Échanges d'affectations
   ASSIGNMENT_SWAP_REQUEST_RECEIVED
   ASSIGNMENT_SWAP_REQUEST_ACCEPTED
   ASSIGNMENT_SWAP_REQUEST_REJECTED
   ASSIGNMENT_SWAP_REQUEST_APPROVED_ADMIN
   ASSIGNMENT_SWAP_REQUEST_CANCELLED
-
-  // Infos & Alertes Planning
   ASSIGNMENT_REMINDER
   PLANNING_UPDATED_IMPACTING_YOU
-  LEAVE_REQUEST_STATUS_CHANGED // Pourrait déjà exister sous une autre forme
+  LEAVE_REQUEST_STATUS_CHANGED
   NEW_OPEN_SHIFT_AVAILABLE
-
-  // Admin/Système
   TEAM_PLANNING_PUBLISHED
   RULE_CONFLICT_DETECTED_ADMIN
-
-  // Notifications générales (à ajouter si besoin)
   GENERAL_INFO
   SYSTEM_ALERT
 }
 
-// --- NOUVEAU MODÈLE POUR LA MESSAGERIE CONTEXTUELLE ---
-model ContextualMessage {
-  id        String   @id @default(cuid())
-  content   String   @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  authorId  Int
-  author    User     @relation("AuthoredMessages", fields: [authorId], references: [id], onDelete: Cascade)
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedBy   Int
+  updater     User     @relation("SystemConfigUpdates", fields: [updatedBy], references: [id])
 
-  assignmentId String?
-  assignment   Assignment? @relation("AssignmentContextualMessages", fields: [assignmentId], references: [id], onDelete: Cascade)
-
-  contextDate DateTime? @db.Date
-
-  requestId String?
-  request   UserRequest? @relation("UserRequestContextualMessages", fields: [requestId], references: [id], onDelete: Cascade)
-
-  parentId  String?
-  parent    ContextualMessage?  @relation("Thread", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  replies   ContextualMessage[] @relation("Thread")
-
-  @@index([assignmentId])
-  @@index([contextDate])
-  @@index([requestId])
-  @@index([authorId])
-  @@map("contextual_messages")
+  @@map("system_config")
 }
 
-// --- NOUVEAU MODÈLE POUR LES COMMENTAIRES SUR PLANNING (Optionnel, si distinct de ContextualMessage) ---
-// Si nous décidons que les commentaires de planning sont suffisamment différents
-// pour justifier leur propre modèle. Sinon, on utilise ContextualMessage avec contextDate.
-// Pour l'instant, je vais commenter cette partie et nous pourrons l'activer si besoin.
-/*
-model PlanningComment {
-  id        String   @id @default(cuid())
-  content   String   @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  authorId  Int
-  author    User     @relation("AuthoredPlanningComments", fields: [authorId], references: [id], onDelete: Cascade)
-
-  date      DateTime @db.Date // Commentaire pour un jour spécifique
-
-  // Optionnel: portée (site, équipe, etc.)
-  // siteId    String?
-  // site      Site?    @relation(fields: [siteId], references: [id])
-
-  @@index([date])
-  @@index([authorId])
-  @@map("planning_comments")
-}
-*/
-
-// --- MODÈLE POUR LES PRÉFÉRENCES DE NOTIFICATIONS ---
-model NotificationPreference {
+model ActivityLog {
   id        String   @id @default(cuid())
   userId    Int
-  user      User     @relation("UserNotificationPreferences", fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Types de notifications
-  assignmentReminders          Boolean @default(true)  // Rappels d'affectations
-  assignmentSwapRequests       Boolean @default(true)  // Demandes d'échange
-  assignmentSwapResponses      Boolean @default(true)  // Réponses aux demandes d'échange
-  assignmentSwapAdminActions   Boolean @default(true)  // Actions administratives sur les échanges
-  contextualMessages           Boolean @default(true)  // Messages contextuels
-  mentionsInMessages           Boolean @default(true)  // Mentions dans les messages
-  planningUpdates              Boolean @default(true)  // Mises à jour du planning
-  leaveRequestStatusChanges    Boolean @default(true)  // Changements de statut des demandes de congés
-  openShifts                   Boolean @default(false) // Postes ouverts disponibles
-  teamPlanningPublished        Boolean @default(true)  // Publication du planning d'équipe
-  
-  // Canaux de notification
-  emailEnabled                 Boolean @default(true)  // Notifications par email
-  inAppEnabled                 Boolean @default(true)  // Notifications dans l'application
-  pushEnabled                  Boolean @default(false) // Notifications push (si implémentées)
-  
-  // Périodes de non-dérangement
-  quietHoursEnabled            Boolean @default(false) // Activer les heures calmes
-  quietHoursStart              String? @default("22:00") // Début des heures calmes (format HH:MM)
-  quietHoursEnd                String? @default("08:00") // Fin des heures calmes (format HH:MM)
-  quietHoursDays               String? // Jours avec heures calmes (format JSON ["MON", "TUE", ...])
-  
+  user      User     @relation("UserActivityLogs", fields: [userId], references: [id])
+  action    String
+  details   Json?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  @@unique([userId])
-  @@map("notification_preferences")
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
+model RulesTemplate {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  category      String   // STANDARD, INTENSIF, ALLEGE, PEDIATRIE, CUSTOM
+  rules         Json
+  fatigueConfig Json
+  isDefault     Boolean  @default(false)
+  createdBy     Int
+  creator       User     @relation("CreatedRulesTemplates", fields: [createdBy], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([name, isDefault])
+  @@index([category])
+  @@index([isDefault])
+  @@map("rules_templates")
+}
+
+model UnifiedRequest {
+  id                    String                    @id @default(cuid())
+  type                  String                    // LEAVE, ASSIGNMENT_SWAP, EMERGENCY_REPLACEMENT, etc.
+  status                String                    @default("draft")
+  priority              String                    @default("normal")
+  
+  // User relations
+  requesterId           Int
+  requester             User                      @relation("UnifiedRequestRequester", fields: [requesterId], references: [id])
+  assignedToId          Int?
+  assignedTo            User?                     @relation("UnifiedRequestAssignedTo", fields: [assignedToId], references: [id])
+  
+  // Request details
+  title                 String
+  description           String?
+  data                  Json                      // Type-specific data
+  
+  // Workflow
+  currentStep           String                    @default("draft")
+  workflowHistory       Json                      @default("[]")
+  
+  // Timestamps
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  submittedAt           DateTime?
+  resolvedAt            DateTime?
+  
+  // Site relation
+  siteId                String?
+  site                  Site?                     @relation(fields: [siteId], references: [id])
+  
+  // Notifications
+  notifications         UnifiedRequestNotification[]
+  
+  // Audit
+  auditLog              Json                      @default("[]")
+  
+  // Legacy references for migration
+  legacyType            String?                   // Original system type
+  legacyId              String?                   // Original record ID
+  
+  @@index([type])
+  @@index([status])
+  @@index([priority])
+  @@index([requesterId])
+  @@index([assignedToId])
+  @@index([createdAt])
+  @@index([siteId])
+  @@unique([legacyType, legacyId])
+}
+
+model UnifiedRequestNotification {
+  id                    String                    @id @default(cuid())
+  requestId             String
+  request               UnifiedRequest            @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  
+  type                  String                    // EMAIL, IN_APP, SMS
+  recipientId           Int
+  recipient             User                      @relation(fields: [recipientId], references: [id])
+  
+  subject               String
+  content               String
+  status                String                    @default("pending") // pending, sent, failed
+  
+  sentAt                DateTime?
+  failureReason         String?
+  
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  
+  @@index([requestId])
+  @@index([recipientId])
+  @@index([status])
 }

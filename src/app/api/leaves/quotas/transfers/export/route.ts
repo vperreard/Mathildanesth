@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { QuotaTransferReportOptions } from '@/modules/leaves/types/quota';
@@ -8,10 +8,9 @@ import { PDFDocument, rgb } from 'pdf-lib';
 import { parse as csvParse, stringify as csvStringify } from 'csv-string';
 import { formatDate } from '@/utils/dateUtils';
 
-const prisma = new PrismaClient();
 
 /**
- * GET /api/leaves/quotas/transfers/export
+ * GET /api/conges/quotas/transfers/export
  * Exporte un rapport de transferts de quotas au format demandé
  */
 export async function POST(req: NextRequest) {
@@ -34,7 +33,7 @@ export async function POST(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const format = searchParams.get('format') || 'pdf';
 
-        if (!['pdf', 'csv', 'excel'].includes(format)) {
+        if (!['pdf', 'csv', 'csv'].includes(format)) {
             return NextResponse.json(
                 { error: 'Format non supporté. Utilisez pdf, csv ou excel.' },
                 { status: 400 }
@@ -129,7 +128,7 @@ export async function POST(req: NextRequest) {
             } ${options.endDate ? formatDate(new Date(options.endDate)) : ''}`.trim();
 
         // Générer le rapport selon le format demandé
-        if (format === 'excel') {
+        if (format === 'csv') {
             return await generateExcelReport(transfers, reportTitle);
         } else if (format === 'csv') {
             return await generateCsvReport(transfers, reportTitle);

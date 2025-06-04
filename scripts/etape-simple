@@ -1,0 +1,79 @@
+#!/bin/bash
+# scripts/etape-simple - Version simplifiée pour débutants
+
+echo "👋 Salut ! Analysons votre projet..."
+echo ""
+
+# Métriques simples avec explications
+ROUTES=$(find src/app/api -name "route.ts" 2>/dev/null | wc -l)
+TODOS=$(grep -r "TODO\|FIXME" src --include="*.ts" --include="*.tsx" 2>/dev/null | wc -l)
+TESTS=$(find src -name "*.test.ts" -o -name "*.test.tsx" 2>/dev/null | wc -l)
+ERRORS=$(grep -r "@ts-ignore" src --include="*.ts" --include="*.tsx" 2>/dev/null | wc -l)
+
+echo "📊 ÉTAT DE VOTRE PROJET"
+echo "======================"
+
+# Routes API (fonctionnalités)
+if [ "$ROUTES" -gt 100 ]; then
+    echo "🚀 Fonctionnalités : $ROUTES routes API - EXCELLENT ! Votre app a plein de fonctionnalités"
+elif [ "$ROUTES" -gt 50 ]; then
+    echo "👍 Fonctionnalités : $ROUTES routes API - Très bien, bonne base"
+else
+    echo "🌱 Fonctionnalités : $ROUTES routes API - En développement, c'est normal"
+fi
+
+# TODO (choses à faire)
+if [ "$TODOS" -lt 30 ]; then
+    echo "✅ Choses à faire : $TODOS TODO - Super ! Vous êtes bien organisé"
+elif [ "$TODOS" -lt 80 ]; then
+    echo "📝 Choses à faire : $TODOS TODO - Normal, vous avez des idées d'amélioration"
+else
+    echo "⚠️  Choses à faire : $TODOS TODO - Beaucoup ! Prenez le temps de trier les priorités"
+fi
+
+# Tests (vérifications)
+if [ "$TESTS" -gt 100 ]; then
+    echo "🛡️  Tests : $TESTS fichiers - EXCELLENT ! Votre code est bien protégé"
+elif [ "$TESTS" -gt 50 ]; then
+    echo "🧪 Tests : $TESTS fichiers - Bien, continuez à tester votre code"
+else
+    echo "🔍 Tests : $TESTS fichiers - À améliorer, les tests protègent votre travail"
+fi
+
+# Erreurs TypeScript
+if [ "$ERRORS" -lt 10 ]; then
+    echo "💎 Qualité code : $ERRORS erreurs masquées - PARFAIT ! Code très propre"
+elif [ "$ERRORS" -lt 25 ]; then
+    echo "⚠️  Qualité code : $ERRORS erreurs masquées - Quelques problèmes à corriger"
+else
+    echo "🚨 Qualité code : $ERRORS erreurs masquées - ATTENTION ! Beaucoup d'erreurs cachées"
+fi
+
+echo ""
+echo "🎯 QUE FAIRE MAINTENANT ?"
+echo "========================"
+
+# Conseils personnalisés
+if [ "$ERRORS" -gt 20 ]; then
+    echo "🔧 PRIORITÉ 1 : Corriger les erreurs TypeScript (qualité du code)"
+    echo "   Commande : npm run audit:debt"
+elif [ "$TODOS" -gt 100 ]; then
+    echo "📋 PRIORITÉ 1 : Trier vos TODO et traiter les urgents"
+    echo "   Commande : npm run etape:roadmap"
+elif [ "$TESTS" -lt 50 ]; then
+    echo "🧪 PRIORITÉ 1 : Ajouter plus de tests pour sécuriser votre code"
+    echo "   Les tests vous évitent de casser votre application"
+else
+    echo "🎉 BRAVO ! Votre projet est en bonne santé !"
+    echo "   Continuez comme ça et lancez 'npm run etape' pour plus de détails"
+fi
+
+echo ""
+echo "💡 COMMANDES UTILES POUR DÉBUTER"
+echo "================================="
+echo "npm run etape:quick     → Vérification rapide (10 secondes)"
+echo "npm run etape          → Analyse complète (2 minutes)" 
+echo "npm run etape:roadmap  → Voir ce qu'il faut faire en priorité"
+echo "npm run build          → Vérifier que tout compile bien"
+echo ""
+echo "❓ Besoin d'aide ? Demandez à Claude : 'Explique-moi les résultats de mon point d'étape'" 

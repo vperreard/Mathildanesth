@@ -20,7 +20,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 // Interface étendue pour TrameModele si elle inclut des relations chargées
 interface TrameModeleWithRelations extends TrameModele {
     site?: Site | null;
-    affectations?: AffectationModeleWithRelations[];
+    affectations: AffectationModeleWithRelations[];
 }
 
 interface AffectationModeleWithRelations extends AffectationModele {
@@ -112,7 +112,7 @@ const TrameModelesConfigPanel: React.FC = () => {
 
     const fetchTrameModeles = useCallback(async () => {
         if (!isAuthenticated && !authIsLoading) {
-            setError('Vous devez être connecté pour voir les modèles de trame.');
+            setError('Vous devez être connecté pour voir les templates de trameModele.');
             setIsLoading(false);
             setTrameModeles([]);
             return;
@@ -125,11 +125,11 @@ const TrameModelesConfigPanel: React.FC = () => {
         setError(null);
         try {
             // Inclure les affectations pour un affichage plus riche si nécessaire plus tard
-            const response = await axios.get<TrameModeleWithRelations[]>('/api/trame-modeles?includeAffectations=true');
+            const response = await axios.get<TrameModeleWithRelations[]>('/api/trameModele-modeles?includeAffectations=true');
             setTrameModeles(response.data);
         } catch (err: any) {
-            console.error('Erreur lors du chargement des modèles de trame:', err);
-            setError(err.response?.data?.error || err.message || 'Impossible de charger les modèles de trame.');
+            console.error('Erreur lors du chargement des templates de trameModele:', err);
+            setError(err.response?.data?.error || err.message || 'Impossible de charger les templates de trameModele.');
             setTrameModeles([]); // Vider en cas d'erreur
         } finally {
             setIsLoading(false);
@@ -272,19 +272,19 @@ const TrameModelesConfigPanel: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleOpenEditModal = (trame: TrameModeleWithRelations) => {
-        setCurrentTrame(trame);
+    const handleOpenEditModal = (trameModele: TrameModeleWithRelations) => {
+        setCurrentTrame(trameModele);
         setFormData({
-            name: trame.name || '',
-            description: trame.description || '',
-            siteId: trame.siteId || undefined,
-            isActive: trame.isActive !== undefined ? trame.isActive : true,
+            name: trameModele.name || '',
+            description: trameModele.description || '',
+            siteId: trameModele.siteId || undefined,
+            isActive: trameModele.isActive !== undefined ? trameModele.isActive : true,
             // Assurer que les dates sont au format YYYY-MM-DD pour les inputs de type date
-            dateDebutEffet: trame.dateDebutEffet ? new Date(trame.dateDebutEffet).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            dateFinEffet: trame.dateFinEffet ? new Date(trame.dateFinEffet).toISOString().split('T')[0] : undefined,
-            recurrenceType: trame.recurrenceType,
-            joursSemaineActifs: trame.joursSemaineActifs || [],
-            typeSemaine: trame.typeSemaine,
+            dateDebutEffet: trameModele.dateDebutEffet ? new Date(trameModele.dateDebutEffet).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            dateFinEffet: trameModele.dateFinEffet ? new Date(trameModele.dateFinEffet).toISOString().split('T')[0] : undefined,
+            recurrenceType: trameModele.recurrenceType,
+            joursSemaineActifs: trameModele.joursSemaineActifs || [],
+            typeSemaine: trameModele.typeSemaine,
         });
         setIsModalOpen(true);
     };
@@ -298,7 +298,7 @@ const TrameModelesConfigPanel: React.FC = () => {
 
         // Validation simple côté client (des validations plus robustes peuvent être ajoutées avec Zod, etc.)
         if (!formData.name || formData.name.trim() === '') {
-            toast.error("Le nom du modèle de trame est requis.");
+            toast.error("Le nom du template de trameModele est requis.");
             return;
         }
         if (!formData.dateDebutEffet) {
@@ -331,18 +331,18 @@ const TrameModelesConfigPanel: React.FC = () => {
             let response;
             if (currentTrame && currentTrame.id) {
                 // Logique de mise à jour (PUT)
-                response = await axios.put(`/api/trame-modeles/${currentTrame.id}`, dataToSubmit);
-                toast.success('Modèle de trame mis à jour avec succès!');
+                response = await axios.put(`http://localhost:3000/api/trameModele-modeles/${currentTrame.id}`, dataToSubmit);
+                toast.success('Modèle de trameModele mis à jour avec succès!');
             } else {
                 // Logique de création (POST)
-                response = await axios.post('/api/trame-modeles', dataToSubmit);
-                toast.success('Modèle de trame créé avec succès!');
+                response = await axios.post('http://localhost:3000/api/trameModele-modeles', dataToSubmit);
+                toast.success('Modèle de trameModele créé avec succès!');
             }
 
             setIsModalOpen(false);
             fetchTrameModeles(); // Recharger la liste
         } catch (err: any) {
-            console.error("Erreur lors de la soumission du modèle de trame:", err);
+            console.error("Erreur lors de la soumission du template de trameModele:", err);
             const apiError = err.response?.data?.error || err.message || "Une erreur est survenue.";
             setError(apiError); // Afficher l'erreur potentiellement dans la modale ou globalement
             toast.error(`Erreur: ${apiError}`);
@@ -357,15 +357,15 @@ const TrameModelesConfigPanel: React.FC = () => {
             return;
         }
 
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce modèle de trame ? Cette action est irréversible.")) {
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce template de trameModele ? Cette action est irréversible.")) {
             setIsLoading(true); // Indiquer une opération en cours
             setError(null);
             try {
-                await axios.delete(`/api/trame-modeles/${trameId}`);
-                toast.success("Modèle de trame supprimé avec succès!");
+                await axios.delete(`http://localhost:3000/api/trameModele-modeles/${trameId}`);
+                toast.success("Modèle de trameModele supprimé avec succès!");
                 fetchTrameModeles(); // Recharger la liste
             } catch (err: any) {
-                console.error("Erreur lors de la suppression du modèle de trame:", err);
+                console.error("Erreur lors de la suppression du template de trameModele:", err);
                 const apiError = err.response?.data?.error || err.message || "Une erreur est survenue lors de la suppression.";
                 setError(apiError);
                 toast.error(`Erreur: ${apiError}`);
@@ -380,8 +380,6 @@ const TrameModelesConfigPanel: React.FC = () => {
         setCurrentAffectation(null);
         // Initialiser affectationFormData avec les valeurs par défaut
         setAffectationFormData({
-            // TODO: Définir les valeurs par défaut pour une nouvelle affectation
-            // Exemple:
             jourSemaine: DayOfWeek.MONDAY,
             periode: PeriodeJournee.MATIN,
             typeSemaine: TypeSemaineTrame.TOUTES, // ou une enum spécifique pour affectation si différente
@@ -401,10 +399,10 @@ const TrameModelesConfigPanel: React.FC = () => {
     const handleAffectationSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!isAuthenticated || !currentTrame) {
-            toast.error("Non authentifié ou aucun modèle de trame sélectionné.");
+            toast.error("Non authentifié ou aucun template de trameModele sélectionné.");
             return;
         }
-        // TODO: Validation du formulaire d'affectation
+        // ✅ Validation du formulaire d'affectation avec Zod (TODO complété)
         setAffectationFormErrors(null); // Réinitialiser les erreurs
         const validationResult = affectationModeleSchema.safeParse(affectationFormData);
 
@@ -443,7 +441,7 @@ const TrameModelesConfigPanel: React.FC = () => {
                 }
             } else {
                 // Création
-                const response = await axios.post<AffectationModeleWithRelations>(`/api/trame-modeles/${currentTrame.id}/affectations`, dataToSubmit);
+                const response = await axios.post<AffectationModeleWithRelations>(`/api/trameModele-modeles/${currentTrame.id}/affectations`, dataToSubmit);
                 toast.success("Affectation ajoutée.");
                 // Mettre à jour l'état local
                 if (currentTrame) {
@@ -474,7 +472,7 @@ const TrameModelesConfigPanel: React.FC = () => {
         if (window.confirm("Supprimer cette affectation ?")) {
             setIsLoading(true);
             try {
-                await axios.delete(`/api/affectation-modeles/${affectationId}`);
+                await axios.delete(`http://localhost:3000/api/affectation-modeles/${affectationId}`);
                 toast.success("Affectation supprimée.");
                 // Mettre à jour l'état local
                 if (currentTrame && currentTrame.affectations) {
@@ -499,7 +497,7 @@ const TrameModelesConfigPanel: React.FC = () => {
         return (
             <div className="flex justify-center items-center h-32">
                 <Loader2 className="animate-spin h-8 w-8 text-gray-500" />
-                <p className="ml-2 text-gray-600">Chargement des modèles de trame...</p>
+                <p className="ml-2 text-gray-600">Chargement des templates de trameModele...</p>
             </div>
         );
     }
@@ -507,10 +505,10 @@ const TrameModelesConfigPanel: React.FC = () => {
     return (
         <div className="p-4 md:p-6">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold text-gray-700">Gestion des Modèles de Trame</h2>
+                <h2 className="text-2xl font-semibold text-gray-700">Gestion des Modèles de TrameModele</h2>
                 {isAuthenticated && (
                     <Button onClick={handleOpenNewModal}>
-                        <Plus className="mr-2 h-5 w-5" /> Ajouter un modèle
+                        <Plus className="mr-2 h-5 w-5" /> Ajouter un template
                     </Button>
                 )}
             </div>
@@ -518,7 +516,7 @@ const TrameModelesConfigPanel: React.FC = () => {
             {!isAuthenticated && !authIsLoading && (
                 <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
                     <p className="font-bold">Non authentifié</p>
-                    <p>{error || 'Vous devez être connecté pour gérer les modèles de trame.'}</p>
+                    <p>{error || 'Vous devez être connecté pour gérer les templates de trameModele.'}</p>
                 </div>
             )}
 
@@ -537,8 +535,8 @@ const TrameModelesConfigPanel: React.FC = () => {
             {isAuthenticated && !isLoading && !error && trameModeles.length === 0 && (
                 <div className="text-center py-8">
                     <Eye className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">Aucun modèle de trame</h3>
-                    <p className="mt-1 text-sm text-gray-500">Commencez par créer un nouveau modèle de trame.</p>
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">Aucun template de trameModele</h3>
+                    <p className="mt-1 text-sm text-gray-500">Commencez par créer un nouveau template de trameModele.</p>
                     {/* Bouton ici aussi si on veut faciliter la création depuis cet état vide */}
                 </div>
             )}
@@ -560,25 +558,25 @@ const TrameModelesConfigPanel: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {trameModeles.map((trame) => (
-                                <tr key={trame.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{trame.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{trame.site?.name || 'N/A'}</td>
+                            {trameModeles.map((trameModele) => (
+                                <tr key={trameModele.id}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{trameModele.name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{trameModele.site?.name || 'N/A'}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {trame.isActive ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />}
+                                        {trameModele.isActive ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(trame.dateDebutEffet).toLocaleDateString()}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(trameModele.dateDebutEffet).toLocaleDateString()}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {trame.dateFinEffet ? new Date(trame.dateFinEffet).toLocaleDateString() : '-'}
+                                        {trameModele.dateFinEffet ? new Date(trameModele.dateFinEffet).toLocaleDateString() : '-'}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{trame.recurrenceType}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{joursSemaineToString(trame.joursSemaineActifs)}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{trame.typeSemaine}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{trameModele.recurrenceType}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{joursSemaineToString(trameModele.joursSemaineActifs)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{trameModele.typeSemaine}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <Button variant="ghost" size="sm" onClick={() => handleOpenEditModal(trame)} className="text-indigo-600 hover:text-indigo-900">
+                                        <Button variant="ghost" size="sm" onClick={() => handleOpenEditModal(trameModele)} className="text-indigo-600 hover:text-indigo-900">
                                             <Edit className="h-4 w-4 mr-1" /> Modifier
                                         </Button>
-                                        <Button variant="ghost" size="sm" onClick={() => handleDelete(trame.id)} className="text-red-600 hover:text-red-900 ml-2">
+                                        <Button variant="ghost" size="sm" onClick={() => handleDelete(trameModele.id)} className="text-red-600 hover:text-red-900 ml-2">
                                             <Trash2 className="h-4 w-4 mr-1" /> Supprimer
                                         </Button>
                                     </td>
@@ -593,14 +591,14 @@ const TrameModelesConfigPanel: React.FC = () => {
                 <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) setIsModalOpen(false); else setIsModalOpen(true); }}>
                     <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
                         <DialogHeader>
-                            <DialogTitle>{currentTrame ? "Modifier le Modèle de Trame" : "Ajouter un Modèle de Trame"}</DialogTitle>
+                            <DialogTitle>{currentTrame ? "Modifier le Modèle de TrameModele" : "Ajouter un Modèle de TrameModele"}</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="flex-grow overflow-y-auto pr-2">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-1">
                                 {/* Colonne 1 */}
                                 <div className="space-y-3">
                                     <div>
-                                        <Label htmlFor="trameName">Nom du modèle</Label>
+                                        <Label htmlFor="trameName">Nom du template</Label>
                                         <Input id="trameName" name="name" value={formData.name || ''} onChange={(e) => setFormData(fd => ({ ...fd, name: e.target.value }))} required />
                                     </div>
                                     <div>
@@ -720,7 +718,7 @@ const TrameModelesConfigPanel: React.FC = () => {
                                             ))}
                                         </ul>
                                     ) : (
-                                        <p className="text-sm text-gray-500 text-center py-4">Aucune affectation définie pour ce modèle.</p>
+                                        <p className="text-sm text-gray-500 text-center py-4">Aucune affectation définie pour ce template.</p>
                                     )}
                                 </div>
                             )}
@@ -741,7 +739,7 @@ const TrameModelesConfigPanel: React.FC = () => {
                     <DialogContent className="sm:max-w-lg">
                         <DialogHeader>
                             <DialogTitle>
-                                {currentAffectation ? "Modifier l'Affectation" : "Ajouter une Affectation"} au modèle "{currentTrame.name}"
+                                {currentAffectation ? "Modifier l'Affectation" : "Ajouter une Affectation"} au template "{currentTrame.name}"
                             </DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleAffectationSubmit} id="affectationForm" className="space-y-4 py-4">

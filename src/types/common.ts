@@ -3,10 +3,10 @@
  */
 
 /**
- * Types de gardes/vacations/astreintes possibles (définition unifiée)
+ * Types de affectations/astreintes possibles (définition unifiée)
  * 
  * Cette énumération remplace les définitions précédemment dupliquées dans:
- * - src/types/assignment.ts
+ * - src/types/attribution.ts
  * - src/types/shift.ts
  */
 export enum ShiftType {

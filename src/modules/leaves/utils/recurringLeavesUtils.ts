@@ -211,7 +211,7 @@ export function generateRecurringDates(
 /**
  * Formate une période de récurrence pour affichage
  * @param pattern Modèle de récurrence
- * @returns Description textuelle du modèle
+ * @returns Description textuelle du template
  */
 export function formatRecurrencePattern(pattern: RecurrencePattern): string {
     let description = '';

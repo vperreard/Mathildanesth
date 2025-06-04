@@ -1,0 +1,188 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-06-01T06:20:13.953Z",
+    "end": "2025-06-01T06:20:14.734Z",
+    "duration": 781,
+    "testsRegistered": 5,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 4,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "ae8b111a-da2a-4282-95c3-609507fe24db",
+      "title": "",
+      "fullFile": "cypress/e2e/auth/ultra-stable-login.spec.ts",
+      "file": "cypress/e2e/auth/ultra-stable-login.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "7bffdb43-5b23-4bc4-ac90-38e752d9b3f9",
+          "title": "Connexion Ultra Stable",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "affiche le formulaire et permet la saisie",
+              "fullTitle": "Connexion Ultra Stable affiche le formulaire et permet la saisie",
+              "timedOut": null,
+              "duration": 172,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Vérifier la présence des éléments\ncy.get('[data-cy=email-input]').should('exist');\ncy.get('[data-cy=password-input]').should('exist');\ncy.get('[data-cy=submit-button]').should('exist');\n// Forcer l'activation des champs via JavaScript si nécessaire\ncy.get('[data-cy=email-input]').then(function ($input) {\n    if ($input.prop('disabled')) {\n        cy.log('Input is disabled, removing disabled attribute');\n        cy.get('[data-cy=email-input]').invoke('prop', 'disabled', false);\n    }\n});\ncy.get('[data-cy=password-input]').then(function ($input) {\n    if ($input.prop('disabled')) {\n        cy.log('Password input is disabled, removing disabled attribute');\n        cy.get('[data-cy=password-input]').invoke('prop', 'disabled', false);\n    }\n});\n// Maintenant tenter la saisie\ncy.get('[data-cy=email-input]').clear().type('test@example.com');\ncy.get('[data-cy=password-input]').clear().type('password123');\n// Vérifier les valeurs\ncy.get('[data-cy=email-input]').should('have.value', 'test@example.com');\ncy.get('[data-cy=password-input]').should('have.value', 'password123');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Connexion Ultra Stable`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Connexion Ultra Stable`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/ultra-stable-login.spec.ts:12:11)",
+                "diff": null
+              },
+              "uuid": "3768d2a7-8662-4ff0-8b97-0623c625fdcd",
+              "parentUUID": "7bffdb43-5b23-4bc4-ac90-38e752d9b3f9",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "teste la connexion avec mock API",
+              "fullTitle": "Connexion Ultra Stable teste la connexion avec mock API",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Mock de l'API pour éviter les problèmes de backend\ncy.intercept('POST', '**/api/auth/login', {\n    statusCode: 200,\n    body: { success: true, redirectUrl: '/' }\n}).as('loginSuccess');\n// Activer les champs et saisir\ncy.get('[data-cy=email-input]').invoke('prop', 'disabled', false);\ncy.get('[data-cy=password-input]').invoke('prop', 'disabled', false);\ncy.get('[data-cy=email-input]').clear().type('admin@example.com');\ncy.get('[data-cy=password-input]').clear().type('Test123!');\n// Activer le bouton et cliquer\ncy.get('[data-cy=submit-button]').then(function ($btn) {\n    if ($btn.prop('disabled')) {\n        cy.get('[data-cy=submit-button]').invoke('prop', 'disabled', false);\n    }\n});\ncy.get('[data-cy=submit-button]').click();\n// Vérifier l'appel API\ncy.wait('@loginSuccess');",
+              "err": {},
+              "uuid": "744dfee3-2370-43ab-9333-42b5de5e188a",
+              "parentUUID": "7bffdb43-5b23-4bc4-ac90-38e752d9b3f9",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "teste la gestion d'erreurs",
+              "fullTitle": "Connexion Ultra Stable teste la gestion d'erreurs",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Mock d'erreur\ncy.intercept('POST', '**/api/auth/login', {\n    statusCode: 401,\n    body: { error: 'Identifiants invalides' }\n}).as('loginError');\n// Forcer l'activation et saisir\ncy.get('[data-cy=email-input]').invoke('prop', 'disabled', false);\ncy.get('[data-cy=password-input]').invoke('prop', 'disabled', false);\ncy.get('[data-cy=email-input]').clear().type('wrong@test.com');\ncy.get('[data-cy=password-input]').clear().type('wrongpass');\ncy.get('[data-cy=submit-button]').invoke('prop', 'disabled', false);\ncy.get('[data-cy=submit-button]').click();\n// Vérifier l'affichage de l'erreur\ncy.wait('@loginError');\ncy.get('[data-cy=error-message]', { timeout: 10000 }).should('be.visible');",
+              "err": {},
+              "uuid": "bcdf0524-5416-445d-812c-891801932262",
+              "parentUUID": "7bffdb43-5b23-4bc4-ac90-38e752d9b3f9",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "teste le workflow complet sans dépendances backend",
+              "fullTitle": "Connexion Ultra Stable teste le workflow complet sans dépendances backend",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Test complètement isolé\n// Étape 1: Vérifier l'affichage initial\ncy.contains('Connexion').should('be.visible');\n// Étape 2: Activer tous les champs\ncy.get('input').each(function ($input) {\n    cy.wrap($input).invoke('prop', 'disabled', false);\n});\ncy.get('button').each(function ($button) {\n    cy.wrap($button).invoke('prop', 'disabled', false);\n});\n// Étape 3: Remplir le formulaire\ncy.get('[data-cy=email-input]').clear().type('admin@example.com');\ncy.get('[data-cy=password-input]').clear().type('password');\n// Étape 4: Vérifier l'état du formulaire\ncy.get('[data-cy=email-input]').should('have.value', 'admin@example.com');\ncy.get('[data-cy=password-input]').should('have.value', 'password');\n// Étape 5: Mock et submit\ncy.intercept('POST', '**/api/auth/login', {\n    statusCode: 200,\n    body: { success: true }\n}).as('login');\ncy.get('[data-cy=submit-button]').click();\n// Étape 6: Vérification\ncy.wait('@login').its('request.body').should('deep.include', {\n    login: 'admin@example.com',\n    password: 'password'\n});",
+              "err": {},
+              "uuid": "22425d54-2d2c-46a4-bab9-6daecbd27dfd",
+              "parentUUID": "7bffdb43-5b23-4bc4-ac90-38e752d9b3f9",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "teste le formulaire avec interaction directe DOM",
+              "fullTitle": "Connexion Ultra Stable teste le formulaire avec interaction directe DOM",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Approche alternative : interaction directe avec le DOM\ncy.get('[data-cy=email-input]').then(function ($input) {\n    $input.val('direct@test.com');\n    $input.trigger('input');\n    $input.trigger('change');\n});\ncy.get('[data-cy=password-input]').then(function ($input) {\n    $input.val('directpass');\n    $input.trigger('input');\n    $input.trigger('change');\n});\n// Vérifier que React a pris en compte les changements\ncy.get('[data-cy=email-input]').should('have.value', 'direct@test.com');\ncy.get('[data-cy=password-input]').should('have.value', 'directpass');\n// Vérifier que le bouton n'est plus désactivé\ncy.get('[data-cy=submit-button]').should('not.be.disabled');",
+              "err": {},
+              "uuid": "24f7c278-9498-44d3-b81a-7b61cc8ddbb3",
+              "parentUUID": "7bffdb43-5b23-4bc4-ac90-38e752d9b3f9",
+              "isHook": false,
+              "skipped": true
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "3768d2a7-8662-4ff0-8b97-0623c625fdcd"
+          ],
+          "pending": [],
+          "skipped": [
+            "744dfee3-2370-43ab-9333-42b5de5e188a",
+            "bcdf0524-5416-445d-812c-891801932262",
+            "22425d54-2d2c-46a4-bab9-6daecbd27dfd",
+            "24f7c278-9498-44d3-b81a-7b61cc8ddbb3"
+          ],
+          "duration": 172,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

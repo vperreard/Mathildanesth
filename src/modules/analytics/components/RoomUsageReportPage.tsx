@@ -28,7 +28,7 @@ export default function RoomUsageReportPage() {
             setIsLoadingSites(true);
             setSitesError(null);
             try {
-                const response = await fetch('/api/sites');
+                const response = await fetch('http://localhost:3000/api/sites');
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.error || `Erreur ${response.status} lors de la récupération des sites.`);
@@ -73,7 +73,7 @@ export default function RoomUsageReportPage() {
                         endDate: endDate!.toISOString(),
                     });
 
-                    const response = await fetch(`/api/analytics/room-utilization?${queryParams}`);
+                    const response = await fetch(`http://localhost:3000/api/analytics/room-utilization?${queryParams}`);
                     if (!response.ok) {
                         const errorData = await response.json();
                         throw new Error(errorData.error || `Erreur ${response.status} lors de la récupération des données.`);

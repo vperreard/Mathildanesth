@@ -5,15 +5,15 @@ import { verifyAuthToken } from '@/lib/auth-utils';
 import { createNotification } from '@/lib/notifications';
 
 /**
- * POST /api/admin/leaves/[id]/reject
+ * POST /api/admin/conges/[id]/reject
  * Rejette une demande de congé
  */
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const leaveId = params.id;
+        const { id: leaveId } = await params;
         if (!leaveId) {
             return NextResponse.json({ error: 'ID de congé manquant' }, { status: 400 });
         }
@@ -125,7 +125,7 @@ export async function POST(
         });
 
     } catch (error) {
-        console.error('[API /api/admin/leaves/reject] Erreur:', error);
+        console.error('[API /api/admin/conges/reject] Erreur:', error);
         return NextResponse.json(
             { error: 'Erreur serveur lors du rejet de la demande de congé' },
             { status: 500 }

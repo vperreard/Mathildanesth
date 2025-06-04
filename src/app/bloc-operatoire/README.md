@@ -1,98 +1,98 @@
-# Module de Bloc Opératoire
+# Module Bloc Opératoire - Structure Unifiée
 
 ## Vue d'ensemble
 
-Le module de Bloc Opératoire permet de gérer les plannings des salles d'opération, les affectations des médecins anesthésistes, et d'appliquer des règles de supervision spécifiques au contexte hospitalier.
+Le module bloc opératoire a été unifié le 27/05/25, fusionnant les interfaces planning et administration dans une structure unique avec navigation par tabs.
 
-Ce module fait partie de la phase 4 du développement de Mathildanesth comme indiqué dans la roadmap (P2).
-
-## Modèle du MVP
-
-Dans cette version MVP, le planning gère uniquement des **vacations par demi-journées** (matin/après-midi) :
-- Les vacations sont définies comme ouvertes ou fermées
-- Chaque vacation peut être affectée à :
-  - 1 chirurgien 
-  - 1 MAR (Médecin Anesthésiste-Réanimateur)
-  - +/- 1 IADE (Infirmier Anesthésiste)
-- Les interventions chirurgicales détaillées ne sont pas gérées dans cette version
-
-## Structure du module
-
-Le module est organisé en plusieurs sections :
+## Architecture
 
 ```
-src/app/bloc-operatoire/
-├── components/          # Composants réutilisables spécifiques au bloc
-├── planning/            # Interfaces de planification du bloc
-├── regles-supervision/  # Configuration des règles de supervision
-├── salles/              # Gestion des salles d'opération
-├── secteurs/            # Organisation des secteurs
-├── page.tsx             # Page principale du module
-└── README.md            # Documentation (ce fichier)
+/src/app/bloc-operatoire/
+├── layout.tsx              # Layout avec navigation par tabs et PermissionGuard
+├── page.tsx               # Page planning (par défaut)
+├── planning/              # Routes planning
+│   ├── [date]/           # Vue détaillée par date
+│   ├── create/[date]/    # Création de planning
+│   └── edit/[date]/      # Édition de planning
+├── salles/               # Gestion des salles (admin)
+│   ├── page.tsx
+│   └── components/
+├── secteurs/             # Gestion des secteurs (admin)
+│   ├── page.tsx
+│   └── components/
+├── modeles/              # Modèles de planning (admin)
+│   ├── page.tsx
+│   └── components/
+├── trames/               # Trames d'affectation (admin)
+│   ├── page.tsx
+│   └── components/
+└── _components/          # Composants partagés
+    ├── LazyAdminComponents.tsx    # Lazy loading admin
+    └── OptimizedProvider.tsx      # Provider avec cache
 ```
 
-## Modèles de données
+## Navigation par Tabs
 
-Les modèles de données pour ce module sont définis dans `src/types/bloc-planning-types.ts` et incluent :
+La navigation utilise le composant `BlocOperatoireNavigation` qui :
+- Affiche des tabs selon les permissions utilisateur
+- Tab "Planning" toujours visible pour tous
+- Tabs admin (Salles, Secteurs, etc.) visibles uniquement pour ADMIN/SUPER_ADMIN
+- Gestion automatique de l'état actif selon l'URL
 
-- `OperatingRoom` : Définition d'une salle d'opération
-- `BlocSector` : Groupement logique de salles (ex: chirurgie cardiaque, orthopédie)
-- `SupervisionRule` : Règles gouvernant la supervision des salles par les médecins
-- `BlocDayPlanning` : Planning journalier du bloc opératoire
-- `BlocSupervisor` : Affectation d'un médecin à la supervision d'une salle
+## Optimisations Performance
 
-## Services
+### 1. Lazy Loading
+Les composants admin sont chargés uniquement quand nécessaire :
+```tsx
+const SallesAdmin = lazy(() => import('../salles/components/SallesAdmin'));
+```
 
-Le module utilise le service `blocPlanningService` (dans `src/services/blocPlanningService.ts`) qui fournit :
+### 2. Caching Intelligent
+Le `OptimizedProvider` applique différentes stratégies de cache :
+- Données statiques (salles, secteurs) : 5 minutes
+- Données dynamiques (planning) : 30 secondes
+- Invalidation automatique après mutations
 
-- Méthodes CRUD pour la gestion des salles et secteurs
-- Validation des règles de supervision
-- Intégration avec le module de planning général
+### 3. Prefetching
+Préchargement des données critiques au montage :
+```tsx
+usePrefetch(['operatingRooms', 'blocSectors', 'surgeons']);
+```
 
-## Règles de supervision
+## Permissions
 
-La configuration des règles de supervision permet de :
+Chaque tab est protégé par `PermissionGuard` :
+- **Planning** : Tous les utilisateurs authentifiés
+- **Salles/Secteurs** : ADMIN, SUPER_ADMIN
+- **Modèles/Trames** : ADMIN, SUPER_ADMIN
 
-1. Définir un nombre maximum de salles par MAR (règle globale)
-2. Créer des règles spécifiques par secteur (ex: supervision interne uniquement)
-3. Établir des exceptions pour des situations particulières
+## Migration depuis l'ancienne structure
 
-Les règles sont évaluées par priorité et peuvent être configurées depuis l'interface d'administration.
+Les anciennes routes `/admin/bloc-operatoire/*` ont été supprimées et remplacées par :
+- `/admin/bloc-operatoire/salles` → `/bloc-operatoire/salles`
+- `/admin/bloc-operatoire/secteurs` → `/bloc-operatoire/secteurs`
+- etc.
 
-## Prochaines évolutions
+## Points d'attention
 
-Les évolutions futures après le MVP pourront inclure :
-- Gestion détaillée des interventions chirurgicales avec durée et équipe complète
-- Planification des équipements spécifiques
-- Intégration avec le système de gestion des patients
-- Statistiques d'occupation et d'efficience
+1. **SSR** : Certaines pages nécessitent `'use client'` pour éviter les erreurs SSR
+2. **Imports** : Utiliser les imports depuis `_components/LazyAdminComponents` pour les composants admin
+3. **Cache** : Le cache React Query est partagé entre tous les tabs
 
-## Intégration avec d'autres modules
+## API Endpoints
 
-Le module de bloc opératoire s'intègre avec :
+- `/api/operating-rooms` - CRUD salles
+- `/api/bloc-sectors` - CRUD secteurs  
+- `/api/bloc-planning` - CRUD planning
+- `/api/supervision-rules` - Règles de supervision
+- `/api/trame-modeles` - Modèles de trames
 
-- **Module de planning** : Pour vérifier les disponibilités des médecins
-- **Module de congés** : Pour prendre en compte les absences
-- **Module de règles** : Pour appliquer les règles spécifiques à l'équipe
+## Tests
 
-## Développement futur
+Les tests E2E Cypress couvrent :
+- Navigation entre tabs
+- Création/édition de planning
+- Gestion des salles et secteurs
+- Permissions et accès restreints
 
-Les fonctionnalités planifiées pour les phases ultérieures incluent :
-
-- Intégration optionnelle avec Google Sheets (pour compatibilité avec systèmes existants)
-- Trames hebdomadaires pour le bloc opératoire
-- Règles de supervision avancées (basées sur les compétences, expérience, etc.)
-- Simulation et optimisation des affectations
-- Annotations et notes contextuelles
-- Interface pour les chirurgiens
-
-## Utilisation
-
-Pour accéder au module : `/bloc-operatoire`
-
-## Documentation technique
-
-Pour plus de détails sur l'implémentation :
-- Voir les types définis dans `src/types/bloc-planning-types.ts`
-- Consulter le service `blocPlanningService` pour les opérations disponibles
-- Se référer aux modèles de données existants dans `src/types/team-configuration.ts` (BlocConfig) 
+Voir `/cypress/e2e/bloc-operatoire/` pour les tests détaillés.

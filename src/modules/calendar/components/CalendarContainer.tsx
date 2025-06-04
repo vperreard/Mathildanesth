@@ -6,7 +6,7 @@ import { CalendarGrid } from './base/CalendarGrid';
 import { CalendarEventModal } from './events/CalendarEventModal';
 import { CalendarFiltersPanel } from './filters/CalendarFiltersPanel';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
-import { calendarService } from '../services/calendarService';
+import { calendarService } from '../services/calendrierService';
 import { Spinner } from '../../../components/ui/Spinner';
 
 // Composants internes optimisés

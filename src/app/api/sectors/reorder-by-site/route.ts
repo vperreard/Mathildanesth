@@ -14,6 +14,10 @@ const reorderPayloadSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+    console.log("🔄 POST /api/sectors/reorder-by-site - Début de la requête");
+    console.log("Request URL:", request.url);
+    console.log("Request method:", request.method);
+
     // Récupérer les en-têtes directement depuis l'objet request
     const userRole = request.headers.get('x-user-role');
     const userId = request.headers.get('x-user-id'); // Optionnel, mais peut être utile
@@ -22,6 +26,7 @@ export async function POST(request: NextRequest) {
     console.log("POST /api/sectors/reorder-by-site - Headers from middleware:");
     console.log(`  x-user-id: ${userId}`);
     console.log(`  x-user-role: ${userRole}`);
+    console.log("All headers:", Object.fromEntries(request.headers.entries()));
 
     // Vérification des permissions basée sur l'en-tête x-user-role
     // Autoriser ADMIN_TOTAL ou ADMIN_PARTIEL
@@ -79,7 +84,7 @@ export async function POST(request: NextRequest) {
                             where: { id: sectorId },
                             data: {
                                 siteId: targetSiteId, // Met à jour le siteId (peut être null)
-                                displayOrder: index, // Met à jour l'ordre d'affichage
+                                displayOrder: index, // Met à jour l'ordre d'affichage explicitement avec l'index
                             },
                         })
                     );
@@ -102,4 +107,23 @@ export async function POST(request: NextRequest) {
         // Gérer d'autres erreurs potentielles (ex: erreur base de données)
         return NextResponse.json({ error: "Erreur serveur lors de la mise à jour de l'ordre des secteurs" }, { status: 500 });
     }
+}
+
+// Endpoint GET temporaire pour diagnostic
+export async function GET(request: NextRequest) {
+    console.log("🔍 GET /api/sectors/reorder-by-site - Diagnostic");
+
+    const userRole = request.headers.get('x-user-role');
+    const userId = request.headers.get('x-user-id');
+
+    return NextResponse.json({
+        message: "Diagnostic des en-têtes",
+        headers: {
+            userId,
+            userRole,
+            allHeaders: Object.fromEntries(request.headers.entries())
+        },
+        authenticated: !!(userRole && userId),
+        hasRequiredRole: userRole === Role.ADMIN_TOTAL || userRole === Role.ADMIN_PARTIEL
+    });
 } 

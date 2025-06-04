@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 
-const prisma = new PrismaClient();
 
 /**
- * GET /api/leaves/quotas/dashboard
+ * GET /api/conges/quotas/dashboard
  * Récupère les données pour le tableau de bord des quotas
  */
 export async function GET(req: NextRequest) {

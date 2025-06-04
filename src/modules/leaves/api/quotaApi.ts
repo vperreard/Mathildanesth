@@ -33,7 +33,7 @@ export interface TransferHistoryResponse {
  */
 export class QuotaApiService {
     private apiClient: AxiosInstance;
-    private baseUrl: string = '/api/leaves/quotas';
+    private baseUrl: string = '/api/conges/quotas';
 
     constructor(apiClient: AxiosInstance) {
         this.apiClient = apiClient;

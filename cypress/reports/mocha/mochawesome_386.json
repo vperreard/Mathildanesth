@@ -1,0 +1,245 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-06-01T05:47:11.462Z",
+    "end": "2025-06-01T05:47:12.851Z",
+    "duration": 1389,
+    "testsRegistered": 8,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 1,
+    "hasOther": true,
+    "skipped": 7,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "9cdae1a4-7607-4ec7-b67e-9393c492c913",
+      "title": "",
+      "fullFile": "cypress/e2e/accessibility/wcag-compliance.spec.ts",
+      "file": "cypress/e2e/accessibility/wcag-compliance.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "237dbd69-ecf0-4d87-ae05-f6c4974ce77b",
+          "title": "Tests d'accessibilité WCAG 2.1 AA",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "respecte les critères WCAG 2.1 AA sur la page de connexion",
+              "fullTitle": "Tests d'accessibilité WCAG 2.1 AA respecte les critères WCAG 2.1 AA sur la page de connexion",
+              "timedOut": null,
+              "duration": 141,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Vérifier l'accessibilité générale\ncy.checkA11y(null, {\n    rules: {\n        // Règles critiques WCAG 2.1 AA\n        'color-contrast': { enabled: true },\n        'keyboard-navigation': { enabled: true },\n        'focus-management': { enabled: true },\n        'aria-labels': { enabled: true },\n        'heading-order': { enabled: true },\n        'link-purpose': { enabled: true },\n        'form-labels': { enabled: true }\n    }\n});\n// Tests spécifiques aux éléments de formulaire\ncy.get('[data-cy=email-input]').should('have.attr', 'aria-label').or('have.attr', 'aria-labelledby');\ncy.get('[data-cy=password-input]').should('have.attr', 'aria-label').or('have.attr', 'aria-labelledby');\ncy.get('[data-cy=submit-button]').should('have.attr', 'aria-label').or('contain.text');\n// Vérifier la navigation au clavier\ncy.get('[data-cy=email-input]').focus().should('be.focused');\ncy.get('[data-cy=email-input]').tab();\ncy.get('[data-cy=password-input]').should('be.focused');\ncy.get('[data-cy=password-input]').tab();\ncy.get('[data-cy=submit-button]').should('be.focused');\n// Contraste des couleurs (vérification visuelle)\ncy.get('[data-cy=submit-button]').should('have.css', 'background-color');\ncy.get('[data-cy=submit-button]').should('have.css', 'color');",
+              "err": {
+                "message": "CypressError: `cy.task('log')` failed with the following error:\n\nThe task 'log' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after each` hook we are skipping the remaining tests in the current suite: `Tests d'accessibilité WCAG ...`",
+                "estack": "CypressError: `cy.task('log')` failed with the following error:\n\nThe task 'log' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after each` hook we are skipping the remaining tests in the current suite: `Tests d'accessibilité WCAG ...`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137237:72)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/accessibility/wcag-compliance.spec.ts:223:11)",
+                "diff": null
+              },
+              "uuid": "70b64904-80c8-4fc5-aa5f-7e67d16e62c8",
+              "parentUUID": "237dbd69-ecf0-4d87-ae05-f6c4974ce77b",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "respecte l'accessibilité sur le tableau de bord",
+              "fullTitle": "Tests d'accessibilité WCAG 2.1 AA respecte l'accessibilité sur le tableau de bord",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Se connecter d'abord\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url().should('include', '/tableau-de-bord');\ncy.waitForPageLoad();\ncy.injectAxe();\n// Vérifier l'accessibilité du tableau de bord\ncy.checkA11y();\n// Tests de navigation\ncy.get('[data-cy=nav-planning]').should('have.attr', 'role', 'button').or('have.attr', 'role', 'link');\ncy.get('[data-cy=nav-conges]').should('have.attr', 'role', 'button').or('have.attr', 'role', 'link');\n// Vérifier les landmarks ARIA\ncy.get('main').should('exist');\ncy.get('nav').should('exist');\ncy.get('header').should('exist');\n// Test de skip link\ncy.get('body').type('{tab}');\ncy.focused().should('contain.text', 'Aller au contenu').or('have.attr', 'aria-label', 'Skip to main content');",
+              "err": {},
+              "uuid": "90ad8c35-8719-4e2d-ba67-95f9fc13a04d",
+              "parentUUID": "237dbd69-ecf0-4d87-ae05-f6c4974ce77b",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "teste la navigation complète au clavier",
+              "fullTitle": "Tests d'accessibilité WCAG 2.1 AA teste la navigation complète au clavier",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Test complet de navigation au clavier\ncy.get('body').tab(); // Premier élément focusable\n// Vérifier que tous les éléments interactifs sont accessibles au clavier\nvar interactiveElements = [\n    '[data-cy=email-input]',\n    '[data-cy=password-input]',\n    '[data-cy=submit-button]',\n    '[data-cy=forgot-password-link]'\n];\ninteractiveElements.forEach(function (selector) {\n    cy.get(selector).focus().should('be.focused');\n    // Vérifier que l'élément est visible quand il a le focus\n    cy.get(selector).should('be.visible');\n    // Vérifier qu'il y a un indicateur visuel de focus\n    cy.get(selector).should('have.css', 'outline').or('have.css', 'box-shadow');\n});",
+              "err": {},
+              "uuid": "832abf1e-e0b2-431f-8306-555f0e0c6169",
+              "parentUUID": "237dbd69-ecf0-4d87-ae05-f6c4974ce77b",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "teste les annonces aux lecteurs d'écran",
+              "fullTitle": "Tests d'accessibilité WCAG 2.1 AA teste les annonces aux lecteurs d'écran",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Test des messages d'erreur pour les lecteurs d'écran\ncy.safeType('[data-cy=email-input]', 'invalid-email');\ncy.safeType('[data-cy=password-input]', 'wrong-password');\ncy.safeClick('[data-cy=submit-button]');\n// Vérifier que les messages d'erreur ont les attributs ARIA appropriés\ncy.get('[data-cy=error-message]', { timeout: 10000 }).should('exist').then(function ($error) {\n    // Le message d'erreur doit être annoncé\n    cy.wrap($error).should('have.attr', 'role', 'alert')\n        .or('have.attr', 'aria-live', 'polite')\n        .or('have.attr', 'aria-live', 'assertive');\n    // Le message doit être lié au champ en erreur\n    cy.wrap($error).should('have.attr', 'id').then(function (errorId) {\n        cy.get('[data-cy=email-input]').should('have.attr', 'aria-describedby', errorId);\n    });\n});",
+              "err": {},
+              "uuid": "6b49fc0e-db1b-4c36-b949-c6830f0d4aef",
+              "parentUUID": "237dbd69-ecf0-4d87-ae05-f6c4974ce77b",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "respecte les critères de contraste des couleurs",
+              "fullTitle": "Tests d'accessibilité WCAG 2.1 AA respecte les critères de contraste des couleurs",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Vérifier le contraste des éléments principaux\nvar elementsToCheck = [\n    { selector: '[data-cy=submit-button]', name: 'bouton de soumission' },\n    { selector: '[data-cy=email-input]', name: 'champ email' },\n    { selector: '[data-cy=password-input]', name: 'champ mot de passe' },\n    { selector: '[data-cy=forgot-password-link]', name: 'lien mot de passe oublié' }\n];\nelementsToCheck.forEach(function (_a) {\n    var selector = _a.selector, name = _a.name;\n    cy.get(selector).then(function ($el) {\n        var styles = window.getComputedStyle($el[0]);\n        var backgroundColor = styles.backgroundColor;\n        var color = styles.color;\n        // Log des couleurs pour vérification manuelle\n        cy.log(\"\".concat(name, \": background=\").concat(backgroundColor, \", color=\").concat(color));\n        // Vérifier que les couleurs ne sont pas transparentes\n        expect(backgroundColor).to.not.equal('rgba(0, 0, 0, 0)');\n        expect(color).to.not.equal('rgba(0, 0, 0, 0)');\n    });\n});\n// Utiliser axe-core pour vérification automatique du contraste\ncy.checkA11y(null, {\n    rules: {\n        'color-contrast': { enabled: true }\n    }\n});",
+              "err": {},
+              "uuid": "3691b0e7-e1c9-4563-83b0-9527be87ffc8",
+              "parentUUID": "237dbd69-ecf0-4d87-ae05-f6c4974ce77b",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "teste la compatibilité avec les lecteurs d'écran",
+              "fullTitle": "Tests d'accessibilité WCAG 2.1 AA teste la compatibilité avec les lecteurs d'écran",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Vérifier les attributs ARIA essentiels\ncy.get('h1').should('exist').and('be.visible');\n// Vérifier la structure de titre\ncy.get('h1').should('have.length', 1); // Un seul h1 par page\n// Vérifier les labels des formulaires\ncy.get('[data-cy=email-input]').should('have.attr', 'id').then(function (inputId) {\n    cy.get(\"label[for=\\\"\".concat(inputId, \"\\\"]\")).should('exist')\n        .or(function () {\n        cy.get('[data-cy=email-input]').should('have.attr', 'aria-label');\n    });\n});\ncy.get('[data-cy=password-input]').should('have.attr', 'id').then(function (inputId) {\n    cy.get(\"label[for=\\\"\".concat(inputId, \"\\\"]\")).should('exist')\n        .or(function () {\n        cy.get('[data-cy=password-input]').should('have.attr', 'aria-label');\n    });\n});\n// Vérifier les états des éléments interactifs\ncy.get('[data-cy=submit-button]').should('not.have.attr', 'disabled').then(function () {\n    cy.get('[data-cy=submit-button]').should('not.have.attr', 'aria-disabled', 'true');\n});",
+              "err": {},
+              "uuid": "6fec45e5-c830-4af8-9a08-4072dc5c7a26",
+              "parentUUID": "237dbd69-ecf0-4d87-ae05-f6c4974ce77b",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "teste la responsivité et l'accessibilité mobile",
+              "fullTitle": "Tests d'accessibilité WCAG 2.1 AA teste la responsivité et l'accessibilité mobile",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Test sur différentes tailles d'écran\nvar viewports = [\n    { width: 375, height: 667, name: 'iPhone SE' },\n    { width: 768, height: 1024, name: 'iPad' },\n    { width: 1024, height: 768, name: 'Desktop small' }\n];\nviewports.forEach(function (_a) {\n    var width = _a.width, height = _a.height, name = _a.name;\n    cy.viewport(width, height);\n    cy.reload();\n    cy.waitForPageLoad();\n    cy.injectAxe();\n    cy.log(\"Testing accessibility on \".concat(name, \" (\").concat(width, \"x\").concat(height, \")\"));\n    // Vérifier que tous les éléments restent accessibles\n    cy.checkA11y();\n    // Vérifier que les éléments sont toujours focusables\n    cy.get('[data-cy=email-input]').should('be.visible').focus().should('be.focused');\n    cy.get('[data-cy=password-input]').should('be.visible').focus().should('be.focused');\n    cy.get('[data-cy=submit-button]').should('be.visible').focus().should('be.focused');\n    // Vérifier que le texte reste lisible (pas de débordement)\n    cy.get('[data-cy=submit-button]').should('have.css', 'overflow', 'visible').or('have.css', 'overflow', 'hidden');\n});",
+              "err": {},
+              "uuid": "8f7dd485-0793-4efd-9de3-5065595c2088",
+              "parentUUID": "237dbd69-ecf0-4d87-ae05-f6c4974ce77b",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "teste la gestion des erreurs avec accessibilité",
+              "fullTitle": "Tests d'accessibilité WCAG 2.1 AA teste la gestion des erreurs avec accessibilité",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Provoquer une erreur de validation\ncy.safeClick('[data-cy=submit-button]'); // Soumission sans données\n// Vérifier que les erreurs sont accessibles\ncy.get('[data-cy=email-input]').should('have.attr', 'aria-invalid', 'true');\ncy.get('[data-cy=password-input]').should('have.attr', 'aria-invalid', 'true');\n// Vérifier les messages d'erreur\ncy.get('[role=\"alert\"]').should('exist').and('be.visible');\n// Vérifier que le focus va sur le premier champ en erreur\ncy.get('[data-cy=email-input]').should('be.focused');\n// Corriger l'erreur et vérifier la mise à jour\ncy.safeType('[data-cy=email-input]', 'test@example.com');\ncy.get('[data-cy=email-input]').should('not.have.attr', 'aria-invalid', 'true');",
+              "err": {},
+              "uuid": "5f930524-0e5b-4f27-8307-8c1ea16a634f",
+              "parentUUID": "237dbd69-ecf0-4d87-ae05-f6c4974ce77b",
+              "isHook": false,
+              "skipped": true
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "70b64904-80c8-4fc5-aa5f-7e67d16e62c8"
+          ],
+          "pending": [],
+          "skipped": [
+            "90ad8c35-8719-4e2d-ba67-95f9fc13a04d",
+            "832abf1e-e0b2-431f-8306-555f0e0c6169",
+            "6b49fc0e-db1b-4c36-b949-c6830f0d4aef",
+            "3691b0e7-e1c9-4563-83b0-9527be87ffc8",
+            "6fec45e5-c830-4af8-9a08-4072dc5c7a26",
+            "8f7dd485-0793-4efd-9de3-5065595c2088",
+            "5f930524-0e5b-4f27-8307-8c1ea16a634f"
+          ],
+          "duration": 141,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

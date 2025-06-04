@@ -1,0 +1,226 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 6,
+    "passes": 0,
+    "pending": 0,
+    "failures": 6,
+    "start": "2025-06-01T07:15:27.846Z",
+    "end": "2025-06-01T07:18:23.864Z",
+    "duration": 176018,
+    "testsRegistered": 6,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 1,
+    "hasOther": true,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "f067062f-3cb8-4f1e-9135-4361a0f024cc",
+      "title": "",
+      "fullFile": "cypress/e2e/mobile/comprehensive-mobile-testing.spec.ts",
+      "file": "cypress/e2e/mobile/comprehensive-mobile-testing.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "1d1fbcb4-26be-4586-a06d-97972c021641",
+          "title": "Tests Mobile et Responsive Complets",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "teste la responsivité sur tous les appareils mobiles",
+              "fullTitle": "Tests Mobile et Responsive Complets teste la responsivité sur tous les appareils mobiles",
+              "timedOut": null,
+              "duration": 17039,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('📱 Test responsivité mobile complet');\ndeviceProfiles.mobile.forEach(function (device) {\n    cy.log(\"Testing on \".concat(device.name, \" (\").concat(device.width, \"x\").concat(device.height, \")\"));\n    // Configurer le viewport\n    cy.viewport(device.width, device.height);\n    // Simuler les caractéristiques de l'appareil\n    cy.window().then(function (win) {\n        // Simuler le pixel ratio\n        Object.defineProperty(win, 'devicePixelRatio', {\n            writable: true,\n            value: device.pixelRatio\n        });\n        // Simuler les événements tactiles\n        if (device.touch) {\n            Object.defineProperty(win.navigator, 'maxTouchPoints', {\n                writable: true,\n                value: 10\n            });\n        }\n    });\n    // Tester la page de connexion\n    cy.visit('/auth/connexion');\n    cy.waitForPageLoad();\n    // Vérifier l'adaptation mobile\n    cy.get('body').should('have.css', 'overflow-x', 'hidden'); // Pas de scroll horizontal\n    // Vérifier que les éléments principaux sont visibles\n    cy.get('[data-cy=email-input]').should('be.visible').and(function ($el) {\n        var rect = $el[0].getBoundingClientRect();\n        expect(rect.width).to.be.lessThan(device.width - 40); // Marges respectées\n    });\n    cy.get('[data-cy=password-input]').should('be.visible');\n    cy.get('[data-cy=submit-button]').should('be.visible');\n    // Test de la taille des zones tactiles\n    cy.get('[data-cy=submit-button]').then(function ($btn) {\n        var rect = $btn[0].getBoundingClientRect();\n        expect(rect.height).to.be.at.least(44); // Taille minimale tactile\n        expect(rect.width).to.be.at.least(44);\n    });\n    // Test du workflow mobile\n    cy.safeType('[data-cy=email-input]', 'mobile@example.com');\n    cy.safeType('[data-cy=password-input]', 'Test123!');\n    cy.safeClick('[data-cy=submit-button]');\n    // Vérifier la navigation post-connexion\n    cy.url({ timeout: 10000 }).should('include', '/tableau-de-bord');\n    // Vérifier l'adaptation du tableau de bord mobile\n    cy.get('[data-cy=mobile-nav]').should('be.visible'); // Navigation mobile\n    cy.get('[data-cy=desktop-nav]').should('not.be.visible'); // Navigation desktop cachée\n    // Tester la navigation mobile\n    cy.get('[data-cy=mobile-menu-button]').click();\n    cy.get('[data-cy=mobile-menu]').should('be.visible');\n    cy.get('[data-cy=mobile-nav-planning]').click();\n    cy.url().should('include', '/planning');\n    // Vérifier l'adaptation du planning mobile\n    cy.get('[data-cy=planning-mobile-view]').should('be.visible');\n    cy.get('[data-cy=planning-desktop-view]').should('not.be.visible');\n    cy.task('logMobileTest', {\n        device: device.name,\n        viewport: { width: device.width, height: device.height },\n        pixelRatio: device.pixelRatio,\n        testsPassed: true,\n        timestamp: Date.now()\n    });\n});",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 15000ms: expected '<body.transition-colors.duration-300>' to have CSS property 'overflow-x' with the value 'hidden', but the value was 'visible'",
+                "estack": "AssertionError: Timed out retrying after 15000ms: expected '<body.transition-colors.duration-300>' to have CSS property 'overflow-x' with the value 'hidden', but the value was 'visible'\n    at eval (webpack://mathildanesth/./cypress/e2e/mobile/comprehensive-mobile-testing.spec.ts:57:27)\nat Array.forEach (<anonymous>)\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/mobile/comprehensive-mobile-testing.spec.ts:29:30)",
+                "diff": "- 'visible'\n+ 'hidden'\n"
+              },
+              "uuid": "2118bafc-8cf0-46fa-8d80-8fc3b57969e5",
+              "parentUUID": "1d1fbcb4-26be-4586-a06d-97972c021641",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "teste les gestes tactiles et interactions mobiles",
+              "fullTitle": "Tests Mobile et Responsive Complets teste les gestes tactiles et interactions mobiles",
+              "timedOut": null,
+              "duration": 17892,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('👆 Test gestes tactiles');\n// Tester sur un appareil mobile spécifique\nvar testDevice = deviceProfiles.mobile[1]; // iPhone 12\ncy.viewport(testDevice.width, testDevice.height);\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', 'mobile@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url().should('include', '/tableau-de-bord');\ncy.get('[data-cy=nav-planning]').click();\ncy.url().should('include', '/planning');\n// Test de swipe (simulation)\ncy.get('[data-cy=planning-container]').then(function ($container) {\n    var container = $container[0];\n    // Simuler un swipe horizontal\n    cy.wrap($container)\n        .trigger('touchstart', { touches: [{ clientX: 200, clientY: 300 }] })\n        .trigger('touchmove', { touches: [{ clientX: 100, clientY: 300 }] })\n        .trigger('touchend');\n    cy.wait(500);\n    // Vérifier que le swipe a eu un effet\n    cy.get('[data-cy=planning-week-view]').should('be.visible');\n});\n// Test de pinch-to-zoom (si supporté)\ncy.get('[data-cy=planning-calendar]').then(function ($calendar) {\n    // Simuler un pinch\n    cy.wrap($calendar)\n        .trigger('touchstart', {\n        touches: [\n            { clientX: 150, clientY: 200 },\n            { clientX: 250, clientY: 300 }\n        ]\n    })\n        .trigger('touchmove', {\n        touches: [\n            { clientX: 100, clientY: 150 },\n            { clientX: 300, clientY: 350 }\n        ]\n    })\n        .trigger('touchend');\n});\n// Test de scroll tactile\ncy.get('[data-cy=planning-list]').scrollTo('bottom', { duration: 1000 });\ncy.get('[data-cy=planning-list]').scrollTo('top', { duration: 1000 });\n// Test de tap vs long press\ncy.get('[data-cy=planning-item]').first().then(function ($item) {\n    // Tap simple\n    cy.wrap($item).trigger('touchstart').trigger('touchend');\n    cy.wait(100);\n    // Long press (simulation)\n    cy.wrap($item)\n        .trigger('touchstart')\n        .wait(800) // Long press duration\n        .trigger('touchend');\n    // Vérifier que le menu contextuel s'affiche\n    cy.get('[data-cy=context-menu]').should('be.visible');\n});",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 15000ms: expected '<button.w-full.rounded-md.bg-blue-600.px-4.py-2.text-white.hover:bg-blue-700.focus:outline-none.focus:ring-2.focus:ring-blue-500.focus:ring-offset-2.disabled:opacity-50.disabled:cursor-not-allowed.transition-colors>' not to be 'disabled'",
+                "estack": "AssertionError: Timed out retrying after 15000ms: expected '<button.w-full.rounded-md.bg-blue-600.px-4.py-2.text-white.hover:bg-blue-700.focus:outline-none.focus:ring-2.focus:ring-blue-500.focus:ring-offset-2.disabled:opacity-50.disabled:cursor-not-allowed.transition-colors>' not to be 'disabled'\n    at Context.eval (webpack://mathildanesth/./cypress/support/e2e.ts:120:40)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)",
+                "diff": null
+              },
+              "uuid": "528f66f3-207b-4273-bdab-ef375bb0d2dc",
+              "parentUUID": "1d1fbcb4-26be-4586-a06d-97972c021641",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "teste l'orientation portrait/paysage",
+              "fullTitle": "Tests Mobile et Responsive Complets teste l'orientation portrait/paysage",
+              "timedOut": null,
+              "duration": 17904,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('🔄 Test rotation d\\'\\u00e9cran');\nvar testDevice = deviceProfiles.mobile[0]; // iPhone SE\n// Test en mode portrait\ncy.viewport(testDevice.width, testDevice.height);\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', 'mobile@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url().should('include', '/tableau-de-bord');\n// Vérifier l'affichage en portrait\ncy.get('[data-cy=mobile-layout]').should('have.class', 'portrait-mode');\ncy.get('[data-cy=navigation-stack]').should('be.visible'); // Navigation verticale\n// Basculer en mode paysage\ncy.viewport(testDevice.height, testDevice.width); // Inversion dimensions\ncy.reload();\ncy.waitForPageLoad();\n// Vérifier l'adaptation au mode paysage\ncy.get('[data-cy=mobile-layout]').should('have.class', 'landscape-mode');\ncy.get('[data-cy=navigation-horizontal]').should('be.visible'); // Navigation horizontale\n// Vérifier que les éléments restent utilisables\ncy.get('[data-cy=nav-planning]').should('be.visible').click();\ncy.url().should('include', '/planning');\n// Vérifier l'adaptation du planning en paysage\ncy.get('[data-cy=planning-landscape-view]').should('be.visible');\ncy.get('[data-cy=sidebar-landscape]').should('be.visible');\n// Retour en portrait\ncy.viewport(testDevice.width, testDevice.height);\ncy.reload();\ncy.waitForPageLoad();\n// Vérifier le retour au mode portrait\ncy.get('[data-cy=mobile-layout]').should('have.class', 'portrait-mode');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 15000ms: expected '<button.w-full.rounded-md.bg-blue-600.px-4.py-2.text-white.hover:bg-blue-700.focus:outline-none.focus:ring-2.focus:ring-blue-500.focus:ring-offset-2.disabled:opacity-50.disabled:cursor-not-allowed.transition-colors>' not to be 'disabled'",
+                "estack": "AssertionError: Timed out retrying after 15000ms: expected '<button.w-full.rounded-md.bg-blue-600.px-4.py-2.text-white.hover:bg-blue-700.focus:outline-none.focus:ring-2.focus:ring-blue-500.focus:ring-offset-2.disabled:opacity-50.disabled:cursor-not-allowed.transition-colors>' not to be 'disabled'\n    at Context.eval (webpack://mathildanesth/./cypress/support/e2e.ts:120:40)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)",
+                "diff": null
+              },
+              "uuid": "9b4b9818-bace-4833-9e22-0b149c867b03",
+              "parentUUID": "1d1fbcb4-26be-4586-a06d-97972c021641",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "teste les performances mobiles et la vitesse de chargement",
+              "fullTitle": "Tests Mobile et Responsive Complets teste les performances mobiles et la vitesse de chargement",
+              "timedOut": null,
+              "duration": 1570,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('⚡ Test performances mobile');\nvar slowDevice = deviceProfiles.mobile[0]; // iPhone SE (plus lent)\ncy.viewport(slowDevice.width, slowDevice.height);\n// Simuler une connexion mobile lente\ncy.intercept('**/api/**', function (req) {\n    req.reply(function (res) {\n        res.delay(200); // Simuler latence mobile\n        res.send();\n    });\n});\nvar mobileLoadStart = performance.now();\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.window().then(function () {\n    var loadTime = performance.now() - mobileLoadStart;\n    cy.task('logMobilePerformance', {\n        metric: 'initial_page_load',\n        device: slowDevice.name,\n        duration: loadTime,\n        threshold: 4000, // 4s max pour mobile\n        status: loadTime < 4000 ? 'GOOD' : 'SLOW',\n        timestamp: Date.now()\n    });\n    expect(loadTime).to.be.lessThan(4000); // Seuil mobile\n});\n// Test de la rapidité de connexion mobile\nvar authStartTime = performance.now();\ncy.safeType('[data-cy=email-input]', 'mobile@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url({ timeout: 8000 }).should('include', '/tableau-de-bord').then(function () {\n    var authTime = performance.now() - authStartTime;\n    cy.task('logMobilePerformance', {\n        metric: 'mobile_authentication',\n        device: slowDevice.name,\n        duration: authTime,\n        threshold: 3000,\n        status: authTime < 3000 ? 'ACCEPTABLE' : 'TOO_SLOW',\n        timestamp: Date.now()\n    });\n    expect(authTime).to.be.lessThan(3000);\n});\n// Test de navigation mobile\nvar navStartTime = performance.now();\ncy.get('[data-cy=nav-planning]').click();\ncy.url().should('include', '/planning').then(function () {\n    var navTime = performance.now() - navStartTime;\n    cy.task('logMobilePerformance', {\n        metric: 'mobile_navigation',\n        device: slowDevice.name,\n        duration: navTime,\n        threshold: 1500,\n        status: navTime < 1500 ? 'SMOOTH' : 'LAGGY',\n        timestamp: Date.now()\n    });\n    expect(navTime).to.be.lessThan(1500);\n});",
+              "err": {
+                "message": "TypeError: res.delay is not a function",
+                "estack": "TypeError: res.delay is not a function\n    at eval (webpack://mathildanesth/./cypress/e2e/mobile/comprehensive-mobile-testing.spec.ts:237:20)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:139326:12)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at onResponse (http://localhost:3000/__cypress/runner/cypress_runner.js:139325:64)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:138793:28)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at $Cypress.<anonymous> (http://localhost:3000/__cypress/runner/cypress_runner.js:138756:59)\n    at EventEmitter.emit (http://localhost:3000/__cypress/runner/cypress_runner.js:143280:19)",
+                "diff": null
+              },
+              "uuid": "68e53fa3-792c-40c0-b22e-a1cb4dccd6bd",
+              "parentUUID": "1d1fbcb4-26be-4586-a06d-97972c021641",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "teste l'accessibilité mobile et les zones tactiles",
+              "fullTitle": "Tests Mobile et Responsive Complets teste l'accessibilité mobile et les zones tactiles",
+              "timedOut": null,
+              "duration": 2090,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('♿️ Test accessibilité mobile');\nvar testDevice = deviceProfiles.mobile[1]; // iPhone 12\ncy.viewport(testDevice.width, testDevice.height);\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\n// Vérifier les tailles minimales tactiles (44px)\ncy.get('button, [role=\"button\"], a, input[type=\"checkbox\"], input[type=\"radio\"]')\n    .each(function ($element) {\n    cy.wrap($element).then(function ($el) {\n        var rect = $el[0].getBoundingClientRect();\n        if ($el.is(':visible')) {\n            expect(rect.width).to.be.at.least(44, \"Element too small: \".concat(rect.width, \"px width\"));\n            expect(rect.height).to.be.at.least(44, \"Element too small: \".concat(rect.height, \"px height\"));\n        }\n    });\n});\n// Vérifier l'espacement entre éléments tactiles\ncy.get('button, [role=\"button\"], a').then(function ($elements) {\n    var visibleElements = $elements.filter(':visible');\n    for (var i = 0; i < visibleElements.length - 1; i++) {\n        var rect1 = visibleElements[i].getBoundingClientRect();\n        var rect2 = visibleElements[i + 1].getBoundingClientRect();\n        // Calculer la distance minimale\n        var horizontalGap = Math.max(0, Math.min(rect2.left - rect1.right, rect1.left - rect2.right));\n        var verticalGap = Math.max(0, Math.min(rect2.top - rect1.bottom, rect1.top - rect2.bottom));\n        var minGap = Math.max(horizontalGap, verticalGap);\n        // Espacement minimal pour éviter les erreurs tactiles\n        if (minGap < 20) {\n            expect(minGap).to.be.at.least(8, 'Touch targets too close');\n        }\n    }\n});\n// Test de la lisibilité du texte mobile\ncy.get('body').should('have.css', 'font-size').then(function (fontSize) {\n    var size = parseInt(fontSize);\n    expect(size).to.be.at.least(16); // Taille minimale pour mobile\n});\n// Test du contraste sur mobile\ncy.get('[data-cy=submit-button]').should(function ($btn) {\n    var styles = window.getComputedStyle($btn[0]);\n    var bgColor = styles.backgroundColor;\n    var textColor = styles.color;\n    // Vérifier que les couleurs ne sont pas transparentes\n    expect(bgColor).to.not.equal('rgba(0, 0, 0, 0)');\n    expect(textColor).to.not.equal('rgba(0, 0, 0, 0)');\n});",
+              "err": {
+                "message": "AssertionError: Element too small: 40px height: expected 40 to be at least 44",
+                "estack": "AssertionError: Element too small: 40px height: expected 40 to be at least 44\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/mobile/comprehensive-mobile-testing.spec.ts:321:53)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)",
+                "diff": "- 40\n+ 44\n"
+              },
+              "uuid": "76a3fad3-c7f2-46a7-99d0-81ebf2c21e6b",
+              "parentUUID": "1d1fbcb4-26be-4586-a06d-97972c021641",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "teste la compatibilité avec les PWA et fonctionnalités mobiles",
+              "fullTitle": "Tests Mobile et Responsive Complets teste la compatibilité avec les PWA et fonctionnalités mobiles",
+              "timedOut": null,
+              "duration": 136,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('📦 Test PWA et fonctionnalités mobiles');\nvar testDevice = deviceProfiles.mobile[2]; // Samsung Galaxy\ncy.viewport(testDevice.width, testDevice.height);\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\n// Vérifier le manifest PWA\ncy.get('link[rel=\"manifest\"]').should('exist');\n// Vérifier les meta tags mobiles\ncy.get('meta[name=\"viewport\"]')\n    .should('have.attr', 'content')\n    .and('include', 'width=device-width')\n    .and('include', 'initial-scale=1');\n// Vérifier le support du theme-color\ncy.get('meta[name=\"theme-color\"]').should('exist');\n// Vérifier les icônes pour mobile\ncy.get('link[rel=\"apple-touch-icon\"]').should('exist');\ncy.get('link[rel=\"icon\"]').should('exist');\n// Tester le service worker (si disponible)\ncy.window().then(function (win) {\n    if ('serviceWorker' in win.navigator) {\n        cy.wrap(win.navigator.serviceWorker.getRegistrations())\n            .then(function (registrations) {\n            expect(registrations.length).to.be.greaterThan(0);\n        });\n    }\n});\n// Test de la navigation mobile PWA\ncy.safeType('[data-cy=email-input]', 'pwa@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url().should('include', '/tableau-de-bord');\n// Vérifier que l'application fonctionne en mode standalone\ncy.window().then(function (win) {\n    // Simuler le mode standalone PWA\n    Object.defineProperty(win.navigator, 'standalone', {\n        writable: true,\n        value: true\n    });\n    // Vérifier l'adaptation de l'UI\n    cy.get('[data-cy=pwa-header]').should('be.visible');\n});",
+              "err": {
+                "message": "CypressError: `cy.task('generateMobileTestReport')` failed with the following error:\n\nThe task 'generateMobileTestReport' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after all` hook we are skipping the remaining tests in the current suite: `Tests Mobile et Responsive ...`\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail",
+                "estack": "CypressError: `cy.task('generateMobileTestReport')` failed with the following error:\n\nThe task 'generateMobileTestReport' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after all` hook we are skipping the remaining tests in the current suite: `Tests Mobile et Responsive ...`\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137237:72)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/mobile/comprehensive-mobile-testing.spec.ts:402:59)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)",
+                "diff": null
+              },
+              "uuid": "bc0a68bf-a369-44a1-8450-6af30afc9a29",
+              "parentUUID": "1d1fbcb4-26be-4586-a06d-97972c021641",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "2118bafc-8cf0-46fa-8d80-8fc3b57969e5",
+            "528f66f3-207b-4273-bdab-ef375bb0d2dc",
+            "9b4b9818-bace-4833-9e22-0b149c867b03",
+            "68e53fa3-792c-40c0-b22e-a1cb4dccd6bd",
+            "76a3fad3-c7f2-46a7-99d0-81ebf2c21e6b",
+            "bc0a68bf-a369-44a1-8450-6af30afc9a29"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 56631,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

@@ -25,7 +25,7 @@ const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
                 const iadeIndex = headers.findIndex(h => h.includes('IADE'));
 
                 // Convertir en assignations
-                const newAssignments: Assignment[] = [];
+                const newAssignments: Attribution[] = [];
                 for (let i = 1; i < lines.length; i++) {
                     if (!lines[i].trim()) continue;
 

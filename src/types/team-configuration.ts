@@ -185,7 +185,7 @@ export interface TeamConfiguration extends TeamConfigBase {
     preferences?: any;
     statistiques?: any;
     horaires?: any;
-    affectations?: any;
+    affectations: any;
     transitions?: any;
     equite?: any;
     alertes?: any;

@@ -1,0 +1,131 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 1,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-06-01T06:15:14.364Z",
+    "end": "2025-06-01T06:15:50.155Z",
+    "duration": 35791,
+    "testsRegistered": 2,
+    "passPercent": 50,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "d60be105-ddf8-443f-9d32-6b1d73df02c3",
+      "title": "",
+      "fullFile": "cypress/e2e/auth/simple-login-test.spec.ts",
+      "file": "cypress/e2e/auth/simple-login-test.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "a886f654-7854-4da3-b868-0bcff2d7b069",
+          "title": "Test de connexion simple",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "visite la page de connexion",
+              "fullTitle": "Test de connexion simple visite la page de connexion",
+              "timedOut": null,
+              "duration": 1078,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/auth/connexion');\ncy.get('h1').should('contain', 'Connexion');\ncy.get('[data-cy=email-input]').should('be.visible');\ncy.get('[data-cy=password-input]').should('be.visible');\ncy.get('[data-cy=submit-button]').should('be.visible');",
+              "err": {},
+              "uuid": "812deb3d-8844-4ac3-9e90-be8357025f73",
+              "parentUUID": "a886f654-7854-4da3-b868-0bcff2d7b069",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "affiche une erreur pour des identifiants invalides",
+              "fullTitle": "Test de connexion simple affiche une erreur pour des identifiants invalides",
+              "timedOut": null,
+              "duration": 7586,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/auth/connexion');\ncy.get('[data-cy=email-input]').type('test@invalid.com');\ncy.get('[data-cy=password-input]').type('wrongpassword');\ncy.get('[data-cy=submit-button]').click({ force: true });\ncy.get('[data-cy=error-message]')\n    .should('be.visible')\n    .and('contain.text', 'Identifiants invalides');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/simple-login-test.spec.ts:11:11)",
+                "diff": null
+              },
+              "uuid": "9102b18b-ef4e-4612-b13a-8df2e75e9ca9",
+              "parentUUID": "a886f654-7854-4da3-b868-0bcff2d7b069",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "812deb3d-8844-4ac3-9e90-be8357025f73"
+          ],
+          "failures": [
+            "9102b18b-ef4e-4612-b13a-8df2e75e9ca9"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 8664,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

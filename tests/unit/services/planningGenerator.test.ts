@@ -1,20 +1,20 @@
 import { PlanningGenerator } from '@/services/planningGenerator';
-import { PlanningOptimizer } from '@/services/planningOptimizer';
+// import { PlanningOptimizer } from '@/services/planningOptimizer'; // Non utilisé pour l'instant
 import {
     GenerationParameters,
     Assignment,
-    RuleViolation,
-    ValidationResult,
+    // RuleViolation, // Non utilisé
+    // ValidationResult, // Non utilisé
     AssignmentType,
     AssignmentStatus
 } from '@/types/assignment';
 import { ShiftType } from '@/types/common';
-import { User, UserRole, Leave, LeaveType, LeaveStatus, ExperienceLevel } from '@/types/user';
-import { RulesConfiguration, RuleSeverity, defaultRulesConfiguration, FatigueConfig, defaultFatigueConfig } from '@/types/rules';
+import { User, UserRole, Leave, LeaveStatus } from '@/types/user';
+import { RulesConfiguration, FatigueConfig } from '@/types/rules';
 
 // --- Importer les factories --- 
 import { createUser, createLeave } from '../../factories/userFactory';
-import { createAssignment, createAssignmentAttributes } from '../../factories/assignmentFactory'; // createAssignmentAttributes n'est pas utilisé ici mais importé pour référence
+import { createAssignment } from '../../factories/assignmentFactory';
 import { createRulesConfig, createFatigueConfig } from '../../factories/rulesFactory';
 
 // --- Mocks ---
@@ -138,6 +138,7 @@ describe('PlanningGenerator', () => {
         // let findLastAssignmentSpy: jest.SpyInstance;
 
         beforeEach(async () => {
+    jest.clearAllMocks();
             await generator.initialize(mockUsers, []);
             accessHelper(generator).initializeUserCounters();
             // COMMENTÉ: Espionnage de méthodes privées
@@ -208,6 +209,7 @@ describe('PlanningGenerator', () => {
         // let calcScoreSpy: jest.SpyInstance;
 
         beforeEach(async () => {
+    jest.clearAllMocks();
             // Initialiser le générateur et les compteurs pour ces utilisateurs
             await generator.initialize(eligibleUsers, []);
             accessHelper(generator).personnel = eligibleUsers;

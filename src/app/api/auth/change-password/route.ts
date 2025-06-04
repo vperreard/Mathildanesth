@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import { headers } from 'next/headers'; // Pour récupérer l'ID utilisateur depuis le middleware
 import { verifyToken } from '@/lib/auth'; // Alias path
 
-// const prisma = new PrismaClient(); // Supprimé
+// const prisma = prisma; // Supprimé
 
 export async function PUT(request: Request) {
     console.log("--- Requête PUT /api/auth/change-password reçue ---");

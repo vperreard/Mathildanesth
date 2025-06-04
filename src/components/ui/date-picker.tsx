@@ -28,4 +28,8 @@ export const DatePickerComponent: React.FC<DatePickerProps> = ({
             dateFormat="dd/MM/yyyy"
         />
     );
-}; 
+};
+
+// Export avec l'alias attendu
+export { DatePickerComponent as DatePicker };
+export default DatePickerComponent; 

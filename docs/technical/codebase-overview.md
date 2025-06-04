@@ -775,7 +775,7 @@ Ce hook est utilisé dans divers composants pour:
 Le hook `useConflictDetection` est intégré avec le système de validation de dates pour assurer que les validations de dates sont effectuées avant les vérifications de conflits :
 
 ```typescript
-// src/modules/leaves/hooks/useConflictDetection.ts
+// src/modules/conges/hooks/useConflictDetection.ts
 export function useConflictDetection({ userId }: UseConflictDetectionProps) {
   // ...
   
@@ -852,6 +852,6 @@ if (result.hasBlockers) {
 
 Le service est complété par le hook `useConflictDetection` qui intègre la validation de dates avec le hook `useDateValidation` pour un système complet de vérification des demandes de congés.
 
-Voir `src/modules/leaves/types/conflict.ts` pour les définitions des types associés et `src/modules/leaves/services/conflictDetectionService.ts` pour l'implémentation complète.
+Voir `src/modules/conges/types/conflict.ts` pour les définitions des types associés et `src/modules/conges/services/conflictDetectionService.ts` pour l'implémentation complète.
 
 // ... existing code ... 

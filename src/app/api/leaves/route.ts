@@ -1,72 +1,114 @@
 import { NextRequest, NextResponse } from 'next/server';
-// Importer Prisma Client (adapter le chemin si nécessaire)
 import { prisma } from '@/lib/prisma';
-// Importer les types Prisma directement
 import { LeaveStatus, LeaveType as PrismaLeaveType } from '@prisma/client';
-// Importer l'enum locale si elle est encore utilisée ailleurs, mais pas pour l'interaction DB
-// import { LeaveType } from '@/modules/leaves/types/leave';
-// Supposer que ces fonctions existent ou les commenter/supprimer
-// import { calculateLeaveCountedDays } from '@/modules/leaves/services/leaveCalculator';
-// import { getUserWorkSchedule } from '@/modules/profiles/services/profileService';
+import { withAuth, SecurityChecks } from '@/middleware/authorization';
+import { logger } from '@/lib/logger';
+import { auth } from '@/lib/auth';
+import { verifyAuthToken } from '@/lib/auth-server-utils';
+import { BusinessRulesValidator } from '@/services/businessRulesValidator';
+import { withSensitiveRateLimit } from '@/lib/rateLimit';
+import { auditService, AuditAction } from '@/services/OptimizedAuditService';
 
 // Interface attendue par le frontend (similaire à celle dans page.tsx)
+interface UserFrontend {
+    id: number;
+    firstName: string;
+    lastName: string;
+    prenom: string;
+    nom: string;
+}
+
 interface LeaveWithUserFrontend {
-    id: string; // ID en string
+    id: string;
     startDate: string;
     endDate: string;
     status: LeaveStatus;
     type: PrismaLeaveType;
-    typeCode: string; // Ajout du code de type (string)
-    reason?: string | null; // S'assurer que le type correspond au schéma
+    typeCode?: string | null;
+    reason?: string | null;
     createdAt: string;
     updatedAt: string;
     userId: number;
-    user: {
-        id: number;
-        firstName: string;
-        lastName: string;
-        // Ajout des champs pour compatibilité
-        prenom?: string;
-        nom?: string;
-    };
+    user: UserFrontend;
 }
 
 // Mapping du code (string) vers l'enum Prisma LeaveType pour la compatibilité
 const mapCodeToLeaveType = (code: string): PrismaLeaveType => {
-    switch (code) {
-        case 'CP': return PrismaLeaveType.ANNUAL;
-        case 'RTT': return PrismaLeaveType.RECOVERY;
-        case 'FORM': return PrismaLeaveType.TRAINING;
-        case 'MAL': return PrismaLeaveType.SICK;
-        case 'MAT': return PrismaLeaveType.MATERNITY;
-        case 'CSS': return PrismaLeaveType.SPECIAL;
-        case 'RECUP': return PrismaLeaveType.RECOVERY;
-        case 'OTHER': return PrismaLeaveType.OTHER;
-        // Garder les anciennes mappings pour rétrocompatibilité
-        case 'ANNUAL': return PrismaLeaveType.ANNUAL;
-        case 'RECOVERY': return PrismaLeaveType.RECOVERY;
-        case 'TRAINING': return PrismaLeaveType.TRAINING;
-        case 'SICK': return PrismaLeaveType.SICK;
-        case 'MATERNITY': return PrismaLeaveType.MATERNITY;
-        case 'SPECIAL': return PrismaLeaveType.SPECIAL;
-        case 'UNPAID': return PrismaLeaveType.UNPAID;
-        default: return PrismaLeaveType.OTHER; // Valeur par défaut pour les codes inconnus
-    }
+    const mappings: Record<string, PrismaLeaveType> = {
+        'ANNUAL': PrismaLeaveType.ANNUAL,
+        'RECOVERY': PrismaLeaveType.RECOVERY,
+        'TRAINING': PrismaLeaveType.TRAINING,
+        'SICK': PrismaLeaveType.SICK,
+        'MATERNITY': PrismaLeaveType.MATERNITY,
+        'SPECIAL': PrismaLeaveType.SPECIAL,
+        'UNPAID': PrismaLeaveType.UNPAID,
+        'OTHER': PrismaLeaveType.OTHER,
+    };
+
+    return mappings[code] || PrismaLeaveType.OTHER;
 };
 
-export async function GET(request: NextRequest) {
-    const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get('userId');
-
-    console.log(`[API /api/leaves] Requête GET reçue pour userId: ${userId}`);
-
-    if (!userId) {
-        return NextResponse.json({ error: 'Le paramètre userId est manquant' }, { status: 400 });
-    }
-
-    // TODO: Vérifier les permissions de l'utilisateur (ex: est-ce l'utilisateur lui-même ou un admin?)
-
+/**
+ * GET /api/conges?userId=123
+ * Récupère les congés d'un utilisateur.
+ */
+async function getHandler(request: NextRequest) {
     try {
+        const { searchParams } = new URL(request.url);
+        const userId = searchParams.get('userId');
+
+        console.log(`[API /api/conges] Requête GET reçue pour userId: ${userId}`);
+
+        if (!userId) {
+            return NextResponse.json({ error: 'Le paramètre userId est manquant' }, { status: 400 });
+        }
+
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur
+        const authHeader = request.headers.get('authorization');
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        
+        if (!token) {
+            logger.warn('Tentative d\'accès sans token', { path: '/api/conges', userId });
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+
+        const authResult = await verifyAuthToken(token);
+        if (!authResult.authenticated) {
+            logger.warn('Token invalide', { path: '/api/conges', userId });
+            return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+        }
+
+        // Récupérer l'utilisateur authentifié
+        const authenticatedUser = await prisma.user.findUnique({
+            where: { id: authResult.userId },
+            select: { id: true, role: true }
+        });
+
+        if (!authenticatedUser) {
+            return NextResponse.json({ error: 'User not found' }, { status: 403 });
+        }
+
+        // Vérifier les permissions : l'utilisateur peut voir ses propres congés ou être admin
+        const targetUserId = parseInt(userId, 10);
+        if (authenticatedUser.id !== targetUserId && 
+            authenticatedUser.role !== 'ADMIN_TOTAL' && 
+            authenticatedUser.role !== 'ADMIN_PARTIEL') {
+            logger.warn('Accès non autorisé aux congés', { 
+                authenticatedUserId: authenticatedUser.id, 
+                targetUserId,
+                role: authenticatedUser.role 
+            });
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        // Logger l'action
+        logger.info('Consultation des congés', {
+            action: 'READ_LEAVES',
+            authenticatedUserId: authenticatedUser.id,
+            targetUserId,
+            role: authenticatedUser.role
+        });
+
         const userIdInt = parseInt(userId, 10);
         if (isNaN(userIdInt)) {
             return NextResponse.json({ error: 'Le paramètre userId doit être un nombre valide' }, { status: 400 });
@@ -148,23 +190,70 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(formattedLeaves);
 
     } catch (error) {
-        console.error(`[API /api/leaves] Erreur lors de la récupération des congés pour userId ${userId}:`, error);
+        console.error(`[API /api/conges] Erreur lors de la récupération des congés:`, error);
         return NextResponse.json({ error: 'Erreur serveur lors de la récupération des congés.' }, { status: 500 });
     }
 }
 
 /**
- * POST /api/leaves
+ * POST /api/conges
  * Crée une nouvelle demande de congé.
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
     try {
+        // 🔐 Vérifier les permissions de création de congé
+        const authHeader = request.headers.get('authorization');
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+        
+        if (!token) {
+            logger.warn('Tentative de création de congé sans token', { path: '/api/conges' });
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+
+        const authResult = await verifyAuthToken(token);
+        if (!authResult.authenticated) {
+            logger.warn('Token invalide pour création de congé', { path: '/api/conges' });
+            return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+        }
+
         const body = await request.json();
-        console.log('[API /leaves POST] Corps de la requête reçu:', JSON.stringify(body, null, 2));
+        console.log('[API /conges POST] Corps de la requête reçu:', JSON.stringify(body, null, 2));
 
         const { userId, startDate, endDate, typeCode, reason } = body;
 
-        console.log('[API /leaves POST] Valeurs extraites:', {
+        // Récupérer l'utilisateur authentifié
+        const authenticatedUser = await prisma.user.findUnique({
+            where: { id: authResult.userId },
+            select: { id: true, role: true }
+        });
+
+        if (!authenticatedUser) {
+            return NextResponse.json({ error: 'User not found' }, { status: 403 });
+        }
+
+        // 🔐 Vérifier que l'utilisateur peut créer ce congé (pour lui-même ou admin)
+        const targetUserId = parseInt(String(userId), 10);
+        if (authenticatedUser.id !== targetUserId && 
+            authenticatedUser.role !== 'ADMIN_TOTAL' && 
+            authenticatedUser.role !== 'ADMIN_PARTIEL') {
+            logger.warn('Tentative non autorisée de création de congé', { 
+                authenticatedUserId: authenticatedUser.id, 
+                targetUserId,
+                role: authenticatedUser.role 
+            });
+            return NextResponse.json({ error: 'Forbidden - Vous ne pouvez créer des congés que pour vous-même' }, { status: 403 });
+        }
+
+        // Logger l'action
+        logger.info('Création de congé', {
+            action: 'CREATE_LEAVE',
+            authenticatedUserId: authenticatedUser.id,
+            targetUserId,
+            role: authenticatedUser.role,
+            details: { typeCode, startDate, endDate }
+        });
+
+        console.log('[API /conges POST] Valeurs extraites:', {
             userId,
             startDate,
             endDate,
@@ -178,7 +267,7 @@ export async function POST(request: NextRequest) {
 
         // --- Validation des données --- 
         if (!userId || !startDate || !endDate || !typeCode) {
-            console.log('[API /leaves POST] Validation échouée:', {
+            console.log('[API /conges POST] Validation échouée:', {
                 hasUserId: !!userId,
                 hasStartDate: !!startDate,
                 hasEndDate: !!endDate,
@@ -209,6 +298,27 @@ export async function POST(request: NextRequest) {
         // Valeur par défaut pour les jours comptés, à remplacer par le vrai calcul
         const countedDays = 1;
 
+        // 🔐 VALIDATION DES RÈGLES MÉTIER AVANT CRÉATION
+        const validationResult = await BusinessRulesValidator.validateLeaveRequest({
+            userId: String(userIdInt),
+            startDate: start,
+            endDate: end,
+            type: typeCode,
+            quotaId: body.quotaId // Si applicable
+        });
+
+        if (!validationResult.valid) {
+            logger.warn('Validation des règles métier échouée', {
+                userId: userIdInt,
+                errors: validationResult.errors,
+                leaveDetails: { typeCode, startDate, endDate }
+            });
+            return NextResponse.json({ 
+                error: 'La demande de congé ne respecte pas les règles métier',
+                details: validationResult.errors
+            }, { status: 400 });
+        }
+
         // --- Création en base de données --- 
         try {
             const newLeave = await prisma.leave.create({
@@ -234,7 +344,7 @@ export async function POST(request: NextRequest) {
                 },
             });
 
-            console.log('[API /leaves POST] Données utilisateur récupérées:', JSON.stringify({
+            console.log('[API /conges POST] Données utilisateur récupérées:', JSON.stringify({
                 userId: userIdInt,
                 userIncluded: !!newLeave.user,
                 userData: newLeave.user
@@ -255,7 +365,7 @@ export async function POST(request: NextRequest) {
 
             // S'assurer que les valeurs de nom et prénom ne sont jamais undefined
             const adaptedUser = adaptUserFields(newLeave.user);
-            console.log('[API /leaves POST] Utilisateur adapté:', JSON.stringify(adaptedUser, null, 2));
+            console.log('[API /conges POST] Utilisateur adapté:', JSON.stringify(adaptedUser, null, 2));
 
             const firstName = adaptedUser?.prenom || adaptedUser?.firstName || '(Prénom non défini)';
             const lastName = adaptedUser?.nom || adaptedUser?.lastName || '(Nom non défini)';
@@ -282,19 +392,58 @@ export async function POST(request: NextRequest) {
                 }
             };
 
-            console.log('[API /leaves POST] Congé créé avec succès:', JSON.stringify(formattedLeave, null, 2));
+            // Log d'audit pour la création du congé
+            await auditService.logDataModification(
+                AuditAction.LEAVE_REQUESTED,
+                'Leave',
+                newLeave.id,
+                authenticatedUser.id,
+                null, // Pas de valeur précédente pour une création
+                formattedLeave,
+                {
+                    ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+                    userAgent: request.headers.get('user-agent') || 'unknown',
+                    targetUserId: targetUserId !== authenticatedUser.id ? targetUserId : undefined,
+                    metadata: {
+                        typeCode,
+                        duration: `${Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))} jours`,
+                        createdBy: authenticatedUser.role === 'ADMIN_TOTAL' || authenticatedUser.role === 'ADMIN_PARTIEL' ? 'admin' : 'user'
+                    }
+                }
+            );
+
+            console.log('[API /conges POST] Congé créé avec succès:', JSON.stringify(formattedLeave, null, 2));
             return NextResponse.json(formattedLeave, { status: 201 }); // 201 Created
         } catch (error) {
-            console.error('[API /leaves POST] Erreur lors de la création du congé:', error);
+            console.error('[API /conges POST] Erreur lors de la création du congé:', error);
+            
+            // Log d'audit pour l'échec
+            await auditService.logAction({
+                action: AuditAction.ERROR_OCCURRED,
+                entityId: 'leave_creation',
+                entityType: 'Leave',
+                userId: authenticatedUser.id,
+                severity: 'ERROR',
+                success: false,
+                details: {
+                    errorMessage: error instanceof Error ? error.message : 'Unknown error',
+                    metadata: { typeCode, startDate, endDate, targetUserId }
+                }
+            });
+            
             return NextResponse.json({ error: "Erreur lors de la création du congé dans la base de données." }, { status: 500 });
         }
 
     } catch (error) {
-        console.error('[API /leaves POST] Erreur générale:', error);
+        console.error('[API /conges POST] Erreur générale:', error);
         return NextResponse.json({ error: 'Erreur serveur lors de la création de la demande de congé.' }, { status: 500 });
     }
 }
 
+// Export des handlers avec rate limiting
+export const GET = withSensitiveRateLimit(getHandler);
+export const POST = withSensitiveRateLimit(postHandler);
+
 // Ajouter d'autres méthodes (PUT, DELETE) si nécessaire pour modifier/annuler
-// export async function PUT(request: NextRequest) { ... } // ou /api/leaves/[id]
-// export async function DELETE(request: NextRequest) { ... } // ou /api/leaves/[id] 
+// export async function PUT(request: NextRequest) { ... } // ou /api/conges/[id]
+// export async function DELETE(request: NextRequest) { ... } // ou /api/conges/[id] 

@@ -4,23 +4,23 @@
 
 Le module de gestion des congés est structuré en trois couches principales:
 
-1. **Interface utilisateur** (`/src/modules/leaves/components/`)
+1. **Interface utilisateur** (`/src/modules/conges/components/`)
    - Formulaires de demande et de consultation
    - Composants de visualisation des soldes
 
-2. **Logique métier** (`/src/modules/leaves/hooks/`, `/src/services/`)
+2. **Logique métier** (`/src/modules/conges/hooks/`, `/src/services/`)
    - Calcul des jours de congés
    - Règles de gestion des soldes
    - Détection de conflits
 
-3. **Couche de données** (`/src/pages/api/leaves/`)
+3. **Couche de données** (`/src/pages/api/conges/`)
    - API REST pour l'interaction avec la base de données Prisma
    - Validation des données
    - Gestion des transactions
 
 ## Analyse détaillée des API
 
-### GET /api/leaves/balance
+### GET /api/conges/balance
 
 #### Fonctionnement interne
 
@@ -62,7 +62,7 @@ const balance = {
 };
 ```
 
-### POST /api/leaves/batch
+### POST /api/conges/batch
 
 Cette API permet de créer plusieurs demandes de congés en une seule requête, avec validation et détection de conflits.
 
@@ -246,7 +246,7 @@ Nous avons implémenté des tests d'intégration pour les principales API du mod
 
 ### Test de balance
 
-`/src/tests/integration/api/leaves/balance.test.ts` vérifie que:
+`/src/tests/integration/api/conges/balance.test.ts` vérifie que:
 - L'API retourne les bons soldes initiaux
 - Les reports de l'année précédente sont correctement pris en compte
 - Les transferts entre types de congés sont calculés
@@ -254,14 +254,14 @@ Nous avons implémenté des tests d'intégration pour les principales API du mod
 
 ### Test de détection de conflits
 
-`/src/tests/integration/api/leaves/conflict.test.ts` vérifie que:
+`/src/tests/integration/api/conges/conflict.test.ts` vérifie que:
 - L'API détecte et rejette les chevauchements complets
 - L'API détecte et rejette les chevauchements partiels (début/fin)
 - L'API autorise les demandes sans conflit
 
 ### Test de mise à jour des soldes
 
-`/src/tests/integration/api/leaves/balanceUpdate.test.ts` vérifie que:
+`/src/tests/integration/api/conges/balanceUpdate.test.ts` vérifie que:
 - Les soldes sont correctement mis à jour lors de la création d'un congé
 - Les soldes sont correctement mis à jour lors de l'approbation d'un congé
 - Les soldes sont correctement restaurés lors de l'annulation d'un congé

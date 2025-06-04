@@ -160,4 +160,64 @@ export class LoggerService implements ILoggerService {
     public critical(message: string, context?: any): void {
         this.error(`CRITICAL: ${message}`, context);
     }
-} 
+}
+
+// Create a default logger instance
+const defaultLogger = new LoggerService();
+
+// Export standalone functions for backwards compatibility
+export const log = (level: LogLevel, message: string, context?: any): void => {
+    defaultLogger.log(level, message, context);
+};
+
+export const logError = (message: string, context?: any): void => {
+    defaultLogger.error(message, context);
+};
+
+export const logWarning = (message: string, context?: any): void => {
+    defaultLogger.warn(message, context);
+};
+
+export const logInfo = (message: string, context?: any): void => {
+    defaultLogger.info(message, context);
+};
+
+export const logDebug = (message: string, context?: any): void => {
+    defaultLogger.debug(message, context);
+};
+
+// Logger class for custom contexts
+export class Logger {
+    private service: LoggerService;
+    private context: string;
+
+    constructor(context: string) {
+        this.service = new LoggerService();
+        this.context = context;
+    }
+
+    private formatMessage(message: string): string {
+        return `[${this.context}] ${message}`;
+    }
+
+    public error(message: string, ...args: any[]): void {
+        this.service.error(this.formatMessage(message), ...args);
+    }
+
+    public warn(message: string, ...args: any[]): void {
+        this.service.warn(this.formatMessage(message), ...args);
+    }
+
+    public info(message: string, ...args: any[]): void {
+        this.service.info(this.formatMessage(message), ...args);
+    }
+
+    public debug(message: string, ...args: any[]): void {
+        this.service.debug(this.formatMessage(message), ...args);
+    }
+}
+
+// Factory function
+export const createLogger = (context: string = 'Logger', minLevel?: LogLevel): Logger => {
+    return new Logger(context);
+}; 

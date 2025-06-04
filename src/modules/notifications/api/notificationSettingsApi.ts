@@ -19,7 +19,7 @@ export const getUserNotificationSettings = async (userId: string): Promise<Notif
         await new Promise(resolve => setTimeout(resolve, 800));
 
         // Exemple de requête API
-        // const response = await axios.get(`${API_BASE_URL}/users/${userId}/preferences`);
+        // const response = await axios.get(`${API_BASE_URL}/utilisateurs/${userId}/preferences`);
         // return response.data;
 
         // Retourner des données par défaut pour le moment
@@ -56,7 +56,7 @@ export const saveUserNotificationSettings = async (userId: string, settings: Not
         await new Promise(resolve => setTimeout(resolve, 800));
 
         // Exemple de requête API
-        // await axios.post(`${API_BASE_URL}/users/${userId}/preferences`, settings);
+        // await axios.post(`${API_BASE_URL}/utilisateurs/${userId}/preferences`, settings);
     } catch (error) {
         console.error('Erreur lors de l\'enregistrement des préférences de notification:', error);
         throw new Error('Impossible d\'enregistrer les préférences de notification');
@@ -76,7 +76,7 @@ export const resetUserNotificationSettings = async (userId: string): Promise<voi
         await new Promise(resolve => setTimeout(resolve, 800));
 
         // Exemple de requête API
-        // await axios.delete(`${API_BASE_URL}/users/${userId}/preferences`);
+        // await axios.delete(`${API_BASE_URL}/utilisateurs/${userId}/preferences`);
     } catch (error) {
         console.error('Erreur lors de la réinitialisation des préférences de notification:', error);
         throw new Error('Impossible de réinitialiser les préférences de notification');

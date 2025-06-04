@@ -3,18 +3,18 @@ import { PrismaClient, AssignmentSwapStatus } from '@prisma/client';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import { AssignmentSwapEventType, sendAssignmentSwapNotification } from '@/lib/assignment-notification-utils';
 
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 /**
- * GET /api/assignments/swap/[id]
+ * GET /api/affectations/echange/[id]
  * Récupère les détails d'une demande d'échange spécifique
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = params;
-    console.log(`\n--- GET /api/assignments/swap/${id} START ---`);
+    const { id } = await params;
+    console.log(`\n--- GET /api/affectations/echange/${id} START ---`);
 
     // Authentification
     const token = request.cookies.get('token')?.value ||
@@ -22,13 +22,13 @@ export async function GET(
             request.headers.get('Authorization')?.substring(7) : null);
 
     if (!token) {
-        console.error(`GET /api/assignments/swap/${id}: Token manquant`);
+        console.error(`GET /api/affectations/echange/${id}: Token manquant`);
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     const authResult = await verifyAuthToken(token);
     if (!authResult.authenticated) {
-        console.error(`GET /api/assignments/swap/${id}: Token invalide`);
+        console.error(`GET /api/affectations/echange/${id}: Token invalide`);
         return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
     }
 
@@ -70,7 +70,7 @@ export async function GET(
 
         // Vérifier que la demande existe
         if (!swapRequest) {
-            console.warn(`GET /api/assignments/swap/${id}: Demande introuvable`);
+            console.warn(`GET /api/affectations/echange/${id}: Demande introuvable`);
             return NextResponse.json({ error: 'Demande d\'échange introuvable' }, { status: 404 });
         }
 
@@ -80,17 +80,17 @@ export async function GET(
         const isInvolved = swapRequest.initiatorUserId === userId || swapRequest.targetUserId === userId;
 
         if (!isAdmin && !isInvolved) {
-            console.warn(`GET /api/assignments/swap/${id}: Accès non autorisé pour l'utilisateur ${userId}`);
+            console.warn(`GET /api/affectations/echange/${id}: Accès non autorisé pour l'utilisateur ${userId}`);
             return NextResponse.json({ error: 'Vous n\'êtes pas autorisé à voir cette demande d\'échange' }, { status: 403 });
         }
 
-        console.log(`GET /api/assignments/swap/${id}: Demande récupérée avec succès`);
-        console.log(`--- GET /api/assignments/swap/${id} END ---\n`);
+        console.log(`GET /api/affectations/echange/${id}: Demande récupérée avec succès`);
+        console.log(`--- GET /api/affectations/echange/${id} END ---\n`);
 
         return NextResponse.json(swapRequest);
 
     } catch (error: any) {
-        console.error(`GET /api/assignments/swap/${id}: Erreur serveur`, error);
+        console.error(`GET /api/affectations/echange/${id}: Erreur serveur`, error);
         return NextResponse.json({
             error: 'Erreur lors de la récupération de la demande d\'échange',
             details: error.message
@@ -99,15 +99,15 @@ export async function GET(
 }
 
 /**
- * PUT /api/assignments/swap/[id]
+ * PUT /api/affectations/echange/[id]
  * Met à jour une demande d'échange (accepter, refuser, annuler)
  */
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = params;
-    console.log(`\n--- PUT /api/assignments/swap/${id} START ---`);
+    const { id } = await params;
+    console.log(`\n--- PUT /api/affectations/echange/${id} START ---`);
 
     // Authentification
     const token = request.cookies.get('token')?.value ||
@@ -115,13 +115,13 @@ export async function PUT(
             request.headers.get('Authorization')?.substring(7) : null);
 
     if (!token) {
-        console.error(`PUT /api/assignments/swap/${id}: Token manquant`);
+        console.error(`PUT /api/affectations/echange/${id}: Token manquant`);
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     const authResult = await verifyAuthToken(token);
     if (!authResult.authenticated) {
-        console.error(`PUT /api/assignments/swap/${id}: Token invalide`);
+        console.error(`PUT /api/affectations/echange/${id}: Token invalide`);
         return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
     }
 
@@ -134,7 +134,7 @@ export async function PUT(
 
         // Validation des données
         if (!status || !Object.values(AssignmentSwapStatus).includes(status)) {
-            console.warn(`PUT /api/assignments/swap/${id}: Statut invalide - ${status}`);
+            console.warn(`PUT /api/affectations/echange/${id}: Statut invalide - ${status}`);
             return NextResponse.json({
                 error: 'Le statut fourni est invalide'
             }, { status: 400 });
@@ -151,7 +151,7 @@ export async function PUT(
 
         // Vérifier que la demande existe
         if (!currentSwapRequest) {
-            console.warn(`PUT /api/assignments/swap/${id}: Demande introuvable`);
+            console.warn(`PUT /api/affectations/echange/${id}: Demande introuvable`);
             return NextResponse.json({ error: 'Demande d\'échange introuvable' }, { status: 404 });
         }
 
@@ -201,7 +201,7 @@ export async function PUT(
 
         // Si l'action n'est pas autorisée
         if (!authorized) {
-            console.warn(`PUT /api/assignments/swap/${id}: Transition non autorisée de ${currentSwapRequest.status} à ${status} par l'utilisateur ${userId}`);
+            console.warn(`PUT /api/affectations/echange/${id}: Transition non autorisée de ${currentSwapRequest.status} à ${status} par l'utilisateur ${userId}`);
             return NextResponse.json({
                 error: 'Vous n\'êtes pas autorisé à effectuer cette action sur la demande d\'échange'
             }, { status: 403 });
@@ -229,19 +229,19 @@ export async function PUT(
             let swappedAssignments = null;
             if (status === AssignmentSwapStatus.ACCEPTED && !isAdmin) {
                 // Récupérer les affectations à échanger
-                const proposedAssignment = await tx.assignment.findUnique({
+                const proposedAssignment = await tx.attribution.findUnique({
                     where: { id: updatedSwapRequest.proposedAssignmentId }
                 });
 
                 const requestedAssignment = updatedSwapRequest.requestedAssignmentId
-                    ? await tx.assignment.findUnique({
+                    ? await tx.attribution.findUnique({
                         where: { id: updatedSwapRequest.requestedAssignmentId }
                     })
                     : null;
 
                 if (proposedAssignment) {
                     // Mettre à jour l'affectation proposée (maintenant assignée à la cible)
-                    await tx.assignment.update({
+                    await tx.attribution.update({
                         where: { id: proposedAssignment.id },
                         data: {
                             userId: updatedSwapRequest.targetUserId || undefined
@@ -250,7 +250,7 @@ export async function PUT(
 
                     // Si une affectation est demandée en retour, l'assigner à l'initiateur
                     if (requestedAssignment && updatedSwapRequest.requestedAssignmentId) {
-                        await tx.assignment.update({
+                        await tx.attribution.update({
                             where: { id: updatedSwapRequest.requestedAssignmentId },
                             data: {
                                 userId: updatedSwapRequest.initiatorUserId
@@ -290,19 +290,19 @@ export async function PUT(
             };
         });
 
-        console.log(`PUT /api/assignments/swap/${id}: Demande mise à jour avec statut ${status}`);
+        console.log(`PUT /api/affectations/echange/${id}: Demande mise à jour avec statut ${status}`);
         if (result.notification) {
-            console.log(`PUT /api/assignments/swap/${id}: Notification envoyée: ${result.notification.id}`);
+            console.log(`PUT /api/affectations/echange/${id}: Notification envoyée: ${result.notification.id}`);
         }
         if (result.swappedAssignments) {
-            console.log(`PUT /api/assignments/swap/${id}: Affectations échangées avec succès`);
+            console.log(`PUT /api/affectations/echange/${id}: Affectations échangées avec succès`);
         }
-        console.log(`--- PUT /api/assignments/swap/${id} END ---\n`);
+        console.log(`--- PUT /api/affectations/echange/${id} END ---\n`);
 
         return NextResponse.json(result.swapRequest);
 
     } catch (error: any) {
-        console.error(`PUT /api/assignments/swap/${id}: Erreur serveur`, error);
+        console.error(`PUT /api/affectations/echange/${id}: Erreur serveur`, error);
         return NextResponse.json({
             error: 'Erreur lors de la mise à jour de la demande d\'échange',
             details: error.message
@@ -311,15 +311,15 @@ export async function PUT(
 }
 
 /**
- * DELETE /api/assignments/swap/[id]
+ * DELETE /api/affectations/echange/[id]
  * Supprime une demande d'échange (seulement si elle est en statut CANCELLED, REJECTED ou expirée)
  */
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = params;
-    console.log(`\n--- DELETE /api/assignments/swap/${id} START ---`);
+    const { id } = await params;
+    console.log(`\n--- DELETE /api/affectations/echange/${id} START ---`);
 
     // Authentification
     const token = request.cookies.get('token')?.value ||
@@ -327,13 +327,13 @@ export async function DELETE(
             request.headers.get('Authorization')?.substring(7) : null);
 
     if (!token) {
-        console.error(`DELETE /api/assignments/swap/${id}: Token manquant`);
+        console.error(`DELETE /api/affectations/echange/${id}: Token manquant`);
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     const authResult = await verifyAuthToken(token);
     if (!authResult.authenticated) {
-        console.error(`DELETE /api/assignments/swap/${id}: Token invalide`);
+        console.error(`DELETE /api/affectations/echange/${id}: Token invalide`);
         return NextResponse.json({ error: authResult.error || 'Non autorisé' }, { status: 401 });
     }
 
@@ -348,7 +348,7 @@ export async function DELETE(
 
         // Vérifier que la demande existe
         if (!swapRequest) {
-            console.warn(`DELETE /api/assignments/swap/${id}: Demande introuvable`);
+            console.warn(`DELETE /api/affectations/echange/${id}: Demande introuvable`);
             return NextResponse.json({ error: 'Demande d\'échange introuvable' }, { status: 404 });
         }
 
@@ -356,7 +356,7 @@ export async function DELETE(
         const isInitiator = swapRequest.initiatorUserId === userId;
 
         if (!isAdmin && !isInitiator) {
-            console.warn(`DELETE /api/assignments/swap/${id}: Utilisateur ${userId} non autorisé à supprimer`);
+            console.warn(`DELETE /api/affectations/echange/${id}: Utilisateur ${userId} non autorisé à supprimer`);
             return NextResponse.json({
                 error: 'Vous n\'êtes pas autorisé à supprimer cette demande d\'échange'
             }, { status: 403 });
@@ -372,7 +372,7 @@ export async function DELETE(
         const isExpired = swapRequest.expiresAt ? new Date() > swapRequest.expiresAt : false;
 
         if (!isAdmin && !deletableStatuses.includes(swapRequest.status) && !isExpired) {
-            console.warn(`DELETE /api/assignments/swap/${id}: Statut ${swapRequest.status} non supprimable`);
+            console.warn(`DELETE /api/affectations/echange/${id}: Statut ${swapRequest.status} non supprimable`);
             return NextResponse.json({
                 error: 'Impossible de supprimer une demande d\'échange active. Vous devez d\'abord l\'annuler.'
             }, { status: 400 });
@@ -383,15 +383,15 @@ export async function DELETE(
             where: { id }
         });
 
-        console.log(`DELETE /api/assignments/swap/${id}: Demande supprimée avec succès`);
-        console.log(`--- DELETE /api/assignments/swap/${id} END ---\n`);
+        console.log(`DELETE /api/affectations/echange/${id}: Demande supprimée avec succès`);
+        console.log(`--- DELETE /api/affectations/echange/${id} END ---\n`);
 
         return NextResponse.json({
             message: 'Demande d\'échange supprimée avec succès'
         });
 
     } catch (error: any) {
-        console.error(`DELETE /api/assignments/swap/${id}: Erreur serveur`, error);
+        console.error(`DELETE /api/affectations/echange/${id}: Erreur serveur`, error);
         return NextResponse.json({
             error: 'Erreur lors de la suppression de la demande d\'échange',
             details: error.message

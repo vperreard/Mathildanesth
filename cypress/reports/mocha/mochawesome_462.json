@@ -1,0 +1,157 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 3,
+    "passes": 0,
+    "pending": 0,
+    "failures": 3,
+    "start": "2025-06-01T07:38:55.221Z",
+    "end": "2025-06-01T07:39:29.541Z",
+    "duration": 34320,
+    "testsRegistered": 3,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "ec96ebd1-8f42-4d0e-8fe0-90e822ce1ee9",
+      "title": "",
+      "fullFile": "cypress/e2e/workflows/complete-admin-workflow.spec.ts",
+      "file": "cypress/e2e/workflows/complete-admin-workflow.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "6322043d-b8b9-4934-a535-651aceb690e9",
+          "title": "Workflow complet administrateur",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "permet un workflow admin complet : connexion → gestion utilisateurs → validation congés → configuration règles",
+              "fullTitle": "Workflow complet administrateur permet un workflow admin complet : connexion → gestion utilisateurs → validation congés → configuration règles",
+              "timedOut": null,
+              "duration": 10376,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// ÉTAPE 1: Connexion admin\ncy.log('🔐 ÉTAPE 1: Connexion administrateur');\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', adminUser.email);\ncy.safeType('[data-cy=password-input]', adminUser.password);\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('adminLogin');\ncy.url({ timeout: 15000 }).should('include', '/tableau-de-bord');\n// Vérifier l'accès admin\ncy.waitForElement('[data-cy=admin-panel]');\ncy.get('[data-cy=admin-panel]').should('be.visible');\ncy.get('[data-cy=admin-nav]').should('exist');\n// ÉTAPE 2: Gestion des utilisateurs\ncy.log('👥 ÉTAPE 2: Gestion des utilisateurs');\ncy.get('[data-cy=admin-nav-users]').click();\ncy.waitForApiResponse('usersList');\ncy.url().should('include', '/admin/utilisateurs');\ncy.waitForElement('[data-cy=users-table]');\n// Vérifier la liste des utilisateurs\ncy.get('[data-cy=users-table]').should('be.visible');\ncy.get('[data-cy=user-row]').should('have.length.at.least', 1);\n// Créer un nouvel utilisateur\ncy.safeClick('[data-cy=create-user-button]');\ncy.waitForElement('[data-cy=user-form-modal]');\ncy.get('[data-cy=user-form-modal]').within(function () {\n    cy.safeType('[data-cy=user-nom]', 'Nouveau');\n    cy.safeType('[data-cy=user-prenom]', 'Utilisateur');\n    cy.safeType('[data-cy=user-email]', 'nouveau@example.com');\n    // Sélectionner le rôle\n    cy.safeClick('[data-cy=user-role-select]');\n    cy.get('[data-cy=role-option-mar]').click();\n    // Sélectionner le site\n    cy.safeClick('[data-cy=user-site-select]');\n    cy.get('[data-cy=site-option-principal]').click();\n    cy.safeClick('[data-cy=submit-user-button]');\n});\ncy.waitForApiResponse('createUser');\n// Vérifier la notification de succès\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Utilisateur créé');\n// ÉTAPE 3: Validation des congés\ncy.log('🏖️ ÉTAPE 3: Validation des demandes de congés');\ncy.get('[data-cy=admin-nav-conges]').click();\ncy.waitForApiResponse('adminLeavesList');\ncy.url().should('include', '/admin/conges');\ncy.waitForElement('[data-cy=admin-leaves-table]');\n// Vérifier les demandes en attente\ncy.get('[data-cy=admin-leaves-table]').should('be.visible');\ncy.get('[data-cy=pending-leave]').should('have.length.at.least', 1);\n// Valider une demande\ncy.get('[data-cy=pending-leave]').first().within(function () {\n    cy.get('[data-cy=leave-details]').should('be.visible');\n    cy.safeClick('[data-cy=approve-leave-button]');\n});\ncy.waitForApiResponse('validateLeave');\n// Vérifier la validation\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Congé validé');\n// ÉTAPE 4: Configuration des règles\ncy.log('⚙️ ÉTAPE 4: Configuration des règles métier');\ncy.get('[data-cy=admin-nav-rules]').click();\ncy.waitForApiResponse('rulesList');\ncy.url().should('include', '/admin/regles');\ncy.waitForElement('[data-cy=rules-panel]');\n// Créer une nouvelle règle\ncy.safeClick('[data-cy=create-rule-button]');\ncy.waitForElement('[data-cy=rule-form-modal]');\ncy.get('[data-cy=rule-form-modal]').within(function () {\n    cy.safeType('[data-cy=rule-name]', 'Règle de garde maximale');\n    cy.safeType('[data-cy=rule-description]', 'Maximum 4 gardes par mois');\n    // Configurer les paramètres de la règle\n    cy.safeClick('[data-cy=rule-type-select]');\n    cy.get('[data-cy=rule-type-garde-limit]').click();\n    cy.safeType('[data-cy=rule-value]', '4');\n    cy.safeClick('[data-cy=rule-period-monthly]');\n    cy.safeClick('[data-cy=submit-rule-button]');\n});\ncy.waitForApiResponse('createRule');\n// Vérifier la création de la règle\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Règle créée');\n// ÉTAPE 5: Consultation des rapports\ncy.log('📊 ÉTAPE 5: Consultation des rapports');\ncy.get('[data-cy=admin-nav-reports]').click();\ncy.url().should('include', '/admin/rapports');\ncy.waitForElement('[data-cy=reports-dashboard]');\n// Vérifier les widgets de rapport\ncy.get('[data-cy=reports-dashboard]').within(function () {\n    cy.get('[data-cy=report-users-stats]').should('be.visible');\n    cy.get('[data-cy=report-leaves-stats]').should('be.visible');\n    cy.get('[data-cy=report-planning-stats]').should('be.visible');\n});\n// Générer un rapport détaillé\ncy.safeClick('[data-cy=generate-detailed-report]');\ncy.waitForElement('[data-cy=report-modal]');\ncy.get('[data-cy=report-modal]').within(function () {\n    cy.safeClick('[data-cy=report-type-monthly]');\n    cy.safeClick('[data-cy=generate-report-button]');\n});\n// Vérifier la génération du rapport\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Rapport généré');\n// ÉTAPE 6: Déconnexion admin\ncy.log('🚪 ÉTAPE 6: Déconnexion administrateur');\ncy.get('[data-cy=admin-user-menu]').click();\ncy.waitForElement('[data-cy=admin-logout-option]');\ncy.safeClick('[data-cy=admin-logout-option]');\n// Vérifier la redirection\ncy.url({ timeout: 10000 }).should('include', '/auth/connexion');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nWe attempted to make an http request to this URL but the request failed without a response.\n\nWe received this error at the network level:\n\n  > Error: ESOCKETTIMEDOUT\n\nCommon situations why this would fail:\n  - you don't have internet access\n  - you forgot to run / boot your web server\n  - your web server isn't accessible\n  - you have weird network configuration settings on your computer",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nWe attempted to make an http request to this URL but the request failed without a response.\n\nWe received this error at the network level:\n\n  > Error: ESOCKETTIMEDOUT\n\nCommon situations why this would fail:\n  - you don't have internet access\n  - you forgot to run / boot your web server\n  - your web server isn't accessible\n  - you have weird network configuration settings on your computer\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133726:74)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133725:11)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/workflows/complete-admin-workflow.spec.ts:29:11)\n\nFrom Node.js Internals:\n  Error: ESOCKETTIMEDOUT\n      at ClientRequest.<anonymous> (<embedded>:290:113952)\n      at Object.onceWrapper (node:events:632:28)\n      at ClientRequest.emit (node:events:518:28)\n      at Socket.emitRequestTimeout (node:_http_client:849:9)\n      at Object.onceWrapper (node:events:632:28)\n      at Socket.emit (node:events:530:35)\n      at Socket._onTimeout (node:net:595:8)\n      at listOnTimeout (node:internal/timers:581:17)\n      at process.processTimers (node:internal/timers:519:7)",
+                "diff": null
+              },
+              "uuid": "370f42aa-41b7-440c-81b3-35e77864ee51",
+              "parentUUID": "6322043d-b8b9-4934-a535-651aceb690e9",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "gère les urgences et modifications de planning",
+              "fullTitle": "Workflow complet administrateur gère les urgences et modifications de planning",
+              "timedOut": null,
+              "duration": 527,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// WORKFLOW URGENCE: Modification planning → Notifications → Confirmation\ncy.log('🚨 Workflow de gestion d\\'urgence');\n// Connexion admin\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', adminUser.email);\ncy.safeType('[data-cy=password-input]', adminUser.password);\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('adminLogin');\ncy.url({ timeout: 15000 }).should('include', '/tableau-de-bord');\n// Accéder au planning d'urgence\ncy.get('[data-cy=admin-nav-planning]').click();\ncy.url().should('include', '/admin/planning');\n// Identifier une situation d'urgence\ncy.get('[data-cy=emergency-alert]').should('be.visible');\ncy.safeClick('[data-cy=handle-emergency-button]');\ncy.waitForElement('[data-cy=emergency-modal]');\n// Gérer l'urgence\ncy.get('[data-cy=emergency-modal]').within(function () {\n    cy.get('[data-cy=emergency-description]').should('contain', 'Absence imprevue');\n    // Proposer une solution\n    cy.safeClick('[data-cy=find-replacement-button]');\n    cy.waitForElement('[data-cy=replacement-suggestions]');\n    // Sélectionner un remplaçant\n    cy.get('[data-cy=replacement-suggestions]').within(function () {\n        cy.get('[data-cy=replacement-option]').first().click();\n    });\n    cy.safeClick('[data-cy=apply-replacement-button]');\n});\n// Vérifier la notification d'urgence résolue\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Urgence résolue');\n// Vérifier que les notifications ont été envoyées\ncy.get('[data-cy=notification-log]').should('contain', 'Équipe notifiée');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/workflows/complete-admin-workflow.spec.ts:188:11)",
+                "diff": null
+              },
+              "uuid": "ae42dd89-0766-47e2-8e53-a06cc841f09c",
+              "parentUUID": "6322043d-b8b9-4934-a535-651aceb690e9",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "teste les performances admin sous charge",
+              "fullTitle": "Workflow complet administrateur teste les performances admin sous charge",
+              "timedOut": null,
+              "duration": 535,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Test de performance des opérations admin\ncy.log('⚡ Test de performance administrateur');\nvar startTime = performance.now();\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', adminUser.email);\ncy.safeType('[data-cy=password-input]', adminUser.password);\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('adminLogin').then(function () {\n    var loginTime = performance.now() - startTime;\n    cy.task('logPerformance', {\n        type: 'admin-workflow',\n        name: 'admin-login',\n        duration: loginTime,\n        timestamp: Date.now(),\n        status: loginTime < 2000 ? 'PASS' : 'SLOW'\n    });\n    expect(loginTime).to.be.lessThan(2000);\n});\n// Test de chargement rapide des données admin\nvar dataLoadStart = performance.now();\ncy.get('[data-cy=admin-nav-users]').click();\ncy.waitForApiResponse('usersList').then(function () {\n    var dataLoadTime = performance.now() - dataLoadStart;\n    cy.task('logPerformance', {\n        type: 'admin-workflow',\n        name: 'admin-data-load',\n        duration: dataLoadTime,\n        timestamp: Date.now(),\n        status: dataLoadTime < 1500 ? 'PASS' : 'SLOW'\n    });\n    expect(dataLoadTime).to.be.lessThan(1500);\n});",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/workflows/complete-admin-workflow.spec.ts:240:11)",
+                "diff": null
+              },
+              "uuid": "bdc5c689-a9c5-4914-9b50-df9c8c0f975f",
+              "parentUUID": "6322043d-b8b9-4934-a535-651aceb690e9",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "370f42aa-41b7-440c-81b3-35e77864ee51",
+            "ae42dd89-0766-47e2-8e53-a06cc841f09c",
+            "bdc5c689-a9c5-4914-9b50-df9c8c0f975f"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 11438,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

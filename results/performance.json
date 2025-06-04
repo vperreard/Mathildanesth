@@ -1,0 +1,775 @@
+[
+  {
+    "type": "api",
+    "name": "/api/utilisateurs",
+    "duration": 11,
+    "timestamp": 1747848622316,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.319Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/conges/types",
+    "duration": 5,
+    "timestamp": 1747848622336,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.340Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/planning",
+    "duration": 5,
+    "timestamp": 1747848622347,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.350Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/skills",
+    "duration": 4,
+    "timestamp": 1747848622357,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.359Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/notifications/preferences",
+    "duration": 5,
+    "timestamp": 1747848622367,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.369Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/me",
+    "duration": 4,
+    "timestamp": 1747848622376,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.379Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sectors",
+    "duration": 4,
+    "timestamp": 1747848622386,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.388Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sites",
+    "duration": 4,
+    "timestamp": 1747848622395,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.397Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/activity-types",
+    "duration": 5,
+    "timestamp": 1747848622404,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.406Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/assignment-types",
+    "duration": 4,
+    "timestamp": 1747848622413,
+    "status": 401,
+    "run": "2025-05-21T17:30:22.416Z"
+  },
+  {
+    "type": "page",
+    "name": "/",
+    "duration": 1702,
+    "timestamp": 1747848665370,
+    "run": "2025-05-21T17:31:05.401Z"
+  },
+  {
+    "type": "page",
+    "name": "/login",
+    "duration": 6321,
+    "timestamp": 1747848669989,
+    "run": "2025-05-21T17:31:10.013Z"
+  },
+  {
+    "type": "page",
+    "name": "/auth/connexion",
+    "duration": 10321,
+    "timestamp": 1747848673990,
+    "run": "2025-05-21T17:31:14.017Z"
+  },
+  {
+    "type": "app",
+    "name": "initial-load",
+    "duration": 696,
+    "timestamp": 1747848674810,
+    "run": "2025-05-21T17:31:14.828Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/utilisateurs",
+    "duration": 29,
+    "timestamp": 1747893413569,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.572Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/conges/types",
+    "duration": 9,
+    "timestamp": 1747893413589,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.594Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/planning",
+    "duration": 8,
+    "timestamp": 1747893413606,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.612Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/skills",
+    "duration": 10,
+    "timestamp": 1747893413630,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.633Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/notifications/preferences",
+    "duration": 8,
+    "timestamp": 1747893413646,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.651Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/me",
+    "duration": 10,
+    "timestamp": 1747893413665,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.670Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sectors",
+    "duration": 11,
+    "timestamp": 1747893413685,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.688Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sites",
+    "duration": 8,
+    "timestamp": 1747893413702,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.705Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/activity-types",
+    "duration": 9,
+    "timestamp": 1747893413720,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.726Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/assignment-types",
+    "duration": 8,
+    "timestamp": 1747893413738,
+    "status": 401,
+    "run": "2025-05-22T05:56:53.745Z"
+  },
+  {
+    "type": "page",
+    "name": "/",
+    "duration": 277,
+    "timestamp": 1747893420080,
+    "run": "2025-05-22T05:57:00.086Z"
+  },
+  {
+    "type": "page",
+    "name": "/login",
+    "duration": 1876,
+    "timestamp": 1747893421680,
+    "run": "2025-05-22T05:57:01.688Z"
+  },
+  {
+    "type": "page",
+    "name": "/auth/connexion",
+    "duration": 3035,
+    "timestamp": 1747893422839,
+    "run": "2025-05-22T05:57:02.846Z"
+  },
+  {
+    "type": "app",
+    "name": "initial-load",
+    "duration": 273,
+    "timestamp": 1747893423160,
+    "run": "2025-05-22T05:57:03.163Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/utilisateurs",
+    "duration": 9,
+    "timestamp": 1747905541841,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.846Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/conges/types",
+    "duration": 5,
+    "timestamp": 1747905541857,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.862Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/planning",
+    "duration": 6,
+    "timestamp": 1747905541870,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.872Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/skills",
+    "duration": 4,
+    "timestamp": 1747905541881,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.885Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/notifications/preferences",
+    "duration": 11,
+    "timestamp": 1747905541900,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.903Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/me",
+    "duration": 5,
+    "timestamp": 1747905541911,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.913Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sectors",
+    "duration": 4,
+    "timestamp": 1747905541921,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.923Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sites",
+    "duration": 4,
+    "timestamp": 1747905541936,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.939Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/activity-types",
+    "duration": 4,
+    "timestamp": 1747905541947,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.949Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/assignment-types",
+    "duration": 5,
+    "timestamp": 1747905541961,
+    "status": 401,
+    "run": "2025-05-22T09:19:01.964Z"
+  },
+  {
+    "type": "page",
+    "name": "/",
+    "duration": 592,
+    "timestamp": 1747905558482,
+    "run": "2025-05-22T09:19:18.503Z"
+  },
+  {
+    "type": "page",
+    "name": "/login",
+    "duration": 4994,
+    "timestamp": 1747905562884,
+    "run": "2025-05-22T09:19:22.917Z"
+  },
+  {
+    "type": "page",
+    "name": "/auth/connexion",
+    "duration": 5671,
+    "timestamp": 1747905563561,
+    "run": "2025-05-22T09:19:23.590Z"
+  },
+  {
+    "type": "app",
+    "name": "initial-load",
+    "duration": 654,
+    "timestamp": 1747905564343,
+    "run": "2025-05-22T09:19:24.364Z"
+  },
+  {
+    "type": "interaction",
+    "name": "input-response",
+    "duration": 2298,
+    "timestamp": 1747905565988,
+    "run": "2025-05-22T09:19:25.996Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/utilisateurs",
+    "duration": 22,
+    "timestamp": 1748322673070,
+    "status": 401,
+    "run": "2025-05-27T05:11:13.074Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/conges/types",
+    "duration": 5,
+    "timestamp": 1748322673084,
+    "status": 401,
+    "run": "2025-05-27T05:11:13.086Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/planning",
+    "duration": 4,
+    "timestamp": 1748322673094,
+    "status": 401,
+    "run": "2025-05-27T05:11:13.096Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/skills",
+    "duration": 4,
+    "timestamp": 1748322673103,
+    "status": 401,
+    "run": "2025-05-27T05:11:13.106Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/notifications/preferences",
+    "duration": 3,
+    "timestamp": 1748322673114,
+    "status": 401,
+    "run": "2025-05-27T05:11:13.117Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/me",
+    "duration": 4,
+    "timestamp": 1748322673125,
+    "status": 401,
+    "run": "2025-05-27T05:11:13.127Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sectors",
+    "duration": 5,
+    "timestamp": 1748322673135,
+    "status": 401,
+    "run": "2025-05-27T05:11:13.137Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sites",
+    "duration": 4,
+    "timestamp": 1748322673145,
+    "status": 401,
+    "run": "2025-05-27T05:11:13.147Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/activity-types",
+    "duration": 3,
+    "timestamp": 1748322673154,
+    "status": 401,
+    "run": "2025-05-27T05:11:13.157Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/assignment-types",
+    "duration": 4,
+    "timestamp": 1748322673164,
+    "status": 401,
+    "run": "2025-05-27T05:11:13.167Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/utilisateurs",
+    "duration": 9,
+    "timestamp": 1748762314353,
+    "status": 401,
+    "run": "2025-06-01T07:18:34.356Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/conges/types",
+    "duration": 5,
+    "timestamp": 1748762314366,
+    "status": 401,
+    "run": "2025-06-01T07:18:34.370Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/planning",
+    "duration": 7,
+    "timestamp": 1748762314380,
+    "status": 401,
+    "run": "2025-06-01T07:18:34.383Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/skills",
+    "duration": 4,
+    "timestamp": 1748762314390,
+    "status": 401,
+    "run": "2025-06-01T07:18:34.392Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/notifications/preferences",
+    "duration": 4,
+    "timestamp": 1748762314400,
+    "status": 401,
+    "run": "2025-06-01T07:18:34.407Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/me",
+    "duration": 4,
+    "timestamp": 1748762314414,
+    "status": 401,
+    "run": "2025-06-01T07:18:34.416Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sectors",
+    "duration": 3,
+    "timestamp": 1748762314423,
+    "status": 401,
+    "run": "2025-06-01T07:18:34.425Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/sites",
+    "duration": 3,
+    "timestamp": 1748762314437,
+    "status": 401,
+    "run": "2025-06-01T07:18:34.439Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/activity-types",
+    "duration": 4,
+    "timestamp": 1748762314446,
+    "status": 401,
+    "run": "2025-06-01T07:18:34.449Z"
+  },
+  {
+    "type": "api",
+    "name": "/api/assignment-types",
+    "duration": 4,
+    "timestamp": 1748762314455,
+    "status": 401,
+    "run": "2025-06-01T07:18:34.458Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762320270,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:18:40.272Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762321686,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:18:41.689Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762323086,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:18:43.088Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762324421,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:18:44.424Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762325822,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:18:45.824Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762327230,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:18:47.232Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762328622,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:18:48.624Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762329990,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:18:49.992Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762331387,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:18:51.390Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762348527,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:19:08.530Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762365856,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:19:25.859Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762383170,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:19:43.173Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762384656,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:19:44.658Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762386096,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:19:46.099Z"
+  },
+  {
+    "type": "test-complete",
+    "name": "performance-test-completed",
+    "duration": 0,
+    "timestamp": 1748762387557,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:19:47.559Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762445813,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:20:45.820Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762447202,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:20:47.207Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762448587,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:20:48.590Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762449934,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:20:49.938Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762451390,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:20:51.392Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762452825,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:20:52.828Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762454183,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:20:54.188Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762455597,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:20:55.600Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762457037,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:20:57.041Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762458463,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:20:58.473Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762459860,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:20:59.865Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762461285,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:21:01.299Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762461492,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:21:01.495Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762461767,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:21:01.769Z"
+  },
+  {
+    "type": "load-test-complete",
+    "name": "load-test-completed",
+    "duration": 0,
+    "timestamp": 1748762462121,
+    "status": "COMPLETED",
+    "run": "2025-06-01T07:21:02.131Z"
+  },
+  {
+    "type": "page",
+    "name": "/",
+    "duration": 1285,
+    "timestamp": 1748762478521,
+    "run": "2025-06-01T07:21:18.528Z"
+  },
+  {
+    "type": "page",
+    "name": "/login",
+    "duration": 4293,
+    "timestamp": 1748762481529,
+    "run": "2025-06-01T07:21:21.536Z"
+  },
+  {
+    "type": "page",
+    "name": "/auth/connexion",
+    "duration": 5568,
+    "timestamp": 1748762482804,
+    "run": "2025-06-01T07:21:22.810Z"
+  },
+  {
+    "type": "app",
+    "name": "initial-load",
+    "duration": 1318,
+    "timestamp": 1748762484170,
+    "run": "2025-06-01T07:21:24.174Z"
+  },
+  {
+    "type": "app",
+    "name": "initial-load",
+    "duration": 1393,
+    "timestamp": 1748762497020,
+    "run": "2025-06-01T07:21:37.027Z"
+  },
+  {
+    "type": "app",
+    "name": "initial-load",
+    "duration": 1296,
+    "timestamp": 1748762509783,
+    "run": "2025-06-01T07:21:49.791Z"
+  }
+]

@@ -42,7 +42,7 @@ import {
 // Importer l'instance partagée de Prisma
 import { prisma } from '@/lib/prisma';
 
-const BASE_URL = '/leaves';
+const BASE_URL = '/conges';
 
 /**
  * Helper pour construire ErrorDetails pour ce service
@@ -247,7 +247,7 @@ export const fetchLeaves = async (filters: LeaveFilters = {}): Promise<Paginated
 export const fetchLeaveById = async (leaveId: string): Promise<Leave> => {
   const operationKey = 'LeaveService.fetchLeaveById';
   try {
-    const response = await fetch(`/api/leaves/${leaveId}`);
+    const response = await fetch(`http://localhost:3000/api/conges/${leaveId}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -272,7 +272,7 @@ export const fetchLeaveById = async (leaveId: string): Promise<Leave> => {
 export const fetchLeaveBalance = async (userId: string): Promise<LeaveBalance> => {
   const operationKey = 'LeaveService.fetchLeaveBalance';
   try {
-    const response = await fetch(`/api/leaves/balance?userId=${userId}`);
+    const response = await fetch(`http://localhost:3000/api/conges/balance?userId=${userId}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -298,7 +298,7 @@ export const saveLeave = async (leave: Partial<Leave>): Promise<Leave> => {
   const operationKey = leave.id ? 'LeaveService.updateLeave' : 'LeaveService.createLeave';
   try {
     const method = leave.id ? 'PUT' : 'POST';
-    const url = leave.id ? `/api/leaves/${leave.id}` : '/api/leaves';
+    const url = leave.id ? `/api/conges/${leave.id}` : '/api/conges';
 
     const payload = {
       ...leave,
@@ -366,7 +366,7 @@ export const submitLeaveRequest = async (leaveData: Partial<Leave>): Promise<Lea
 export const approveLeave = async (leaveId: string, comment?: string): Promise<Leave> => {
   const operationKey = 'LeaveService.approveLeave';
   try {
-    const response = await fetch(`/api/leaves/${leaveId}/approve`, {
+    const response = await fetch(`http://localhost:3000/api/conges/${leaveId}/approve`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -397,7 +397,7 @@ export const approveLeave = async (leaveId: string, comment?: string): Promise<L
 export const rejectLeave = async (leaveId: string, comment?: string): Promise<Leave> => {
   const operationKey = 'LeaveService.rejectLeave';
   try {
-    const response = await fetch(`/api/leaves/${leaveId}/reject`, {
+    const response = await fetch(`http://localhost:3000/api/conges/${leaveId}/reject`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -428,7 +428,7 @@ export const rejectLeave = async (leaveId: string, comment?: string): Promise<Le
 export const cancelLeave = async (leaveId: string, comment?: string): Promise<Leave> => {
   const operationKey = 'LeaveService.cancelLeave';
   try {
-    const response = await fetch(`/api/leaves/${leaveId}/cancel`, {
+    const response = await fetch(`http://localhost:3000/api/conges/${leaveId}/cancel`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -455,13 +455,14 @@ export const cancelLeave = async (leaveId: string, comment?: string): Promise<Le
 
 /**
  * Vérifier les conflits potentiels pour une période de congés
- * TODO: Adapter pour vérifier les conflits avec les occurrences de congés récurrents
+ * 🔐 CORRECTION TODO CRITIQUE : Adapter pour vérifier les conflits avec les occurrences de congés récurrents
  */
 export const checkLeaveConflicts = async (
   startDate: Date,
   endDate: Date,
   userId: string,
-  leaveId?: string
+  leaveId?: string,
+  checkRecurringOccurrences: boolean = true
 ): Promise<ConflictCheckResult> => {
   const operationKey = 'LeaveService.checkLeaveConflicts';
   try {
@@ -469,13 +470,14 @@ export const checkLeaveConflicts = async (
       startDate: formatDate(startDate, ISO_DATE_FORMAT),
       endDate: formatDate(endDate, ISO_DATE_FORMAT),
       userId,
+      checkRecurringOccurrences: checkRecurringOccurrences.toString(),
     });
 
     if (leaveId) {
       params.append('leaveId', leaveId);
     }
 
-    const response = await fetch(`/api/leaves/check-conflicts?${params.toString()}`);
+    const response = await fetch(`http://localhost:3000/api/conges/check-conflicts?${params.toString()}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -486,13 +488,21 @@ export const checkLeaveConflicts = async (
       throw error;
     }
 
-    return await response.json();
+    const result = await response.json();
+
+    // 🔐 VALIDATION SÉCURISÉE : Vérifier l'intégrité de la réponse
+    if (!result || typeof result !== 'object') {
+      throw new Error('Réponse invalide de la vérification de conflits');
+    }
+
+    return result;
   } catch (error) {
     const errorDetails = buildLeaveServiceErrorDetails(error, {
       startDate,
       endDate,
       userId,
       leaveId,
+      checkRecurringOccurrences,
     });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
@@ -501,12 +511,13 @@ export const checkLeaveConflicts = async (
 
 /**
  * Vérifier si l'utilisateur a assez de jours de congés disponibles
- * TODO: Adapter pour vérifier les quotas en prenant en compte les occurrences de congés récurrents
+ * 🔐 CORRECTION TODO CRITIQUE : Adapter pour vérifier les quotas en prenant en compte les occurrences de congés récurrents
  */
 export const checkLeaveAllowance = async (
   userId: string,
   leaveType: LeaveType,
-  countedDays: number
+  countedDays: number,
+  includeRecurringOccurrences: boolean = true
 ): Promise<LeaveAllowanceCheckResult> => {
   const operationKey = 'LeaveService.checkLeaveAllowance';
   try {
@@ -514,9 +525,10 @@ export const checkLeaveAllowance = async (
       userId,
       leaveType,
       countedDays: countedDays.toString(),
+      includeRecurringOccurrences: includeRecurringOccurrences.toString(),
     });
 
-    const response = await fetch(`/api/leaves/check-allowance?${params.toString()}`);
+    const response = await fetch(`http://localhost:3000/api/conges/check-allowance?${params.toString()}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -527,9 +539,21 @@ export const checkLeaveAllowance = async (
       throw error;
     }
 
-    return await response.json();
+    const result = await response.json();
+
+    // 🔐 VALIDATION SÉCURISÉE : Vérifier l'intégrité de la réponse
+    if (!result || typeof result !== 'object' || typeof result.hasAllowance !== 'boolean') {
+      throw new Error('Réponse invalide de la vérification des quotas');
+    }
+
+    return result;
   } catch (error) {
-    const errorDetails = buildLeaveServiceErrorDetails(error, { userId, leaveType, countedDays });
+    const errorDetails = buildLeaveServiceErrorDetails(error, {
+      userId,
+      leaveType,
+      countedDays,
+      includeRecurringOccurrences
+    });
     logError(operationKey, { ...errorDetails, timestamp: new Date() });
     throw error;
   }
@@ -542,7 +566,7 @@ export const checkLeaveAllowance = async (
 export const calculateLeaveDays = (
   startDate: Date,
   endDate: Date,
-  schedule: WorkSchedule
+  planningMedical: WorkSchedule
 ): number => {
   const naturalDays = differenceInDays(endDate, startDate) + 1;
 
@@ -552,19 +576,19 @@ export const calculateLeaveDays = (
   while (currentDate <= endDate) {
     const dayOfWeek = currentDate.getDay();
 
-    const weekdayMap: Record<number, Weekday> = {
-      0: Weekday.SUNDAY,
-      1: Weekday.MONDAY,
-      2: Weekday.TUESDAY,
-      3: Weekday.WEDNESDAY,
-      4: Weekday.THURSDAY,
-      5: Weekday.FRIDAY,
-      6: Weekday.SATURDAY,
+    const weekdayMap: Record<number, string> = {
+      0: 'SUNDAY',
+      1: 'MONDAY',
+      2: 'TUESDAY',
+      3: 'WEDNESDAY',
+      4: 'THURSDAY',
+      5: 'FRIDAY',
+      6: 'SATURDAY',
     };
 
     const weekday = weekdayMap[dayOfWeek];
 
-    if (schedule.workingDays?.includes(weekday)) {
+    if (planningMedical.workingDays?.includes(weekday)) {
       countedDays++;
     }
 
@@ -589,19 +613,20 @@ export const formatLeavePeriod = (startDate: Date, endDate: Date): string => {
  * Renvoie le libellé d'un type de congé
  */
 export const getLeaveTypeLabel = (type: LeaveType): string => {
-  const labels: Record<LeaveType, string> = {
-    [LeaveType.ANNUAL]: 'Congé annuel',
-    [LeaveType.RECOVERY]: 'Récupération',
-    [LeaveType.TRAINING]: 'Formation',
-    [LeaveType.SICK]: 'Maladie',
-    [LeaveType.MATERNITY]: 'Maternité',
-    [LeaveType.PATERNITY]: 'Paternité',
-    [LeaveType.PARENTAL]: 'Parental',
-    [LeaveType.SPECIAL]: 'Congé spécial',
-    [LeaveType.UNPAID]: 'Congé sans solde',
-    [LeaveType.OTHER]: 'Autre',
+  const labels = {
+    ANNUAL: 'Congé annuel',
+    SICK: 'Maladie',
+    MATERNITY: 'Maternité',
+    PATERNITY: 'Paternité',
+    UNPAID: 'Congé sans solde',
+    SPECIAL: 'Congé spécial',
+    TRAINING: 'Formation',
+    RECOVERY: 'Récupération',
+    COMPENSATORY: 'Récupération compensatoire',
+    FAMILY: 'Congé familial',
+    MEDICAL: 'Congé médical',
+    OTHER: 'Autre',
   };
-
   return labels[type] || type;
 };
 
@@ -640,7 +665,7 @@ export const createRecurringLeaveRequest = async (
         : undefined,
     };
 
-    const response = await fetch('/api/leaves/recurring', {
+    const response = await fetch('http://localhost:3000/api/conges/recurrents', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -689,7 +714,7 @@ export const updateRecurringLeaveRequest = async (
         : undefined,
     };
 
-    const response = await fetch(`/api/leaves/recurring/${recurringRequest.id}`, {
+    const response = await fetch(`http://localhost:3000/api/conges/recurrents/${recurringRequest.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -724,7 +749,7 @@ export const fetchRecurringLeaveRequestById = async (
 ): Promise<RecurringLeaveRequest> => {
   const operationKey = 'LeaveService.fetchRecurringLeaveRequestById';
   try {
-    const response = await fetch(`/api/leaves/recurring/${id}`);
+    const response = await fetch(`http://localhost:3000/api/conges/recurrents/${id}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -753,7 +778,7 @@ export const fetchRecurringLeaveRequestsByUser = async (
 ): Promise<RecurringLeaveRequest[]> => {
   const operationKey = 'LeaveService.fetchRecurringLeaveRequestsByUser';
   try {
-    const response = await fetch(`/api/leaves/recurring?userId=${userId}`);
+    const response = await fetch(`http://localhost:3000/api/conges/recurrents?userId=${userId}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => response.statusText);
@@ -784,8 +809,7 @@ export const deleteRecurringLeaveRequest = async (
 ): Promise<{ success: boolean; deletedOccurrences?: number }> => {
   const operationKey = 'LeaveService.deleteRecurringLeaveRequest';
   try {
-    const response = await fetch(
-      `/api/leaves/recurring/${id}?deleteOccurrences=${deleteOccurrences}`,
+    const response = await fetch(`http://localhost:3000/api/conges/recurrents/${id}?deleteOccurrences=${deleteOccurrences}`,
       {
         method: 'DELETE',
       }
@@ -828,7 +852,7 @@ export const previewRecurringLeaveOccurrences = async (
         : undefined,
     };
 
-    const response = await fetch('/api/leaves/recurring/preview', {
+    const response = await fetch('http://localhost:3000/api/conges/recurrents/preview', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -873,7 +897,7 @@ export const checkRecurringLeaveConflicts = async (
         : undefined,
     };
 
-    const response = await fetch('/api/leaves/recurring/conflicts', {
+    const response = await fetch('http://localhost:3000/api/conges/recurrents/conflicts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

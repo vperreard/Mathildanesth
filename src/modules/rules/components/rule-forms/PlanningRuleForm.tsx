@@ -145,7 +145,7 @@ const PlanningRuleForm: React.FC<PlanningRuleFormProps> = ({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="mb-4">
                     <label className="block text-sm font-medium mb-1">
-                        Limite maximale d'affectations
+                        Limite maximale d'gardes/vacations
                     </label>
                     <input
                         type="number"
@@ -179,7 +179,7 @@ const PlanningRuleForm: React.FC<PlanningRuleFormProps> = ({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="mb-4">
                     <label className="block text-sm font-medium mb-1">
-                        Limite minimale d'affectations
+                        Limite minimale d'gardes/vacations
                     </label>
                     <input
                         type="number"

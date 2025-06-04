@@ -1,0 +1,150 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-06-01T06:58:57.444Z",
+    "end": "2025-06-01T06:59:10.482Z",
+    "duration": 13038,
+    "testsRegistered": 3,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 2,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "3a82c797-b3c9-4a10-a3f3-e126e5c989d6",
+      "title": "",
+      "fullFile": "cypress/e2e/examples/test-with-helpers.spec.ts",
+      "file": "cypress/e2e/examples/test-with-helpers.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "3b16de05-8942-4344-999a-193c463ee302",
+          "title": "Exemple de test avec helpers",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "navigue vers le dashboard après connexion",
+              "fullTitle": "Exemple de test avec helpers navigue vers le dashboard après connexion",
+              "timedOut": null,
+              "duration": 125,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Visiter la page d'accueil\ncy.visitAsAuthenticatedUser('/');\n// Attendre le chargement des données\ncy.wait('@getCurrentUser');\ncy.wait('@getNotifications');\n// Vérifier que nous sommes sur le dashboard\ncy.url().should('include', '/tableau-de-bord');\n// Utiliser les helpers pour attendre que les animations soient terminées\nhelpers.waitForAnimations();\n// Vérifier que le nom d'utilisateur est affiché\ncy.get('[data-cy=user-name]')\n    .should('be.visible')\n    .and('contain', this.testUser.firstName);",
+              "err": {
+                "message": "TypeError: Cannot read properties of undefined (reading 'email')\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Exemple de test avec helpers`",
+                "estack": "TypeError: Cannot read properties of undefined (reading 'email')\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Exemple de test avec helpers`\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/examples/test-with-helpers.spec.ts:42:36)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                "diff": null
+              },
+              "uuid": "9ce08783-d985-465f-adc7-ad50a0f3a3df",
+              "parentUUID": "3b16de05-8942-4344-999a-193c463ee302",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "génère une date future pour une demande de congés",
+              "fullTitle": "Exemple de test avec helpers génère une date future pour une demande de congés",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Générer une date future pour le test\nvar startDate = helpers.randomFutureDate(5, 10);\nvar endDate = helpers.randomFutureDate(11, 15);\n// Formater les dates\nvar formattedStartDate = helpers.formatDate(startDate);\nvar formattedEndDate = helpers.formatDate(endDate);\n// Visiter la page de création de congés\ncy.visitAsAuthenticatedUser('/conges/nouveau');\n// Remplir le formulaire\ncy.get('[data-cy=start-date]').type(formattedStartDate);\ncy.get('[data-cy=end-date]').type(formattedEndDate);\ncy.get('[data-cy=leave-type]').select('Congés payés');\n// Soumettre le formulaire (action simulée pour l'exemple)\ncy.log(\"Simulation: Demande de cong\\u00E9s du \".concat(formattedStartDate, \" au \").concat(formattedEndDate));\n// Vérifier que les dates sont correctement affichées\ncy.get('[data-cy=start-date]').should('have.value', formattedStartDate);\ncy.get('[data-cy=end-date]').should('have.value', formattedEndDate);",
+              "err": {},
+              "uuid": "2a639e38-eb5a-4b0a-ab85-5a53a5e254fe",
+              "parentUUID": "3b16de05-8942-4344-999a-193c463ee302",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "attend que toutes les requêtes réseau soient terminées",
+              "fullTitle": "Exemple de test avec helpers attend que toutes les requêtes réseau soient terminées",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Visiter une page qui effectue de nombreuses requêtes\ncy.visitAsAuthenticatedUser('/planning');\n// Utiliser notre helper pour attendre que toutes les requêtes soient terminées\nhelpers.waitForNetwork().then(function () {\n    // Une fois toutes les requêtes terminées, vérifier que la page est chargée\n    cy.get('[data-cy=planning-container]').should('be.visible');\n    // Vérifier qu'il n'y a pas d'indicateur de chargement\n    cy.get('[data-cy=loading-indicator]').should('not.exist');\n});",
+              "err": {},
+              "uuid": "851a99fe-926f-4459-8290-524f742ebd96",
+              "parentUUID": "3b16de05-8942-4344-999a-193c463ee302",
+              "isHook": false,
+              "skipped": true
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "9ce08783-d985-465f-adc7-ad50a0f3a3df"
+          ],
+          "pending": [],
+          "skipped": [
+            "2a639e38-eb5a-4b0a-ab85-5a53a5e254fe",
+            "851a99fe-926f-4459-8290-524f742ebd96"
+          ],
+          "duration": 125,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

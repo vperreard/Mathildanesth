@@ -183,7 +183,7 @@ export const useLeave = ({
                 }
             } else {
                 clearError('conflicts');
-                setConflictCheckResult(null);
+                setConflictCheckResult(conflictResult);
             }
 
             setLoading(false);

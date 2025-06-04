@@ -86,6 +86,10 @@ export interface User {
     createdAt?: Date;
     updatedAt?: Date;
     mustChangePassword?: boolean;
+    sites?: Array<{
+        id: string;
+        name: string;
+    }>;
 }
 
 /**

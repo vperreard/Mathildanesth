@@ -1,5 +1,5 @@
-// Ajoute les types de @testing-library/jest-dom aux types Jest globaux
-import '@testing-library/jest-dom';
+/// <reference types="jest" />
+/// <reference types="@testing-library/jest-dom" />
 
 declare global {
     namespace jest {
@@ -8,12 +8,18 @@ declare global {
             toBeInTheDocument(): R;
             toBeVisible(): R;
             toBeChecked(): R;
-            toHaveValue(value: any): R;
-            toHaveAttribute(attr: string, value?: any): R;
-            toHaveClass(...classNames: string[]): R;
+            toHaveValue(value: string): R;
             toHaveTextContent(text: string | RegExp): R;
-            toContainElement(element: HTMLElement | null): R;
-            toHaveProperty(keyPath: string, value?: any): R;
+            toHaveAttribute(attr: string, value?: string): R;
+            toHaveClass(...classNames: string[]): R;
+            toHaveStyle(style: string | Record<string, any>): R;
+            toBeDisabled(): R;
+            toBeEnabled(): R;
+            toBeRequired(): R;
+            toBeValid(): R;
+            toBeInvalid(): R;
+            toHaveFocus(): R;
+            toHaveDisplayValue(value: string | RegExp | Array<string | RegExp>): R;
             // Ajouter d'autres matchers au besoin
 
             // Matchers Jest standards qui semblent manquer

@@ -54,7 +54,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - Performances améliorées
   - Support multi-dispositifs
   - **Découplage Client/Serveur:** Refactorisation des services (`PlanningService`, `SyncService`) et hooks (`useDragDropSync`) pour utiliser des appels API (`fetch`) au lieu d'importer directement du code serveur, résolvant l'erreur `pg package manually`.
-  - **API Routes (Partiel):** Création des routes `GET /api/assignments` et `GET /api/public-holidays`.
+  - **API Routes (Partiel):** Création des routes `GET /api/affectations` et `GET /api/jours-feries`.
 
 - ✅ **Tests end-to-end**
 
@@ -79,7 +79,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - Interface administrateur simple (CRUD)
   - Moteur pour règles de base
 
-- 🔄 **API Routes Backend:** Implémentation des routes serveur pour la sauvegarde (`PATCH /api/assignments`) et la validation (`POST /api/assignments/validate`) des affectations nécessaires pour le calendrier draggable.
+- 🔄 **API Routes Backend:** Implémentation des routes serveur pour la sauvegarde (`PATCH /api/affectations`) et la validation (`POST /api/affectations/validate`) des affectations nécessaires pour le calendrier draggable.
 
 ## Priorités immédiates (Juin 2025)
 
@@ -87,11 +87,11 @@ Ce document présente les prochaines étapes prioritaires de développement pour
 
 - [x] **Composants de définition des salles et secteurs** (Partiellement complété)
 
-  - ✅ Interface de création et modification des salles d'opération (`src/app/admin/bloc-operatoire/components/OperatingRoomForm.tsx`)
-  - ✅ Interface de création et modification des secteurs opératoires (`src/app/admin/bloc-operatoire/components/OperatingSectorForm.tsx`)
-  - ✅ Liste des salles avec actions CRUD (`src/app/admin/bloc-operatoire/components/OperatingRoomList.tsx`)
-  - ✅ Liste des secteurs avec actions CRUD (`src/app/admin/bloc-operatoire/components/OperatingSectorList.tsx`)
-  - ✅ Pages d'administration (`.../salles/page.tsx`, `.../secteurs/page.tsx`)
+  - ✅ Interface de création et modification des salles d'opération (`src/app/bloc-operatoire/salles/components/OperatingRoomForm.tsx`)
+  - ✅ Interface de création et modification des secteurs opératoires (`src/app/bloc-operatoire/secteurs/components/OperatingSectorForm.tsx`)
+  - ✅ Liste des salles avec actions CRUD (`src/app/bloc-operatoire/salles/components/OperatingRoomList.tsx`)
+  - ✅ Liste des secteurs avec actions CRUD (`src/app/bloc-operatoire/secteurs/components/OperatingSectorList.tsx`)
+  - ✅ Pages d'administration unifiées (`src/app/bloc-operatoire/salles/page.tsx`, `src/app/bloc-operatoire/secteurs/page.tsx`)
   - ✅ Hooks React Query pour API (`.../hooks/useOperatingResourceQueries.ts`)
   - 🚧 Association salles-secteurs-spécialités (Formulaires à corriger/compléter)
   - 🚧 Correction des erreurs de type dans les formulaires.
@@ -112,7 +112,7 @@ Ce document présente les prochaines étapes prioritaires de développement pour
     - ✅ Gestion de l'état temporaire des modifications (`tempAssignments`).
     - ✅ Modale de confirmation affichant les changements et les résultats de validation.
     - ✅ Validation des règles via l'instance réelle de `RuleEngine`.
-    - ✅ Persistance des changements groupés via l'API (`POST /api/assignments/batch`).
+    - ✅ Persistance des changements groupés via l'API (`POST /api/affectations/batch`).
   - 🚧 **Affinement DND et UI/UX**
     - [ ] Améliorer le feedback visuel pendant le glisser-déposer.
     - [ ] Gérer les cas limites (ex: tentative de dépôt sur un créneau invalide).
@@ -164,11 +164,11 @@ Ce document présente les prochaines étapes prioritaires de développement pour
   - ✅ Séparation de la configuration statique du composant client pour permettre son importation côté serveur
   - ✅ Mise à jour des importations dans la route API et les composants clients concernés
 
-- [ ] **Implémenter `PATCH /api/assignments`:** Route pour sauvegarder les affectations modifiées depuis le calendrier draggable.
-- [ ] **Implémenter `POST /api/assignments/validate`:** Route pour valider un ensemble d'affectations selon les règles serveur.
-- [ ] **Vérifier/Compléter `GET /api/assignments`:** S'assurer que la récupération des données depuis la base est bien implémentée.
-- [x] **Vérifier `GET /api/admin/leaves/pending` pour l'erreur 400 et l'URL sur port 3001** (Partiellement corrigé : problèmes d'authentification liés aux cookies résolus, l'erreur 400 spécifique à l'URL anormale reste à investiguer si elle persiste).
-- [x] **Correction des problèmes d'accès aux cookies et de typage dans les routes d'API** (`/api/auth/me`, `/api/admin/leaves/pending`, `/api/user/preferences`)
+- [ ] **Implémenter `PATCH /api/affectations`:** Route pour sauvegarder les affectations modifiées depuis le calendrier draggable.
+- [ ] **Implémenter `POST /api/affectations/validate`:** Route pour valider un ensemble d'affectations selon les règles serveur.
+- [ ] **Vérifier/Compléter `GET /api/affectations`:** S'assurer que la récupération des données depuis la base est bien implémentée.
+- [x] **Vérifier `GET /api/admin/conges/pending` pour l'erreur 400 et l'URL sur port 3001** (Partiellement corrigé : problèmes d'authentification liés aux cookies résolus, l'erreur 400 spécifique à l'URL anormale reste à investiguer si elle persiste).
+- [x] **Correction des problèmes d'accès aux cookies et de typage dans les routes d'API** (`/api/auth/me`, `/api/admin/conges/pending`, `/api/user/preferences`)
   - ✅ Utilisation correcte de `await cookies()`.
   - ✅ Correction des types `userId` et `LeaveStatus`.
 
@@ -213,8 +213,8 @@ Ce document présente les prochaines étapes prioritaires de développement pour
     - Mise à jour de `src/app/planning/hebdomadaire/page.tsx` pour préserver l'ordre des secteurs et salles tel que retourné par l'API
     - Modification du code de rendu pour utiliser les secteurs dans le même ordre que l'API
     - Optimisation de la logique de tri pour respecter les préférences locales de l'utilisateur tout en préservant l'ordre par défaut basé sur `displayOrder`
-  - [x] **Erreur 500 sur `GET /api/leaves/balance`:**
-    - ✅ Identification de l'utilisation de l'ancien Pages Router (`src/pages/api/leaves/balance.ts`).
+  - [x] **Erreur 500 sur `GET /api/conges/balance`:**
+    - ✅ Identification de l'utilisation de l'ancien Pages Router (`src/pages/api/conges/balance.ts`).
     - ✅ Correction de la requête SQL pour utiliser `countedDays` au lieu de `workingDaysCount` (colonne correcte d'après `schema.prisma`).
     - ✅ Modification de la requête SQL et du code JS pour utiliser `typeCode` au lieu de `type` pour assurer la cohérence avec les `defaultAllowances` et les données de la DB.
     - ✅ Commentaire de la section `LeaveQuotaAdjustment` car la table n'existe pas dans le `schema.prisma` actuel.

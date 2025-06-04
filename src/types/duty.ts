@@ -179,6 +179,122 @@ export interface DutyPreference {
 }
 
 /**
+ * Interface pour les indisponibilités spécifiques aux gardes et astreintes
+ * 
+ * Cette interface permet aux médecins de spécifier leurs indisponibilités
+ * de manière granulaire (garde seule, astreinte seule, ou les deux)
+ */
+export interface DutyUnavailability {
+    /** Identifiant unique */
+    id: string;
+    /** Identifiant du médecin */
+    doctorId: string;
+    /** Date et heure de début de l'indisponibilité */
+    startDate: Date;
+    /** Date et heure de fin de l'indisponibilité */
+    endDate: Date;
+    /** Type d'indisponibilité spécifique */
+    unavailableFor: 'DUTY_ONLY' | 'ON_CALL_ONLY' | 'BOTH';
+    /** Type de récurrence */
+    recurrenceType?: 'NONE' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM';
+    /** Détails de récurrence */
+    recurrenceDetails?: {
+        /** Jours de la semaine (0=dimanche, 6=samedi) */
+        daysOfWeek?: number[];
+        /** Intervalle (ex: toutes les 2 semaines) */
+        interval?: number;
+        /** Date de fin de récurrence */
+        endRecurrenceDate?: Date;
+        /** Exceptions à la récurrence */
+        exceptions?: Date[];
+    };
+    /** Raison de l'indisponibilité */
+    reason?: string;
+    /** Statut de validation */
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    /** Priorité de la demande */
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    /** Utilisateur ayant approuvé */
+    approvedBy?: string;
+    /** Date d'approbation */
+    approvedAt?: Date;
+    /** Raison du rejet (si applicable) */
+    rejectionReason?: string;
+    /** Commentaires administratifs */
+    adminComments?: string;
+    /** Indique si l'indisponibilité est flexible */
+    isFlexible?: boolean;
+    /** Alternative proposée (si flexible) */
+    alternativeProposal?: {
+        /** Dates alternatives */
+        alternativeDates?: Date[];
+        /** Types alternatifs */
+        alternativeTypes?: ('DUTY_ONLY' | 'ON_CALL_ONLY' | 'BOTH')[];
+        /** Commentaire sur l'alternative */
+        comments?: string;
+    };
+    /** Date de création */
+    createdAt: Date;
+    /** Dernière mise à jour */
+    updatedAt: Date;
+}
+
+/**
+ * Interface pour la création d'une indisponibilité de garde
+ */
+export type DutyUnavailabilityCreateData = Omit<DutyUnavailability,
+    'id' | 'status' | 'approvedBy' | 'approvedAt' | 'rejectionReason' | 'adminComments' | 'createdAt' | 'updatedAt'>;
+
+/**
+ * Interface pour la mise à jour d'une indisponibilité de garde
+ */
+export type DutyUnavailabilityUpdateData = Partial<Omit<DutyUnavailability,
+    'id' | 'doctorId' | 'createdAt' | 'updatedAt'>>;
+
+/**
+ * Interface pour le traitement admin d'une indisponibilité
+ */
+export interface DutyUnavailabilityProcessData {
+    status: 'APPROVED' | 'REJECTED';
+    rejectionReason?: string;
+    adminComments?: string;
+    alternativeProposal?: DutyUnavailability['alternativeProposal'];
+}
+
+/**
+ * Interface pour les filtres de recherche d'indisponibilités de garde
+ */
+export interface DutyUnavailabilityFilter {
+    doctorId?: string;
+    status?: DutyUnavailability['status'];
+    unavailableFor?: DutyUnavailability['unavailableFor'];
+    priority?: DutyUnavailability['priority'];
+    startDate?: Date;
+    endDate?: Date;
+    recurrenceType?: DutyUnavailability['recurrenceType'];
+}
+
+/**
+ * Interface pour les conflits avec les indisponibilités de garde
+ */
+export interface DutyUnavailabilityConflict {
+    id: string;
+    unavailabilityId: string;
+    conflictType: 'EXISTING_DUTY' | 'EXISTING_ON_CALL' | 'LEAVE' | 'OTHER_UNAVAILABILITY';
+    conflictItemId: string;
+    conflictDate: Date;
+    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    description: string;
+    canBeResolved: boolean;
+    resolution?: {
+        type: 'MODIFY_UNAVAILABILITY' | 'MODIFY_EXISTING' | 'ACCEPT_CONFLICT';
+        description: string;
+        requiredActions: string[];
+    };
+    createdAt: Date;
+}
+
+/**
  * Interface pour les demandes de substitution
  */
 export interface DutySubstitutionRequest {

@@ -11,7 +11,7 @@ const DEFAULT_COLOR_SCHEME: ColorScheme = {
     leave: '#4299e1', // bleu
     duty: '#f6ad55', // orange
     onCall: '#9f7aea', // violet
-    assignment: '#48bb78', // vert
+    attribution: '#48bb78', // vert
     default: '#a0aec0', // gris
     textColor: '#2d3748', // gris foncé
     approved: '#48bb78', // vert
@@ -133,7 +133,7 @@ export const getEventBackgroundColor = (
         case CalendarEventType.ON_CALL:
             return colorScheme.onCall;
         case CalendarEventType.ASSIGNMENT:
-            return colorScheme.assignment;
+            return colorScheme.attribution;
         default:
             return colorScheme.default;
     }

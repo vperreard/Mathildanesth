@@ -1,177 +1,218 @@
-// Service pour la gestion des templates de simulation
-interface SimulationTemplateBase {
+// Service pour la gestion des modèles de simulation
+import axios from 'axios';
+
+export interface SimulationTemplate {
+    id: string;
     name: string;
     description?: string;
-    isPublic?: boolean;
-    parametersJson: any;
     category?: string;
-}
-
-export interface SimulationTemplate extends SimulationTemplateBase {
-    id: string;
+    isPublic: boolean;
     createdAt: string;
     updatedAt: string;
-    createdById: number;
     createdBy?: {
         id: number;
-        firstName: string;
-        lastName: string;
+        name: string;
+    };
+    parametersJson: any;
+}
+
+// Type pour la personnalisation du modèle
+export interface TemplateCustomization {
+    name: string;
+    description?: string;
+    dates: {
+        startDate: string;
+        endDate: string;
+    };
+    absences?: {
+        userIds: number[];
+        surgeonIds: number[];
+    };
+    options?: {
+        ignoreLeaves?: boolean;
+        prioritizeExistingAssignments?: boolean;
+        balanceWorkload?: boolean;
     };
 }
 
 /**
- * Récupère la liste des templates de simulation
+ * Récupère tous les modèles de simulation
  */
-export async function fetchTemplates(params: { category?: string; publicOnly?: boolean } = {}) {
+export async function fetchTemplates(): Promise<SimulationTemplate[]> {
     try {
-        const queryParams = new URLSearchParams();
-
-        if (params.category) {
-            queryParams.append('category', params.category);
-        }
-
-        if (params.publicOnly) {
-            queryParams.append('publicOnly', 'true');
-        }
-
-        const url = `/api/simulations/templates${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur lors de la récupération des templates');
-        }
-
-        return await response.json() as SimulationTemplate[];
+        const response = await axios.get('http://localhost:3000/api/simulations/modèles');
+        return response.data.data || [];
     } catch (error) {
-        console.error('Erreur lors de la récupération des templates:', error);
-        throw error;
+        console.error('Erreur lors de la récupération des modèles:', error);
+        throw new Error('Impossible de récupérer les modèles');
     }
 }
 
 /**
- * Récupère un template spécifique
+ * Récupère un modèle spécifique par son ID
  */
-export async function fetchTemplate(templateId: string) {
+export async function fetchTemplate(id: string): Promise<SimulationTemplate> {
     try {
-        const response = await fetch(`/api/simulations/templates/${templateId}`);
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur lors de la récupération du template');
-        }
-
-        return await response.json() as SimulationTemplate;
+        const response = await axios.get(`http://localhost:3000/api/simulations/modèles/${id}`);
+        return response.data.data;
     } catch (error) {
-        console.error(`Erreur lors de la récupération du template ${templateId}:`, error);
-        throw error;
+        console.error(`Erreur lors de la récupération du modèle ${id}:`, error);
+        throw new Error('Modèle non trouvé');
     }
 }
 
 /**
- * Crée un nouveau template
+ * Crée un nouveau modèle
  */
-export async function createTemplate(template: SimulationTemplateBase) {
+export async function createTemplate(templateData: Partial<SimulationTemplate>): Promise<SimulationTemplate> {
     try {
-        const response = await fetch('/api/simulations/templates', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(template),
+        const response = await axios.post('http://localhost:3000/api/simulations/modèles', templateData);
+        return response.data.data;
+    } catch (error) {
+        console.error('Erreur lors de la création du modèle:', error);
+        throw new Error('Impossible de créer le modèle');
+    }
+}
+
+/**
+ * Met à jour un modèle existant
+ */
+export async function updateTemplate(id: string, updates: Partial<SimulationTemplate>): Promise<SimulationTemplate> {
+    try {
+        const response = await axios.put(`http://localhost:3000/api/simulations/modèles/${id}`, updates);
+        return response.data.data;
+    } catch (error) {
+        console.error(`Erreur lors de la mise à jour du modèle ${id}:`, error);
+        throw new Error('Impossible de mettre à jour le modèle');
+    }
+}
+
+/**
+ * Supprime un modèle
+ */
+export async function deleteTemplate(id: string): Promise<void> {
+    try {
+        await axios.delete(`http://localhost:3000/api/simulations/modèles/${id}`);
+    } catch (error) {
+        console.error(`Erreur lors de la suppression du modèle ${id}:`, error);
+        throw new Error('Impossible de supprimer le modèle');
+    }
+}
+
+/**
+ * Duplique un modèle existant
+ */
+export async function duplicateTemplate(id: string, newName: string): Promise<SimulationTemplate> {
+    try {
+        const response = await axios.post('http://localhost:3000/api/simulations/modèles/duplicate', {
+            sourceTemplateId: id,
+            name: newName
         });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur lors de la création du template');
-        }
-
-        return await response.json() as SimulationTemplate;
+        return response.data.data;
     } catch (error) {
-        console.error('Erreur lors de la création du template:', error);
+        console.error(`Erreur lors de la duplication du modèle ${id}:`, error);
+        throw new Error('Impossible de dupliquer le modèle');
+    }
+}
+
+/**
+ * Prépare les données pour créer un scénario à partir d'un modèle
+ * Récupère le modèle et initialise les données de base pour le scénario
+ */
+export async function prepareTemplateForScenario(templateId: string) {
+    try {
+        const modèle = await fetchTemplate(templateId);
+
+        // Préparer les données de base pour le scénario
+        const baseScenarioData = {
+            name: `${modèle.name} - ${new Date().toLocaleDateString()}`,
+            description: modèle.description,
+            parametersJson: {
+                ...modèle.parametersJson,
+                // Assurez-vous que les dates sont au bon format ou utilisez des dates par défaut
+                startDate: modèle.parametersJson.startDate || new Date().toISOString().split('T')[0],
+                endDate: modèle.parametersJson.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                // Initialiser les listes d'absences si elles n'existent pas
+                absentUserIds: modèle.parametersJson.absentUserIds || [],
+                absentSurgeonIds: modèle.parametersJson.absentSurgeonIds || [],
+                // Initialiser les options avec des valeurs par défaut si nécessaire
+                options: {
+                    ignoreLeaves: modèle.parametersJson.options?.ignoreLeaves || false,
+                    prioritizeExistingAssignments: modèle.parametersJson.options?.prioritizeExistingAssignments !== false,
+                    balanceWorkload: modèle.parametersJson.options?.balanceWorkload !== false
+                }
+            }
+        };
+
+        return {
+            modèle,
+            baseScenarioData
+        };
+    } catch (error) {
+        console.error(`Erreur lors de la préparation du scénario à partir du modèle ${templateId}:`, error);
         throw error;
     }
 }
 
 /**
- * Met à jour un template existant
+ * Crée un scénario personnalisé à partir d'un modèle
  */
-export async function updateTemplate(templateId: string, updates: Partial<SimulationTemplateBase>) {
+export async function createScenarioFromTemplate(templateId: string, customization?: TemplateCustomization | any): Promise<any> {
     try {
-        const response = await fetch(`/api/simulations/templates/${templateId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updates),
-        });
+        const modèle = await fetchTemplate(templateId);
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur lors de la mise à jour du template');
+        // Si pas de customization fournie, utiliser les valeurs par défaut
+        if (!customization) {
+            customization = {
+                name: `${modèle.name} - ${new Date().toLocaleDateString()}`,
+                description: modèle.description,
+                dates: {
+                    startDate: modèle.parametersJson.startDate || new Date().toISOString().split('T')[0],
+                    endDate: modèle.parametersJson.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                },
+                absences: {
+                    userIds: modèle.parametersJson.absentUserIds || [],
+                    surgeonIds: modèle.parametersJson.absentSurgeonIds || []
+                },
+                options: modèle.parametersJson.options || {}
+            };
         }
 
-        return await response.json() as SimulationTemplate;
-    } catch (error) {
-        console.error(`Erreur lors de la mise à jour du template ${templateId}:`, error);
-        throw error;
-    }
-}
+        // Construire les paramètres pour le scénario
+        const parametersJson = {
+            ...modèle.parametersJson,
+            startDate: customization.dates?.startDate || customization.startDate,
+            endDate: customization.dates?.endDate || customization.endDate,
+            absentUserIds: customization.absences?.userIds || customization.absentUserIds || [],
+            absentSurgeonIds: customization.absences?.surgeonIds || customization.absentSurgeonIds || [],
+            options: {
+                ...modèle.parametersJson.options,
+                ...customization.options
+            }
+        };
 
-/**
- * Supprime un template
- */
-export async function deleteTemplate(templateId: string) {
-    try {
-        const response = await fetch(`/api/simulations/templates/${templateId}`, {
-            method: 'DELETE',
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur lors de la suppression du template');
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error(`Erreur lors de la suppression du template ${templateId}:`, error);
-        throw error;
-    }
-}
-
-/**
- * Utilise un template pour créer un nouveau scénario
- */
-export async function useTemplateForScenario(templateId: string, customizations: any = {}) {
-    try {
-        // Récupérer d'abord les détails du template
-        const template = await fetchTemplate(templateId);
-
-        // Créer un nouveau scénario basé sur le template
-        const response = await fetch('/api/simulations', {
+        // Créer le scénario
+        const response = await fetch('http://localhost:3000/api/simulations', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                name: `${template.name} - ${new Date().toLocaleDateString()}`,
-                description: template.description,
-                parametersJson: {
-                    ...template.parametersJson,
-                    ...customizations
-                },
-                templateId: template.id // Référencer le template utilisé
+                name: customization.name,
+                description: customization.description || modèle.description,
+                parametersJson,
+                templateId: modèle.id
             }),
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur lors de la création du scénario à partir du template');
+            throw new Error(errorData.error || 'Erreur lors de la création du scénario à partir du modèle');
         }
 
         return await response.json();
     } catch (error) {
-        console.error(`Erreur lors de l'utilisation du template ${templateId}:`, error);
+        console.error(`Erreur lors de la création du scénario à partir du modèle ${templateId}:`, error);
         throw error;
     }
 } 

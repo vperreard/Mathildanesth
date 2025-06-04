@@ -1,4 +1,4 @@
-import { Assignment, AssignmentType, UserCounter } from '../types/assignment';
+import { Attribution, AssignmentType, UserCounter } from '../types/attribution';
 import { ShiftType } from '../types/common';
 import { User } from '../types/user';
 import { RulesConfiguration, FatigueConfig } from '../types/rules';
@@ -7,7 +7,7 @@ import { logger } from '../utils/logger';
 /**
  * Service d'optimisation du planning
  * Améliore la qualité du planning généré en appliquant des règles de priorité
- * et en optimisant la répartition des affectations
+ * et en optimisant la répartition des gardes/vacations
  */
 export class PlanningOptimizer {
     private rulesConfig: RulesConfiguration;
@@ -29,13 +29,13 @@ export class PlanningOptimizer {
     /**
      * Optimise un planning en appliquant les règles de priorité et d'équilibre
      */
-    public optimizePlanning(assignments: Assignment[]): Assignment[] {
+    public optimizePlanning(attributions: Attribution[]): Attribution[] {
         logger.info('Début de l\'optimisation du planning');
 
         // 1. Appliquer les règles de priorité
-        const prioritizedAssignments = this.applyPriorityRules(assignments);
+        const prioritizedAssignments = this.applyPriorityRules(attributions);
 
-        // 2. Optimiser la répartition des affectations
+        // 2. Optimiser la répartition des gardes/vacations
         const balancedAssignments = this.balanceAssignments(prioritizedAssignments);
 
         // 3. Calculer et appliquer les scores de fatigue
@@ -46,12 +46,12 @@ export class PlanningOptimizer {
     }
 
     /**
-     * Applique les règles de priorité aux affectations
+     * Applique les règles de priorité aux gardes/vacations
      */
-    private applyPriorityRules(assignments: Assignment[]): Assignment[] {
+    private applyPriorityRules(attributions: Attribution[]): Attribution[] {
         logger.debug('Application des règles de priorité');
 
-        return assignments.sort((a, b) => {
+        return attributions.sort((a, b) => {
             // Priorité 1: Gardes et astreintes
             if (a.shiftType === ShiftType.NUIT && b.shiftType !== ShiftType.NUIT) return -1;
             if (a.shiftType === ShiftType.ASTREINTE && b.shiftType !== ShiftType.ASTREINTE) return -1;
@@ -68,39 +68,39 @@ export class PlanningOptimizer {
     }
 
     /**
-     * Équilibre les affectations entre les utilisateurs
+     * Équilibre les gardes/vacations entre les utilisateurs
      */
-    private balanceAssignments(assignments: Assignment[]): Assignment[] {
-        logger.debug('Équilibrage des affectations');
+    private balanceAssignments(attributions: Attribution[]): Attribution[] {
+        logger.debug('Équilibrage des gardes/vacations');
 
-        const userAssignments = new Map<string, Assignment[]>();
+        const userAssignments = new Map<string, Attribution[]>();
 
-        // Regrouper les affectations par utilisateur
-        assignments.forEach(assignment => {
-            if (!userAssignments.has(assignment.userId)) {
-                userAssignments.set(assignment.userId, []);
+        // Regrouper les gardes/vacations par utilisateur
+        attributions.forEach(attribution => {
+            if (!userAssignments.has(attribution.userId)) {
+                userAssignments.set(attribution.userId, []);
             }
-            userAssignments.get(assignment.userId)?.push(assignment);
+            userAssignments.get(attribution.userId)?.push(attribution);
         });
 
-        // Calculer la moyenne des affectations par type
+        // Calculer la moyenne des gardes/vacations par type
         const averages = this.calculateAssignmentAverages(userAssignments);
 
-        // Rééquilibrer les affectations
-        return this.redistributeAssignments(assignments, averages);
+        // Rééquilibrer les gardes/vacations
+        return this.redistributeAssignments(attributions, averages);
     }
 
     /**
-     * Calcule les moyennes d'affectations par type
+     * Calcule les moyennes d'gardes/vacations par type
      */
-    private calculateAssignmentAverages(userAssignments: Map<string, Assignment[]>): Map<ShiftType, number> {
+    private calculateAssignmentAverages(userAssignments: Map<string, Attribution[]>): Map<ShiftType, number> {
         const averages = new Map<ShiftType, number>();
         const counts = new Map<ShiftType, number>();
 
-        userAssignments.forEach(assignments => {
-            assignments.forEach(assignment => {
-                const currentCount = counts.get(assignment.shiftType) || 0;
-                counts.set(assignment.shiftType, currentCount + 1);
+        userAssignments.forEach(attributions => {
+            attributions.forEach(attribution => {
+                const currentCount = counts.get(attribution.shiftType) || 0;
+                counts.set(attribution.shiftType, currentCount + 1);
             });
         });
 
@@ -112,26 +112,26 @@ export class PlanningOptimizer {
     }
 
     /**
-     * Répartit les affectations de manière équilibrée
+     * Répartit les gardes/vacations de manière équilibrée
      */
     private redistributeAssignments(
-        assignments: Assignment[],
+        attributions: Attribution[],
         averages: Map<ShiftType, number>
-    ): Assignment[] {
+    ): Attribution[] {
         const userAssignmentCounts = new Map<string, Map<ShiftType, number>>();
 
         // Initialiser les compteurs
-        assignments.forEach(assignment => {
-            if (!userAssignmentCounts.has(assignment.userId)) {
-                userAssignmentCounts.set(assignment.userId, new Map());
+        attributions.forEach(attribution => {
+            if (!userAssignmentCounts.has(attribution.userId)) {
+                userAssignmentCounts.set(attribution.userId, new Map());
             }
-            const userCounts = userAssignmentCounts.get(assignment.userId)!;
-            const currentCount = userCounts.get(assignment.shiftType) || 0;
-            userCounts.set(assignment.shiftType, currentCount + 1);
+            const userCounts = userAssignmentCounts.get(attribution.userId)!;
+            const currentCount = userCounts.get(attribution.shiftType) || 0;
+            userCounts.set(attribution.shiftType, currentCount + 1);
         });
 
-        // Rééquilibrer les affectations
-        return assignments.sort((a, b) => {
+        // Rééquilibrer les gardes/vacations
+        return attributions.sort((a, b) => {
             const aCounts = userAssignmentCounts.get(a.userId)!;
             const bCounts = userAssignmentCounts.get(b.userId)!;
 
@@ -148,32 +148,32 @@ export class PlanningOptimizer {
     /**
      * Optimise les scores de fatigue
      */
-    private optimizeFatigueScores(assignments: Assignment[]): Assignment[] {
+    private optimizeFatigueScores(attributions: Attribution[]): Attribution[] {
         logger.debug('Optimisation des scores de fatigue');
 
-        return assignments.map(assignment => {
-            const userCounter = this.userCounters.get(parseInt(assignment.userId));
-            if (!userCounter) return assignment;
+        return attributions.map(attribution => {
+            const userCounter = this.userCounters.get(parseInt(attribution.userId));
+            if (!userCounter) return attribution;
 
             // Calculer le nouveau score de fatigue
-            const fatigueScore = this.calculateFatigueScore(assignment, userCounter);
+            const fatigueScore = this.calculateFatigueScore(attribution, userCounter);
 
             // Mettre à jour le compteur
             userCounter.fatigue.score = fatigueScore;
             userCounter.fatigue.lastUpdate = new Date();
 
-            return assignment;
+            return attribution;
         });
     }
 
     /**
-     * Calcule le score de fatigue pour une affectation
+     * Calcule le score de fatigue pour une garde/vacation
      */
-    private calculateFatigueScore(assignment: Assignment, userCounter: UserCounter): number {
+    private calculateFatigueScore(attribution: Attribution, userCounter: UserCounter): number {
         const baseScore = userCounter.fatigue.score;
         let additionalScore = 0;
 
-        switch (assignment.shiftType) {
+        switch (attribution.shiftType) {
             case ShiftType.NUIT:
                 additionalScore = this.fatigueConfig.points.garde;
                 break;
@@ -183,10 +183,10 @@ export class PlanningOptimizer {
                 additionalScore = this.fatigueConfig.points.astreinte;
                 break;
             case ShiftType.GARDE_WEEKEND:
-                if (assignment.notes?.includes('pediatrie')) {
+                if (attribution.notes?.includes('pediatrie')) {
                     additionalScore = this.fatigueConfig.points.pediatrie;
                 }
-                if (this.isMultipleSupervisedSector(assignment.notes || '')) {
+                if (this.isMultipleSupervisedSector(attribution.notes || '')) {
                     additionalScore += this.fatigueConfig.points.supervisionMultiple;
                 }
                 break;

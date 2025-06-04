@@ -365,4 +365,30 @@ export const getDaysUntil = (targetDate: Date | string | number | null | undefin
     }
 
     return -1;
-}; 
+};
+
+/**
+ * Formate une heure au format HH:mm
+ * @param date - La date à formater
+ * @returns L'heure formatée en texte
+ */
+export function formatTime(date: Date | string | number): string {
+    if (!date) return '';
+
+    const dateObj = date instanceof Date ? date : new Date(date);
+    return format(dateObj, 'HH:mm', { locale: fr });
+}
+
+/**
+ * Retourne une période de la journée (matin, après-midi) en fonction de l'heure
+ * @param date - La date à analyser
+ * @returns 'MATIN' ou 'APRES_MIDI'
+ */
+export function getDayPeriod(date: Date | string | number): 'MATIN' | 'APRES_MIDI' {
+    if (!date) return 'MATIN';
+
+    const dateObj = date instanceof Date ? date : new Date(date);
+    const hour = dateObj.getHours();
+
+    return hour < 12 ? 'MATIN' : 'APRES_MIDI';
+} 

@@ -128,7 +128,7 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
         if (!isAdmin || !leaveId) return;
 
         try {
-            await axios.put(`/api/leaves/${leaveId}/approve`);
+            await axios.put(`http://localhost:3000/api/conges/${leaveId}/approve`);
             toast.success('Congé approuvé avec succès');
             updateFilters({}); // Rafraîchir le calendrier
             handleCloseModal();
@@ -143,7 +143,7 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
         if (!isAdmin || !leaveId) return;
 
         try {
-            await axios.put(`/api/leaves/${leaveId}/reject`);
+            await axios.put(`http://localhost:3000/api/conges/${leaveId}/reject`);
             toast.success('Congé refusé avec succès');
             updateFilters({}); // Rafraîchir le calendrier
             handleCloseModal();
@@ -242,7 +242,7 @@ export const CollectiveCalendar: React.FC<CollectiveCalendarProps> = ({
                             </button>
                         ) : (
                             <a
-                                href="/leaves/new"
+                                href="/conges/nouveau"
                                 className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
                                 <svg

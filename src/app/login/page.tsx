@@ -7,7 +7,7 @@ export default function LoginRedirectPage() {
     const router = useRouter();
 
     useEffect(() => {
-        router.replace('/auth/login');
+        router.replace('/auth/connexion');
     }, [router]);
 
     return (

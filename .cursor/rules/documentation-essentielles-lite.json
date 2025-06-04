@@ -1,15 +1,18 @@
 {
   "name": "documentation-essentielles-lite",
-  "description": "Charge la documentation globale du projet uniquement pour les questions stratégiques (plan, roadmap, vision, global).",
-  "pattern": "(?i)(plan|roadmap|aperçu|vision|stratégie|global)",
+  "description": "Charge la documentation globale du projet réorganisée (janvier 2025) pour les questions stratégiques (plan, roadmap, vision, global).",
+  "pattern": "(?i)(plan|roadmap|aperçu|vision|stratégie|global|documentation)",
   "actions": [
     {
       "type": "readFiles",
       "files": [
-        "ROADMAP.md",
-        "NEXT_STEPS.md",
-        "documentation/roadmap-dev-updated.md",
-        "docs/technical/codebase-overview.md"
+        "docs/README.md",
+        "docs/04_roadmap/ROADMAP.md",
+        "docs/04_roadmap/01_Phases_Priorites.md",
+        "docs/02_implementation/NEXT_STEPS.md",
+        "docs/04_roadmap/URGENT_TODO_ACTION_PLAN.md",
+        "docs/01_architecture/TYPESCRIPT_GUIDELINES.md",
+        "docs/01_architecture/TESTING_GUIDELINES.md"
       ]
     }
   ]

@@ -25,7 +25,7 @@ describe('Tests de compatibilité responsive', () => {
         });
 
         it('affiche correctement le menu de navigation', () => {
-            cy.visitAsAuthenticatedUser('/dashboard');
+            cy.visitAsAuthenticatedUser('/tableau-de-bord');
 
             // Vérifier que le menu hamburger est présent sur mobile
             cy.get('[data-cy=mobile-menu-button]').should('be.visible');
@@ -38,14 +38,14 @@ describe('Tests de compatibilité responsive', () => {
         });
 
         it('affiche correctement la liste des congés', () => {
-            cy.visitAsAuthenticatedUser('/leaves');
+            cy.visitAsAuthenticatedUser('/conges');
 
             // Vérifier que les cartes de congés s'affichent en une colonne
             cy.get('[data-cy=leave-item]').should('have.css', 'width', '100%');
         });
 
         it('adapte correctement le calendrier', () => {
-            cy.visitAsAuthenticatedUser('/calendar');
+            cy.visitAsAuthenticatedUser('/calendrier');
 
             // Vérifier que la vue par défaut est différente sur mobile
             cy.get('[data-cy=calendar-day-view]').should('be.visible');
@@ -61,14 +61,14 @@ describe('Tests de compatibilité responsive', () => {
         });
 
         it('affiche correctement le menu de navigation', () => {
-            cy.visitAsAuthenticatedUser('/dashboard');
+            cy.visitAsAuthenticatedUser('/tableau-de-bord');
 
             // Vérifier l'affichage correct du menu sur tablette
             cy.get('[data-cy=navigation-menu]').should('be.visible');
         });
 
         it('affiche correctement la liste des congés', () => {
-            cy.visitAsAuthenticatedUser('/leaves');
+            cy.visitAsAuthenticatedUser('/conges');
 
             // Vérifier que les cartes de congés s'affichent en grille
             cy.get('[data-cy=leave-grid]').should('have.css', 'grid-template-columns');
@@ -81,7 +81,7 @@ describe('Tests de compatibilité responsive', () => {
         });
 
         it('affiche correctement le menu de navigation', () => {
-            cy.visitAsAuthenticatedUser('/dashboard');
+            cy.visitAsAuthenticatedUser('/tableau-de-bord');
 
             // Vérifier l'affichage du menu latéral sur desktop
             cy.get('[data-cy=sidebar-navigation]').should('be.visible');
@@ -108,7 +108,7 @@ describe('Tests de compatibilité responsive', () => {
         });
 
         it('affiche correctement le tableau de bord', () => {
-            cy.visitAsAuthenticatedUser('/dashboard');
+            cy.visitAsAuthenticatedUser('/tableau-de-bord');
 
             // Vérifier que les widgets s'adaptent à l'espace disponible
             cy.get('[data-cy=dashboard-widgets]').invoke('width').should('be.gt', 1800);

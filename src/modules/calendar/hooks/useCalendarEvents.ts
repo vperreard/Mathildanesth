@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { produce } from 'immer';
 import { AnyCalendarEvent, CalendarEventType, CalendarFilters } from '../types/event';
-import { calendarService } from '../services/calendarService';
+import { calendarService } from '../services/calendrierService';
 
 // Valeur par défaut pour les filtres
 const DEFAULT_FILTERS: CalendarFilters = {
@@ -109,11 +109,11 @@ export const useCalendarEvents = (options: UseCalendarEventsOptions = {}): {
             } as AnyCalendarEvent);
 
             setEvents(prevEvents =>
-                produce(prevEvents, draft => {
-                    const index = draft.findIndex(e => e.id === eventId);
-                    if (index !== -1) {
-                        draft[index] = updatedEvent;
+                prevEvents.map(event => {
+                    if (event.id === eventId) {
+                        return updatedEvent;
                     }
+                    return event;
                 })
             );
 
@@ -153,15 +153,12 @@ export const useCalendarEvents = (options: UseCalendarEventsOptions = {}): {
                 ? status as 'PENDING' | 'APPROVED' | 'REJECTED'
                 : 'PENDING';
 
-            const updatedEvent = await calendarService.updateEventStatus(eventId, validStatus);
-
             setEvents(prevEvents =>
-                produce(prevEvents, draft => {
-                    const index = draft.findIndex(e => e.id === eventId);
-                    if (index !== -1 && 'status' in draft[index]) {
-                        // @ts-ignore - Nous savons que le status peut être affecté
-                        draft[index].status = validStatus;
+                prevEvents.map(event => {
+                    if (event.id === eventId && 'status' in event && event.status !== undefined) {
+                        return { ...event, status: validStatus } as AnyCalendarEvent;
                     }
+                    return event;
                 })
             );
         } catch (err) {

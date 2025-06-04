@@ -1,9 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { Widget } from '@/types/dashboard';
 import { logError } from './errorLoggingService';
 import { ErrorSeverity, ErrorDetails } from '@/hooks/useErrorHandler';
 
-const prisma = new PrismaClient();
 
 export interface DashboardData {
     id?: string;

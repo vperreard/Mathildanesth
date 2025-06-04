@@ -34,7 +34,7 @@ function ProfilePageContent() {
             setLoadingSkills(true);
             setSkillsError(null);
             try {
-                const response = await axios.get<UserSkill[]>('/api/me/skills');
+                const response = await axios.get<UserSkill[]>(`${window.location.origin}/api/me/skills`);
                 setUserSkills(response.data);
             } catch (err) {
                 console.error('Erreur lors du chargement des compétences:', err);
@@ -67,7 +67,7 @@ function ProfilePageContent() {
 
         setIsLoading(true);
         try {
-            await axios.put('/api/auth/change-password', {
+            await axios.put('http://localhost:3000/api/auth/change-password', {
                 currentPassword,
                 newPassword
             });

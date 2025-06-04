@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeftIcon, Loader2, AlertTriangleIcon, FileJsonIcon, BarChartIcon, AlertCircleIcon, CheckCircle2Icon, ZapIcon, HourglassIcon, UserIcon, ClockIcon, CalendarIcon, FileTextIcon, DownloadIcon, FileIcon } from 'lucide-react';
+import { ArrowLeftIcon, Loader2, AlertTriangleIcon, FileJsonIcon, BarChartIcon, AlertCircleIcon, CheckCircle2Icon, ZapIcon, HourglassIcon, UserIcon, CalendarIcon, FileTextIcon, DownloadIcon, FileIcon, ClipboardCheckIcon, BarChart3Icon } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { exportSimulationResults } from '@/services/exportService';
+import { ApplySimulationModal } from '@/components/simulations/ApplySimulationModal';
+import AdvancedFilters, { FilterState } from '@/components/ui/AdvancedFilters';
 
 // Interface pour le résultat retourné par l'API
 interface SimulationResultData {
@@ -22,11 +24,11 @@ interface SimulationResultData {
     status: SimulationStatus;
     createdAt: string;
     updatedAt: string;
-    parametersJson?: Record<string, any> | string | null;
-    generatedPlanningData?: any | null;
-    statisticsJson?: Record<string, any> | string | null;
-    conflictAlertsJson?: any[] | string | null;
-    comparisonDataJson?: any | string | null;
+    parametersJson?: Record<string, unknown> | string | null;
+    generatedPlanningData?: unknown | null;
+    statisticsJson?: Record<string, unknown> | string | null;
+    conflictAlertsJson?: unknown[] | string | null;
+    comparisonDataJson?: unknown | string | null;
     errorMessage?: string | null;
     scenarioName?: string;
     scenarioDescription?: string;
@@ -51,7 +53,7 @@ interface Statistic {
 interface UserAssignment {
     userId: string;
     userName: string;
-    assignments: number;
+    attributions: number;
     hours: number;
     conflicts: number;
 }
@@ -88,6 +90,45 @@ export default function SimulationResultPage() {
     const [userAssignments, setUserAssignments] = useState<UserAssignment[]>([]);
     const [periodCoverage, setPeriodCoverage] = useState<number>(0);
 
+    // Ajout du state pour le modal d'application
+    const [showApplyModal, setShowApplyModal] = useState(false);
+
+    // Ajouter la fonction handleFilterChange avant le return du composant principal
+    const [, setFilteredData] = useState(result);
+
+    const handleFilterChange = (filters: FilterState) => {
+        // console.log('Nouveaux filtres appliqués:', filters);
+        // Implémenter la logique de filtrage des données
+        // Cette fonction sera appelée chaque fois que les filtres sont modifiés
+
+        // Exemple simplifié de filtrage
+        if (!result) return;
+
+        const filtered = { ...result };
+
+        // Filtrer par période
+        if (filters.dateRange?.from) {
+            // Logique de filtrage par date
+        }
+
+        // Filtrer par catégorie
+        if (filters.selectedCategories.length > 0) {
+            // Logique de filtrage par catégorie
+        }
+
+        // Filtrer par personnel
+        if (filters.selectedUsers.length > 0) {
+            // Logique de filtrage par personnel
+        }
+
+        // Appliquer le seuil
+        if (filters.threshold > 0) {
+            // Logique d'application du seuil
+        }
+
+        setFilteredData(filtered);
+    };
+
     // Fonction pour démarrer l'auto-refresh
     const startAutoRefresh = useCallback(() => {
         // Arrêter tout intervalle existant d'abord
@@ -101,7 +142,7 @@ export default function SimulationResultPage() {
         }, 5000);
 
         setRefreshInterval(interval);
-    }, [refreshInterval]);
+    }, [refreshInterval, fetchResultData]);
 
     // Fonction pour arrêter l'auto-refresh
     const stopAutoRefresh = useCallback(() => {
@@ -120,7 +161,7 @@ export default function SimulationResultPage() {
         setIsLoading(true);
         setError(null);
         try {
-            const res = await fetch(`/api/simulations/${scenarioId}/results/${resultId}`);
+            const res = await fetch(`http://localhost:3000/api/simulations/${scenarioId}/results/${resultId}`);
             if (!res.ok) {
                 let errorMessage = "Échec de la récupération des résultats de la simulation";
                 if (res.status === 404) errorMessage = "Résultat de simulation non trouvé.";
@@ -147,9 +188,10 @@ export default function SimulationResultPage() {
                     startAutoRefresh();
                 }
             }
-        } catch (err: any) {
-            setError(err.message);
-            toast.error("Erreur lors du chargement des résultats: " + err.message);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+            setError(errorMessage);
+            toast.error("Erreur lors du chargement des résultats: " + errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -256,29 +298,29 @@ export default function SimulationResultPage() {
                 // Format fictif - à adapter en fonction de la structure réelle des données
                 if (planningData.userAssignments) {
                     setUserAssignments(planningData.userAssignments);
-                } else if (planningData.assignments) {
+                } else if (planningData.attributions) {
                     // Créer un objet pour agréger les données par utilisateur
                     const userMap: Record<string, UserAssignment> = {};
 
-                    planningData.assignments.forEach((assignment: any) => {
-                        if (!userMap[assignment.userId]) {
-                            userMap[assignment.userId] = {
-                                userId: assignment.userId,
-                                userName: assignment.userName || `Utilisateur ${assignment.userId}`,
-                                assignments: 0,
+                    planningData.attributions.forEach((attribution: { userId: string; userName?: string; [key: string]: unknown }) => {
+                        if (!userMap[attribution.userId]) {
+                            userMap[attribution.userId] = {
+                                userId: attribution.userId,
+                                userName: attribution.userName || `Utilisateur ${attribution.userId}`,
+                                attributions: 0,
                                 hours: 0,
                                 conflicts: 0
                             };
                         }
 
-                        userMap[assignment.userId].assignments += 1;
+                        userMap[attribution.userId].attributions += 1;
 
-                        if (assignment.durationHours) {
-                            userMap[assignment.userId].hours += assignment.durationHours;
+                        if (attribution.durationHours) {
+                            userMap[attribution.userId].hours += attribution.durationHours;
                         }
 
-                        if (assignment.hasConflict) {
-                            userMap[assignment.userId].conflicts += 1;
+                        if (attribution.hasConflict) {
+                            userMap[attribution.userId].conflicts += 1;
                         }
                     });
 
@@ -306,13 +348,13 @@ export default function SimulationResultPage() {
                 clearInterval(refreshInterval);
             }
         };
-    }, [result?.status, startAutoRefresh, stopAutoRefresh, refreshInterval]);
+    }, [result, startAutoRefresh, stopAutoRefresh, refreshInterval]);
 
     useEffect(() => {
         fetchResultData();
     }, [fetchResultData]);
 
-    const renderRawJsonData = (jsonData: any, title: string) => {
+    const renderRawJsonData = (jsonData: unknown, title: string) => {
         if (!jsonData) return <p className="text-sm text-gray-500">Aucune donnée disponible.</p>;
         let dataToDisplay = jsonData;
         if (typeof jsonData === 'string') {
@@ -422,7 +464,7 @@ export default function SimulationResultPage() {
             };
 
             const blob = await exportSimulationResults(exportData, {
-                format: 'excel',
+                format: 'csv',
                 fileName: `simulation_${result.scenarioName?.replace(/\s+/g, '_') || 'scenario'}_${result.id.slice(0, 8)}.xlsx`
             });
 
@@ -515,6 +557,17 @@ export default function SimulationResultPage() {
                             </Button>
                             <Button variant="outline" size="sm" onClick={handleExportExcel} className="flex items-center">
                                 <FileIcon className="w-4 h-4 mr-2" /> Export Excel
+                            </Button>
+                            <Button variant="primary" size="sm" onClick={() => setShowApplyModal(true)} className="flex items-center">
+                                <ClipboardCheckIcon className="w-4 h-4 mr-2" /> Appliquer au planning
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => router.push(`/admin/simulations/avances-visualizations?resultId=${result.id}&scenarioId=${params.scenarioId as string}`)}
+                                className="flex items-center"
+                            >
+                                <BarChart3Icon className="w-4 h-4 mr-2" /> Visualisations avancées
                             </Button>
                         </>
                     )}
@@ -671,7 +724,7 @@ export default function SimulationResultPage() {
                                             {userAssignments.map((user) => (
                                                 <TableRow key={user.userId}>
                                                     <TableCell className="font-medium">{user.userName}</TableCell>
-                                                    <TableCell className="text-right">{user.assignments}</TableCell>
+                                                    <TableCell className="text-right">{user.attributions}</TableCell>
                                                     <TableCell className="text-right">{user.hours.toFixed(1)}h</TableCell>
                                                     <TableCell className="text-right">
                                                         {user.conflicts > 0 ? (
@@ -806,12 +859,80 @@ export default function SimulationResultPage() {
                     </CardFooter>
                 </Card>
             )}
+
+            {/* Modal d'application au planning réel */}
+            {result && showApplyModal && (
+                <ApplySimulationModal
+                    isOpen={showApplyModal}
+                    onClose={() => setShowApplyModal(false)}
+                    simulationResult={{
+                        id: result.id,
+                        scenarioId: params.scenarioId as string,
+                        scenarioName: result.scenarioName,
+                        status: result.status
+                    }}
+                    onSuccess={() => {
+                        toast.success('Application de la simulation réussie');
+                    }}
+                />
+            )}
+
+            <div className="mb-6">
+                <AdvancedFilters
+                    onFilterChange={handleFilterChange}
+                    dateRangeOptions={{
+                        label: 'Période d\'analyse',
+                        enabled: true
+                    }}
+                    categoryOptions={{
+                        label: 'Catégories d\'affectation',
+                        enabled: true,
+                        options: [
+                            { id: 'morning', label: 'Matin', value: 'morning' },
+                            { id: 'afternoon', label: 'Après-midi', value: 'afternoon' },
+                            { id: 'night', label: 'Nuit', value: 'night' },
+                            { id: 'weekend', label: 'Week-end', value: 'weekend' },
+                            { id: 'holiday', label: 'Jours fériés', value: 'holiday' }
+                        ]
+                    }}
+                    userOptions={{
+                        label: 'Personnel',
+                        enabled: result?.generatedPlanningData?.userAssignments?.length > 0,
+                        options: result?.generatedPlanningData?.userAssignments?.map(staff => ({
+                            id: staff.userId,
+                            label: staff.userName,
+                            value: staff.userId,
+                            group: staff.role
+                        })) || []
+                    }}
+                    metricsOptions={{
+                        label: 'Métriques',
+                        enabled: true,
+                        options: [
+                            { id: 'staffingRate', label: 'Taux de couverture', value: 'staffingRate' },
+                            { id: 'satisfactionRate', label: 'Satisfaction', value: 'satisfactionRate' },
+                            { id: 'costEfficiency', label: 'Efficacité coût', value: 'costEfficiency' },
+                            { id: 'conflictRate', label: 'Taux de conflits', value: 'conflictRate' },
+                            { id: 'workloadBalance', label: 'Équilibre de charge', value: 'workloadBalance' }
+                        ]
+                    }}
+                    thresholdOptions={{
+                        label: 'Seuil de conformité',
+                        enabled: true,
+                        min: 0,
+                        max: 100,
+                        step: 5,
+                        initialValue: 80
+                    }}
+                    saveFiltersEnabled={true}
+                />
+            </div>
         </div>
     );
 
     function handleRunSimulation(scenarioId: string) {
         toast.info("Lancement d'une nouvelle simulation...");
-        fetch(`/api/simulations/${scenarioId}/run`, { method: 'POST' })
+        fetch(`http://localhost:3000/api/simulations/${scenarioId}/run`, { method: 'POST' })
             .then(res => {
                 if (!res.ok) throw new Error("Échec du lancement de la simulation");
                 return res.json();

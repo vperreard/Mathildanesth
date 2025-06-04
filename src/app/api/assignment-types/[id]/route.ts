@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-const prisma = new PrismaClient();
 
 // Récupérer un type d'affectation par ID
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
 
@@ -49,7 +48,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // Mettre à jour un type d'affectation
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
 
@@ -133,7 +132,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 // Supprimer un type d'affectation
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
 
@@ -167,7 +166,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         }
 
         // Vérifier si des affectations utilisent ce type
-        const assignmentsCount = await prisma.assignment.count({
+        const assignmentsCount = await prisma.attribution.count({
             where: { typeId: id },
         });
 

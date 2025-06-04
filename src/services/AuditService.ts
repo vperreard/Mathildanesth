@@ -13,6 +13,11 @@ export enum AuditAction {
     LEAVE_APPROVED = 'leave:approved',
     LEAVE_REJECTED = 'leave:rejected',
     LEAVE_CANCELLED = 'leave:cancelled',
+    
+    READ_LEAVE_TYPES = 'leave_type:read',
+    CREATE_LEAVE_TYPE = 'leave_type:created',
+    UPDATE_LEAVE_TYPE = 'leave_type:updated',
+    DELETE_LEAVE_TYPE = 'leave_type:deleted',
 
     QUOTA_UPDATED = 'quota:updated',
     QUOTA_TRANSFER = 'quota:transfer',
@@ -25,7 +30,67 @@ export enum AuditAction {
 
     REPORT_GENERATED = 'report:generated',
 
-    SYSTEM_UPDATED = 'system:updated'
+    SYSTEM_UPDATED = 'system:updated',
+    
+    RATE_LIMIT_EXCEEDED = 'security:rate_limit_exceeded'
+}
+
+// 🔧 CORRECTION TYPE ANY : Types spécifiques pour les détails d'audit
+type AuditDetails =
+    | UserAuditDetails
+    | LeaveAuditDetails
+    | QuotaAuditDetails
+    | PermissionAuditDetails
+    | SettingAuditDetails
+    | ReportAuditDetails
+    | SystemAuditDetails
+    | Record<string, unknown>; // Fallback pour les cas non typés
+
+interface UserAuditDetails {
+    previousRole?: string;
+    newRole?: string;
+    changedFields?: string[];
+    resetPassword?: boolean;
+}
+
+interface LeaveAuditDetails {
+    leaveType?: string;
+    startDate?: string;
+    endDate?: string;
+    previousStatus?: string;
+    newStatus?: string;
+    reason?: string;
+}
+
+interface QuotaAuditDetails {
+    previousQuota?: number;
+    newQuota?: number;
+    transferAmount?: number;
+    targetUserId?: string;
+}
+
+interface PermissionAuditDetails {
+    permission?: string;
+    granted?: boolean;
+    scope?: string;
+}
+
+interface SettingAuditDetails {
+    settingKey?: string;
+    previousValue?: unknown;
+    newValue?: unknown;
+}
+
+interface ReportAuditDetails {
+    reportType?: string;
+    filters?: Record<string, unknown>;
+    exportFormat?: string;
+}
+
+interface SystemAuditDetails {
+    component?: string;
+    version?: string;
+    configChanges?: Record<string, unknown>;
 }
 
 /**
@@ -38,7 +103,7 @@ export interface AuditEntry {
     userId?: string;
     entityId: string;
     entityType: string;
-    details?: any;
+    details?: AuditDetails; // 🔧 PLUS DE TYPE ANY
     ip?: string;
     userAgent?: string;
 }
@@ -130,7 +195,7 @@ export class AuditService {
         }
 
         try {
-            const response = await fetch(`/api/audit?${queryParams.toString()}`);
+            const response = await fetch(`http://localhost:3000/api/audit?${queryParams.toString()}`);
             if (!response.ok) {
                 throw new Error(`Erreur lors de la récupération de l'audit: ${response.statusText}`);
             }
@@ -179,7 +244,7 @@ export class AuditService {
         }
 
         try {
-            const response = await fetch(`/api/audit/user?${queryParams.toString()}`);
+            const response = await fetch(`http://localhost:3000/api/audit/user?${queryParams.toString()}`);
             if (!response.ok) {
                 throw new Error(`Erreur lors de la récupération de l'audit: ${response.statusText}`);
             }
@@ -202,7 +267,7 @@ export class AuditService {
      */
     private async sendToAuditAPI(entry: AuditEntry): Promise<void> {
         try {
-            const response = await fetch('/api/audit', {
+            const response = await fetch('http://localhost:3000/api/audit', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -269,7 +334,7 @@ export class AuditService {
                 const batch = pendingEntries.slice(i, i + batchSize);
 
                 try {
-                    const response = await fetch('/api/audit/batch', {
+                    const response = await fetch('http://localhost:3000/api/audit/batch', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'

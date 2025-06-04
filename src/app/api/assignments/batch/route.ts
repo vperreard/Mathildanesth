@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
-import { Assignment } from '@/types/assignment';
+import { prisma } from '@/lib/prisma';
+import { Attribution } from '@/types/attribution';
 
-const prisma = new PrismaClient();
 
 /**
- * POST /api/assignments/batch
+ * POST /api/affectations/batch
  * Traite un lot d'affectations (création ou mise à jour)
  */
 export async function POST(req: NextRequest) {
@@ -32,9 +31,9 @@ export async function POST(req: NextRequest) {
 
         // Récupération des données
         const body = await req.json();
-        const { assignments } = body as { assignments: Assignment[] };
+        const { attributions } = body as { attributions: Attribution[] };
 
-        if (!assignments || !Array.isArray(assignments) || assignments.length === 0) {
+        if (!attributions || !Array.isArray(attributions) || attributions.length === 0) {
             return NextResponse.json(
                 { error: 'Aucune affectation valide n\'a été fournie' },
                 { status: 400 }
@@ -43,35 +42,35 @@ export async function POST(req: NextRequest) {
 
         // Traitement par lots des affectations
         const results = await Promise.all(
-            assignments.map(async (assignment) => {
+            attributions.map(async (attribution) => {
                 try {
                     // Préparation des données pour Prisma
                     const assignmentData = {
-                        userId: assignment.userId,
-                        date: new Date(assignment.date),
-                        type: assignment.type,
-                        shift: assignment.shift || null,
-                        secteur: assignment.secteur || null,
-                        salle: assignment.salle || null,
-                        confirmed: assignment.confirmed || false,
+                        userId: attribution.userId,
+                        date: new Date(attribution.date),
+                        type: attribution.type,
+                        shift: attribution.shift || null,
+                        secteur: attribution.secteur || null,
+                        salle: attribution.salle || null,
+                        confirmed: attribution.confirmed || false,
                     };
 
-                    // Si l'assignment a un ID, mise à jour, sinon création
-                    if (assignment.id && assignment.id !== 'new') {
+                    // Si l'attribution a un ID, mise à jour, sinon création
+                    if (attribution.id && attribution.id !== 'new') {
                         // Mise à jour d'une affectation existante
-                        return await prisma.assignment.update({
-                            where: { id: assignment.id },
+                        return await prisma.attribution.update({
+                            where: { id: attribution.id },
                             data: assignmentData,
                         });
                     } else {
                         // Création d'une nouvelle affectation
-                        return await prisma.assignment.create({
+                        return await prisma.attribution.create({
                             data: assignmentData,
                         });
                     }
                 } catch (error) {
                     console.error(`Erreur lors du traitement de l'affectation: ${error}`);
-                    return { error: `Échec pour l'affectation de l'utilisateur ${assignment.userId}` };
+                    return { error: `Échec pour l'affectation de l'utilisateur ${attribution.userId}` };
                 }
             })
         );

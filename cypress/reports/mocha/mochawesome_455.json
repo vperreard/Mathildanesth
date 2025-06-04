@@ -1,0 +1,343 @@
+{
+  "stats": {
+    "suites": 2,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-06-01T07:22:11.988Z",
+    "end": "2025-06-01T07:23:03.479Z",
+    "duration": 51491,
+    "testsRegistered": 9,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 8,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "57aaf2f8-65d3-4f95-99ba-1019e4d4abae",
+      "title": "",
+      "fullFile": "cypress/e2e/planning/planning-generation.spec.ts",
+      "file": "cypress/e2e/planning/planning-generation.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "1c8d0d76-7679-469f-ae7c-14e7eb562bd7",
+          "title": "Génération de Planning",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [],
+          "suites": [
+            {
+              "uuid": "985bbb5a-1fba-419a-9271-d202d23dcd70",
+              "title": "Génération complète",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "devrait générer un planning pour un mois complet",
+                  "fullTitle": "Génération de Planning Génération complète devrait générer un planning pour un mois complet",
+                  "timedOut": null,
+                  "duration": 17124,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Naviguer vers la génération\ncy.get('[data-testid=\"generate-planning-btn\"]').click();\n// Configurer les paramètres\ncy.get('[data-testid=\"date-range-picker\"]').click();\ncy.get('[data-testid=\"start-date\"]').type('2024-02-01');\ncy.get('[data-testid=\"end-date\"]').type('2024-02-29');\n// Sélectionner les types d'affectations\ncy.get('[data-testid=\"assignment-type-garde\"]').check();\ncy.get('[data-testid=\"assignment-type-astreinte\"]').check();\ncy.get('[data-testid=\"assignment-type-consultation\"]').check();\ncy.get('[data-testid=\"assignment-type-bloc\"]').check();\n// Configurer l'optimisation\ncy.get('[data-testid=\"optimization-level\"]').select('standard');\ncy.get('[data-testid=\"apply-preferences\"]').check();\n// Lancer la génération\ncy.get('[data-testid=\"generate-btn\"]').click();\n// Vérifier le chargement\ncy.get('[data-testid=\"generation-progress\"]').should('be.visible');\n// Attendre la fin (max 30 secondes)\ncy.get('[data-testid=\"generation-complete\"]', { timeout: 30000 })\n    .should('be.visible');\n// Vérifier les résultats\ncy.get('[data-testid=\"total-assignments\"]')\n    .should('contain', 'assignments générées');\ncy.get('[data-testid=\"coverage-percentage\"]')\n    .invoke('text')\n    .then(function (text) {\n    var percentage = parseInt(text);\n    expect(percentage).to.be.greaterThan(90);\n});",
+                  "err": {
+                    "message": "CypressError: Timed out retrying after 15050ms: `cy.click()` failed because this element is `disabled`:\n\n`<button type=\"submit\" data-testid=\"login-submit-button\" data-cy=\"submit-button\" disabled=\"\" class=\"w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors\">Se conn...</button>`\n\nFix this problem, or use `{force: true}` to disable error checking.\n\nhttps://on.cypress.io/element-cannot-be-interacted-with\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Génération de Planning`",
+                    "estack": "CypressError: Timed out retrying after 15050ms: `cy.click()` failed because this element is `disabled`:\n\n`<button type=\"submit\" data-testid=\"login-submit-button\" data-cy=\"submit-button\" disabled=\"\" class=\"w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors\">Se conn...</button>`\n\nFix this problem, or use `{force: true}` to disable error checking.\n\nhttps://on.cypress.io/element-cannot-be-interacted-with\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Génération de Planning`\n    at Object.isNotDisabled (http://localhost:3000/__cypress/runner/cypress_runner.js:146985:58)\n    at runAllChecks (http://localhost:3000/__cypress/runner/cypress_runner.js:113392:26)\n    at retryActionability (http://localhost:3000/__cypress/runner/cypress_runner.js:113481:16)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at whenStable (http://localhost:3000/__cypress/runner/cypress_runner.js:145846:68)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:145787:14)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1671:18)\n    at Promise._fulfill (http://localhost:3000/__cypress/runner/cypress_runner.js:1615:18)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:5420:46)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:142:38)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)",
+                    "diff": null
+                  },
+                  "uuid": "d6694f2d-3485-4885-8d3f-fbc656648796",
+                  "parentUUID": "985bbb5a-1fba-419a-9271-d202d23dcd70",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "devrait respecter les contraintes de repos",
+                  "fullTitle": "Génération de Planning Génération complète devrait respecter les contraintes de repos",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Générer un planning\ncy.generateTestPlanning({\n    startDate: '2024-02-01',\n    endDate: '2024-02-07',\n    types: ['GARDE']\n});\n// Aller à la validation\ncy.get('[data-testid=\"validate-planning-btn\"]').click();\n// Vérifier qu'aucune violation de repos n'est détectée\ncy.get('[data-testid=\"violations-list\"]')\n    .should('not.contain', 'Période de repos insuffisante');",
+                  "err": {},
+                  "uuid": "2f630c24-f31b-490e-99f1-243d9dc77701",
+                  "parentUUID": "985bbb5a-1fba-419a-9271-d202d23dcd70",
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "devrait équilibrer les affectations entre utilisateurs",
+                  "fullTitle": "Génération de Planning Génération complète devrait équilibrer les affectations entre utilisateurs",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.generateTestPlanning({\n    startDate: '2024-02-01',\n    endDate: '2024-02-29',\n    types: ['GARDE', 'ASTREINTE']\n});\n// Vérifier l'équité\ncy.get('[data-testid=\"equity-score\"]')\n    .invoke('text')\n    .then(function (text) {\n    var score = parseInt(text);\n    expect(score).to.be.greaterThan(80);\n});\n// Vérifier la distribution\ncy.get('[data-testid=\"user-assignments-count\"]').each(function ($el) {\n    var count = parseInt($el.text());\n    expect(count).to.be.within(3, 8); // Entre 3 et 8 affectations par utilisateur\n});",
+                  "err": {},
+                  "uuid": "0aeab0e6-40b2-4788-be7c-7d4717b2a69f",
+                  "parentUUID": "985bbb5a-1fba-419a-9271-d202d23dcd70",
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "d6694f2d-3485-4885-8d3f-fbc656648796"
+              ],
+              "pending": [],
+              "skipped": [
+                "2f630c24-f31b-490e-99f1-243d9dc77701",
+                "0aeab0e6-40b2-4788-be7c-7d4717b2a69f"
+              ],
+              "duration": 17124,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "39a6d46e-fed4-4b35-bb8e-f02226eb36d3",
+              "title": "Validation et modifications",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "devrait permettre le drag & drop pour modifier les affectations",
+                  "fullTitle": "Génération de Planning Validation et modifications devrait permettre le drag & drop pour modifier les affectations",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Sélectionner une affectation\ncy.get('[data-testid=\"assignment-G24-user1-2024-02-05\"]')\n    .as('sourceAssignment');\n// Drag vers un autre utilisateur\ncy.get('@sourceAssignment').drag('[data-testid=\"cell-user2-2024-02-05\"]');\n// Vérifier que l'affectation a été déplacée\ncy.get('[data-testid=\"cell-user2-2024-02-05\"]')\n    .should('contain', 'G24');\n// Vérifier que la validation se met à jour\ncy.get('[data-testid=\"validation-status\"]')\n    .should('contain', 'Revalidation en cours');\ncy.wait(1000);\ncy.get('[data-testid=\"validation-status\"]')\n    .should('contain', 'Valide');",
+                  "err": {},
+                  "uuid": "10614575-f2ed-41b9-aac7-fa7888051f21",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "devrait détecter et afficher les conflits",
+                  "fullTitle": "Génération de Planning Validation et modifications devrait détecter et afficher les conflits",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Créer un conflit en déplaçant une garde\ncy.get('[data-testid=\"assignment-G24-user1-2024-02-05\"]')\n    .drag('[data-testid=\"cell-user1-2024-02-06\"]');\n// Vérifier qu'un conflit est détecté\ncy.get('[data-testid=\"conflicts-tab\"]').click();\ncy.get('[data-testid=\"conflict-list\"]')\n    .should('contain', 'Gardes consécutives');\n// Vérifier le nombre de conflits\ncy.get('[data-testid=\"conflicts-count\"]')\n    .should('contain', '1');",
+                  "err": {},
+                  "uuid": "e30487d1-4ec2-4922-b4c5-3e80f9a34709",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "devrait proposer des résolutions automatiques",
+                  "fullTitle": "Génération de Planning Validation et modifications devrait proposer des résolutions automatiques",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Créer un conflit\ncy.createTestConflict();\n// Aller aux conflits\ncy.get('[data-testid=\"conflicts-tab\"]').click();\n// Cliquer sur un conflit\ncy.get('[data-testid=\"conflict-item\"]').first().click();\n// Vérifier les résolutions proposées\ncy.get('[data-testid=\"resolution-options\"]')\n    .should('be.visible')\n    .children()\n    .should('have.length.greaterThan', 0);\n// Appliquer une résolution\ncy.get('[data-testid=\"apply-resolution-0\"]').click();\n// Vérifier que le conflit est résolu\ncy.get('[data-testid=\"conflicts-count\"]')\n    .should('contain', '0');",
+                  "err": {},
+                  "uuid": "d55ef7c5-ee85-4801-b8ef-262fddab2e5e",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [],
+              "pending": [],
+              "skipped": [
+                "10614575-f2ed-41b9-aac7-fa7888051f21",
+                "e30487d1-4ec2-4922-b4c5-3e80f9a34709",
+                "d55ef7c5-ee85-4801-b8ef-262fddab2e5e"
+              ],
+              "duration": 0,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "a5b4549a-5ba5-4d44-a5c6-dd59ad262da1",
+              "title": "Remplacement rapide",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "devrait trouver des remplaçants disponibles",
+                  "fullTitle": "Génération de Planning Remplacement rapide devrait trouver des remplaçants disponibles",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.generateTestPlanning();\ncy.visit('/planning');\n// Cliquer sur une affectation\ncy.get('[data-testid=\"assignment-G24-user1-2024-02-15\"]')\n    .rightclick();\ncy.get('[data-testid=\"quick-replace-option\"]').click();\n// Vérifier l'ouverture du modal\ncy.get('[data-testid=\"replacement-modal\"]')\n    .should('be.visible');\n// Vérifier la liste des candidats\ncy.get('[data-testid=\"replacement-candidates\"]')\n    .children()\n    .should('have.length.greaterThan', 0);\n// Vérifier les scores\ncy.get('[data-testid=\"candidate-score\"]').each(function ($el) {\n    var score = parseInt($el.text());\n    expect(score).to.be.within(0, 100);\n});",
+                  "err": {},
+                  "uuid": "be704889-a5a7-40fd-9827-416e432920c9",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "devrait effectuer un remplacement en 3 clics",
+                  "fullTitle": "Génération de Planning Remplacement rapide devrait effectuer un remplacement en 3 clics",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.generateTestPlanning();\ncy.visit('/planning');\n// 1er clic: Ouvrir le menu\ncy.get('[data-testid=\"assignment-AST-user2-2024-02-20\"]')\n    .rightclick();\n// 2e clic: Sélectionner remplacement rapide\ncy.get('[data-testid=\"quick-replace-option\"]').click();\n// 3e clic: Confirmer avec le premier candidat\ncy.get('[data-testid=\"select-candidate-0\"]').click();\ncy.get('[data-testid=\"confirm-replacement\"]').click();\n// Vérifier le remplacement\ncy.get('[data-testid=\"assignment-AST-user2-2024-02-20\"]')\n    .should('not.exist');\ncy.get('[data-testid=\"success-toast\"]')\n    .should('contain', 'Remplacement effectué');",
+                  "err": {},
+                  "uuid": "6ed3aefa-5680-4e7e-ae98-c9604d1aade2",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [],
+              "pending": [],
+              "skipped": [
+                "be704889-a5a7-40fd-9827-416e432920c9",
+                "6ed3aefa-5680-4e7e-ae98-c9604d1aade2"
+              ],
+              "duration": 0,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "c79c48fe-7f91-4037-a222-3b683e9eddb7",
+              "title": "Performance avec charge importante",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "devrait gérer 100+ utilisateurs sans ralentissement",
+                  "fullTitle": "Génération de Planning Performance avec charge importante devrait gérer 100+ utilisateurs sans ralentissement",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Créer beaucoup d'utilisateurs de test\ncy.createTestUsers(100);\n// Mesurer le temps de génération\nvar startTime = Date.now();\ncy.generateTestPlanning({\n    startDate: '2024-02-01',\n    endDate: '2024-02-29',\n    userCount: 100\n});\nvar generationTime = Date.now() - startTime;\n// Vérifier que la génération prend moins de 10 secondes\nexpect(generationTime).to.be.lessThan(10000);\n// Vérifier la fluidité de l'interface\ncy.visit('/planning/validation');\n// Scroll performance\ncy.get('[data-testid=\"planning-grid\"]').scrollTo('bottom', {\n    duration: 1000\n});\n// Drag & drop performance\ncy.get('[data-testid^=\"assignment-\"]').first()\n    .drag('[data-testid^=\"cell-\"]').eq(50);\n// Vérifier qu'il n'y a pas de lag visible\ncy.get('[data-testid=\"fps-counter\"]')\n    .invoke('text')\n    .then(function (text) {\n    var fps = parseInt(text);\n    expect(fps).to.be.greaterThan(30);\n});",
+                  "err": {},
+                  "uuid": "a0c0ccd4-be6e-43b6-907f-de5b1a82e805",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [],
+              "pending": [],
+              "skipped": [
+                "a0c0ccd4-be6e-43b6-907f-de5b1a82e805"
+              ],
+              "duration": 0,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            }
+          ],
+          "passes": [],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 0,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

@@ -112,7 +112,7 @@ export class LeaveReportApi {
      * Constructeur privé
      */
     private constructor() {
-        this.apiBaseUrl = '/api/leaves/reports';
+        this.apiBaseUrl = '/api/conges/reports';
         this.defaultHeaders = {
             'Content-Type': 'application/json'
         };

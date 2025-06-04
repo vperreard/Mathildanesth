@@ -70,22 +70,26 @@ export interface ValidationResult {
  * Secteur du bloc opératoire
  */
 export interface BlocSector {
-    id: string;
-    nom: string;
-    couleur: string;
+    id: number;
+    name: string;
+    description?: string;
+    colorCode: string;
+    specialites?: string[];
     salles: string[];
-    estActif: boolean;
+    isActive: boolean;
+    requiresSpecificSkills?: boolean;
+    supervisionSpeciale?: boolean;
 }
 
 /**
  * Salle d'opération
  */
 export interface OperatingRoom {
-    id: string;
-    numero: string;
-    nom: string;
-    secteurId: string;
-    estActif: boolean;
+    id: number;
+    number: string;
+    name: string;
+    operatingSectorId: number;
+    isActive: boolean;
 }
 
 /**
@@ -121,7 +125,7 @@ export interface BlocSupervisor {
 }
 
 /**
- * Assignment d'une salle pour une journée
+ * Attribution d'une salle pour une journée
  */
 export interface BlocRoomAssignment {
     id: string;

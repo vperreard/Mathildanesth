@@ -56,7 +56,7 @@ const PERIOD_LABEL: Record<PeriodeVariation, string> = {
 };
 
 /**
- * Composant pour configurer une variation d'affectation
+ * Composant pour configurer une variation d'garde/vacation
  */
 const VariationConfigPanel: React.FC<VariationConfigPanelProps> = ({
     variation,
@@ -280,7 +280,7 @@ const VariationConfigPanel: React.FC<VariationConfigPanelProps> = ({
                         Configuration spécifique
                     </Typography>
                     <Alert severity="info" sx={{ mb: 2 }}>
-                        La configuration spécifique de cette variation remplacera la configuration standard de l'affectation pendant la période définie.
+                        La configuration spécifique de cette variation remplacera la configuration standard de l'garde/vacation pendant la période définie.
                     </Alert>
 
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 2 }}>

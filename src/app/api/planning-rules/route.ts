@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-const prisma = new PrismaClient();
 
 // Récupérer toutes les règles de planning
 export async function GET(req: NextRequest) {
@@ -24,7 +23,7 @@ export async function GET(req: NextRequest) {
         const type = searchParams.get('type');
 
         // Construire les filtres
-        let where: any = {};
+        const where: any = {};
 
         if (active === 'true') {
             where.isActive = true;

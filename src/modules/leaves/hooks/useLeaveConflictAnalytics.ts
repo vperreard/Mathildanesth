@@ -1,12 +1,10 @@
-// @ts-nocheck
 /**
- * Ce fichier utilise @ts-nocheck pour contourner temporairement les problèmes de syntaxe dans les interfaces.
  * Il devrait être révisé complètement pour corriger les erreurs TypeScript.
  */
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useLeaveApi } from './useLeaveApi';
-import { useUserApi } from '../../users/hooks/useUserApi';
+import { useUserApi } from '../../utilisateurs/hooks/useUserApi';
 import { useDepartmentApi } from '../../organization/hooks/useDepartmentApi';
 import {
     LeaveConflictAnalyticsService,

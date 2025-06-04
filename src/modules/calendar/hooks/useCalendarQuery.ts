@@ -19,7 +19,7 @@ export const useCalendarQuery = (params: CalendarQueryParams) => {
     const { data: events = [], isLoading, error } = useQuery({
         queryKey,
         queryFn: async () => {
-            const response = await axios.get('/api/calendar/events', { params });
+            const response = await axios.get('http://localhost:3000/api/calendrier/events', { params });
             return response.data as AnyCalendarEvent[];
         },
         staleTime: 5 * 60 * 1000, // Les données sont considérées comme fraîches pendant 5 minutes
@@ -29,7 +29,7 @@ export const useCalendarQuery = (params: CalendarQueryParams) => {
     // Mutation pour mettre à jour un événement
     const updateEventMutation = useMutation({
         mutationFn: async (event: AnyCalendarEvent) => {
-            const response = await axios.put(`/api/calendar/events/${event.id}`, event);
+            const response = await axios.put(`http://localhost:3000/api/calendrier/events/${event.id}`, event);
             return response.data;
         },
         onSuccess: () => {
@@ -41,7 +41,7 @@ export const useCalendarQuery = (params: CalendarQueryParams) => {
     // Mutation pour créer un événement
     const createEventMutation = useMutation({
         mutationFn: async (event: Omit<AnyCalendarEvent, 'id'>) => {
-            const response = await axios.post('/api/calendar/events', event);
+            const response = await axios.post('http://localhost:3000/api/calendrier/events', event);
             return response.data;
         },
         onSuccess: () => {
@@ -52,7 +52,7 @@ export const useCalendarQuery = (params: CalendarQueryParams) => {
     // Mutation pour supprimer un événement
     const deleteEventMutation = useMutation({
         mutationFn: async (eventId: string) => {
-            await axios.delete(`/api/calendar/events/${eventId}`);
+            await axios.delete(`http://localhost:3000/api/calendrier/events/${eventId}`);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey });

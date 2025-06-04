@@ -44,7 +44,7 @@ export default function EditSimulationScenarioPage() {
         setIsLoading(true);
         setError(null);
         try {
-            const res = await fetch(`/api/simulations/${scenarioId}`);
+            const res = await fetch(`http://localhost:3000/api/simulations/${scenarioId}`);
             if (!res.ok) {
                 let errorMessage = "Échec de la récupération du scénario";
                 if (res.status === 404) errorMessage = "Scénario non trouvé.";
@@ -111,7 +111,7 @@ export default function EditSimulationScenarioPage() {
                 parametersJson: JSON.parse(scenario.parametersJson),
             };
 
-            const res = await fetch(`/api/simulations/${scenarioId}`, {
+            const res = await fetch(`http://localhost:3000/api/simulations/${scenarioId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),

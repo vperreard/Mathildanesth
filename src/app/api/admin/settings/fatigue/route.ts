@@ -36,13 +36,6 @@ async function readConfigFile(): Promise<FatigueConfig> {
     } catch (error: any) {
         if (error.code === 'ENOENT') {
             console.warn('fatigue-settings.json not found, returning default seed config.');
-            // Essayer d'utiliser planningRules si disponible (bien que l'import soit commenté)
-            // Cela reste au cas où l'import serait corrigé manuellement plus tard.
-            // @ts-ignore planningRules n'est pas défini si l'import est commenté
-            if (typeof planningRules !== 'undefined' && planningRules && planningRules.fatigueRules) {
-                // @ts-ignore
-                return planningRules.fatigueRules;
-            }
             return defaultFatigueSeedConfig; // Utiliser le fallback codé en dur
         }
         console.error("Error reading fatigue config file:", error);

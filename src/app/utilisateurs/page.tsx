@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import UserForm from '@/components/UserForm';
 // Importer les TYPES depuis le fichier centralisé
-import { User, UserFormData, Role, ProfessionalRole, UserRole } from '@/types/user';
+import { User, UserFormData, Role, UserRole } from '@/types/user';
 import { Skill } from '@/types/skill'; // Assumant que vous créerez ce type
 import { UserSkill } from '@/types/userSkill'; // Assumant que vous créerez ce type
 import { useAuth } from '@/hooks/useAuth'; // Importer useAuth
@@ -13,6 +13,16 @@ import ProtectedRoute from '@/components/ProtectedRoute'; // Importer ProtectedR
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 import { Label } from "@/components/ui/label"; // Import Label
 import { useToast } from "@/components/ui/use-toast"; // Ajout pour les notifications
+import UserTable from '@/components/users/UserTable'; // Import de notre tableau virtualisé
+
+// Interface pour les sites
+interface Site {
+    id: string;
+    name: string;
+    description?: string;
+    colorCode?: string;
+    isActive: boolean;
+}
 
 // Type Role et Interface User déplacés vers src/types/user.ts
 
@@ -32,6 +42,7 @@ function UsersPageContent() {
     const [allSkills, setAllSkills] = useState<Skill[]>([]);
     const [editingUserSkills, setEditingUserSkills] = useState<UserSkill[]>([]);
     const [skillsLoading, setSkillsLoading] = useState<boolean>(false);
+    const [editingUserSites, setEditingUserSites] = useState<Site[]>([]);
 
     // Référence pour le formulaire
     const formRef = useRef<HTMLFormElement>(null);
@@ -79,7 +90,7 @@ function UsersPageContent() {
         }
         setSkillsLoading(true);
         try {
-            const response = await axios.get<UserSkill[]>(`/api/users/${userId}/skills`);
+            const response = await axios.get<UserSkill[]>(`/api/utilisateurs/${userId}/skills`);
             setEditingUserSkills(response.data);
         } catch (err) {
             console.error(`Erreur fetchUserSkills pour ${userId}:`, err);
@@ -88,6 +99,21 @@ function UsersPageContent() {
         }
         setSkillsLoading(false);
     }, [toast]);
+
+    // Fetch sites for the user being edited
+    const fetchUserSites = useCallback(async (userId: string) => {
+        if (!userId) {
+            setEditingUserSites([]);
+            return;
+        }
+        try {
+            const response = await axios.get<Site[]>(`/api/utilisateurs/${userId}/sites`);
+            setEditingUserSites(response.data);
+        } catch (err) {
+            console.error(`Erreur fetchUserSites pour ${userId}:`, err);
+            setEditingUserSites([]); // Réinitialiser en cas d'erreur
+        }
+    }, []);
 
     useEffect(() => {
         if (!authLoading && currentUser) {
@@ -99,10 +125,12 @@ function UsersPageContent() {
     useEffect(() => {
         if (editingUser && editingUser.id) {
             fetchUserSkills(editingUser.id);
+            fetchUserSites(editingUser.id);
         } else {
             setEditingUserSkills([]); // Vider si pas d'utilisateur en édition
+            setEditingUserSites([]); // Vider les sites aussi
         }
-    }, [editingUser, fetchUserSkills]);
+    }, [editingUser, fetchUserSkills, fetchUserSites]);
 
     // --- Effet pour scroller vers le formulaire --- 
     useEffect(() => {
@@ -139,7 +167,7 @@ function UsersPageContent() {
         setSuccessMessage(null); // Clear success message
     };
 
-    const handleCreateUser = async (formData: UserFormData, selectedSkills: string[] = []) => {
+    const handleCreateUser = async (formData: UserFormData, selectedSkills: string[] = [], selectedSites: Site[] = []) => {
         setActionLoading('creating');
         setError(null);
         setSuccessMessage(null);
@@ -152,7 +180,7 @@ function UsersPageContent() {
                 try {
                     // Assigner chaque compétence sélectionnée
                     for (const skillId of selectedSkills) {
-                        await axios.post(`/api/users/${newUser.id}/skills`, { skillId });
+                        await axios.post(`http://localhost:3000/api/utilisateurs/${newUser.id}/skills`, { skillId });
                     }
                     toast({ title: "Succès", description: `${selectedSkills.length} compétence(s) assignée(s) à l'utilisateur.` });
                 } catch (err) {
@@ -160,7 +188,25 @@ function UsersPageContent() {
                     toast({
                         title: "Attention",
                         description: "L'utilisateur a été créé mais une erreur est survenue lors de l'assignation des compétences.",
-                        variant: "warning"
+                        variant: "destructive"
+                    });
+                }
+            }
+
+            // Si des sites sont sélectionnés, les assigner au nouvel utilisateur
+            if (selectedSites.length > 0) {
+                try {
+                    // Assigner les sites sélectionnés
+                    await axios.put(`/api/utilisateurs/${newUser.id}/sites`, {
+                        siteIds: selectedSites.map(site => site.id)
+                    });
+                    toast({ title: "Succès", description: `${selectedSites.length} site(s) assigné(s) à l'utilisateur.` });
+                } catch (err) {
+                    console.error("Erreur lors de l'assignation des sites:", err);
+                    toast({
+                        title: "Attention",
+                        description: "L'utilisateur a été créé mais une erreur est survenue lors de l'assignation des sites.",
+                        variant: "destructive"
                     });
                 }
             }
@@ -176,7 +222,7 @@ function UsersPageContent() {
         }
     };
 
-    const handleUpdateUser = async (formData: UserFormData, selectedSkills: string[] = []) => {
+    const handleUpdateUser = async (formData: UserFormData, selectedSkills: string[] = [], selectedSites: Site[] = []) => {
         if (!editingUser) return;
         const userId = editingUser.id;
         setActionLoading(userId);
@@ -189,7 +235,7 @@ function UsersPageContent() {
             // Gérer la synchronisation des compétences
             try {
                 // Récupérer les IDs des compétences actuellement assignées
-                const currentSkillsResponse = await axios.get<UserSkill[]>(`/api/users/${userId}/skills`);
+                const currentSkillsResponse = await axios.get<UserSkill[]>(`/api/utilisateurs/${userId}/skills`);
                 const currentSkillIds = currentSkillsResponse.data.map(us => us.skillId);
 
                 // Déterminer les compétences à ajouter et à supprimer
@@ -198,12 +244,12 @@ function UsersPageContent() {
 
                 // Ajouter les nouvelles compétences
                 for (const skillId of skillsToAdd) {
-                    await axios.post(`/api/users/${userId}/skills`, { skillId });
+                    await axios.post(`http://localhost:3000/api/utilisateurs/${userId}/skills`, { skillId });
                 }
 
                 // Supprimer les compétences non sélectionnées
                 for (const skillId of skillsToRemove) {
-                    await axios.delete(`/api/users/${userId}/skills/${skillId}`);
+                    await axios.delete(`http://localhost:3000/api/utilisateurs/${userId}/skills/${skillId}`);
                 }
 
                 if (skillsToAdd.length > 0 || skillsToRemove.length > 0) {
@@ -217,7 +263,28 @@ function UsersPageContent() {
                 toast({
                     title: "Attention",
                     description: "L'utilisateur a été mis à jour mais une erreur est survenue lors de la synchronisation des compétences.",
-                    variant: "warning"
+                    variant: "destructive"
+                });
+            }
+
+            // Gérer la synchronisation des sites
+            try {
+                // Assigner les sites sélectionnés
+                await axios.put(`/api/utilisateurs/${userId}/sites`, {
+                    siteIds: selectedSites.map(site => site.id)
+                });
+                if (selectedSites.length > 0) {
+                    toast({
+                        title: "Succès",
+                        description: `${selectedSites.length} site(s) assigné(s) à l'utilisateur.`
+                    });
+                }
+            } catch (err) {
+                console.error("Erreur lors de la synchronisation des sites:", err);
+                toast({
+                    title: "Attention",
+                    description: "L'utilisateur a été mis à jour mais une erreur est survenue lors de la synchronisation des sites.",
+                    variant: "destructive"
                 });
             }
 
@@ -238,7 +305,7 @@ function UsersPageContent() {
         setActionLoading(userId);
         setError(null);
         try {
-            await axios.delete(`/api/utilisateurs/${userId}`);
+            await axios.delete(`http://localhost:3000/api/utilisateurs/${userId}`);
             handleApiResponse({ id: userId }, true);
         } catch (err: any) {
             console.error("Erreur handleDeleteUser:", err);
@@ -256,7 +323,7 @@ function UsersPageContent() {
         setSuccessMessage(null);
         try {
             // Utilisation de la nouvelle route spécifique
-            await axios.put(`/api/utilisateurs/${userId}/reset-password`);
+            await axios.put(`http://localhost:3000/api/utilisateurs/${userId}/reset-password`);
             setSuccessMessage(`Mot de passe de l'utilisateur ${userId} réinitialisé avec succès (nouveau mot de passe = login).`);
             // Optionnel: rafraîchir les données ou juste retirer le message après un délai
             setTimeout(() => setSuccessMessage(null), 7000);
@@ -282,171 +349,112 @@ function UsersPageContent() {
         setEditingUser(null);
         setIsCreating(false);
     };
-    const showForm = isCreating || editingUser !== null;
-
-    const getRoleBadgeColor = (role: UserRole | string) => {
-        // Convertir UserRole (enum) en string si nécessaire
-        const roleString = Object.values(UserRole).includes(role as UserRole) ? role as string : role;
-
-        switch (roleString) {
-            case 'ADMIN_TOTAL': return 'bg-red-100 text-red-800';
-            case 'ADMIN_PARTIEL': return 'bg-yellow-100 text-yellow-800';
-            case 'USER': return 'bg-blue-100 text-blue-800';
-            // Gérer les autres cas de UserRole si nécessaire ou retourner une couleur par défaut
-            case UserRole.ADMIN: return 'bg-red-200 text-red-900'; // Exemple pour UserRole.ADMIN
-            case UserRole.MANAGER: return 'bg-yellow-200 text-yellow-900'; // Exemple pour UserRole.MANAGER
-            default: return 'bg-gray-100 text-gray-800';
-        }
-    };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-            >
-                <div className="mb-8 flex justify-between items-center">
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Gestion des utilisateurs</h1>
-                    {!showForm && (
-                        <button
-                            onClick={openCreateForm}
-                            className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300"
-                        >
-                            Ajouter un utilisateur
-                        </button>
-                    )}
-                </div>
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            className="container mx-auto px-4 py-4 max-w-7xl min-h-screen"
+        >
+            {/* Titre et bouton de création */}
+            <div className="flex justify-between items-center mb-4">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
+                <button
+                    onClick={openCreateForm}
+                    className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition ${isCreating || editingUser ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={isCreating || !!editingUser}
+                >
+                    Nouvel Utilisateur
+                </button>
+            </div>
 
-                {showForm && (
-                    <motion.div
-                        className="mb-8 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-100"
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <UserForm
-                            ref={formRef}
-                            onSubmit={isCreating ? handleCreateUser : handleUpdateUser}
-                            onCancel={handleCancelForm}
-                            isLoading={actionLoading === 'creating' || actionLoading === editingUser?.id}
-                            initialData={editingUser}
-                            allSkills={allSkills}
-                            userSkills={editingUserSkills}
-                            skillsLoading={skillsLoading}
-                            canEditRole={canEditRole}
-                        />
-                    </motion.div>
+            {/* Gestion des erreurs et messages de succès */}
+            {successMessage && (
+                <div className="mb-4 p-4 bg-green-100 border border-green-300 text-green-700 rounded flex items-start">
+                    <div className="flex-1">
+                        <p className="font-medium">Succès !</p>
+                        <p>{successMessage}</p>
+                    </div>
+                    <button onClick={() => setSuccessMessage(null)} className="text-green-500 hover:text-green-700">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            )}
+
+            {/* Formulaire d'édition/création */}
+            {(isCreating || editingUser) && (
+                <div className="mb-6">
+                    <UserForm
+                        ref={formRef}
+                        initialData={editingUser || undefined}
+                        allSkills={allSkills}
+                        userSkills={editingUserSkills}
+                        skillsLoading={skillsLoading}
+                        userSites={editingUserSites}
+                        onSubmit={isCreating ? handleCreateUser : handleUpdateUser}
+                        onCancel={handleCancelForm}
+                        isLoading={actionLoading !== null}
+                        canEditRole={canEditRole}
+                    />
+                </div>
+            )}
+
+            {/* Liste des utilisateurs */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+                {loading && (
+                    <div className="p-8 text-center">
+                        <p className="text-gray-600">Chargement des utilisateurs...</p>
+                    </div>
                 )}
 
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-100">
-                    {loading && <p className="text-center text-gray-600 py-4">Chargement des utilisateurs...</p>}
-                    {error && <p className="text-center text-red-600 font-medium py-4">{error}</p>}
+                {error && (
+                    <div className="p-8 text-center">
+                        <p className="text-red-600 font-medium">{error}</p>
+                    </div>
+                )}
 
-                    {!loading && !error && (
-                        <>
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-xl font-semibold text-gray-900">Liste des utilisateurs ({users.length})</h2>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="showInactiveUsers"
-                                        checked={showInactiveUsers}
-                                        onCheckedChange={(checked) => setShowInactiveUsers(Boolean(checked))}
-                                        className="border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
-                                    />
-                                    <Label htmlFor="showInactiveUsers" className="text-sm font-medium text-gray-700 cursor-pointer">
-                                        Afficher les inactifs
-                                    </Label>
-                                </div>
+                {!loading && !error && (
+                    <>
+                        <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50/50">
+                            <h2 className="text-lg font-semibold text-gray-900">
+                                Liste des utilisateurs ({users.length})
+                            </h2>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="showInactiveUsers"
+                                    checked={showInactiveUsers}
+                                    onCheckedChange={(checked) => setShowInactiveUsers(Boolean(checked))}
+                                    className="border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <Label htmlFor="showInactiveUsers" className="text-sm font-medium text-gray-700 cursor-pointer">
+                                    Afficher les inactifs
+                                </Label>
                             </div>
-                            {users.length === 0 ? (
-                                <p className="text-center text-gray-500 py-4">Aucun utilisateur trouvé.</p>
-                            ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200 table-fixed">
-                                        <thead className="bg-gray-50/50">
-                                            <tr>
-                                                <th className="w-12 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom Complet</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                                <th className="w-28 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle Accès</th>
-                                                <th className="w-36 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {users.map((user) => {
-                                                // Déplacer la logique de désactivation ici pour clarté
-                                                const isCurrentUser = currentUser?.id === user.id;
-                                                const editDisabled = actionLoading !== null || isCurrentUser; // On ne peut pas s'éditer soi-même ou si une autre action est en cours
-                                                const deleteDisabled = actionLoading !== null || isCurrentUser || user.role === 'ADMIN_TOTAL'; // On ne peut pas supprimer un admin total ou soi-même
-                                                const resetPwdDisabled = actionLoading !== null; // Pas d'autres contraintes spécifiques pour le reset
+                        </div>
 
-                                                return (
-                                                    <motion.tr
-                                                        key={user.id}
-                                                        className="hover:bg-gray-50/50"
-                                                        initial={{ opacity: 0 }}
-                                                        animate={{ opacity: 1 }}
-                                                        transition={{ duration: 0.3 }}
-                                                    >
-                                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                            {user.id}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                            {user.prenom} {user.nom}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate" title={user.email}>
-                                                            {user.email}
-                                                        </td>
-                                                        <td className="px-4 py-4 whitespace-nowrap">
-                                                            <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${getRoleBadgeColor(user.role)}`}>
-                                                                {user.role}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                            {/* --- Bouton Editer --- */}
-                                                            <button
-                                                                onClick={() => openEditForm(user)}
-                                                                className="text-indigo-600 hover:text-indigo-900 mr-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:text-gray-400"
-                                                                disabled={editDisabled} // Utiliser la logique calculée
-                                                                title={editDisabled ? "Action non autorisée" : "Éditer"}
-                                                            >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>
-                                                            </button>
-                                                            {/* --- Bouton Supprimer --- */}
-                                                            <button
-                                                                onClick={() => handleDeleteUser(user.id.toString())}
-                                                                disabled={deleteDisabled} // Utiliser la logique calculée
-                                                                className="text-red-600 hover:text-red-800 mr-3 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:text-gray-400"
-                                                                title={deleteDisabled ? "Action non autorisée" : "Supprimer"}
-                                                            >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                                                            </button>
-                                                            {/* --- Bouton Réinitialiser MDP --- */}
-                                                            <button
-                                                                onClick={() => handleResetPassword(user.id.toString())}
-                                                                disabled={resetPwdDisabled} // Utiliser la logique calculée
-                                                                className="text-yellow-600 hover:text-yellow-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:text-gray-400"
-                                                                title={resetPwdDisabled ? "Action non autorisée" : "Réinitialiser le mot de passe (au login)"}
-                                                            >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M15.75 15.75a.75.75 0 01-.75.75h-6a.75.75 0 010-1.5h4.19l-6.72-6.72a.75.75 0 111.06-1.06l6.72 6.72V10.5a.75.75 0 011.5 0v5.25zm0-11.5a.75.75 0 01-.75.75H4.5a.75.75 0 010-1.5h10.5a.75.75 0 01.75.75zM4.25 4.25a.75.75 0 01.75-.75h6a.75.75 0 010 1.5H5.81l6.72 6.72a.75.75 0 11-1.06 1.06L4.75 5.81v4.19a.75.75 0 01-1.5 0V4.25z" clipRule="evenodd" /></svg>
-                                                            </button>
-                                                        </td>
-                                                    </motion.tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </>
-                    )}
-                    {/* Affichage des messages de succès/erreur */}
-                    {successMessage && <p className="mt-4 text-center text-green-600 font-medium py-2 bg-green-50 rounded-md">{successMessage}</p>}
-                </div>
-            </motion.div>
-        </div>
+                        {users.length === 0 ? (
+                            <div className="p-8 text-center">
+                                <p className="text-gray-500">Aucun utilisateur trouvé.</p>
+                            </div>
+                        ) : (
+                            <div className="p-4">
+                                <UserTable
+                                    users={users}
+                                    onEditUser={openEditForm}
+                                    onDeleteUser={handleDeleteUser}
+                                    onResetPassword={handleResetPassword}
+                                    currentUserRole={currentUser?.role}
+                                    currentUserId={currentUser?.id}
+                                />
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+        </motion.div>
     );
 }
 

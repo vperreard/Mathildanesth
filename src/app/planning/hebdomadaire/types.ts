@@ -107,7 +107,7 @@ export type Room = {
 
 export type Shift = 'matin' | 'apresmidi' | 'morning' | 'afternoon' | 'full' | 'MORNING' | 'AFTERNOON' | 'FULL_DAY';
 
-export type Assignment = {
+export type Attribution = {
     id: string | number;
     roomId: string | number;
     userId?: string | number | null;
@@ -138,7 +138,7 @@ export type RoomOrderConfig = {
     orderedRoomIds: (string | number)[];
 };
 
-import { RuleViolation } from '@/types/assignment';
+import { RuleViolation } from '@/types/attribution';
 
 // Définition de ValidationResult (à exporter)
 export interface ValidationResult {

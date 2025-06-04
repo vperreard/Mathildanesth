@@ -1,6 +1,4 @@
-// @ts-nocheck
 /*
- * Ce fichier utilise @ts-nocheck pour contourner temporairement les problèmes complexes
  * d'incompatibilité de types entre Zod et React Hook Form.
  * 
  * PROBLÈME DÉTECTÉ:
@@ -9,7 +7,7 @@
  * 3. Types incompatibles pour les sectorId convertis de string à number
  * 
  * SOLUTION À LONG TERME:
- * 1. Créer des types explicites pour les données du formulaire et les distinguer des types du modèle
+ * 1. Créer des types explicites pour les données du formulaire et les distinguer des types du template
  * 2. Utiliser une interface utilisée à la fois par le schéma Zod et par useForm
  * 3. Ajouter des transformations appropriées dans le schéma Zod pour la conversion string/number
  */
@@ -40,7 +38,7 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/components/ui/select';
-import Switch from '@/components/ui/switch';
+import { Switch } from '@/components/ui/switch';
 
 // Type modifié pour le formulaire
 type OperatingRoomFormData = {

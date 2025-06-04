@@ -43,7 +43,7 @@ export default function AddSectorModal({ isOpen, onClose, onAdd }: AddSectorModa
         setError(null);
 
         try {
-            const response = await fetch('/api/operating-sectors', {
+            const response = await fetch('http://localhost:3000/api/operating-sectors', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

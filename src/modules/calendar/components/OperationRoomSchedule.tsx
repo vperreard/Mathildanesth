@@ -269,7 +269,7 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
             const operation = getOperationForTimeSlot(roomId, hour);
 
             if (!operation) {
-                // Slot disponible
+                // Créneau disponible
                 return isTimeSlotAvailable(roomId, hour) ? 'bg-gray-100 hover:bg-gray-200' : 'bg-red-100 hover:bg-red-200';
             }
 
@@ -504,10 +504,10 @@ export const OperationRoomSchedule: React.FC<OperationRoomScheduleProps> = ({
                                                 {room.name}
                                             </div>
 
-                                            {/* Grille des créneaux horaires */}
+                                            {/* Grille des slots horaires */}
                                             <div className="grid grid-cols-11 border-t">
                                                 {hours.map(hour => {
-                                                    // Filtrer les opérations pour cette salle et ce créneau
+                                                    // Filtrer les opérations pour cette salle et ce slot
                                                     const slotOperations = operations.filter(op => {
                                                         return op.room === room.id &&
                                                             op.start.getHours() <= hour &&

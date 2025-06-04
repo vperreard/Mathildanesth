@@ -37,7 +37,7 @@ export default function AdminSkillsPage() {
     async function fetchSkills() {
         setIsLoading(true);
         try {
-            const response = await fetch('/api/skills');
+            const response = await fetch('http://localhost:3000/api/skills');
             if (!response.ok) throw new Error('Failed to fetch skills');
             const data = await response.json();
             setSkills(data);
@@ -63,7 +63,7 @@ export default function AdminSkillsPage() {
         }
         setIsSaving(true);
         try {
-            const response = await fetch('/api/skills', {
+            const response = await fetch('http://localhost:3000/api/skills', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newSkillName, description: newSkillDescription }),
@@ -90,7 +90,7 @@ export default function AdminSkillsPage() {
         }
         setIsSaving(true);
         try {
-            const response = await fetch(`/api/skills/${currentSkill.id}`, {
+            const response = await fetch(`http://localhost:3000/api/skills/${currentSkill.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: currentSkill.name, description: currentSkill.description }),
@@ -112,7 +112,7 @@ export default function AdminSkillsPage() {
         if (!currentSkill) return;
         setIsSaving(true);
         try {
-            const response = await fetch(`/api/skills/${currentSkill.id}`, {
+            const response = await fetch(`http://localhost:3000/api/skills/${currentSkill.id}`, {
                 method: 'DELETE',
             });
             if (!response.ok) {

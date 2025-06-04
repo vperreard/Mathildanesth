@@ -17,7 +17,7 @@ describe('Opérations du calendrier', () => {
 
         // Se connecter et accéder au calendrier
         cy.loginByApi(testUser.email, testUser.password);
-        cy.visitAsAuthenticatedUser('/calendar');
+        cy.visitAsAuthenticatedUser('/calendrier');
     });
 
     it('affiche correctement le calendrier avec des événements', () => {
@@ -86,7 +86,7 @@ describe('Opérations du calendrier', () => {
         // Note: Les dates sont généralement déjà définies par la cellule cliquée
 
         // Intercepter la requête de création
-        cy.intercept('POST', '**/api/calendar/events').as('createEvent');
+        cy.intercept('POST', '**/api/calendrier/events').as('createEvent');
 
         // Enregistrer l'événement
         cy.get('[data-cy=save-event-button]').click();
@@ -114,7 +114,7 @@ describe('Opérations du calendrier', () => {
         cy.get('[data-cy=event-title]').clear().type('Événement modifié');
 
         // Intercepter la requête de mise à jour
-        cy.intercept('PUT', '**/api/calendar/events/**').as('updateEvent');
+        cy.intercept('PUT', '**/api/calendrier/events/**').as('updateEvent');
 
         // Enregistrer les modifications
         cy.get('[data-cy=save-event-button]').click();
@@ -140,7 +140,7 @@ describe('Opérations du calendrier', () => {
         cy.get('[data-cy=event-modal]').should('be.visible');
 
         // Intercepter la requête de suppression
-        cy.intercept('DELETE', '**/api/calendar/events/**').as('deleteEvent');
+        cy.intercept('DELETE', '**/api/calendrier/events/**').as('deleteEvent');
 
         // Cliquer sur le bouton de suppression
         cy.get('[data-cy=delete-event-button]').click();
@@ -223,13 +223,13 @@ describe('Opérations du calendrier', () => {
         cy.get('[data-cy=export-option-ical]').click();
 
         // Vérifier que le fichier est téléchargé
-        cy.readFile('cypress/downloads/calendar.ics').should('exist');
+        cy.readFile('cypress/downloads/calendrier.ics').should('exist');
 
         // Tester également l'export PDF
         cy.get('[data-cy=export-button]').click();
         cy.get('[data-cy=export-option-pdf]').click();
 
         // Vérifier que le fichier PDF est téléchargé
-        cy.readFile('cypress/downloads/calendar.pdf').should('exist');
+        cy.readFile('cypress/downloads/calendrier.pdf').should('exist');
     });
 }); 

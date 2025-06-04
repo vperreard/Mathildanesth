@@ -2,7 +2,7 @@
 import { RuleEngine } from '@/modules/rules/engine/rule-engine';
 import { RuleEvaluationContext } from '@/modules/rules/types/rule';
 import { RuleEvaluationResult, RuleSeverity } from '@/modules/rules/types/rule';
-import { Assignment } from '@/types/assignment';
+import { Attribution } from '@/types/attribution';
 import { Rule } from '@/modules/rules/types/rule';
 
 // Mock minimal pour les dépendances non utilisées directement dans l'évaluation simple
@@ -18,8 +18,8 @@ export const mockRuleEngine: MockRuleEngineEvaluator = {
     evaluate: async (context: RuleEvaluationContext): Promise<any> => {
         console.log("Mock RuleEngine evaluate called with context:", context);
 
-        // Assurer context.assignments est un tableau
-        const assignments = Array.isArray(context.assignments) ? context.assignments as Assignment[] : [];
+        // Assurer context.attributions est un tableau
+        const attributions = Array.isArray(context.attributions) ? context.attributions as Attribution[] : [];
 
         const violations: RuleEvaluationResult[] = [
             {
@@ -27,14 +27,14 @@ export const mockRuleEngine: MockRuleEngineEvaluator = {
                 passed: false,
                 severity: RuleSeverity.WARNING,
                 message: 'Violation simulée : Repos insuffisant pour Dr. Exemple.',
-                details: { affectedAssignments: assignments.length > 0 && assignments[0]?.id ? [String(assignments[0].id)] : [] }
+                details: { affectedAssignments: attributions.length > 0 && attributions[0]?.id ? [String(attributions[0].id)] : [] }
             },
             {
                 ruleId: 'mock-rule-2',
                 passed: false,
                 severity: RuleSeverity.ERROR,
                 message: 'Violation simulée critique : Charge de travail inéquitable détectée.',
-                details: { affectedAssignments: assignments.map((a: Assignment) => String(a.id)) }
+                details: { affectedAssignments: attributions.map((a: Attribution) => String(a.id)) }
             }
         ];
 

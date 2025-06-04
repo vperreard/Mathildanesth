@@ -20,7 +20,7 @@ const PlanningGeneratorPage: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [generating, setGenerating] = useState<boolean>(false);
     const [generated, setGenerated] = useState<boolean>(false);
-    const [assignments, setAssignments] = useState<Assignment[]>([]);
+    const [attributions, setAssignments] = useState<Attribution[]>([]);
     const [users, setUsers] = useState<User[]>([]); // Ajout pour stocker les utilisateurs
     const [validationResult, setValidationResult] = useState<ValidationResult>({
         valid: false,
@@ -64,7 +64,7 @@ const PlanningGeneratorPage: React.FC = () => {
             setUsers(activeUsers);
 
             // Mettre à jour l'état avec les résultats de l'API
-            setAssignments(response.assignments);
+            setAssignments(response.attributions);
             setValidationResult(response.validationResult);
             setGenerated(true);
         } catch (error) {
@@ -84,9 +84,9 @@ const PlanningGeneratorPage: React.FC = () => {
         try {
             const api = ApiService.getInstance();
             // L'API de validation devrait retourner le nouvel état de validation et potentiellement les affectations mises à jour
-            const validationResponse = await api.validatePlanning(assignments);
-            // Supposons que validatePlanning retourne { assignments: Assignment[], validationResult: ValidationResult }
-            setAssignments(validationResponse.assignments); // Mettre à jour si l'API modifie les assignations
+            const validationResponse = await api.validatePlanning(attributions);
+            // Supposons que validatePlanning retourne { attributions: Attribution[], validationResult: ValidationResult }
+            setAssignments(validationResponse.attributions); // Mettre à jour si l'API modifie les assignations
             setValidationResult(validationResponse.validationResult);
         } catch (error) {
             console.error('Erreur lors de la résolution de la violation via API:', error);
@@ -99,7 +99,7 @@ const PlanningGeneratorPage: React.FC = () => {
         setError(null);
         try {
             const api = ApiService.getInstance();
-            await api.approvePlanning(assignments);
+            await api.approvePlanning(attributions);
             alert('Planning approuvé et sauvegardé via API !');
             router.push('/planning/view');
         } catch (error) {
@@ -280,7 +280,7 @@ const PlanningGeneratorPage: React.FC = () => {
 
                     <PlanningValidator
                         validationResult={validationResult}
-                        assignments={assignments}
+                        attributions={attributions}
                         users={users} // Passer les utilisateurs récupérés
                         onResolveViolation={handleResolveViolation}
                         onApprove={handleApprove} // Conserver car le validateur peut avoir un bouton
@@ -288,7 +288,7 @@ const PlanningGeneratorPage: React.FC = () => {
                     />
 
                     <div className="mt-8">
-                        <h3 className="text-lg font-semibold mb-4">Affectations générées ({assignments.length})</h3>
+                        <h3 className="text-lg font-semibold mb-4">Affectations générées ({attributions.length})</h3>
                         <div className="overflow-x-auto max-h-96">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50 sticky top-0">
@@ -300,27 +300,27 @@ const PlanningGeneratorPage: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {assignments.length === 0 && (
+                                    {attributions.length === 0 && (
                                         <tr>
                                             <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
                                                 Aucune affectation générée.
                                             </td>
                                         </tr>
                                     )}
-                                    {assignments.map((assignment) => (
-                                        <tr key={assignment.id}>
+                                    {attributions.map((attribution) => (
+                                        <tr key={attribution.id}>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {formatDate(assignment.startDate)}
+                                                {formatDate(attribution.startDate)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {assignment.shiftType}
+                                                {attribution.shiftType}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {/* Afficher nom/prénom si possible */}
-                                                {users.find(u => u.id === assignment.userId)?.prenom} {users.find(u => u.id === assignment.userId)?.nom || assignment.userId}
+                                                {users.find(u => u.id === attribution.userId)?.prenom} {users.find(u => u.id === attribution.userId)?.nom || attribution.userId}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {assignment.status}
+                                                {attribution.status}
                                             </td>
                                         </tr>
                                     ))}

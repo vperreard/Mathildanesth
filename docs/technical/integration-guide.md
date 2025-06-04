@@ -29,8 +29,8 @@ Pour les intégrations complexes, il peut être utile de créer un service dédi
 ```typescript
 // src/modules/your-module/services/YourIntegrationService.ts
 import { eventBus, IntegrationEventType, IntegrationEvent } from '@/modules/integration/services/EventBusService';
-import { auditService, AuditActionType, AuditSeverity } from '@/modules/leaves/services/AuditService';
-import { leavePermissionService, LeavePermission } from '@/modules/leaves/permissions/LeavePermissionService';
+import { auditService, AuditActionType, AuditSeverity } from '@/modules/conges/services/AuditService';
+import { leavePermissionService, LeavePermission } from '@/modules/conges/permissions/LeavePermissionService';
 import { User } from '@/types/user'; // Assurez-vous d'importer les types nécessaires
 
 export class YourIntegrationService {
@@ -212,7 +212,7 @@ function publishResourceBookingUpdate(bookingDetails: any, actorUserId: string) 
 Avant d'effectuer des actions basées sur des événements ou des requêtes API, vérifiez les permissions de l'utilisateur concerné.
 
 ```typescript
-import { leavePermissionService, LeavePermission } from '@/modules/leaves/permissions/LeavePermissionService';
+import { leavePermissionService, LeavePermission } from '@/modules/conges/permissions/LeavePermissionService';
 import { User } from '@/types/user'; // Assurez-vous que le type User est correctement défini
 
 async function canUserManageResourceBookings(user: User): Promise<boolean> {
@@ -237,7 +237,7 @@ if (currentUser && await canUserManageResourceBookings(currentUser)) {
 Utilisez `AuditService` pour tracer les actions importantes effectuées par votre module ou en réponse à des événements.
 
 ```typescript
-import { auditService, AuditActionType, AuditSeverity } from '@/modules/leaves/services/AuditService';
+import { auditService, AuditActionType, AuditSeverity } from '@/modules/conges/services/AuditService';
 
 async function logResourceBookingCancellation(userId: string, bookingId: string, reason: string): Promise<void> {
     await auditService.createAuditEntry({

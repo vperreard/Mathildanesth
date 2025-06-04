@@ -6,7 +6,7 @@ import {
     PlanningSimulation,
     SimulationMetrics
 } from '../services/planningSimulator';
-import { Assignment, GenerationParameters, ValidationResult, AssignmentType } from '../types/assignment';
+import { Attribution, GenerationParameters, ValidationResult, AssignmentType } from '../types/attribution';
 import { User } from '../types/user';
 import { RulesConfiguration, FatigueConfig } from '../types/rules';
 import { Card } from './ui/card';
@@ -16,7 +16,7 @@ import { Select } from './ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import Switch from './ui/switch';
+import { Switch } from './ui/switch';
 import Link from 'next/link';
 import { HelpCircle } from 'lucide-react';
 
@@ -102,7 +102,7 @@ const simulationPresets = [
         name: 'Optimisation maximale',
         description: 'Recherche approfondie pour trouver la meilleure solution possible',
         parameterOverrides: {
-            niveauOptimisation: 'approfondi' as 'approfondi',
+            niveauOptimisation: 'approfondi' as const,
             poidsEquite: 0.6,
             poidsPreference: 0.6,
             poidsQualiteVie: 0.6
@@ -113,8 +113,8 @@ const simulationPresets = [
 interface PlanningSimulatorProps {
     initialParameters: GenerationParameters;
     personnel: User[];
-    existingAssignments: Assignment[];
-    onSimulationApplied: (assignments: Assignment[]) => void;
+    existingAssignments: Attribution[];
+    onSimulationApplied: (attributions: Attribution[]) => void;
 }
 
 export const PlanningSimulatorComponent: React.FC<PlanningSimulatorProps> = ({
@@ -243,9 +243,9 @@ export const PlanningSimulatorComponent: React.FC<PlanningSimulatorProps> = ({
     // Applique une simulation comme planning définitif
     const handleApplySimulation = (simulationId: string) => {
         try {
-            const assignments = simulator.applySimulation(simulationId);
-            if (assignments) {
-                onSimulationApplied(assignments);
+            const attributions = simulator.applySimulation(simulationId);
+            if (attributions) {
+                onSimulationApplied(attributions);
             } else {
                 setError('Simulation introuvable');
             }

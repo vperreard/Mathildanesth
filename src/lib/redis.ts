@@ -1,5 +1,21 @@
-import Redis from 'ioredis';
 import { logger } from './logger';
+
+let Redis: any;
+
+// Détecter l'environnement Edge Runtime
+const isEdgeRuntime = typeof globalThis !== 'undefined' &&
+    globalThis && 'EdgeRuntime' in globalThis &&
+    typeof (globalThis as any).EdgeRuntime === 'object';
+
+// Côté serveur uniquement et PAS dans Edge Runtime
+if (typeof window === 'undefined' && !isEdgeRuntime) {
+    try {
+        Redis = require('ioredis').default || require('ioredis');
+    } catch (error) {
+        console.warn('IORedis non disponible:', error);
+        Redis = null;
+    }
+}
 
 // Configuration Redis depuis les variables d'environnement
 const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
@@ -7,56 +23,68 @@ const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379', 10);
 const REDIS_DB = parseInt(process.env.REDIS_DB || '0', 10);
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD;
 const REDIS_PREFIX = process.env.REDIS_PREFIX || 'mathilda:';
-const REDIS_ENABLED = process.env.REDIS_ENABLED !== 'false';
+// Désactiver Redis automatiquement dans Edge Runtime
+const REDIS_ENABLED = process.env.REDIS_ENABLED !== 'false' && !isEdgeRuntime;
 
-// Création du client Redis
-const redisInstance = new Redis({
-    host: REDIS_HOST,
-    port: REDIS_PORT,
-    db: REDIS_DB,
-    password: REDIS_PASSWORD || undefined,
-    keyPrefix: REDIS_PREFIX,
-    retryStrategy: (times) => {
-        // Stratégie de reconnexion exponentielle avec plafond à 30 secondes
-        const delay = Math.min(times * 1000, 30000);
-        logger.warn(`Tentative de reconnexion Redis dans ${delay}ms (tentative ${times})`);
-        return delay;
-    },
-    enableOfflineQueue: true, // File d'attente quand Redis est déconnecté
-    maxRetriesPerRequest: 3, // Limiter les tentatives par requête
-});
+// Création du client Redis (côté serveur uniquement et pas Edge Runtime)
+let redisInstance: any = null;
 
-// Gestion des événements de connexion
-redisInstance.on('connect', () => {
-    logger.info('Connecté au serveur Redis');
-});
+if (typeof window === 'undefined' && !isEdgeRuntime && Redis) {
+    try {
+        redisInstance = new Redis({
+            host: REDIS_HOST,
+            port: REDIS_PORT,
+            db: REDIS_DB,
+            password: REDIS_PASSWORD || undefined,
+            keyPrefix: REDIS_PREFIX,
+            retryStrategy: (times: number) => {
+                // Stratégie de reconnexion exponentielle avec plafond à 30 secondes
+                const delay = Math.min(times * 1000, 30000);
+                logger.warn(`Tentative de reconnexion Redis dans ${delay}ms (tentative ${times})`);
+                return delay;
+            },
+            enableOfflineQueue: true, // File d'attente quand Redis est déconnecté
+            maxRetriesPerRequest: 3, // Limiter les tentatives par requête
+        });
 
-redisInstance.on('ready', () => {
-    logger.info(`Serveur Redis prêt (${REDIS_HOST}:${REDIS_PORT}, DB ${REDIS_DB})`);
-});
+        // Gestion des événements de connexion
+        redisInstance.on('connect', () => {
+            logger.info('Connecté au serveur Redis');
+        });
 
-redisInstance.on('error', (error) => {
-    logger.error('Erreur de connexion Redis:', error);
-});
+        redisInstance.on('ready', () => {
+            logger.info(`Serveur Redis prêt (${REDIS_HOST}:${REDIS_PORT}, DB ${REDIS_DB})`);
+        });
 
-redisInstance.on('close', () => {
-    logger.warn('Connexion Redis fermée');
-});
+        redisInstance.on('error', (error: any) => {
+            logger.error('Erreur de connexion Redis:', error);
+        });
 
-redisInstance.on('reconnecting', () => {
-    logger.warn('Tentative de reconnexion au serveur Redis...');
-});
+        redisInstance.on('close', () => {
+            logger.warn('Connexion Redis fermée');
+        });
+
+        redisInstance.on('reconnecting', () => {
+            logger.warn('Tentative de reconnexion au serveur Redis...');
+        });
+    } catch (error) {
+        console.warn('Impossible de créer la connexion Redis:', error);
+        redisInstance = null;
+    }
+} else if (isEdgeRuntime) {
+    console.log('Edge Runtime détecté: Redis désactivé automatiquement');
+}
 
 // Wrapper autour de Redis pour la gestion du mode désactivé
 type RedisOperation = (...args: any[]) => Promise<any>;
 
 class RedisCacheClient {
-    private client: Redis.Redis;
+    private client: any;
     private enabled: boolean;
 
-    constructor(client: Redis.Redis, enabled: boolean = true) {
+    constructor(client: any, enabled: boolean = true) {
         this.client = client;
-        this.enabled = enabled;
+        this.enabled = enabled && client !== null;
     }
 
     /**
@@ -98,7 +126,38 @@ class RedisCacheClient {
     }
 
     async set(key: string, value: string, mode?: string, duration?: number): Promise<'OK' | null> {
-        return this.executeIfEnabled(this.client.set as RedisOperation, key, value, mode, duration);
+        if (mode && duration) {
+            return this.executeIfEnabled(this.client.set as RedisOperation, key, value, mode, duration);
+        }
+        return this.executeIfEnabled(this.client.set as RedisOperation, key, value);
+    }
+
+    async setex(key: string, seconds: number, value: string): Promise<'OK' | null> {
+        return this.executeIfEnabled(this.client.setex as RedisOperation, key, seconds, value);
+    }
+
+    async getBuffer(key: string): Promise<Buffer | null> {
+        return this.executeIfEnabled(this.client.getBuffer as RedisOperation, key);
+    }
+
+    async mget(...keys: string[]): Promise<(string | null)[] | null> {
+        return this.executeIfEnabled(this.client.mget as RedisOperation, ...keys);
+    }
+
+    async hget(key: string, field: string): Promise<string | null> {
+        return this.executeIfEnabled(this.client.hget as RedisOperation, key, field);
+    }
+
+    async hgetall(key: string): Promise<Record<string, string> | null> {
+        return this.executeIfEnabled(this.client.hgetall as RedisOperation, key);
+    }
+
+    async hset(key: string, field: string, value: string): Promise<number | null> {
+        return this.executeIfEnabled(this.client.hset as RedisOperation, key, field, value);
+    }
+
+    async hmset(key: string, data: Record<string, any>): Promise<'OK' | null> {
+        return this.executeIfEnabled(this.client.hmset as RedisOperation, key, data);
     }
 
     async del(...keys: string[]): Promise<number | null> {
@@ -133,6 +192,7 @@ class RedisCacheClient {
      * Vérifie si la connexion Redis est disponible
      */
     async ping(): Promise<boolean> {
+        if (!this.client) return false;
         try {
             const result = await this.client.ping();
             return result === 'PONG';
@@ -150,4 +210,27 @@ export const redis = new RedisCacheClient(redisInstance, REDIS_ENABLED);
 export const redisClient = redis;
 
 // Pour typehint
-export type RedisClient = RedisCacheClient; 
+export type RedisClient = RedisCacheClient;
+
+// Helpers pour le cache
+export const CachePrefixes = {
+    AUTH_TOKEN: 'auth:token:',
+    USER_DATA: 'user:data:',
+    USER_PERMISSIONS: 'user:permissions:',
+    PLANNING_DATA: 'planning:',
+    SECTOR_DATA: 'sector:',
+    ROOM_DATA: 'room:',
+    LEAVE_BALANCE: 'leave:balance:',
+    QUERY_RESULT: 'query:',
+} as const;
+
+export const CacheTTL = {
+    AUTH_TOKEN: 300, // 5 minutes
+    USER_DATA: 600, // 10 minutes  
+    USER_PERMISSIONS: 600, // 10 minutes
+    PLANNING_DATA: 300, // 5 minutes
+    SECTOR_DATA: 3600, // 1 heure
+    ROOM_DATA: 3600, // 1 heure
+    LEAVE_BALANCE: 300, // 5 minutes
+    QUERY_RESULT: 300, // 5 minutes
+} as const; 

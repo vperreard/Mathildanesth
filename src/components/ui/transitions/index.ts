@@ -1,6 +1,4 @@
-// @ts-nocheck
 /**
- * Ce fichier utilise @ts-nocheck car il contient du code JSX mais est sauvegardé avec l'extension .ts
  * À terme, il devrait être converti en .tsx
  */
 

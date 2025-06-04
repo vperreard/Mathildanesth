@@ -41,7 +41,7 @@ Hook qui gère le calcul des jours de congés en fonction des dates sélectionn�
 
 ## API Endpoints
 
-### GET /api/leaves/balance
+### GET /api/conges/balance
 
 Retourne les soldes de congés d'un utilisateur.
 
@@ -75,7 +75,7 @@ Retourne les soldes de congés d'un utilisateur.
 ]
 ```
 
-### POST /api/leaves/batch
+### POST /api/conges/batch
 
 Crée une ou plusieurs demandes de congés.
 
@@ -111,7 +111,7 @@ Le module s'appuie sur les modèles Prisma suivants:
 
 Les tests pour ce module sont organisés en:
 - **Tests unitaires**: `useLeaveCalculation.test.ts`, `LeaveForm.test.tsx`
-- **Tests d'intégration**: Vérification des API `/api/leaves/balance`, détection de conflits, mise à jour des soldes
+- **Tests d'intégration**: Vérification des API `/api/conges/balance`, détection de conflits, mise à jour des soldes
 
 ## Utilisation des assertions personnalisées
 

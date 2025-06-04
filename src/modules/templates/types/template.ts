@@ -1,5 +1,5 @@
 /**
- * Types d'affectations possibles dans une trame.
+ * Types d'gardes/vacations possibles dans une trameModele.
  * Doit être synchronisé avec les types réels utilisés dans l'application.
  */
 export type AffectationType = 'CONSULTATION' | 'BLOC_OPERATOIRE' | 'GARDE_JOUR' | 'GARDE_NUIT' | 'ASTREINTE';
@@ -68,10 +68,10 @@ export interface ValidationResult {
 }
 
 /**
- * Représente une affectation spécifique au sein d'une trame de planning.
+ * Représente une affectation spécifique au sein d'une trameModele de planning.
  */
 export interface TemplateAffectation {
-    id: string; // Identifiant unique de l'affectation dans la trame
+    id: string; // Identifiant unique de l'affectation dans la trameModele
     type: AffectationType; // Type d'affectation (Consultation, Bloc, etc.)
     jour: DayOfWeek; // Jour de la semaine concerné
     ouvert: boolean; // Indique si ce créneau d'affectation est ouvert par défaut
@@ -150,15 +150,15 @@ export interface ConfigurationVariation {
 }
 
 /**
- * Props pour le composant éditeur de trames.
+ * Props pour le composant éditeur de trameModeles.
  */
 export interface BlocPlanningTemplateEditorProps {
-    initialTemplate?: PlanningTemplate; // Trame existante à éditer (optionnel)
-    selectedTemplateId?: string;      // ID de la trame sélectionnée à charger (si initialTemplate n'est pas fourni pour cet ID)
-    onSave: (template: PlanningTemplate) => Promise<void>; // Fonction appelée lors de la sauvegarde
+    initialTemplate?: PlanningTemplate; // Tableau de service existante à éditer (optionnel)
+    selectedTemplateId?: string;      // ID de la trameModele sélectionnée à charger (si initialTemplate n'est pas fourni pour cet ID)
+    onSave: (modèle: PlanningTemplate) => Promise<void>; // Fonction appelée lors de la sauvegarde
     onCancel?: () => void; // Fonction appelée lors de l'annulation ou de la fermeture
-    availableAffectationTypes: AffectationType[]; // Liste des types d'affectations pouvant être ajoutés
-    templates?: PlanningTemplate[]; // Liste de toutes les trames (pour la recherche par ID dans loadTrames)
+    availableAffectationTypes: AffectationType[]; // Liste des types d'gardes/vacations pouvant être ajoutés
+    modèles?: PlanningTemplate[]; // Liste de toutes les trameModeles (pour la recherche par ID dans loadTrames)
     isLoading?: boolean; // Indicateur de chargement pour la sauvegarde/initialisation
     availablePostes?: string[]; // Liste des postes disponibles
     readOnly?: boolean; // Mode lecture seule
@@ -198,18 +198,18 @@ export interface VariationConfigPanelProps {
 }
 
 /**
- * Props pour le gestionnaire de trames
+ * Props pour le gestionnaire de trameModeles
  */
 export interface TemplateManagerProps {
     departementId?: string; // Filtrer par département
-    onSelectTemplate?: (template: PlanningTemplate) => void;
+    onSelectTemplate?: (modèle: PlanningTemplate) => void;
     onCreateTemplate?: () => void;
     readOnly?: boolean;
     showArchived?: boolean;
 }
 
 /**
- * Options pour la recherche de trames
+ * Options pour la recherche de trameModeles
  */
 export interface TemplateSearchOptions {
     departementId?: string;
@@ -222,10 +222,10 @@ export interface TemplateSearchOptions {
 }
 
 /**
- * Résultat paginé de recherche de trames
+ * Résultat paginé de recherche de trameModeles
  */
 export interface PaginatedTemplateResult {
-    templates: PlanningTemplate[];
+    modèles: PlanningTemplate[];
     total: number;
     page: number;
     pageSize: number;
@@ -255,7 +255,7 @@ export enum RoleType {
 }
 
 /**
- * Représente une trame de planning complète.
+ * Représente une trameModele de planning complète.
  */
 export interface PlanningTemplate {
     id: string | number;

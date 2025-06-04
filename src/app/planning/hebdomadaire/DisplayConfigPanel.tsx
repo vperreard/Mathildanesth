@@ -24,7 +24,7 @@ import {
 // Importer la configuration par défaut depuis le fichier dédié
 import { defaultDisplayConfig } from './defaultConfig';
 
-// Importer le composant pour les trames
+// Importer le composant pour les trameModeles
 // import { TrameAffectation } from '@/components/trames/TrameAffectation'; // On commente à nouveau, car ce n'est pas le bon composant/endroit
 
 // Définir l'interface des props avec les types importés
@@ -51,7 +51,7 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
 }) => {
     // État local pour les modifications
     const [tempConfig, setTempConfig] = useState<DisplayConfig>({ ...config });
-    // On retire 'trames' du type de activeTab pour l'instant
+    // On retire 'trameModeles' du type de activeTab pour l'instant
     const [activeTab, setActiveTab] = useState<'chirurgien' | 'mar' | 'iade' | 'vacation' | 'general'>('general');
 
     // Gestion des changements dans la configuration du personnel
@@ -784,16 +784,16 @@ const DisplayConfigPanel: React.FC<DisplayConfigPanelProps> = ({
                     </div>
                 )}
 
-                {/* On commente la section pour l'onglet trames
-                {activeTab === 'trames' && (
+                {/* On commente la section pour l'onglet trameModeles
+                {activeTab === 'trameModeles' && (
                     <div className="space-y-4">
-                        <h3 className="text-lg font-medium text-gray-700">Configuration des Trames Hebdomadaires</h3>
+                        <h3 className="text-lg font-medium text-gray-700">Configuration des TrameModeles Hebdomadaires</h3>
                         <p className="text-sm text-gray-600">
                             Définissez ici les affectations récurrentes pour les semaines paires/impaires.
                             L'interface visuelle de type planning sera intégrée ici.
                         </p>
                         <div className="p-4 border rounded-md bg-gray-100">
-                            <p className="text-gray-700">Placeholder pour le futur composant d'édition de trames visuelles.</p>
+                            <p className="text-gray-700">Placeholder pour le futur composant d'édition de trameModeles visuelles.</p>
                         </div>
                     </div>
                 )}

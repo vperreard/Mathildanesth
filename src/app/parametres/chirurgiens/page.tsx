@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { ArrowLeft, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ProtectedRoute from '@/components/ProtectedRoute';
-// Importer Role comme une valeur (enum) et un type
-import { Role } from '@/types/user';
+// Importer UserRole comme enum
+import { UserRole } from '@/types/user';
 
 // Importer le panneau de liste des chirurgiens
 import SurgeonsListPanel from '../configuration/SurgeonsListPanel';
@@ -40,7 +40,7 @@ function SurgeonsPageContent() {
 // Garder la protection de la route
 export default function ProtectedSurgeonsPage() {
     return (
-        <ProtectedRoute allowedRoles={[Role.ADMIN, Role.MANAGER]}>
+        <ProtectedRoute allowedRoles={['ADMIN_TOTAL', 'ADMIN_PARTIEL']}>
             <SurgeonsPageContent />
         </ProtectedRoute>
     );

@@ -1,0 +1,62 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@example.com",
+      "nom": "Admin",
+      "prenom": "Test",
+      "role": "ADMIN_TOTAL",
+      "professionalRole": "MAR",
+      "actif": true,
+      "lastLogin": "2025-05-29T08:00:00Z"
+    },
+    {
+      "id": 2,
+      "email": "medecin@example.com",
+      "nom": "Martin",
+      "prenom": "Jean",
+      "role": "USER",
+      "professionalRole": "MAR",
+      "actif": true,
+      "lastLogin": "2025-05-28T14:30:00Z"
+    },
+    {
+      "id": 3,
+      "email": "iade@example.com",
+      "nom": "Durand",
+      "prenom": "Marie",
+      "role": "USER",
+      "professionalRole": "IADE",
+      "actif": true,
+      "lastLogin": "2025-05-28T09:15:00Z"
+    },
+    {
+      "id": 4,
+      "email": "chirurgien@example.com",
+      "nom": "Dupont",
+      "prenom": "Pierre",
+      "role": "USER",
+      "professionalRole": "MAR",
+      "actif": false,
+      "lastLogin": "2025-05-20T16:45:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 4,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  },
+  "statistics": {
+    "totalActive": 3,
+    "totalInactive": 1,
+    "byRole": {
+      "ADMIN_TOTAL": 1,
+      "USER": 3
+    },
+    "byProfessionalRole": {
+      "MAR": 3,
+      "IADE": 1
+    }
+  }
+}

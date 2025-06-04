@@ -198,7 +198,7 @@ describe('Tests de performance', () => {
     });
 
     it('vérifie les performances du calendrier', () => {
-        cy.visitAsAuthenticatedUser('/calendar');
+        cy.visitAsAuthenticatedUser('/calendrier');
         cy.runLighthouseAudit();
     });
 });

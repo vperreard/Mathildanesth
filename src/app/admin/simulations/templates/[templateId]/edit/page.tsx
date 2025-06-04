@@ -141,7 +141,7 @@ export default function EditTemplatePage() {
                 parametersJson: formData.parametersJson
             });
 
-            toast.success('Template mis à jour avec succès');
+            toast.success('Modèle mis à jour avec succès');
             router.push('/admin/simulations/templates');
         } catch (error: any) {
             toast.error(`Erreur lors de la mise à jour du template: ${error.message}`);
@@ -182,7 +182,7 @@ export default function EditTemplatePage() {
             <form onSubmit={handleSubmit}>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Modifier le Template</CardTitle>
+                        <CardTitle>Modifier le Modèle</CardTitle>
                         <CardDescription>
                             Mettez à jour votre template de simulation pour le planning
                         </CardDescription>

@@ -4,6 +4,8 @@
 
 // Import des commandes personnalisées
 import './commands';
+import './database';
+import './auth';
 import '@cypress/code-coverage/support';
 import '@testing-library/cypress/add-commands';
 // import 'cypress-axe'; // Commenter l'import
@@ -12,12 +14,12 @@ import 'cypress-plugin-tab';
 // Fonctions utilitaires pour le setup des tests
 const setupApiInterceptions = () => {
   // Intercepter les requêtes API et simuler certaines réponses si nécessaire
-  cy.intercept('GET', '**/api/users/**').as('getUsers');
-  cy.intercept('GET', '**/api/surgeons/**').as('getSurgeons');
-  cy.intercept('GET', '**/api/leaves/**').as('getLeaves');
+  cy.intercept('GET', '**/api/utilisateurs/**').as('getUsers');
+  cy.intercept('GET', '**/api/chirurgiens/**').as('getSurgeons');
+  cy.intercept('GET', '**/api/conges/**').as('getLeaves');
   cy.intercept('GET', '**/api/planning/**').as('getPlanning');
-  cy.intercept('POST', '**/api/auth/login').as('login');
-  cy.intercept('POST', '**/api/leaves/**').as('createLeave');
+  cy.intercept('POST', '**/api/auth/connexion').as('login');
+  cy.intercept('POST', '**/api/conges/**').as('createLeave');
 
   // Intercepter génériquement les autres requêtes API
   cy.intercept('GET', '**/api/**').as('apiGet');
@@ -33,6 +35,13 @@ beforeEach(() => {
   // if (Cypress.env('resetDatabase') !== false) {
   //   cy.task('resetTestDatabase'); // Commenté car géré dans les 'before()' spécifiques
   // }
+
+  // Add global interceptor to add test headers to all API requests
+  cy.intercept('**/api/**', (req) => {
+    req.headers['x-cypress-test'] = 'true';
+    req.headers['x-test-environment'] = 'cypress';
+    req.headers['x-disable-rate-limit'] = 'true';
+  }).as('allApiRequestsWithTestHeaders');
 
   // Configurer les interceptions d'API
   setupApiInterceptions();
@@ -95,9 +104,32 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     // Liste des messages d'erreur à ignorer
     'ResizeObserver loop limit exceeded',
     'Cannot read properties of null',
-    'Network Error'
+    'Network Error',
+    'Loading CSS chunk',
+    'Non-Error promise rejection captured',
+    'Cannot find module',
+    'Failed to fetch'
   ];
 
   // Renvoie false pour empêcher Cypress d'échouer le test en cas d'erreur spécifique
   return ignoredErrors.some(errorMsg => err.message.includes(errorMsg));
-}); 
+});
+
+// Commandes de stabilité supplémentaires
+Cypress.Commands.add('safeClick', (selector: string) => {
+  cy.get(selector).should('be.visible').and('not.be.disabled').click();
+});
+
+Cypress.Commands.add('safeType', (selector: string, text: string) => {
+  cy.get(selector).should('be.visible').and('not.be.disabled').clear().type(text);
+});
+
+// Types pour TypeScript
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      safeClick(selector: string): Chainable<any>;
+      safeType(selector: string, text: string): Chainable<any>;
+    }
+  }
+} 

@@ -42,7 +42,7 @@ export async function fetchWithAuth<T = any>(url: string, options: FetchOptions 
 
             // Redirection si 401 (non autorisé) - sera également géré par l'intercepteur Axios
             if (error.response.status === 401) {
-                window.location.href = '/auth/login';
+                window.location.href = '/auth/connexion';
             }
 
             throw new Error(

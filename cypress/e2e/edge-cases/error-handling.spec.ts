@@ -28,7 +28,7 @@ describe('Gestion des erreurs et cas limites', () => {
         cy.loginByApi(testUser.email, testUser.password);
 
         // Accéder à la page de demande de congés
-        cy.visitAsAuthenticatedUser('/leaves/new');
+        cy.visitAsAuthenticatedUser('/conges/nouveau');
 
         // Soumettre le formulaire sans remplir les champs obligatoires
         cy.get('[data-cy=submit-leave-request]').click();
@@ -55,7 +55,7 @@ describe('Gestion des erreurs et cas limites', () => {
         cy.loginByApi(testUser.email, testUser.password);
 
         // Accéder à la page de demande de congés
-        cy.visitAsAuthenticatedUser('/leaves/new');
+        cy.visitAsAuthenticatedUser('/conges/nouveau');
 
         // Remplir le formulaire
         cy.get('[data-cy=leave-type-select]').click();
@@ -71,7 +71,7 @@ describe('Gestion des erreurs et cas limites', () => {
         cy.selectDate('[data-cy=end-date-input]', nextWeek);
 
         // Simuler une erreur serveur
-        cy.intercept('POST', '**/api/leaves', {
+        cy.intercept('POST', '**/api/conges', {
             statusCode: 500,
             body: {
                 message: 'Erreur interne du serveur'
@@ -98,10 +98,10 @@ describe('Gestion des erreurs et cas limites', () => {
         cy.loginByApi(testUser.email, testUser.password);
 
         // Accéder à la page des congés
-        cy.visitAsAuthenticatedUser('/leaves');
+        cy.visitAsAuthenticatedUser('/conges');
 
         // Simuler une erreur réseau pour le chargement des congés
-        cy.intercept('GET', '**/api/leaves**', {
+        cy.intercept('GET', '**/api/conges**', {
             forceNetworkError: true
         }).as('networkError');
 
@@ -117,7 +117,7 @@ describe('Gestion des erreurs et cas limites', () => {
         cy.get('[data-cy=retry-button]').should('be.visible');
 
         // Simuler le retour du réseau
-        cy.intercept('GET', '**/api/leaves**').as('leavesRequest');
+        cy.intercept('GET', '**/api/conges**').as('leavesRequest');
 
         // Cliquer sur le bouton de réessai
         cy.get('[data-cy=retry-button]').click();
@@ -134,15 +134,15 @@ describe('Gestion des erreurs et cas limites', () => {
         cy.loginByApi(testUser.email, testUser.password);
 
         // Accéder à la page de demande de congés
-        cy.visitAsAuthenticatedUser('/leaves/new');
+        cy.visitAsAuthenticatedUser('/conges/nouveau');
 
         // Remplir le formulaire avec des dates qui chevauchent un congé existant
         cy.get('[data-cy=leave-type-select]').click();
         cy.get('[data-cy=leave-type-option-conges]').click();
 
         // Utiliser les dates du congé déjà existant (d'après les fixtures)
-        const existingLeaveStart = new Date('2024-06-01T00:00:00.000Z');
-        const existingLeaveEnd = new Date('2024-06-14T23:59:59.999Z');
+        // const existingLeaveStart = new Date('2024-06-01T00:00:00.000Z');
+        // const existingLeaveEnd = new Date('2024-06-14T23:59:59.999Z');
 
         // Choisir des dates qui chevauchent
         const overlapStart = new Date('2024-06-10T00:00:00.000Z');
@@ -172,7 +172,7 @@ describe('Gestion des erreurs et cas limites', () => {
         cy.loginByApi(testUser.email, testUser.password);
 
         // Accéder à la page de demande de congés
-        cy.visitAsAuthenticatedUser('/leaves/new');
+        cy.visitAsAuthenticatedUser('/conges/nouveau');
 
         // Remplir le formulaire avec une date de fin antérieure à la date de début
         cy.get('[data-cy=leave-type-select]').click();
@@ -201,7 +201,7 @@ describe('Gestion des erreurs et cas limites', () => {
         cy.loginByApi(testUser.email, testUser.password);
 
         // Accéder à une page protégée
-        cy.visitAsAuthenticatedUser('/leaves');
+        cy.visitAsAuthenticatedUser('/conges');
 
         // Simuler une expiration de session en modifiant le token
         cy.window().then(win => {
@@ -212,7 +212,7 @@ describe('Gestion des erreurs et cas limites', () => {
             win.localStorage.setItem('authToken', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjN9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c');
 
             // Simuler une erreur d'authentification pour la prochaine requête API
-            cy.intercept('GET', '**/api/leaves**', {
+            cy.intercept('GET', '**/api/conges**', {
                 statusCode: 401,
                 body: {
                     message: 'Token expiré ou invalide'
@@ -226,7 +226,7 @@ describe('Gestion des erreurs et cas limites', () => {
             cy.wait('@authError');
 
             // Vérifier la redirection vers la page de connexion
-            cy.url().should('include', '/auth/login');
+            cy.url().should('include', '/auth/connexion');
 
             // Vérifier l'affichage d'un message d'erreur
             cy.get('[data-cy=notification-error]')
@@ -245,7 +245,7 @@ describe('Gestion des erreurs et cas limites', () => {
         cy.loginByApi(testUser.email, testUser.password);
 
         // Essayer d'accéder à une page d'administration
-        cy.visitAsAuthenticatedUser('/admin/leaves');
+        cy.visitAsAuthenticatedUser('/admin/conges');
 
         // Vérifier la redirection ou l'affichage d'un message d'erreur
         cy.get('[data-cy=access-denied-message]')

@@ -42,7 +42,7 @@ import { AuditAction } from '@/services/AuditService';
  */
 export class QuotaAdvancedService {
     private static instance: QuotaAdvancedService;
-    private readonly apiBaseUrl: string = '/api/leaves/quotas';
+    private readonly apiBaseUrl: string = '/api/conges/quotas';
     private readonly auditService: AuditService;
 
     /**
@@ -614,7 +614,7 @@ export class QuotaAdvancedService {
      */
     async generateTransferReport(options: QuotaTransferReportOptions): Promise<QuotaTransferReportResult> {
         try {
-            const response = await apiClient.post('/api/leaves/quotas/transfers/report', options);
+            const response = await apiClient.post('/api/conges/quotas/transfers/report', options);
             return response.data;
         } catch (error: any) {
             console.error('Erreur lors de la génération du rapport de transferts:', error);
@@ -632,7 +632,7 @@ export class QuotaAdvancedService {
 
         try {
             const response = await apiClient.post(
-                `/api/leaves/quotas/transfers/export?format=${format}`,
+                `/api/conges/quotas/transfers/export?format=${format}`,
                 options,
                 { responseType: 'blob' }
             );
@@ -660,7 +660,7 @@ export class QuotaAdvancedService {
         queryParams.append('year', currentYear.toString());
 
         try {
-            const response = await apiClient.get(`/api/leaves/quotas/statistics?${queryParams.toString()}`);
+            const response = await apiClient.get(`/api/conges/quotas/statistics?${queryParams.toString()}`);
             return response.data;
         } catch (error: any) {
             console.error('Erreur lors de la récupération des statistiques de quotas:', error);
@@ -674,7 +674,7 @@ export class QuotaAdvancedService {
      */
     async getCarryOverConfigurations(): Promise<QuotaAnnualCarryOverConfig[]> {
         try {
-            const response = await apiClient.get('/api/leaves/quotas/carry-overs/config');
+            const response = await apiClient.get('/api/conges/quotas/carry-overs/config');
             return response.data;
         } catch (error: any) {
             console.error('Erreur lors de la récupération des configurations de report:', error);
@@ -689,7 +689,7 @@ export class QuotaAdvancedService {
      */
     async updateCarryOverConfiguration(config: QuotaAnnualCarryOverConfig): Promise<QuotaAnnualCarryOverConfig> {
         try {
-            const response = await apiClient.put('/api/leaves/quotas/carry-overs/config', config);
+            const response = await apiClient.put('/api/conges/quotas/carry-overs/config', config);
 
             // Journalisation de l'action
             AuditService.logAction(AuditAction.UPDATE_QUOTA_CONFIG, {
@@ -731,7 +731,7 @@ export class QuotaAdvancedService {
         details: any[];
     }> {
         try {
-            const response = await apiClient.post('/api/leaves/quotas/carry-overs/process-annual', {
+            const response = await apiClient.post('/api/conges/quotas/carry-overs/process-annual', {
                 fromYear,
                 toYear
             });
@@ -778,7 +778,7 @@ export class QuotaAdvancedService {
         if (departmentId) queryParams.append('departmentId', departmentId);
 
         try {
-            const response = await apiClient.get(`/api/leaves/quotas/dashboard?${queryParams.toString()}`);
+            const response = await apiClient.get(`/api/conges/quotas/dashboard?${queryParams.toString()}`);
             return response.data;
         } catch (error: any) {
             console.error('Erreur lors de la récupération des données du tableau de bord:', error);

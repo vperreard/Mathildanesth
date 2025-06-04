@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "user": {
+    "id": 5,
+    "email": "nouveau.medecin@example.com",
+    "nom": "Nouveau",
+    "prenom": "Médecin",
+    "role": "USER",
+    "professionalRole": "IADE",
+    "actif": true,
+    "createdAt": "2025-05-29T10:00:00Z"
+  },
+  "message": "Utilisateur créé avec succès",
+  "tempPassword": "TempPass123!"
+}

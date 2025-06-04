@@ -1,0 +1,10 @@
+=== INFORMATIONS SYSTÈME ===
+Date: Tue May 27 07:06:22 CEST 2025
+Node Version: v22.11.0
+NPM Version: 10.9.0
+Cypress Version: Cypress package version: 14.3.3
+Cypress binary version: 14.3.3
+Electron version: 33.2.1
+Bundled Node version: 20.18.1
+Port 3000 Status: Application en cours d'exécution
+Working Directory: /Users/vincentperreard/Mathildanesth

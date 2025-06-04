@@ -53,7 +53,7 @@ In case this error is unexpected for you, please report it in https://pris.ly/pr
 Prisma.Decimal = Decimal
 
 /**
- * Re-export of sql-template-tag
+ * Re-export of sql-modèle-tag
  */
 Prisma.sql = () => {
   const runtimeName = getRuntime().prettyName;

@@ -1,0 +1,521 @@
+{
+  "stats": {
+    "suites": 2,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-06-01T06:01:11.479Z",
+    "end": "2025-06-01T06:01:14.207Z",
+    "duration": 2728,
+    "testsRegistered": 15,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 1,
+    "hasOther": true,
+    "skipped": 13,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "9423e851-2952-4e17-ac3a-a28ca7637167",
+      "title": "",
+      "fullFile": "cypress/e2e/admin/leave-management.spec.ts",
+      "file": "cypress/e2e/admin/leave-management.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "3d7ff6a9-0949-4da2-adc3-6c8476f1fcb3",
+          "title": "Admin - Gestion des Congés",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [],
+          "suites": [
+            {
+              "uuid": "da471023-af78-41da-a4de-8245de420b6a",
+              "title": "Tableau de bord des congés",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "devrait afficher les statistiques globales",
+                  "fullTitle": "Admin - Gestion des Congés Tableau de bord des congés devrait afficher les statistiques globales",
+                  "timedOut": null,
+                  "duration": 641,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"leave-stats\"]').within(function () {\n    cy.get('[data-testid=\"pending-requests\"]').should('exist');\n    cy.get('[data-testid=\"approved-this-month\"]').should('exist');\n    cy.get('[data-testid=\"total-days-taken\"]').should('exist');\n    cy.get('[data-testid=\"upcoming-leaves\"]').should('exist');\n});",
+                  "err": {
+                    "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3001/auth/connexion\n\nWe attempted to make an http request to this URL but the request failed without a response.\n\nWe received this error at the network level:\n\n  > Error: connect ECONNREFUSED 127.0.0.1:3001\n\nCommon situations why this would fail:\n  - you don't have internet access\n  - you forgot to run / boot your web server\n  - your web server isn't accessible\n  - you have weird network configuration settings on your computer\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Admin - Gestion des Congés`",
+                    "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3001/auth/connexion\n\nWe attempted to make an http request to this URL but the request failed without a response.\n\nWe received this error at the network level:\n\n  > Error: connect ECONNREFUSED 127.0.0.1:3001\n\nCommon situations why this would fail:\n  - you don't have internet access\n  - you forgot to run / boot your web server\n  - your web server isn't accessible\n  - you have weird network configuration settings on your computer\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Admin - Gestion des Congés`\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:133726:74)\n    at visitFailedByErr (http://localhost:3001/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:133725:11)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3001/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3001/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3001/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3001/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3001/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3001/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:139:7)\n    at wrapped (http://localhost:3001/__cypress/runner/cypress_runner.js:140165:43)\n\nFrom Node.js Internals:\n  Error: connect ECONNREFUSED 127.0.0.1:3001\n      at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)",
+                    "diff": null
+                  },
+                  "uuid": "c759f1d8-6e4a-4f2f-b2e1-9a48088ab410",
+                  "parentUUID": "da471023-af78-41da-a4de-8245de420b6a",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "devrait afficher les demandes en attente en priorité",
+                  "fullTitle": "Admin - Gestion des Congés Tableau de bord des congés devrait afficher les demandes en attente en priorité",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"pending-leaves-section\"]').should('be.visible');\ncy.get('[data-testid=\"pending-leave-card\"]').each(function ($card) {\n    cy.wrap($card).find('[data-testid=\"status-badge\"]').should('contain', 'En attente');\n    cy.wrap($card).find('[data-testid=\"approve-btn\"]').should('exist');\n    cy.wrap($card).find('[data-testid=\"reject-btn\"]').should('exist');\n});",
+                  "err": {},
+                  "uuid": "70b26ed3-938d-45a9-81ae-11e31f69cca8",
+                  "parentUUID": "da471023-af78-41da-a4de-8245de420b6a",
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "c759f1d8-6e4a-4f2f-b2e1-9a48088ab410"
+              ],
+              "pending": [],
+              "skipped": [
+                "70b26ed3-938d-45a9-81ae-11e31f69cca8"
+              ],
+              "duration": 641,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "c60b8431-306a-421c-8a79-d367bdfce0f4",
+              "title": "Validation des demandes",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "devrait approuver une demande de congé",
+                  "fullTitle": "Admin - Gestion des Congés Validation des demandes devrait approuver une demande de congé",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"pending-leave-card\"]').first().within(function () {\n    cy.get('[data-testid=\"user-name\"]').invoke('text').as('userName');\n    cy.get('[data-testid=\"leave-dates\"]').invoke('text').as('leaveDates');\n    cy.get('[data-testid=\"approve-btn\"]').click();\n});\ncy.get('[data-testid=\"approval-dialog\"]').should('be.visible');\ncy.get('[data-testid=\"approval-comment\"]').type('Approuvé pour raisons médicales');\ncy.get('[data-testid=\"confirm-approve-btn\"]').click();\ncy.get('[data-testid=\"success-toast\"]').should('contain', 'Demande approuvée');\n// Vérifier que la demande n'est plus dans les pending\ncy.get('@userName').then(function (name) {\n    cy.get('[data-testid=\"pending-leaves-section\"]').should('not.contain', name);\n});",
+                  "err": {},
+                  "uuid": "f9bfd7ef-5c15-4bd3-bb60-7c0a45cf6d48",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "devrait rejeter une demande avec motif obligatoire",
+                  "fullTitle": "Admin - Gestion des Congés Validation des demandes devrait rejeter une demande avec motif obligatoire",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"pending-leave-card\"]').first().find('[data-testid=\"reject-btn\"]').click();\ncy.get('[data-testid=\"rejection-dialog\"]').should('be.visible');\n// Tenter de soumettre sans motif\ncy.get('[data-testid=\"confirm-reject-btn\"]').click();\ncy.get('[data-testid=\"error-message\"]').should('contain', 'Motif requis');\n// Ajouter un motif\ncy.get('[data-testid=\"rejection-reason\"]').type('Effectifs insuffisants pendant cette période');\ncy.get('[data-testid=\"confirm-reject-btn\"]').click();\ncy.get('[data-testid=\"success-toast\"]').should('contain', 'Demande rejetée');",
+                  "err": {},
+                  "uuid": "c56973b8-6be9-41ab-a503-535d71af6c46",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "devrait permettre la validation en masse",
+                  "fullTitle": "Admin - Gestion des Congés Validation des demandes devrait permettre la validation en masse",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Sélectionner plusieurs demandes\ncy.get('[data-testid=\"select-all-pending\"]').check();\ncy.get('[data-testid=\"bulk-actions\"]').should('be.visible');\ncy.get('[data-testid=\"bulk-approve-btn\"]').click();\ncy.get('[data-testid=\"bulk-approval-dialog\"]').should('be.visible');\ncy.get('[data-testid=\"bulk-comment\"]').type('Validation groupée - période calme');\ncy.get('[data-testid=\"confirm-bulk-approve\"]').click();\ncy.get('[data-testid=\"success-toast\"]').should('contain', 'demandes approuvées');",
+                  "err": {},
+                  "uuid": "8b7157cc-0290-45b1-80fc-e7d542ca7a60",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [],
+              "pending": [],
+              "skipped": [
+                "f9bfd7ef-5c15-4bd3-bb60-7c0a45cf6d48",
+                "c56973b8-6be9-41ab-a503-535d71af6c46",
+                "8b7157cc-0290-45b1-80fc-e7d542ca7a60"
+              ],
+              "duration": 0,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "718e80c7-266a-4dfd-a9f7-d5fc364aa8f6",
+              "title": "Gestion des quotas",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "devrait afficher les quotas par utilisateur",
+                  "fullTitle": "Admin - Gestion des Congés Gestion des quotas devrait afficher les quotas par utilisateur",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"quotas-table\"]').should('exist');\ncy.get('[data-testid=\"quota-row\"]').should('have.length.greaterThan', 0);\ncy.get('[data-testid=\"quota-row\"]').first().within(function () {\n    cy.get('[data-testid=\"user-name\"]').should('exist');\n    cy.get('[data-testid=\"leave-type\"]').should('exist');\n    cy.get('[data-testid=\"initial-balance\"]').should('exist');\n    cy.get('[data-testid=\"used-days\"]').should('exist');\n    cy.get('[data-testid=\"remaining-days\"]').should('exist');\n});",
+                  "err": {},
+                  "uuid": "de9a36bd-59ac-4fc3-a5dc-52daa94a770b",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "devrait permettre l'ajustement manuel des quotas",
+                  "fullTitle": "Admin - Gestion des Congés Gestion des quotas devrait permettre l'ajustement manuel des quotas",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"quota-row\"]').first().find('[data-testid=\"adjust-quota-btn\"]').click();\ncy.get('[data-testid=\"adjustment-dialog\"]').within(function () {\n    cy.get('input[name=\"adjustment\"]').type('5');\n    cy.get('textarea[name=\"reason\"]').type('Compensation heures supplémentaires');\n    cy.get('select[name=\"type\"]').select('CREDIT');\n});\ncy.get('[data-testid=\"confirm-adjustment-btn\"]').click();\ncy.get('[data-testid=\"success-toast\"]').should('contain', 'Quota ajusté');",
+                  "err": {},
+                  "uuid": "87c6425a-dd5d-4484-af91-a48736f81959",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "devrait gérer les reports de congés",
+                  "fullTitle": "Admin - Gestion des Congés Gestion des quotas devrait gérer les reports de congés",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"carryover-btn\"]').click();\ncy.get('[data-testid=\"carryover-dialog\"]').within(function () {\n    cy.get('[data-testid=\"year-select\"]').select('2023');\n    cy.get('[data-testid=\"preview-carryover-btn\"]').click();\n});\ncy.get('[data-testid=\"carryover-preview\"]').should('be.visible');\ncy.get('[data-testid=\"confirm-carryover-btn\"]').click();\ncy.get('[data-testid=\"success-toast\"]').should('contain', 'Reports effectués');",
+                  "err": {},
+                  "uuid": "b3d27571-5b88-4f5d-9381-811a4d350624",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [],
+              "pending": [],
+              "skipped": [
+                "de9a36bd-59ac-4fc3-a5dc-52daa94a770b",
+                "87c6425a-dd5d-4484-af91-a48736f81959",
+                "b3d27571-5b88-4f5d-9381-811a4d350624"
+              ],
+              "duration": 0,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "eb19f653-75a3-4302-b798-d9c9c691e3e8",
+              "title": "Types de congés",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "devrait créer un nouveau type de congé",
+                  "fullTitle": "Admin - Gestion des Congés Types de congés devrait créer un nouveau type de congé",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"create-leave-type-btn\"]').click();\ncy.get('[data-testid=\"leave-type-form\"]').within(function () {\n    cy.get('input[name=\"code\"]').type('FORM');\n    cy.get('input[name=\"label\"]').type('Formation');\n    cy.get('input[name=\"defaultDays\"]').type('5');\n    cy.get('input[name=\"color\"]').type('#9C27B0');\n    cy.get('input[name=\"requiresApproval\"]').check();\n    cy.get('input[name=\"countsAsAbsence\"]').uncheck();\n});\ncy.get('[data-testid=\"submit-btn\"]').click();\ncy.get('[data-testid=\"success-toast\"]').should('contain', 'Type de congé créé');",
+                  "err": {},
+                  "uuid": "3ba45c5c-9a8f-48a7-90cd-d7157f5d881e",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "devrait configurer les règles par type",
+                  "fullTitle": "Admin - Gestion des Congés Types de congés devrait configurer les règles par type",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"leave-type-row\"]')\n    .contains('CP')\n    .parents('[data-testid=\"leave-type-row\"]')\n    .find('[data-testid=\"configure-rules-btn\"]')\n    .click();\ncy.get('[data-testid=\"rules-dialog\"]').within(function () {\n    cy.get('input[name=\"minDays\"]').clear().type('1');\n    cy.get('input[name=\"maxDays\"]').clear().type('25');\n    cy.get('input[name=\"advanceNotice\"]').clear().type('14');\n    cy.get('input[name=\"maxConsecutive\"]').clear().type('15');\n    // Périodes de restriction\n    cy.get('[data-testid=\"add-blackout-period\"]').click();\n    cy.get('input[name=\"blackout.0.start\"]').type('2024-07-15');\n    cy.get('input[name=\"blackout.0.end\"]').type('2024-08-15');\n    cy.get('input[name=\"blackout.0.reason\"]').type('Période estivale critique');\n});\ncy.get('[data-testid=\"save-rules-btn\"]').click();\ncy.get('[data-testid=\"success-toast\"]').should('contain', 'Règles configurées');",
+                  "err": {},
+                  "uuid": "00ed5f6d-90d6-4271-bbea-98642f523901",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [],
+              "pending": [],
+              "skipped": [
+                "3ba45c5c-9a8f-48a7-90cd-d7157f5d881e",
+                "00ed5f6d-90d6-4271-bbea-98642f523901"
+              ],
+              "duration": 0,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "423715bb-a85c-42d3-9b2b-e0f75013ae24",
+              "title": "Analyse et rapports",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "devrait afficher les graphiques d'analyse",
+                  "fullTitle": "Admin - Gestion des Congés Analyse et rapports devrait afficher les graphiques d'analyse",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"analytics-dashboard\"]').within(function () {\n    cy.get('[data-testid=\"absences-by-month-chart\"]').should('be.visible');\n    cy.get('[data-testid=\"absences-by-type-chart\"]').should('be.visible');\n    cy.get('[data-testid=\"absences-by-department-chart\"]').should('be.visible');\n    cy.get('[data-testid=\"trends-chart\"]').should('be.visible');\n});",
+                  "err": {},
+                  "uuid": "9cce40c5-3c34-43d6-ba07-b50ad78e3621",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "devrait générer un rapport personnalisé",
+                  "fullTitle": "Admin - Gestion des Congés Analyse et rapports devrait générer un rapport personnalisé",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"generate-report-btn\"]').click();\ncy.get('[data-testid=\"report-config\"]').within(function () {\n    cy.get('input[name=\"startDate\"]').type('2024-01-01');\n    cy.get('input[name=\"endDate\"]').type('2024-12-31');\n    // Sélectionner les métriques\n    cy.get('[data-testid=\"metric-checkbox-total-days\"]').check();\n    cy.get('[data-testid=\"metric-checkbox-by-user\"]').check();\n    cy.get('[data-testid=\"metric-checkbox-by-type\"]').check();\n    // Format d'export\n    cy.get('select[name=\"format\"]').select('PDF');\n});\ncy.get('[data-testid=\"generate-btn\"]').click();\ncy.get('[data-testid=\"success-toast\"]').should('contain', 'Rapport généré');\n// Vérifier le téléchargement\ncy.readFile('cypress/downloads/leave-report-2024.pdf').should('exist');",
+                  "err": {},
+                  "uuid": "8a2848da-eefa-4ae7-aaa0-38682325fd68",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                },
+                {
+                  "title": "devrait identifier les patterns d'absence",
+                  "fullTitle": "Admin - Gestion des Congés Analyse et rapports devrait identifier les patterns d'absence",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"patterns-analysis-btn\"]').click();\ncy.get('[data-testid=\"patterns-results\"]').within(function () {\n    cy.get('[data-testid=\"frequent-mondays\"]').should('exist');\n    cy.get('[data-testid=\"bridge-days\"]').should('exist');\n    cy.get('[data-testid=\"seasonal-peaks\"]').should('exist');\n});",
+                  "err": {},
+                  "uuid": "0e5e4a7c-2944-409c-a62f-11a774d20c80",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [],
+              "pending": [],
+              "skipped": [
+                "9cce40c5-3c34-43d6-ba07-b50ad78e3621",
+                "8a2848da-eefa-4ae7-aaa0-38682325fd68",
+                "0e5e4a7c-2944-409c-a62f-11a774d20c80"
+              ],
+              "duration": 0,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "967627ee-7bd9-421e-a340-f0dec3171989",
+              "title": "Gestion des conflits",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "devrait détecter et résoudre les conflits",
+                  "fullTitle": "Admin - Gestion des Congés Gestion des conflits devrait détecter et résoudre les conflits",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "skipped",
+                  "speed": null,
+                  "pass": false,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"conflicts-tab\"]').click();\ncy.get('[data-testid=\"conflicts-list\"]').should('exist');\ncy.get('[data-testid=\"conflict-item\"]').first().within(function () {\n    cy.get('[data-testid=\"conflict-type\"]').should('exist');\n    cy.get('[data-testid=\"affected-users\"]').should('exist');\n    cy.get('[data-testid=\"resolve-btn\"]').click();\n});\ncy.get('[data-testid=\"resolution-dialog\"]').within(function () {\n    cy.get('[data-testid=\"resolution-option-1\"]').click();\n    cy.get('[data-testid=\"apply-resolution-btn\"]').click();\n});\ncy.get('[data-testid=\"success-toast\"]').should('contain', 'Conflit résolu');",
+                  "err": {},
+                  "uuid": "7d9312c9-e606-4669-815c-d69c4db8f5b5",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": true
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [],
+              "pending": [],
+              "skipped": [
+                "7d9312c9-e606-4669-815c-d69c4db8f5b5"
+              ],
+              "duration": 0,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "9f7b3e3f-b7ae-4061-ad7d-83ccd75fb17a",
+              "title": "Congés récurrents",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "devrait configurer des congés récurrents",
+                  "fullTitle": "Admin - Gestion des Congés Congés récurrents devrait configurer des congés récurrents",
+                  "timedOut": null,
+                  "duration": 0,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('[data-testid=\"recurring-tab\"]').click();\ncy.get('[data-testid=\"create-recurring-btn\"]').click();\ncy.get('[data-testid=\"recurring-form\"]').within(function () {\n    cy.get('select[name=\"userId\"]').select('Dr. Martin');\n    cy.get('select[name=\"leaveType\"]').select('RTT');\n    cy.get('select[name=\"pattern\"]').select('MONTHLY');\n    cy.get('input[name=\"dayOfMonth\"]').type('15');\n    cy.get('input[name=\"startDate\"]').type('2024-01-01');\n    cy.get('input[name=\"endDate\"]').type('2024-12-31');\n});\ncy.get('[data-testid=\"preview-occurrences-btn\"]').click();\ncy.get('[data-testid=\"occurrences-preview\"]').should('contain', '12 occurrences');\ncy.get('[data-testid=\"confirm-recurring-btn\"]').click();\ncy.get('[data-testid=\"success-toast\"]').should('contain', 'Congés récurrents créés');",
+                  "err": {
+                    "message": "CypressError: `cy.request()` failed trying to load:\n\nhttp://localhost:3001/__coverage__\n\nWe attempted to make an http request to this URL but the request failed without a response.\n\nWe received this error at the network level:\n\n  > Error: connect ECONNREFUSED 127.0.0.1:3001\n\n-----------------------------------------------------------\n\nThe request we sent was:\n\nMethod: GET\nURL: http://localhost:3001/__coverage__\n\n-----------------------------------------------------------\n\nCommon situations why this would fail:\n  - you don't have internet access\n  - you forgot to run / boot your web server\n  - your web server isn't accessible\n  - you have weird network configuration settings on your computer\n\nhttps://on.cypress.io/request\n\nBecause this error occurred during a `after all` hook we are skipping all of the remaining tests.\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail",
+                    "estack": "CypressError: `cy.request()` failed trying to load:\n\nhttp://localhost:3001/__coverage__\n\nWe attempted to make an http request to this URL but the request failed without a response.\n\nWe received this error at the network level:\n\n  > Error: connect ECONNREFUSED 127.0.0.1:3001\n\n-----------------------------------------------------------\n\nThe request we sent was:\n\nMethod: GET\nURL: http://localhost:3001/__coverage__\n\n-----------------------------------------------------------\n\nCommon situations why this would fail:\n  - you don't have internet access\n  - you forgot to run / boot your web server\n  - your web server isn't accessible\n  - you have weird network configuration settings on your computer\n\nhttps://on.cypress.io/request\n\nBecause this error occurred during a `after all` hook we are skipping all of the remaining tests.\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:135025:70)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:4173:37)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3001/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3001/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3001/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3001/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3001/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3001/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at captureCoverage (webpack://mathildanesth/./node_modules/@cypress/code-coverage/support.js:203:0)\n    at Context.collectBackendCoverage (webpack://mathildanesth/./node_modules/@cypress/code-coverage/support.js:238:0)\n\nFrom Node.js Internals:\n  RequestError: Error: connect ECONNREFUSED 127.0.0.1:3001\n      at new r (<embedded>:227:431481)\n      at ee.callback (<embedded>:227:437482)\n      at e.callback.s.callback [as _callback] (<embedded>:227:436928)\n      at s._callback.s.callback.s.callback (<embedded>:290:105750)\n      at ee.emit (node:events:518:28)\n      at ee.onRequestError (<embedded>:290:114692)\n      at ClientRequest.emit (node:events:530:35)\n      at emitErrorEvent (node:_http_client:101:11)\n      at Socket.socketErrorListener (node:_http_client:504:5)\n      at Socket.emit (node:events:518:28)\n      at emitErrorNT (node:internal/streams/destroy:169:8)\n      at emitErrorCloseNT (node:internal/streams/destroy:128:3)\n      at process.processTicksAndRejections (node:internal/process/task_queues:82:21)",
+                    "diff": null
+                  },
+                  "uuid": "c2def1cc-87db-4bcb-af6b-25fd2c71ce22",
+                  "parentUUID": null,
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "c2def1cc-87db-4bcb-af6b-25fd2c71ce22"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 0,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            }
+          ],
+          "passes": [],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 0,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

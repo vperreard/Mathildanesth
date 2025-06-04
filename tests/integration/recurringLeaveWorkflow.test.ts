@@ -6,17 +6,17 @@ import {
     RecurrencePattern
 } from '../../src/modules/leaves/types/leave';
 import { createRecurringLeaveRequest, updateRecurringLeaveRequest } from '../../src/modules/leaves/services/leaveService';
-import { generateRecurringDates } from '../../src/modules/leaves/utils/recurringLeavesUtils';
+import { generateRecurringDates } from '../../src/modules/leaves/utils/recurrentsLeavesUtils';
 import { addDays, format, addWeeks } from 'date-fns';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { jest, expect, describe, test, beforeEach } from '@jest/globals';
-import { RecurrenceForm as LeaveRecurrenceForm } from '@/modules/leaves/components/RecurrenceForm';
-import { LeaveRequest } from '@/modules/leaves/types/leave';
+import { RecurrenceForm as LeaveRecurrenceForm } from '@/modules/conges/components/RecurrenceForm';
+import { LeaveRequest } from '@/modules/conges/types/leave';
 
 // Mock des services ou API appelés
-// jest.mock('@/modules/leaves/services/leaveService');
-// jest.mock('@/modules/leaves/hooks/useLeaveQuotas');
+// jest.mock('@/modules/conges/services/leaveService');
+// jest.mock('@/modules/conges/hooks/useLeaveQuotas');
 
 // Mock global pour fetch avec un type plus précis
 const mockFetch = jest.fn<typeof global.fetch>();
@@ -60,7 +60,7 @@ describe('Workflow des congés récurrents - Test d\'intégration', () => {
         // Mock pour la création d'une demande récurrente
         mockFetch.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
             const urlString = input.toString();
-            if (urlString.includes('/api/leaves/recurring')) {
+            if (urlString.includes('/api/conges/recurrents')) {
                 if (init?.method === 'POST' || init?.method === 'PUT') {
                     try {
                         const requestBody = JSON.parse(init.body as string);
@@ -122,7 +122,7 @@ describe('Workflow des congés récurrents - Test d\'intégration', () => {
         /*
         await waitFor(() => {
             expect(mockFetch).toHaveBeenCalledWith(
-                expect.stringContaining('/api/leaves/recurring'),
+                expect.stringContaining('/api/conges/recurrents'),
                 expect.objectContaining({ method: 'POST' })
             );
         });
@@ -174,7 +174,7 @@ await waitFor(() => expect(onSubmitMock).toHaveBeenCalled());
         /*
         await waitFor(() => {
             expect(mockFetch).toHaveBeenCalledWith(
-                 expect.stringContaining(`/api/leaves/recurring/${existingRequest.id}`),
+                 expect.stringContaining(`/api/conges/recurrents/${existingRequest.id}`),
                  expect.objectContaining({ method: 'PUT' })
             );
         });
@@ -194,7 +194,7 @@ await waitFor(() => expect(onSubmitMock).toHaveBeenCalled());
         // Configurer mockFetch pour retourner une erreur de quota (ex: 409 Conflict)
         mockFetch.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
             const urlString = input.toString();
-            if (urlString.includes('/api/leaves/recurring') && init?.method === 'POST') {
+            if (urlString.includes('/api/conges/recurrents') && init?.method === 'POST') {
                 // Simuler une réponse Fetch 409 valide
                 return new Response(JSON.stringify({ message: 'Quota insuffisant pour générer toutes les occurrences' }), {
                     status: 409,

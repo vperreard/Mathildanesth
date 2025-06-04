@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { DisplayPreferences } from '../types/professional-role-config';
 
-const prisma = new PrismaClient();
 
 export class ProfessionalRoleConfigService {
     async updateDisplayPreferences(roleCode: string, preferences: DisplayPreferences) {

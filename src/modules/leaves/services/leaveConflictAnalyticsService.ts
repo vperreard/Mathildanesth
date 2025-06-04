@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Service d'analyse des conflits de congés
  * Permet de générer des statistiques et des tendances sur les conflits

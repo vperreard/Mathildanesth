@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ holidays });
 
     } catch (error: any) {
-        console.error(`Erreur API [GET /api/public-holidays?year=${year}]:`, error);
+        console.error(`Erreur API [GET /api/jours-feries?year=${year}]:`, error);
         return NextResponse.json(
             { error: 'Erreur serveur lors de la récupération des jours fériés.', details: error.message },
             { status: 500 }

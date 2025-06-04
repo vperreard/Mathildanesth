@@ -1,1 +1,0 @@
-console.log("Test du MCP interactive-feedback"); 

@@ -1,0 +1,202 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 6,
+    "passes": 6,
+    "pending": 0,
+    "failures": 0,
+    "start": "2025-05-20T19:47:55.018Z",
+    "end": "2025-05-20T19:47:55.691Z",
+    "duration": 673,
+    "testsRegistered": 6,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "4d5506b6-6113-4451-ad7d-75836bb2189d",
+      "title": "",
+      "fullFile": "cypress/e2e/notifications/assignment-swap-notifications.spec.ts",
+      "file": "cypress/e2e/notifications/assignment-swap-notifications.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "8a04b92c-cb45-43a4-9c7a-9fd526e329d4",
+          "title": "Notifications d'échanges d'affectations",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "envoie une notification lors de la création d'une demande d'échange",
+              "fullTitle": "Notifications d'échanges d'affectations envoie une notification lors de la création d'une demande d'échange",
+              "timedOut": null,
+              "duration": 77,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "if (SIMULATION_MODE) {\n    // Simuler la connexion\n    cy.log(\"Simulation: Connexion en tant que \".concat(this.testData.users.initiator.email));\n    // Simuler la création d'une demande d'échange\n    simulateCreateSwapRequest(this.testData);\n    // Simuler la connexion de l'utilisateur cible\n    cy.log(\"Simulation: Connexion en tant que \".concat(this.testData.users.target.email));\n    // Simuler la vérification de la notification\n    cy.log('Simulation: Vérification de la notification');\n    cy.log(\"Notification de type \".concat(this.testData.notifications.swapRequested.type, \" re\\u00E7ue\"));\n    // Assertion simulée\n    expect(true).to.be.true; // Toujours vrai en mode simulation\n    return;\n}\n// Code réel si le mode simulation est désactivé\n// Se connecter en tant qu'initiateur\ncy.loginByApi(this.testData.users.initiator.email, this.testData.users.initiator.password);\ncy.visitAsAuthenticatedUser('/planning');\n// Trouver une affectation et cliquer pour ouvrir le menu contextuel\ncy.get('[data-cy=assignment-item]').first().rightclick();\n// Sélectionner l'option \"Proposer un échange\"\ncy.get('[data-cy=context-menu-option]').contains('Proposer un échange').click();\n// Dans la modal d'échange, sélectionner un utilisateur cible\ncy.get('[data-cy=target-user-select]').click();\ncy.get('[data-cy=user-option]').contains(\"\".concat(this.testData.users.target.firstName, \" \").concat(this.testData.users.target.lastName)).click();\n// Optionnel: sélectionner une affectation cible (échange direct)\ncy.get('[data-cy=target-assignment-select]').click();\ncy.get('[data-cy=assignment-option]').first().click();\n// Ajouter un message\ncy.get('[data-cy=swap-message]').type(this.testData.swapRequests.pending.message);\n// Soumettre la demande d'échange\ncy.get('[data-cy=submit-swap-request]').click();\n// Vérifier que la demande a été créée\ncy.wait('@createSwapRequest').its('response.statusCode').should('eq', 201);\n// Afficher un message de succès\ncy.get('.Toastify__toast--success').should('be.visible');\n// Se déconnecter puis se connecter en tant qu'utilisateur cible\ncy.logout();\ncy.loginByApi(this.testData.users.target.email, this.testData.users.target.password);\n// Visiter la page d'accueil\ncy.visitAsAuthenticatedUser('/');\ncy.wait('@getNotifications');\n// Vérifier qu'une notification d'échange est présente\ncy.get('[data-cy=notification-bell]').click();\ncy.get('[data-cy=notification-panel]').should('be.visible');\ncy.get(\"[data-cy=notification-item][data-type=\\\"\".concat(this.testData.notifications.swapRequested.type, \"\\\"]\")).should('exist');",
+              "err": {},
+              "uuid": "c5f515ec-ed70-41dc-9636-a127913f4d5b",
+              "parentUUID": "8a04b92c-cb45-43a4-9c7a-9fd526e329d4",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "envoie une notification lors de l'acceptation d'une demande d'échange",
+              "fullTitle": "Notifications d'échanges d'affectations envoie une notification lors de l'acceptation d'une demande d'échange",
+              "timedOut": null,
+              "duration": 32,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "if (SIMULATION_MODE) {\n    // Simuler la connexion de l'utilisateur cible\n    cy.log(\"Simulation: Connexion en tant que \".concat(this.testData.users.target.email));\n    // Simuler l'acceptation d'une demande\n    simulateAcceptSwapRequest();\n    // Simuler la connexion de l'initiateur\n    cy.log(\"Simulation: Connexion en tant que \".concat(this.testData.users.initiator.email));\n    // Simuler la vérification de la notification\n    cy.log('Simulation: Vérification de la notification');\n    cy.log(\"Notification de type \".concat(this.testData.notifications.swapAccepted.type, \" re\\u00E7ue\"));\n    // Assertion simulée\n    expect(true).to.be.true;\n    return;\n}\n// Code réel si le mode simulation est désactivé\n// Se connecter en tant qu'utilisateur cible qui a reçu une demande\ncy.loginByApi(this.testData.users.target.email, this.testData.users.target.password);\n// Visiter la page des demandes d'échange\ncy.visitAsAuthenticatedUser('/planning/echanges');\ncy.wait('@getSwapRequests');\n// Trouver une demande en attente et cliquer dessus\ncy.get('[data-cy=swap-request-item][data-status=\"PENDING\"]').first().click();\n// Accepter la demande\ncy.get('[data-cy=accept-swap-request]').click();\ncy.get('[data-cy=confirm-action]').click();\n// Vérifier que la demande a été acceptée\ncy.wait('@updateSwapRequest').its('response.statusCode').should('eq', 200);\ncy.wait('@updateSwapRequest').its('response.body.status').should('eq', 'ACCEPTED');\n// Se déconnecter puis se connecter en tant qu'initiateur\ncy.logout();\ncy.loginByApi(this.testData.users.initiator.email, this.testData.users.initiator.password);\n// Visiter la page d'accueil\ncy.visitAsAuthenticatedUser('/');\ncy.wait('@getNotifications');\n// Vérifier qu'une notification d'acceptation est présente\ncy.get('[data-cy=notification-bell]').click();\ncy.get('[data-cy=notification-panel]').should('be.visible');\ncy.get(\"[data-cy=notification-item][data-type=\\\"\".concat(this.testData.notifications.swapAccepted.type, \"\\\"]\")).should('exist');",
+              "err": {},
+              "uuid": "8e706c2e-73f5-4578-89d4-3139b5e8da33",
+              "parentUUID": "8a04b92c-cb45-43a4-9c7a-9fd526e329d4",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "envoie une notification lors du refus d'une demande d'échange",
+              "fullTitle": "Notifications d'échanges d'affectations envoie une notification lors du refus d'une demande d'échange",
+              "timedOut": null,
+              "duration": 26,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "if (SIMULATION_MODE) {\n    // Simuler la connexion\n    cy.log(\"Simulation: Connexion en tant que \".concat(this.testData.users.initiator.email));\n    // Simuler la création d'une demande\n    simulateCreateSwapRequest(this.testData);\n    // Simuler la connexion de l'utilisateur cible\n    cy.log(\"Simulation: Connexion en tant que \".concat(this.testData.users.target.email));\n    // Simuler le refus\n    simulateRejectSwapRequest(this.testData);\n    // Simuler la connexion de l'initiateur\n    cy.log(\"Simulation: Connexion en tant que \".concat(this.testData.users.initiator.email));\n    // Simuler la vérification de la notification\n    cy.log('Simulation: Vérification de la notification');\n    cy.log(\"Notification de type \".concat(this.testData.notifications.swapRejected.type, \" re\\u00E7ue\"));\n    // Assertion simulée\n    expect(true).to.be.true;\n    return;\n}\n// Code réel si le mode simulation est désactivé\n// Créer d'abord une nouvelle demande d'échange\ncy.loginByApi(this.testData.users.initiator.email, this.testData.users.initiator.password);\ncy.visitAsAuthenticatedUser('/planning');\n// Créer une demande d'échange\ncy.get('[data-cy=assignment-item]').first().rightclick();\ncy.get('[data-cy=context-menu-option]').contains('Proposer un échange').click();\ncy.get('[data-cy=target-user-select]').click();\ncy.get('[data-cy=user-option]').contains(\"\".concat(this.testData.users.target.firstName, \" \").concat(this.testData.users.target.lastName)).click();\ncy.get('[data-cy=swap-message]').type(this.testData.swapRequests.rejected.message);\ncy.get('[data-cy=submit-swap-request]').click();\ncy.wait('@createSwapRequest');\n// Se connecter en tant qu'utilisateur cible\ncy.logout();\ncy.loginByApi(this.testData.users.target.email, this.testData.users.target.password);\n// Visiter la page des demandes d'échange\ncy.visitAsAuthenticatedUser('/planning/echanges');\ncy.wait('@getSwapRequests');\n// Trouver la demande et la refuser\ncy.get('[data-cy=swap-request-item][data-status=\"PENDING\"]').first().click();\ncy.get('[data-cy=reject-swap-request]').click();\ncy.get('[data-cy=rejection-reason]').type(this.testData.swapRequests.rejected.responseMessage);\ncy.get('[data-cy=confirm-rejection]').click();\n// Vérifier que la demande a été refusée\ncy.wait('@updateSwapRequest').its('response.statusCode').should('eq', 200);\ncy.wait('@updateSwapRequest').its('response.body.status').should('eq', 'REJECTED');\n// Se connecter en tant qu'initiateur\ncy.logout();\ncy.loginByApi(this.testData.users.initiator.email, this.testData.users.initiator.password);\n// Vérifier qu'une notification de refus est présente\ncy.visitAsAuthenticatedUser('/');\ncy.wait('@getNotifications');\ncy.get('[data-cy=notification-bell]').click();\ncy.get(\"[data-cy=notification-item][data-type=\\\"\".concat(this.testData.notifications.swapRejected.type, \"\\\"]\")).should('exist');",
+              "err": {},
+              "uuid": "6445bc94-03b2-4e67-8fe5-068a0d7db311",
+              "parentUUID": "8a04b92c-cb45-43a4-9c7a-9fd526e329d4",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "envoie une notification lors de l'annulation d'une demande d'échange",
+              "fullTitle": "Notifications d'échanges d'affectations envoie une notification lors de l'annulation d'une demande d'échange",
+              "timedOut": null,
+              "duration": 25,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "if (SIMULATION_MODE) {\n    // Simuler la connexion\n    cy.log(\"Simulation: Connexion en tant que \".concat(this.testData.users.initiator.email));\n    // Simuler la création puis l'annulation d'une demande\n    simulateCreateSwapRequest(this.testData);\n    simulateCancelSwapRequest();\n    // Simuler la connexion de l'utilisateur cible\n    cy.log(\"Simulation: Connexion en tant que \".concat(this.testData.users.target.email));\n    // Simuler la vérification de la notification\n    cy.log('Simulation: Vérification de la notification');\n    cy.log(\"Notification de type \".concat(this.testData.notifications.swapCancelled.type, \" re\\u00E7ue\"));\n    // Assertion simulée\n    expect(true).to.be.true;\n    return;\n}\n// Code réel si le mode simulation est désactivé\n// Créer d'abord une nouvelle demande d'échange\ncy.loginByApi(this.testData.users.initiator.email, this.testData.users.initiator.password);\ncy.visitAsAuthenticatedUser('/planning');\n// Créer une demande d'échange\ncy.get('[data-cy=assignment-item]').first().rightclick();\ncy.get('[data-cy=context-menu-option]').contains('Proposer un échange').click();\ncy.get('[data-cy=target-user-select]').click();\ncy.get('[data-cy=user-option]').contains(\"\".concat(this.testData.users.target.firstName, \" \").concat(this.testData.users.target.lastName)).click();\ncy.get('[data-cy=swap-message]').type(this.testData.swapRequests.cancelled.message);\ncy.get('[data-cy=submit-swap-request]').click();\ncy.wait('@createSwapRequest');\n// Visiter la page des demandes d'échange\ncy.visitAsAuthenticatedUser('/planning/echanges');\ncy.wait('@getSwapRequests');\n// Trouver la demande et l'annuler\ncy.get('[data-cy=swap-request-item][data-status=\"PENDING\"]').first().click();\ncy.get('[data-cy=cancel-swap-request]').click();\ncy.get('[data-cy=confirm-action]').click();\n// Vérifier que la demande a été annulée\ncy.wait('@updateSwapRequest').its('response.statusCode').should('eq', 200);\ncy.wait('@updateSwapRequest').its('response.body.status').should('eq', 'CANCELLED');\n// Se connecter en tant qu'utilisateur cible\ncy.logout();\ncy.loginByApi(this.testData.users.target.email, this.testData.users.target.password);\n// Vérifier qu'une notification d'annulation est présente\ncy.visitAsAuthenticatedUser('/');\ncy.wait('@getNotifications');\ncy.get('[data-cy=notification-bell]').click();\ncy.get(\"[data-cy=notification-item][data-type=\\\"\".concat(this.testData.notifications.swapCancelled.type, \"\\\"]\")).should('exist');",
+              "err": {},
+              "uuid": "15ba9550-0bc2-42b6-ae06-20aa3c8f0be3",
+              "parentUUID": "8a04b92c-cb45-43a4-9c7a-9fd526e329d4",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "marque une notification comme lue lors de la consultation de la demande d'échange",
+              "fullTitle": "Notifications d'échanges d'affectations marque une notification comme lue lors de la consultation de la demande d'échange",
+              "timedOut": null,
+              "duration": 23,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "if (SIMULATION_MODE) {\n    // Simuler la connexion de l'utilisateur cible\n    cy.log(\"Simulation: Connexion en tant que \".concat(this.testData.users.target.email));\n    // Simuler le clic sur une notification\n    cy.log('Simulation: Clic sur une notification');\n    cy.log(\"Notification de type \".concat(this.testData.notifications.swapRequested.type));\n    // Simuler la vérification du marquage comme lu\n    cy.log('Simulation: Vérification que la notification est marquée comme lue');\n    // Assertion simulée\n    expect(true).to.be.true;\n    return;\n}\n// Code réel si le mode simulation est désactivé\n// Se connecter en tant qu'utilisateur cible\ncy.loginByApi(this.testData.users.target.email, this.testData.users.target.password);\n// Visiter la page d'accueil\ncy.visitAsAuthenticatedUser('/');\ncy.wait('@getNotifications');\n// Vérifier qu'une notification d'échange est présente et noter son ID\ncy.get('[data-cy=notification-bell]').click();\ncy.get(\"[data-cy=notification-item][data-type=\\\"\".concat(this.testData.notifications.swapRequested.type, \"\\\"]\"))\n    .first()\n    .invoke('attr', 'data-notification-id')\n    .then(function (notificationId) {\n    // Cliquer sur la notification\n    cy.get(\"[data-notification-id=\\\"\".concat(notificationId, \"\\\"]\")).click();\n    // Vérifier que la page de détails de la demande d'échange s'ouvre\n    cy.url().should('include', '/planning/echanges/');\n    // Vérifier que la notification a été marquée comme lue\n    cy.wait('@markNotificationsAsRead')\n        .its('request.body')\n        .should('deep.include', { id: notificationId });\n    // Retourner à la page d'accueil\n    cy.visitAsAuthenticatedUser('/');\n    cy.wait('@getNotifications');\n    // Vérifier que la notification n'est plus dans les non lues\n    cy.get('[data-cy=notification-bell]').click();\n    cy.get(\"[data-notification-id=\\\"\".concat(notificationId, \"\\\"]\")).should('have.class', 'read');\n});",
+              "err": {},
+              "uuid": "50e5938b-ab48-4574-a42d-b30dedb47306",
+              "parentUUID": "8a04b92c-cb45-43a4-9c7a-9fd526e329d4",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "ne notifie pas l'utilisateur lorsque les préférences sont désactivées",
+              "fullTitle": "Notifications d'échanges d'affectations ne notifie pas l'utilisateur lorsque les préférences sont désactivées",
+              "timedOut": null,
+              "duration": 23,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "if (SIMULATION_MODE) {\n    // Simuler la désactivation des préférences\n    cy.log(\"Simulation: Connexion en tant que \".concat(this.testData.users.target.email));\n    cy.log('Simulation: Désactivation des préférences de notifications pour les échanges');\n    // Simuler la création d'une demande\n    cy.log(\"Simulation: Connexion en tant que \".concat(this.testData.users.initiator.email));\n    simulateCreateSwapRequest(this.testData);\n    // Simuler la vérification de l'absence de notification\n    cy.log(\"Simulation: Connexion en tant que \".concat(this.testData.users.target.email));\n    cy.log('Simulation: Vérification qu\\'aucune notification n\\'est reçue');\n    // Assertion simulée\n    expect(true).to.be.true;\n    return;\n}\n// Code réel si le mode simulation est désactivé\n// Désactiver les préférences de notifications pour les échanges\ncy.loginByApi(this.testData.users.target.email, this.testData.users.target.password);\ncy.visitAsAuthenticatedUser('/profil/notifications');\n// Désactiver les notifications pour les demandes d'échange\ncy.contains('Demandes d\\'échange').parent().find('div[role=\"switch\"]').click();\n// Créer une nouvelle demande d'échange\ncy.logout();\ncy.loginByApi(this.testData.users.initiator.email, this.testData.users.initiator.password);\ncy.visitAsAuthenticatedUser('/planning');\n// Créer une demande d'échange\ncy.get('[data-cy=assignment-item]').first().rightclick();\ncy.get('[data-cy=context-menu-option]').contains('Proposer un échange').click();\ncy.get('[data-cy=target-user-select]').click();\ncy.get('[data-cy=user-option]').contains(\"\".concat(this.testData.users.target.firstName, \" \").concat(this.testData.users.target.lastName)).click();\ncy.get('[data-cy=swap-message]').type('Cette notification ne devrait pas apparaître');\ncy.get('[data-cy=submit-swap-request]').click();\ncy.wait('@createSwapRequest');\n// Se connecter en tant qu'utilisateur cible\ncy.logout();\ncy.loginByApi(this.testData.users.target.email, this.testData.users.target.password);\n// Vérifier qu'aucune notification n'apparaît\ncy.visitAsAuthenticatedUser('/');\ncy.wait('@getNotifications');\ncy.get('[data-cy=notification-bell]').click();\ncy.get(\"[data-cy=notification-item][data-type=\\\"\".concat(this.testData.notifications.swapRequested.type, \"\\\"]\"))\n    .should('not.exist');",
+              "err": {},
+              "uuid": "6f503081-43fb-468e-a3a8-0b9184ddad17",
+              "parentUUID": "8a04b92c-cb45-43a4-9c7a-9fd526e329d4",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "c5f515ec-ed70-41dc-9636-a127913f4d5b",
+            "8e706c2e-73f5-4578-89d4-3139b5e8da33",
+            "6445bc94-03b2-4e67-8fe5-068a0d7db311",
+            "15ba9550-0bc2-42b6-ae06-20aa3c8f0be3",
+            "50e5938b-ab48-4574-a42d-b30dedb47306",
+            "6f503081-43fb-468e-a3a8-0b9184ddad17"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 206,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

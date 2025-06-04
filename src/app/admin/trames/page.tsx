@@ -1,32 +1,35 @@
+'use client';
+
 import React from 'react';
-import { TrameAffectation } from '@/components/trames/TrameAffectation';
+import { TrameAffectation, GardeVacation } from '@/components/trames/TrameAffectation';
 import { toast } from 'sonner';
-import { TrameAffectationService } from '@/services/trameAffectationService';
-import { Affectation } from '@/components/trames/TrameAffectation';
 
 export default function TramesPage() {
-    const handleSaveTrame = async (trames: Affectation[]) => {
+    const handleSaveTrame = async (trames: GardeVacation[]) => {
         try {
-            for (const trame of trames) {
+            // Import dynamique pour éviter les problèmes de build avec Sequelize
+            const { TrameAffectationService } = await import('@/services/trameAffectationService');
+
+            for (const trameModele of trameModeles) {
                 await TrameAffectationService.create({
-                    userId: trame.userId,
-                    periodeType: trame.periodeType,
-                    dateDebut: trame.dateDebut,
-                    dateFin: trame.dateFin,
-                    motif: trame.motif,
-                    isRecurrent: trame.isRecurrent,
+                    userId: trameModele.userId,
+                    periodeType: trameModele.periodeType,
+                    dateDebut: trameModele.dateDebut,
+                    dateFin: trameModele.dateFin,
+                    motif: trameModele.motif,
+                    isRecurrent: trameModele.isRecurrent,
                 });
             }
-            toast.success('Trames d\'affectation sauvegardées avec succès');
+            toast.success('TrameModeles d\'affectation sauvegardées avec succès');
         } catch (error) {
-            toast.error('Erreur lors de la sauvegarde des trames d\'affectation');
+            toast.error('Erreur lors de la sauvegarde des trameModeles d\'affectation');
             console.error(error);
         }
     };
 
     return (
         <div className="container mx-auto py-8">
-            <h1 className="text-2xl font-bold mb-6">Gestion des trames d'affectation</h1>
+            <h1 className="text-2xl font-bold mb-6">Gestion des trameModeles d'affectation</h1>
             <TrameAffectation onSave={handleSaveTrame} />
         </div>
     );

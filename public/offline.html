@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hors ligne - Mathildanesth</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 500px;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .status {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .online {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .offline {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="icon">
+            📡
+        </div>
+
+        <h1>Application hors ligne</h1>
+
+        <p>
+            Vous n'êtes pas connecté à Internet. Certaines fonctionnalités peuvent être limitées,
+            mais vous pouvez continuer à utiliser les données mises en cache.
+        </p>
+
+        <div class="actions">
+            <button onclick="location.reload()">
+                🔄 Réessayer
+            </button>
+
+            <button onclick="goHome()">
+                🏠 Accueil
+            </button>
+        </div>
+
+        <div id="status" class="status offline">
+            <span class="pulse">●</span> Hors ligne
+        </div>
+    </div>
+
+    <script>
+        // Vérification du statut de connexion
+        function updateConnectionStatus() {
+            const statusEl = document.getElementById('status');
+
+            if (navigator.onLine) {
+                statusEl.className = 'status online';
+                statusEl.innerHTML = '<span>●</span> En ligne - Rechargement automatique...';
+
+                // Recharger automatiquement quand la connexion revient
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                statusEl.className = 'status offline';
+                statusEl.innerHTML = '<span class="pulse">●</span> Hors ligne';
+            }
+        }
+
+        // Écouter les changements de connexion
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+
+        // Vérification initiale
+        updateConnectionStatus();
+
+        // Fonction pour retourner à l'accueil
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        // Tentative de reconnexion périodique
+        setInterval(() => {
+            if (!navigator.onLine) {
+                // Ping simple pour vérifier la connectivité
+                fetch('/', { method: 'HEAD', cache: 'no-cache' })
+                    .then(() => {
+                        if (!navigator.onLine) {
+                            // Forcer la mise à jour du statut
+                            window.dispatchEvent(new Event('online'));
+                        }
+                    })
+                    .catch(() => {
+                        // Connexion toujours indisponible
+                    });
+            }
+        }, 5000);
+
+        // Message du service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data.type === 'CACHE_UPDATED') {
+                    const statusEl = document.getElementById('status');
+                    statusEl.innerHTML = '<span>●</span> Données mises à jour - Rechargement...';
+                    setTimeout(() => location.reload(), 1000);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

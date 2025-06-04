@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { BlocDayPlanning, ValidationResult } from '@/types/bloc-planning-types';
-import { blocPlanningService as defaultService } from '@/services/blocPlanningService';
+import { blocPlanningService as defaultService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 
 interface PlanningState {
     dayPlanning: BlocDayPlanning | null;

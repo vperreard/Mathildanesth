@@ -62,7 +62,7 @@ const ProfessionalRoleManagementPanel: React.FC = () => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch('/api/admin/professional-roles');
+            const response = await fetch('http://localhost:3000/api/admin/professional-roles');
             if (!response.ok) {
                 throw new Error('Erreur lors du chargement des rôles professionnels');
             }
@@ -111,7 +111,7 @@ const ProfessionalRoleManagementPanel: React.FC = () => {
         e.preventDefault();
 
         try {
-            const response = await fetch('/api/admin/professional-roles', {
+            const response = await fetch('http://localhost:3000/api/admin/professional-roles', {
                 method: isEditing ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -153,7 +153,7 @@ const ProfessionalRoleManagementPanel: React.FC = () => {
         }
 
         try {
-            const response = await fetch(`/api/admin/professional-roles/${id}`, {
+            const response = await fetch(`http://localhost:3000/api/admin/professional-roles/${id}`, {
                 method: 'DELETE',
             });
 

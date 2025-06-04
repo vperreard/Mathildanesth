@@ -99,7 +99,7 @@ describe('Gestion des plannings', () => {
         cy.get('[data-cy=assignment-notes]').type('Intervention programmée manuellement');
 
         // Intercepter la requête de création
-        cy.intercept('POST', '**/api/planning/assignments').as('createAssignment');
+        cy.intercept('POST', '**/api/planning/affectations').as('createAssignment');
 
         // Enregistrer l'assignation
         cy.get('[data-cy=save-assignment-button]').click();
@@ -135,7 +135,7 @@ describe('Gestion des plannings', () => {
         cy.get('[data-cy=assignment-notes]').clear().type('Intervention modifiée');
 
         // Intercepter la requête de mise à jour
-        cy.intercept('PUT', '**/api/planning/assignments/**').as('updateAssignment');
+        cy.intercept('PUT', '**/api/planning/affectations/**').as('updateAssignment');
 
         // Enregistrer les modifications
         cy.get('[data-cy=save-assignment-button]').click();
@@ -164,7 +164,7 @@ describe('Gestion des plannings', () => {
         cy.get('[data-cy=assignment-modal]').should('be.visible');
 
         // Intercepter la requête de suppression
-        cy.intercept('DELETE', '**/api/planning/assignments/**').as('deleteAssignment');
+        cy.intercept('DELETE', '**/api/planning/affectations/**').as('deleteAssignment');
 
         // Cliquer sur le bouton de suppression
         cy.get('[data-cy=delete-assignment-button]').click();
@@ -269,8 +269,8 @@ describe('Gestion des plannings', () => {
         cy.contains('Mon Planning');
 
         // Déconnexion
-        cy.request('/api/auth/logout');
-        cy.url().should('include', '/auth/login');
+        cy.request('/api/auth/deconnexion');
+        cy.url().should('include', '/auth/connexion');
     });
 
     // Fonctions utilitaires pour les tests
@@ -298,7 +298,7 @@ describe('Gestion des plannings', () => {
         cy.get('[data-cy=assignment-type-option-standard]').click();
 
         // Intercepter la requête de création
-        cy.intercept('POST', '**/api/planning/assignments').as('createTestAssignment');
+        cy.intercept('POST', '**/api/planning/affectations').as('createTestAssignment');
 
         // Enregistrer l'assignation
         cy.get('[data-cy=save-assignment-button]').click();
@@ -312,7 +312,7 @@ describe('Gestion des plannings', () => {
         // Créer une absence pour un médecin pendant la période du planning
         cy.request({
             method: 'POST',
-            url: `${Cypress.env('apiUrl')}/leaves`,
+            url: `${Cypress.env('apiUrl')}/conges`,
             headers: {
                 'Authorization': `Bearer ${window.localStorage.getItem('authToken')}`
             },

@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Plus, Trash2, Edit, Calendar, MapPin, Tag, User, Save, X,
-    Clock, Info, ArrowRight, CheckCircle2, XCircle, Bell, AlertTriangle, Loader2
+    Clock, Info, ArrowRight, CheckCircle2, XCircle, Bell, AlertTriangle, Loader2,
+    ExternalLink, Link, FileText
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -41,7 +42,7 @@ const MOCK_ACTIVITY_TYPES: ActivityType[] = [
         defaultPeriod: Period.JOURNEE_ENTIERE,
         createdAt: new Date(),
         updatedAt: new Date(),
-        siteIDs: [],
+        siteId: null,
     },
     {
         id: "mock-uuid-2",
@@ -56,7 +57,7 @@ const MOCK_ACTIVITY_TYPES: ActivityType[] = [
         defaultPeriod: Period.JOURNEE_ENTIERE,
         createdAt: new Date(),
         updatedAt: new Date(),
-        siteIDs: [],
+        siteId: null,
     },
 ];
 
@@ -82,6 +83,13 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
         defaultDurationHours: null,
         defaultPeriod: null,
     });
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isDeleteErrorModalOpen, setIsDeleteErrorModalOpen] = useState(false);
+    const [deleteErrorDetails, setDeleteErrorDetails] = useState<{
+        activityName?: string;
+        trames: Array<{ id: number, name: string }>;
+        errorMessage?: string;
+    }>({});
 
     const fetchActivityTypes = useCallback(async () => {
         setIsLoadingData(true);
@@ -233,37 +241,55 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
         }
     };
 
-    const handleDelete = async (id: string) => {
-        console.log(`[AssignmentsConfigPanel] Attempting to delete activity type with ID: ${id}`);
-        if (!isAuthenticated) {
-            toast.error("Vous devez être authentifié pour supprimer.");
-            console.warn("[AssignmentsConfigPanel] Delete aborted: User not authenticated.");
+    const handleDelete = async (activityTypeId: string) => {
+        setIsDeleting(true);
+        console.log('[AssignmentsConfigPanel] Attempting to delete activity type with ID:', activityTypeId);
+
+        const confirmed = window.confirm(`Êtes-vous sûr de vouloir supprimer ce type d'activité ?`);
+        if (!confirmed) {
+            setIsDeleting(false);
             return;
         }
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce type d'activité ?")) {
-            console.log(`[AssignmentsConfigPanel] User confirmed deletion for ID: ${id}`);
-            try {
-                console.log(`[AssignmentsConfigPanel] Calling axios.delete for /api/activity-types/${id}`);
-                const response = await axios.delete(`/api/activity-types/${id}`);
-                console.log("[AssignmentsConfigPanel] axios.delete response:", response); // LOG DE LA RÉPONSE
-                toast.success('Type d\'activité supprimé');
-                await fetchActivityTypes();
-            } catch (err: any) {
-                console.error('[AssignmentsConfigPanel] Error during deletion:', err);
-                if (err.response) {
-                    console.error('[AssignmentsConfigPanel] Error response data:', err.response.data);
-                    console.error('[AssignmentsConfigPanel] Error response status:', err.response.status);
-                    console.error('[AssignmentsConfigPanel] Error response headers:', err.response.headers);
-                } else if (err.request) {
-                    console.error('[AssignmentsConfigPanel] Error request data:', err.request);
+
+        console.log('[AssignmentsConfigPanel] User confirmed deletion for ID:', activityTypeId);
+        try {
+            console.log('[AssignmentsConfigPanel] Calling axios.delete for', `/api/activity-types/${activityTypeId}`);
+            const response = await axios.delete(`http://localhost:3000/api/activity-types/${activityTypeId}`);
+            console.log('[AssignmentsConfigPanel] axios.delete response:', response);
+
+            // Mettre à jour la liste après la suppression
+            fetchActivityTypes();
+            toast.success("Type d'activité supprimé avec succès");
+        } catch (error: any) {
+            console.error('[AssignmentsConfigPanel] Error during deletion:', error);
+
+            if (error.response) {
+                console.log('[AssignmentsConfigPanel] Error response data:', error.response.data);
+                console.log('[AssignmentsConfigPanel] Error response status:', error.response.status);
+                console.log('[AssignmentsConfigPanel] Error response headers:', error.response.headers);
+
+                if (error.response.status === 409) {
+                    // Erreur de conflit - le type d'activité est utilisé ailleurs
+                    const details = error.response.data.details;
+                    const activityType = activityTypes.find(type => type.id === activityTypeId);
+
+                    // Préparer les détails pour la boîte de dialogue modale
+                    setDeleteErrorDetails({
+                        activityName: activityType?.name || 'Ce type d\'activité',
+                        trames: details?.trames || [],
+                        errorMessage: error.response.data.error
+                    });
+
+                    // Ouvrir la boîte de dialogue modale au lieu d'afficher un toast
+                    setIsDeleteErrorModalOpen(true);
                 } else {
-                    console.error('[AssignmentsConfigPanel] Error message:', err.message);
+                    toast.error(`Erreur lors de la suppression: ${error.response.data.error || "Erreur inconnue"}`);
                 }
-                const errorMessage = err.response?.data?.error || err.message || 'Une erreur est survenue lors de la suppression.';
-                toast.error(`Erreur: ${errorMessage}`);
+            } else {
+                toast.error("Une erreur est survenue lors de la suppression");
             }
-        } else {
-            console.log("[AssignmentsConfigPanel] User cancelled deletion.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -281,9 +307,64 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
     return (
         <DndProvider backend={HTML5Backend}>
             <div className="p-4 md:p-6">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-semibold text-gray-700">Configuration des Types d'Activité</h2>
                     {isAuthenticated && <Button onClick={openNewForm}><Plus className="mr-2" /> Ajouter un type</Button>}
+                </div>
+
+                <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 mb-6">
+                    <div className="flex items-start">
+                        <Info className="text-blue-500 w-6 h-6 mt-1 mr-3 flex-shrink-0" />
+                        <div>
+                            <h3 className="font-medium text-gray-800 mb-2">Guide des types d'activité</h3>
+                            <p className="text-gray-600 mb-3">
+                                Les types d'activité définissent les différentes affectations possibles dans le planning.
+                                Configurez-les correctement pour faciliter la planification.
+                            </p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                                <div className="bg-gray-50 p-3 rounded-md">
+                                    <h4 className="font-medium text-gray-700 mb-1">Bloc Opératoire</h4>
+                                    <p className="text-sm text-gray-600">
+                                        Définit les activités réalisées au bloc opératoire. Peut être configuré pour une journée entière ou par demi-journée selon les pratiques.
+                                    </p>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md">
+                                    <h4 className="font-medium text-gray-700 mb-1">Consultations</h4>
+                                    <p className="text-sm text-gray-600">
+                                        Pour les slots de consultation. Généralement configurés par demi-journée (MATIN ou APRES_MIDI) selon le planning des médecins.
+                                    </p>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-md">
+                                    <h4 className="font-medium text-gray-700 mb-1">Gardes et Astreintes</h4>
+                                    <p className="text-sm text-gray-600">
+                                        Pour les périodes de garde ou d'astreinte. Généralement configurés sur la journée entière (JOURNEE_ENTIERE) ou sur 24h.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <details className="text-sm">
+                                <summary className="cursor-pointer text-blue-600 hover:text-blue-800 font-medium">
+                                    En savoir plus sur l'utilisation des types d'activité
+                                </summary>
+                                <div className="mt-2 pl-2 border-l-2 border-blue-200">
+                                    <p className="mb-2 text-gray-600">
+                                        Les types d'activité sont utilisés dans les trameModeles et les plannings pour définir les affectations possibles.
+                                        Chaque type d'activité peut avoir sa propre période par défaut et sa durée.
+                                    </p>
+                                    <p className="mb-2 text-gray-600">
+                                        <strong>Pour le bloc opératoire :</strong> Vous pouvez définir des types spécifiques par spécialité ou par salle.
+                                    </p>
+                                    <p className="mb-2 text-gray-600">
+                                        <strong>Pour les consultations :</strong> Vous pouvez créer des types par spécialité ou par médecin.
+                                    </p>
+                                    <p className="text-gray-600">
+                                        Dans les trameModeles, vous pourrez ensuite associer les types d'activité aux périodes de la journée correspondantes.
+                                    </p>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
                 </div>
 
                 {!isAuthenticated && !isAuthLoading && (
@@ -302,54 +383,87 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                 )}
 
                 {isAuthenticated && activityTypes.length > 0 && (
-                    <div className="bg-white shadow rounded-lg overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Type
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Code
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Catégorie
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Couleur
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Icône
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Statut
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {activityTypes.map((type, index) => (
-                                    <tr key={type.id} ref={drag} style={{ opacity: isDragging ? 0.5 : 1 }}>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{type.name}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{type.code}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{type.category}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <div style={{ width: '20px', height: '20px', backgroundColor: type.color || undefined, borderRadius: '50%' }}></div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{type.icon}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {type.isActive ? <CheckCircle2 className="text-green-500" /> : <XCircle className="text-red-500" />}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <Button variant="ghost" size="sm" onClick={() => openEditForm(type)} className="mr-2"><Edit /></Button>
-                                            <Button variant="ghost" size="sm" onClick={() => handleDelete(type.id)}><Trash2 /></Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <div>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-medium text-gray-700">Types d'activité disponibles</h3>
+                            <div className="flex gap-2">
+                                {/* Ici on pourrait ajouter un filtre par catégorie */}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {activityTypes.map((type) => (
+                                <div
+                                    key={type.id}
+                                    className={`
+                                        bg-white border rounded-lg shadow-sm overflow-hidden
+                                        transition-all duration-200 hover:shadow
+                                        ${!type.isActive ? 'opacity-70' : ''}
+                                    `}
+                                >
+                                    <div
+                                        className="h-2"
+                                        style={{ backgroundColor: type.color || '#CCCCCC' }}
+                                    ></div>
+
+                                    <div className="p-4">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div>
+                                                <h4 className="font-medium text-gray-800">{type.name}</h4>
+                                                <div className="flex items-center mt-1">
+                                                    <span className="text-xs px-2 py-1 bg-gray-100 rounded text-gray-600 mr-2">{type.code}</span>
+                                                    <span className="text-xs px-2 py-1 bg-gray-100 rounded text-gray-600">{type.category}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-1">
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 p-0"
+                                                    onClick={() => openEditForm(type)}
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                    onClick={() => handleDelete(type.id)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        {type.description && (
+                                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{type.description}</p>
+                                        )}
+
+                                        <div className="grid grid-cols-2 gap-2 text-xs">
+                                            <div className="flex items-center">
+                                                <Clock className="h-3.5 w-3.5 text-gray-400 mr-1" />
+                                                <span className="text-gray-600">
+                                                    {type.defaultDurationHours ? `${type.defaultDurationHours}h` : 'Durée non définie'}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <Calendar className="h-3.5 w-3.5 text-gray-400 mr-1" />
+                                                <span className="text-gray-600">
+                                                    {type.defaultPeriod || 'Période non définie'}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {!type.isActive && (
+                                            <div className="mt-3 flex items-center text-orange-500 text-xs">
+                                                <AlertTriangle className="h-3.5 w-3.5 mr-1" />
+                                                <span>Type d'activité inactif</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
 
@@ -374,13 +488,34 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                                         <Input id="description" name="description" value={formData.description || ''} onChange={(e) => handleFormChange('description', e.target.value)} />
                                     </div>
                                     <div>
-                                        <Label htmlFor="category">Catégorie</Label>
-                                        <Select value={formData.category} onValueChange={(value) => handleFormChange('category', value as ActivityCategory)}>
-                                            <SelectTrigger><SelectValue placeholder="Sélectionner une catégorie" /></SelectTrigger>
-                                            <SelectContent>
-                                                {Object.values(ActivityCategory).map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
+                                        <Label htmlFor="category">Catégorie d'activité</Label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                                            {Object.values(ActivityCategory).map(cat => (
+                                                <div
+                                                    key={cat}
+                                                    className={`
+                                                        border rounded-md p-3 cursor-pointer transition-colors
+                                                        ${formData.category === cat
+                                                            ? 'bg-primary-50 border-primary-500 ring-1 ring-primary-500'
+                                                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                        }
+                                                    `}
+                                                    onClick={() => handleFormChange('category', cat)}
+                                                >
+                                                    <div className="font-medium">{cat}</div>
+                                                    <div className="text-xs text-gray-500 mt-1">
+                                                        {cat === 'BLOC_OPERATOIRE' && "Activités chirurgicales en salle d'opération"}
+                                                        {cat === 'CONSULTATION' && "Consultations avec les patients"}
+                                                        {cat === 'GARDE' && "Services de garde (jour, nuit, weekend)"}
+                                                        {cat === 'ASTREINTE' && "Astreintes (disponibilité à distance)"}
+                                                        {cat === 'REUNION' && "Réunions, staff ou concertation"}
+                                                        {cat === 'FORMATION' && "Formations, enseignement, congrès"}
+                                                        {cat === 'ADMINISTRATIF' && "Tâches administratives"}
+                                                        {cat === 'AUTRE' && "Autres types d'activités"}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                     <div>
                                         <Label htmlFor="color">Couleur</Label>
@@ -390,33 +525,64 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                                         <Label htmlFor="icon">Icône (nom)</Label>
                                         <Input id="icon" name="icon" value={formData.icon || ''} onChange={(e) => handleFormChange('icon', e.target.value)} />
                                     </div>
-                                    <div>
-                                        <Label htmlFor="defaultDurationHours">Durée par défaut (heures)</Label>
-                                        <Input
-                                            id="defaultDurationHours"
-                                            name="defaultDurationHours"
-                                            type="number"
-                                            value={formData.defaultDurationHours === null ? '' : String(formData.defaultDurationHours)}
-                                            onChange={(e) => handleFormChange('defaultDurationHours', e.target.value === '' ? null : parseFloat(e.target.value))}
-                                            placeholder="Ex: 8"
-                                        />
+                                    <div className="bg-blue-50 p-4 rounded-md border border-blue-200 mb-6">
+                                        <h3 className="text-md font-semibold text-blue-800 flex items-center mb-2">
+                                            <Info className="w-5 h-5 mr-2" />
+                                            Guide des périodes et durées
+                                        </h3>
+                                        <p className="text-sm text-blue-700 mb-2">
+                                            La configuration des périodes et durées varie selon le type d'activité :
+                                        </p>
+                                        <ul className="space-y-2 text-sm text-blue-700 pl-6 list-disc">
+                                            <li><span className="font-semibold">Consultations</span> : Choisissez MATIN ou APRES_MIDI pour créer des slots spécifiques sur la trameModele.</li>
+                                            <li><span className="font-semibold">Bloc Opératoire</span> : Utilisez JOURNEE_ENTIERE pour un chirurgien opérant toute la journée ou MATIN/APRES_MIDI pour des slots distincts.</li>
+                                            <li><span className="font-semibold">Gardes et Astreintes</span> : Utilisez JOURNEE_ENTIERE, ces activités durent généralement 24h avec relève le lendemain.</li>
+                                        </ul>
                                     </div>
-                                    <div>
-                                        <Label htmlFor="defaultPeriod">Période par défaut</Label>
-                                        <Select
-                                            value={formData.defaultPeriod || "__NULL_PERIOD__"}
-                                            onValueChange={(value) => {
-                                                const actualValue = value === "__NULL_PERIOD__" ? null : value as Period;
-                                                handleFormChange('defaultPeriod', actualValue);
-                                            }}
-                                        >
-                                            <SelectTrigger><SelectValue placeholder="Sélectionner une période" /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="__NULL_PERIOD__">Aucune</SelectItem>
-                                                {Object.values(Period).map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <Label htmlFor="defaultPeriod" className="flex items-center justify-between">
+                                                <span>Période par défaut</span>
+                                                <span className="text-xs text-gray-500 italic">Détermine le slot horaire</span>
+                                            </Label>
+                                            <Select
+                                                value={formData.defaultPeriod || "__NULL_PERIOD__"}
+                                                onValueChange={(value) => {
+                                                    const actualValue = value === "__NULL_PERIOD__" ? null : value as Period;
+                                                    handleFormChange('defaultPeriod', actualValue);
+                                                }}
+                                            >
+                                                <SelectTrigger><SelectValue placeholder="Sélectionner une période" /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="__NULL_PERIOD__">Aucune</SelectItem>
+                                                    <SelectItem value="MATIN">Matin (8h-12h typiquement)</SelectItem>
+                                                    <SelectItem value="APRES_MIDI">Après-midi (13h-17h typiquement)</SelectItem>
+                                                    <SelectItem value="JOURNEE_ENTIERE">Journée entière (8h-17h/24h)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div>
+                                            <Label htmlFor="defaultDurationHours" className="flex items-center justify-between">
+                                                <span>Durée par défaut (heures)</span>
+                                                <span className="text-xs text-gray-500 italic">Temps standard de l'activité</span>
+                                            </Label>
+                                            <Input
+                                                id="defaultDurationHours"
+                                                name="defaultDurationHours"
+                                                type="number"
+                                                min="0.5"
+                                                step="0.5"
+                                                value={formData.defaultDurationHours === null ? '' : String(formData.defaultDurationHours)}
+                                                onChange={(e) => handleFormChange('defaultDurationHours', e.target.value === '' ? null : parseFloat(e.target.value))}
+                                                placeholder="Ex: 4, 8, 12 ou 24"
+                                            />
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                Recommandations : 4h (demi-journée), 8h (journée), 12h ou 24h (garde)
+                                            </p>
+                                        </div>
                                     </div>
+
                                     <div className="flex items-center space-x-2">
                                         <Checkbox id="isActive" name="isActive" checked={formData.isActive} onCheckedChange={(checked) => handleCheckboxChange('isActive', !!checked)} />
                                         <Label htmlFor="isActive">Actif</Label>
@@ -427,6 +593,80 @@ const AssignmentsConfigPanel: React.FC<AssignmentsConfigPanelProps> = ({ /* ... 
                                     <Button type="submit">Sauvegarder</Button>
                                 </DialogFooter>
                             </form>
+                        </DialogContent>
+                    </Dialog>
+                )}
+
+                {isDeleteErrorModalOpen && (
+                    <Dialog open={isDeleteErrorModalOpen} onOpenChange={setIsDeleteErrorModalOpen}>
+                        <DialogContent className="sm:max-w-[550px]">
+                            <DialogHeader>
+                                <DialogTitle className="flex items-center text-red-600">
+                                    <AlertTriangle className="w-5 h-5 mr-2" />
+                                    Impossible de supprimer ce type d'activité
+                                </DialogTitle>
+                                <DialogDescription>
+                                    Ce type d'activité est référencé dans d'autres parties de l'application.
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="py-4 space-y-4">
+                                <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                                    <p className="text-sm text-red-800 font-medium">
+                                        <strong>{deleteErrorDetails.activityName}</strong> est actuellement utilisé dans une ou plusieurs trameModeles.
+                                    </p>
+
+                                    <p className="text-sm text-gray-700 mt-2">
+                                        Avant de pouvoir supprimer ce type d'activité, vous devez d'abord le retirer de toutes les trameModeles qui l'utilisent.
+                                    </p>
+                                </div>
+
+                                {deleteErrorDetails.trames && deleteErrorDetails.trames.length > 0 && (
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-700 mb-2">
+                                            Ce type d'activité est utilisé dans les trameModeles suivantes:
+                                        </h3>
+                                        <ul className="space-y-2 max-h-40 overflow-y-auto text-sm bg-gray-50 rounded p-3">
+                                            {deleteErrorDetails.trames.map((trameModele) => (
+                                                <li key={trameModele.id} className="flex items-center">
+                                                    <FileText className="w-4 h-4 text-blue-500 mr-2" />
+                                                    <span>{trameModele.name}</span>
+                                                    {/* On pourrait ajouter un lien vers la trameModele ici si on a l'URL */}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                                    <h3 className="text-sm font-medium text-blue-700 mb-2 flex items-center">
+                                        <Info className="w-4 h-4 mr-2" /> Comment procéder ?
+                                    </h3>
+                                    <ul className="space-y-2 text-sm text-gray-700 list-disc pl-5">
+                                        <li>Accédez à la section <strong>TrameModeles</strong> dans le menu</li>
+                                        <li>Modifiez chaque trameModele listée ci-dessus</li>
+                                        <li>Remplacez ou supprimez l'activité <strong>{deleteErrorDetails.activityName}</strong></li>
+                                        <li>Retournez sur cette page pour supprimer le type d'activité</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <DialogFooter className="flex justify-between">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsDeleteErrorModalOpen(false)}
+                                >
+                                    Fermer
+                                </Button>
+                                <Button
+                                    onClick={() => {
+                                        setIsDeleteErrorModalOpen(false);
+                                        window.location.href = '/parametres/trameModeles?tab=vue-classique';
+                                    }}
+                                >
+                                    Aller aux trameModeles <ArrowRight className="ml-2 w-4 h-4" />
+                                </Button>
+                            </DialogFooter>
                         </DialogContent>
                     </Dialog>
                 )}

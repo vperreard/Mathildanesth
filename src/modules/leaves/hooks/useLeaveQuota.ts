@@ -275,9 +275,9 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
         try {
             // Calculer le nombre réel de jours à décompter
             // Utiliser userSchedule si fourni, sinon tenter d'utiliser workSchedule du leaveBalance
-            const schedule = userSchedule || leaveBalance?.workSchedule;
+            const planningMedical = userSchedule || leaveBalance?.workSchedule;
 
-            if (!schedule) {
+            if (!planningMedical) {
                 return {
                     isValid: false,
                     message: 'Impossible de vérifier les quotas : planning de travail non disponible',
@@ -287,7 +287,7 @@ export const useLeaveQuota = ({ userId, year = new Date().getFullYear(), userSch
                 };
             }
 
-            const calculationDetails = await calculateLeaveCountedDays(startDate, endDate, schedule);
+            const calculationDetails = await calculateLeaveCountedDays(startDate, endDate, planningMedical);
 
             if (!calculationDetails) {
                 return {

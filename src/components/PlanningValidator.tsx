@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { RuleViolation, Assignment, ValidationResult } from '../types/assignment';
+import { RuleViolation, Attribution, ValidationResult } from '../types/attribution';
 import { User } from '../types/user';
 
 interface PlanningValidatorProps {
     validationResult: ValidationResult;
-    assignments: Assignment[];
+    attributions: Attribution[];
     users: User[];
     onResolveViolation: (violation: RuleViolation, assignmentIds?: string[]) => void;
     onApprove: () => void;
@@ -13,7 +13,7 @@ interface PlanningValidatorProps {
 
 const PlanningValidator: React.FC<PlanningValidatorProps> = ({
     validationResult,
-    assignments,
+    attributions,
     users,
     onResolveViolation,
     onApprove,
@@ -63,8 +63,8 @@ const PlanningValidator: React.FC<PlanningValidatorProps> = ({
     };
 
     // Obtenir les assignations concernées par une violation
-    const getAssignmentsForViolation = (violation: RuleViolation): Assignment[] => {
-        return assignments.filter(a => violation.affectedAssignments.includes(a.id));
+    const getAssignmentsForViolation = (violation: RuleViolation): Attribution[] => {
+        return attributions.filter(a => violation.affectedAssignments.includes(a.id));
     };
 
     // Formater une date
@@ -218,11 +218,11 @@ const PlanningValidator: React.FC<PlanningValidatorProps> = ({
                                     <div className="mt-4 pl-4 border-l-2 border-gray-200">
                                         <h4 className="font-semibold mb-2">Assignations concernées:</h4>
                                         <ul className="space-y-2">
-                                            {getAssignmentsForViolation(violation).map(assignment => (
-                                                <li key={assignment.id} className="bg-white p-2 rounded shadow-sm">
-                                                    <div>{getUserName(assignment.userId)}</div>
-                                                    <div className="text-sm text-gray-600">{formatDate(assignment.date)}</div>
-                                                    <div className="text-sm text-gray-600">{assignment.type} - {assignment.shift}</div>
+                                            {getAssignmentsForViolation(violation).map(attribution => (
+                                                <li key={attribution.id} className="bg-white p-2 rounded shadow-sm">
+                                                    <div>{getUserName(attribution.userId)}</div>
+                                                    <div className="text-sm text-gray-600">{formatDate(attribution.date)}</div>
+                                                    <div className="text-sm text-gray-600">{attribution.type} - {attribution.shift}</div>
                                                 </li>
                                             ))}
                                         </ul>

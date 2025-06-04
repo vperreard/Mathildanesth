@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Unregister Service Worker</title>
+    <meta charset="utf-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+    <h1>🧹 Aggressive Service Worker Cleanup</h1>
+    <p>This will forcefully remove ALL service workers and caches.</p>
+    <div style="background: #fee; padding: 10px; margin: 10px 0; border-radius: 5px;">
+        <strong>⚠️ Important:</strong> After cleanup, use Ctrl+F5 (Windows) or Cmd+Shift+R (Mac) to hard refresh!
+    </div>
+    <button onclick="location.reload(true)" style="background: #f00; color: white; padding: 10px; border: none; cursor: pointer;">Force Reload Now</button>
+    <pre id="log" style="background: #f0f0f0; padding: 10px; margin-top: 20px;"></pre>
+
+    <!-- Include the aggressive cleanup script -->
+    <script src="/force-unregister-sw.js"></script>
+</body>
+</html>

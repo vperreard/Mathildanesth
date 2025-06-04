@@ -6,6 +6,7 @@ import { ruleCache } from '@/modules/rules/services/ruleCache';
 describe('Intégration RuleEngine et RuleCacheService', () => {
     // Réinitialiser le cache avant chaque test
     beforeEach(() => {
+    jest.clearAllMocks();
         ruleCache.clearCache();
     });
 
@@ -20,8 +21,9 @@ describe('Intégration RuleEngine et RuleCacheService', () => {
         enabled: true,
         parameters: { minHours: 11 },
         priority: 1,
-        createdAt: new Date(2023, 0, 1).toISOString(),
-        updatedAt: new Date(2023, 0, 1).toISOString()
+        configuration: {},
+        createdAt: new Date(2023, 0, 1),
+        updatedAt: new Date(2023, 0, 1)
     };
 
     // Contexte d'évaluation

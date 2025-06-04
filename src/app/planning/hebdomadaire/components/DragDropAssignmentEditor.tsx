@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { RuleViolation, Assignment, ResolutionOption, RuleSeverity, ValidationResult } from '@/types/assignment';
+import { RuleViolation, Attribution, ResolutionOption, RuleSeverity, ValidationResult } from '@/types/attribution';
 import { Medecin } from '@/modules/rules/engine/fatigue-system';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,29 +10,29 @@ import { RuleEngine } from '@/modules/rules/engine/rule-engine';
 import { X, AlertTriangle, CheckCircle, AlertCircle, PlusCircle, Clock } from 'lucide-react';
 
 interface DragDropAssignmentEditorProps {
-    assignments: Assignment[];
+    attributions: Attribution[];
     medecins: Medecin[];
     startDate: Date;
     endDate: Date;
     ruleEngine: RuleEngine;
-    onAssignmentsChange: (assignments: Assignment[]) => void;
+    onAssignmentsChange: (attributions: Attribution[]) => void;
 }
 
 type DayColumn = {
     id: string;
     title: string;
     date: Date;
-    assignments: Assignment[];
+    attributions: Attribution[];
 };
 
 type MedecinRow = {
     id: string;
     medecin: Medecin;
-    assignments: Assignment[];
+    attributions: Attribution[];
 };
 
 const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
-    assignments,
+    attributions,
     medecins,
     startDate,
     endDate,
@@ -58,7 +58,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
                 id: dateId,
                 title,
                 date: new Date(currentDate),
-                assignments: assignments.filter(a =>
+                attributions: attributions.filter(a =>
                     new Date(a.date).toISOString().split('T')[0] === dateId
                 )
             });
@@ -67,24 +67,24 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
         }
 
         setColumns(dayColumns);
-    }, [startDate, endDate, assignments]);
+    }, [startDate, endDate, attributions]);
 
     // Générer les lignes par médecin
     useEffect(() => {
         const medecinRows: MedecinRow[] = medecins.map(medecin => ({
             id: medecin.id,
             medecin,
-            assignments: assignments.filter(a => a.userId === parseInt(medecin.id))
+            attributions: attributions.filter(a => a.userId === parseInt(medecin.id))
         }));
 
         setRows(medecinRows);
-    }, [medecins, assignments]);
+    }, [medecins, attributions]);
 
     // Valider les affectations
     const validateAssignments = useCallback(async () => {
         // Construire le contexte pour l'évaluation des règles
         const context = {
-            assignments,
+            attributions,
             startDate,
             endDate,
             medecins
@@ -109,7 +109,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
                 satisfactionScore: 0
             }
         });
-    }, [assignments, startDate, endDate, medecins, ruleEngine]);
+    }, [attributions, startDate, endDate, medecins, ruleEngine]);
 
     useEffect(() => {
         validateAssignments();
@@ -129,18 +129,18 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
         // Récupérer l'affectation déplacée
         const sourceColumnId = source.droppableId;
         const sourceIndex = source.index;
-        let draggedAssignment: Assignment | null = null;
+        let draggedAssignment: Attribution | null = null;
 
         columns.forEach(column => {
             if (column.id === sourceColumnId) {
-                draggedAssignment = { ...column.assignments[sourceIndex] };
+                draggedAssignment = { ...column.attributions[sourceIndex] };
             }
         });
 
         if (!draggedAssignment) return;
 
         // Copier toutes les affectations
-        const newAssignments = [...assignments];
+        const newAssignments = [...attributions];
 
         // Mettre à jour la date de l'affectation déplacée
         const destinationDate = columns.find(c => c.id === destination.droppableId)?.date;
@@ -187,17 +187,17 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
 
         // Pour chaque affectation concernée, suggérer de la supprimer
         violation.affectedAssignments.forEach(assignmentId => {
-            const assignment = assignments.find(a => a.id === assignmentId);
+            const attribution = attributions.find(a => a.id === assignmentId);
 
-            if (assignment) {
-                const medecinId = assignment.userId;
+            if (attribution) {
+                const medecinId = attribution.userId;
                 const medecin = medecins.find(m => parseInt(m.id) === medecinId);
 
                 options.push({
-                    description: `Supprimer l'affectation de ${medecin?.prenom} ${medecin?.nom} le ${new Intl.DateTimeFormat('fr-FR').format(assignment.date)}`,
+                    description: `Supprimer l'affectation de ${medecin?.prenom} ${medecin?.nom} le ${new Intl.DateTimeFormat('fr-FR').format(attribution.date)}`,
                     impact: 50,
                     action: () => {
-                        const newAssignments = assignments.filter(a => a.id !== assignmentId);
+                        const newAssignments = attributions.filter(a => a.id !== assignmentId);
                         onAssignmentsChange(newAssignments);
                     }
                 });
@@ -206,8 +206,8 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
 
         // Suggérer d'échanger les affectations si possible
         if (violation.affectedAssignments.length >= 2) {
-            const assignment1 = assignments.find(a => a.id === violation.affectedAssignments[0]);
-            const assignment2 = assignments.find(a => a.id === violation.affectedAssignments[1]);
+            const assignment1 = attributions.find(a => a.id === violation.affectedAssignments[0]);
+            const assignment2 = attributions.find(a => a.id === violation.affectedAssignments[1]);
 
             if (assignment1 && assignment2) {
                 const medecin1 = medecins.find(m => parseInt(m.id) === assignment1.userId);
@@ -217,7 +217,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
                     description: `Échanger les affectations entre ${medecin1?.prenom} ${medecin1?.nom} et ${medecin2?.prenom} ${medecin2?.nom}`,
                     impact: 30,
                     action: () => {
-                        const newAssignments = assignments.map(a => {
+                        const newAssignments = attributions.map(a => {
                             if (a.id === assignment1.id) {
                                 return { ...a, userId: assignment2.userId };
                             } else if (a.id === assignment2.id) {
@@ -332,7 +332,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
                                     </td>
 
                                     {columns.map(column => {
-                                        const cellAssignments = assignments.filter(
+                                        const cellAssignments = attributions.filter(
                                             a => a.userId === parseInt(row.id) &&
                                                 new Date(a.date).toISOString().split('T')[0] === column.id
                                         );
@@ -346,15 +346,15 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
                                                             {...provided.droppableProps}
                                                             className="min-h-[60px]"
                                                         >
-                                                            {cellAssignments.map((assignment, index) => {
+                                                            {cellAssignments.map((attribution, index) => {
                                                                 // Vérifier si cette affectation est en violation
                                                                 const hasViolation = validationResult?.violations.some(
-                                                                    v => v.affectedAssignments.includes(assignment.id)
+                                                                    v => v.affectedAssignments.includes(attribution.id)
                                                                 );
 
                                                                 // Trouver la violation la plus sévère pour cette affectation
                                                                 const mostSevereViolation = validationResult?.violations
-                                                                    .filter(v => v.affectedAssignments.includes(assignment.id))
+                                                                    .filter(v => v.affectedAssignments.includes(attribution.id))
                                                                     .sort((a, b) => {
                                                                         const severityOrder = {
                                                                             [RuleSeverity.CRITICAL]: 0,
@@ -366,8 +366,8 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
 
                                                                 return (
                                                                     <Draggable
-                                                                        key={assignment.id}
-                                                                        draggableId={assignment.id}
+                                                                        key={attribution.id}
+                                                                        draggableId={attribution.id}
                                                                         index={index}
                                                                     >
                                                                         {(provided) => (
@@ -382,7 +382,7 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
                                                                             >
                                                                                 <div className="flex justify-between items-center">
                                                                                     <span className="font-medium">
-                                                                                        {assignment.type}
+                                                                                        {attribution.type}
                                                                                     </span>
                                                                                     {hasViolation && (
                                                                                         <AlertTriangle
@@ -396,11 +396,11 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
                                                                                         />
                                                                                     )}
                                                                                 </div>
-                                                                                {assignment.shift && (
+                                                                                {attribution.shift && (
                                                                                     <span className="text-xs block mt-1">
-                                                                                        {assignment.shift === 'matin' ? 'Matin' :
-                                                                                            assignment.shift === 'apresmidi' ? 'Après-midi' :
-                                                                                                assignment.shift === 'nuit' ? 'Nuit' : 'Journée complète'}
+                                                                                        {attribution.shift === 'matin' ? 'Matin' :
+                                                                                            attribution.shift === 'apresmidi' ? 'Après-midi' :
+                                                                                                attribution.shift === 'nuit' ? 'Nuit' : 'Journée complète'}
                                                                                     </span>
                                                                                 )}
                                                                             </div>
@@ -439,19 +439,19 @@ const DragDropAssignmentEditor: React.FC<DragDropAssignmentEditorProps> = ({
                             <h4 className="font-semibold">Affectations concernées :</h4>
                             <div className="space-y-2">
                                 {selectedViolation.affectedAssignments.map(assignmentId => {
-                                    const assignment = assignments.find(a => a.id === assignmentId);
-                                    const medecin = assignment
-                                        ? medecins.find(m => parseInt(m.id) === assignment.userId)
+                                    const attribution = attributions.find(a => a.id === assignmentId);
+                                    const medecin = attribution
+                                        ? medecins.find(m => parseInt(m.id) === attribution.userId)
                                         : null;
 
-                                    return assignment && medecin ? (
+                                    return attribution && medecin ? (
                                         <div key={assignmentId} className="p-2 border rounded bg-gray-50">
                                             <div className="font-medium">
                                                 {medecin.prenom} {medecin.nom}
                                             </div>
                                             <div className="text-sm">
-                                                {new Intl.DateTimeFormat('fr-FR').format(assignment.date)} - {assignment.type}
-                                                {assignment.shift && ` (${assignment.shift})`}
+                                                {new Intl.DateTimeFormat('fr-FR').format(attribution.date)} - {attribution.type}
+                                                {attribution.shift && ` (${attribution.shift})`}
                                             </div>
                                         </div>
                                     ) : null;

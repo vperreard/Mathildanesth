@@ -128,3 +128,20 @@ pnpm-lock.yaml
 
 # Seed data (contains sensitive information like initial passwords)
 prisma/seed_data/
+
+# Added by Task Master AI
+dev-debug.log
+node_modules/
+# Environment variables
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+# Task files
+tasks.json
+tasks/ 

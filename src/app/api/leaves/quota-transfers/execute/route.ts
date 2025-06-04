@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { LeaveType } from '@/modules/leaves/types/leave';
 import { z } from 'zod';
 import { AuditAction } from '@/services/AuditService';
-import { auditService } from '@/lib/auditService';
+import { AuditService } from '@/services/AuditService';
 import { LeaveType as PrismaLeaveType } from '@prisma/client';
 
 // Validation du corps de la requête
@@ -153,6 +153,7 @@ export async function POST(req: NextRequest) {
         });
 
         // Enregistrer l'action dans l'audit
+        const auditService = new AuditService();
         await auditService.logAction({
             action: AuditAction.QUOTA_TRANSFER,
             entityId: userId,

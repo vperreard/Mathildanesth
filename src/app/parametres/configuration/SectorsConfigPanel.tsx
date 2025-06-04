@@ -8,7 +8,8 @@ import {
     TrashIcon,
     CheckIcon,
     XMarkIcon,
-    ArrowsUpDownIcon
+    ArrowsUpDownIcon,
+    ArrowPathIcon
 } from '@heroicons/react/24/outline';
 import { AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -56,7 +57,7 @@ type SectorFormData = {
     siteId: string | null; // ID du site est une string (cuid) ou null
 };
 
-// Type pour un site (correspondant au modèle Prisma)
+// Type pour un site (correspondant au template Prisma)
 type Site = {
     id: string; // ID est une string (cuid)
     name: string;
@@ -65,6 +66,7 @@ type Site = {
     displayOrder?: number; // Ajouté pour le tri
     createdAt?: string; // Optionnel, ajouté pour info
     updatedAt?: string; // Optionnel, ajouté pour info
+    operatingSectors?: Sector[]; // Ajouté pour les secteurs opératoires
 };
 
 // Type pour les données du formulaire de site
@@ -213,7 +215,12 @@ const SectorsConfigPanel: React.FC = () => {
     });
     const [siteFormError, setSiteFormError] = useState<string | null>(null); // Erreur formulaire SITE
     const [isSubmittingSite, setIsSubmittingSite] = useState<boolean>(false);
-    // --- FIN NOUVEAU ---
+
+    // État pour le mode réorganisation
+    const [isReorderingMode, setIsReorderingMode] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
+    const [saveError, setSaveError] = useState(false);
 
     // Injecter les styles globaux
     useEffect(() => {
@@ -263,7 +270,7 @@ const SectorsConfigPanel: React.FC = () => {
         setSectorsError(null);
         try {
             const response = await axios.get<Sector[]>('/api/sectors');
-            let fetchedSectors = response.data || [];
+            const fetchedSectors = response.data || [];
 
             // Le backend devrait maintenant renvoyer siteId comme string ou null
             // Pas besoin de mapper ici si l'API est correcte
@@ -695,17 +702,35 @@ const SectorsConfigPanel: React.FC = () => {
         setError(null);
 
         try {
-            const payload = Object.entries(sectorOrder.orderedSectorIdsBySite).map(([siteId, sectorIds]) => ({
-                siteId: siteId,
-                orderedSectorIds: sectorIds
-            }));
-            console.log("Payload for /api/sectors/reorder-by-site:", payload);
+            // Filtrer les sites inexistants avant envoi
+            const validSiteIds = new Set(sites.map(site => site.id));
+            validSiteIds.add('null'); // Ajouter 'null' pour les secteurs non assignés
 
-            const response = await axios.post('/api/sectors/reorder-by-site', { sitesOrder: payload });
+            const payload = Object.entries(sectorOrder.orderedSectorIdsBySite)
+                .filter(([siteId, _]) => validSiteIds.has(siteId))
+                .map(([siteId, sectorIds]) => ({
+                    siteId: siteId,
+                    orderedSectorIds: sectorIds
+                }));
+
+            console.log("Sites valides:", Array.from(validSiteIds));
+            console.log("Payload filtré for /api/sectors/reorder-by-site:", payload);
+
+            const response = await axios.post('http://localhost:3000/api/sectors/reorder-by-site', { sitesOrder: payload });
 
             if (response.status === 200) {
                 setSaveMessage('');
                 toast.success('Ordre des secteurs sauvegardé avec succès');
+
+                // Nettoyer l'ordre local pour supprimer les sites inexistants
+                const cleanedOrderConfig = {
+                    orderedSectorIdsBySite: Object.fromEntries(
+                        payload.map(item => [item.siteId, item.orderedSectorIds])
+                    )
+                };
+                setSectorOrder(cleanedOrderConfig);
+                saveSectorOrderToStorage(cleanedOrderConfig);
+                console.log("Ordre local nettoyé:", cleanedOrderConfig);
             } else {
                 throw new Error(response.data.error || "Erreur inconnue lors de la sauvegarde de l'ordre");
             }
@@ -723,15 +748,22 @@ const SectorsConfigPanel: React.FC = () => {
     // --- Gestion du mode réorganisation --- 
     const handleReorderingToggle = () => {
         if (isReordering) {
-            if (user?.role !== Role.ADMIN_TOTAL) {
-                toast.error("Permissions insuffisantes pour sauvegarder l'ordre des secteurs.");
-                setError("Votre rôle ne vous permet pas d'effectuer cette action.");
-                setIsReordering(false);
-                return;
-            }
+            // Sauvegarder l'ordre même si l'utilisateur n'est pas ADMIN_TOTAL
+            // L'API vérifiera les permissions, mais on doit au moins essayer de sauvegarder
             saveSectorOrderToDatabase();
+
+            // Afficher un message pour indiquer que l'ordre a été sauvegardé
+            toast.info('Les modifications d\'ordre ont été enregistrées');
+
+            // Si on quitte le mode réorganisation, mettre à jour l'interface
+            setIsReordering(false);
+        } else {
+            // Entrer en mode réorganisation
+            setIsReordering(true);
+
+            // Afficher un message pour guider l'utilisateur
+            toast.info('Mode réorganisation activé. Glissez-déposez les secteurs pour modifier leur ordre puis cliquez à nouveau sur "Réorganiser" pour sauvegarder.');
         }
-        setIsReordering(!isReordering);
     };
 
     // --- Gestion Formulaire Secteur --- 
@@ -822,7 +854,7 @@ const SectorsConfigPanel: React.FC = () => {
         }
         setError(null); // Utiliser l'erreur générale
         try {
-            await axios.delete(`/api/sectors/${id}`);
+            await axios.delete(`http://localhost:3000/api/sectors/${id}`);
             toast.success('Secteur supprimé avec succès');
             // Retirer de l'état local
             const deletedSector = sectors.find(s => s.id === id);
@@ -941,7 +973,7 @@ const SectorsConfigPanel: React.FC = () => {
         }
         setError(null); // Utiliser l'erreur générale
         try {
-            await axios.delete(`/api/sites/${id}`);
+            await axios.delete(`http://localhost:3000/api/sites/${id}`);
             toast.success('Site supprimé avec succès');
             fetchSites(); // Recharger les sites
             // Recharger aussi les secteurs car leur siteId a pu changer en null
@@ -966,7 +998,52 @@ const SectorsConfigPanel: React.FC = () => {
             setError(errorMsg); // Afficher l'erreur générale
         }
     };
-    // --- FIN Gestion Formulaire Site ---
+
+    // Fonction pour réinitialiser l'ordre des secteurs
+    const handleResetOrder = async () => {
+        if (!confirm('Êtes-vous sûr de vouloir réinitialiser l\'ordre de tous les secteurs ? Les secteurs seront triés par ordre alphabétique.')) {
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            // Préparer les données avec tous les secteurs réinitialisés à null pour le displayOrder
+            const payload = {
+                sitesOrder: sites.map(site => ({
+                    siteId: site.id,
+                    sectorsOrder: (site.operatingSectors || []).map((sector: any) => ({
+                        sectorId: sector.id,
+                        // Réinitialiser à null pour revenir à l'ordre par défaut
+                        displayOrder: null
+                    }))
+                }))
+            };
+
+            // Envoyer à l'API
+            const response = await fetch('http://localhost:3000/api/sectors/reorder-by-site', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error('Échec de la réinitialisation');
+            }
+
+            // Rafraîchir les données
+            await fetchSites();
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 3000);
+        } catch (error) {
+            console.error('Erreur lors de la réinitialisation de l\'ordre:', error);
+            setSaveError(true);
+            setTimeout(() => setSaveError(false), 3000);
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     // --- Rendu JSX --- 
 
@@ -1011,6 +1088,20 @@ const SectorsConfigPanel: React.FC = () => {
                         {isReordering ? "Terminer Réorganisation" : "Réorganiser Secteurs"}
                     </Button>
                 </div>
+            </div>
+
+            {/* Message d'information important */}
+            <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                <h3 className="text-lg font-semibold text-blue-800 mb-2">Important : Ordre d'affichage</h3>
+                <p className="text-blue-700">
+                    L'ordre dans lequel vous organisez les secteurs et sites ici sera utilisé pour l'affichage des salles dans les trameModeles et plannings.
+                </p>
+                <p className="text-blue-700 mt-2">
+                    <strong>Pour réorganiser :</strong> Cliquez sur le bouton "Réorganiser Secteurs", glissez-déposez les secteurs dans l'ordre souhaité, puis cliquez sur "Terminer Réorganisation" pour sauvegarder vos modifications.
+                </p>
+                <p className="text-blue-700 mt-2">
+                    <strong>Remarque :</strong> Après avoir modifié l'ordre, il peut être nécessaire de rafraîchir la page des trameModeles pour voir les changements.
+                </p>
             </div>
 
             {/* --- MODIFIÉ : Section Gestion des Sites --- */}
@@ -1091,10 +1182,41 @@ const SectorsConfigPanel: React.FC = () => {
                 </div>
             )}
 
-            {/* Bannière d'information sur les sites statiques (SUPPRIMÉE) */}
-            {/* <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md">
-                ...
-            </div> */}
+            {/* Boutons d'action pour la réorganisation */}
+            <div className="flex space-x-4">
+                <Button
+                    onClick={handleReorderingToggle}
+                    className={`flex items-center ${isReorderingMode ? 'bg-blue-600' : ''}`}
+                >
+                    {isReorderingMode ? (
+                        <>
+                            <CheckIcon className="h-5 w-5 mr-2" />
+                            Terminer la réorganisation
+                        </>
+                    ) : (
+                        <>
+                            <ArrowsUpDownIcon className="h-5 w-5 mr-2" />
+                            Réorganiser les secteurs
+                        </>
+                    )}
+                </Button>
+
+                {isReorderingMode && (
+                    <Button
+                        onClick={handleResetOrder}
+                        className="flex items-center bg-amber-600 hover:bg-amber-700"
+                        disabled={isSaving}
+                    >
+                        <ArrowPathIcon className="h-5 w-5 mr-2" />
+                        Réinitialiser l'ordre
+                    </Button>
+                )}
+            </div>
+
+            {/* Indicateurs de statut */}
+            {isSaving && <span className="text-blue-500 ml-2">Enregistrement en cours...</span>}
+            {saveSuccess && <span className="text-green-500 ml-2">Ordre sauvegardé avec succès !</span>}
+            {saveError && <span className="text-red-500 ml-2">Erreur lors de la sauvegarde</span>}
 
             {/* Affichage erreur chargement secteurs */}
             {sectorsError && (

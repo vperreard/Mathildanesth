@@ -1,0 +1,38 @@
+#!/bin/bash
+# scripts/etape - Wrapper simple pour point d'étape
+
+# Usage:
+#   ./scripts/etape              # Point d'étape complet
+#   ./scripts/etape --quick      # Version rapide
+#   ./scripts/etape --roadmap    # Focus sur roadmap/TODO
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+case "${1:-}" in
+    --quick)
+        echo "🚀 Point d'étape rapide..."
+        echo "========================="
+        echo "📦 Routes API: $(find src/app/api -name "route.ts" 2>/dev/null | wc -l)"
+        echo "📝 TODO/FIXME: $(grep -r "TODO\|FIXME" src --include="*.ts" --include="*.tsx" 2>/dev/null | wc -l)"
+        echo "🧪 Tests: $(find src -name "*.test.ts" -o -name "*.test.tsx" 2>/dev/null | wc -l)"
+        echo "⚠️  @ts-ignore: $(grep -r "@ts-ignore" src --include="*.ts" --include="*.tsx" 2>/dev/null | wc -l)"
+        echo ""
+        echo "💡 Pour un point d'étape complet: ./scripts/etape"
+        ;;
+    --roadmap)
+        echo "🗺️  Analyse roadmap et TODO..."
+        echo "================================"
+        if [ -f "docs/04_roadmap/URGENT_TODO_ACTION_PLAN.md" ]; then
+            echo "🚨 Plan d'action urgent détecté"
+            grep -E "Phase|TODO|URGENT" docs/04_roadmap/URGENT_TODO_ACTION_PLAN.md | head -10
+        fi
+        echo ""
+        echo "📋 TODO récents dans le code:"
+        grep -r "TODO\|FIXME" src --include="*.ts" --include="*.tsx" 2>/dev/null | head -5
+        ;;
+    *)
+        echo "📊 Lancement du point d'étape complet..."
+        echo ""
+        "$SCRIPT_DIR/point-etape.sh"
+        ;;
+esac 

@@ -3,23 +3,24 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PlusIcon, Search, FilterIcon, BookmarkIcon, Trash2Icon, PencilIcon, CopyIcon, CalendarIcon } from 'lucide-react';
+import { PlusIcon, Search, BookmarkIcon, Trash2Icon, PencilIcon, CopyIcon, CalendarIcon, BarChart2Icon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Button from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Input from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogFooter, DialogHeader } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter, DialogHeader } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { fetchTemplates, deleteTemplate, useTemplateForScenario, SimulationTemplate } from '@/services/simulationTemplateService';
+import { fetchTemplates, deleteTemplate, createScenarioFromTemplate, duplicateTemplate, SimulationTemplate } from '@/services/simulationTemplateService';
+import { Label } from '@/components/ui/label';
 
 export default function TemplatesPage() {
     const router = useRouter();
     const [templates, setTemplates] = useState<SimulationTemplate[]>([]);
     const [filteredTemplates, setFilteredTemplates] = useState<SimulationTemplate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState<string>('');
     const [activeTab, setActiveTab] = useState<'all' | 'my' | 'public'>('all');
@@ -27,13 +28,19 @@ export default function TemplatesPage() {
     const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    // États pour la duplication
+    const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+    const [templateToDuplicate, setTemplateToDuplicate] = useState<string | null>(null);
+    const [newTemplateName, setNewTemplateName] = useState('');
+    const [isDuplicating, setIsDuplicating] = useState(false);
+
     useEffect(() => {
         loadTemplates();
     }, []);
 
     useEffect(() => {
         applyFilters();
-    }, [templates, searchTerm, categoryFilter, activeTab]);
+    }, [templates, searchTerm, categoryFilter, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const loadTemplates = async () => {
         setIsLoading(true);
@@ -41,8 +48,9 @@ export default function TemplatesPage() {
         try {
             const data = await fetchTemplates();
             setTemplates(data);
-        } catch (err: any) {
-            setError(err.message || 'Erreur lors du chargement des templates');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des templates';
+            setError(errorMessage);
             toast.error('Erreur lors du chargement des templates');
         } finally {
             setIsLoading(false);
@@ -84,24 +92,45 @@ export default function TemplatesPage() {
         try {
             await deleteTemplate(templateToDelete);
             setTemplates(prevTemplates => prevTemplates.filter(t => t.id !== templateToDelete));
-            toast.success('Template supprimé avec succès');
+            toast.success('Modèle supprimé avec succès');
             setDeleteDialogOpen(false);
-        } catch (err: any) {
-            toast.error('Erreur lors de la suppression du template: ' + err.message);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+            toast.error('Erreur lors de la suppression du template: ' + errorMessage);
         } finally {
             setIsDeleting(false);
             setTemplateToDelete(null);
         }
     };
 
+    const handleDuplicateTemplate = async () => {
+        if (!templateToDuplicate || !newTemplateName.trim()) return;
+
+        setIsDuplicating(true);
+        try {
+            const newTemplate = await duplicateTemplate(templateToDuplicate, newTemplateName);
+            setTemplates(prevTemplates => [...prevTemplates, newTemplate]);
+            toast.success('Modèle dupliqué avec succès');
+            setDuplicateDialogOpen(false);
+            setNewTemplateName('');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+            toast.error('Erreur lors de la duplication du template: ' + errorMessage);
+        } finally {
+            setIsDuplicating(false);
+            setTemplateToDuplicate(null);
+        }
+    };
+
     const handleUseTemplate = async (templateId: string) => {
         try {
             toast.info('Création d\'un scénario à partir du template...');
-            const scenario = await useTemplateForScenario(templateId);
+            const scenario = await createScenarioFromTemplate(templateId);
             toast.success('Scénario créé avec succès');
             router.push(`/admin/simulations/${scenario.id}/edit`);
-        } catch (err: any) {
-            toast.error('Erreur lors de la création du scénario: ' + err.message);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+            toast.error('Erreur lors de la création du scénario: ' + errorMessage);
         }
     };
 
@@ -124,7 +153,7 @@ export default function TemplatesPage() {
             <Button
                 variant="default"
                 size="sm"
-                onClick={() => router.push('/admin/simulations/templates/new')}
+                onClick={() => router.push('/admin/simulations/templates/nouveau')}
             >
                 <PlusIcon className="h-4 w-4 mr-2" />
                 Créer un template
@@ -136,18 +165,27 @@ export default function TemplatesPage() {
         <div className="container p-4 mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold">Templates de Simulation</h1>
+                    <h1 className="text-2xl font-bold">Modèles de Simulation</h1>
                     <p className="text-muted-foreground">
                         Gérez des configurations réutilisables pour vos simulations de planning
                     </p>
                 </div>
-                <Button
-                    variant="default"
-                    onClick={() => router.push('/admin/simulations/templates/new')}
-                >
-                    <PlusIcon className="h-4 w-4 mr-2" />
-                    Nouveau Template
-                </Button>
+                <div className="flex space-x-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => router.push('/admin/simulations/templates/stats')}
+                    >
+                        <BarChart2Icon className="h-4 w-4 mr-2" />
+                        Statistiques
+                    </Button>
+                    <Button
+                        variant="default"
+                        onClick={() => router.push('/admin/simulations/templates/nouveau')}
+                    >
+                        <PlusIcon className="h-4 w-4 mr-2" />
+                        Nouveau Modèle
+                    </Button>
+                </div>
             </div>
 
             <div className="mb-6">
@@ -156,7 +194,7 @@ export default function TemplatesPage() {
                         <TabsList>
                             <TabsTrigger value="all">Tous les templates</TabsTrigger>
                             <TabsTrigger value="my">Mes templates</TabsTrigger>
-                            <TabsTrigger value="public">Templates publics</TabsTrigger>
+                            <TabsTrigger value="public">Modèles publics</TabsTrigger>
                         </TabsList>
 
                         <div className="flex space-x-2">
@@ -201,6 +239,11 @@ export default function TemplatesPage() {
                                             setTemplateToDelete(id);
                                             setDeleteDialogOpen(true);
                                         }}
+                                        onDuplicate={(id, name) => {
+                                            setTemplateToDuplicate(id);
+                                            setNewTemplateName(`Copie de ${name}`);
+                                            setDuplicateDialogOpen(true);
+                                        }}
                                         onUse={handleUseTemplate}
                                     />
                                 ))}
@@ -224,6 +267,11 @@ export default function TemplatesPage() {
                                         onDelete={(id) => {
                                             setTemplateToDelete(id);
                                             setDeleteDialogOpen(true);
+                                        }}
+                                        onDuplicate={(id, name) => {
+                                            setTemplateToDuplicate(id);
+                                            setNewTemplateName(`Copie de ${name}`);
+                                            setDuplicateDialogOpen(true);
                                         }}
                                         onUse={handleUseTemplate}
                                     />
@@ -249,6 +297,11 @@ export default function TemplatesPage() {
                                             setTemplateToDelete(id);
                                             setDeleteDialogOpen(true);
                                         }}
+                                        onDuplicate={(id, name) => {
+                                            setTemplateToDuplicate(id);
+                                            setNewTemplateName(`Copie de ${name}`);
+                                            setDuplicateDialogOpen(true);
+                                        }}
                                         onUse={handleUseTemplate}
                                     />
                                 ))}
@@ -260,6 +313,7 @@ export default function TemplatesPage() {
                 </Tabs>
             </div>
 
+            {/* Dialogue de suppression */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
@@ -293,6 +347,51 @@ export default function TemplatesPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Dialogue de duplication */}
+            <Dialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Dupliquer le template</DialogTitle>
+                        <DialogDescription>
+                            Entrez un nom pour la copie du template.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <Label htmlFor="new-template-name" className="mb-2 block">Nom du nouveau template</Label>
+                        <Input
+                            id="new-template-name"
+                            value={newTemplateName}
+                            onChange={(e) => setNewTemplateName(e.target.value)}
+                            placeholder="Nom du template"
+                            className="w-full"
+                        />
+                    </div>
+                    <DialogFooter className="flex space-x-2 justify-end">
+                        <Button
+                            variant="outline"
+                            onClick={() => setDuplicateDialogOpen(false)}
+                            disabled={isDuplicating}
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            variant="default"
+                            onClick={handleDuplicateTemplate}
+                            disabled={isDuplicating || !newTemplateName.trim()}
+                        >
+                            {isDuplicating ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Duplication...
+                                </>
+                            ) : (
+                                'Dupliquer'
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
@@ -300,10 +399,11 @@ export default function TemplatesPage() {
 interface TemplateCardProps {
     template: SimulationTemplate;
     onDelete: (id: string) => void;
+    onDuplicate: (id: string, name: string) => void;
     onUse: (id: string) => void;
 }
 
-function TemplateCard({ template, onDelete, onUse }: TemplateCardProps) {
+function TemplateCard({ template, onDelete, onDuplicate, onUse }: TemplateCardProps) {
     return (
         <Card>
             <CardHeader>
@@ -348,6 +448,13 @@ function TemplateCard({ template, onDelete, onUse }: TemplateCardProps) {
                             <PencilIcon className="h-4 w-4" />
                         </Button>
                     </Link>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onDuplicate(template.id, template.name)}
+                    >
+                        <CopyIcon className="h-4 w-4" />
+                    </Button>
                 </div>
                 <Button variant="default" size="sm" onClick={() => onUse(template.id)}>
                     Utiliser

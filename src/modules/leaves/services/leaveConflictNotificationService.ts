@@ -29,7 +29,7 @@ export class LeaveConflictNotificationService {
      * Génère une notification formatée pour un conflit spécifique
      * @param conflict Le conflit pour lequel générer la notification
      * @param locale La locale à utiliser pour la traduction
-     * @returns Template de notification formaté
+     * @returns Modèle de notification formaté
      */
     public generateNotificationTemplate(
         conflict: LeaveConflict,
@@ -240,7 +240,7 @@ export class LeaveConflictNotificationService {
             {
                 label: 'Voir les détails',
                 action: 'VIEW_CONFLICT',
-                url: `/leaves/conflicts/${conflict.leaveId}`
+                url: `/conges/conflicts/${conflict.leaveId}`
             }
         ];
 

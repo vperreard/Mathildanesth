@@ -6,7 +6,7 @@ import {
     CalendarViewType
 } from '../types/event';
 import { RootState } from '../../../store/store';
-import { fetchCalendarEvents } from '../services/calendarService';
+import { fetchCalendarEvents } from '../services/calendrierService';
 import { startOfMonth, endOfMonth } from 'date-fns';
 
 // État initial du store

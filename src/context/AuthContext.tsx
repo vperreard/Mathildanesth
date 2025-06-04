@@ -7,6 +7,7 @@ import React, {
   useEffect,
   ReactNode,
   useCallback,
+  useMemo,
 } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
@@ -18,43 +19,49 @@ import {
 } from '@/lib/auth-client-utils'; // Mise à jour de l'import
 // import Cookies from 'js-cookie'; // Plus nécessaire ici
 
-// Ajout d'un intercepteur pour afficher les headers, utile pour le debug
-axios.interceptors.request.use(
-  config => {
-    // Ajouter le token aux headers si disponible
-    const token = getClientAuthToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    console.log('[AuthContext Interceptor] Request headers:', config.url, config.headers);
+// Cache simple pour éviter les requêtes redondantes
+const userCache = new Map<string, { user: User; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-    // Conserver l'ajout du timestamp pour éviter le cache
-    if (config.url && (config.url.startsWith('/api/') || config.url.startsWith('api/'))) {
-      const timestamp = new Date().getTime();
-      const separator = config.url.includes('?') ? '&' : '?';
-      config.url = `${config.url}${separator}_t=${timestamp}`;
-    }
+// Configuration Axios optimisée - une seule fois
+const setupAxiosInterceptors = (() => {
+  let isSetup = false;
+  return () => {
+    if (isSetup) return;
+    isSetup = true;
 
-    return config;
-  },
-  error => {
-    console.error("Erreur dans l'intercepteur de requête Axios:", error);
-    return Promise.reject(error);
-  }
-);
+    axios.interceptors.request.use(
+      config => {
+        const token = getClientAuthToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
 
-// Intercepteur pour les erreurs
-axios.interceptors.response.use(
-  response => {
-    return response;
-  },
-  error => {
-    if (error.response && error.response.status === 401) {
-      console.log('Intercepteur Axios: Erreur 401 détectée');
-    }
-    return Promise.reject(error);
-  }
-);
+        // Cache busting plus léger - seulement pour les APIs critiques
+        if (config.url && (config.url.includes('/api/auth/') || config.url.includes('/api/me'))) {
+          const timestamp = new Date().getTime();
+          const separator = config.url.includes('?') ? '&' : '?';
+          config.url = `${config.url}${separator}_t=${timestamp}`;
+        }
+
+        return config;
+      },
+      error => Promise.reject(error)
+    );
+
+    axios.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response?.status === 401) {
+          // Nettoyer le cache utilisateur en cas d'erreur 401
+          userCache.clear();
+          removeClientAuthToken();
+        }
+        return Promise.reject(error);
+      }
+    );
+  };
+})();
 
 interface AuthContextType {
   user: User | null;
@@ -76,15 +83,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
+  // Configuration des intercepteurs
+  useMemo(() => {
+    setupAxiosInterceptors();
+  }, []);
+
   const fetchCurrentUser = useCallback(async () => {
     try {
-      console.log("AuthContext: Tentative de récupération de l'utilisateur courant");
+      const token = getClientAuthToken();
+      if (!token) {
+        setUser(null);
+        setIsLoading(false);
+        return null;
+      }
+
+      // Vérifier le cache utilisateur
+      const cachedEntry = userCache.get(token);
+      if (cachedEntry && Date.now() - cachedEntry.timestamp < CACHE_DURATION) {
+        setUser(cachedEntry.user);
+        setIsLoading(false);
+        return cachedEntry.user;
+      }
+
       const response = await axios.get('/api/auth/me');
-      setUser(response.data.user);
-      return response.data.user;
+      const userData = response.data.user;
+
+      // Mettre en cache
+      userCache.set(token, { user: userData, timestamp: Date.now() });
+      setUser(userData);
+      return userData;
     } catch (error) {
-      console.log("AuthContext: Erreur lors de la récupération de l'utilisateur", error);
+      console.log("AuthContext: Erreur lors de la récupération de l'utilisateur");
       setUser(null);
+      userCache.clear();
       return null;
     } finally {
       setIsLoading(false);
@@ -97,64 +128,54 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (credentials: { login: string; password: string }) => {
     try {
-      console.log('AuthContext: Tentative de connexion avec:', credentials.login);
-
-      // S'assurer que la requête a le bon type de contenu
       const config = {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 10000, // 10s timeout
       };
 
-      // Envoyer à l'API avec le bon format de requête
       const response = await axios.post('/api/auth/login', credentials, config);
 
-      console.log('AuthContext: Connexion réussie, réponse:', response.data);
-
-      // Stocker le token JWT reçu
       if (response.data.token) {
         setClientAuthToken(response.data.token);
-      } else {
-        console.warn('AuthContext: Token JWT non reçu après connexion.');
+        // Mettre en cache immédiatement
+        userCache.set(response.data.token, {
+          user: response.data.user,
+          timestamp: Date.now()
+        });
       }
 
-      // Définir l'utilisateur à partir de la réponse
       setUser(response.data.user);
-
-      // Rediriger vers la page d'accueil
-      router.push('/');
-
+      // Utiliser l'URL de redirection fournie par l'API ou /dashboard par défaut
+      const redirectUrl = response.data.redirectUrl || '/dashboard';
+      router.push(redirectUrl);
       return response.data.user;
     } catch (error) {
-      console.error('Erreur de connexion dans le context:', error);
+      console.error('Erreur de connexion:', error);
       throw new Error('Identifiants incorrects');
     }
   };
 
   const logout = async () => {
     try {
-      await axios.post('/api/auth/logout');
-      // Supprimer le token JWT
-      removeClientAuthToken();
-      setUser(null);
-      router.push('/auth/login');
+      await axios.post('http://localhost:3000/api/auth/deconnexion');
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
-      // Supprimer le token JWT et déconnecter côté client même en cas d'erreur
+    } finally {
       removeClientAuthToken();
+      userCache.clear();
       setUser(null);
-      router.push('/auth/login');
+      router.push('/auth/connexion');
     }
   };
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     isLoading,
     login,
     logout,
     refetchUser: fetchCurrentUser,
     isAuthenticated: !!user,
-  };
+  }), [user, isLoading, fetchCurrentUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

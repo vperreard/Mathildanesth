@@ -7,7 +7,7 @@ declare type AccelerateEngineConfig = {
     inlineSchema: EngineConfig['inlineSchema'];
     inlineSchemaHash: EngineConfig['inlineSchemaHash'];
     env: EngineConfig['env'];
-    generator?: {
+    organisateur?: {
         previewFeatures: string[];
     };
     inlineDatasources: EngineConfig['inlineDatasources'];
@@ -1013,7 +1013,7 @@ declare interface EngineConfig {
     enableDebugLogs?: boolean;
     allowTriggerPanic?: boolean;
     prismaPath?: string;
-    generator?: GeneratorConfig;
+    organisateur?: GeneratorConfig;
     /**
      * @remarks this field is used internally by Policy, do not rename or remove
      */
@@ -1409,13 +1409,13 @@ declare interface GeneratorConfig {
     isCustomOutput?: boolean;
     provider: EnvValue;
     config: {
-        /** `output` is a reserved name and will only be available directly at `generator.output` */
+        /** `output` is a reserved name and will only be available directly at `organisateur.output` */
         output?: never;
-        /** `provider` is a reserved name and will only be available directly at `generator.provider` */
+        /** `provider` is a reserved name and will only be available directly at `organisateur.provider` */
         provider?: never;
-        /** `binaryTargets` is a reserved name and will only be available directly at `generator.binaryTargets` */
+        /** `binaryTargets` is a reserved name and will only be available directly at `organisateur.binaryTargets` */
         binaryTargets?: never;
-        /** `previewFeatures` is a reserved name and will only be available directly at `generator.previewFeatures` */
+        /** `previewFeatures` is a reserved name and will only be available directly at `organisateur.previewFeatures` */
         previewFeatures?: never;
     } & {
         [key: string]: string | string[] | undefined;
@@ -1632,7 +1632,7 @@ export declare function getPrismaClient(config: GetPrismaClientConfig): {
  */
 export declare type GetPrismaClientConfig = {
     runtimeDataModel: RuntimeDataModel;
-    generator?: GeneratorConfig;
+    organisateur?: GeneratorConfig;
     relativeEnvPaths?: {
         rootEnvPath?: string | null;
         schemaEnvPath?: string | null;

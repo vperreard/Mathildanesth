@@ -13,7 +13,7 @@ export default function TrameGridDemoPage() {
     // Un wrapper simple pour la démo
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-2xl font-bold mb-6">Démo Interface Grille de Trames</h1>
+            <h1 className="text-2xl font-bold mb-6">Démo Interface Grille de TrameModeles</h1>
 
             <div className="bg-white shadow-md rounded-lg p-6">
                 <TrameGridDemo />

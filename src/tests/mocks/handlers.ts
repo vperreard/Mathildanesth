@@ -85,7 +85,7 @@ export const handlers = [
     }),
 
     // Exemple de handler pour une API POST
-    http.post('/api/auth/login', () => {
+    http.post('/api/auth/connexion', () => {
         return HttpResponse.json({
             user: { id: 1, name: 'Test User' },
             token: 'mock-token-123'
@@ -100,8 +100,8 @@ export const handlers = [
         ]);
     }),
 
-    // API GET /api/leaves
-    http.get('/api/leaves', () => {
+    // API GET /api/conges
+    http.get('/api/conges', () => {
         return HttpResponse.json([
             {
                 id: '1',
@@ -114,8 +114,8 @@ export const handlers = [
         ]);
     }),
 
-    // API GET /api/assignments
-    http.get('/api/assignments', () => {
+    // API GET /api/affectations
+    http.get('/api/affectations', () => {
         return HttpResponse.json([
             {
                 id: '1',
@@ -139,7 +139,7 @@ export const handlers = [
     }),
 
     // Mock de l'API de création de congés
-    http.post('/api/leaves', async () => {
+    http.post('/api/conges', async () => {
         return HttpResponse.json(
             {
                 id: '3',
@@ -155,7 +155,7 @@ export const handlers = [
     }),
 
     // Mock de l'API des conflits de congés
-    http.get('/api/leaves/conflicts', () => {
+    http.get('/api/conges/conflicts', () => {
         return HttpResponse.json([
             {
                 id: 'conflict1',
@@ -168,7 +168,7 @@ export const handlers = [
     }),
 
     // Mock de l'API des événements du calendrier
-    http.get('/api/calendar/events', () => {
+    http.get('/api/calendrier/events', () => {
         return HttpResponse.json([
             {
                 id: 'event1',
@@ -216,8 +216,8 @@ export const handlers = [
         });
     }),
 
-    // Mock pour GET /api/leaves/balance
-    http.get('/api/leaves/balance', ({ request }) => {
+    // Mock pour GET /api/conges/balance
+    http.get('/api/conges/balance', ({ request }) => {
         const url = new URL(request.url);
         const userId = url.searchParams.get('userId');
         // Retourner un solde mocké simple. Ajustez selon les besoins des tests.
@@ -230,8 +230,8 @@ export const handlers = [
         });
     }),
 
-    // Mock pour GET /api/leaves/quotas/transfer-rules/active
-    http.get('/api/leaves/quotas/transfer-rules/active', ({ request }) => {
+    // Mock pour GET /api/conges/quotas/transfer-rules/active
+    http.get('/api/conges/quotas/transfer-rules/active', ({ request }) => {
         // Retourner des règles de transfert actives mockées. Ajustez selon les besoins.
         return HttpResponse.json([
             // Exemple de règle de transfert active
@@ -240,8 +240,8 @@ export const handlers = [
         ]);
     }),
 
-    // Mock pour POST /api/leaves/quotas/transfer
-    http.post('/api/leaves/quotas/transfer', async ({ request }) => {
+    // Mock pour POST /api/conges/quotas/transfer
+    http.post('/api/conges/quotas/transfer', async ({ request }) => {
         const transferRequest = await request.json();
         // Simuler une réponse de transfert réussie. 
         // Les tests spécifiques peuvent surcharger ce handler pour des scénarios d'erreur.
@@ -291,10 +291,10 @@ export const handlers = [
         ]);
     }),
 
-    // Mock POST /api/assignments/batch
-    http.post('/api/assignments/batch', async ({ request }) => {
-        const assignments = await request.json();
-        console.log(">>> MSW: Mocking POST /api/assignments/batch", assignments);
-        return HttpResponse.json({ success: true, updatedCount: Array.isArray(assignments) ? assignments.length : 0 });
+    // Mock POST /api/affectations/batch
+    http.post('/api/affectations/batch', async ({ request }) => {
+        const attributions = await request.json();
+        console.log(">>> MSW: Mocking POST /api/affectations/batch", attributions);
+        return HttpResponse.json({ success: true, updatedCount: Array.isArray(attributions) ? attributions.length : 0 });
     }),
 ]; 

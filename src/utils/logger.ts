@@ -88,4 +88,12 @@ export { loggerProxy as logger };
 // Safer approach: force consumers to call getLogger
 
 // Removed the old export { logger }; as logger is no longer exported directly.
-// Consumers must now use `await getLogger()` to get the logger instance. 
+// Consumers must now use `await getLogger()` to get the logger instance.
+
+// Export a synchronous logger for compatibility
+export const logger = {
+    info: (...args: any[]) => console.info(...args),
+    warn: (...args: any[]) => console.warn(...args),
+    error: (...args: any[]) => console.error(...args),
+    debug: (...args: any[]) => console.debug(...args),
+}; 

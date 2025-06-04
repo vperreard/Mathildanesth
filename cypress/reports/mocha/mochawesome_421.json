@@ -1,0 +1,211 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 0,
+    "pending": 0,
+    "failures": 2,
+    "start": "2025-06-01T06:19:21.498Z",
+    "end": "2025-06-01T06:20:11.358Z",
+    "duration": 49860,
+    "testsRegistered": 6,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 4,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "308611b6-be0b-45ef-b55e-95dd91f3d868",
+      "title": "",
+      "fullFile": "cypress/e2e/auth/stable-login.spec.ts",
+      "file": "cypress/e2e/auth/stable-login.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "9240eaf2-734e-48db-a8a3-572964cf36b8",
+          "title": "Connexion - Tests Stabilisés",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "affiche correctement le formulaire de connexion",
+              "fullTitle": "Connexion - Tests Stabilisés affiche correctement le formulaire de connexion",
+              "timedOut": null,
+              "duration": 16342,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Vérifier la présence des éléments essentiels\ncy.waitForElement('[data-cy=email-input]');\ncy.waitForElement('[data-cy=password-input]');\ncy.waitForElement('[data-cy=submit-button]');\n// Vérifier que le titre est présent\ncy.contains('Connexion').should('be.visible');\n// Vérifier que les champs sont bien configurés\ncy.get('[data-cy=email-input]').should('have.attr', 'type', 'text');\ncy.get('[data-cy=password-input]').should('have.attr', 'type', 'password');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 15000ms: expected '<button.w-full.rounded-md.bg-blue-600.px-4.py-2.text-white.hover:bg-blue-700.focus:outline-none.focus:ring-2.focus:ring-blue-500.focus:ring-offset-2.disabled:opacity-50.disabled:cursor-not-allowed.transition-colors>' not to have attribute 'disabled'",
+                "estack": "AssertionError: Timed out retrying after 15000ms: expected '<button.w-full.rounded-md.bg-blue-600.px-4.py-2.text-white.hover:bg-blue-700.focus:outline-none.focus:ring-2.focus:ring-blue-500.focus:ring-offset-2.disabled:opacity-50.disabled:cursor-not-allowed.transition-colors>' not to have attribute 'disabled'\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:513:9)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)",
+                "diff": null
+              },
+              "uuid": "0375ee39-7790-4ba7-b225-480c487065fd",
+              "parentUUID": "9240eaf2-734e-48db-a8a3-572964cf36b8",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "gère correctement les identifiants invalides",
+              "fullTitle": "Connexion - Tests Stabilisés gère correctement les identifiants invalides",
+              "timedOut": null,
+              "duration": 173,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Intercepter les requêtes pour surveiller les appels API\ncy.intercept('POST', '**/api/auth/login', {\n    statusCode: 401,\n    body: { error: 'Identifiants invalides' }\n}).as('loginFailed');\n// Saisir des identifiants incorrects\ncy.safeType('[data-cy=email-input]', 'user.invalide@test.com');\ncy.safeType('[data-cy=password-input]', 'motdepasse-incorrect');\ncy.safeClick('[data-cy=submit-button]');\n// Vérifier la réponse\ncy.wait('@loginFailed');\n// Vérifier l'affichage du message d'erreur\ncy.get('[data-cy=error-message]', { timeout: 5000 })\n    .should('be.visible')\n    .and('contain.text', 'Identifiants invalides');\n// Vérifier qu'on reste sur la page de connexion\ncy.url().should('include', '/auth/connexion');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Connexion - Tests Stabilisés`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/auth/connexion\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Connexion - Tests Stabilisés`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/auth/stable-login.spec.ts:9:11)",
+                "diff": null
+              },
+              "uuid": "d3c18098-ed2e-4a92-b36d-90f18117535d",
+              "parentUUID": "9240eaf2-734e-48db-a8a3-572964cf36b8",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet la connexion avec des identifiants valides (mock)",
+              "fullTitle": "Connexion - Tests Stabilisés permet la connexion avec des identifiants valides (mock)",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Mock d'une réponse de connexion réussie\ncy.intercept('POST', '**/api/auth/login', {\n    statusCode: 200,\n    body: {\n        success: true,\n        redirectUrl: '/',\n        user: { id: 1, email: 'admin@example.com', role: 'ADMIN_TOTAL' }\n    }\n}).as('loginSuccess');\n// Saisir des identifiants valides\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\n// Vérifier la réponse\ncy.wait('@loginSuccess');\n// Note: Dans un environnement de test, la redirection peut ne pas fonctionner\n// On vérifie juste que l'appel API s'est bien passé",
+              "err": {},
+              "uuid": "5b127b72-f862-44a3-8533-06310f6a528c",
+              "parentUUID": "9240eaf2-734e-48db-a8a3-572964cf36b8",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "désactive le bouton pendant le chargement",
+              "fullTitle": "Connexion - Tests Stabilisés désactive le bouton pendant le chargement",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Intercepter avec un délai pour simuler une requête lente\ncy.intercept('POST', '**/api/auth/login', function (req) {\n    req.reply(function (res) {\n        res.delay(2000);\n        res.send({ statusCode: 200, body: { success: true } });\n    });\n}).as('slowLogin');\n// Saisir les identifiants\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\n// Cliquer et vérifier que le bouton est désactivé\ncy.safeClick('[data-cy=submit-button]');\ncy.get('[data-cy=submit-button]').should('be.disabled');\n// Vérifier le texte de chargement\ncy.get('[data-cy=submit-button]').should('contain.text', 'Connexion...');",
+              "err": {},
+              "uuid": "e87b6786-fa3d-4204-aca2-254a6d94d2d3",
+              "parentUUID": "9240eaf2-734e-48db-a8a3-572964cf36b8",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "nettoie les erreurs lors de la saisie",
+              "fullTitle": "Connexion - Tests Stabilisés nettoie les erreurs lors de la saisie",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Afficher d'abord une erreur\ncy.intercept('POST', '**/api/auth/login', {\n    statusCode: 401,\n    body: { error: 'Identifiants invalides' }\n}).as('loginError');\ncy.safeType('[data-cy=email-input]', 'wrong@test.com');\ncy.safeType('[data-cy=password-input]', 'wrong');\ncy.safeClick('[data-cy=submit-button]');\ncy.wait('@loginError');\ncy.get('[data-cy=error-message]').should('be.visible');\n// Maintenant modifier les champs et vérifier que l'erreur disparaît\ncy.get('[data-cy=email-input]').clear().type('new@test.com');\ncy.get('[data-cy=error-message]').should('not.exist');",
+              "err": {},
+              "uuid": "215a6561-fb7d-42e3-9448-85dbcd3885d7",
+              "parentUUID": "9240eaf2-734e-48db-a8a3-572964cf36b8",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "gère les erreurs réseau",
+              "fullTitle": "Connexion - Tests Stabilisés gère les erreurs réseau",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Simuler une erreur réseau\ncy.intercept('POST', '**/api/auth/login', { forceNetworkError: true }).as('networkError');\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\n// Vérifier qu'une erreur s'affiche\ncy.get('[data-cy=error-message]', { timeout: 10000 })\n    .should('be.visible')\n    .and('contain.text', 'Une erreur est survenue');",
+              "err": {},
+              "uuid": "3b2161ae-e186-4e58-8d19-a60ffd4e4e10",
+              "parentUUID": "9240eaf2-734e-48db-a8a3-572964cf36b8",
+              "isHook": false,
+              "skipped": true
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "0375ee39-7790-4ba7-b225-480c487065fd",
+            "d3c18098-ed2e-4a92-b36d-90f18117535d"
+          ],
+          "pending": [],
+          "skipped": [
+            "5b127b72-f862-44a3-8533-06310f6a528c",
+            "e87b6786-fa3d-4204-aca2-254a6d94d2d3",
+            "215a6561-fb7d-42e3-9448-85dbcd3885d7",
+            "3b2161ae-e186-4e58-8d19-a60ffd4e4e10"
+          ],
+          "duration": 16515,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

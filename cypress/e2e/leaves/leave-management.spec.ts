@@ -28,7 +28,7 @@ describe('Gestion des congés', () => {
         cy.loginByApi(testUser.email, testUser.password);
 
         // Accéder à la page de demande de congés
-        cy.visitAsAuthenticatedUser('/leaves/new');
+        cy.visitAsAuthenticatedUser('/conges/nouveau');
 
         // Remplir le formulaire de demande
         cy.get('[data-cy=leave-type-select]').click();
@@ -48,7 +48,7 @@ describe('Gestion des congés', () => {
         cy.get('[data-cy=leave-notes]').type('Congés pour raisons personnelles');
 
         // Intercepter la requête de création
-        cy.intercept('POST', '**/api/leaves').as('createLeave');
+        cy.intercept('POST', '**/api/conges').as('createLeave');
 
         // Soumettre la demande
         cy.get('[data-cy=submit-leave-request]').click();
@@ -62,7 +62,7 @@ describe('Gestion des congés', () => {
             .and('contain', 'Demande de congés soumise avec succès');
 
         // Vérifier que la demande apparaît dans la liste des congés
-        cy.visitAsAuthenticatedUser('/leaves');
+        cy.visitAsAuthenticatedUser('/conges');
         cy.get('[data-cy=leave-list]').should('contain', 'Congés pour raisons personnelles');
     });
 
@@ -71,7 +71,7 @@ describe('Gestion des congés', () => {
         cy.loginByApi(adminUser.email, adminUser.password);
 
         // Accéder à la page de gestion des congés
-        cy.visitAsAuthenticatedUser('/admin/leaves');
+        cy.visitAsAuthenticatedUser('/admin/conges');
 
         // Chercher une demande en attente
         cy.get('[data-cy=pending-leaves-tab]').click();
@@ -84,7 +84,7 @@ describe('Gestion des congés', () => {
         cy.get('[data-cy=approve-leave-action]').click();
 
         // Intercepter la requête d'approbation
-        cy.intercept('PUT', '**/api/leaves/**/approve').as('approveLeave');
+        cy.intercept('PUT', '**/api/conges/**/approve').as('approveLeave');
 
         // Confirmer l'approbation
         cy.get('[data-cy=confirm-approve-button]').click();
@@ -107,7 +107,7 @@ describe('Gestion des congés', () => {
         cy.loginByApi(adminUser.email, adminUser.password);
 
         // Accéder à la page de gestion des congés
-        cy.visitAsAuthenticatedUser('/admin/leaves');
+        cy.visitAsAuthenticatedUser('/admin/conges');
 
         // Chercher une demande en attente
         cy.get('[data-cy=pending-leaves-tab]').click();
@@ -123,7 +123,7 @@ describe('Gestion des congés', () => {
         cy.get('[data-cy=rejection-reason]').type('Personnel insuffisant pour cette période');
 
         // Intercepter la requête de rejet
-        cy.intercept('PUT', '**/api/leaves/**/reject').as('rejectLeave');
+        cy.intercept('PUT', '**/api/conges/**/reject').as('rejectLeave');
 
         // Confirmer le rejet
         cy.get('[data-cy=confirm-reject-button]').click();
@@ -146,7 +146,7 @@ describe('Gestion des congés', () => {
         cy.loginByApi(testUser.email, testUser.password);
 
         // Accéder à la page de gestion des congés
-        cy.visitAsAuthenticatedUser('/leaves');
+        cy.visitAsAuthenticatedUser('/conges');
 
         // Trouver une demande en attente et cliquer dessus
         cy.get('[data-cy=leave-item]:contains("Vacances de Noël")').click();
@@ -162,7 +162,7 @@ describe('Gestion des congés', () => {
         cy.get('[data-cy=leave-notes]').clear().type('Vacances de Noël prolongées');
 
         // Intercepter la requête de mise à jour
-        cy.intercept('PUT', '**/api/leaves/**').as('updateLeave');
+        cy.intercept('PUT', '**/api/conges/**').as('updateLeave');
 
         // Soumettre les modifications
         cy.get('[data-cy=submit-leave-request]').click();
@@ -176,7 +176,7 @@ describe('Gestion des congés', () => {
             .and('contain', 'Demande de congés mise à jour');
 
         // Vérifier que les modifications sont visibles
-        cy.visitAsAuthenticatedUser('/leaves');
+        cy.visitAsAuthenticatedUser('/conges');
         cy.get('[data-cy=leave-item]:contains("Vacances de Noël prolongées")').should('be.visible');
     });
 
@@ -185,7 +185,7 @@ describe('Gestion des congés', () => {
         cy.loginByApi(testUser.email, testUser.password);
 
         // Accéder à la page de gestion des congés
-        cy.visitAsAuthenticatedUser('/leaves');
+        cy.visitAsAuthenticatedUser('/conges');
 
         // Trouver une demande en attente et cliquer dessus
         cy.get('[data-cy=leave-item]:contains("Vacances de Noël")').click();
@@ -194,7 +194,7 @@ describe('Gestion des congés', () => {
         cy.get('[data-cy=cancel-leave-button]').click();
 
         // Intercepter la requête d'annulation
-        cy.intercept('DELETE', '**/api/leaves/**').as('cancelLeave');
+        cy.intercept('DELETE', '**/api/conges/**').as('cancelLeave');
 
         // Confirmer l'annulation
         cy.get('[data-cy=confirm-cancel-button]').click();

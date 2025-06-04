@@ -35,7 +35,7 @@ export default async function IncompatibilitesPage() {
                                 Visualisez, créez et gérez les incompatibilités entre membres du personnel.
                             </CardDescription>
                         </div>
-                        <Link href="/admin/incompatibilites/new" passHref>
+                        <Link href="/admin/incompatibilites/nouveau" passHref>
                             <Button>
                                 <PlusCircleIcon className="mr-2 h-5 w-5" />
                                 Nouvelle Incompatibilité

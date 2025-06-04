@@ -1,18 +1,12 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient, User } from '@prisma/client';
-// Importer votre logique d'authentification/session pour obtenir l'utilisateur
-// import { getServerSession } from 'next-auth/next'; // Ancien import
-import { getServerSession } from "next-auth"; // Nouvel import
-// import { authOptions } from '@/lib/auth'; // <--- Chemin potentiellement incorrect, commenté temporairement
-
-const prisma = new PrismaClient();
-
-// Fonction pour vérifier si l'utilisateur est admin
-const isAdmin = (user: User | null): boolean => {
-    // Adaptez cette logique à votre modèle User et aux rôles admin
-    // Vérifier si user n'est pas null avant d'accéder à user.role
-    return !!user && (user.role === 'ADMIN_TOTAL' || user.role === 'ADMIN_PARTIEL');
-};
+import { prisma } from '@/lib/prisma';
+import {
+    requireAdmin,
+    logSecurityAction,
+    AuthorizationError,
+    AuthenticationError
+} from '@/lib/auth/authorization';
+import { AuditService, AuditAction } from '@/services/AuditService';
 
 /**
  * GET /api/admin/leave-types
@@ -21,35 +15,36 @@ const isAdmin = (user: User | null): boolean => {
  */
 export async function GET(request: Request) {
     try {
-        // --- Authentification commentée temporairement --- 
-        /*
-        const session = await getServerSession(authOptions); // Nécessite authOptions
-        const user = session?.user?.email 
-            ? await prisma.user.findUnique({ where: { email: session.user.email } })
-            : null;
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications admin requises
+        const session = await requireAdmin();
+        
+        // Logger l'action
+        const auditService = new AuditService();
+        await auditService.logAction({
+            action: AuditAction.READ_LEAVE_TYPES,
+            userId: session.user.id.toString(),
+            entityId: 'all',
+            entityType: 'leave_type_setting'
+        });
 
-        if (!isAdmin(user)) {
-          return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 });
-        }
-        */
-        // --- Fin section commentée ---
-
-        const leaveTypeSettings = await prisma.leaveTypeSetting.findMany({ // Correction: camelCase
+        const leaveTypeSettings = await prisma.leaveTypeSetting.findMany({
             orderBy: { label: 'asc' },
         });
 
         return NextResponse.json(leaveTypeSettings);
 
     } catch (error) {
+        if (error instanceof AuthenticationError) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+        if (error instanceof AuthorizationError) {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
         console.error('Erreur API [GET /admin/leave-types]:', error);
         return NextResponse.json({ error: 'Erreur serveur lors de la récupération des types de congés.' }, { status: 500 });
-    } finally {
-        // Ne pas déconnecter ici si prisma est utilisé dans plusieurs fonctions du même fichier
-        // await prisma.$disconnect(); 
     }
 }
-
-// TODO: Implémenter POST, PUT, DELETE avec la même vérification admin
 
 /**
  * POST /api/admin/leave-types
@@ -58,31 +53,31 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
     try {
-        // --- Authentification commentée temporairement --- 
-        /*
-        const session = await getServerSession(authOptions); // Nécessite authOptions
-        const user = session?.user?.email 
-            ? await prisma.user.findUnique({ where: { email: session.user.email } })
-            : null;
-
-        if (!isAdmin(user)) {
-          return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 });
-        }
-        */
-        // --- Fin section commentée ---
+        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications admin requises
+        const session = await requireAdmin();
 
         const body = await request.json();
+
+        // Logger l'action
+        const auditService = new AuditService();
+        await auditService.logAction({
+            action: AuditAction.CREATE_LEAVE_TYPE,
+            userId: session.user.id.toString(),
+            entityId: body.code || 'new',
+            entityType: 'leave_type_setting',
+            details: { code: body.code, label: body.label }
+        });
 
         if (!body.code || !body.label) {
             return NextResponse.json({ error: 'Les champs code et label sont requis.' }, { status: 400 });
         }
 
-        const existing = await prisma.leaveTypeSetting.findUnique({ where: { code: body.code } }); // Correction: camelCase
+        const existing = await prisma.leaveTypeSetting.findUnique({ where: { code: body.code } });
         if (existing) {
             return NextResponse.json({ error: `Le code '${body.code}' existe déjà.` }, { status: 409 });
         }
 
-        const newLeaveTypeSetting = await prisma.leaveTypeSetting.create({ // Correction: camelCase
+        const newLeaveTypeSetting = await prisma.leaveTypeSetting.create({
             data: {
                 code: body.code,
                 label: body.label,
@@ -96,12 +91,107 @@ export async function POST(request: Request) {
         return NextResponse.json(newLeaveTypeSetting, { status: 201 });
 
     } catch (error) {
+        if (error instanceof AuthenticationError) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+        if (error instanceof AuthorizationError) {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
         console.error('Erreur API [POST /admin/leave-types]:', error);
         if ((error as any).code === 'P2002' && (error as any).meta?.target?.includes('code')) {
             return NextResponse.json({ error: 'Le code fourni existe déjà.' }, { status: 409 });
         }
         return NextResponse.json({ error: 'Erreur serveur lors de la création du type de congé.' }, { status: 500 });
-    } finally {
-        // await prisma.$disconnect();
+    }
+}
+
+/**
+ * PUT /api/admin/leave-types
+ * Met à jour un paramètre de type de congé.
+ * Réservé aux administrateurs.
+ */
+export async function PUT(request: Request) {
+    try {
+        const session = await requireAdmin();
+
+        const body = await request.json();
+        const { id, ...updateData } = body;
+
+        // Logger l'action
+        const auditService = new AuditService();
+        await auditService.logAction({
+            action: AuditAction.UPDATE_LEAVE_TYPE,
+            userId: session.user.id.toString(),
+            entityId: String(id),
+            entityType: 'leave_type_setting',
+            details: { updateData }
+        });
+
+        if (!id) {
+            return NextResponse.json({ error: 'L\'ID est requis pour la mise à jour.' }, { status: 400 });
+        }
+
+        const updatedLeaveTypeSetting = await prisma.leaveTypeSetting.update({
+            where: { id: parseInt(String(id)) },
+            data: updateData,
+        });
+
+        return NextResponse.json(updatedLeaveTypeSetting);
+
+    } catch (error) {
+        if (error instanceof AuthenticationError) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+        if (error instanceof AuthorizationError) {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
+        console.error('Erreur API [PUT /admin/leave-types]:', error);
+        return NextResponse.json({ error: 'Erreur serveur lors de la mise à jour du type de congé.' }, { status: 500 });
+    }
+}
+
+/**
+ * DELETE /api/admin/leave-types
+ * Supprime un paramètre de type de congé.
+ * Réservé aux administrateurs.
+ */
+export async function DELETE(request: Request) {
+    try {
+        const session = await requireAdmin();
+
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'L\'ID est requis pour la suppression.' }, { status: 400 });
+        }
+
+        // Logger l'action
+        const auditService = new AuditService();
+        await auditService.logAction({
+            action: AuditAction.DELETE_LEAVE_TYPE,
+            userId: session.user.id.toString(),
+            entityId: id,
+            entityType: 'leave_type_setting'
+        });
+
+        await prisma.leaveTypeSetting.delete({
+            where: { id: parseInt(id) },
+        });
+
+        return NextResponse.json({ message: 'Type de congé supprimé avec succès.' });
+
+    } catch (error) {
+        if (error instanceof AuthenticationError) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+        if (error instanceof AuthorizationError) {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+
+        console.error('Erreur API [DELETE /admin/leave-types]:', error);
+        return NextResponse.json({ error: 'Erreur serveur lors de la suppression du type de congé.' }, { status: 500 });
     }
 } 

@@ -1,0 +1,391 @@
+{
+  "summary": {
+    "totalTests": 13,
+    "passed": 6,
+    "failed": 6,
+    "skipped": 0,
+    "warnings": 1,
+    "errorsCount": 2,
+    "pagesVisited": [
+      "http://localhost:3001/auth/connexion",
+      "http://localhost:3001/planning"
+    ],
+    "featuresAccessed": [
+      "responsive-mobile",
+      "responsive-tablet",
+      "responsive-desktop",
+      "accessibility-testing"
+    ]
+  },
+  "coverage": {
+    "pagesCount": 2,
+    "featuresCount": 4,
+    "errorsFound": 44,
+    "performanceIssues": 0
+  },
+  "testResults": [
+    {
+      "testName": "Navigation to Login Page",
+      "status": "PASS",
+      "timestamp": 1748757376705,
+      "loadTime": "1246ms",
+      "message": "Page loaded in 1246ms"
+    },
+    {
+      "testName": "Login Form Elements Check",
+      "status": "PASS",
+      "timestamp": 1748757376717
+    },
+    {
+      "testName": "Invalid Credentials Error Display",
+      "status": "FAIL",
+      "timestamp": 1748757382850,
+      "message": "Error message not displayed for invalid credentials"
+    },
+    {
+      "testName": "Authentication Phase",
+      "status": "FAIL",
+      "timestamp": 1748757394354,
+      "message": "Authentication failed"
+    },
+    {
+      "testName": "Navigation to Responsive Test Page",
+      "status": "PASS",
+      "timestamp": 1748757395252,
+      "loadTime": "898ms",
+      "message": "Page loaded in 898ms"
+    },
+    {
+      "testName": "Mobile Responsive Navigation",
+      "status": "FAIL",
+      "timestamp": 1748757396260
+    },
+    {
+      "testName": "Tablet Responsive Navigation",
+      "status": "FAIL",
+      "timestamp": 1748757397265
+    },
+    {
+      "testName": "Desktop Responsive Navigation",
+      "status": "FAIL",
+      "timestamp": 1748757398272
+    },
+    {
+      "testName": "Responsive Design Phase",
+      "status": "PASS",
+      "timestamp": 1748757398277
+    },
+    {
+      "testName": "Main Landmark Present",
+      "status": "PASS",
+      "timestamp": 1748757398280
+    },
+    {
+      "testName": "Navigation Landmark Present",
+      "status": "FAIL",
+      "timestamp": 1748757398281
+    },
+    {
+      "testName": "Accessibility Phase",
+      "status": "PASS",
+      "timestamp": 1748757398284
+    },
+    {
+      "testName": "Error Analysis",
+      "status": "WARN",
+      "timestamp": 1748757398284,
+      "totalErrors": 2,
+      "message": "Non-critical errors found"
+    }
+  ],
+  "errors": [
+    {
+      "error": "Waiting for selector `[data-cy=error-message]` failed: Waiting failed: 5000ms exceeded",
+      "context": "Waiting for selector: [data-cy=error-message]",
+      "url": "http://localhost:3001/auth/connexion",
+      "timestamp": 1748757382776,
+      "screenshot": "./tests/e2e/screenshots/error-1748757382776.png"
+    },
+    {
+      "error": "Navigation timeout of 10000 ms exceeded",
+      "context": "Login navigation",
+      "url": "http://localhost:3001/auth/connexion",
+      "timestamp": 1748757394282,
+      "screenshot": "./tests/e2e/screenshots/error-1748757394282.png"
+    }
+  ],
+  "coverageData": {
+    "pagesVisited": {},
+    "featuresAccessed": {},
+    "errorsFound": [
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/css/lib-n.css?v=1748757375476' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375542
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/css/vendor-node_modules_n.css?v=1748757375476' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375556
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375603
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/framework-node_modules_r.js?v=1748757375476' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375605
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375676
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/vendor-node_modules_next_dist_client_components_react-dev-overlay_ui_components_errors_dev-tools-ind-702b70ee.js?v=1748757375476' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375678
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375681
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/vendor-node_modules_next_dist_client_components_react-dev-overlay_ui_components_errors_en.js?v=1748757375476' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375682
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375729
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/vendor-node_modules_next_dist_compiled_r.js?v=1748757375476' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375731
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375733
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/vendor-node_modules_next_dist_shared_lib_ro.js?v=1748757375476' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375734
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375756
+      },
+      {
+        "type": "console-error",
+        "message": "Error while trying to use the following icon from the Manifest: http://localhost:3001/icons/icon-144x144.png (Download error or resource isn't a valid image)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757375789
+      },
+      {
+        "error": "Waiting for selector `[data-cy=error-message]` failed: Waiting failed: 5000ms exceeded",
+        "context": "Waiting for selector: [data-cy=error-message]",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757382776,
+        "screenshot": "./tests/e2e/screenshots/error-1748757382776.png"
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/css/lib-n.css?v=1748757382868' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757382976
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/css/vendor-node_modules_n.css?v=1748757382868' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757382983
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757383048
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/framework-node_modules_r.js?v=1748757382868' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757383049
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757383136
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/vendor-node_modules_next_dist_client_components_react-dev-overlay_ui_components_errors_dev-tools-ind-702b70ee.js?v=1748757382868' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757383137
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757383172
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/vendor-node_modules_next_dist_client_components_react-dev-overlay_ui_components_errors_en.js?v=1748757382868' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757383173
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757383212
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/vendor-node_modules_next_dist_compiled_r.js?v=1748757382868' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757383213
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757383215
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/vendor-node_modules_next_dist_shared_lib_ro.js?v=1748757382868' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757383215
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757383251
+      },
+      {
+        "type": "console-error",
+        "message": "Error while trying to use the following icon from the Manifest: http://localhost:3001/icons/icon-144x144.png (Download error or resource isn't a valid image)",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757383290
+      },
+      {
+        "error": "Navigation timeout of 10000 ms exceeded",
+        "context": "Login navigation",
+        "url": "http://localhost:3001/auth/connexion",
+        "timestamp": 1748757394282,
+        "screenshot": "./tests/e2e/screenshots/error-1748757394282.png"
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/css/lib-n.css?v=1748757394372' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394454
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/css/vendor-node_modules_n.css?v=1748757394372' because its MIME type ('text/css') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394471
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394526
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/framework-node_modules_r.js?v=1748757394372' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394528
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394618
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/vendor-node_modules_next_dist_client_components_react-dev-overlay_ui_components_errors_dev-tools-ind-702b70ee.js?v=1748757394372' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394621
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394622
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/vendor-node_modules_next_dist_client_components_react-dev-overlay_ui_components_errors_en.js?v=1748757394372' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394624
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394676
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/vendor-node_modules_next_dist_compiled_r.js?v=1748757394372' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394677
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394679
+      },
+      {
+        "type": "console-error",
+        "message": "Refused to execute script from 'http://localhost:3001/_next/static/chunks/vendor-node_modules_next_dist_shared_lib_ro.js?v=1748757394372' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394681
+      },
+      {
+        "type": "console-error",
+        "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394705
+      },
+      {
+        "type": "console-error",
+        "message": "Error while trying to use the following icon from the Manifest: http://localhost:3001/icons/icon-144x144.png (Download error or resource isn't a valid image)",
+        "url": "http://localhost:3001/planning",
+        "timestamp": 1748757394750
+      }
+    ],
+    "performanceIssues": [],
+    "accessibilityIssues": []
+  }
+}

@@ -1,110 +1,71 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import Header from '../Header';
+import Footer from '../Footer';
+import { MobileBottomNavigation, BottomNavigationSpacer } from './MobileBottomNavigation';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ResponsiveLayoutProps {
-    children: React.ReactNode;
-    sidebar?: React.ReactNode;
-    header?: React.ReactNode;
-    footer?: React.ReactNode;
+  children: React.ReactNode;
 }
 
-export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
-    children,
-    sidebar,
-    header,
-    footer,
-}) => {
-    const [isMobile, setIsMobile] = useState(false);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+export function ResponsiveLayout({ children }: ResponsiveLayoutProps) {
+  const pathname = usePathname();
+  const { user } = useAuth();
+  const [isMobile, setIsMobile] = useState(false);
 
-    useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
-
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-
-        return () => {
-            window.removeEventListener('resize', checkMobile);
-        };
-    }, []);
-
-    const toggleSidebar = () => {
-        setIsSidebarOpen(!isSidebarOpen);
+  // Détecte si l'écran est mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
     };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-    return (
-        <div className="min-h-screen bg-gray-50">
-            {header && (
-                <header className="bg-white shadow-sm">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex justify-between items-center py-4">
-                            {isMobile && sidebar && (
-                                <button
-                                    onClick={toggleSidebar}
-                                    className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
-                                >
-                                    <span className="sr-only">Ouvrir le menu</span>
-                                    {isSidebarOpen ? (
-                                        <X className="h-6 w-6" aria-hidden="true" />
-                                    ) : (
-                                        <Menu className="h-6 w-6" aria-hidden="true" />
-                                    )}
-                                </button>
-                            )}
-                            {header}
-                        </div>
-                    </div>
-                </header>
-            )}
+  // Détermine si on doit afficher la navigation mobile
+  const showMobileNavigation = isMobile && 
+    user && 
+    pathname && 
+    !pathname.startsWith('/auth') && 
+    !pathname.startsWith('/admin') &&
+    !pathname.startsWith('/login');
 
-            <div className="flex">
-                {sidebar && (
-                    <AnimatePresence>
-                        {(!isMobile || isSidebarOpen) && (
-                            <motion.aside
-                                initial={isMobile ? { x: -300 } : { x: 0 }}
-                                animate={isMobile ? { x: 0 } : { x: 0 }}
-                                exit={isMobile ? { x: -300 } : { x: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className={`
-                                    ${isMobile ? 'fixed inset-y-0 left-0 z-50' : 'relative'}
-                                    w-64 bg-white shadow-lg
-                                `}
-                            >
-                                <div className="h-full overflow-y-auto">
-                                    {sidebar}
-                                </div>
-                            </motion.aside>
-                        )}
-                    </AnimatePresence>
-                )}
+  // Détermine si on doit afficher le header/footer desktop
+  const showDesktopLayout = !isMobile || 
+    (pathname && (pathname.startsWith('/admin') || pathname.startsWith('/auth')));
 
-                <main className="flex-1">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                        {children}
-                    </div>
-                </main>
-            </div>
-
-            {footer && (
-                <footer className="bg-white shadow-sm mt-auto">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                        {footer}
-                    </div>
-                </footer>
-            )}
-
-            {isMobile && isSidebarOpen && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-40"
-                    onClick={toggleSidebar}
-                />
-            )}
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header desktop ou mobile selon le contexte */}
+      {showDesktopLayout && <Header />}
+      
+      {/* Contenu principal */}
+      <main className={`flex-1 ${showMobileNavigation ? 'pb-safe' : ''}`}>
+        {/* Container responsive avec padding adaptatif */}
+        <div className={`
+          ${showMobileNavigation ? 'px-4 py-4' : 'container mx-auto px-4 py-8'}
+          ${showDesktopLayout ? '' : 'safe-area-inset'}
+          scroll-smooth-mobile
+        `}>
+          {children}
         </div>
-    );
-}; 
+        
+        {/* Spacer pour éviter que le contenu soit caché par les bottom tabs */}
+        {showMobileNavigation && <BottomNavigationSpacer />}
+      </main>
+      
+      {/* Footer desktop */}
+      {showDesktopLayout && <Footer />}
+      
+      {/* Navigation mobile bottom tabs */}
+      {showMobileNavigation && <MobileBottomNavigation />}
+    </div>
+  );
+}
+
+export default ResponsiveLayout;

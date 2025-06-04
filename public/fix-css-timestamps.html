@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fix CSS Timestamps</title>
+    <meta charset="utf-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+    <h1>🔧 CSS Timestamp Fixer</h1>
+    <p>This page will identify what's adding timestamps to CSS files.</p>
+    <button onclick="investigate()">Investigate Issue</button>
+    <pre id="log"></pre>
+
+    <script>
+        const log = document.getElementById('log');
+        
+        function addLog(message) {
+            log.textContent += message + '\n';
+        }
+
+        async function investigate() {
+            addLog('🔍 Starting investigation...\n');
+            
+            // 1. Check Service Workers
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                addLog(`Service Workers: ${registrations.length} found`);
+                registrations.forEach(reg => {
+                    addLog(`  - Scope: ${reg.scope}, Active: ${!!reg.active}`);
+                });
+            }
+            
+            // 2. Check Caches
+            if ('caches' in window) {
+                const names = await caches.keys();
+                addLog(`\nCaches: ${names.length} found`);
+                names.forEach(name => addLog(`  - ${name}`));
+            }
+            
+            // 3. Check Scripts
+            const scripts = Array.from(document.scripts);
+            const cssScripts = scripts.filter(s => s.src && s.src.includes('.css'));
+            addLog(`\nCSS loaded as scripts: ${cssScripts.length}`);
+            cssScripts.forEach(s => addLog(`  - ${s.src}`));
+            
+            // 4. Check for timestamp patterns
+            const allScripts = Array.from(document.scripts);
+            const withTimestamps = allScripts.filter(s => s.src && s.src.includes('?v='));
+            addLog(`\nScripts with timestamps: ${withTimestamps.length}`);
+            withTimestamps.forEach(s => addLog(`  - ${s.src}`));
+            
+            // 5. Check window properties
+            addLog('\nChecking for custom loaders...');
+            const suspects = [];
+            for (let prop in window) {
+                if (prop.toLowerCase().includes('cache') || 
+                    prop.toLowerCase().includes('load') ||
+                    prop.toLowerCase().includes('worker')) {
+                    suspects.push(prop);
+                }
+            }
+            addLog(`Suspicious properties: ${suspects.join(', ')}`);
+            
+            // 6. Network observer
+            addLog('\nObserving network requests...');
+            const observer = new PerformanceObserver((list) => {
+                for (const entry of list.getEntries()) {
+                    if (entry.name.includes('.css') && entry.name.includes('?')) {
+                        addLog(`  CSS Request: ${entry.name}`);
+                    }
+                }
+            });
+            observer.observe({ entryTypes: ['resource'] });
+            
+            addLog('\n✅ Investigation complete!');
+        }
+        
+        // Auto-run
+        window.onload = () => {
+            investigate();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-05-21T17:27:50.543Z",
+    "end": "2025-05-21T17:27:55.185Z",
+    "duration": 4642,
+    "testsRegistered": 3,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 2,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "872cd44b-39e9-47ee-ac75-22d3a861f546",
+      "title": "",
+      "fullFile": "cypress/e2e/performance/benchmark.cy.js",
+      "file": "cypress/e2e/performance/benchmark.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "649983a7-d7b0-4a4e-a11c-d0b7175e0c6f",
+          "title": "Benchmark de performances",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "Mesure les temps de chargement des pages principales",
+              "fullTitle": "Benchmark de performances Mesure les temps de chargement des pages principales",
+              "timedOut": null,
+              "duration": 3012,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "const pages = ['/', '/utilisateurs', '/calendrier', '/planning/hebdomadaire', '/conges', '/parametres'];\n// Tester chaque page\npages.forEach(page => {\n  // Mesurer le temps de navigation complet\n  const startTime = Date.now();\n  cy.visit(page);\n  cy.get('main').should('be.visible');\n  // Vérifier que la page est entièrement chargée (pas de spinners/loaders)\n  cy.get('[data-loading=\"true\"]').should('not.exist', {\n    timeout: 10000\n  });\n  cy.window().then(() => {\n    const loadTime = Date.now() - startTime;\n    // Enregistrer la métrique\n    cy.task('logPerformance', {\n      type: 'page',\n      name: page,\n      duration: loadTime,\n      timestamp: Date.now()\n    });\n    // Montrer le résultat\n    cy.log(`📊 ${page}: ${loadTime}ms`);\n  });\n});",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Benchmark de performances`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Benchmark de performances`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/performance/benchmark.cy.js:8:11)",
+                "diff": null
+              },
+              "uuid": "c6066bf6-0ee0-4be2-9ae7-373fcea3b916",
+              "parentUUID": "649983a7-d7b0-4a4e-a11c-d0b7175e0c6f",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Mesure les temps de chargement des formulaires",
+              "fullTitle": "Benchmark de performances Mesure les temps de chargement des formulaires",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Test du formulaire utilisateur\ncy.visit('/utilisateurs');\ncy.get('button:contains(\"Nouvel Utilisateur\")').click();\nconst startTimeForm = Date.now();\ncy.get('form').should('be.visible');\ncy.window().then(() => {\n  const formLoadTime = Date.now() - startTimeForm;\n  cy.task('logPerformance', {\n    type: 'form',\n    name: 'user-create-form',\n    duration: formLoadTime,\n    timestamp: Date.now()\n  });\n  cy.log(`📝 Formulaire Utilisateur: ${formLoadTime}ms`);\n});\n// Ajouter d'autres formulaires selon vos besoins...",
+              "err": {},
+              "uuid": "2720cf00-a622-48e4-9584-e81a4f2420f2",
+              "parentUUID": "649983a7-d7b0-4a4e-a11c-d0b7175e0c6f",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "Mesure les temps de réponse des API principales",
+              "fullTitle": "Benchmark de performances Mesure les temps de réponse des API principales",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Test des principales API\nconst apiEndpoints = ['/api/utilisateurs', '/api/conges/types', '/api/planning', '/api/skills', '/api/notifications/preferences'];\napiEndpoints.forEach(endpoint => {\n  cy.request(endpoint).then(response => {\n    cy.task('logPerformance', {\n      type: 'api',\n      name: endpoint,\n      duration: response.duration,\n      status: response.status,\n      timestamp: Date.now()\n    });\n    cy.log(`🔌 API ${endpoint}: ${response.duration}ms (${response.status})`);\n  });\n});",
+              "err": {},
+              "uuid": "b1a00357-1ab1-4ad5-9988-bfc632fad03a",
+              "parentUUID": "649983a7-d7b0-4a4e-a11c-d0b7175e0c6f",
+              "isHook": false,
+              "skipped": true
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "c6066bf6-0ee0-4be2-9ae7-373fcea3b916"
+          ],
+          "pending": [],
+          "skipped": [
+            "2720cf00-a622-48e4-9584-e81a4f2420f2",
+            "b1a00357-1ab1-4ad5-9988-bfc632fad03a"
+          ],
+          "duration": 3012,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

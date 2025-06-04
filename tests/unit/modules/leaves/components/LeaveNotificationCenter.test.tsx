@@ -67,7 +67,7 @@ const mockNotifications: LeaveRelatedNotification[] = [
         referenceType: 'leave',
         leaveType: 'ANNUAL',
         actions: [
-            { label: 'Voir', action: 'VIEW', url: '/leaves/123' }
+            { label: 'Voir', action: 'VIEW', url: '/conges/123' }
         ]
     },
     {

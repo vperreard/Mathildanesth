@@ -4,14 +4,29 @@ import { prisma } from '@/lib/prisma';
 import { createSkillSchema } from '@/lib/schemas/skillSchemas';
 import { getCurrentUser, isAdmin, handleApiError } from '@/lib/apiUtils';
 
-// GET /api/skills - Liste toutes les compétences
+// GET /api/skills - Liste toutes les compétences avec cache et optimisations
 export async function GET(request: NextRequest) {
     try {
+        // Cache de 5 minutes pour les compétences (rarement modifiées)
         const skills = await prisma.skill.findMany({
-            orderBy: { name: 'asc' }
+            orderBy: { name: 'asc' },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                category: true,
+                isActive: true,
+                createdAt: true
+            }
         });
 
-        return NextResponse.json(skills);
+        const response = NextResponse.json(skills);
+        
+        // Headers de cache pour optimiser les performances
+        response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+        response.headers.set('X-Total-Count', skills.length.toString());
+        
+        return response;
     } catch (error) {
         return handleApiError(error, "Erreur lors de la récupération des compétences.");
     }

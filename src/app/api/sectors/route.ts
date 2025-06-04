@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { headers } from 'next/headers';
 
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 // Fonction utilitaire pour parser les règles JSON en toute sécurité
 function parseRules(rulesJson: Prisma.JsonValue): { maxRoomsPerSupervisor: number } {

@@ -8,10 +8,10 @@ Le module de congés permet la gestion complète des demandes de congés, inclua
 
 ### Structure modulaire
 
-Le module est organisé selon une architecture modulaire dans `src/modules/leaves/` avec les sous-dossiers suivants :
+Le module est organisé selon une architecture modulaire dans `src/modules/conges/` avec les sous-dossiers suivants :
 
 ```
-src/modules/leaves/
+src/modules/conges/
 ├── components/     # Composants UI
 ├── hooks/          # Hooks personnalisés
 ├── services/       # Services et logique métier
@@ -155,7 +155,7 @@ export interface RecurrencePattern {
 
 #### Utilitaires
 - `generateRecurringDates` : Génère les dates des occurrences
-- API dédiée : `/api/leaves/recurring`
+- API dédiée : `/api/conges/recurrents`
 
 ### 4. Système de notifications
 
@@ -355,16 +355,16 @@ Possibilité d'exporter les données d'analyse au format CSV pour traitement ext
 
 | Méthode | Endpoint | Description | Permissions |
 |---------|----------|-------------|------------|
-| GET | `/api/leaves` | Liste des congés | VIEW_OWN_LEAVES, VIEW_TEAM_LEAVES, VIEW_ALL_LEAVES |
-| POST | `/api/leaves` | Créer une demande | REQUEST_LEAVE |
-| GET | `/api/leaves/:id` | Détails d'un congé | VIEW_OWN_LEAVES, VIEW_TEAM_LEAVES, VIEW_ALL_LEAVES |
-| PUT | `/api/leaves/:id` | Modifier une demande | REQUEST_LEAVE |
-| DELETE | `/api/leaves/:id` | Supprimer une demande | DELETE_LEAVE |
-| POST | `/api/leaves/:id/approve` | Approuver un congé | APPROVE_TEAM_LEAVES, APPROVE_ALL_LEAVES |
-| POST | `/api/leaves/:id/reject` | Rejeter un congé | APPROVE_TEAM_LEAVES, APPROVE_ALL_LEAVES |
-| POST | `/api/leaves/:id/cancel` | Annuler un congé | CANCEL_OWN_LEAVE, CANCEL_ANY_LEAVE |
-| GET | `/api/leaves/balance` | Consulter le solde de congés | VIEW_OWN_LEAVES |
-| POST | `/api/leaves/recurring` | Créer une demande récurrente | REQUEST_LEAVE |
+| GET | `/api/conges` | Liste des congés | VIEW_OWN_LEAVES, VIEW_TEAM_LEAVES, VIEW_ALL_LEAVES |
+| POST | `/api/conges` | Créer une demande | REQUEST_LEAVE |
+| GET | `/api/conges/:id` | Détails d'un congé | VIEW_OWN_LEAVES, VIEW_TEAM_LEAVES, VIEW_ALL_LEAVES |
+| PUT | `/api/conges/:id` | Modifier une demande | REQUEST_LEAVE |
+| DELETE | `/api/conges/:id` | Supprimer une demande | DELETE_LEAVE |
+| POST | `/api/conges/:id/approve` | Approuver un congé | APPROVE_TEAM_LEAVES, APPROVE_ALL_LEAVES |
+| POST | `/api/conges/:id/reject` | Rejeter un congé | APPROVE_TEAM_LEAVES, APPROVE_ALL_LEAVES |
+| POST | `/api/conges/:id/cancel` | Annuler un congé | CANCEL_OWN_LEAVE, CANCEL_ANY_LEAVE |
+| GET | `/api/conges/balance` | Consulter le solde de congés | VIEW_OWN_LEAVES |
+| POST | `/api/conges/recurrents` | Créer une demande récurrente | REQUEST_LEAVE |
 
 ## Évolutions en cours
 

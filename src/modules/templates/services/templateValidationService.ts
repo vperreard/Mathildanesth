@@ -12,31 +12,31 @@ import {
 } from "../types/template";
 
 /**
- * Service de validation des trames de planning
- * Effectue des vérifications de contraintes métier sur les trames
+ * Service de validation des trameModeles de planning
+ * Effectue des vérifications de contraintes métier sur les trameModeles
  */
 export const templateValidationService = {
     /**
-     * Valide une trame de planning complète
-     * @param template Trame à valider
+     * Valide une trameModele de planning complète
+     * @param modèle Tableau de service à valider
      * @returns Résultat de validation avec erreurs éventuelles
      */
-    validateTemplate(template: PlanningTemplate): ValidationResult {
+    validateTemplate(modèle: PlanningTemplate): ValidationResult {
         const errors: ValidationError[] = [];
 
         // Vérification des métadonnées de base
-        this.validateBasicMetadata(template, errors);
+        this.validateBasicMetadata(modèle, errors);
 
         // Vérification des affectations
-        this.validateAffectations(template.affectations, errors);
+        this.validateAffectations(modèle.affectations, errors);
 
         // Vérification des variations
-        if (template.variations && template.variations.length > 0) {
-            this.validateVariations(template.variations, template.affectations, errors);
+        if (modèle.variations && modèle.variations.length > 0) {
+            this.validateVariations(modèle.variations, modèle.affectations, errors);
         }
 
         // Vérification des contraintes métier globales
-        this.validateBusinessRules(template, errors);
+        this.validateBusinessRules(modèle, errors);
 
         return {
             isValid: errors.filter(e => e.severity === 'ERROR').length === 0,
@@ -46,39 +46,39 @@ export const templateValidationService = {
     },
 
     /**
-     * Valide les métadonnées de base d'une trame
+     * Valide les métadonnées de base d'une trameModele
      */
-    validateBasicMetadata(template: PlanningTemplate, errors: ValidationError[]): void {
+    validateBasicMetadata(modèle: PlanningTemplate, errors: ValidationError[]): void {
         // Vérification du nom
-        if (!template.nom || template.nom.trim() === '') {
+        if (!modèle.nom || modèle.nom.trim() === '') {
             errors.push({
                 type: 'MISSING_REQUIRED_FIELD',
                 field: 'nom',
-                message: 'Le nom de la trame est obligatoire',
+                message: 'Le nom de la trameModele est obligatoire',
                 severity: 'ERROR'
             });
-        } else if (template.nom.length < 3) {
+        } else if (modèle.nom.length < 3) {
             errors.push({
                 type: 'VALIDATION_ERROR',
                 field: 'nom',
-                message: 'Le nom de la trame doit contenir au moins 3 caractères',
+                message: 'Le nom de la trameModele doit contenir au moins 3 caractères',
                 severity: 'ERROR'
             });
         }
 
         // Vérification du département
-        if (!template.departementId) {
+        if (!modèle.departementId) {
             errors.push({
                 type: 'MISSING_REQUIRED_FIELD',
                 field: 'departementId',
-                message: 'Un département doit être associé à la trame',
+                message: 'Un département doit être associé à la trameModele',
                 severity: 'WARNING'
             });
         }
     },
 
     /**
-     * Valide les affectations d'une trame
+     * Valide les affectations d'une trameModele
      */
     validateAffectations(affectations: TemplateAffectation[], errors: ValidationError[]): void {
         // Vérification de la présence d'au moins une affectation
@@ -86,7 +86,7 @@ export const templateValidationService = {
             errors.push({
                 type: 'VALIDATION_ERROR',
                 field: 'affectations',
-                message: 'La trame doit contenir au moins une affectation',
+                message: 'La trameModele doit contenir au moins une affectation',
                 severity: 'ERROR'
             });
             return;
@@ -103,7 +103,7 @@ export const templateValidationService = {
                 errors.push({
                     type: 'DUPLICATE_ENTRY',
                     field: `affectations[${index}]`,
-                    message: `Affectation dupliquée pour ${affectation.jour} / ${affectation.type}`,
+                    message: `Garde/Vacation dupliquée pour ${affectation.jour} / ${affectation.type}`,
                     severity: 'ERROR',
                     metadata: { index, jour: affectation.jour, type: affectation.type }
                 });
@@ -241,7 +241,7 @@ export const templateValidationService = {
     },
 
     /**
-     * Valide les variations d'une trame
+     * Valide les variations d'une trameModele
      */
     validateVariations(
         variations: ConfigurationVariation[],
@@ -372,9 +372,9 @@ export const templateValidationService = {
     },
 
     /**
-     * Valide les règles métier globales sur la trame
+     * Valide les règles métier globales sur la trameModele
      */
-    validateBusinessRules(template: PlanningTemplate, errors: ValidationError[]): void {
+    validateBusinessRules(modèle: PlanningTemplate, errors: ValidationError[]): void {
         // Vérifier la répartition des affectations par jour
         const affectationsByDay = new Map<DayOfWeek, number>();
 
@@ -384,7 +384,7 @@ export const templateValidationService = {
         });
 
         // Compter les affectations ouvertes par jour
-        template.affectations.forEach(aff => {
+        modèle.affectations.forEach(aff => {
             if (aff.ouvert) {
                 const count = affectationsByDay.get(aff.jour) || 0;
                 affectationsByDay.set(aff.jour, count + 1);
@@ -405,14 +405,14 @@ export const templateValidationService = {
         });
 
         // Vérification de la cohérence des postes requis
-        this.validatePostesCoherence(template, errors);
+        this.validatePostesCoherence(modèle, errors);
     },
 
     /**
      * Vérifie la cohérence des postes requis dans les affectations et configurations
      */
-    validatePostesCoherence(template: PlanningTemplate, errors: ValidationError[]): void {
-        template.affectations.forEach((affectation, index) => {
+    validatePostesCoherence(modèle: PlanningTemplate, errors: ValidationError[]): void {
+        modèle.affectations.forEach((affectation, index) => {
             if (affectation.configuration && affectation.ouvert) {
                 // Calculer la somme des postes requis dans la configuration
                 const totalPostesConfig = affectation.configuration.postes

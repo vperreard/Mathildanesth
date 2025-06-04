@@ -72,7 +72,7 @@ export const useLeaveStore = create<LeaveState>()(
                 fetchLeaves: async (userId: string) => {
                     set({ isLoading: true, error: null });
                     try {
-                        const response = await axios.get<LeaveWithUser[]>(`/api/leaves?userId=${userId}`);
+                        const response = await axios.get<LeaveWithUser[]>(`/api/conges?userId=${userId}`);
                         set({ leaves: response.data, isLoading: false });
                     } catch (error: any) {
                         console.error('Erreur lors du chargement des congés:', error);
@@ -86,7 +86,7 @@ export const useLeaveStore = create<LeaveState>()(
                 fetchLeaveBalance: async (userId: string, year: number) => {
                     set({ isLoading: true, error: null });
                     try {
-                        const response = await axios.get<LeaveBalance>(`/api/leaves/balance?userId=${userId}&year=${year}`);
+                        const response = await axios.get<LeaveBalance>(`/api/conges/balance?userId=${userId}&year=${year}`);
                         set({ leaveBalance: response.data, isLoading: false });
                     } catch (error: any) {
                         console.error('Erreur lors du chargement du solde de congés:', error);
@@ -101,7 +101,7 @@ export const useLeaveStore = create<LeaveState>()(
                 createLeave: async (leaveData: Partial<Leave>) => {
                     set({ isSubmitting: true, error: null });
                     try {
-                        const response = await axios.post<Leave>('/api/leaves', leaveData);
+                        const response = await axios.post<Leave>('/api/conges', leaveData);
                         const newLeave = response.data;
                         set(state => ({
                             leaves: [...state.leaves, newLeave as LeaveWithUser],
@@ -121,7 +121,7 @@ export const useLeaveStore = create<LeaveState>()(
                 updateLeave: async (id: string, leaveData: Partial<Leave>) => {
                     set({ isSubmitting: true, error: null });
                     try {
-                        const response = await axios.put<Leave>(`/api/leaves/${id}`, leaveData);
+                        const response = await axios.put<Leave>(`/api/conges/${id}`, leaveData);
                         const updatedLeave = response.data;
                         set(state => ({
                             leaves: state.leaves.map(leave =>
@@ -143,7 +143,7 @@ export const useLeaveStore = create<LeaveState>()(
                 cancelLeave: async (id: string, comment?: string) => {
                     set({ isSubmitting: true, error: null });
                     try {
-                        const response = await axios.post<Leave>(`/api/leaves/${id}/cancel`, { comment });
+                        const response = await axios.post<Leave>(`/api/conges/${id}/cancel`, { comment });
                         const cancelledLeave = response.data;
                         set(state => ({
                             leaves: state.leaves.map(leave =>
@@ -165,7 +165,7 @@ export const useLeaveStore = create<LeaveState>()(
                 approveLeave: async (id: string, comment?: string) => {
                     set({ isSubmitting: true, error: null });
                     try {
-                        const response = await axios.post<Leave>(`/api/leaves/${id}/approve`, { comment });
+                        const response = await axios.post<Leave>(`/api/conges/${id}/approve`, { comment });
                         const approvedLeave = response.data;
                         set(state => ({
                             leaves: state.leaves.map(leave =>
@@ -187,7 +187,7 @@ export const useLeaveStore = create<LeaveState>()(
                 rejectLeave: async (id: string, comment?: string) => {
                     set({ isSubmitting: true, error: null });
                     try {
-                        const response = await axios.post<Leave>(`/api/leaves/${id}/reject`, { comment });
+                        const response = await axios.post<Leave>(`/api/conges/${id}/reject`, { comment });
                         const rejectedLeave = response.data;
                         set(state => ({
                             leaves: state.leaves.map(leave =>
@@ -237,7 +237,7 @@ export const useLeaveStore = create<LeaveState>()(
                 checkConflicts: async (startDate: Date, endDate: Date, userId: string, leaveId?: string) => {
                     set({ isLoading: true, error: null });
                     try {
-                        const response = await axios.post<ConflictCheckResult>('/api/leaves/check-conflicts', {
+                        const response = await axios.post<ConflictCheckResult>('/api/conges/check-conflicts', {
                             startDate,
                             endDate,
                             userId,
@@ -258,7 +258,7 @@ export const useLeaveStore = create<LeaveState>()(
                 checkAllowance: async (userId: string, type: LeaveType, days: number) => {
                     set({ isLoading: true, error: null });
                     try {
-                        const response = await axios.post<LeaveAllowanceCheckResult>('/api/leaves/check-allowance', {
+                        const response = await axios.post<LeaveAllowanceCheckResult>('/api/conges/check-allowance', {
                             userId,
                             type,
                             days

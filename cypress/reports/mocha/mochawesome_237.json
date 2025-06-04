@@ -20,8 +20,8 @@
     {
       "uuid": "4c521f55-2fa5-4f1b-a272-78c770ba6b84",
       "title": "",
-      "fullFile": "cypress/e2e/leaves/quota-management.spec.ts",
-      "file": "cypress/e2e/leaves/quota-management.spec.ts",
+      "fullFile": "cypress/e2e/conges/quota-management.spec.ts",
+      "file": "cypress/e2e/conges/quota-management.spec.ts",
       "beforeHooks": [],
       "afterHooks": [],
       "tests": [],
@@ -63,7 +63,7 @@
               "fail": false,
               "pending": false,
               "context": null,
-              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page des congés\ncy.visitAsAuthenticatedUser('/leaves');\n// Vérifier que la page s'affiche correctement\ncy.location('pathname').should('include', '/leaves');\n// Prendre une capture d'écran pour vérifier visuellement\ncy.screenshot('page-leaves-authentifiee');",
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page des congés\ncy.visitAsAuthenticatedUser('/conges');\n// Vérifier que la page s'affiche correctement\ncy.location('pathname').should('include', '/conges');\n// Prendre une capture d'écran pour vérifier visuellement\ncy.screenshot('page-leaves-authentifiee');",
               "err": {},
               "uuid": "17f571c2-ca75-4abc-b5a2-83b4ca35ad0a",
               "parentUUID": "48fd91a5-d8a1-4468-90e2-e21996ff974d",
@@ -81,10 +81,10 @@
               "fail": true,
               "pending": false,
               "context": null,
-              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page des quotas de congés\ncy.visitAsAuthenticatedUser('/leaves/quotas');\n// Vérifier que la section des quotas est visible \ncy.contains('Mes quotas de congés').should('be.visible');\n// Vérifier la présence de certains types de quotas (sélecteurs plus robustes)\ncy.contains('Congés payés').should('exist');\ncy.contains('RTT').should('exist');\ncy.screenshot('page-leaves-avec-quotas');",
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page des quotas de congés\ncy.visitAsAuthenticatedUser('/conges/quotas');\n// Vérifier que la section des quotas est visible \ncy.contains('Mes quotas de congés').should('be.visible');\n// Vérifier la présence de certains types de quotas (sélecteurs plus robustes)\ncy.contains('Congés payés').should('exist');\ncy.contains('RTT').should('exist');\ncy.screenshot('page-leaves-avec-quotas');",
               "err": {
                 "message": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'Mes quotas de congés' but never did.",
-                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'Mes quotas de congés' but never did.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/quota-management.spec.ts:76:44)",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'Mes quotas de congés' but never did.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/conges/quota-management.spec.ts:76:44)",
                 "diff": null
               },
               "uuid": "c4a7e829-265e-46f2-8fe1-4848355bb68f",
@@ -106,7 +106,7 @@
               "code": "// Se connecter en tant qu'administrateur\ncy.loginByApi(adminUser.email, adminUser.password);\n// Accéder à la page des utilisateurs\ncy.visitAsAuthenticatedUser('/utilisateurs');\n// Rechercher l'utilisateur cible (ajuster le sélecteur en fonction de l'interface)\ncy.contains(testUser.email).click();\n// Cliquer sur le bouton/lien de gestion des quotas\ncy.contains('Gérer les quotas').click();\n// Dans le formulaire d'ajustement, sélectionner le type de congé\ncy.contains('Type de congé').parent().find('select').select('Congés payés');\n// Ajuster la quantité\ncy.contains('Nombre de jours').parent().find('input').clear().type('2');\n// Ajouter une raison\ncy.contains('Motif').parent().find('input, textarea').type('Ajustement test Cypress');\n// Soumettre le formulaire\ncy.contains('button', 'Appliquer').click();\n// Vérifier que l'ajustement a été pris en compte\ncy.contains('Quota mis à jour').should('be.visible');\ncy.screenshot('admin-ajustement-quotas');",
               "err": {
                 "message": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'medecin@example.com' but never did.",
-                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'medecin@example.com' but never did.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/quota-management.spec.ts:93:11)",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'medecin@example.com' but never did.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/conges/quota-management.spec.ts:93:11)",
                 "diff": null
               },
               "uuid": "250a75cf-cc15-4f73-a11b-5e84ae485bb8",
@@ -125,10 +125,10 @@
               "fail": true,
               "pending": false,
               "context": null,
-              "code": "// Se connecter \ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page des quotas\ncy.visitAsAuthenticatedUser('/leaves/quotas');\n// Aller sur l'onglet de transfert de quotas\ncy.contains('Transfert de quotas').click();\n// Sélectionner le type de congé source\ncy.contains('Type source').parent().find('select').select('RTT');\n// Sélectionner le type de congé destination\ncy.contains('Type destination').parent().find('select').select('Congés payés');\n// Spécifier le nombre de jours à transférer\ncy.contains('Nombre de jours').parent().find('input').clear().type('2');\n// Ajouter une raison pour le transfert\ncy.contains('Motif du transfert').parent().find('input, textarea').type('Transfert test Cypress');\n// Soumettre le formulaire\ncy.contains('button', 'Transférer').click();\n// Vérifier que le transfert a été effectué\ncy.contains('Transfert effectué').should('be.visible');\n// Vérifier que le quota source a diminué\ncy.contains('RTT').parents('[data-cy=\"quota-card\"]').contains('Solde disponible').should('contain', '8');\n// Vérifier que le quota destination a augmenté\ncy.contains('Congés payés').parents('[data-cy=\"quota-card\"]').contains('Solde disponible').should('contain', '27');\ncy.screenshot('transfert-quotas');",
+              "code": "// Se connecter \ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page des quotas\ncy.visitAsAuthenticatedUser('/conges/quotas');\n// Aller sur l'onglet de transfert de quotas\ncy.contains('Transfert de quotas').click();\n// Sélectionner le type de congé source\ncy.contains('Type source').parent().find('select').select('RTT');\n// Sélectionner le type de congé destination\ncy.contains('Type destination').parent().find('select').select('Congés payés');\n// Spécifier le nombre de jours à transférer\ncy.contains('Nombre de jours').parent().find('input').clear().type('2');\n// Ajouter une raison pour le transfert\ncy.contains('Motif du transfert').parent().find('input, textarea').type('Transfert test Cypress');\n// Soumettre le formulaire\ncy.contains('button', 'Transférer').click();\n// Vérifier que le transfert a été effectué\ncy.contains('Transfert effectué').should('be.visible');\n// Vérifier que le quota source a diminué\ncy.contains('RTT').parents('[data-cy=\"quota-card\"]').contains('Solde disponible').should('contain', '8');\n// Vérifier que le quota destination a augmenté\ncy.contains('Congés payés').parents('[data-cy=\"quota-card\"]').contains('Solde disponible').should('contain', '27');\ncy.screenshot('transfert-quotas');",
               "err": {
                 "message": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'Transfert de quotas' but never did.",
-                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'Transfert de quotas' but never did.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/quota-management.spec.ts:124:11)",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find content: 'Transfert de quotas' but never did.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/conges/quota-management.spec.ts:124:11)",
                 "diff": null
               },
               "uuid": "7f3996b6-e7c6-4e42-b173-e25856cd52d3",

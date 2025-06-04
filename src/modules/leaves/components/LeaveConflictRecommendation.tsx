@@ -10,23 +10,14 @@ import {
     ConflictPriority,
     ResolutionStrategy
 } from '../types/recommendation';
-import {
-    Alert,
-    Badge,
-    Button,
-    Card,
-    CardBody,
-    Collapse,
-    Tooltip,
-    ListGroup,
-    ListGroupItem,
-    Progress
-} from '../../ui/components';
-import { Icon } from '../../ui/components/Icon';
+import { Alert } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Icon } from '@/components/Icon';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { parseDate } from '../../../utils/dateUtils';
-import { Tag } from '../../ui/components/Tag';
 
 interface ConflictWithRecommendation extends LeaveConflict {
     recommendation?: ConflictRecommendation;
@@ -211,7 +202,7 @@ export const LeaveConflictRecommendation: React.FC<LeaveConflictRecommendationPr
 
     return (
         <Card className={`mb-3 conflict-recommendation ${className}`}>
-            <CardBody>
+            <CardContent>
                 {/* En-tête du conflit avec description et bouton d'expansion */}
                 <div className="d-flex justify-content-between align-items-center mb-2">
                     <div className="d-flex align-items-center">
@@ -244,11 +235,11 @@ export const LeaveConflictRecommendation: React.FC<LeaveConflictRecommendationPr
                     </div>
                     <div className="me-3 mb-1">
                         <strong>{t('leaves.conflicts.type')}:</strong>{' '}
-                        <Tag color={conflictColor}>{conflict.type}</Tag>
+                        <Badge variant="secondary">{conflict.type}</Badge>
                     </div>
                     {hasRecommendation && conflict.recommendation!.automaticResolution && (
                         <div className="mb-1">
-                            <Tag color="success">{t('leaves.recommendations.automatic_resolution')}</Tag>
+                            <Badge variant="default">{t('leaves.recommendations.automatic_resolution')}</Badge>
                         </div>
                     )}
                 </div>
@@ -297,9 +288,9 @@ export const LeaveConflictRecommendation: React.FC<LeaveConflictRecommendationPr
                                 <p>{conflict.recommendation!.explanation}</p>
 
                                 {/* Liste des stratégies recommandées */}
-                                <ListGroup className="mt-3">
+                                <div className="mt-3 space-y-2">
                                     {conflict.recommendation!.strategies.map((strategy, index) => (
-                                        <ListGroupItem
+                                        <div
                                             key={index}
                                             className={`d-flex justify-content-between align-items-center ${index === 0 ? 'border-primary' : ''}`}
                                             style={{ borderLeftWidth: index === 0 ? '3px' : '1px' }}
@@ -355,13 +346,12 @@ export const LeaveConflictRecommendation: React.FC<LeaveConflictRecommendationPr
                                                     >
                                                         <div className="d-flex align-items-center">
                                                             <small className="me-2">{t('leaves.recommendations.confidence')}: {strategy.confidence}%</small>
-                                                            <Progress
-                                                                value={strategy.confidence}
-                                                                max={100}
-                                                                color={strategy.confidence > 80 ? 'success' :
-                                                                    strategy.confidence > 50 ? 'primary' : 'warning'}
-                                                                style={{ width: '80px', height: '8px' }}
-                                                            />
+                                                            <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                                                <div 
+                                                                    className={`h-full ${strategy.confidence > 80 ? 'bg-green-500' : strategy.confidence > 50 ? 'bg-blue-500' : 'bg-yellow-500'}`}
+                                                                    style={{ width: `${strategy.confidence}%` }}
+                                                                />
+                                                            </div>
                                                         </div>
                                                     </Tooltip>
                                                 </div>
@@ -394,9 +384,9 @@ export const LeaveConflictRecommendation: React.FC<LeaveConflictRecommendationPr
                                                         </Badge>
                                                     )}
                                             </div>
-                                        </ListGroupItem>
+                                        </div>
                                     ))}
-                                </ListGroup>
+                                </div>
 
                                 {/* Actions pour la recommandation */}
                                 {showActions && conflict.recommendation!.resolutionStatus === 'PENDING' && (
@@ -497,7 +487,7 @@ export const LeaveConflictRecommendation: React.FC<LeaveConflictRecommendationPr
                             </Button>
                         </div>
                     )}
-            </CardBody>
+            </CardContent>
         </Card>
     );
 }; 

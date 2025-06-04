@@ -1,26 +1,42 @@
 import type { Metadata, Viewport } from 'next';
+// Suppression de l'import des polices Next.js
 // import { Inter, Montserrat } from 'next/font/google';
 import './globals.css';
 import '@/styles/dialog-fullscreen.css'; // Ajout des styles fullscreen pour les dialogues
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { Providers } from './providers';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+import { Providers } from '@/app/providers';
 import 'react-toastify/dist/ReactToastify.css';
-import NotificationToast from '@/components/notifications/NotificationToast';
-import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+// Correction du chemin d'importation de NotificationToast
+import { NotificationToast } from '@/components/notifications/NotificationToast';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import ErrorDisplay from '@/components/ErrorDisplay';
 import { LayoutErrorFallback } from '@/components/Calendar/ErrorFallbacks';
+// Correction du chemin d'importation de ThemeProvider
 import { ThemeProvider } from '@/context/ThemeContext';
+// Import des composants clients pour les notifications - Temporairement désactivé
+// import { ClientNotificationCenter, ClientSimulationNotifications } from '@/components/notifications/ClientNotifications';
+// Import du wrapper client pour le préchargeur
+import ClientPrefetcherWrapper from '@/components/ClientPrefetcherWrapper';
+// Import du tracker de performance client
+import ClientPerformanceTracker from '@/components/ClientPerformanceTracker';
+import { Inter } from 'next/font/google';
+import { AuthProvider } from '@/context/AuthContext';
+import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
+// Import du layout responsive médical
+import { ProductionLayout } from '@/components/layout/ProductionLayout';
 
-// Police principale pour le texte
-// const inter = Inter({
-//     subsets: ['latin'],
-//     display: 'swap',
-//     variable: '--font-inter',
-// });
+// Suppression des imports dynamiques non utilisés dans le nouveau layout responsive
 
-// Police pour les titres et les éléments importants
+// Suppression du préchargeur chargé dynamiquement (déplacé dans le composant client)
+
+// Suppression des configurations de polices Next.js
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  preload: true,
+  fallback: ['system-ui', 'arial']
+});
+
 // const montserrat = Montserrat({
 //     subsets: ['latin'],
 //     display: 'swap',
@@ -29,15 +45,54 @@ import { ThemeProvider } from '@/context/ThemeContext';
 // });
 
 export const metadata: Metadata = {
-    title: 'Mathildanesth - Gestion des anesthésistes',
-    description: 'Système de gestion des anesthésistes et du planning hospitalier',
-    keywords: ['anesthésie', 'planning', 'hôpital', 'médical', 'gestion'],
-    authors: [{ name: 'Équipe Mathildanesth' }],
+    title: {
+        default: 'Mathildanesth - Planning Médical',
+        template: '%s | Mathildanesth'
+    },
+    description: 'Système de gestion des plannings et congés pour établissements de santé',
+    keywords: ['planning', 'santé', 'hôpital', 'congés', 'médecin', 'anesthésie', 'bloc opératoire'],
+    authors: [{ name: 'Mathildanesth Team' }],
+    creator: 'Mathildanesth',
+    publisher: 'Mathildanesth',
+    formatDetection: {
+        email: false,
+        address: false,
+        telephone: false,
+    },
+    metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
+    openGraph: {
+        type: 'website',
+        locale: 'fr_FR',
+        url: '/',
+        title: 'Mathildanesth - Planning Médical',
+        description: 'Système de gestion des plannings et congés pour établissements de santé',
+        siteName: 'Mathildanesth',
+    },
+    robots: {
+        index: false,
+        follow: false,
+        googleBot: {
+            index: false,
+            follow: false,
+        },
+    },
+    icons: {
+        icon: '/favicon.ico',
+        shortcut: '/favicon-16x16.png',
+        apple: '/apple-touch-icon.png',
+    },
+    manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
     width: 'device-width',
     initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    themeColor: [
+        { media: '(prefers-color-scheme: light)', color: '#3b82f6' },
+        { media: '(prefers-color-scheme: dark)', color: '#1e40af' }
+    ]
 };
 
 export default function RootLayout({
@@ -46,29 +101,53 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        // <html lang="fr" className={`${inter.variable} ${montserrat.variable}`}>
-        <html lang="fr">
-            {/* <body className={`${inter.className} flex flex-col min-h-screen bg-gray-50`}> */}
-            <body className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-                <Providers>
-                    <ThemeProvider>
-                        <div className="flex flex-col min-h-screen">
-                            <Header />
-                            <main className="flex-grow container mx-auto px-4 py-8">
+        <html lang="fr" className={inter.className}>
+            <head>
+                {/* Preconnect aux domaines externes pour améliorer les performances */}
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+
+                {/* Préchargement des ressources critiques - Désactivé temporairement car fichiers corrompus */}
+                {/* <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="" /> */}
+
+                {/* DNS prefetch pour les domaines potentiels */}
+                <link rel="dns-prefetch" href="//api.mathilda.com" />
+
+                {/* Resource hints pour les performances */}
+                <link rel="prefetch" href="/api/auth/me" />
+                <link rel="prefetch" href="/auth/connexion" />
+                
+                {/* SW Killer - Temporaire pour résoudre les problèmes de cache */}
+                <script src="/sw-killer.js" defer></script>
+            </head>
+            <body className="transition-colors duration-300">
+                <AuthProvider>
+                    <Providers>
+                        <ThemeProvider>
+                            <ProductionLayout>
                                 <ErrorBoundary
                                     fallbackComponent={LayoutErrorFallback}
                                 >
                                     {children}
                                 </ErrorBoundary>
+
+                                {/* Notifications et composants globaux */}
                                 <NotificationToast />
-                                <div className="fixed bottom-4 right-4 z-50">
-                                    <NotificationCenter />
-                                </div>
-                            </main>
-                            <Footer />
-                        </div>
-                    </ThemeProvider>
-                </Providers>
+                                {/* Temporairement désactivé pour éviter les erreurs de session */}
+                                {/* <ClientNotificationCenter />
+                                <ClientSimulationNotifications /> */}
+
+                                {/* Préchargeur de routes et données via un wrapper client */}
+                                <ClientPrefetcherWrapper />
+
+                                {/* Tracker de performance */}
+                                <ClientPerformanceTracker />
+
+                                <ServiceWorkerRegistration />
+                            </ProductionLayout>
+                        </ThemeProvider>
+                    </Providers>
+                </AuthProvider>
             </body>
         </html>
     );

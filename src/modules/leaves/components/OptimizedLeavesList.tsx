@@ -292,7 +292,7 @@ const OptimizedLeavesList: React.FC = () => {
                                     <Button
                                         size="small"
                                         variant="outlined"
-                                        href={`/leaves/${leave.id}`}
+                                        href={`/conges/${leave.id}`}
                                         sx={{ mr: 1 }}
                                     >
                                         Détails

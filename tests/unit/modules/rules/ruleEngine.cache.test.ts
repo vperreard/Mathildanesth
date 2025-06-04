@@ -1,4 +1,4 @@
-import { Rule, RuleType, RuleSeverity, RuleScope, RuleEvaluationContext, RuleEvaluationResult } from '@/modules/rules/types/rule';
+import { Rule, RuleType, RuleSeverity, RuleScope, RuleEvaluationContext } from '@/modules/rules/types/rule';
 import { RuleEngine, RuleValidator } from '@/modules/rules/engine/rule-engine';
 import { ruleCache } from '@/modules/rules/services/ruleCache';
 
@@ -33,8 +33,9 @@ describe('RuleEngine - Intégration du cache', () => {
         enabled: true,
         parameters: { minHours: 11 },
         priority: 1,
-        createdAt: new Date(2023, 0, 1).toISOString(),
-        updatedAt: new Date(2023, 0, 1).toISOString()
+        createdAt: new Date(2023, 0, 1),
+        updatedAt: new Date(2023, 0, 1),
+        configuration: {}
     });
 
     // Créer un contexte d'évaluation pour les tests

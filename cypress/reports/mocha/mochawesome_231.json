@@ -20,8 +20,8 @@
     {
       "uuid": "d1493624-684e-4dae-b023-c9fe7a7b2403",
       "title": "",
-      "fullFile": "cypress/e2e/leaves/quota-management.spec.ts",
-      "file": "cypress/e2e/leaves/quota-management.spec.ts",
+      "fullFile": "cypress/e2e/conges/quota-management.spec.ts",
+      "file": "cypress/e2e/conges/quota-management.spec.ts",
       "beforeHooks": [],
       "afterHooks": [],
       "tests": [],
@@ -63,7 +63,7 @@
               "fail": false,
               "pending": false,
               "context": null,
-              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page des congés\ncy.visitAsAuthenticatedUser('/leaves');\n// Vérifier que la page s'affiche correctement\ncy.location('pathname').should('include', '/leaves');\n// Prendre une capture d'écran pour vérifier visuellement\ncy.screenshot('page-leaves-authentifiee');",
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page des congés\ncy.visitAsAuthenticatedUser('/conges');\n// Vérifier que la page s'affiche correctement\ncy.location('pathname').should('include', '/conges');\n// Prendre une capture d'écran pour vérifier visuellement\ncy.screenshot('page-leaves-authentifiee');",
               "err": {},
               "uuid": "d1d805bb-c60b-44dc-a56d-dc0fa3774143",
               "parentUUID": "c0b462b4-364e-4494-8334-e222699c5c53",
@@ -81,10 +81,10 @@
               "fail": true,
               "pending": false,
               "context": null,
-              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page des congés\ncy.visitAsAuthenticatedUser('/leaves');\n// Vérifier que la section des quotas est visible (ajuster le sélecteur si nécessaire)\ncy.get('[data-cy=user-quota-summary]').should('be.visible');\n// Vérifier la présence de certains types de quotas (ajuster les sélecteurs)\ncy.get('[data-cy=quota-type-Congés Payés]').should('exist');\ncy.get('[data-cy=quota-type-RTT]').should('exist');\ncy.screenshot('page-leaves-avec-quotas');",
+              "code": "// Se connecter\ncy.loginByApi(testUser.email, testUser.password);\n// Accéder à la page des congés\ncy.visitAsAuthenticatedUser('/conges');\n// Vérifier que la section des quotas est visible (ajuster le sélecteur si nécessaire)\ncy.get('[data-cy=user-quota-summary]').should('be.visible');\n// Vérifier la présence de certains types de quotas (ajuster les sélecteurs)\ncy.get('[data-cy=quota-type-Congés Payés]').should('exist');\ncy.get('[data-cy=quota-type-RTT]').should('exist');\ncy.screenshot('page-leaves-avec-quotas');",
               "err": {
                 "message": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=user-quota-summary]`, but never found it.",
-                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=user-quota-summary]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/leaves/quota-management.spec.ts:76:47)",
+                "estack": "AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-cy=user-quota-summary]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/conges/quota-management.spec.ts:76:47)",
                 "diff": null
               },
               "uuid": "057020db-43ee-412b-9049-e3fd8603b205",

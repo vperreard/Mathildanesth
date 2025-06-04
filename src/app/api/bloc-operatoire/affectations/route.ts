@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
 
 // GET /api/bloc-operatoire/affectations
 export async function GET(request: Request) {
@@ -17,10 +16,10 @@ export async function GET(request: Request) {
         const trameId = searchParams.get('trameId');
 
         if (!trameId) {
-            return NextResponse.json({ error: 'ID de trame requis' }, { status: 400 });
+            return NextResponse.json({ error: 'ID de trameModele requis' }, { status: 400 });
         }
 
-        // Récupérer les affectations pour une trame spécifique
+        // Récupérer les affectations pour une trameModele spécifique
         const affectations = await prisma.blocAffectationHabituelle.findMany({
             where: {
                 blocTramePlanningId: parseInt(trameId)
@@ -85,13 +84,13 @@ export async function POST(request: Request) {
             }, { status: 400 });
         }
 
-        // Vérifier que la trame existe
-        const trame = await prisma.blocTramePlanning.findUnique({
+        // Vérifier que la trameModele existe
+        const trameModele = await prisma.blocTramePlanning.findUnique({
             where: { id: blocTramePlanningId }
         });
 
-        if (!trame) {
-            return NextResponse.json({ error: 'Trame non trouvée' }, { status: 404 });
+        if (!trameModele) {
+            return NextResponse.json({ error: 'TrameModele non trouvée' }, { status: 404 });
         }
 
         // Créer l'affectation

@@ -39,7 +39,7 @@ const UserLeaveBalance: React.FC<UserLeaveBalanceProps> = ({
             setIsLoading(true);
             setError(null);
             try {
-                const response = await axios.get<LeaveBalanceType[]>(`/api/leaves/balance`, {
+                const response = await axios.get<LeaveBalanceType[]>(`/api/conges/balance`, {
                     params: { userId, year },
                 });
                 setBalances(response.data);

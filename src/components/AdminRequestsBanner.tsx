@@ -32,14 +32,31 @@ const AdminRequestsBanner: React.FC = () => {
     // Effet pour charger les demandes en attente
     useEffect(() => {
         const fetchPendingLeaves = async () => {
+            // Vérifier si un token existe dans localStorage ou cookies
+            const token = localStorage.getItem('token');
+            if (!token) {
+                // Pas de token, ne pas faire la requête
+                setIsLoading(false);
+                return;
+            }
+
             setIsLoading(true);
             setError(null);
             try {
-                const response = await axios.get('/api/admin/leaves/pending');
+                const response = await axios.get('http://localhost:3000/api/admin/conges/pending', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 setPendingLeaves(response.data);
             } catch (err: any) {
-                console.error('Erreur lors du chargement des demandes en attente:', err);
-                setError(err.response?.data?.error || 'Erreur lors du chargement des demandes');
+                if (err.response?.status === 401) {
+                    // Non autorisé, ne pas afficher d'erreur
+                    setPendingLeaves([]);
+                } else {
+                    console.error('Erreur lors du chargement des demandes en attente:', err);
+                    setError(err.response?.data?.error || 'Erreur lors du chargement des demandes');
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -56,12 +73,12 @@ const AdminRequestsBanner: React.FC = () => {
     const handleApprove = async (leaveId: string) => {
         setProcessingId(leaveId);
         try {
-            await axios.post(`/api/admin/leaves/${leaveId}/approve`);
+            await axios.post(`http://localhost:3000/api/admin/conges/${leaveId}/approve`);
             // Mettre à jour la liste des demandes en attente
             setPendingLeaves(pendingLeaves.filter(leave => leave.id !== leaveId));
             // Si on n'a plus que 0 ou 1 demande, recharger pour avoir 2 demandes
             if (pendingLeaves.length <= 2) {
-                const response = await axios.get('/api/admin/leaves/pending');
+                const response = await axios.get('http://localhost:3000/api/admin/conges/pending');
                 setPendingLeaves(response.data);
             }
         } catch (err: any) {
@@ -76,12 +93,12 @@ const AdminRequestsBanner: React.FC = () => {
     const handleReject = async (leaveId: string) => {
         setProcessingId(leaveId);
         try {
-            await axios.post(`/api/admin/leaves/${leaveId}/reject`);
+            await axios.post(`http://localhost:3000/api/admin/conges/${leaveId}/reject`);
             // Mettre à jour la liste des demandes en attente
             setPendingLeaves(pendingLeaves.filter(leave => leave.id !== leaveId));
             // Si on n'a plus que 0 ou 1 demande, recharger pour avoir 2 demandes
             if (pendingLeaves.length <= 2) {
-                const response = await axios.get('/api/admin/leaves/pending');
+                const response = await axios.get('http://localhost:3000/api/admin/conges/pending');
                 setPendingLeaves(response.data);
             }
         } catch (err: any) {

@@ -1,0 +1,466 @@
+{
+  "stats": {
+    "suites": 5,
+    "tests": 13,
+    "passes": 0,
+    "pending": 0,
+    "failures": 13,
+    "start": "2025-06-01T07:29:12.012Z",
+    "end": "2025-06-01T07:34:15.361Z",
+    "duration": 303349,
+    "testsRegistered": 13,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "3a3407e1-c75a-4679-9461-7f1e287596f7",
+      "title": "",
+      "fullFile": "cypress/e2e/rules/business-rules-validation.spec.ts",
+      "file": "cypress/e2e/rules/business-rules-validation.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "046dff30-fa11-48cb-9c72-067040427941",
+          "title": "Validation des règles métier",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [],
+          "suites": [
+            {
+              "uuid": "a4daa848-35db-4997-8cd7-5a5971c26e94",
+              "title": "Règles de gestion des congés",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "valide la règle de préavis minimum pour les congés",
+                  "fullTitle": "Validation des règles métier Règles de gestion des congés valide la règle de préavis minimum pour les congés",
+                  "timedOut": null,
+                  "duration": 16887,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Ouvrir le formulaire de création\ncy.get('[data-testid=create-leave-button]').click();\n// Essayer de créer un congé avec un préavis insuffisant (moins de 48h)\nvar tomorrow = new Date();\ntomorrow.setDate(tomorrow.getDate() + 1);\ncy.get('[data-testid=leave-type-select]').select('Congé annuel');\ncy.get('[data-testid=leave-start-date]').type(tomorrow.toISOString().split('T')[0]);\ncy.get('[data-testid=leave-end-date]').type(tomorrow.toISOString().split('T')[0]);\ncy.get('[data-testid=submit-leave-button]').click();\n// Vérifier le message d'erreur\ncy.get('[data-testid=rule-violation-alert]')\n    .should('be.visible')\n    .and('contain', 'Préavis minimum de 48 heures requis');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/rules/business-rules-validation.spec.ts:27:15)",
+                    "diff": null
+                  },
+                  "uuid": "b851a405-7a32-4460-bf5a-4c5f7f14a7e0",
+                  "parentUUID": "a4daa848-35db-4997-8cd7-5a5971c26e94",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "valide la règle de quota maximum par type de congé",
+                  "fullTitle": "Validation des règles métier Règles de gestion des congés valide la règle de quota maximum par type de congé",
+                  "timedOut": null,
+                  "duration": 16871,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Naviguer vers la page de gestion des quotas\ncy.get('[data-testid=quota-management-link]').click();\n// Vérifier l'affichage des quotas\ncy.get('[data-testid=quota-table]').within(function () {\n    cy.contains('Congé annuel').parent('tr').within(function () {\n        cy.get('[data-testid=quota-used]').should('contain', '5');\n        cy.get('[data-testid=quota-total]').should('contain', '25');\n    });\n});\n// Essayer de dépasser le quota\ncy.get('[data-testid=create-leave-button]').click();\ncy.get('[data-testid=leave-type-select]').select('Congé annuel');\ncy.get('[data-testid=leave-start-date]').type('2025-08-01');\ncy.get('[data-testid=leave-end-date]').type('2025-09-30'); // 61 jours\ncy.get('[data-testid=submit-leave-button]').click();\n// Vérifier le blocage\ncy.get('[data-testid=quota-exceeded-error]')\n    .should('be.visible')\n    .and('contain', 'Quota dépassé');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=quota-management-link]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=quota-management-link]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/rules/business-rules-validation.spec.ts:46:15)",
+                    "diff": null
+                  },
+                  "uuid": "31203704-c2c2-4d2a-ad67-a285c3e50171",
+                  "parentUUID": "a4daa848-35db-4997-8cd7-5a5971c26e94",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "valide la règle de non-chevauchement des congés",
+                  "fullTitle": "Validation des règles métier Règles de gestion des congés valide la règle de non-chevauchement des congés",
+                  "timedOut": null,
+                  "duration": 16818,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Créer un premier congé\ncy.get('[data-testid=create-leave-button]').click();\ncy.get('[data-testid=leave-type-select]').select('Congé annuel');\ncy.get('[data-testid=leave-start-date]').type('2025-07-01');\ncy.get('[data-testid=leave-end-date]').type('2025-07-15');\ncy.get('[data-testid=submit-leave-button]').click();\n// Attendre la confirmation\ncy.get('[data-testid=notification-success]').should('be.visible');\n// Essayer de créer un congé chevauchant\ncy.get('[data-testid=create-leave-button]').click();\ncy.get('[data-testid=leave-type-select]').select('Formation');\ncy.get('[data-testid=leave-start-date]').type('2025-07-10');\ncy.get('[data-testid=leave-end-date]').type('2025-07-20');\ncy.get('[data-testid=submit-leave-button]').click();\n// Vérifier l'alerte de chevauchement\ncy.get('[data-testid=overlap-warning]')\n    .should('be.visible')\n    .and('contain', 'Chevauchement détecté avec un congé existant');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/rules/business-rules-validation.spec.ts:71:15)",
+                    "diff": null
+                  },
+                  "uuid": "a47a26da-1b22-4d9f-a8f3-5de0ac9cd9b6",
+                  "parentUUID": "a4daa848-35db-4997-8cd7-5a5971c26e94",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "valide les règles de congés récurrents",
+                  "fullTitle": "Validation des règles métier Règles de gestion des congés valide les règles de congés récurrents",
+                  "timedOut": null,
+                  "duration": 16852,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Créer un congé récurrent\ncy.get('[data-testid=create-leave-button]').click();\ncy.get('[data-testid=leave-type-select]').select('Formation récurrente');\ncy.get('[data-testid=recurring-checkbox]').check();\n// Configurer la récurrence\ncy.get('[data-testid=recurrence-pattern]').select('Hebdomadaire');\ncy.get('[data-testid=recurrence-day]').select('Mercredi');\ncy.get('[data-testid=recurrence-start]').type('2025-06-01');\ncy.get('[data-testid=recurrence-end]').type('2025-12-31');\ncy.get('[data-testid=submit-leave-button]').click();\n// Vérifier la création des occurrences\ncy.get('[data-testid=recurring-confirmation-modal]').within(function () {\n    cy.contains('30 occurrences seront créées').should('exist');\n    cy.get('[data-testid=confirm-recurring]').click();\n});\n// Vérifier que les règles sont appliquées à toutes les occurrences\ncy.get('[data-testid=leaves-table]')\n    .find('[data-testid=recurring-leave-indicator]')\n    .should('have.length.greaterThan', 20);",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=create-leave-button]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/rules/business-rules-validation.spec.ts:95:15)",
+                    "diff": null
+                  },
+                  "uuid": "fca12f0f-0b44-4ca5-aabe-e9f824cfe8c8",
+                  "parentUUID": "a4daa848-35db-4997-8cd7-5a5971c26e94",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "b851a405-7a32-4460-bf5a-4c5f7f14a7e0",
+                "31203704-c2c2-4d2a-ad67-a285c3e50171",
+                "a47a26da-1b22-4d9f-a8f3-5de0ac9cd9b6",
+                "fca12f0f-0b44-4ca5-aabe-e9f824cfe8c8"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 67428,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "70438a29-2e75-4a72-8421-ce811d2f5f1d",
+              "title": "Règles de planification bloc opératoire",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "valide la règle de compétences par salle",
+                  "fullTitle": "Validation des règles métier Règles de planification bloc opératoire valide la règle de compétences par salle",
+                  "timedOut": null,
+                  "duration": 1776,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Essayer d'affecter un chirurgien non qualifié à une salle spécialisée\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Généraliste')\n    .drag('[data-testid=slot-monday-morning-cardiac-surgery]');\n// Vérifier le blocage\ncy.get('[data-testid=skill-requirement-error]')\n    .should('be.visible')\n    .and('contain', 'Qualification en chirurgie cardiaque requise');\n// Vérifier les suggestions\ncy.get('[data-testid=qualified-surgeons-suggestion]').within(function () {\n    cy.contains('Chirurgiens qualifiés disponibles:').should('exist');\n    cy.contains('Dr Cardiologue').should('exist');\n});",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/rules/business-rules-validation.spec.ts:129:17)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "6046ad1b-1e9b-44c7-ad47-25735ea92b16",
+                  "parentUUID": "70438a29-2e75-4a72-8421-ce811d2f5f1d",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "valide la règle de temps de travail maximum",
+                  "fullTitle": "Validation des règles métier Règles de planification bloc opératoire valide la règle de temps de travail maximum",
+                  "timedOut": null,
+                  "duration": 1795,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "var surgeon = 'Dr Travailleur';\n// Affecter le chirurgien sur plusieurs créneaux\nvar slots = [];\nfor (var i = 0; i < 12; i++) {\n    slots.push(\"slot-day\".concat(Math.floor(i / 2), \"-\").concat(i % 2 === 0 ? 'morning' : 'afternoon', \"-room1\"));\n}\nslots.forEach(function (slot) {\n    cy.get('[data-testid=surgeons-list]')\n        .contains(surgeon)\n        .drag(\"[data-testid=\".concat(slot, \"]\"));\n});\n// Vérifier l'alerte de dépassement\ncy.get('[data-testid=worktime-limit-alert]')\n    .should('be.visible')\n    .and('contain', 'Temps de travail hebdomadaire dépassé (48h max)');\n// Vérifier le compteur d'heures\ncy.get('[data-testid=surgeon-hours-counter]')\n    .contains(surgeon)\n    .parent()\n    .should('have.class', 'hours-exceeded')\n    .and('contain', '60h');",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at eval (webpack://mathildanesth/./cypress/e2e/rules/business-rules-validation.spec.ts:155:21)\n    at Array.forEach (<anonymous>)\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/rules/business-rules-validation.spec.ts:152:18)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)",
+                    "diff": null
+                  },
+                  "uuid": "823657c6-f27f-4ba5-b159-b11f1c106d1a",
+                  "parentUUID": "70438a29-2e75-4a72-8421-ce811d2f5f1d",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "valide la règle de repos après garde",
+                  "fullTitle": "Validation des règles métier Règles de planification bloc opératoire valide la règle de repos après garde",
+                  "timedOut": null,
+                  "duration": 1826,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Affecter une garde de nuit\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Gardien')\n    .drag('[data-testid=slot-sunday-night-emergency]');\n// Essayer d'affecter le lendemain matin\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Gardien')\n    .drag('[data-testid=slot-monday-morning-room1]');\n// Vérifier le blocage\ncy.get('[data-testid=rest-time-violation]')\n    .should('be.visible')\n    .and('contain', 'Repos obligatoire de 11h après une garde');\n// Vérifier que l'après-midi est possible\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Gardien')\n    .drag('[data-testid=slot-monday-afternoon-room1]');\ncy.get('[data-testid=rest-time-violation]').should('not.exist');",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/rules/business-rules-validation.spec.ts:175:17)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "ce308698-655c-4f78-a45a-b9294d269b30",
+                  "parentUUID": "70438a29-2e75-4a72-8421-ce811d2f5f1d",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "valide les règles de supervision des internes",
+                  "fullTitle": "Validation des règles métier Règles de planification bloc opératoire valide les règles de supervision des internes",
+                  "timedOut": null,
+                  "duration": 1926,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Affecter un interne seul\ncy.get('[data-testid=surgeons-list]')\n    .contains('Interne Junior')\n    .drag('[data-testid=slot-tuesday-morning-room2]');\n// Vérifier l'avertissement\ncy.get('[data-testid=supervision-required-warning]')\n    .should('be.visible')\n    .and('contain', 'Un interne doit être supervisé');\n// Vérifier les superviseurs suggérés\ncy.get('[data-testid=available-supervisors]').within(function () {\n    cy.contains('Superviseurs disponibles:').should('exist');\n    cy.get('[data-testid=supervisor-option]').should('have.length.greaterThan', 0);\n});\n// Ajouter un superviseur\ncy.get('[data-testid=add-supervisor-button]').click();\ncy.get('[data-testid=supervisor-select]').select('Dr Senior');\ncy.get('[data-testid=confirm-supervisor]').click();\n// Vérifier que l'avertissement disparaît\ncy.get('[data-testid=supervision-required-warning]').should('not.exist');",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/rules/business-rules-validation.spec.ts:199:17)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "393b4220-d0af-4ea4-bbf7-9ef652252d52",
+                  "parentUUID": "70438a29-2e75-4a72-8421-ce811d2f5f1d",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "6046ad1b-1e9b-44c7-ad47-25735ea92b16",
+                "823657c6-f27f-4ba5-b159-b11f1c106d1a",
+                "ce308698-655c-4f78-a45a-b9294d269b30",
+                "393b4220-d0af-4ea4-bbf7-9ef652252d52"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 7323,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "de18f1e2-49fb-4b76-a8eb-ad7687eb79fd",
+              "title": "Règles de cohérence globale",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "valide la cohérence entre congés et affectations",
+                  "fullTitle": "Validation des règles métier Règles de cohérence globale valide la cohérence entre congés et affectations",
+                  "timedOut": null,
+                  "duration": 563,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Créer un congé pour un chirurgien\ncy.visitAsAuthenticatedUser('/conges');\ncy.get('[data-testid=create-leave-button]').click();\ncy.get('[data-testid=user-select]').select('Dr Dupont');\ncy.get('[data-testid=leave-type-select]').select('Congé annuel');\ncy.get('[data-testid=leave-start-date]').type('2025-07-01');\ncy.get('[data-testid=leave-end-date]').type('2025-07-07');\ncy.get('[data-testid=submit-leave-button]').click();\n// Aller au planning et essayer d'affecter le chirurgien pendant son congé\ncy.visitAsAuthenticatedUser('/bloc-operatoire');\ncy.get('[data-testid=week-selector]').type('2025-07-01');\ncy.get('[data-testid=surgeons-list]')\n    .contains('Dr Dupont')\n    .drag('[data-testid=slot-tuesday-morning-room1]'); // 2 juillet\n// Vérifier le blocage\ncy.get('[data-testid=leave-conflict-error]')\n    .should('be.visible')\n    .and('contain', 'Dr Dupont est en congé du 01/07 au 07/07');",
+                  "err": {
+                    "message": "TypeError: cy.get(...).contains(...).drag is not a function",
+                    "estack": "TypeError: cy.get(...).contains(...).drag is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/rules/business-rules-validation.spec.ts:239:17)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                    "diff": null
+                  },
+                  "uuid": "f6bb9e93-4c15-44a3-a7e7-ddb39132902e",
+                  "parentUUID": "de18f1e2-49fb-4b76-a8eb-ad7687eb79fd",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "valide les effectifs minimums par secteur",
+                  "fullTitle": "Validation des règles métier Règles de cohérence globale valide les effectifs minimums par secteur",
+                  "timedOut": null,
+                  "duration": 16944,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/bloc-operatoire');\n// Afficher la vue par secteur\ncy.get('[data-testid=view-by-sector]').click();\n// Vérifier l'indicateur d'effectif minimum\ncy.get('[data-testid=sector-urgences]').within(function () {\n    cy.get('[data-testid=minimum-staff-indicator]')\n        .should('contain', '2/3')\n        .and('have.class', 'below-minimum');\n});\n// Essayer de retirer un chirurgien d'un secteur sous-effectif\ncy.get('[data-testid=sector-urgences]')\n    .find('[data-testid=assignment-badge]')\n    .first()\n    .rightclick();\ncy.get('[data-testid=context-menu]').contains('Supprimer').click();\n// Vérifier le blocage\ncy.get('[data-testid=minimum-staff-error]')\n    .should('be.visible')\n    .and('contain', 'Effectif minimum non respecté (3 requis)');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=view-by-sector]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 15000ms: Expected to find element: `[data-testid=view-by-sector]`, but never found it.\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/rules/business-rules-validation.spec.ts:251:15)",
+                    "diff": null
+                  },
+                  "uuid": "ca15c2fc-2b34-4e55-8c37-129648664298",
+                  "parentUUID": "de18f1e2-49fb-4b76-a8eb-ad7687eb79fd",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "valide les règles personnalisées dynamiques",
+                  "fullTitle": "Validation des règles métier Règles de cohérence globale valide les règles personnalisées dynamiques",
+                  "timedOut": null,
+                  "duration": 910,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Accéder à la configuration des règles\ncy.visitAsAuthenticatedUser('/admin/rules');\n// Créer une règle personnalisée\ncy.get('[data-testid=create-rule-button]').click();\ncy.get('[data-testid=rule-name]').type('Limite interventions complexes');\ncy.get('[data-testid=rule-type]').select('Limite quotidienne');\ncy.get('[data-testid=rule-condition]').type('interventions.complexity = \"high\"');\ncy.get('[data-testid=rule-limit]').type('2');\ncy.get('[data-testid=rule-scope]').select('Par chirurgien');\ncy.get('[data-testid=save-rule]').click();\n// Aller au planning et tester la règle\ncy.visitAsAuthenticatedUser('/bloc-operatoire');\n// Créer 2 interventions complexes\nfor (var i = 0; i < 2; i++) {\n    cy.get('[data-testid=slot-monday-morning-room' + (i + 1) + ']').click();\n    cy.get('[data-testid=intervention-type]').select('Chirurgie complexe');\n    cy.get('[data-testid=surgeon-select]').select('Dr Expert');\n    cy.get('[data-testid=submit-assignment]').click();\n}\n// Essayer d'en créer une 3ème\ncy.get('[data-testid=slot-monday-afternoon-room1]').click();\ncy.get('[data-testid=intervention-type]').select('Chirurgie complexe');\ncy.get('[data-testid=surgeon-select]').select('Dr Expert');\ncy.get('[data-testid=submit-assignment]').click();\n// Vérifier le blocage par la règle personnalisée\ncy.get('[data-testid=custom-rule-violation]')\n    .should('be.visible')\n    .and('contain', 'Limite interventions complexes: max 2 par jour');",
+                  "err": {
+                    "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/admin/rules\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nThis http request was redirected '1' time to:\n\n  - 307: http://localhost:3000/admin/planning-rules\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                    "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/admin/rules\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nThis http request was redirected '1' time to:\n\n  - 307: http://localhost:3000/admin/planning-rules\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:195:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)",
+                    "diff": null
+                  },
+                  "uuid": "90f53ed6-a10a-4b7f-8f76-d9f0e210c3f6",
+                  "parentUUID": "de18f1e2-49fb-4b76-a8eb-ad7687eb79fd",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "f6bb9e93-4c15-44a3-a7e7-ddb39132902e",
+                "ca15c2fc-2b34-4e55-8c37-129648664298",
+                "90f53ed6-a10a-4b7f-8f76-d9f0e210c3f6"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 18417,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "18fca8c5-6937-4410-8b7a-6745f4399396",
+              "title": "Tableau de bord des violations de règles",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "affiche un récapitulatif des violations en temps réel",
+                  "fullTitle": "Validation des règles métier Tableau de bord des violations de règles affiche un récapitulatif des violations en temps réel",
+                  "timedOut": null,
+                  "duration": 617,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/admin/rules-dashboard');\n// Vérifier l'affichage du tableau de bord\ncy.get('[data-testid=rules-dashboard]').within(function () {\n    // Statistiques globales\n    cy.get('[data-testid=total-violations]').should('exist');\n    cy.get('[data-testid=critical-violations]').should('exist');\n    cy.get('[data-testid=warning-violations]').should('exist');\n    // Liste des violations actives\n    cy.get('[data-testid=violations-list]').within(function () {\n        cy.get('[data-testid=violation-item]').should('have.length.greaterThan', 0);\n    });\n});\n// Filtrer par type de règle\ncy.get('[data-testid=filter-rule-type]').select('Temps de travail');\ncy.get('[data-testid=violations-list]')\n    .find('[data-testid=violation-item]')\n    .each(function ($item) {\n    cy.wrap($item).should('contain', 'temps');\n});\n// Exporter le rapport\ncy.get('[data-testid=export-violations-report]').click();\ncy.readFile('cypress/downloads/violations-report.csv').should('exist');",
+                  "err": {
+                    "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/admin/rules-dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                    "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/admin/rules-dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:195:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)",
+                    "diff": null
+                  },
+                  "uuid": "6904cefc-091f-4f55-9b37-c2420e9055ec",
+                  "parentUUID": "18fca8c5-6937-4410-8b7a-6745f4399396",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "permet de résoudre les violations suggérées",
+                  "fullTitle": "Validation des règles métier Tableau de bord des violations de règles permet de résoudre les violations suggérées",
+                  "timedOut": null,
+                  "duration": 699,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.visitAsAuthenticatedUser('/admin/rules-dashboard');\n// Cliquer sur une violation avec suggestion\ncy.get('[data-testid=violation-with-suggestion]').first().click();\n// Vérifier les détails et suggestions\ncy.get('[data-testid=violation-details-modal]').within(function () {\n    cy.contains('Détails de la violation').should('exist');\n    cy.get('[data-testid=violation-description]').should('exist');\n    cy.get('[data-testid=suggested-actions]').should('exist');\n    // Appliquer une suggestion\n    cy.get('[data-testid=apply-suggestion-1]').click();\n});\n// Confirmer l'application\ncy.get('[data-testid=confirm-suggestion-modal]').within(function () {\n    cy.get('[data-testid=confirm-apply]').click();\n});\n// Vérifier que la violation est résolue\ncy.get('[data-testid=notification-success]')\n    .should('contain', 'Violation résolue avec succès');",
+                  "err": {
+                    "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/admin/rules-dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`",
+                    "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/admin/rules-dashboard\n\nThe response we received from your web server was:\n\n  > 404: Not Found\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:195:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)",
+                    "diff": null
+                  },
+                  "uuid": "a7b32fc0-1b6b-40a7-9daf-293862704fa8",
+                  "parentUUID": "18fca8c5-6937-4410-8b7a-6745f4399396",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "6904cefc-091f-4f55-9b37-c2420e9055ec",
+                "a7b32fc0-1b6b-40a7-9daf-293862704fa8"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 1316,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            }
+          ],
+          "passes": [],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 0,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

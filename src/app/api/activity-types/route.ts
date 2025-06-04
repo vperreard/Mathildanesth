@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth-server-utils';
 import type { AuthResult } from '@/lib/auth-client-utils';
 
-const prisma = new PrismaClient();
 
 // Récupérer tous les types d'activité
 export async function GET(req: NextRequest) {
@@ -29,7 +28,7 @@ export async function GET(req: NextRequest) {
         const active = searchParams.get('active');
         const code = searchParams.get('code');
 
-        let where: any = {};
+        const where: any = {};
 
         if (active === 'true') {
             where.isActive = true;

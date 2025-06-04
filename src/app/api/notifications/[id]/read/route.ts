@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth-utils';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const token = req.cookies.get('auth_token')?.value;
@@ -23,7 +23,7 @@ export async function POST(
             );
         }
 
-        const prisma = new PrismaClient();
+        const prisma = prisma;
         const notification = await prisma.notification.update({
             where: {
                 id: parseInt(params.id),

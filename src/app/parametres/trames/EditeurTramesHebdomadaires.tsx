@@ -73,7 +73,7 @@ interface TrameHebdomadaire {
     name: string;
     typeSemaine: TypeSemaine;
     description?: string; // Optionnel
-    roles?: RoleType[]; // Rôles associés à la trame
+    roles?: RoleType[]; // Rôles associés à la trameModele
     affectations: AffectationTrame[];
     // Potentiellement des métadonnées: dateCreation, dateModification
     siteId?: string | null;
@@ -119,7 +119,7 @@ const mockIADEs: BasePersonnel[] = [
 
 const mockTramesInitiales: TrameHebdomadaire[] = [
     {
-        id: 'trame-paires-std',
+        id: 'trameModele-paires-std',
         name: 'Standard Semaines PAIRES',
         typeSemaine: TypeSemaine.PAIRE,
         description: 'Configuration type pour les semaines paires',
@@ -129,7 +129,7 @@ const mockTramesInitiales: TrameHebdomadaire[] = [
         ]
     },
     {
-        id: 'trame-impaires-cardio',
+        id: 'trameModele-impaires-cardio',
         name: 'Cardio Semaines IMPAIRES',
         typeSemaine: TypeSemaine.IMPAIRE,
         description: 'Rotation cardio pour les semaines impaires',
@@ -140,7 +140,7 @@ const mockTramesInitiales: TrameHebdomadaire[] = [
         ]
     },
     {
-        id: 'trame-toutes-consult',
+        id: 'trameModele-toutes-consult',
         name: 'Consultations Générales',
         typeSemaine: TypeSemaine.TOUTES,
         affectations: [
@@ -155,7 +155,7 @@ const periodesDeLaJournee = Object.values(PeriodeJour);
 
 const EditeurTramesHebdomadaires: React.FC = () => {
     // États pour les données
-    const [trames, setTrames] = useState<TrameHebdomadaire[]>([]);
+    const [trameModeles, setTrames] = useState<TrameHebdomadaire[]>([]);
     const [salles, setSalles] = useState<Salle[]>([]);
     const [chirurgiens, setChirurgiens] = useState<Personnel[]>([]);
     const [mars, setMars] = useState<Personnel[]>([]);
@@ -198,7 +198,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         ]);
     };
 
-    // Chargement des trames
+    // Chargement des trameModeles
     const fetchTrames = async () => {
         setIsLoadingTrames(true);
         try {
@@ -218,7 +218,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
 
                 return {
                     id: dto.id.toString(),
-                    name: dto.name || dto.nom || 'Trame sans nom',
+                    name: dto.name || dto.nom || 'TrameModele sans nom',
                     typeSemaine: mapApiTypeSemaineToLocal(dto.typeSemaine),
                     description: dto.description || undefined,
                     affectations: localAffectations,
@@ -234,7 +234,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             setIsLoadingTrames(false);
         } catch (err) {
             console.error("Erreur lors du chargement des trames:", err);
-            setError("Impossible de charger les trames. Veuillez réessayer plus tard.");
+            setError("Impossible de charger les trameModeles. Veuillez réessayer plus tard.");
             setIsLoadingTrames(false);
         }
     };
@@ -285,10 +285,10 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         }
     };
 
-    // Création d'une nouvelle trame
+    // Création d'une nouvelle trameModele
     const handleCreateNewTrame = async () => {
         if (!newTrameNom.trim()) {
-            alert("Le nom de la trame ne peut pas être vide.");
+            alert("Le nom de la trameModele ne peut pas être vide.");
             return;
         }
 
@@ -309,7 +309,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             // Mapper le DTO retourné vers TrameHebdomadaire local
             const createdTrameLocal: TrameHebdomadaire = {
                 id: createdTrameDTO.id.toString(),
-                name: createdTrameDTO.name || createdTrameDTO.nom || 'Trame sans nom',
+                name: createdTrameDTO.name || createdTrameDTO.nom || 'TrameModele sans nom',
                 typeSemaine: mapApiTypeSemaineToLocal(createdTrameDTO.typeSemaine),
                 description: createdTrameDTO.description || undefined,
                 affectations: [],
@@ -329,15 +329,15 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             setIsCreating(false);
             setIsSaving(false);
         } catch (err) {
-            console.error("Erreur lors de la création de la trame:", err);
-            setError("Impossible de créer la trame. Veuillez réessayer plus tard.");
+            console.error("Erreur lors de la création de la trameModele:", err);
+            setError("Impossible de créer la trameModele. Veuillez réessayer plus tard.");
             setIsSaving(false);
         }
     };
 
-    // Suppression d'une trame
+    // Suppression d'une trameModele
     const handleDeleteTrame = async (trameId: string) => {
-        if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette trame ?")) {
+        if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette trameModele ?")) {
             return;
         }
 
@@ -354,8 +354,8 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                 throw new Error("La suppression a échoué");
             }
         } catch (err) {
-            console.error(`Erreur lors de la suppression de la trame ${trameId}:`, err);
-            setError("Impossible de supprimer la trame. Veuillez réessayer plus tard.");
+            console.error(`Erreur lors de la suppression de la trameModele ${trameId}:`, err);
+            setError("Impossible de supprimer la trameModele. Veuillez réessayer plus tard.");
             setIsSaving(false);
         }
     };
@@ -369,7 +369,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         );
 
         console.log('[DEBUG] openAffectationModal - Jour:', jour, 'Periode:', periode);
-        console.log('[DEBUG] openAffectationModal - Selected Trame:', selectedTrame);
+        console.log('[DEBUG] openAffectationModal - Selected TrameModele:', selectedTrame);
         console.log('[DEBUG] openAffectationModal - Existing Affectation:', existingAffectation);
 
         setEditingCellInfo({ jour, periode, affectation: existingAffectation || null });
@@ -413,12 +413,12 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                 affectations: newAffectations
             };
 
-            console.log('[DEBUG] handleSaveAffectation - Updated Trame for State (local affectations):', updatedTrameForState);
+            console.log('[DEBUG] handleSaveAffectation - Updated TrameModele for State (local affectations):', updatedTrameForState);
 
             // TODO IMPORTANT: La sauvegarde des affectations doit se faire via une API dédiée,
-            // par exemple /api/trame-modeles/{trameId}/affectations.
+            // par exemple /api/trameModele-modeles/{trameId}/affectations.
             // TrameHebdomadaireService.updateTrame ne gère probablement pas la mise à jour des affectations.
-            // Pour l'instant, on met à jour l'état local et on simule une sauvegarde de la trame principale (sans ses affectations).
+            // Pour l'instant, on met à jour l'état local et on simule une sauvegarde de la trameModele principale (sans ses affectations).
 
             const trameDetailsToUpdate: TrameHebdomadaireDTO = {
                 id: selectedTrame.id,
@@ -446,9 +446,9 @@ const EditeurTramesHebdomadaires: React.FC = () => {
 
             setIsAffectationModalOpen(false);
             setEditingCellInfo(null);
-            // TODO: Afficher un message indiquant que les détails de la trame sont sauvegardés,
+            // TODO: Afficher un message indiquant que les détails de la trameModele sont sauvegardés,
             // mais que la sauvegarde individuelle des affectations est un TODO ou se fait autrement.
-            // toast.success('Détails de la trame sauvegardés. Sauvegarde des affectations à implémenter via API dédiée.');
+            // toast.success('Détails de la trameModele sauvegardés. Sauvegarde des affectations à implémenter via API dédiée.');
 
         } catch (err) {
             console.error("Erreur lors de la sauvegarde de l'affectation:", err);
@@ -465,7 +465,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         setIsSaving(true);
         try {
             const affectationIdToRemove = editingCellInfo.affectation.id;
-            let newAffectations = (selectedTrame.affectations || []).filter(
+            const newAffectations = (selectedTrame.affectations || []).filter(
                 aff => aff.id !== affectationIdToRemove
             );
 
@@ -475,7 +475,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
             };
 
             // TODO IMPORTANT: La suppression d'affectation doit aussi se faire via une API dédiée.
-            // Par exemple DELETE /api/trame-modeles/{trameId}/affectations/{affectationId}
+            // Par exemple DELETE /api/trameModele-modeles/{trameId}/affectations/{affectationId}
             // Pour l'instant, on met à jour uniquement l'état local.
 
             console.log('[DEBUG] handleRemoveAffectationInModal - Affectation to remove ID:', affectationIdToRemove);
@@ -560,17 +560,17 @@ const EditeurTramesHebdomadaires: React.FC = () => {
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Éditeur de Trames Habituelles (Hebdomadaires)</CardTitle>
+                    <CardTitle>Éditeur de TrameModeles Habituelles (Hebdomadaires)</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className="text-gray-600 mb-6">
                         Configurez ici les affectations récurrentes pour vos plannings hebdomadaires.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-                        {/* Colonne de gauche : Liste des trames et création */}
+                        {/* Colonne de gauche : Liste des trameModeles et création */}
                         <div className="col-span-1 md:col-span-1 space-y-4 border-r md:pr-6">
                             <div className="flex justify-between items-center mb-2">
-                                <h3 className="text-lg font-semibold">Trames Existantes</h3>
+                                <h3 className="text-lg font-semibold">TrameModeles Existantes</h3>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -585,21 +585,21 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                             {isCreating && (
                                 <Card className="p-4 bg-slate-50">
                                     <CardHeader className="p-0 pb-2">
-                                        <CardTitle className="text-md">Nouvelle Trame</CardTitle>
+                                        <CardTitle className="text-md">Nouvelle TrameModele</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <div>
-                                            <Label htmlFor="newTrameNom" className="text-lg font-medium text-blue-700">Nom de la trame *</Label>
+                                            <Label htmlFor="newTrameNom" className="text-lg font-medium text-blue-700">Nom de la trameModele *</Label>
                                             <Input
                                                 id="newTrameNom"
                                                 value={newTrameNom}
                                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTrameNom(e.target.value)}
-                                                placeholder="Entrez le nom de la trame..."
+                                                placeholder="Entrez le nom de la trameModele..."
                                                 disabled={isSaving}
                                                 className="border-2 border-blue-300 focus:border-blue-500 font-medium"
                                                 required
                                             />
-                                            {!newTrameNom.trim() && <p className="text-xs text-red-500 mt-1">Le nom de la trame est obligatoire</p>}
+                                            {!newTrameNom.trim() && <p className="text-xs text-red-500 mt-1">Le nom de la trameModele est obligatoire</p>}
                                         </div>
                                         <div>
                                             <Label htmlFor="newTrameTypeSemaine">Type de semaine</Label>
@@ -649,29 +649,29 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                                 </Card>
                             )}
 
-                            {trames.length === 0 && !isCreating && (
-                                <p className="text-sm text-gray-500">Aucune trame définie. Cliquez sur "Créer" pour commencer.</p>
+                            {trameModeles.length === 0 && !isCreating && (
+                                <p className="text-sm text-gray-500">Aucune trameModele définie. Cliquez sur "Créer" pour commencer.</p>
                             )}
 
                             <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-                                {trames.map(trame => (
+                                {trameModeles.map(trameModele => (
                                     <Button
-                                        key={trame.id}
-                                        variant={selectedTrame?.id === trame.id ? "default" : "outline"}
-                                        onClick={() => { setSelectedTrame(trame); setIsCreating(false); }}
+                                        key={trameModele.id}
+                                        variant={selectedTrame?.id === trameModele.id ? "default" : "outline"}
+                                        onClick={() => { setSelectedTrame(trameModele); setIsCreating(false); }}
                                         className="w-full justify-start text-left h-auto py-2 relative group"
                                         disabled={isSaving}
                                     >
                                         <div className="flex flex-col flex-grow">
-                                            <span className="font-medium">{trame.name}</span>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">{trame.typeSemaine} - {trame.affectations?.length || 0} affect.</span>
+                                            <span className="font-medium">{trameModele.name}</span>
+                                            <span className="text-xs text-gray-500 dark:text-gray-400">{trameModele.typeSemaine} - {trameModele.affectations?.length || 0} affect.</span>
                                         </div>
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 hover:bg-red-100 dark:hover:bg-red-700"
-                                            onClick={(e) => { e.stopPropagation(); handleDeleteTrame(trame.id); }}
-                                            aria-label="Supprimer la trame"
+                                            onClick={(e) => { e.stopPropagation(); handleDeleteTrame(trameModele.id); }}
+                                            aria-label="Supprimer la trameModele"
                                             disabled={isSaving}
                                         >
                                             <Trash2Icon className="w-4 h-4 text-red-500" />
@@ -681,14 +681,14 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Colonne de droite : Éditeur visuel pour la trame sélectionnée */}
+                        {/* Colonne de droite : Éditeur visuel pour la trameModele sélectionnée */}
                         <div className="col-span-1 md:col-span-2">
                             {selectedTrame ? (
                                 <div className="border rounded-lg p-4">
                                     <div className="flex justify-between items-center mb-4">
                                         <div>
                                             <h3 className="text-xl font-semibold">
-                                                <span className="text-gray-700">Édition de la trame :</span>
+                                                <span className="text-gray-700">Édition de la trameModele :</span>
                                                 <span className="text-2xl text-blue-600 font-bold ml-2 border-b-2 border-blue-400 pb-1">{selectedTrame.name}</span>
                                             </h3>
                                             <p className="text-sm text-gray-500 mt-1">Type: {selectedTrame.typeSemaine} {selectedTrame.description && `- ${selectedTrame.description}`}</p>
@@ -731,7 +731,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="p-8 border-2 border-dashed border-gray-300 rounded-md min-h-[400px] flex items-center justify-center bg-slate-50">
-                                    <p className="text-gray-400 text-center">Sélectionnez une trame à éditer ou créez-en une nouvelle pour commencer.</p>
+                                    <p className="text-gray-400 text-center">Sélectionnez une trameModele à éditer ou créez-en une nouvelle pour commencer.</p>
                                 </div>
                             )}
                         </div>
@@ -746,7 +746,7 @@ const EditeurTramesHebdomadaires: React.FC = () => {
                         <DialogHeader>
                             <DialogTitle>Éditer l'affectation</DialogTitle>
                             <DialogDescription>
-                                Pour {editingCellInfo.jour.toLowerCase()} - {editingCellInfo.periode.toLowerCase()} de la trame "{selectedTrame.name}".
+                                Pour {editingCellInfo.jour.toLowerCase()} - {editingCellInfo.periode.toLowerCase()} de la trameModele "{selectedTrame.name}".
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">

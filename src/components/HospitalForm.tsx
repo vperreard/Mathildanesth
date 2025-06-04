@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Interface pour représenter un hôpital
 export interface Hospital {
@@ -51,6 +51,19 @@ export default function HospitalForm({
 
     const [error, setError] = useState<string | null>(null);
 
+    // Mettre à jour le formulaire quand initialData change
+    useEffect(() => {
+        setFormData({
+            name: initialData?.name || '',
+            address: initialData?.address || '',
+            city: initialData?.city || '',
+            postalCode: initialData?.postalCode || '',
+            phone: initialData?.phone || '',
+            email: initialData?.email || '',
+            isActive: initialData?.isActive ?? true,
+        });
+    }, [initialData]);
+
     // Gestion des modifications des champs du formulaire
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -88,8 +101,8 @@ export default function HospitalForm({
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            {error && <p className="text-red-500 text-sm font-medium mb-4 p-3 bg-red-50 border border-red-200 rounded-md">{error}</p>}
+        <form onSubmit={handleSubmit} className="space-y-6" data-testid="hospital-form">
+            {error && <p data-testid="error-message" className="text-red-500 text-sm font-medium mb-4 p-3 bg-red-50 border border-red-200 rounded-md">{error}</p>}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
                 <div>

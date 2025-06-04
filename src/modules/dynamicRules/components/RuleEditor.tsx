@@ -1,6 +1,4 @@
-// @ts-nocheck
 /*
- * Ce fichier utilise @ts-nocheck pour contourner temporairement des erreurs de syntaxe JSX
  * et des problèmes de typage complexes qui sont apparus lors de modifications.
  * Une révision complète de la structure JSX et des types est recommandée.
  */

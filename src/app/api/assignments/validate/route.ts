@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RuleEngine } from '@/modules/rules/engine/rule-engine';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { RuleEvaluationContext } from '@/modules/rules/types/rule';
-import { Assignment as AppAssignment } from '@/types/assignment'; // Renommer pour clarté
+import { Attribution as AppAssignment } from '@/types/attribution'; // Renommer pour clarté
 
-const prisma = new PrismaClient();
 const ruleEngine = new RuleEngine();
 
 // Type interne pour la validation, s'assurer qu'il a les champs nécessaires
@@ -18,7 +17,7 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         // Utiliser le type interne avec les champs requis
-        const assignmentsToValidate: AssignmentForValidation[] = body.assignments;
+        const assignmentsToValidate: AssignmentForValidation[] = body.attributions;
 
         if (!assignmentsToValidate || !Array.isArray(assignmentsToValidate)) {
             return NextResponse.json({ error: 'Format de données invalide.' }, { status: 400 });
@@ -40,7 +39,7 @@ export async function POST(request: NextRequest) {
         const rooms = await prisma.operatingRoom.findMany({ where: { id: { in: roomIds } } });
 
         const context: RuleEvaluationContext = {
-            assignments: validAssignments, // Utiliser les affectations filtrées
+            attributions: validAssignments, // Utiliser les affectations filtrées
             startDate: startDate,
             endDate: endDate,
             medecins: users.map(u => ({
@@ -66,7 +65,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(validationResult);
 
     } catch (error: any) {
-        console.error('Erreur API [POST /api/assignments/validate]:', error);
+        console.error('Erreur API [POST /api/affectations/validate]:', error);
         return NextResponse.json(
             { error: 'Erreur serveur lors de la validation des affectations.', details: error.message },
             { status: 500 }

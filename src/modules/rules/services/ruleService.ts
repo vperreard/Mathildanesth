@@ -34,7 +34,7 @@ export class RuleService {
      */
     static async getAllRules(): Promise<Rule[]> {
         try {
-            const response = await fetch('/api/rules');
+            const response = await fetch('http://localhost:3000/api/rules');
             if (!response.ok) {
                 throw new Error(`Erreur lors de la récupération des règles: ${response.statusText}`);
             }
@@ -50,7 +50,7 @@ export class RuleService {
      */
     static async getRulesByType(type: RuleType): Promise<Rule[]> {
         try {
-            const response = await fetch(`/api/rules?type=${type}`);
+            const response = await fetch(`http://localhost:3000/api/rules?type=${type}`);
             if (!response.ok) {
                 throw new Error(`Erreur lors de la récupération des règles: ${response.statusText}`);
             }
@@ -66,7 +66,7 @@ export class RuleService {
      */
     static async createRule(rule: Rule): Promise<Rule> {
         try {
-            const response = await fetch('/api/rules', {
+            const response = await fetch('http://localhost:3000/api/rules', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -90,7 +90,7 @@ export class RuleService {
      */
     static async updateRule(rule: Rule): Promise<Rule> {
         try {
-            const response = await fetch(`/api/rules/${rule.id}`, {
+            const response = await fetch(`http://localhost:3000/api/rules/${rule.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -114,7 +114,7 @@ export class RuleService {
      */
     static async deleteRule(ruleId: string): Promise<void> {
         try {
-            const response = await fetch(`/api/rules/${ruleId}`, {
+            const response = await fetch(`http://localhost:3000/api/rules/${ruleId}`, {
                 method: 'DELETE'
             });
 
@@ -177,7 +177,7 @@ export class RuleService {
      */
     static async getRuleById(ruleId: string): Promise<Rule | null> {
         try {
-            const response = await fetch(`/api/rules/${ruleId}`);
+            const response = await fetch(`http://localhost:3000/api/rules/${ruleId}`);
 
             if (response.status === 404) {
                 return null;

@@ -1,7 +1,7 @@
 import * as jose from 'jose';
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 
 // Configuration JWT existante
@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'jwt-dev-secret-change-me-in-produc
 
 // Utilisez Prisma uniquement si nous ne sommes pas en mode développement sans base de données
 const IS_DEV_MODE = process.env.NODE_ENV === 'development' && process.env.USE_MOCK_AUTH === 'true';
-const prisma = IS_DEV_MODE ? null : new PrismaClient();
+const prismaClient = IS_DEV_MODE ? null : prisma;
 
 const secretKey = new TextEncoder().encode(JWT_SECRET);
 
@@ -170,16 +170,62 @@ export async function verifyToken(token: string): Promise<TokenPayload & jose.JW
 
         // Vérifier si le payload a la structure attendue (TokenPayload)
         if (typeof payload.userId !== 'number' || typeof payload.login !== 'string' || typeof payload.role !== 'string') {
-            throw new Error('Payload du token invalide');
+            throw new Error('Token invalide ou malformé');
         }
 
         return payload as TokenPayload & jose.JWTVerifyResult['payload'];
     } catch (error: any) {
         // Gérer les erreurs spécifiques de jose (ex: JWTExpired, JWTInvalid)
-        console.error("Erreur de vérification du token:", error.code || error.message);
+        // Ne pas logger en mode test pour éviter la pollution des logs
+        if (process.env.NODE_ENV !== 'test') {
+            console.error("Erreur de vérification du token:", error.code || error.message);
+        }
+        
         if (error instanceof jose.errors.JWTExpired) {
             throw new Error('Token expiré');
         }
+        
+        // Si c'est déjà notre propre erreur, la propager
+        if (error.message === 'Token invalide ou malformé') {
+            throw error;
+        }
+        
         throw new Error('Token invalide ou malformé');
+    }
+}
+
+/**
+ * Récupère l'utilisateur depuis le cookie de session
+ */
+export async function getUserFromCookie(request: any): Promise<any> {
+    try {
+        // Récupérer le token depuis les cookies
+        const token = request.cookies?.get?.('auth-token')?.value || 
+                     request.headers?.get?.('authorization')?.replace('Bearer ', '');
+        
+        if (!token) {
+            return null;
+        }
+
+        // Vérifier le token
+        const payload = await verifyToken(token);
+        
+        // En mode développement, retourner un utilisateur mockΓ
+        if (IS_DEV_MODE) {
+            return devUsers.find(u => u.id === payload.userId) || null;
+        }
+
+        // Récupérer l'utilisateur depuis la base de données
+        if (prismaClient) {
+            const user = await prismaClient.user.findUnique({
+                where: { id: payload.userId }
+            });
+            return user;
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Erreur lors de la récupération de l\'utilisateur:', error);
+        return null;
     }
 } 

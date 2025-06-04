@@ -1,0 +1,169 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 4,
+    "passes": 3,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-06-01T06:11:37.346Z",
+    "end": "2025-06-01T06:11:53.986Z",
+    "duration": 16640,
+    "testsRegistered": 4,
+    "passPercent": 75,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "544fa8d3-4438-4e44-8d06-31186ad3a895",
+      "title": "",
+      "fullFile": "cypress/e2e/login.spec.ts",
+      "file": "cypress/e2e/login.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "b0f31cc0-b8af-45d3-9f3c-26391c1298c1",
+          "title": "Page de connexion",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "affiche correctement le formulaire de connexion",
+              "fullTitle": "Page de connexion affiche correctement le formulaire de connexion",
+              "timedOut": null,
+              "duration": 2661,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Vérifier que les éléments du formulaire sont présents\ncy.waitForElement('[data-cy=email-input]');\ncy.waitForElement('[data-cy=password-input]');\n// Le bouton est initialement disabled (logique normale)\ncy.get('[data-cy=submit-button]').should('be.visible').should('be.disabled');\n// Après saisie, le bouton devient enabled\ncy.safeType('[data-cy=email-input]', 'test@example.com');\ncy.safeType('[data-cy=password-input]', 'password123');\ncy.get('[data-cy=submit-button]').should('not.be.disabled');",
+              "err": {},
+              "uuid": "6297fc0f-413f-472c-a50d-49b2dc196be1",
+              "parentUUID": "b0f31cc0-b8af-45d3-9f3c-26391c1298c1",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "affiche une erreur pour des identifiants invalides",
+              "fullTitle": "Page de connexion affiche une erreur pour des identifiants invalides",
+              "timedOut": null,
+              "duration": 2715,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Intercepter la requête de connexion\ncy.intercept('POST', '**/api/auth/login').as('loginRequest');\n// Tenter une connexion avec des identifiants invalides\ncy.safeType('[data-cy=email-input]', 'utilisateur.invalide@example.com');\ncy.safeType('[data-cy=password-input]', 'mot_de_passe_incorrect');\ncy.safeClick('[data-cy=submit-button]');\n// Vérifier qu'un message d'erreur s'affiche ou la requête échoue\ncy.wait('@loginRequest').then(function (interception) {\n    var _a;\n    if (((_a = interception.response) === null || _a === void 0 ? void 0 : _a.statusCode) !== 200) {\n        // Si la requête échoue, vérifier qu'un message d'erreur s'affiche\n        cy.get('[data-cy=error-message]', { timeout: 10000 })\n            .should('be.visible')\n            .and('contain.text', 'Identifiants invalides');\n    }\n});",
+              "err": {},
+              "uuid": "3e351ab7-cb53-4a37-a3ac-b13c61a23601",
+              "parentUUID": "b0f31cc0-b8af-45d3-9f3c-26391c1298c1",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "connecte l'utilisateur avec des identifiants valides",
+              "fullTitle": "Page de connexion connecte l'utilisateur avec des identifiants valides",
+              "timedOut": null,
+              "duration": 2783,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Intercepter la requête de connexion\ncy.intercept('POST', '**/api/auth/login').as('loginRequest');\n// Connexion avec des identifiants valides (utiliser admin des fixtures)\n// Utiliser login au lieu de email (admin@example.com -> admin)\ncy.safeType('[data-cy=email-input]', 'admin');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\n// Vérifier que la requête de connexion a été effectuée\ncy.wait('@loginRequest').then(function (interception) {\n    var _a, _b;\n    // Pour l'instant, accepter aussi l'erreur 500 (problème d'API)\n    expect((_a = interception.response) === null || _a === void 0 ? void 0 : _a.statusCode).to.be.oneOf([200, 500]);\n    if (((_b = interception.response) === null || _b === void 0 ? void 0 : _b.statusCode) === 200) {\n        // Si connexion réussie, vérifier la redirection\n        cy.url().should('satisfy', function (url) {\n            return url.includes('/tableau-de-bord') || url.includes('/planning') || url.includes('/');\n        });\n    }\n    else {\n        // Si erreur 500, vérifier qu'on reste sur la page de login avec un message d'erreur\n        cy.url().should('include', '/auth/connexion');\n        cy.get('[data-cy=error-message]').should('be.visible');\n    }\n});",
+              "err": {
+                "message": "AssertionError: expected 401 to be one of [ 200, 500 ]",
+                "estack": "AssertionError: expected 401 to be one of [ 200, 500 ]\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/login.spec.ts:62:60)\n    at getRet (http://localhost:3000/__cypress/runner/cypress_runner.js:119616:20)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (http://localhost:3000/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (http://localhost:3000/__cypress/runner/cypress_runner.js:119627:66)\n    at Context.then (http://localhost:3000/__cypress/runner/cypress_runner.js:119878:21)",
+                "diff": "- 401\n+ [ 200, 500 ]\n"
+              },
+              "uuid": "952944b4-8f2a-4fc6-86cf-77ff3aa9e69c",
+              "parentUUID": "b0f31cc0-b8af-45d3-9f3c-26391c1298c1",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet la navigation vers la page de récupération de mot de passe",
+              "fullTitle": "Page de connexion permet la navigation vers la page de récupération de mot de passe",
+              "timedOut": null,
+              "duration": 3040,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Cliquer sur le lien de récupération de mot de passe\ncy.get('[data-cy=forgot-password-link]').click();\n// Vérifier la redirection vers la page de récupération\ncy.url().should('include', '/auth/reset-password');\n// Vérifier que les éléments de la page de reset sont présents\ncy.get('[data-cy=email-input]').should('be.visible');\ncy.get('[data-cy=submit-button]').should('be.visible');",
+              "err": {},
+              "uuid": "d88aaa19-85b8-4f6c-8c69-7172d01dbbdf",
+              "parentUUID": "b0f31cc0-b8af-45d3-9f3c-26391c1298c1",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "6297fc0f-413f-472c-a50d-49b2dc196be1",
+            "3e351ab7-cb53-4a37-a3ac-b13c61a23601",
+            "d88aaa19-85b8-4f6c-8c69-7172d01dbbdf"
+          ],
+          "failures": [
+            "952944b4-8f2a-4fc6-86cf-77ff3aa9e69c"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 11199,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

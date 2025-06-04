@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
 // Définir les types Prisma manuellement pour éviter les erreurs d'importation
 type PrismaRuleType = 'LEAVE' | 'DUTY' | 'SUPERVISION' | 'ASSIGNMENT' | 'ON_CALL';

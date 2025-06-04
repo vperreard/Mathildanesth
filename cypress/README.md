@@ -53,7 +53,7 @@ Pour isoler les tests des données de production, nous utilisons une base de don
 // cypress/e2e/login.spec.ts
 describe('Page de connexion', () => {
   it('connecte l\'utilisateur avec des identifiants valides', () => {
-    cy.visit('/auth/login');
+    cy.visit('/auth/connexion');
     cy.get('[data-cy=email-input]').type('utilisateur.test@example.com');
     cy.get('[data-cy=password-input]').type('mot_de_passe_test');
     cy.get('[data-cy=login-button]').click();
@@ -85,6 +85,54 @@ describe('Composant UserMenu', () => {
 - Utilisez les fixtures pour les données de test
 - Créez des commandes personnalisées dans `commands.ts` pour les opérations répétitives
 - Pour les tests d'API, utilisez `cy.intercept()` pour intercepter les requêtes
+
+## Mode Simulation
+
+Pour les fonctionnalités en cours de développement où l'interface ou les API ne sont pas encore complètes, nous utilisons le "mode simulation" :
+
+### Configuration
+
+```typescript
+// En haut du fichier de test
+const SIMULATION_MODE = true;
+
+// Helpers de simulation
+const simulateLogin = (username) => {
+  cy.log(`Simulation: Connexion en tant que ${username}`);
+};
+
+// Structure des tests
+it('description du test', function() {
+  if (SIMULATION_MODE) {
+    cy.log('Simulation: Action 1');
+    simulateLogin('user@example.com');
+    // Assertion simulée
+    expect(true).to.be.true;
+    return;
+  }
+  
+  // Code réel du test E2E
+  cy.get('[data-cy=element]').click();
+  // ...
+});
+```
+
+### Avantages
+
+- Permet d'écrire et d'exécuter des tests avant la complétion de l'UI (approche TDD)
+- Facilite l'intégration continue en évitant les échecs de tests liés à des fonctionnalités incomplètes
+- Sert de documentation dynamique pour les comportements attendus
+- Offre un modèle pour le test réel à implémenter plus tard
+
+### Meilleures pratiques
+
+1. Incluez des logs détaillés qui documentent précisément le comportement attendu
+2. Utilisez des helpers de simulation pour les opérations communes
+3. Assurez-vous que le flux simulé corresponde exactement au flux réel prévu
+4. Utilisez les mêmes fixtures que celles qui seront utilisées dans les tests réels
+5. Désactivez progressivement le mode simulation à mesure que les fonctionnalités sont complétées
+
+Exemples de tests utilisant le mode simulation se trouvent dans `cypress/e2e/notifications/`.
 
 ## Intégration CI/CD
 

@@ -1,6 +1,6 @@
 import { PrismaClient, OperatingRoom, OperatingSector, BlocRoomAssignment, Period, Site, Prisma, Leave, SchoolHolidayPeriod, PublicHoliday, LeaveType, ActivityCategory, ProfessionalRole, LeaveStatus } from '@prisma/client';
 
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 // Définition des types pour les rapports
 interface UtilizationDataBase {
@@ -21,7 +21,7 @@ export interface RoomUtilizationReport {
 }
 
 export interface DutyDistributionStat {
-    activityTypeCodeOrName: string; // From Assignment.type, assumed to match an ActivityType code/name
+    activityTypeCodeOrName: string; // From Attribution.type, assumed to match an ActivityType code/name
     // activityTypeName: string; // Potentially resolved if a direct match to ActivityType.name is found
     // activityTypeCategory: ActivityCategory; // Potentially resolved
     totalAssignments: number;
@@ -47,7 +47,7 @@ export interface GuardDutyStatsResponse {
         endDate: string;
         siteId?: string;
         roles?: ProfessionalRole[];
-        targetAssignmentTypes: string[]; // List of Assignment.type values considered as GARDE/ASTREINTE
+        targetAssignmentTypes: string[]; // List of Attribution.type values considered as GARDE/ASTREINTE
         totalAssignments: number;
         totalUsersWithAssignments: number;
     };
@@ -171,16 +171,16 @@ export class AnalyticsService {
             }
         });
 
-        for (const assignment of roomAssignments) {
+        for (const attribution of roomAssignments) {
             // operatingRoom est non-nul sur BlocRoomAssignment, et sector est inclus.
             // type sur room et category sur room.sector devraient être disponibles.
-            if (!assignment.operatingRoom) continue; // Sécurité, même si le schéma dit non-nul
+            if (!attribution.operatingRoom) continue; // Sécurité, même si le schéma dit non-nul
 
-            const room = assignment.operatingRoom;
+            const room = attribution.operatingRoom;
             const sectorCategory = room.operatingSector?.category;
             const roomType = room.roomType; // Correction: roomType
 
-            const plannedHours = this.getPeriodDurationInHours(assignment.period);
+            const plannedHours = this.getPeriodDurationInHours(attribution.period);
 
             if (sectorCategory && statsBySectorCategory[sectorCategory]) {
                 statsBySectorCategory[sectorCategory].totalPlannedHours += plannedHours;
@@ -218,7 +218,7 @@ export class AnalyticsService {
         endDate: Date,
         siteId?: string,
         roles?: ProfessionalRole[],
-        // Optional: explicit list of Assignment.type values if known by caller
+        // Optional: explicit list of Attribution.type values if known by caller
         targetAssignmentTypesInput?: string[]
     ): Promise<GuardDutyStatsResponse> {
 
@@ -233,13 +233,13 @@ export class AnalyticsService {
                     category: { in: [ActivityCategory.GARDE, ActivityCategory.ASTREINTE] },
                     // siteId: siteId // Add if ActivityType is site-specific and filter is needed here
                 },
-                select: { name: true, code: true }, // Assuming Assignment.type might match either name or code
+                select: { name: true, code: true }, // Assuming Attribution.type might match either name or code
             });
-            // We need to decide if Assignment.type matches ActivityType.code or ActivityType.name
+            // We need to decide if Attribution.type matches ActivityType.code or ActivityType.name
             // For this example, let's assume it can match EITHER (more flexible, but might need refinement)
             assignmentTypesToQuery = relevantActivityTypes.flatMap(at => [at.name, at.code].filter(Boolean) as string[]);
             if (assignmentTypesToQuery.length === 0) {
-                // No relevant activity types found, so no assignments will match unless explicit types were given
+                // No relevant activity types found, so no attributions will match unless explicit types were given
                 console.warn("No ActivityTypes found for GARDE/ASTREINTE categories. getGuardDutyDistributionStats might return empty if no explicit targetAssignmentTypesInput are provided.");
             }
         }
@@ -262,22 +262,22 @@ export class AnalyticsService {
 
         const whereClause: Prisma.AssignmentWhereInput = {
             date: { gte: startDate, lte: endDate },
-            type: { in: assignmentTypesToQuery }, // Filter by Assignment.type using the list derived from ActivityTypes
+            type: { in: assignmentTypesToQuery }, // Filter by Attribution.type using the list derived from ActivityTypes
             user: roles && roles.length > 0 ? { professionalRole: { in: roles } } : undefined,
             siteId: siteId || undefined,
         };
 
-        const assignments = await prisma.assignment.findMany({
+        const attributions = await prisma.attribution.findMany({
             where: whereClause,
             include: {
                 user: {
                     select: { id: true, nom: true, prenom: true, professionalRole: true },
                 },
-                // No direct include for ActivityType as it's not a direct relation on Assignment
+                // No direct include for ActivityType as it's not a direct relation on Attribution
             },
         });
 
-        if (!assignments || assignments.length === 0) {
+        if (!attributions || attributions.length === 0) {
             return {
                 byActivityType: [],
                 byUser: [],
@@ -293,20 +293,20 @@ export class AnalyticsService {
             };
         }
 
-        // Using Assignment.type as the key for activity type stats
+        // Using Attribution.type as the key for activity type stats
         const statsByAssignmentType: Record<string, Omit<DutyDistributionStat, 'averageAssignmentsPerUser'> & { userIds: Set<number> }> = {};
         const statsByUser: Record<number, UserDutyDistribution> = {}; // Adjusted type for simpler init
 
         let totalAssignments = 0;
         const allUserIdsWithAssignments = new Set<number>();
 
-        for (const assignment of assignments) {
-            if (!assignment.user || !assignment.type) continue; // Ensure user and type are present
+        for (const attribution of attributions) {
+            if (!attribution.user || !attribution.type) continue; // Ensure user and type are present
             totalAssignments++;
-            allUserIdsWithAssignments.add(assignment.userId!);
-            const assignmentTypeKey = assignment.type;
+            allUserIdsWithAssignments.add(attribution.userId!);
+            const assignmentTypeKey = attribution.type;
 
-            // Stats par type d'affectation (Assignment.type)
+            // Stats par type d'garde/vacation (Attribution.type)
             if (!statsByAssignmentType[assignmentTypeKey]) {
                 statsByAssignmentType[assignmentTypeKey] = {
                     activityTypeCodeOrName: assignmentTypeKey,
@@ -316,22 +316,22 @@ export class AnalyticsService {
                 };
             }
             statsByAssignmentType[assignmentTypeKey].totalAssignments++;
-            statsByAssignmentType[assignmentTypeKey].userIds.add(assignment.userId!);
+            statsByAssignmentType[assignmentTypeKey].userIds.add(attribution.userId!);
 
             // Stats par utilisateur
-            if (!statsByUser[assignment.userId!]) {
-                statsByUser[assignment.userId!] = {
-                    userId: assignment.userId!,
-                    userName: `${assignment.user.prenom} ${assignment.user.nom}`,
+            if (!statsByUser[attribution.userId!]) {
+                statsByUser[attribution.userId!] = {
+                    userId: attribution.userId!,
+                    userName: `${attribution.user.prenom} ${attribution.user.nom}`,
                     totalDuties: 0,
                     distribution: [],
                 };
             }
-            statsByUser[assignment.userId!].totalDuties++;
-            let userDistEntry = statsByUser[assignment.userId!].distribution.find(d => d.activityTypeCodeOrName === assignmentTypeKey);
+            statsByUser[attribution.userId!].totalDuties++;
+            let userDistEntry = statsByUser[attribution.userId!].distribution.find(d => d.activityTypeCodeOrName === assignmentTypeKey);
             if (!userDistEntry) {
                 userDistEntry = { activityTypeCodeOrName: assignmentTypeKey, count: 0 };
-                statsByUser[assignment.userId!].distribution.push(userDistEntry);
+                statsByUser[attribution.userId!].distribution.push(userDistEntry);
             }
             userDistEntry.count++;
         }

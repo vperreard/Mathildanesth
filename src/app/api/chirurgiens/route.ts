@@ -25,13 +25,15 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const includeInactive = searchParams.get('includeInactive') === 'true';
+        const limit = searchParams.get('limit');
+        const offset = searchParams.get('offset');
 
         let whereClause = {};
         if (!includeInactive) {
             whereClause = { status: 'ACTIF' };
         }
 
-        const surgeons = await prisma.surgeon.findMany({
+        const queryOptions: any = {
             where: whereClause,
             orderBy: [{ nom: 'asc' }, { prenom: 'asc' }],
             include: {
@@ -39,10 +41,20 @@ export async function GET(request: Request) {
                     select: { id: true, name: true }
                 },
                 sites: {
-                    select: { id: true, name: true }
+                    select: { id: true, name: true, colorCode: true }
                 }
             }
-        });
+        };
+
+        // Ajouter la pagination si les paramètres sont fournis
+        if (limit) {
+            queryOptions.take = parseInt(limit);
+        }
+        if (offset) {
+            queryOptions.skip = parseInt(offset);
+        }
+
+        const surgeons = await prisma.surgeon.findMany(queryOptions);
         return NextResponse.json(surgeons);
     } catch (error) {
         console.error("Erreur GET /api/chirurgiens:", error);

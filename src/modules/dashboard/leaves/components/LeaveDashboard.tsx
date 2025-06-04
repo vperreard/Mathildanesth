@@ -30,7 +30,7 @@ import {
 import { format, addMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-import { LeaveType, LeaveStatus } from '../../../leaves/types/leave';
+import { LeaveType, LeaveStatus } from '../../../conges/types/leave';
 import { useLeaveAnalytics, AggregationType } from '../hooks/useLeaveAnalytics';
 import DepartmentLeaveChart from './charts/DepartmentLeaveChart';
 import MonthlyLeaveChart from './charts/MonthlyLeaveChart';

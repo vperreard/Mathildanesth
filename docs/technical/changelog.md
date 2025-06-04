@@ -82,7 +82,7 @@
   - Service `LeaveConflictAnalyticsService` pour collecter des statistiques sur les conflits et générer des rapports d'analyse.
   - Hook `useLeaveConflictAnalytics` pour récupérer, filtrer et manipuler les données d'analyse des conflits.
   - Composant `LeaveConflictDashboard` pour visualiser les données avec graphiques et tableaux.
-  - Page dédiée aux analyses dans l'interface d'administration (`/admin/leaves/analytics`).
+  - Page dédiée aux analyses dans l'interface d'administration (`/admin/conges/analytics`).
   - Fonctionnalités avancées de filtrage par département, période et type de congé.
   - Génération de recommandations automatiques pour optimiser la planification des congés.
   - Export des rapports au format CSV.

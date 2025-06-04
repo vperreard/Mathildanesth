@@ -211,4 +211,7 @@ export interface RuleEngineOptions {
     traceExecution?: boolean;
     strictMode?: boolean;
     fallbackPolicy?: 'ALLOW' | 'DENY' | 'ASK';
-} 
+}
+
+// Alias pour compatibilité
+export { ConditionOperator as ComparisonOperator }; 

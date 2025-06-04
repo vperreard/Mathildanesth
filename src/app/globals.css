@@ -2,14 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Importation des polices Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap');
+
 :root {
+    /* Configuration des polices */
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-heading: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
     /* Variables de base - Valeurs explicites */
     --foreground-rgb: 0, 0, 0;
     --background-rgb: 255, 255, 255;
     --card-rgb: 255, 255, 255;
     --card-foreground-rgb: 17, 24, 39;
     --border-rgb: 229, 231, 235;
+    --muted-rgb: 241, 245, 249;
     --muted-foreground-rgb: 107, 114, 128;
+
+    /* Nouvelles variables pour popover/dropdown */
+    --popover-rgb: 255, 255, 255;
+    --popover-foreground-rgb: 17, 24, 39;
+    --accent-rgb: 243, 244, 246;
+    --accent-foreground-rgb: 17, 24, 39;
 
     /* Primary colors - Indigo - Valeurs explicites */
     --primary-50: 238, 242, 255;
@@ -113,7 +127,14 @@
     --card-rgb: 30, 41, 59;
     --card-foreground-rgb: 226, 232, 240;
     --border-rgb: 51, 65, 85;
+    --muted-rgb: 30, 41, 59;
     --muted-foreground-rgb: 148, 163, 184;
+
+    /* Variables popover - Mode sombre */
+    --popover-rgb: 30, 41, 59;
+    --popover-foreground-rgb: 226, 232, 240;
+    --accent-rgb: 38, 51, 74;
+    --accent-foreground-rgb: 226, 232, 240;
 }
 
 /* Ajouter certaines règles directement pour forcer l'application des couleurs */
@@ -347,19 +368,40 @@ body,
     font-family: var(--font-family);
 }
 
-/* Effets de transparence */
+/* Effets de transparence - Opacité augmentée pour meilleure lisibilité */
 .transparency-effects .card,
 .transparency-effects .bg-white,
 .transparency-effects .bg-card {
-    background-color: rgba(255, 255, 255, 0.8) !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
     backdrop-filter: blur(8px);
 }
 
 .dark.transparency-effects .card,
 .dark.transparency-effects .bg-slate-800,
 .dark.transparency-effects .bg-card {
-    background-color: rgba(30, 41, 59, 0.8) !important;
+    background-color: rgba(30, 41, 59, 0.95) !important;
     backdrop-filter: blur(8px);
+}
+
+/* Amélioration des menus et popovers */
+.menu-enhanced,
+.popover-enhanced,
+[role="menu"],
+[role="listbox"],
+[data-radix-popper-content-wrapper] {
+    background-color: rgba(255, 255, 255, 0.97) !important;
+    backdrop-filter: blur(10px) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark .menu-enhanced,
+.dark .popover-enhanced,
+.dark [role="menu"],
+.dark [role="listbox"],
+.dark [data-radix-popper-content-wrapper] {
+    background-color: rgba(30, 41, 59, 0.97) !important;
+    backdrop-filter: blur(10px) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Classes de thèmes visuels */

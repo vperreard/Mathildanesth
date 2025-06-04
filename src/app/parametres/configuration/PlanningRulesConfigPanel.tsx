@@ -159,10 +159,10 @@ const PlanningRulesConfigPanel: React.FC = () => {
     // Récupérer les types d'affectations depuis l'API
     const fetchAssignmentTypes = async () => {
         try {
-            const response = await axios.get<{ assignmentTypes: AssignmentType[] }>('/api/assignment-types');
+            const response = await axios.get<{ assignmentTypes: AssignmentType[] }>('/api/attribution-types');
             setAssignmentTypes(response.data.assignmentTypes);
         } catch (err: any) {
-            console.error("Erreur détaillée assignment-types:", err);
+            console.error("Erreur détaillée attribution-types:", err);
             setError(prevError => prevError ? `${prevError}\nImpossible de charger les types d'affectation: ${err.message}.` : `Impossible de charger les types d'affectation: ${err.message}.`);
             setAssignmentTypes(MOCK_ASSIGNMENT_TYPES);
         }
@@ -333,7 +333,7 @@ const PlanningRulesConfigPanel: React.FC = () => {
 
             /*
             // Version avec API réelle
-            const response = await fetch(`/api/planning-rules/${id}`, {
+            const response = await fetch(`http://localhost:3000/api/planning-rules/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('auth_token')}`

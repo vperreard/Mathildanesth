@@ -1,0 +1,16 @@
+{
+    "name": "standards-developpement",
+    "description": "Charge les standards de développement, TypeScript et guides de tests pour les questions techniques.",
+    "pattern": "(?i)(typescript|test|standard|guideline|architecture|pattern|convention|règle|norme)",
+    "actions": [
+        {
+            "type": "readFiles",
+            "files": [
+                "docs/01_architecture/TYPESCRIPT_GUIDELINES.md",
+                "docs/01_architecture/TESTING_GUIDELINES.md",
+                "docs/01_architecture/TECHNICAL_DEBT_REDUCTION_REPORT.md",
+                "docs/01_architecture/INTEGRATION.md"
+            ]
+        }
+    ]
+}

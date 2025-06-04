@@ -1,0 +1,245 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-06-01T06:55:14.193Z",
+    "end": "2025-06-01T06:55:21.312Z",
+    "duration": 7119,
+    "testsRegistered": 8,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 7,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "a37dff5c-6c5e-4c28-8d49-781834b1eef5",
+      "title": "",
+      "fullFile": "cypress/e2e/calendar/calendar-operations.spec.ts",
+      "file": "cypress/e2e/calendar/calendar-operations.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "ecd960e4-b638-476a-a53c-20f46b772857",
+          "title": "Opérations du calendrier",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "affiche correctement le calendrier avec des événements",
+              "fullTitle": "Opérations du calendrier affiche correctement le calendrier avec des événements",
+              "timedOut": null,
+              "duration": 711,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Vérifier que le calendrier est affiché\ncy.get('[data-cy=calendar]').should('be.visible');\n// Vérifier que des événements sont affichés\ncy.get('[data-cy=calendar-event]').should('have.length.at.least', 1);\n// Vérifier les différentes vues du calendrier\ncy.get('[data-cy=view-month]').click();\ncy.get('[data-cy=calendar-month-view]').should('be.visible');\ncy.get('[data-cy=view-week]').click();\ncy.get('[data-cy=calendar-week-view]').should('be.visible');\ncy.get('[data-cy=view-day]').click();\ncy.get('[data-cy=calendar-day-view]').should('be.visible');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/calendrier\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Opérations du calendrier`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3000/calendrier\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Opérations du calendrier`\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133710:76)\n    at visitFailedByErr (http://localhost:3000/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:133693:13)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/support/commands.ts:195:7)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)",
+                "diff": null
+              },
+              "uuid": "ccadf4a1-ba3e-4b75-bf00-7c18901893ea",
+              "parentUUID": "ecd960e4-b638-476a-a53c-20f46b772857",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet de naviguer entre les périodes du calendrier",
+              "fullTitle": "Opérations du calendrier permet de naviguer entre les périodes du calendrier",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Naviguer vers le mois suivant\ncy.get('[data-cy=next-period]').click();\n// Vérifier que le titre du calendrier a changé\ncy.get('[data-cy=calendar-title]').invoke('text').as('nextMonthTitle');\n// Naviguer vers le mois précédent (retour au mois actuel)\ncy.get('[data-cy=prev-period]').click();\n// Vérifier que le titre a changé\ncy.get('[data-cy=calendar-title]').invoke('text').as('currentMonthTitle');\n// Vérifier que les deux titres sont différents\ncy.get('@nextMonthTitle').then(function (nextTitle) {\n    cy.get('@currentMonthTitle').then(function (currentTitle) {\n        expect(nextTitle).not.to.equal(currentTitle);\n    });\n});\n// Revenir à aujourd'hui\ncy.get('[data-cy=today-button]').click();\n// Vérifier que le jour actuel est mis en évidence\nvar today = new Date();\nvar formattedDate = today.getDate().toString();\ncy.get(\"[data-cy=calendar-day-\".concat(formattedDate, \"].fc-day-today\")).should('exist');",
+              "err": {},
+              "uuid": "d8b9421e-6aaf-41cb-85a8-f64d54310a7d",
+              "parentUUID": "ecd960e4-b638-476a-a53c-20f46b772857",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "permet de créer un nouvel événement",
+              "fullTitle": "Opérations du calendrier permet de créer un nouvel événement",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Cliquer sur une cellule du calendrier pour créer un événement\ncy.get('[data-cy=calendar-day-cell]').first().click();\n// Vérifier que le modal de création d'événement s'ouvre\ncy.get('[data-cy=event-modal]').should('be.visible');\n// Remplir le formulaire\ncy.get('[data-cy=event-title]').type('Réunion de service');\ncy.get('[data-cy=event-description]').type('Discussion des cas cliniques');\n// Sélectionner le type d'événement\ncy.get('[data-cy=event-type-select]').click();\ncy.get('[data-cy=event-type-meeting]').click();\n// Définir les dates\n// Note: Les dates sont généralement déjà définies par la cellule cliquée\n// Intercepter la requête de création\ncy.intercept('POST', '**/api/calendrier/events').as('createEvent');\n// Enregistrer l'événement\ncy.get('[data-cy=save-event-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@createEvent').its('response.statusCode').should('eq', 201);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Événement créé');\n// Vérifier que l'événement apparaît dans le calendrier\ncy.get('[data-cy=calendar-event]:contains(\"Réunion de service\")').should('be.visible');",
+              "err": {},
+              "uuid": "f40748bf-6f66-44d4-839f-7822309a90be",
+              "parentUUID": "ecd960e4-b638-476a-a53c-20f46b772857",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "permet de modifier un événement existant",
+              "fullTitle": "Opérations du calendrier permet de modifier un événement existant",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Trouver et cliquer sur un événement existant\ncy.get('[data-cy=calendar-event]').first().click();\n// Vérifier que le modal d'édition s'ouvre\ncy.get('[data-cy=event-modal]').should('be.visible');\n// Modifier le titre\ncy.get('[data-cy=event-title]').clear().type('Événement modifié');\n// Intercepter la requête de mise à jour\ncy.intercept('PUT', '**/api/calendrier/events/**').as('updateEvent');\n// Enregistrer les modifications\ncy.get('[data-cy=save-event-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@updateEvent').its('response.statusCode').should('eq', 200);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Événement mis à jour');\n// Vérifier que l'événement modifié apparaît dans le calendrier\ncy.get('[data-cy=calendar-event]:contains(\"Événement modifié\")').should('be.visible');",
+              "err": {},
+              "uuid": "c051c25d-67bc-4506-af03-2748964b7d5c",
+              "parentUUID": "ecd960e4-b638-476a-a53c-20f46b772857",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "permet de supprimer un événement",
+              "fullTitle": "Opérations du calendrier permet de supprimer un événement",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Trouver et cliquer sur un événement existant\ncy.get('[data-cy=calendar-event]').first().as('targetEvent');\ncy.get('@targetEvent').click();\n// Vérifier que le modal d'édition s'ouvre\ncy.get('[data-cy=event-modal]').should('be.visible');\n// Intercepter la requête de suppression\ncy.intercept('DELETE', '**/api/calendrier/events/**').as('deleteEvent');\n// Cliquer sur le bouton de suppression\ncy.get('[data-cy=delete-event-button]').click();\n// Confirmer la suppression\ncy.get('[data-cy=confirm-delete-button]').click();\n// Attendre la réponse de l'API\ncy.wait('@deleteEvent').its('response.statusCode').should('eq', 200);\n// Vérifier le message de succès\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Événement supprimé');\n// Conserver le texte de l'événement supprimé\ncy.get('@targetEvent').invoke('text').as('deletedEventText');\n// Vérifier que l'événement n'apparaît plus dans le calendrier\ncy.get('@deletedEventText').then(function (text) {\n    cy.get(\"[data-cy=calendar-event]:contains(\\\"\".concat(text, \"\\\")\")).should('not.exist');\n});",
+              "err": {},
+              "uuid": "c87c2380-9786-4b56-abfe-1bc97ca6d632",
+              "parentUUID": "ecd960e4-b638-476a-a53c-20f46b772857",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "permet de filtrer les événements par type",
+              "fullTitle": "Opérations du calendrier permet de filtrer les événements par type",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Vérifier le nombre initial d'événements\ncy.get('[data-cy=calendar-event]').its('length').as('initialEventCount');\n// Ouvrir les filtres\ncy.get('[data-cy=filter-button]').click();\n// Désélectionner tous les types d'événements sauf un\ncy.get('[data-cy=filter-checkbox-meeting]').click(); // Décocher Réunions\ncy.get('[data-cy=filter-checkbox-training]').click(); // Décocher Formations\n// Laisse seulement \"Congés\" sélectionné\n// Appliquer les filtres\ncy.get('[data-cy=apply-filters-button]').click();\n// Vérifier que le nombre d'événements a changé\ncy.get('[data-cy=calendar-event]').its('length').as('filteredEventCount');\n// Comparer les compteurs\ncy.get('@initialEventCount').then(function (initialCount) {\n    cy.get('@filteredEventCount').then(function (filteredCount) {\n        expect(Number(filteredCount)).to.be.lessThan(Number(initialCount));\n    });\n});\n// Réinitialiser les filtres\ncy.get('[data-cy=filter-button]').click();\ncy.get('[data-cy=reset-filters-button]').click();\n// Vérifier que tous les événements sont à nouveau affichés\ncy.get('[data-cy=calendar-event]').its('length').should('eq', cy.get('@initialEventCount'));",
+              "err": {},
+              "uuid": "1dc292a1-8baa-4c5d-88c2-39c67e84f1a0",
+              "parentUUID": "ecd960e4-b638-476a-a53c-20f46b772857",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "permet de rechercher des événements par mot-clé",
+              "fullTitle": "Opérations du calendrier permet de rechercher des événements par mot-clé",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Effectuer une recherche\ncy.get('[data-cy=search-input]').type('Réunion');\ncy.get('[data-cy=search-button]').click();\n// Vérifier que seuls les événements correspondants sont affichés\ncy.get('[data-cy=calendar-event]').each(function ($event) {\n    cy.wrap($event).should('contain', 'Réunion');\n});\n// Effacer la recherche\ncy.get('[data-cy=clear-search-button]').click();\n// Vérifier que tous les événements sont à nouveau affichés\ncy.get('[data-cy=calendar-event]').should('have.length.at.least', 1);",
+              "err": {},
+              "uuid": "ace956c6-0392-403e-a1ac-beabfe11741d",
+              "parentUUID": "ecd960e4-b638-476a-a53c-20f46b772857",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "permet d'exporter le calendrier",
+              "fullTitle": "Opérations du calendrier permet d'exporter le calendrier",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Cliquer sur le bouton d'export\ncy.get('[data-cy=export-button]').click();\n// Choisir le format d'export\ncy.get('[data-cy=export-option-ical]').click();\n// Vérifier que le fichier est téléchargé\ncy.readFile('cypress/downloads/calendrier.ics').should('exist');\n// Tester également l'export PDF\ncy.get('[data-cy=export-button]').click();\ncy.get('[data-cy=export-option-pdf]').click();\n// Vérifier que le fichier PDF est téléchargé\ncy.readFile('cypress/downloads/calendrier.pdf').should('exist');",
+              "err": {},
+              "uuid": "84385d97-05a6-4db3-8dd3-85d13f195b39",
+              "parentUUID": "ecd960e4-b638-476a-a53c-20f46b772857",
+              "isHook": false,
+              "skipped": true
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "ccadf4a1-ba3e-4b75-bf00-7c18901893ea"
+          ],
+          "pending": [],
+          "skipped": [
+            "d8b9421e-6aaf-41cb-85a8-f64d54310a7d",
+            "f40748bf-6f66-44d4-839f-7822309a90be",
+            "c051c25d-67bc-4506-af03-2748964b7d5c",
+            "c87c2380-9786-4b56-abfe-1bc97ca6d632",
+            "1dc292a1-8baa-4c5d-88c2-39c67e84f1a0",
+            "ace956c6-0392-403e-a1ac-beabfe11741d",
+            "84385d97-05a6-4db3-8dd3-85d13f195b39"
+          ],
+          "duration": 711,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

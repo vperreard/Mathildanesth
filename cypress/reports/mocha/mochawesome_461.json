@@ -1,0 +1,157 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 3,
+    "passes": 0,
+    "pending": 0,
+    "failures": 3,
+    "start": "2025-06-01T07:36:55.080Z",
+    "end": "2025-06-01T07:38:54.163Z",
+    "duration": 119083,
+    "testsRegistered": 3,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 1,
+    "hasOther": true,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "191207a9-50ad-49ff-a959-5e2f2308cb90",
+      "title": "",
+      "fullFile": "cypress/e2e/workflows/bloc-operatoire-workflow.spec.ts",
+      "file": "cypress/e2e/workflows/bloc-operatoire-workflow.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "2dcdaa5a-138c-45d2-9dc5-c98fccea826e",
+          "title": "Workflow Planning Bloc Opératoire",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "permet un workflow complet : planning bloc → affectation chirurgiens → validation compétences",
+              "fullTitle": "Workflow Planning Bloc Opératoire permet un workflow complet : planning bloc → affectation chirurgiens → validation compétences",
+              "timedOut": null,
+              "duration": 290,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// ÉTAPE 1: Connexion\ncy.log('🔐 ÉTAPE 1: Connexion utilisateur bloc');\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', chirurgien.email);\ncy.safeType('[data-cy=password-input]', chirurgien.password);\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('login');\ncy.url({ timeout: 15000 }).should('include', '/tableau-de-bord');\n// ÉTAPE 2: Accès au planning bloc opératoire\ncy.log('🏥 ÉTAPE 2: Accès au planning bloc opératoire');\ncy.get('[data-cy=nav-bloc-operatoire]').click();\ncy.waitForApiResponse('operatingRooms');\ncy.url().should('include', '/bloc-operatoire');\ncy.waitForElement('[data-cy=bloc-planning-interface]');\n// Vérifier l'interface de planning\ncy.get('[data-cy=bloc-planning-interface]').should('be.visible');\ncy.get('[data-cy=operating-rooms-list]').should('exist');\ncy.get('[data-cy=surgeons-list]').should('exist');\n// ÉTAPE 3: Création d'un planning bloc\ncy.log('📅 ÉTAPE 3: Création d\\'un planning bloc');\ncy.safeClick('[data-cy=create-bloc-planning-button]');\ncy.waitForElement('[data-cy=bloc-planning-modal]');\ncy.get('[data-cy=bloc-planning-modal]').within(function () {\n    // Sélectionner la date\n    cy.safeType('[data-cy=planning-date]', '2025-06-15');\n    // Sélectionner le secteur\n    cy.safeClick('[data-cy=sector-select]');\n    cy.get('[data-cy=sector-option-chirurgie-generale]').click();\n    // Sélectionner la salle\n    cy.safeClick('[data-cy=room-select]');\n    cy.get('[data-cy=room-option-salle-1]').click();\n    cy.safeClick('[data-cy=create-planning-button]');\n});\ncy.waitForApiResponse('createBlocPlanning');\n// Vérifier la création\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Planning créé');\n// ÉTAPE 4: Affectation des chirurgiens\ncy.log('👨‍⚕️ ÉTAPE 4: Affectation des chirurgiens');\ncy.waitForElement('[data-cy=bloc-planning-grid]');\n// Drag and drop chirurgien vers créneau\ncy.get('[data-cy=available-surgeons]').within(function () {\n    cy.get('[data-cy=surgeon-item]').first().as('firstSurgeon');\n});\ncy.get('[data-cy=bloc-planning-grid]').within(function () {\n    cy.get('[data-cy=time-slot-morning]').as('morningSlot');\n});\n// Simuler le drag and drop\ncy.get('@firstSurgeon').dragTo('@morningSlot');\n// Vérifier l'affectation\ncy.get('@morningSlot').within(function () {\n    cy.get('[data-cy=assigned-surgeon]').should('be.visible');\n});\n// ÉTAPE 5: Validation des compétences\ncy.log('✅ ÉTAPE 5: Validation des compétences');\ncy.get('[data-cy=validate-competences-button]').click();\ncy.waitForElement('[data-cy=competence-validation-modal]');\ncy.get('[data-cy=competence-validation-modal]').within(function () {\n    // Vérifier les compétences requises\n    cy.get('[data-cy=required-competences]').should('be.visible');\n    cy.get('[data-cy=surgeon-competences]').should('be.visible');\n    // Vérifier la compatibilité\n    cy.get('[data-cy=competence-match-status]').should('contain', 'Compatible');\n    cy.safeClick('[data-cy=confirm-assignment-button]');\n});\ncy.waitForApiResponse('updateBlocPlanning');\n// Vérifier la validation\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Affectation validée');\n// ÉTAPE 6: Visualisation du planning final\ncy.log('👁️ ÉTAPE 6: Visualisation du planning final');\ncy.get('[data-cy=bloc-planning-grid]').within(function () {\n    cy.get('[data-cy=validated-assignment]').should('have.length.at.least', 1);\n    cy.get('[data-cy=assignment-status-confirmed]').should('be.visible');\n});\n// Vérifier les détails de l'affectation\ncy.get('[data-cy=validated-assignment]').first().click();\ncy.waitForElement('[data-cy=assignment-details-modal]');\ncy.get('[data-cy=assignment-details-modal]').within(function () {\n    cy.get('[data-cy=surgeon-name]').should('be.visible');\n    cy.get('[data-cy=operation-type]').should('be.visible');\n    cy.get('[data-cy=estimated-duration]').should('be.visible');\n    cy.get('[data-cy=competence-status]').should('contain', 'Certifié');\n});\n// ÉTAPE 7: Export et partage\ncy.log('📤 ÉTAPE 7: Export et partage du planning');\ncy.get('[data-cy=export-planning-button]').click();\ncy.waitForElement('[data-cy=export-options-modal]');\ncy.get('[data-cy=export-options-modal]').within(function () {\n    cy.safeClick('[data-cy=export-format-pdf]');\n    cy.safeClick('[data-cy=export-button]');\n});\n// Vérifier l'export\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Planning exporté');",
+              "err": {
+                "message": "TypeError: cy.get(...).dragTo is not a function",
+                "estack": "TypeError: cy.get(...).dragTo is not a function\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/workflows/bloc-operatoire-workflow.spec.ts:95:32)\n    at runnable.fn (http://localhost:3000/__cypress/runner/cypress_runner.js:140440:19)\n    at callFn (http://localhost:3000/__cypress/runner/cypress_runner.js:159518:21)\n    at Runnable.run (http://localhost:3000/__cypress/runner/cypress_runner.js:159505:7)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:165577:30)\n    at PassThroughHandlerContext.finallyHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:4042:23)\n    at PassThroughHandlerContext.tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)",
+                "diff": null
+              },
+              "uuid": "dcd552eb-580e-4ff2-8019-e10009894f78",
+              "parentUUID": "2dcdaa5a-138c-45d2-9dc5-c98fccea826e",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "gère les conflits de planification",
+              "fullTitle": "Workflow Planning Bloc Opératoire gère les conflits de planification",
+              "timedOut": null,
+              "duration": 17939,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Test de gestion des conflits\ncy.log('⚠️ Test de gestion des conflits');\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', chirurgien.email);\ncy.safeType('[data-cy=password-input]', chirurgien.password);\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('login');\ncy.get('[data-cy=nav-bloc-operatoire]').click();\ncy.waitForApiResponse('operatingRooms');\n// Simuler un conflit (chirurgien déjà affecté)\ncy.intercept('POST', '**/api/bloc-operatoire/planning', {\n    statusCode: 409,\n    body: {\n        error: 'Conflit d\\'affectation',\n        conflicts: [{\n                type: 'surgeon_busy',\n                surgeonId: 'surgeon-1',\n                timeSlot: '08:00-12:00'\n            }]\n    }\n}).as('planningConflict');\n// Tenter une affectation conflictuelle\ncy.get('[data-cy=available-surgeons]').within(function () {\n    cy.get('[data-cy=surgeon-item]').first().dragTo('[data-cy=time-slot-morning]');\n});\ncy.waitForApiResponse('planningConflict');\n// Vérifier la détection du conflit\ncy.waitForElement('[data-cy=conflict-alert]');\ncy.get('[data-cy=conflict-alert]')\n    .should('be.visible')\n    .and('contain', 'Conflit d\\'affectation');\n// Proposer une résolution\ncy.get('[data-cy=resolve-conflict-button]').click();\ncy.waitForElement('[data-cy=conflict-resolution-modal]');\ncy.get('[data-cy=conflict-resolution-modal]').within(function () {\n    cy.get('[data-cy=conflict-description]').should('be.visible');\n    cy.get('[data-cy=alternative-suggestions]').should('be.visible');\n    // Sélectionner une alternative\n    cy.get('[data-cy=alternative-suggestion]').first().click();\n    cy.safeClick('[data-cy=apply-alternative-button]');\n});\n// Vérifier la résolution\ncy.waitForElement('[data-cy=notification-success]');\ncy.get('[data-cy=notification-success]')\n    .should('be.visible')\n    .and('contain', 'Conflit résolu');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 15000ms: expected '<button.w-full.rounded-md.bg-blue-600.px-4.py-2.text-white.hover:bg-blue-700.focus:outline-none.focus:ring-2.focus:ring-blue-500.focus:ring-offset-2.disabled:opacity-50.disabled:cursor-not-allowed.transition-colors>' not to be 'disabled'",
+                "estack": "AssertionError: Timed out retrying after 15000ms: expected '<button.w-full.rounded-md.bg-blue-600.px-4.py-2.text-white.hover:bg-blue-700.focus:outline-none.focus:ring-2.focus:ring-blue-500.focus:ring-offset-2.disabled:opacity-50.disabled:cursor-not-allowed.transition-colors>' not to be 'disabled'\n    at Context.eval (webpack://mathildanesth/./cypress/support/e2e.ts:120:40)\n    at wrapped (http://localhost:3000/__cypress/runner/cypress_runner.js:140165:43)",
+                "diff": null
+              },
+              "uuid": "f3abbda5-8932-4a08-849d-699ce59cd6df",
+              "parentUUID": "2dcdaa5a-138c-45d2-9dc5-c98fccea826e",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "optimise les performances du planning bloc",
+              "fullTitle": "Workflow Planning Bloc Opératoire optimise les performances du planning bloc",
+              "timedOut": null,
+              "duration": 10133,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Test de performance pour planning bloc\ncy.log('⚡ Test de performance planning bloc');\nvar startTime = performance.now();\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', chirurgien.email);\ncy.safeType('[data-cy=password-input]', chirurgien.password);\ncy.safeClick('[data-cy=submit-button]');\ncy.waitForApiResponse('login');\n// Mesurer le chargement du module bloc\nvar blocLoadStart = performance.now();\ncy.get('[data-cy=nav-bloc-operatoire]').click();\ncy.waitForApiResponse('operatingRooms').then(function () {\n    var blocLoadTime = performance.now() - blocLoadStart;\n    cy.task('logPerformance', {\n        type: 'bloc-workflow',\n        name: 'bloc-module-load',\n        duration: blocLoadTime,\n        timestamp: Date.now(),\n        status: blocLoadTime < 2000 ? 'PASS' : 'SLOW'\n    });\n    expect(blocLoadTime).to.be.lessThan(2000);\n});\n// Test de performance drag and drop\nvar dragDropStart = performance.now();\ncy.get('[data-cy=available-surgeons]').within(function () {\n    cy.get('[data-cy=surgeon-item]').first().dragTo('[data-cy=time-slot-morning]');\n});\ncy.window().then(function () {\n    var dragDropTime = performance.now() - dragDropStart;\n    cy.task('logPerformance', {\n        type: 'bloc-workflow',\n        name: 'drag-drop-assignment',\n        duration: dragDropTime,\n        timestamp: Date.now(),\n        status: dragDropTime < 500 ? 'PASS' : 'SLOW'\n    });\n    // Drag and drop doit être instantané (< 500ms)\n    expect(dragDropTime).to.be.lessThan(500);\n});",
+              "err": {
+                "message": "CypressError: `cy.request()` timed out waiting `10000ms` for a response from your server.\n\nThe request we sent was:\n\nMethod: GET\nURL: http://localhost:3000/__coverage__\n\nNo response was received within the timeout.\n\nhttps://on.cypress.io/request\n\nBecause this error occurred during a `after all` hook we are skipping all of the remaining tests.\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail",
+                "estack": "CypressError: `cy.request()` timed out waiting `10000ms` for a response from your server.\n\nThe request we sent was:\n\nMethod: GET\nURL: http://localhost:3000/__coverage__\n\nNo response was received within the timeout.\n\nhttps://on.cypress.io/request\n\nBecause this error occurred during a `after all` hook we are skipping all of the remaining tests.\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:135014:70)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:4156:41)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)",
+                "diff": null
+              },
+              "uuid": "baf61053-0641-455f-91fd-dc9e588f853c",
+              "parentUUID": "2dcdaa5a-138c-45d2-9dc5-c98fccea826e",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "dcd552eb-580e-4ff2-8019-e10009894f78",
+            "f3abbda5-8932-4a08-849d-699ce59cd6df",
+            "baf61053-0641-455f-91fd-dc9e588f853c"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 28362,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

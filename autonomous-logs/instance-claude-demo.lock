@@ -1,0 +1,10 @@
+{
+  "instanceId": "claude-demo",
+  "pid": 90068,
+  "startTime": "2025-05-31T07:01:22.338Z",
+  "status": "STARTING",
+  "phase": "ANALYSIS_COMPLETE",
+  "problemsFound": 0,
+  "analysisTime": 37,
+  "lastUpdate": "2025-05-31T07:01:59.823Z"
+}

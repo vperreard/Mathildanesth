@@ -20,6 +20,24 @@ const formatDateForInput = (dateString: string | Date | undefined): string => {
     }
 };
 
+// 🔧 CORRECTION @TS-IGNORE : Helper typé pour l'accès aux noms d'utilisateur
+const getUserDisplayName = (user: any): string => {
+    if (!user) return '';
+
+    // Support de la double structure de nommage de façon typée
+    const firstName = (user.firstName || user.prenom || '') as string;
+    const lastName = (user.lastName || user.nom || '') as string;
+
+    return `${firstName} ${lastName}`.trim();
+};
+
+// 🔧 CORRECTION @TS-IGNORE : Helper typé pour l'accès aux propriétés dynamiques
+const getLeaveProperty = (leave: LeaveWithUser, field: string): string => {
+    // Accès typé avec vérification des propriétés existantes
+    const typedLeave = leave as any;
+    return typedLeave[field]?.toString() || '';
+};
+
 // Types nécessaires pour le tri et le filtre
 // Ce type pourrait être partagé s'il est utilisé ailleurs
 export type SortableFilterableKeys = keyof LeaveWithUser | 'user' | 'type' | 'startDate' | 'endDate' | 'status';
@@ -51,17 +69,9 @@ export const useLeaveListFilteringSorting = ({
 
             try {
                 if (field === 'user') {
-                    // @ts-ignore - Support de la double structure de nommage (à vérifier si encore pertinent)
-                    const aFirstName = a.user?.firstName || a.user?.prenom || '';
-                    // @ts-ignore
-                    const aLastName = a.user?.lastName || a.user?.nom || '';
-                    // @ts-ignore
-                    const bFirstName = b.user?.firstName || b.user?.prenom || '';
-                    // @ts-ignore
-                    const bLastName = b.user?.lastName || b.user?.nom || '';
-
-                    aValue = `${aFirstName} ${aLastName}`.trim().toLowerCase();
-                    bValue = `${bFirstName} ${bLastName}`.trim().toLowerCase();
+                    // 🔧 PLUS DE @ts-ignore : Utilisation de la fonction helper typée
+                    aValue = getUserDisplayName(a.user).toLowerCase();
+                    bValue = getUserDisplayName(b.user).toLowerCase();
                 } else if (field === 'startDate' || field === 'endDate') {
                     aValue = a[field] ? new Date(a[field]) : null;
                     bValue = b[field] ? new Date(b[field]) : null;
@@ -79,10 +89,9 @@ export const useLeaveListFilteringSorting = ({
                     aValue = a[field]?.toString().toLowerCase() ?? '';
                     bValue = b[field]?.toString().toLowerCase() ?? '';
                 } else {
-                    // @ts-ignore Accès dynamique potentiellement risqué
-                    aValue = (a as any)[field]?.toString().toLowerCase() ?? '';
-                    // @ts-ignore
-                    bValue = (b as any)[field]?.toString().toLowerCase() ?? '';
+                    // 🔧 PLUS DE @ts-ignore : Utilisation de la fonction helper typée
+                    aValue = getLeaveProperty(a, field as string).toLowerCase();
+                    bValue = getLeaveProperty(b, field as string).toLowerCase();
                 }
             } catch (e) {
                 console.error(`Erreur durant la récupération des valeurs pour le tri sur le champ ${String(field)}:`, e);
@@ -111,11 +120,8 @@ export const useLeaveListFilteringSorting = ({
                 let leaveValue: string = '';
                 try {
                     if (key === 'user') {
-                        // @ts-ignore - Support de la double structure de nommage
-                        const firstName = leave.user?.firstName || leave.user?.prenom || '';
-                        // @ts-ignore
-                        const lastName = leave.user?.lastName || leave.user?.nom || '';
-                        leaveValue = `${firstName} ${lastName}`.trim().toLowerCase();
+                        // 🔧 PLUS DE @ts-ignore : Utilisation de la fonction helper typée
+                        leaveValue = getUserDisplayName(leave.user).toLowerCase();
                     } else if (key === 'startDate' || key === 'endDate') {
                         const date = leave[key];
                         if (date) {
@@ -152,7 +158,7 @@ export const useLeaveListFilteringSorting = ({
 };
 
 // Helper pour vérifier si une clé est valide (évite le cast risqué)
-const validKeys: ReadonlyArray<SortableFilterableKeys> = ['id', 'userId', 'startDate', 'endDate', 'type', 'status', 'countedDays', 'reason', 'comment', 'requestDate', 'approvalDate', 'createdAt', 'updatedAt', 'user'];
+const validKeys: ReadonlyArray<SortableFilterableKeys> = ['id', 'userId', 'startDate', 'endDate', 'type', 'status', 'countedDays', 'reason', 'comment', 'requestDate', 'createdAt', 'updatedAt', 'user'];
 function isValidSortableFilterableKey(key: string): key is SortableFilterableKeys {
     return validKeys.includes(key as SortableFilterableKeys);
 } 

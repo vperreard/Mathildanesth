@@ -1,0 +1,173 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 0,
+    "pending": 0,
+    "failures": 2,
+    "start": "2025-06-01T07:22:02.122Z",
+    "end": "2025-06-01T07:22:11.123Z",
+    "duration": 9001,
+    "testsRegistered": 4,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 1,
+    "hasOther": true,
+    "skipped": 2,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "efa6e534-f5ec-4845-8770-c1e11622a33b",
+      "title": "",
+      "fullFile": "cypress/e2e/performance/real-user-monitoring.spec.ts",
+      "file": "cypress/e2e/performance/real-user-monitoring.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "6c59a409-dcb9-4adc-8344-bc0d3637b7df",
+          "title": "Real User Monitoring (RUM)",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "mesure l'expérience réelle d'un médecin utilisateur",
+              "fullTitle": "Real User Monitoring (RUM) mesure l'expérience réelle d'un médecin utilisateur",
+              "timedOut": null,
+              "duration": 113,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('👨‍⚕️ Simulation d\\'un médecin réel');\nvar realUserScenario = {\n    role: 'MAR', // Médecin Anésthésiste Réanimateur\n    urgency: 'normal',\n    sessionType: 'daily_planning_check'\n};\n// ÉTAPE 1: Arrivée sur l'application (matin 7h30)\nvar sessionStartTime = performance.now();\ncy.visit('/auth/connexion');\n// Simuler le comportement humain réel (hésitation, lecture)\ncy.wait(800); // Temps de lecture de l'écran\ncy.waitForPageLoad();\n// Mesurer Time to Interactive\ncy.get('[data-cy=email-input]').should('be.visible').then(function () {\n    var timeToInteractive = performance.now() - sessionStartTime;\n    cy.task('logRUMMetric', {\n        metric: 'time_to_interactive',\n        value: timeToInteractive,\n        userContext: realUserScenario,\n        threshold: RUM_THRESHOLDS.timeToInteractive,\n        status: timeToInteractive < RUM_THRESHOLDS.timeToInteractive ? 'EXCELLENT' : 'POOR',\n        timestamp: Date.now()\n    });\n    expect(timeToInteractive).to.be.lessThan(RUM_THRESHOLDS.timeToInteractive);\n});\n// ÉTAPE 2: Connexion (comportement réel avec possibles erreurs)\nvar loginStartTime = performance.now();\n// Simuler une erreur de frappe réaliste\ncy.safeType('[data-cy=email-input]', 'medecin@exmaple.com'); // Typo volontaire\ncy.wait(500); // Temps de réflexion\ncy.get('[data-cy=email-input]').clear();\ncy.safeType('[data-cy=email-input]', 'medecin@example.com'); // Correction\n// Mot de passe avec hésitation\ncy.safeType('[data-cy=password-input]', 'Test');\ncy.wait(300);\ncy.safeType('[data-cy=password-input]', '123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url({ timeout: 10000 }).should('include', '/tableau-de-bord').then(function () {\n    var loginDuration = performance.now() - loginStartTime;\n    userSession.completedTasks.push({\n        task: 'authentication',\n        duration: loginDuration,\n        timestamp: Date.now()\n    });\n    cy.task('logRUMMetric', {\n        metric: 'task_completion_login',\n        value: loginDuration,\n        userBehavior: 'realistic_with_correction',\n        threshold: RUM_THRESHOLDS.formSubmission,\n        status: loginDuration < RUM_THRESHOLDS.formSubmission ? 'SMOOTH' : 'FRUSTRATING',\n        timestamp: Date.now()\n    });\n});\n// ÉTAPE 3: Consultation planning (tâche critique quotidienne)\ncy.log('📅 Vérification du planning du jour');\nvar planningCheckStart = performance.now();\ncy.get('[data-cy=nav-planning]').click();\ncy.url().should('include', '/planning');\n// Simuler la lecture du planning (balayage visuel)\ncy.get('[data-cy=planning-grid]').should('be.visible');\ncy.wait(2000); // Temps de lecture réaliste\n// Vérifier une affectation spécifique\ncy.get('[data-cy=today-assignments]').should('be.visible').then(function () {\n    var planningCheckDuration = performance.now() - planningCheckStart;\n    userSession.completedTasks.push({\n        task: 'daily_planning_check',\n        duration: planningCheckDuration,\n        timestamp: Date.now()\n    });\n    cy.task('logRUMMetric', {\n        metric: 'critical_data_access',\n        value: planningCheckDuration,\n        taskType: 'daily_planning_review',\n        threshold: RUM_THRESHOLDS.criticalDataLoad,\n        userSatisfaction: planningCheckDuration < 3000 ? 'high' : 'low',\n        timestamp: Date.now()\n    });\n});\n// ÉTAPE 4: Recherche d'information (comportement exploratoire)\ncy.log('🔍 Recherche d\\'informations spécifiques');\nvar searchStartTime = performance.now();\n// Simuler une recherche réaliste\ncy.get('[data-cy=search-input]').should('be.visible');\ncy.safeType('[data-cy=search-input]', 'garde');\ncy.wait(300); // Pause réaliste\ncy.safeType('[data-cy=search-input]', ' nuit');\ncy.get('[data-cy=search-results]').should('be.visible').then(function () {\n    var searchDuration = performance.now() - searchStartTime;\n    cy.task('logRUMMetric', {\n        metric: 'search_response_time',\n        value: searchDuration,\n        query: 'garde nuit',\n        resultCount: Cypress.$('[data-cy=search-result-item]').length,\n        threshold: RUM_THRESHOLDS.searchResponse,\n        timestamp: Date.now()\n    });\n    expect(searchDuration).to.be.lessThan(RUM_THRESHOLDS.searchResponse);\n});",
+              "err": {
+                "message": "AssertionError: expected NaN to be below 0.01\n\nBecause this error occurred during a `after each` hook we are skipping the remaining tests in the current suite: `Real User Monitoring (RUM)`",
+                "estack": "AssertionError: expected NaN to be below 0.01\n\nBecause this error occurred during a `after each` hook we are skipping the remaining tests in the current suite: `Real User Monitoring (RUM)`\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/performance/real-user-monitoring.spec.ts:450:32)",
+                "diff": null
+              },
+              "uuid": "c56b5f27-f789-440e-84e4-67824cb83558",
+              "parentUUID": "6c59a409-dcb9-4adc-8344-bc0d3637b7df",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "simule une situation d'urgence médicale",
+              "fullTitle": "Real User Monitoring (RUM) simule une situation d'urgence médicale",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('🚨 Simulation urgence médicale - temps de réponse critique');\nvar emergencyScenario = {\n    type: 'urgence_bloc',\n    severity: 'high',\n    responseRequired: 'immediate'\n};\n// Connexion rapide en situation d'urgence\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\nvar emergencyResponseStart = performance.now();\n// Connexion ultra-rapide (utilisateur stressé/urgent)\ncy.safeType('[data-cy=email-input]', 'urgence@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url({ timeout: 5000 }).should('include', '/tableau-de-bord');\n// Accès immédiat au bloc opératoire\ncy.get('[data-cy=nav-bloc-operatoire]').click();\ncy.url().should('include', '/bloc-operatoire');\n// Gestion de l'urgence\ncy.get('[data-cy=emergency-button]').click();\ncy.waitForElement('[data-cy=emergency-panel]');\ncy.get('[data-cy=emergency-panel]').within(function () {\n    cy.get('[data-cy=urgence-salle-1]').click();\n    cy.safeClick('[data-cy=assign-emergency-team]');\n});\ncy.waitForElement('[data-cy=emergency-confirmed]').then(function () {\n    var emergencyResponseTime = performance.now() - emergencyResponseStart;\n    cy.task('logRUMMetric', {\n        metric: 'emergency_response_time',\n        value: emergencyResponseTime,\n        scenario: emergencyScenario,\n        threshold: RUM_THRESHOLDS.emergencyResponse * 10, // 5s pour urgence complète\n        criticality: 'life_threatening',\n        status: emergencyResponseTime < 5000 ? 'ACCEPTABLE' : 'CRITICAL_DELAY',\n        timestamp: Date.now()\n    });\n    // En urgence, réponse doit être < 5s\n    expect(emergencyResponseTime).to.be.lessThan(5000);\n});\nuserSession.completedTasks.push({\n    task: 'emergency_response',\n    duration: performance.now() - emergencyResponseStart,\n    criticality: 'high',\n    timestamp: Date.now()\n});",
+              "err": {},
+              "uuid": "7dbeb7a7-3b4f-48c7-bd2c-4a22bf3887df",
+              "parentUUID": "6c59a409-dcb9-4adc-8344-bc0d3637b7df",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "mesure la frustration utilisateur et les abandons",
+              "fullTitle": "Real User Monitoring (RUM) mesure la frustration utilisateur et les abandons",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('😡 Mesure de la frustration utilisateur');\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\n// Simuler des tentatives de connexion échouées (frustration réelle)\nvar frustrationScenario = {\n    attempts: 0,\n    maxAttempts: 3,\n    frustrationType: 'authentication_failure'\n};\n// Tentative 1: mot de passe incorrect\nfrustrationScenario.attempts++;\nvar attempt1Start = performance.now();\ncy.safeType('[data-cy=email-input]', 'user@example.com');\ncy.safeType('[data-cy=password-input]', 'WrongPassword!');\ncy.safeClick('[data-cy=submit-button]');\n// Vérifier l'affichage d'erreur\ncy.get('[data-cy=error-message]', { timeout: 5000 }).should('be.visible').then(function () {\n    var attempt1Duration = performance.now() - attempt1Start;\n    userSession.errors.push({\n        type: 'authentication_failure',\n        attempt: frustrationScenario.attempts,\n        duration: attempt1Duration,\n        timestamp: Date.now()\n    });\n    cy.task('logRUMMetric', {\n        metric: 'user_frustration_event',\n        event: 'failed_login_attempt',\n        attemptNumber: frustrationScenario.attempts,\n        duration: attempt1Duration,\n        emotionalImpact: 'mild_frustration',\n        timestamp: Date.now()\n    });\n});\n// Tentative 2: encore échouée (frustration croissante)\ncy.get('[data-cy=password-input]').clear();\ncy.wait(1000); // Pause de réflexion (frustration)\nfrustrationScenario.attempts++;\nvar attempt2Start = performance.now();\ncy.safeType('[data-cy=password-input]', 'AnotherWrongPassword!');\ncy.safeClick('[data-cy=submit-button]');\ncy.get('[data-cy=error-message]', { timeout: 5000 }).should('be.visible').then(function () {\n    var attempt2Duration = performance.now() - attempt2Start;\n    cy.task('logRUMMetric', {\n        metric: 'user_frustration_event',\n        event: 'repeated_failure',\n        attemptNumber: frustrationScenario.attempts,\n        duration: attempt2Duration,\n        emotionalImpact: 'high_frustration',\n        abandonmentRisk: 'elevated',\n        timestamp: Date.now()\n    });\n});\n// Tentative 3: succès (soulagement)\ncy.get('[data-cy=password-input]').clear();\ncy.wait(2000); // Pause plus longue (utilisateur stressé)\nfrustrationScenario.attempts++;\nvar attempt3Start = performance.now();\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url({ timeout: 10000 }).should('include', '/tableau-de-bord').then(function () {\n    var attempt3Duration = performance.now() - attempt3Start;\n    var totalAuthDuration = performance.now() - attempt1Start;\n    userSession.completedTasks.push({\n        task: 'authentication_after_failures',\n        totalDuration: totalAuthDuration,\n        attempts: frustrationScenario.attempts,\n        userExperience: 'negative_then_relief',\n        timestamp: Date.now()\n    });\n    cy.task('logRUMMetric', {\n        metric: 'task_completion_with_friction',\n        task: 'authentication',\n        totalDuration: totalAuthDuration,\n        attempts: frustrationScenario.attempts,\n        finalOutcome: 'success',\n        userSatisfaction: 'low_due_to_friction',\n        abandonmentPrevented: true,\n        timestamp: Date.now()\n    });\n});",
+              "err": {},
+              "uuid": "ff73f5f8-db3b-4f3e-af12-8a614c7a1449",
+              "parentUUID": "6c59a409-dcb9-4adc-8344-bc0d3637b7df",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "mesure l'engagement utilisateur à long terme",
+              "fullTitle": "Real User Monitoring (RUM) mesure l'engagement utilisateur à long terme",
+              "timedOut": null,
+              "duration": 131,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.log('🔄 Mesure d\\'engagement à long terme');\nvar engagementSession = {\n    startTime: performance.now(),\n    pagesVisited: 0,\n    timeSpentPerPage: [],\n    interactionDepth: 0\n};\ncy.visit('/auth/connexion');\ncy.waitForPageLoad();\ncy.safeType('[data-cy=email-input]', 'user@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\ncy.url().should('include', '/tableau-de-bord');\n// Parcours d'engagement réaliste\nvar pages = [\n    { nav: '[data-cy=nav-planning]', url: '/planning', expectedTime: 30000 },\n    { nav: '[data-cy=nav-conges]', url: '/conges', expectedTime: 20000 },\n    { nav: '[data-cy=nav-parametres]', url: '/parametres', expectedTime: 15000 }\n];\npages.forEach(function (page, index) {\n    var pageStartTime = performance.now();\n    cy.get(page.nav).click();\n    cy.url().should('include', page.url);\n    engagementSession.pagesVisited++;\n    // Simuler un engagement réaliste sur la page\n    cy.wait(Math.min(page.expectedTime / 10, 3000)); // Version accélérée pour les tests\n    var pageTime = performance.now() - pageStartTime;\n    engagementSession.timeSpentPerPage.push(pageTime);\n    // Interaction sur la page\n    cy.get('body').click(100, 100); // Clic d'exploration\n    cy.wait(500);\n    cy.get('body').click(200, 200); // Autre interaction\n    engagementSession.interactionDepth += 2;\n    cy.task('logRUMMetric', {\n        metric: 'page_engagement',\n        page: page.url,\n        timeSpent: pageTime,\n        expectedTime: page.expectedTime,\n        engagementLevel: pageTime > page.expectedTime * 0.5 ? 'high' : 'low',\n        interactionCount: engagementSession.interactionDepth,\n        timestamp: Date.now()\n    });\n});\n// Calculer l'engagement global\ncy.wrap(null).then(function () {\n    var totalSessionTime = performance.now() - engagementSession.startTime;\n    var averagePageTime = engagementSession.timeSpentPerPage.reduce(function (a, b) { return a + b; }, 0) / engagementSession.timeSpentPerPage.length;\n    cy.task('logRUMMetric', {\n        metric: 'session_engagement_summary',\n        totalDuration: totalSessionTime,\n        pagesVisited: engagementSession.pagesVisited,\n        averagePageTime: averagePageTime,\n        totalInteractions: engagementSession.interactionDepth,\n        engagementScore: (engagementSession.interactionDepth / totalSessionTime) * 1000,\n        userType: 'engaged_professional',\n        timestamp: Date.now()\n    });\n    // Vérifier que l'utilisateur est resté engagé\n    expect(totalSessionTime).to.be.greaterThan(RUM_THRESHOLDS.userEngagement);\n});",
+              "err": {
+                "message": "CypressError: `cy.task('generateRUMReport')` failed with the following error:\n\nThe task 'generateRUMReport' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after all` hook we are skipping the remaining tests in the current suite: `Real User Monitoring (RUM)`\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail",
+                "estack": "CypressError: `cy.task('generateRUMReport')` failed with the following error:\n\nThe task 'generateRUMReport' was not handled in the setupNodeEvents method. The following tasks are registered: resetCoverage, combineCoverage, coverageReport, resetTestDatabase, seedTestData, checkUserExists, logPerformance\n\nFix this in your setupNodeEvents method here:\n/Users/vincentperreard/Mathildanesth/cypress.config.js\n\nhttps://on.cypress.io/api/task\n\nBecause this error occurred during a `after all` hook we are skipping the remaining tests in the current suite: `Real User Monitoring (RUM)`\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail\n    at <unknown> (http://localhost:3000/__cypress/runner/cypress_runner.js:137237:72)\n    at tryCatcher (http://localhost:3000/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3000/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3000/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3000/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3000/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3000/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3000/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3000/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/performance/real-user-monitoring.spec.ts:456:11)",
+                "diff": null
+              },
+              "uuid": "15333fc1-141f-44d0-a08c-0103d657db77",
+              "parentUUID": "6c59a409-dcb9-4adc-8344-bc0d3637b7df",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "c56b5f27-f789-440e-84e4-67824cb83558",
+            "15333fc1-141f-44d0-a08c-0103d657db77"
+          ],
+          "pending": [],
+          "skipped": [
+            "7dbeb7a7-3b4f-48c7-bd2c-4a22bf3887df",
+            "ff73f5f8-db3b-4f3e-af12-8a614c7a1449"
+          ],
+          "duration": 244,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

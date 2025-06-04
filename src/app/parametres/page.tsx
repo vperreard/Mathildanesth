@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import { Bell, Lock, User, Moon, Sun, Globe, Shield, Settings } from 'lucide-react';
+import { Bell, Lock, User, Moon, Sun, Globe, Shield, Settings, Clock } from 'lucide-react';
 import Link from 'next/link';
 import AppearanceSettings from '@/components/AppearanceSettings';
 import { useTheme } from '@/context/ThemeContext';
@@ -98,9 +98,9 @@ export default function ParametresPage() {
                                             >
                                                 <span className="absolute inset-0 flex h-full w-full items-center justify-center transition-opacity">
                                                     {theme === 'dark' ? (
-                                                        <Moon className="h-3 w-3 text-primary-500" />
+                                                        <Moon className="h-5 w-5 text-primary-500" />
                                                     ) : (
-                                                        <Sun className="h-3 w-3 text-gray-400" />
+                                                        <Sun className="h-5 w-5 text-gray-400" />
                                                     )}
                                                 </span>
                                             </span>
@@ -114,7 +114,7 @@ export default function ParametresPage() {
                                         <button className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 bg-primary-500">
                                             <span className="translate-x-5 pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out">
                                                 <span className="opacity-0 ease-out duration-100 absolute inset-0 flex h-full w-full items-center justify-center transition-opacity">
-                                                    <Bell className="h-3 w-3 text-primary-500" />
+                                                    <Bell className="h-5 w-5 text-primary-500" />
                                                 </span>
                                             </span>
                                         </button>
@@ -163,10 +163,16 @@ export default function ParametresPage() {
                         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-soft p-6">
                             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Panneau de Configuration</h2>
                             <p className="text-gray-600 dark:text-gray-300 mb-6">Accédez à toutes les configurations du système.</p>
-                            <Link href="/parametres/configuration" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                                <Settings className="h-4 w-4 mr-2" />
-                                Accéder au panneau de configuration
-                            </Link>
+                            <div className="flex flex-col space-y-3">
+                                <Link href="/parametres/configuration" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                    <Settings className="h-4 w-4 mr-2" />
+                                    Accéder au panneau de configuration
+                                </Link>
+                                <Link href="/parametres/trameModeles" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-secondary-600 hover:bg-secondary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500">
+                                    <Clock className="h-4 w-4 mr-2" />
+                                    Gestion des trameModeles
+                                </Link>
+                            </div>
                         </div>
                     </motion.div>
                 );
@@ -193,8 +199,8 @@ export default function ParametresPage() {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeTab === tab.id
-                                        ? 'bg-primary-500/10 text-primary-500 dark:bg-primary-500/20 dark:text-primary-500'
-                                        : 'text-gray-600 dark:text-gray-300 hover:bg-primary-500/5 hover:text-primary-500 dark:hover:bg-primary-500/10 dark:hover:text-primary-500 transition-colors'
+                                    ? 'bg-primary-500/10 text-primary-500 dark:bg-primary-500/20 dark:text-primary-500'
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-primary-500/5 hover:text-primary-500 dark:hover:bg-primary-500/10 dark:hover:text-primary-500 transition-colors'
                                     }`}
                             >
                                 <tab.icon className="w-5 h-5" />

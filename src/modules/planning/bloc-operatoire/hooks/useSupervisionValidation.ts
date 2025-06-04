@@ -33,19 +33,19 @@ export const useSupervisionValidation = () => {
     const [error, setError] = useState<string | null>(null);
 
     /**
-     * Extrait les assignations de supervision à partir des assignments
-     * @param assignments Assignations d'opérations
+     * Extrait les assignations de supervision à partir des attributions
+     * @param attributions Assignations d'opérations
      * @returns Map des docteurs avec leurs salles supervisées
      */
-    const extractSupervisorAssignments = (assignments: OperatingAssignment[]): Map<string, SupervisionAssignment> => {
+    const extractSupervisorAssignments = (attributions: OperatingAssignment[]): Map<string, SupervisionAssignment> => {
         const supervisorMap = new Map<string, SupervisionAssignment>();
 
-        assignments.forEach(assignment => {
+        attributions.forEach(attribution => {
             // Si pas de chirurgien assigné, ignorer
-            if (!assignment.chirurgienId) return;
+            if (!attribution.chirurgienId) return;
 
-            const doctorId = assignment.chirurgienId;
-            const roomId = assignment.salleId;
+            const doctorId = attribution.chirurgienId;
+            const roomId = attribution.salleId;
 
             // Récupérer la salle pour connaître son secteur
             const room = operatingRoomService.getById(roomId);
@@ -75,8 +75,8 @@ export const useSupervisionValidation = () => {
     const checkMaxRoomsConstraint = (supervisorMap: Map<string, SupervisionAssignment>): ValidationResult['violations'] => {
         const violations: ValidationResult['violations'] = [];
 
-        supervisorMap.forEach((assignment) => {
-            const { doctorId, roomIds, sectorIds } = assignment;
+        supervisorMap.forEach((attribution) => {
+            const { doctorId, roomIds, sectorIds } = attribution;
 
             // Calculer le nombre max de salles autorisées pour ce médecin
             const maxRooms = supervisionRulesService.getMaxRoomsForDoctor(Array.from(sectorIds));
@@ -102,8 +102,8 @@ export const useSupervisionValidation = () => {
     const checkSectorCompatibility = (supervisorMap: Map<string, SupervisionAssignment>): ValidationResult['violations'] => {
         const violations: ValidationResult['violations'] = [];
 
-        supervisorMap.forEach((assignment) => {
-            const { doctorId, sectorIds } = assignment;
+        supervisorMap.forEach((attribution) => {
+            const { doctorId, sectorIds } = attribution;
 
             // Pour chaque paire de secteurs, vérifier leur compatibilité
             const sectorsArray = Array.from(sectorIds);
@@ -118,7 +118,7 @@ export const useSupervisionValidation = () => {
                             type: 'INCOMPATIBLE_SECTORS',
                             message: `Le MAR ${doctorId} supervise des secteurs incompatibles`,
                             doctorId,
-                            roomIds: assignment.roomIds
+                            roomIds: attribution.roomIds
                         });
 
                         // On ne continue pas à vérifier d'autres paires pour ce médecin
@@ -143,8 +143,8 @@ export const useSupervisionValidation = () => {
 
         const violations: ValidationResult['violations'] = [];
 
-        supervisorMap.forEach((assignment) => {
-            const { doctorId, roomIds, sectorIds } = assignment;
+        supervisorMap.forEach((attribution) => {
+            const { doctorId, roomIds, sectorIds } = attribution;
 
             // Vérifier si la contiguïté est requise pour les secteurs supervisés
             const requiresContiguity = Array.from(sectorIds).some(sectorId => {
@@ -188,15 +188,15 @@ export const useSupervisionValidation = () => {
 
     /**
      * Valide les assignations par rapport aux règles de supervision
-     * @param assignments Assignations à valider
+     * @param attributions Assignations à valider
      * @returns Résultat de la validation
      */
-    const validateAssignments = useCallback((assignments: OperatingAssignment[]): ValidationResult => {
+    const validateAssignments = useCallback((attributions: OperatingAssignment[]): ValidationResult => {
         setLoading(true);
         setError(null);
 
         try {
-            const supervisorMap = extractSupervisorAssignments(assignments);
+            const supervisorMap = extractSupervisorAssignments(attributions);
 
             // Vérifier les différentes contraintes
             const maxRoomsViolations = checkMaxRoomsConstraint(supervisorMap);
@@ -214,10 +214,10 @@ export const useSupervisionValidation = () => {
             const warnings = [];
 
             // Vérifier s'il y a des médecins avec beaucoup de salles
-            supervisorMap.forEach((assignment, doctorId) => {
-                if (assignment.roomIds.length >= 3) {
+            supervisorMap.forEach((attribution, doctorId) => {
+                if (attribution.roomIds.length >= 3) {
                     warnings.push({
-                        message: `Le MAR ${doctorId} supervise ${assignment.roomIds.length} salles`,
+                        message: `Le MAR ${doctorId} supervise ${attribution.roomIds.length} salles`,
                         doctorId,
                         details: `Charge de travail élevée`
                     });

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle, Ref } from 'react';
 // Importer les TYPES depuis /types/user
 import {
-    User, UserFormData, DayOfWeek,
+    User, UserFormData, Weekday,
     Role as RoleType, // Renommer pour éviter conflit
     ProfessionalRole as ProfessionalRoleType, // Renommer
     WorkPatternType, WeekType
@@ -15,6 +15,16 @@ import { Skill } from '@/types/skill'; // Importer Skill
 import { UserSkill } from '@/types/userSkill'; // Importer UserSkill
 import { Checkbox } from '@/components/ui/checkbox'; // Pour les checkboxes de compétences
 import { Label } from '@/components/ui/label'; // Pour les labels des checkboxes
+import SiteSelector from '@/components/ui/SiteSelector'; // Pour la sélection des sites
+
+// Interface pour les sites
+interface Site {
+    id: string;
+    name: string;
+    description?: string;
+    colorCode?: string;
+    isActive: boolean;
+}
 
 // Interface interne pour l'état du formulaire
 interface UserFormState {
@@ -33,12 +43,12 @@ interface UserFormState {
     password?: string;
     workPattern: WorkPatternType;
     workOnMonthType: WeekType | null;
-    joursTravaillesSemainePaire: DayOfWeek[];
-    joursTravaillesSemaineImpaire: DayOfWeek[];
+    joursTravaillesSemainePaire: Weekday[];
+    joursTravaillesSemaineImpaire: Weekday[];
 }
 
 interface UserFormProps {
-    onSubmit: (data: UserFormData, selectedSkills?: string[]) => Promise<void>;
+    onSubmit: (data: UserFormData, selectedSkills?: string[], selectedSites?: Site[]) => Promise<void>;
     onCancel: () => void;
     initialData?: User | null;
     isLoading?: boolean;
@@ -46,6 +56,7 @@ interface UserFormProps {
     allSkills: Skill[];
     userSkills: UserSkill[];
     skillsLoading?: boolean;
+    userSites?: Site[]; // Sites actuels de l'utilisateur
 }
 
 // Helper formatDateForInput
@@ -73,7 +84,7 @@ const defaultInitialState: UserFormState = {
 };
 
 // Utiliser forwardRef pour passer la ref à l'élément form
-const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCancel, initialData, isLoading = false, canEditRole = false, allSkills, userSkills, skillsLoading = false }, ref) => {
+const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCancel, initialData, isLoading = false, canEditRole = false, allSkills, userSkills, skillsLoading = false, userSites = [] }, ref) => {
     const [formData, setFormData] = useState<UserFormState>(() => {
         if (initialData) {
             // Créer l'état initial à partir de initialData
@@ -102,6 +113,7 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [selectedSkillIds, setSelectedSkillIds] = useState<Set<string>>(new Set());
+    const [selectedSites, setSelectedSites] = useState<Site[]>(userSites || []);
 
     const isEditMode = !!initialData?.id;
 
@@ -137,13 +149,18 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
         }
         setSelectedSkillIds(initialSelectedSkills);
     }, [initialData, userSkills]);
+    
+    // Mettre à jour les sites sélectionnés quand userSites change
+    useEffect(() => {
+        setSelectedSites(userSites || []);
+    }, [userSites]);
 
     // Nouvelle fonction pour gérer les changements des checkboxes de jours
-    const handleDayChange = (day: DayOfWeek, weekType: 'pair' | 'impair', checked: boolean) => {
+    const handleDayChange = (day: Weekday, weekType: 'pair' | 'impair', checked: boolean) => {
         setFormData((prev) => {
             const field = weekType === 'pair' ? 'joursTravaillesSemainePaire' : 'joursTravaillesSemaineImpaire';
             const currentDays = prev[field];
-            let newDays: DayOfWeek[];
+            let newDays: Weekday[];
 
             if (checked) {
                 // Ajouter le jour s'il n'est pas déjà présent
@@ -264,9 +281,10 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
 
         console.log("Data to send (UserForm):", dataToSend);
         console.log("Selected skills (UserForm):", Array.from(selectedSkillIds));
+        console.log("Selected sites (UserForm):", selectedSites);
 
         try {
-            await onSubmit(dataToSend, Array.from(selectedSkillIds));
+            await onSubmit(dataToSend, Array.from(selectedSkillIds), selectedSites);
         } catch (err: any) {
             console.error("Form submission error:", err);
             setError(err.message || 'Une erreur est survenue lors de la soumission.');
@@ -396,6 +414,7 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700"
+                                data-testid="eye-icon"
                             >
                                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                             </button>
@@ -492,7 +511,7 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
                                     Jours travaillés (Semaines Paires)
                                 </label>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                    {Object.values(DayOfWeek).map((day) => (
+                                    {Object.values(Weekday).map((day) => (
                                         <div key={`pair-${day}`} className="flex items-center">
                                             <input
                                                 id={`day-pair-${day}`}
@@ -515,7 +534,7 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
                                     Jours travaillés (Semaines Impaires)
                                 </label>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                    {Object.values(DayOfWeek).map((day) => (
+                                    {Object.values(Weekday).map((day) => (
                                         <div key={`impair-${day}`} className="flex items-center">
                                             <input
                                                 id={`day-impair-${day}`}
@@ -597,6 +616,25 @@ const UserForm = forwardRef<HTMLFormElement, UserFormProps>(({ onSubmit, onCance
                         </div>
                     </div>
                 )}
+            </div>
+
+            {/* Section pour les sites d'affectation */}
+            <hr className="my-6" />
+
+            <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">Sites d'affectation</h3>
+            <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-500 mb-4">
+                    Sélectionnez les sites où cet utilisateur peut être affecté:
+                </p>
+                <SiteSelector
+                    selectedSites={selectedSites}
+                    onSitesChange={setSelectedSites}
+                    placeholder="Sélectionner les sites..."
+                    multiple={true}
+                    showDescription={true}
+                    disabled={!canEditRole || isLoading}
+                    className="w-full"
+                />
             </div>
 
             <div className="flex justify-end space-x-3 pt-6">

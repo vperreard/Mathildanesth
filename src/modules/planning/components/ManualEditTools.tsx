@@ -6,11 +6,11 @@ import { BlocRoomAssignment } from '@/modules/planning/bloc-operatoire/models/Bl
 import { User, Users, Pencil, CheckCircle, XCircle, AlertTriangle, Clock } from 'lucide-react';
 
 interface ManualEditToolsProps {
-    assignments: BlocRoomAssignment[];
+    attributions: BlocRoomAssignment[];
     rooms: Array<{ id: string; name: string; number: string; sectorId: string }>;
     surgeons: Array<{ id: string; name: string; specialty?: string }>;
-    onAssignmentChange: (assignment: BlocRoomAssignment, action: 'add' | 'update' | 'delete') => Promise<void>;
-    onValidateAssignment: (assignment: BlocRoomAssignment) => Promise<{
+    onAssignmentChange: (attribution: BlocRoomAssignment, action: 'add' | 'update' | 'delete') => Promise<void>;
+    onValidateAssignment: (attribution: BlocRoomAssignment) => Promise<{
         isValid: boolean;
         conflicts: Array<{
             type: string;
@@ -22,7 +22,7 @@ interface ManualEditToolsProps {
 }
 
 export default function ManualEditTools({
-    assignments,
+    attributions,
     rooms,
     surgeons,
     onAssignmentChange,
@@ -40,7 +40,7 @@ export default function ManualEditTools({
             severity: 'warning' | 'error';
         }>;
     } | null>(null);
-    const [activeTab, setActiveTab] = useState<'assignment' | 'validation'>('assignment');
+    const [activeTab, setActiveTab] = useState<'attribution' | 'validation'>('attribution');
 
     const handleAssignmentChange = async (action: 'add' | 'update' | 'delete') => {
         if (!selectedRoom || (action !== 'delete' && !selectedSurgeon)) return;
@@ -50,17 +50,17 @@ export default function ManualEditTools({
             const roomId = selectedRoom;
             const surgeonId = selectedSurgeon;
 
-            const assignment: BlocRoomAssignment = {
+            const attribution: BlocRoomAssignment = {
                 roomId,
                 surgeonId: surgeonId || undefined,
                 // Ces valeurs devraient être déjà définies pour les mises à jour/suppressions
                 // ou fournies par le parent pour les nouvelles affectations
-                ...assignments.find(a => a.roomId === roomId)
+                ...attributions.find(a => a.roomId === roomId)
             };
 
             // Vérifier la validité avant d'effectuer le changement
             if (action !== 'delete') {
-                const validation = await onValidateAssignment(assignment);
+                const validation = await onValidateAssignment(attribution);
                 setValidationResult(validation);
                 setActiveTab('validation');
 
@@ -69,7 +69,7 @@ export default function ManualEditTools({
                 }
             }
 
-            await onAssignmentChange(assignment, action);
+            await onAssignmentChange(attribution, action);
 
             // Réinitialiser après succès
             if (action === 'add' || action === 'delete') {
@@ -77,7 +77,7 @@ export default function ManualEditTools({
                 setSelectedSurgeon(null);
             }
             setValidationResult(null);
-            setActiveTab('assignment');
+            setActiveTab('attribution');
         } catch (error) {
             console.error('Erreur lors de la modification de l\'affectation:', error);
         } finally {
@@ -87,7 +87,7 @@ export default function ManualEditTools({
 
     const getCurrentAssignment = () => {
         if (!selectedRoom) return null;
-        return assignments.find(a => a.roomId === selectedRoom);
+        return attributions.find(a => a.roomId === selectedRoom);
     };
 
     const currentAssignment = getCurrentAssignment();
@@ -96,13 +96,13 @@ export default function ManualEditTools({
         <Card className="p-5">
             <h2 className="text-xl font-semibold mb-4">Outils d'édition manuelle</h2>
 
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'assignment' | 'validation')} className="w-full mb-4">
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'attribution' | 'validation')} className="w-full mb-4">
                 <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="assignment">Affectation</TabsTrigger>
+                    <TabsTrigger value="attribution">Affectation</TabsTrigger>
                     <TabsTrigger value="validation" disabled={!validationResult}>Validation</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="assignment" className="space-y-4 mt-4">
+                <TabsContent value="attribution" className="space-y-4 mt-4">
                     <div className="space-y-3">
                         <div>
                             <label className="block text-sm font-medium mb-1">Salle</label>
@@ -242,7 +242,7 @@ export default function ManualEditTools({
                                 <Button
                                     variant="outline"
                                     onClick={() => {
-                                        setActiveTab('assignment');
+                                        setActiveTab('attribution');
                                         setValidationResult(null);
                                     }}
                                 >

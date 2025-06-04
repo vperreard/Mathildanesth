@@ -115,10 +115,10 @@
       "import": "./runtime/react-native.js",
       "default": "./runtime/react-native.js"
     },
-    "./generator-build": {
-      "require": "./generator-build/index.js",
-      "import": "./generator-build/index.js",
-      "default": "./generator-build/index.js"
+    "./organisateur-build": {
+      "require": "./organisateur-build/index.js",
+      "import": "./organisateur-build/index.js",
+      "default": "./organisateur-build/index.js"
     },
     "./sql": {
       "require": {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DragDropAssignmentEditor } from './planning/hebdomadaire/components';
 import { Medecin, FatigueState } from '@/modules/rules/engine/fatigue-system';
-import { Assignment, RuleSeverity } from '@/types/assignment';
+import { Attribution, RuleSeverity } from '@/types/attribution';
 import { RuleEngine } from '@/modules/rules/engine/rule-engine';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -26,7 +26,7 @@ const generateDemoData = () => {
     endDate.setDate(endDate.getDate() + 6);
 
     // Générer des affectations fictives
-    const assignments: Assignment[] = [];
+    const attributions: Attribution[] = [];
 
     const assignmentTypes = ['GARDE', 'ASTREINTE', 'CONSULTATION', 'BLOC'];
     const shifts = ['matin', 'apresmidi', 'nuit', 'full'];
@@ -41,7 +41,7 @@ const generateDemoData = () => {
             const date = new Date(startDate);
             date.setDate(date.getDate() + Math.floor(Math.random() * 7));
 
-            assignments.push({
+            attributions.push({
                 id: uuidv4(),
                 userId: parseInt(medecin.id),
                 date,
@@ -56,7 +56,7 @@ const generateDemoData = () => {
         }
     });
 
-    return { medecins, startDate, endDate, assignments };
+    return { medecins, startDate, endDate, attributions };
 };
 
 // Mock du moteur de règles pour la démo
@@ -97,9 +97,9 @@ const createMockRuleEngine = () => {
                         const affectedAssignmentIds = [];
 
                         for (let j = 0; j < affectedCount; j++) {
-                            if (context.assignments.length > 0) {
-                                const randomIndex = Math.floor(Math.random() * context.assignments.length);
-                                affectedAssignmentIds.push(context.assignments[randomIndex].id);
+                            if (context.attributions.length > 0) {
+                                const randomIndex = Math.floor(Math.random() * context.attributions.length);
+                                affectedAssignmentIds.push(context.attributions[randomIndex].id);
                             }
                         }
 
@@ -135,23 +135,23 @@ export default function DragAndDropDemo() {
         medecins: Medecin[];
         startDate: Date;
         endDate: Date;
-        assignments: Assignment[];
+        attributions: Attribution[];
         ruleEngine: RuleEngine;
     } | null>(null);
 
     useEffect(() => {
         // Générer les données de démonstration
-        const { medecins, startDate, endDate, assignments } = generateDemoData();
+        const { medecins, startDate, endDate, attributions } = generateDemoData();
         const ruleEngine = createMockRuleEngine();
 
-        setDemoData({ medecins, startDate, endDate, assignments, ruleEngine });
+        setDemoData({ medecins, startDate, endDate, attributions, ruleEngine });
     }, []);
 
-    const handleAssignmentsChange = (newAssignments: Assignment[]) => {
+    const handleAssignmentsChange = (newAssignments: Attribution[]) => {
         if (demoData) {
             setDemoData({
                 ...demoData,
-                assignments: newAssignments
+                attributions: newAssignments
             });
         }
     };
@@ -170,7 +170,7 @@ export default function DragAndDropDemo() {
 
             <div className="bg-white shadow-md rounded-lg p-6">
                 <DragDropAssignmentEditor
-                    assignments={demoData.assignments}
+                    attributions={demoData.attributions}
                     medecins={demoData.medecins}
                     startDate={demoData.startDate}
                     endDate={demoData.endDate}

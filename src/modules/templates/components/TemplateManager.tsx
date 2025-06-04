@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { templateService, FullActivityType } from '../services/templateService';
-import { PlanningTemplate, RoleType, Site } from '../types/template';
+import { PlanningTemplate, RoleType } from '../types/template';
 import BlocPlanningTemplateEditor, { BlocPlanningTemplateEditorHandle } from './BlocPlanningTemplateEditor';
 import { useRouter, usePathname } from 'next/navigation';
 import { DndProvider } from 'react-dnd';
@@ -19,16 +19,56 @@ import { toast } from "react-toastify";
 import { Label } from "@/components/ui/label";
 import Input from "@/components/ui/input";
 import { toast as hotToast } from 'react-hot-toast';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useSession } from 'next-auth/react';
 import SimpleDropdownMenu from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+// Importer le modal de création de trameModele unifié
+import dynamic from 'next/dynamic';
+
+// Import dynamique du NewTrameModal pour éviter les problèmes SSR
+const NewTrameModal = dynamic(() => import('@/components/trames/grid-view/NewTrameModal'), { ssr: false });
+
+// Import du type TrameModele pour la conversion
+import type { TrameModele } from '@/components/trames/grid-view/TrameGridView';
 
 export interface TemplateManagerProps {
     initialTemplatesParam?: PlanningTemplate[]; // Renommé pour éviter confusion avec l'état
-    availableSitesParam: Site[];
+    availableSitesParam: any[]; // Correction du type pour éviter l'erreur d'import
     availableActivityTypesParam: FullActivityType[];
     availableRolesParam: RoleType[];
 }
+
+// Fonction de conversion PlanningTemplate vers TrameModele
+const convertPlanningTemplateToTrameModele = (modèle: PlanningTemplate): TrameModele => {
+    return {
+        id: modèle.id?.toString() || '',
+        name: modèle.nom || '',
+        description: modèle.description || '',
+        siteId: modèle.siteId || '', // Utiliser le vrai siteId au lieu de 'default'
+        weekType: modèle.typeSemaine === 'PAIRES' ? 'EVEN' :
+            modèle.typeSemaine === 'IMPAIRES' ? 'ODD' : 'ALL',
+        activeDays: modèle.joursSemaineActifs || [1, 2, 3, 4, 5],
+        effectiveStartDate: modèle.dateDebutEffet instanceof Date ? modèle.dateDebutEffet :
+            modèle.dateDebutEffet ? new Date(modèle.dateDebutEffet) : new Date(),
+        effectiveEndDate: modèle.dateFinEffet instanceof Date ? modèle.dateFinEffet :
+            modèle.dateFinEffet ? new Date(modèle.dateFinEffet) : undefined,
+        affectations: [] // Pour l'instant, on ne convertit pas les gardes/vacations complexes
+    };
+};
+
+// Fonction de conversion TrameModele vers PlanningTemplate
+const convertTrameModeleToPartialPlanningTemplate = (trameModele: TrameModele): Partial<PlanningTemplate> => {
+    return {
+        nom: trameModele.name,
+        description: trameModele.description,
+        typeSemaine: trameModele.weekType === 'EVEN' ? 'PAIRES' :
+            trameModele.weekType === 'ODD' ? 'IMPAIRES' : 'TOUTES',
+        joursSemaineActifs: trameModele.activeDays,
+        dateDebutEffet: trameModele.effectiveStartDate,
+        dateFinEffet: trameModele.effectiveEndDate
+    };
+};
 
 export const TemplateManager: React.FC<TemplateManagerProps> = ({
     initialTemplatesParam = [],
@@ -38,7 +78,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 }) => {
     console.log('[DEBUG TemplateManager] Component RENDERED with props');
     const { data: session } = useSession();
-    const [templates, setTemplates] = useState<PlanningTemplate[]>(initialTemplatesParam);
+    const [modèles, setTemplates] = useState<PlanningTemplate[]>(initialTemplatesParam);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
@@ -47,6 +87,15 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     const [availableTypes, setAvailableTypes] = useState<FullActivityType[]>(availableActivityTypesParam);
     const [isMuiChildModalOpen, setIsMuiChildModalOpen] = useState<boolean>(false);
     const [saveProcessCompleted, setSaveProcessCompleted] = useState<boolean>(false);
+
+    // Nouveaux états pour le modal unifié
+    const [isNewTrameModalOpen, setIsNewTrameModalOpen] = useState<boolean>(false);
+    const [sites, setSites] = useState<Array<{ id: string; name: string; }>>([]);
+
+    // États pour l'édition avec le nouveau modal
+    const [isEditTrameModalOpen, setIsEditTrameModalOpen] = useState<boolean>(false);
+    const [trameToEdit, setTrameToEdit] = useState<TrameModele | null>(null);
+
     const router = useRouter();
     const pathname = usePathname();
 
@@ -140,28 +189,39 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     }, []);
 
     const loadTemplates = useCallback(async () => {
+        console.log('🚀🚀🚀 [DEBUG TemplateManager] LOAD TEMPLATES CALLED!!!');
         setIsLoading(true);
         setError(null);
         try {
+            console.log('📡📡📡 [DEBUG TemplateManager] Loading modèles from templateService...');
             const fetchedTemplatesSource = await templateService.getTemplates();
+            console.log('📦📦📦 [DEBUG TemplateManager] Raw modèles from service:', fetchedTemplatesSource);
 
-            const sanitizedNewTemplates = fetchedTemplatesSource.map(template => ({
-                ...template,
-                affectations: Array.isArray(template.affectations) ? template.affectations : [],
-                variations: Array.isArray(template.variations) ? template.variations : [],
+            const sanitizedNewTemplates = fetchedTemplatesSource.map(modèle => ({
+                ...modèle,
+                affectations: Array.isArray(modèle.affectations) ? modèle.affectations: [],
+                variations: Array.isArray(modèle.variations) ? modèle.variations : [],
             }));
 
+            console.log('🧹🧹🧹 [DEBUG TemplateManager] Sanitized modèles:', sanitizedNewTemplates);
+
             setTemplates(prevTemplates => {
+                console.log('⚖️⚖️⚖️ [DEBUG TemplateManager] Previous modèles:', prevTemplates);
+                console.log('🆕🆕🆕 [DEBUG TemplateManager] New modèles:', sanitizedNewTemplates);
+
                 if (JSON.stringify(prevTemplates) !== JSON.stringify(sanitizedNewTemplates)) {
+                    console.log('🔄🔄🔄 [DEBUG TemplateManager] Modèles changed, updating state');
                     return sanitizedNewTemplates;
+                } else {
+                    console.log('🔒🔒🔒 [DEBUG TemplateManager] Modèles unchanged, keeping current state');
+                    return prevTemplates;
                 }
-                return prevTemplates;
             });
 
         } catch (err) {
-            console.error("Error fetching templates:", err);
-            setError("Erreur lors du chargement des trames.");
-            toast.error("Impossible de charger les trames.");
+            console.error("Error fetching modèles:", err);
+            setError("Erreur lors du chargement des trameModeles.");
+            toast.error("Impossible de charger les trameModeles.");
         } finally {
             setIsLoading(false);
         }
@@ -185,7 +245,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 console.log("[TemplateManager] Closing dialog: save operation has initiated this.");
                 setIsEditorOpen(false);
             } else if (editorRef.current?.isDirty()) {
-                if (confirm("Vous avez des modifications non sauvegardées dans l'éditeur de trame. Êtes-vous sûr de vouloir fermer ?")) {
+                if (confirm("Vous avez des modifications non sauvegardées dans l'éditeur de trameModele. Êtes-vous sûr de vouloir fermer ?")) {
                     console.log("[TemplateManager] Closing dialog: user confirmed to close with unsaved changes.");
                     setIsEditorOpen(false);
                     setEditingTemplate(null);
@@ -205,25 +265,24 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
     }, [editingTemplate, setIsEditorOpen, setEditingTemplate]);
 
     const handleCreateNew = useCallback(() => {
-        console.log('[DEBUG TemplateManager] handleCreateNew called');
-        setEditingTemplate(null);
-        setEditingTemplateRoles([RoleType.TOUS]);
-        setIsEditorOpen(true);
+        console.log('[DEBUG TemplateManager] handleCreateNew called - Opening unified modal');
+        setIsNewTrameModalOpen(true);
     }, []);
 
-    const handleEdit = useCallback((template: PlanningTemplate) => {
-        console.log('[DEBUG TemplateManager] handleEdit called for template:', template);
-        setEditingTemplate(template);
-        setEditingTemplateRoles(template.roles || [RoleType.TOUS]);
-        setIsEditorOpen(true);
+    const handleEdit = useCallback((modèle: PlanningTemplate) => {
+        console.log('[DEBUG TemplateManager] handleEdit called for modèle:', modèle);
+        // Convertir le PlanningTemplate en TrameModele pour le nouveau modal
+        const trameModele = convertPlanningTemplateToTrameModele(modèle);
+        setTrameToEdit(trameModele);
+        setIsEditTrameModalOpen(true);
     }, []);
 
     const handleDuplicate = useCallback(async (id: string) => {
         console.log("[TemplateManager] handleDuplicate called for ID:", id);
         try {
-            const templateToDuplicate = templates.find(template => template.id === id);
+            const templateToDuplicate = modèles.find(modèle => modèle.id === id);
             if (!templateToDuplicate) {
-                toast.error("Template non trouvé.");
+                toast.error("Modèle non trouvé.");
                 return;
             }
 
@@ -231,19 +290,19 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 
             const duplicatedTemplate = await templateService.duplicateTemplate(id, availableTypes);
 
-            toast.success(`Trame "${duplicatedTemplate.nom}" dupliquée.`);
+            toast.success(`Tableau de service "${duplicatedTemplate.nom}" dupliquée.`);
             loadTemplates();
 
-            if (confirm("Voulez-vous ouvrir la trame dupliquée pour l'éditer?")) {
+            if (confirm("Voulez-vous ouvrir la trameModele dupliquée pour l'éditer?")) {
                 setEditingTemplate(duplicatedTemplate);
                 setIsEditorOpen(true);
             }
         } catch (err) {
-            console.error("Error duplicating template:", err);
-            setError("Erreur lors de la duplication de la trame.");
-            toast.error("Impossible de dupliquer la trame.");
+            console.error("Error duplicating modèle:", err);
+            setError("Erreur lors de la duplication de la trameModele.");
+            toast.error("Impossible de dupliquer la trameModele.");
         }
-    }, [templates, loadTemplates, availableTypes, setError]);
+    }, [modèles, loadTemplates, availableTypes, setError]);
 
     const handleDelete = useCallback(async (id: string, name: string) => {
         console.log("[TemplateManager] handleDelete called for ID:", id, "Name:", name);
@@ -251,12 +310,12 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
         const performDeleteAction = async (confirmationToastId: string | number) => {
             try {
                 await templateService.deleteTemplate(id);
-                toast.success(`Trame "${name}" supprimée.`);
+                toast.success(`Tableau de service "${name}" supprimée.`);
                 loadTemplates();
             } catch (err) {
-                console.error("Error deleting template:", err);
-                setError("Erreur lors de la suppression de la trame.");
-                toast.error("Impossible de supprimer la trame.");
+                console.error("Error deleting modèle:", err);
+                setError("Erreur lors de la suppression de la trameModele.");
+                toast.error("Impossible de supprimer la trameModele.");
             } finally {
                 toast.dismiss(confirmationToastId);
             }
@@ -266,7 +325,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
             ({ closeToast }) => (
                 <div>
                     <p className="font-bold mb-2">Confirmation de suppression</p>
-                    <p>Êtes-vous sûr de vouloir supprimer la trame "{name}" ?</p>
+                    <p>Êtes-vous sûr de vouloir supprimer la trameModele "{name}" ?</p>
                     <p className="text-sm text-gray-600 mt-1">Cette action est irréversible.</p>
                     <div className="flex gap-2 mt-3">
                         <button
@@ -308,21 +367,21 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 '[TemplateManager] Contenu de templateWithRoles AVANT appel à templateService.saveTemplate:',
                 JSON.parse(JSON.stringify(templateWithRoles)),
                 `Nombre d'affectations: ${templateWithRoles.affectations?.length || 0}`,
-                'Affectations:',
+                'Gardes/Vacations:',
                 JSON.stringify(templateWithRoles.affectations, null, 2)
             );
             const saved = await templateService.saveTemplate(templateWithRoles, availableTypes);
-            toast.success(`Trame "${saved.nom}" sauvegardée.`);
+            toast.success(`Tableau de service "${saved.nom}" sauvegardée.`);
             setEditingTemplate(null);
             setIsEditorOpen(false);
             await loadTemplates();
             setSaveProcessCompleted(true);
         } catch (err: any) {
-            console.error("Error saving template:", err);
-            if (err instanceof Error && err.message && err.message.includes("Un modèle de trame avec ce nom existe déjà")) {
+            console.error("Error saving modèle:", err);
+            if (err instanceof Error && err.message && err.message.includes("Un modèle de trameModele avec ce nom existe déjà")) {
                 toast.error(err.message);
             } else {
-                toast.error("Impossible de sauvegarder la trame. Vérifiez la console pour plus de détails.");
+                toast.error("Impossible de sauvegarder la trameModele. Vérifiez la console pour plus de détails.");
             }
             isSavingRef.current = false;
             setSaveProcessCompleted(false);
@@ -336,16 +395,59 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
         loadAvailableTypes();
     }, [loadTemplates, loadAvailableTypes]);
 
+    // Charger les sites au démarrage
+    useEffect(() => {
+        loadSites();
+    }, []);
+
+    // Fonction pour charger les sites
+    const loadSites = useCallback(async () => {
+        try {
+            const response = await fetch('http://localhost:3000/api/sites');
+            if (response.ok) {
+                const sitesData = await response.json();
+                setSites(sitesData);
+            }
+        } catch (err) {
+            console.error('Erreur lors du chargement des sites:', err);
+        }
+    }, []);
+
+    // Fonction pour gérer le succès de création de trameModele via le modal unifié
+    const handleCreateTrameSuccess = useCallback((newTrameId: string) => {
+        console.log('[DEBUG TemplateManager] New trameModele created with ID:', newTrameId);
+        setIsNewTrameModalOpen(false);
+        loadTemplates(); // Recharger la liste des trameModeles
+        toast.success('Nouvelle trameModele créée avec succès');
+    }, [loadTemplates]);
+
+    // Fonction pour gérer le succès d'édition de trameModele via le modal unifié
+    const handleEditTrameSuccess = useCallback((updatedTrameId: string) => {
+        console.log('🎯🎯🎯 [DEBUG TemplateManager] EDIT SUCCESS CALLED!!! Tableau de service updated with ID:', updatedTrameId);
+        setIsEditTrameModalOpen(false);
+        setTrameToEdit(null);
+
+        // Forcer un rechargement complet des modèles
+        console.log('🔄🔄🔄 [DEBUG TemplateManager] Forcing modèle reload after edit success...');
+        loadTemplates().then(() => {
+            console.log('✅✅✅ [DEBUG TemplateManager] Modèles reloaded successfully after edit');
+            toast.success('Tableau de service modifiée avec succès');
+        }).catch((error) => {
+            console.error('❌❌❌ [DEBUG TemplateManager] Error reloading modèles after edit:', error);
+            toast.error('Tableau de service modifiée mais erreur lors du rechargement');
+        });
+    }, [loadTemplates]);
+
     useEffect(() => {
         if (isEditorOpen) {
             return;
         }
-        if (templates.length > 0 && !editingTemplate) {
+        if (modèles.length > 0 && !editingTemplate) {
         }
-        else if (templates.length === 0 && editingTemplate) {
+        else if (modèles.length === 0 && editingTemplate) {
             setEditingTemplate(null);
         }
-    }, [templates, editingTemplate, isEditorOpen, setEditingTemplate]);
+    }, [modèles, editingTemplate, isEditorOpen, setEditingTemplate]);
 
     useEffect(() => {
         const handleVisibility = () => {
@@ -357,16 +459,16 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
         return () => document.removeEventListener('visibilitychange', handleVisibility);
     }, [loadTemplates]);
 
-    const memoizedTemplates = useMemo(() => templates, [templates]);
+    const memoizedTemplates = useMemo(() => modèles, [modèles]);
     const memoizedAvailableTypes = useMemo(() => availableTypes, [availableTypes]);
 
-    console.log('[TemplateManager RENDER] templates:', templates);
-    if (templates.length === 0) {
-        console.warn('[TemplateManager] Aucune trame reçue du service.');
+    console.log('[TemplateManager RENDER] modèles:', modèles);
+    if (modèles.length === 0) {
+        console.warn('[TemplateManager] Aucune trameModele reçue du service.');
     } else {
-        templates.forEach((t, i) => {
+        modèles.forEach((t, i) => {
             if (!t.nom) {
-                console.warn(`[TemplateManager] Trame à l'index ${i} sans nom:`, t);
+                console.warn(`[TemplateManager] Tableau de service à l'index ${i} sans nom:`, t);
             }
         });
     }
@@ -375,7 +477,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
         return (
             <div className="flex justify-center items-center h-64">
                 <Loader2 className="mr-2 h-16 w-16 animate-spin" />
-                Chargement des trames...
+                Chargement des trameModeles...
             </div>
         );
     }
@@ -384,65 +486,94 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
         return <div className="text-red-600 p-4">{error} <Button onClick={loadTemplates}>Réessayer</Button></div>;
     }
 
-    if (templates.length === 0) {
-        return <div className="text-orange-600 p-4">Aucune trame reçue du service. Vérifiez le mapping ou la réponse API.</div>;
+    if (modèles.length === 0) {
+        return (
+            <div className="p-8 text-center flex flex-col items-center justify-center space-y-4">
+                <div className="text-orange-600 mb-4">Aucune trameModele disponible dans le système.</div>
+                <p className="text-muted-foreground">Vous pouvez créer votre première trameModele dès maintenant.</p>
+                <Button onClick={handleCreateNew} className="mt-2">
+                    <Plus className="h-4 w-4 mr-2" /> Créer une nouvelle trameModele
+                </Button>
+            </div>
+        );
     }
 
     return (
         <DndProvider backend={HTML5Backend}>
-            <div className="container mx-auto p-4">
-                <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-2xl font-bold">Gestion des Trames de Planning</h1>
-                    <div className="flex gap-2">
-                        <Button onClick={handleCreateNew}>Créer une nouvelle trame</Button>
-                        <Button variant="outline" onClick={loadTemplates}>Rafraîchir</Button>
+            <div className="container mx-auto p-6">
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-2xl font-bold">Gestion des Tableaux de service de Planning</h1>
+                    <div className="flex gap-3">
+                        <Button variant="outline" onClick={loadTemplates} className="px-4">Rafraîchir</Button>
                     </div>
                 </div>
 
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Nom</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Type Semaine</TableHead>
-                            <TableHead>Rôles</TableHead>
-                            <TableHead><span className="sr-only">Actions</span></TableHead>
+                <div className="bg-gray-50 p-4 rounded-md mb-6 flex items-center border">
+                    <div className="bg-purple-100 p-2 rounded-full mr-3">
+                        <Plus className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <p className="text-gray-700">
+                        Pour créer une nouvelle trameModele, utilisez le bouton violet en bas à droite de l'écran. Le formulaire de création est maintenant unifié avec la vue grille.
+                    </p>
+                </div>
+
+                <Table className="border rounded-md">
+                    <TableHeader className="bg-gray-50">
+                        <TableRow className="hover:bg-gray-50">
+                            <TableHead className="py-4 font-semibold text-gray-700">Nom</TableHead>
+                            <TableHead className="py-4 font-semibold text-gray-700">Description</TableHead>
+                            <TableHead className="py-4 font-semibold text-gray-700">Type Semaine</TableHead>
+                            <TableHead className="py-4 font-semibold text-gray-700">Rôles</TableHead>
+                            <TableHead className="py-4 font-semibold text-gray-700">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {templates.length === 0 ? (
+                        {modèles.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center">Aucune trame trouvée.</TableCell>
+                                <TableCell colSpan={5} className="text-center py-8">Aucune trameModele trouvée.</TableCell>
                             </TableRow>
                         ) : (
-                            templates.map((template) => (
-                                <TableRow key={template.id}>
-                                    <TableCell className="font-medium">{template.nom}</TableCell>
-                                    <TableCell>{template.description || '-'}</TableCell>
-                                    <TableCell>{template.typeSemaine || 'N/A'}</TableCell>
-                                    <TableCell>
+                            modèles.map((modèle) => (
+                                <TableRow key={modèle.id} className="hover:bg-gray-50 border-b">
+                                    <TableCell className="font-medium py-4">{modèle.nom}</TableCell>
+                                    <TableCell className="py-4">{modèle.description || '-'}</TableCell>
+                                    <TableCell className="py-4">{modèle.typeSemaine || 'N/A'}</TableCell>
+                                    <TableCell className="py-4">
                                         <div className="flex flex-wrap gap-1">
-                                            {(template.roles && template.roles.length > 0 ? template.roles : [RoleType.TOUS]).map(role => (
-                                                <span key={role} className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                            {(modèle.roles && modèle.roles.length > 0 ? modèle.roles : [RoleType.TOUS]).map(role => (
+                                                <span key={role} className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-md font-medium">
                                                     {role}
                                                 </span>
                                             ))}
                                         </div>
                                     </TableCell>
-                                    <TableCell>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                                    <span className="sr-only">Ouvrir menu</span>
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => handleEdit(template)}>Modifier</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleDuplicate(String(template.id))}>Dupliquer</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleDelete(String(template.id), template.nom)} className="text-red-600">Supprimer</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                    <TableCell className="py-4">
+                                        <div className="flex items-center space-x-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleEdit(modèle)}
+                                                className="px-3"
+                                            >
+                                                Modifier
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleDuplicate(String(modèle.id))}
+                                                className="px-3"
+                                            >
+                                                Dupliquer
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-red-600 border-red-200 hover:bg-red-50 px-3"
+                                                onClick={() => handleDelete(String(modèle.id), modèle.nom)}
+                                            >
+                                                Supprimer
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -451,11 +582,6 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                 </Table>
 
                 <Dialog modal={false} open={isEditorOpen} onOpenChange={handleEditorOpenChange}>
-                    <DialogTrigger asChild>
-                        <Button onClick={handleCreateNew} className="mb-4">
-                            <Plus className="mr-2 h-4 w-4" /> Nouvelle Trame de Bloc
-                        </Button>
-                    </DialogTrigger>
                     <DialogPortal>
                         <DialogOverlay />
                         <DialogContent
@@ -468,10 +594,10 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                         >
                             <DialogHeader className="p-2">
                                 <DialogTitle className="text-lg font-semibold">
-                                    {editingTemplate ? "Modifier la Trame de Bloc" : "Créer une Nouvelle Trame de Bloc"}
+                                    {editingTemplate ? "Modifier la Tableau de service de Bloc" : "Créer une Nouvelle Tableau de service de Bloc"}
                                 </DialogTitle>
                                 <DialogDescription className="sr-only">
-                                    {editingTemplate ? "Modifiez les détails de la trame de bloc existante et ses affectations." : "Configurez les détails pour une nouvelle trame de bloc et ses affectations."}
+                                    {editingTemplate ? "Modifiez les détails de la trameModele de bloc existante et ses gardes/vacations." : "Configurez les détails pour une nouvelle trameModele de bloc et ses gardes/vacations."}
                                 </DialogDescription>
                             </DialogHeader>
                             {isEditorOpen && (
@@ -482,7 +608,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                                         onSave={handleSaveTemplate}
                                         onCancel={() => handleEditorOpenChange(false)}
                                         availableAffectationTypes={memoizedAvailableTypes}
-                                        templates={templates}
+                                        modèles={modèles}
                                         onMuiModalOpenChange={handleMuiModalOpenChange}
                                     />
                                 </div>
@@ -499,13 +625,59 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
                                             }
                                         }}
                                     >
-                                        Sauvegarder la Trame
+                                        Sauvegarder la Tableau de service
                                     </Button>
                                 </div>
                             )}
                         </DialogContent>
                     </DialogPortal>
                 </Dialog>
+
+                {/* Bouton flottant pour ajouter une nouvelle trameModele */}
+                <div className="fixed bottom-6 right-6">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={handleCreateNew}
+                                    size="lg"
+                                    className="rounded-full shadow-lg h-16 w-16 p-0 bg-purple-600 hover:bg-purple-700 transition-all duration-200 ease-in-out hover:scale-105"
+                                >
+                                    <Plus className="h-8 w-8" />
+                                    <span className="sr-only">Nouvelle trameModele</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Créer une nouvelle trameModele</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
+
+                {/* Modal de création de nouvelle trameModele unifié */}
+                {isNewTrameModalOpen && (
+                    <NewTrameModal
+                        isOpen={isNewTrameModalOpen}
+                        onClose={() => setIsNewTrameModalOpen(false)}
+                        onSuccess={handleCreateTrameSuccess}
+                        sites={sites}
+                    />
+                )}
+
+                {/* Modal d'édition de trameModele unifié */}
+                {isEditTrameModalOpen && trameToEdit && (
+                    <NewTrameModal
+                        isOpen={isEditTrameModalOpen}
+                        onClose={() => {
+                            setIsEditTrameModalOpen(false);
+                            setTrameToEdit(null);
+                        }}
+                        onSuccess={handleEditTrameSuccess}
+                        sites={sites}
+                        initialTrame={trameToEdit}
+                        isEditMode={true}
+                    />
+                )}
             </div>
         </DndProvider>
     );

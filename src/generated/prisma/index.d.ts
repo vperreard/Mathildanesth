@@ -11,8 +11,6 @@ import $Extensions = runtime.Types.Extensions
 import $Result = runtime.Types.Result
 
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
-
-
 /**
  * Model User
  * 
@@ -30,8 +28,6 @@ export namespace $Enums {
 };
 
 export type Role = (typeof Role)[keyof typeof Role]
-
-
 export const ProfessionalRole: {
   MAR: 'MAR',
   IADE: 'IADE',
@@ -56,7 +52,7 @@ export const ProfessionalRole: typeof $Enums.ProfessionalRole
  * Type-safe database client for TypeScript & Node.js
  * @example
  * ```
- * const prisma = new PrismaClient()
+ * const prisma = prisma
  * // Fetch zero or more Users
  * const users = await prisma.user.findMany()
  * ```
@@ -77,7 +73,7 @@ export class PrismaClient<
    * Type-safe database client for TypeScript & Node.js
    * @example
    * ```
-   * const prisma = new PrismaClient()
+   * const prisma = prisma
    * // Fetch zero or more Users
    * const users = await prisma.user.findMany()
    * ```
@@ -151,8 +147,6 @@ export class PrismaClient<
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;
-
-
   /**
    * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
    * @example
@@ -169,8 +163,6 @@ export class PrismaClient<
   $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
 
   $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => $Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<R>
-
-
   $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb<ClientOptions>, ExtArgs, $Utils.Call<Prisma.TypeMapCb<ClientOptions>, {
     extArgs: ExtArgs
   }>>
@@ -214,8 +206,6 @@ export namespace Prisma {
   export import raw = runtime.raw
   export import Sql = runtime.Sql
 
-
-
   /**
    * Decimal.js
    */
@@ -254,8 +244,6 @@ export namespace Prisma {
   /**
    * Utility Types
    */
-
-
   export import JsonObject = runtime.JsonObject
   export import JsonArray = runtime.JsonArray
   export import JsonValue = runtime.JsonValue
@@ -353,8 +341,6 @@ export namespace Prisma {
   type Prisma__Pick<T, K extends keyof T> = {
       [P in K]: T[P];
   };
-
-
   export type Enumerable<T> = T | Array<T>;
 
   export type RequiredKeys<T> = {
@@ -409,8 +395,6 @@ export namespace Prisma {
     U extends object ?
       (Without<T, U> & U) | (Without<U, T> & T)
     : U : T
-
-
   /**
    * Is T a Record?
    */
@@ -420,13 +404,11 @@ export namespace Prisma {
   ? False
   : T extends Uint8Array
   ? False
-  : T extends BigInt
+  : T extends bigint
   ? False
   : T extends object
   ? True
   : False
-
-
   /**
    * If it's T[], return T
    */
@@ -449,7 +431,7 @@ export namespace Prisma {
   type _Either<
     O extends object,
     K extends Key,
-    strict extends Boolean
+    strict extends boolean
   > = {
     1: EitherStrict<O, K>
     0: EitherLoose<O, K>
@@ -458,7 +440,7 @@ export namespace Prisma {
   type Either<
     O extends object,
     K extends Key,
-    strict extends Boolean = 1
+    strict extends boolean = 1
   > = O extends unknown ? _Either<O, K, strict> : never
 
   export type Union = any
@@ -486,7 +468,7 @@ export namespace Prisma {
   type AtBasic<O extends object, K extends Key> = K extends keyof O ? O[K] : never;
   type AtStrict<O extends object, K extends Key> = O[K & keyof O];
   type AtLoose<O extends object, K extends Key> = O extends unknown ? AtStrict<O, K> : never;
-  export type At<O extends object, K extends Key, strict extends Boolean = 1> = {
+  export type At<O extends object, K extends Key, strict extends boolean = 1> = {
       1: AtStrict<O, K>;
       0: AtLoose<O, K>;
   }[strict];
@@ -535,7 +517,7 @@ export namespace Prisma {
   */
   export type False = 0
 
-  export type Not<B extends Boolean> = {
+  export type Not<B extends boolean> = {
     0: 1
     1: 0
   }[B]
@@ -550,7 +532,7 @@ export namespace Prisma {
     Extends<Exclude<U1, U>, U1>
   >
 
-  export type Or<B1 extends Boolean, B2 extends Boolean> = {
+  export type Or<B1 extends boolean, B2 extends boolean> = {
     0: {
       0: 0
       1: 1
@@ -566,8 +548,6 @@ export namespace Prisma {
   type Cast<A, B> = A extends B ? A : B;
 
   export const type: unique symbol;
-
-
 
   /**
    * Used by group by
@@ -616,20 +596,14 @@ export namespace Prisma {
    * Exclude all keys with underscores
    */
   type ExcludeUnderscoreKeys<T extends string> = T extends `_${string}` ? never : T
-
-
   export type FieldRef<Model, FieldType> = runtime.FieldRef<Model, FieldType>
 
   type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
-
-
   export const ModelName: {
     User: 'User'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
-
-
   export type Datasources = {
     db?: Datasource
   }
@@ -834,8 +808,6 @@ export namespace Prisma {
     target: string
   }
   /* End Types for Logging */
-
-
   export type PrismaAction =
     | 'findUnique'
     | 'findUniqueOrThrow'
@@ -893,8 +865,6 @@ export namespace Prisma {
   /**
    * Count Types
    */
-
-
 
   /**
    * Models
@@ -959,8 +929,6 @@ export namespace Prisma {
     updatedAt: number
     _all: number
   }
-
-
   export type UserAvgAggregateInputType = {
     id?: true
   }
@@ -1077,10 +1045,6 @@ export namespace Prisma {
         : GetScalarType<T[P], AggregateUser[P]>
       : GetScalarType<T[P], AggregateUser[P]>
   }
-
-
-
-
   export type UserGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: UserWhereInput
     orderBy?: UserOrderByWithAggregationInput | UserOrderByWithAggregationInput[]
@@ -1125,8 +1089,6 @@ export namespace Prisma {
         }
       >
     >
-
-
   export type UserSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     nom?: boolean
@@ -1448,8 +1410,6 @@ export namespace Prisma {
      * })
      */
     upsert<T extends UserUpsertArgs>(args: SelectSubset<T, UserUpsertArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-
     /**
      * Count the number of Users.
      * Note, that providing `undefined` is treated as the value not being there.
@@ -1610,10 +1570,6 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
-
-
-
-
   /**
    * Fields of the User model
    */
@@ -1990,8 +1946,6 @@ export namespace Prisma {
      */
     omit?: UserOmit<ExtArgs> | null
   }
-
-
   /**
    * Enums
    */
@@ -2001,8 +1955,6 @@ export namespace Prisma {
   };
 
   export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
-
-
   export const UserScalarFieldEnum: {
     id: 'id',
     nom: 'nom',
@@ -2017,56 +1969,40 @@ export namespace Prisma {
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
-
-
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
   };
 
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
-
-
   /**
    * Field references
    */
-
-
   /**
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
     
-
-
   /**
    * Reference to a field of type 'String'
    */
   export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String'>
     
-
-
   /**
    * Reference to a field of type 'Role'
    */
   export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
     
-
-
   /**
    * Reference to a field of type 'ProfessionalRole'
    */
   export type EnumProfessionalRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProfessionalRole'>
     
-
-
   /**
    * Reference to a field of type 'DateTime'
    */
   export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
     
-
-
   /**
    * Reference to a field of type 'Float'
    */
@@ -2075,8 +2011,6 @@ export namespace Prisma {
   /**
    * Deep Input Types
    */
-
-
   export type UserWhereInput = {
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
@@ -2559,8 +2493,6 @@ export namespace Prisma {
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
-
-
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

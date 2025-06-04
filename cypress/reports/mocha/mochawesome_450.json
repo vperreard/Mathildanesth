@@ -1,0 +1,107 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 1,
+    "pending": 0,
+    "failures": 0,
+    "start": "2025-06-01T07:20:41.636Z",
+    "end": "2025-06-01T07:20:43.568Z",
+    "duration": 1932,
+    "testsRegistered": 1,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "bdb23637-aa42-4679-a239-bfa2092f4d68",
+      "title": "",
+      "fullFile": "cypress/e2e/performance/debug-auth.cy.js",
+      "file": "cypress/e2e/performance/debug-auth.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "de90a696-7bfa-4e5f-87bb-3cb58fe1d806",
+          "title": "Déboguer authentification",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "Vérifie la structure de la page de connexion",
+              "fullTitle": "Déboguer authentification Vérifie la structure de la page de connexion",
+              "timedOut": null,
+              "duration": 1791,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Visiter la page avec un timeout augmenté\ncy.visit('/', {\n  timeout: 60000,\n  failOnStatusCode: false\n});\n// Prendre une capture d'écran de la page\ncy.screenshot('debug/login-page');\n// Lister tous les éléments de la page\ncy.document().then(doc => {\n  // Afficher le HTML de la page pour comprendre sa structure\n  cy.log('STRUCTURE DE LA PAGE');\n  cy.log(doc.body.innerHTML.substring(0, 1000)); // Afficher les 1000 premiers caractères\n  // Chercher tous les champs de type email et password\n  cy.log('CHAMPS DE FORMULAIRE');\n  const inputFields = Array.from(doc.querySelectorAll('input'));\n  inputFields.forEach(field => {\n    cy.log(`Type: ${field.type}, ID: ${field.id}, Name: ${field.name}, Data-testid: ${field.getAttribute('data-testid')}`);\n  });\n  // Chercher tous les boutons\n  cy.log('BOUTONS');\n  const buttons = Array.from(doc.querySelectorAll('button'));\n  buttons.forEach(button => {\n    cy.log(`Text: ${button.textContent}, Type: ${button.type}, ID: ${button.id}, Data-testid: ${button.getAttribute('data-testid')}`);\n  });\n});",
+              "err": {},
+              "uuid": "1b4cd4fa-079e-492a-ab00-f983246fe56a",
+              "parentUUID": "de90a696-7bfa-4e5f-87bb-3cb58fe1d806",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "1b4cd4fa-079e-492a-ab00-f983246fe56a"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 1791,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

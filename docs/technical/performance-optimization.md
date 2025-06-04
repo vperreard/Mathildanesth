@@ -83,7 +83,7 @@ public async getNotifications(userId: string, options: NotificationLoadOptions =
   }
   
   // Effectuer la requête avec paramètres de pagination
-  const response = await axios.get(`/api/users/${userId}/notifications`, {
+  const response = await axios.get(`/api/utilisateurs/${userId}/notifications`, {
     params: { limit, offset, unreadOnly, types: types?.join(',') }
   });
   

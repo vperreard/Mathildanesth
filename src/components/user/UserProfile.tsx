@@ -90,11 +90,11 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
             {/* Menu déroulant */}
             <div
                 id={menuId}
-                className={`absolute right-0 mt-2 w-56 rounded-lg shadow-lg overflow-hidden transform transition-all duration-200 z-50 border ${isMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 invisible'}`}
+                className={`absolute right-0 mt-2 w-56 rounded-lg shadow-lg overflow-hidden transform transition-all duration-200 z-50 border backdrop-blur-sm ${isMenuOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 invisible'}`}
                 style={{
                     ...(theme === 'dark'
-                        ? { backgroundColor: '#0F172A', borderColor: '#1E293B' } // slate-900, slate-800
-                        : { backgroundColor: 'white', borderColor: '#F3F4F6' }), // white, gray-100
+                        ? { backgroundColor: 'rgba(15, 23, 42, 0.97)', borderColor: 'rgba(30, 41, 59, 0.8)' } // slate-900, slate-800 avec opacité renforcée
+                        : { backgroundColor: 'rgba(255, 255, 255, 0.97)', borderColor: 'rgba(243, 244, 246, 0.8)' }), // white, gray-100 avec opacité renforcée
                 }}
                 role="menu"
                 aria-orientation="vertical"
@@ -179,7 +179,7 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                             role="menuitem"
                             tabIndex={isMenuOpen ? 0 : -1}
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-secondary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-secondary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                             </svg>
                             {theme === 'light' ? 'Thème sombre' : 'Thème clair'}

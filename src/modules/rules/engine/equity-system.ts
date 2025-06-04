@@ -220,12 +220,12 @@ export class EquitySystem {
         const distributedSlotIds = new Set<string>();
 
         // Convertir la Map en Array avant de parcourir les valeurs
-        Array.from(distribution.values()).forEach(slots => {
-            slots.forEach(slot => distributedSlotIds.add(slot.id));
+        Array.from(distribution.values()).forEach(créneaux => {
+            créneaux.forEach(créneau => distributedSlotIds.add(créneau.id));
         });
 
         // Retourner les créneaux non distribués
-        return allSlots.filter(slot => !distributedSlotIds.has(slot.id));
+        return allSlots.filter(créneau => !distributedSlotIds.has(créneau.id));
     }
 
     /**
@@ -247,8 +247,8 @@ export class EquitySystem {
         // Créer une copie de la distribution existante
         const finalDistribution = new Map<string, OffSlot[]>();
 
-        existingDistribution.forEach((slots, medecinId) => {
-            finalDistribution.set(medecinId, [...slots]);
+        existingDistribution.forEach((créneaux, medecinId) => {
+            finalDistribution.set(medecinId, [...créneaux]);
         });
 
         // Tant qu'il reste des créneaux à distribuer
@@ -267,10 +267,10 @@ export class EquitySystem {
 
             if (currentOffCount < this.config.quotas.maxOffPerWeek * weekCount) {
                 // Attribuer le premier créneau disponible
-                const slot = remainingSlots.shift();
-                if (slot) {
+                const créneau = remainingSlots.shift();
+                if (créneau) {
                     const existingSlots = finalDistribution.get(topMedecin.medecin.id) || [];
-                    finalDistribution.set(topMedecin.medecin.id, [...existingSlots, slot]);
+                    finalDistribution.set(topMedecin.medecin.id, [...existingSlots, créneau]);
 
                     // Mettre à jour le score du médecin (baisse un peu la priorité)
                     topMedecin.score *= 0.95;
@@ -291,17 +291,17 @@ export class EquitySystem {
     /**
      * Grouper les créneaux par semaine
      */
-    private groupSlotsByWeek(slots: OffSlot[]): Map<number, OffSlot[]> {
+    private groupSlotsByWeek(créneaux: OffSlot[]): Map<number, OffSlot[]> {
         const slotsByWeek = new Map<number, OffSlot[]>();
 
-        slots.forEach(slot => {
-            const weekNumber = this.getWeekNumber(slot.date);
+        créneaux.forEach(créneau => {
+            const weekNumber = this.getWeekNumber(créneau.date);
 
             if (!slotsByWeek.has(weekNumber)) {
                 slotsByWeek.set(weekNumber, []);
             }
 
-            slotsByWeek.get(weekNumber)?.push(slot);
+            slotsByWeek.get(weekNumber)?.push(créneau);
         });
 
         return slotsByWeek;
@@ -310,8 +310,8 @@ export class EquitySystem {
     /**
      * Compter le nombre de créneaux de repos pour un médecin dans une semaine donnée
      */
-    private countOffInWeek(slots: OffSlot[], weekNumber: number): number {
-        return slots.filter(slot => this.getWeekNumber(slot.date) === weekNumber).length;
+    private countOffInWeek(créneaux: OffSlot[], weekNumber: number): number {
+        return créneaux.filter(créneau => this.getWeekNumber(créneau.date) === weekNumber).length;
     }
 
     /**

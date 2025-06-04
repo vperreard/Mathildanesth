@@ -37,9 +37,9 @@ export const useUserWorkSchedule = ({ userId }: UseUserWorkScheduleProps = {}): 
                 throw new Error('Aucun identifiant utilisateur disponible');
             }
 
-            logger.info(`Fetching work schedule for user ID: ${targetUserId}`);
+            logger.info(`Fetching work planning médical for user ID: ${targetUserId}`);
 
-            const response = await fetch(`/api/users/${targetUserId}/work-schedule`);
+            const response = await fetch(`http://localhost:3000/api/utilisateurs/${targetUserId}/work-planning médical`);
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -49,7 +49,7 @@ export const useUserWorkSchedule = ({ userId }: UseUserWorkScheduleProps = {}): 
 
             const data = await response.json();
             setWorkSchedule(data);
-            logger.info(`Successfully fetched work schedule for user ID: ${targetUserId}`);
+            logger.info(`Successfully fetched work planning médical for user ID: ${targetUserId}`);
         } catch (err) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             setError(errorObj);
@@ -58,7 +58,7 @@ export const useUserWorkSchedule = ({ userId }: UseUserWorkScheduleProps = {}): 
                 stack: errorObj.stack
             });
 
-            // Fallback schedule creation
+            // Fallback planning médical creation
             const fallbackUserId = typeof session?.user?.id === 'string' ? parseInt(session.user.id, 10) : session?.user?.id;
             setWorkSchedule({
                 id: 'default-error-fallback',

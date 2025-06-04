@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { RuleEvaluationResult } from '@/modules/dynamicRules/types/rule';
-import { Assignment } from '@/types/assignment';
+import { Attribution } from '@/types/attribution';
 import { RuleViolation } from '@/components/ui/RuleViolationIndicator';
 import { AlertCircle, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,9 +13,9 @@ interface RuleFeedbackProps {
     ruleResults: RuleEvaluationResult[];
 
     /**
-     * Affectations concernées
+     * Gardes/Vacations concernées
      */
-    assignments?: Assignment[];
+    attributions?: Attribution[];
 
     /**
      * Filtrer par sévérité (optionnel)
@@ -72,7 +72,7 @@ const getSeverityType = (severity: number): 'error' | 'warning' | 'info' => {
  */
 const RuleFeedback: React.FC<RuleFeedbackProps> = ({
     ruleResults,
-    assignments = [],
+    attributions = [],
     severityFilter,
     ruleTypeFilter,
     onRuleClick,

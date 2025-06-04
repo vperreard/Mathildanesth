@@ -1,0 +1,175 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-05-30T05:12:28.111Z",
+    "end": "2025-05-30T05:13:08.985Z",
+    "duration": 40874,
+    "testsRegistered": 4,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 1,
+    "hasOther": true,
+    "skipped": 2,
+    "hasSkipped": true
+  },
+  "results": [
+    {
+      "uuid": "84865395-e19c-458e-85ee-70c7c4ef3f85",
+      "title": "",
+      "fullFile": "cypress/e2e/login.spec.ts",
+      "file": "cypress/e2e/login.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "05f1c6a1-c853-4f0a-99bd-8006602f033f",
+          "title": "Page de connexion",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "affiche correctement le formulaire de connexion",
+              "fullTitle": "Page de connexion affiche correctement le formulaire de connexion",
+              "timedOut": null,
+              "duration": 10118,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Vérifier que les éléments du formulaire sont présents\ncy.waitForElement('[data-cy=email-input]');\ncy.waitForElement('[data-cy=password-input]');\ncy.waitForElement('[data-cy=submit-button]');",
+              "err": {
+                "message": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3001/auth/connexion\n\nWe attempted to make an http request to this URL but the request failed without a response.\n\nWe received this error at the network level:\n\n  > Error: ESOCKETTIMEDOUT\n\nCommon situations why this would fail:\n  - you don't have internet access\n  - you forgot to run / boot your web server\n  - your web server isn't accessible\n  - you have weird network configuration settings on your computer\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Page de connexion`",
+                "estack": "CypressError: `cy.visit()` failed trying to load:\n\nhttp://localhost:3001/auth/connexion\n\nWe attempted to make an http request to this URL but the request failed without a response.\n\nWe received this error at the network level:\n\n  > Error: ESOCKETTIMEDOUT\n\nCommon situations why this would fail:\n  - you don't have internet access\n  - you forgot to run / boot your web server\n  - your web server isn't accessible\n  - you have weird network configuration settings on your computer\n\nBecause this error occurred during a `before each` hook we are skipping the remaining tests in the current suite: `Page de connexion`\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:133726:74)\n    at visitFailedByErr (http://localhost:3001/__cypress/runner/cypress_runner.js:133116:12)\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:133725:11)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3001/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3001/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3001/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3001/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3001/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3001/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://mathildanesth/./cypress/e2e/login.spec.ts:5:11)\n\nFrom Node.js Internals:\n  Error: ESOCKETTIMEDOUT\n      at ClientRequest.<anonymous> (<embedded>:290:113952)\n      at Object.onceWrapper (node:events:632:28)\n      at ClientRequest.emit (node:events:518:28)\n      at Socket.emitRequestTimeout (node:_http_client:849:9)\n      at Object.onceWrapper (node:events:632:28)\n      at Socket.emit (node:events:530:35)\n      at Socket._onTimeout (node:net:595:8)\n      at listOnTimeout (node:internal/timers:581:17)\n      at process.processTimers (node:internal/timers:519:7)",
+                "diff": null
+              },
+              "uuid": "01b5e5ec-5a1e-4789-9d9b-a48369ab5fcb",
+              "parentUUID": "05f1c6a1-c853-4f0a-99bd-8006602f033f",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "affiche une erreur pour des identifiants invalides",
+              "fullTitle": "Page de connexion affiche une erreur pour des identifiants invalides",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Intercepter la requête de connexion\ncy.intercept('POST', '**/api/auth/login').as('loginRequest');\n// Tenter une connexion avec des identifiants invalides\ncy.safeType('[data-cy=email-input]', 'utilisateur.invalide@example.com');\ncy.safeType('[data-cy=password-input]', 'mot_de_passe_incorrect');\ncy.safeClick('[data-cy=submit-button]');\n// Vérifier qu'un message d'erreur s'affiche ou la requête échoue\ncy.wait('@loginRequest').then(function (interception) {\n    var _a;\n    if (((_a = interception.response) === null || _a === void 0 ? void 0 : _a.statusCode) !== 200) {\n        // Si la requête échoue, vérifier qu'un message d'erreur s'affiche\n        cy.get('[data-cy=error-message]', { timeout: 10000 })\n            .should('be.visible')\n            .and('contain.text', 'Identifiants invalides');\n    }\n});",
+              "err": {},
+              "uuid": "70766dd3-9097-42d4-9c0d-36bd34fefed7",
+              "parentUUID": "05f1c6a1-c853-4f0a-99bd-8006602f033f",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "connecte l'utilisateur avec des identifiants valides",
+              "fullTitle": "Page de connexion connecte l'utilisateur avec des identifiants valides",
+              "timedOut": null,
+              "duration": 0,
+              "state": "skipped",
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Intercepter la requête de connexion\ncy.intercept('POST', '**/api/auth/login').as('loginRequest');\n// Connexion avec des identifiants valides (utiliser admin des fixtures)\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\n// Vérifier que la requête de connexion a été effectuée\ncy.wait('@loginRequest').then(function (interception) {\n    var _a, _b;\n    // Pour l'instant, accepter aussi l'erreur 500 (problème d'API)\n    expect((_a = interception.response) === null || _a === void 0 ? void 0 : _a.statusCode).to.be.oneOf([200, 500]);\n    if (((_b = interception.response) === null || _b === void 0 ? void 0 : _b.statusCode) === 200) {\n        // Si connexion réussie, vérifier la redirection\n        cy.url().should('satisfy', function (url) {\n            return url.includes('/tableau-de-bord') || url.includes('/planning') || url.includes('/');\n        });\n    }\n    else {\n        // Si erreur 500, vérifier qu'on reste sur la page de login avec un message d'erreur\n        cy.url().should('include', '/auth/connexion');\n        cy.get('[data-cy=error-message]').should('be.visible');\n    }\n});",
+              "err": {},
+              "uuid": "028a853b-b3bb-4ced-8fa0-90d1c7075963",
+              "parentUUID": "05f1c6a1-c853-4f0a-99bd-8006602f033f",
+              "isHook": false,
+              "skipped": true
+            },
+            {
+              "title": "permet la navigation vers la page de récupération de mot de passe",
+              "fullTitle": "Page de connexion permet la navigation vers la page de récupération de mot de passe",
+              "timedOut": null,
+              "duration": 0,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": true,
+              "context": null,
+              "code": "// SKIP: Fonctionnalité non implémentée - pas de lien mot de passe oublié\n// Cliquer sur le lien de récupération de mot de passe\ncy.get('[data-cy=forgot-password-link]').click();\n// Vérifier la redirection vers la page de récupération\ncy.url().should('include', '/auth/reset-password');",
+              "err": {
+                "message": "CypressError: `cy.request()` timed out waiting `10000ms` for a response from your server.\n\nThe request we sent was:\n\nMethod: GET\nURL: http://localhost:3001/__coverage__\n\nNo response was received within the timeout.\n\nhttps://on.cypress.io/request\n\nBecause this error occurred during a `after all` hook we are skipping all of the remaining tests.\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail",
+                "estack": "CypressError: `cy.request()` timed out waiting `10000ms` for a response from your server.\n\nThe request we sent was:\n\nMethod: GET\nURL: http://localhost:3001/__coverage__\n\nNo response was received within the timeout.\n\nhttps://on.cypress.io/request\n\nBecause this error occurred during a `after all` hook we are skipping all of the remaining tests.\n\nAlthough you have test retries enabled, we do not retry tests when `before all` or `after all` hooks fail\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:135014:70)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:4156:41)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3001/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3001/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3001/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3001/__cypress/runner/cypress_runner.js:1667:18)\n    at _drainQueueStep (http://localhost:3001/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3001/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at captureCoverage (webpack://mathildanesth/./node_modules/@cypress/code-coverage/support.js:203:0)\n    at Context.collectBackendCoverage (webpack://mathildanesth/./node_modules/@cypress/code-coverage/support.js:238:0)",
+                "diff": null
+              },
+              "uuid": "fd92ac32-2a58-4dad-b84e-b529289acae9",
+              "parentUUID": "05f1c6a1-c853-4f0a-99bd-8006602f033f",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "01b5e5ec-5a1e-4789-9d9b-a48369ab5fcb",
+            "fd92ac32-2a58-4dad-b84e-b529289acae9"
+          ],
+          "pending": [
+            "fd92ac32-2a58-4dad-b84e-b529289acae9"
+          ],
+          "skipped": [
+            "70766dd3-9097-42d4-9c0d-36bd34fefed7",
+            "028a853b-b3bb-4ced-8fa0-90d1c7075963"
+          ],
+          "duration": 10118,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

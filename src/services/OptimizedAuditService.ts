@@ -1,5 +1,8 @@
 import { AuditAction, AuditEntry } from './AuditService';
 
+// Re-exporter AuditAction pour faciliter l'import
+export { AuditAction };
+
 /**
  * Configuration du service d'audit optimisé
  */
@@ -27,8 +30,8 @@ enum AuditPriority {
  */
 interface AuditChange {
     field: string;
-    oldValue: any;
-    newValue: any;
+    oldValue: unknown;
+    newValue: unknown;
 }
 
 /**
@@ -281,7 +284,7 @@ export class OptimizedAuditService {
             }
 
             // Envoyer à l'API
-            const response = await fetch('/api/audit/batch', {
+            const response = await fetch('http://localhost:3000/api/audit/batch', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -481,4 +484,7 @@ export class OptimizedAuditService {
     public setDebugMode(enabled: boolean): void {
         this.isDebugMode = enabled;
     }
-} 
+}
+
+// Créer et exporter l'instance singleton
+export const auditService = OptimizedAuditService.getInstance(); 

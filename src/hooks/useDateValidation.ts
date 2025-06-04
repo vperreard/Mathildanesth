@@ -423,8 +423,44 @@ export function useDateValidation(options: DateValidationOptions = {}) {
             return false;
         }
 
-        // TODO: Ajouter la vérification minAdvanceNotice/maxAdvanceBooking si nécessaire
-        // TODO: Ajouter la vérification customValidation si nécessaire
+        // 🔐 CORRECTION TODO CRITIQUE : Ajouter la vérification minAdvanceNotice/maxAdvanceBooking
+        const { minAdvanceNotice, maxAdvanceBooking } = options;
+
+        if (minAdvanceNotice !== undefined && minAdvanceNotice > 0) {
+            const advanceNoticeDays = differenceInDays(normalizedDate, now);
+            if (advanceNoticeDays < minAdvanceNotice) {
+                setError(fieldName, DateValidationErrorType.MIN_ADVANCE_NOTICE,
+                    `Un préavis minimum de ${minAdvanceNotice} jour(s) est requis`);
+                return false;
+            }
+        }
+
+        if (maxAdvanceBooking !== undefined && maxAdvanceBooking > 0) {
+            const advanceBookingDays = differenceInDays(normalizedDate, now);
+            if (advanceBookingDays > maxAdvanceBooking) {
+                setError(fieldName, DateValidationErrorType.MAX_ADVANCE_BOOKING,
+                    `La réservation ne peut pas être faite plus de ${maxAdvanceBooking} jour(s) à l'avance`);
+                return false;
+            }
+        }
+
+        // 🔐 CORRECTION TODO CRITIQUE : Ajouter la vérification customValidation
+        const { customValidation } = options;
+        if (customValidation && typeof customValidation === 'function') {
+            try {
+                const customResult = customValidation(normalizedDate, context);
+                if (customResult && !customResult.isValid) {
+                    const errorType = customResult.errorType || DateValidationErrorType.OTHER;
+                    const errorMessage = customResult.errorMessage || 'Validation personnalisée échouée';
+                    setError(fieldName, errorType, errorMessage);
+                    return false;
+                }
+            } catch (customError) {
+                console.error('Erreur dans la validation personnalisée:', customError);
+                setError(fieldName, DateValidationErrorType.OTHER, 'Erreur lors de la validation personnalisée');
+                return false;
+            }
+        }
 
         return true;
     }, [options, setError, clearValidationError]);

@@ -39,7 +39,7 @@ import {
 } from 'lucide-react';
 
 import { BlocSector, OperatingRoom } from '@/types/bloc-planning-types';
-import { blocPlanningService } from '@/services/blocPlanningService';
+import { blocPlanningService } from '@/modules/planning/bloc-operatoire/services/blocPlanningService';
 
 // Interface pour le formulaire de secteur
 interface SecteurFormData {
@@ -451,9 +451,9 @@ export default function SecteursAdmin() {
                             <div className="flex gap-2">
                                 <Input
                                     value={specialiteInput}
-                                    onChange={(e) => setSpecialiteInput(e.target.value)}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSpecialiteInput(e.target.value)}
                                     placeholder="Ajouter une spécialité"
-                                    onKeyDown={(e) => {
+                                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                                         if (e.key === 'Enter') {
                                             e.preventDefault();
                                             handleAddSpecialite();

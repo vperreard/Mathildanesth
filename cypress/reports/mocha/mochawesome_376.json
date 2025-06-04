@@ -1,0 +1,223 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 6,
+    "passes": 1,
+    "pending": 0,
+    "failures": 5,
+    "start": "2025-05-29T08:16:12.181Z",
+    "end": "2025-05-29T08:17:41.288Z",
+    "duration": 89107,
+    "testsRegistered": 6,
+    "passPercent": 16.666666666666664,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "dc96bbca-690e-4c8e-aa98-4f3a4b1a18da",
+      "title": "",
+      "fullFile": "cypress/e2e/auth/stable-login.spec.ts",
+      "file": "cypress/e2e/auth/stable-login.spec.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "036b2781-9006-4768-9483-38a4c7e52a60",
+          "title": "Connexion - Tests Stabilisés",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "affiche correctement le formulaire de connexion",
+              "fullTitle": "Connexion - Tests Stabilisés affiche correctement le formulaire de connexion",
+              "timedOut": null,
+              "duration": 870,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Vérifier la présence des éléments essentiels\ncy.waitForElement('[data-cy=email-input]');\ncy.waitForElement('[data-cy=password-input]');\ncy.waitForElement('[data-cy=submit-button]');\n// Vérifier que le titre est présent\ncy.contains('Connexion').should('be.visible');\n// Vérifier que les champs sont bien configurés\ncy.get('[data-cy=email-input]').should('have.attr', 'type', 'text');\ncy.get('[data-cy=password-input]').should('have.attr', 'type', 'password');",
+              "err": {},
+              "uuid": "16b0fa3b-78bc-4926-b134-e7f8d1de106f",
+              "parentUUID": "036b2781-9006-4768-9483-38a4c7e52a60",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "gère correctement les identifiants invalides",
+              "fullTitle": "Connexion - Tests Stabilisés gère correctement les identifiants invalides",
+              "timedOut": null,
+              "duration": 775,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Intercepter les requêtes pour surveiller les appels API\ncy.intercept('POST', '**/api/auth/login', {\n    statusCode: 401,\n    body: { error: 'Identifiants invalides' }\n}).as('loginFailed');\n// Saisir des identifiants incorrects\ncy.safeType('[data-cy=email-input]', 'user.invalide@test.com');\ncy.safeType('[data-cy=password-input]', 'motdepasse-incorrect');\ncy.safeClick('[data-cy=submit-button]');\n// Vérifier la réponse\ncy.wait('@loginFailed');\n// Vérifier l'affichage du message d'erreur\ncy.get('[data-cy=error-message]', { timeout: 5000 })\n    .should('be.visible')\n    .and('contain.text', 'Identifiants invalides');\n// Vérifier qu'on reste sur la page de connexion\ncy.url().should('include', '/auth/connexion');",
+              "err": {
+                "message": "CypressError: `cy.type()` failed because it targeted a disabled element.\n\nThe element typed into was:\n\n  > <input type=\"text\" id=\"login\" data-testid=\"login-email-input\" data-cy=\"email-input\" required=\"\" autocomplete=\"username\" class=\"mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm disabled:opacity-50\" name=\"login\" value=\"\">\n\nEnsure the element does not have an attribute named `disabled` before typing into it.\n\nhttps://on.cypress.io/type",
+                "estack": "CypressError: `cy.type()` failed because it targeted a disabled element.\n\nThe element typed into was:\n\n  > <input type=\"text\" id=\"login\" data-testid=\"login-email-input\" data-cy=\"email-input\" required=\"\" autocomplete=\"username\" class=\"mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm disabled:opacity-50\" name=\"login\" value=\"\">\n\nEnsure the element does not have an attribute named `disabled` before typing into it.\n\nhttps://on.cypress.io/type\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:115810:78)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3001/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3001/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3001/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3001/__cypress/runner/cypress_runner.js:1671:18)\n    at _drainQueueStep (http://localhost:3001/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3001/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2256:14)",
+                "diff": null
+              },
+              "uuid": "9bfde98c-24c7-4fa9-8222-7a44feb6109b",
+              "parentUUID": "036b2781-9006-4768-9483-38a4c7e52a60",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "permet la connexion avec des identifiants valides (mock)",
+              "fullTitle": "Connexion - Tests Stabilisés permet la connexion avec des identifiants valides (mock)",
+              "timedOut": null,
+              "duration": 734,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Mock d'une réponse de connexion réussie\ncy.intercept('POST', '**/api/auth/login', {\n    statusCode: 200,\n    body: {\n        success: true,\n        redirectUrl: '/',\n        user: { id: 1, email: 'admin@example.com', role: 'ADMIN_TOTAL' }\n    }\n}).as('loginSuccess');\n// Saisir des identifiants valides\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\n// Vérifier la réponse\ncy.wait('@loginSuccess');\n// Note: Dans un environnement de test, la redirection peut ne pas fonctionner\n// On vérifie juste que l'appel API s'est bien passé",
+              "err": {
+                "message": "CypressError: `cy.type()` failed because it targeted a disabled element.\n\nThe element typed into was:\n\n  > <input type=\"text\" id=\"login\" data-testid=\"login-email-input\" data-cy=\"email-input\" required=\"\" autocomplete=\"username\" class=\"mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm disabled:opacity-50\" name=\"login\" value=\"\">\n\nEnsure the element does not have an attribute named `disabled` before typing into it.\n\nhttps://on.cypress.io/type",
+                "estack": "CypressError: `cy.type()` failed because it targeted a disabled element.\n\nThe element typed into was:\n\n  > <input type=\"text\" id=\"login\" data-testid=\"login-email-input\" data-cy=\"email-input\" required=\"\" autocomplete=\"username\" class=\"mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm disabled:opacity-50\" name=\"login\" value=\"\">\n\nEnsure the element does not have an attribute named `disabled` before typing into it.\n\nhttps://on.cypress.io/type\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:115810:78)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3001/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3001/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3001/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3001/__cypress/runner/cypress_runner.js:1671:18)\n    at _drainQueueStep (http://localhost:3001/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3001/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2256:14)",
+                "diff": null
+              },
+              "uuid": "893d2c14-e5dc-4598-941f-b446fa54e803",
+              "parentUUID": "036b2781-9006-4768-9483-38a4c7e52a60",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "désactive le bouton pendant le chargement",
+              "fullTitle": "Connexion - Tests Stabilisés désactive le bouton pendant le chargement",
+              "timedOut": null,
+              "duration": 953,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Intercepter avec un délai pour simuler une requête lente\ncy.intercept('POST', '**/api/auth/login', function (req) {\n    req.reply(function (res) {\n        res.delay(2000);\n        res.send({ statusCode: 200, body: { success: true } });\n    });\n}).as('slowLogin');\n// Saisir les identifiants\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\n// Cliquer et vérifier que le bouton est désactivé\ncy.safeClick('[data-cy=submit-button]');\ncy.get('[data-cy=submit-button]').should('be.disabled');\n// Vérifier le texte de chargement\ncy.get('[data-cy=submit-button]').should('contain.text', 'Connexion...');",
+              "err": {
+                "message": "CypressError: `cy.type()` failed because it targeted a disabled element.\n\nThe element typed into was:\n\n  > <input type=\"text\" id=\"login\" data-testid=\"login-email-input\" data-cy=\"email-input\" required=\"\" autocomplete=\"username\" class=\"mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm disabled:opacity-50\" name=\"login\" value=\"\">\n\nEnsure the element does not have an attribute named `disabled` before typing into it.\n\nhttps://on.cypress.io/type",
+                "estack": "CypressError: `cy.type()` failed because it targeted a disabled element.\n\nThe element typed into was:\n\n  > <input type=\"text\" id=\"login\" data-testid=\"login-email-input\" data-cy=\"email-input\" required=\"\" autocomplete=\"username\" class=\"mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm disabled:opacity-50\" name=\"login\" value=\"\">\n\nEnsure the element does not have an attribute named `disabled` before typing into it.\n\nhttps://on.cypress.io/type\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:115810:78)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3001/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3001/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3001/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3001/__cypress/runner/cypress_runner.js:1671:18)\n    at _drainQueueStep (http://localhost:3001/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3001/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2256:14)",
+                "diff": null
+              },
+              "uuid": "f90f60a3-27fb-48b8-bd94-13ab2ee4293e",
+              "parentUUID": "036b2781-9006-4768-9483-38a4c7e52a60",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "nettoie les erreurs lors de la saisie",
+              "fullTitle": "Connexion - Tests Stabilisés nettoie les erreurs lors de la saisie",
+              "timedOut": null,
+              "duration": 799,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Afficher d'abord une erreur\ncy.intercept('POST', '**/api/auth/login', {\n    statusCode: 401,\n    body: { error: 'Identifiants invalides' }\n}).as('loginError');\ncy.safeType('[data-cy=email-input]', 'wrong@test.com');\ncy.safeType('[data-cy=password-input]', 'wrong');\ncy.safeClick('[data-cy=submit-button]');\ncy.wait('@loginError');\ncy.get('[data-cy=error-message]').should('be.visible');\n// Maintenant modifier les champs et vérifier que l'erreur disparaît\ncy.get('[data-cy=email-input]').clear().type('new@test.com');\ncy.get('[data-cy=error-message]').should('not.exist');",
+              "err": {
+                "message": "CypressError: `cy.type()` failed because it targeted a disabled element.\n\nThe element typed into was:\n\n  > <input type=\"text\" id=\"login\" data-testid=\"login-email-input\" data-cy=\"email-input\" required=\"\" autocomplete=\"username\" class=\"mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm disabled:opacity-50\" name=\"login\" value=\"\">\n\nEnsure the element does not have an attribute named `disabled` before typing into it.\n\nhttps://on.cypress.io/type",
+                "estack": "CypressError: `cy.type()` failed because it targeted a disabled element.\n\nThe element typed into was:\n\n  > <input type=\"text\" id=\"login\" data-testid=\"login-email-input\" data-cy=\"email-input\" required=\"\" autocomplete=\"username\" class=\"mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm disabled:opacity-50\" name=\"login\" value=\"\">\n\nEnsure the element does not have an attribute named `disabled` before typing into it.\n\nhttps://on.cypress.io/type\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:115810:78)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3001/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3001/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3001/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3001/__cypress/runner/cypress_runner.js:1671:18)\n    at _drainQueueStep (http://localhost:3001/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3001/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2256:14)",
+                "diff": null
+              },
+              "uuid": "a14f97c5-ddc6-4559-a6fd-b75240896256",
+              "parentUUID": "036b2781-9006-4768-9483-38a4c7e52a60",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "gère les erreurs réseau",
+              "fullTitle": "Connexion - Tests Stabilisés gère les erreurs réseau",
+              "timedOut": null,
+              "duration": 826,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Simuler une erreur réseau\ncy.intercept('POST', '**/api/auth/login', { forceNetworkError: true }).as('networkError');\ncy.safeType('[data-cy=email-input]', 'admin@example.com');\ncy.safeType('[data-cy=password-input]', 'Test123!');\ncy.safeClick('[data-cy=submit-button]');\n// Vérifier qu'une erreur s'affiche\ncy.get('[data-cy=error-message]', { timeout: 10000 })\n    .should('be.visible')\n    .and('contain.text', 'Une erreur est survenue');",
+              "err": {
+                "message": "CypressError: `cy.type()` failed because it targeted a disabled element.\n\nThe element typed into was:\n\n  > <input type=\"text\" id=\"login\" data-testid=\"login-email-input\" data-cy=\"email-input\" required=\"\" autocomplete=\"username\" class=\"mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm disabled:opacity-50\" name=\"login\" value=\"\">\n\nEnsure the element does not have an attribute named `disabled` before typing into it.\n\nhttps://on.cypress.io/type",
+                "estack": "CypressError: `cy.type()` failed because it targeted a disabled element.\n\nThe element typed into was:\n\n  > <input type=\"text\" id=\"login\" data-testid=\"login-email-input\" data-cy=\"email-input\" required=\"\" autocomplete=\"username\" class=\"mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm disabled:opacity-50\" name=\"login\" value=\"\">\n\nEnsure the element does not have an attribute named `disabled` before typing into it.\n\nhttps://on.cypress.io/type\n    at <unknown> (http://localhost:3001/__cypress/runner/cypress_runner.js:115810:78)\n    at tryCatcher (http://localhost:3001/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:3001/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:3001/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:3001/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:3001/__cypress/runner/cypress_runner.js:1671:18)\n    at _drainQueueStep (http://localhost:3001/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:3001/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:3001/__cypress/runner/cypress_runner.js:2256:14)",
+                "diff": null
+              },
+              "uuid": "b0d42040-eaff-439f-a1c5-5d96c0398938",
+              "parentUUID": "036b2781-9006-4768-9483-38a4c7e52a60",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "16b0fa3b-78bc-4926-b134-e7f8d1de106f"
+          ],
+          "failures": [
+            "9bfde98c-24c7-4fa9-8222-7a44feb6109b",
+            "893d2c14-e5dc-4598-941f-b446fa54e803",
+            "f90f60a3-27fb-48b8-bd94-13ab2ee4293e",
+            "a14f97c5-ddc6-4559-a6fd-b75240896256",
+            "b0d42040-eaff-439f-a1c5-5d96c0398938"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 4957,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "id": "default",
+        "reportDir": "cypress/reports/mocha",
+        "quite": true,
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.2.0"
+    }
+  }
+}

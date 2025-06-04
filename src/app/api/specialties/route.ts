@@ -13,6 +13,23 @@ const hasRequiredRole = (): boolean => {
 export async function GET() {
     try {
         const specialties = await prisma.specialty.findMany({
+            include: {
+                surgeons: {
+                    select: {
+                        id: true,
+                        nom: true,
+                        prenom: true,
+                        status: true
+                    },
+                    where: {
+                        status: 'ACTIF'
+                    },
+                    orderBy: [
+                        { nom: 'asc' },
+                        { prenom: 'asc' }
+                    ]
+                }
+            },
             orderBy: {
                 name: 'asc' // Trier par nom pour la liste déroulante
             }

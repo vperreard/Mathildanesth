@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 
-const prisma = new PrismaClient();
 
 /**
- * GET /api/leaves/quotas/carry-over-rules
+ * GET /api/conges/quotas/carry-over-rules
  * Récupère toutes les règles de report de quotas
  */
 export async function GET(req: NextRequest) {
@@ -37,7 +36,7 @@ export async function GET(req: NextRequest) {
 }
 
 /**
- * POST /api/leaves/quotas/carry-over-rules
+ * POST /api/conges/quotas/carry-over-rules
  * Crée une nouvelle règle de report de quotas
  */
 export async function POST(req: NextRequest) {

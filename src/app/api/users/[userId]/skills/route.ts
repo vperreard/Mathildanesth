@@ -9,7 +9,7 @@ interface UserSkillsParams {
     };
 }
 
-// GET /api/users/[userId]/skills - Liste les compétences d'un utilisateur spécifique (admin)
+// GET /api/utilisateurs/[userId]/skills - Liste les compétences d'un utilisateur spécifique (admin)
 export async function GET(request: NextRequest, { params }: UserSkillsParams) {
     try {
         const currentUser = await getCurrentUser();
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest, { params }: UserSkillsParams) {
     }
 }
 
-// POST /api/users/[userId]/skills - Assigne une compétence à un utilisateur
+// POST /api/utilisateurs/[userId]/skills - Assigne une compétence à un utilisateur
 export async function POST(request: NextRequest, { params }: UserSkillsParams) {
     try {
         const currentUser = await getCurrentUser();

@@ -1,20 +1,39 @@
 import { User } from '../types/user';
-import { Assignment, ValidationResult } from '../types/assignment';
+import { Attribution, ValidationResult } from '../types/attribution';
 import { apiConfig } from '../config/api';
+import Cookies from 'js-cookie';
 
 // Définir un type pour la réponse de l'API de génération
 interface GeneratePlanningResponse {
-    assignments: Assignment[];
+    attributions: Attribution[];
     validationResult: ValidationResult;
 }
 
 /**
- * Service API pour les opérations liées aux utilisateurs et aux affectations
+ * Service API pour les opérations liées aux utilisateurs et aux gardes/vacations
  */
 export class ApiService {
     private static instance: ApiService;
 
     private constructor() { }
+
+    /**
+     * Construit l'URL complète pour un endpoint
+     */
+    private getUrl(endpoint: string): string {
+        return endpoint.startsWith('/api/') ? endpoint : `${apiConfig.baseUrl}${endpoint}`;
+    }
+
+    /**
+     * Obtient les headers avec authentification
+     */
+    private getAuthHeaders(): HeadersInit {
+        const token = Cookies.get('jwt_token');
+        return {
+            ...apiConfig.headers,
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        };
+    }
 
     public static getInstance(): ApiService {
         if (!ApiService.instance) {
@@ -28,8 +47,8 @@ export class ApiService {
      */
     async getActiveUsers(): Promise<User[]> {
         try {
-            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.users.active}`, {
-                headers: apiConfig.headers,
+            const response = await fetch(this.getUrl(apiConfig.endpoints.users.active), {
+                headers: this.getAuthHeaders(),
                 credentials: 'include'
             });
             if (!response.ok) {
@@ -43,22 +62,22 @@ export class ApiService {
     }
 
     /**
-     * Récupère les affectations existantes pour une période donnée
+     * Récupère les gardes/vacations existantes pour une période donnée
      */
-    async getExistingAssignments(startDate: Date, endDate: Date): Promise<Assignment[]> {
+    async getExistingAssignments(startDate: Date, endDate: Date): Promise<Attribution[]> {
         try {
             const response = await fetch(
-                `${apiConfig.baseUrl}${apiConfig.endpoints.assignments.byDateRange(
+                `${apiConfig.baseUrl}${apiConfig.endpoints.attributions.byDateRange(
                     startDate.toISOString(),
                     endDate.toISOString()
                 )}`,
                 {
-                    headers: apiConfig.headers,
+                    headers: this.getAuthHeaders(),
                     credentials: 'include'
                 }
             );
             if (!response.ok) {
-                throw new Error('Erreur lors de la récupération des affectations');
+                throw new Error('Erreur lors de la récupération des gardes/vacations');
             }
             return await response.json();
         } catch (error) {
@@ -68,18 +87,18 @@ export class ApiService {
     }
 
     /**
-     * Sauvegarde les affectations générées
+     * Sauvegarde les gardes/vacations générées
      */
-    async saveAssignments(assignments: Assignment[]): Promise<void> {
+    async saveAssignments(attributions: Attribution[]): Promise<void> {
         try {
-            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.assignments.create}`, {
+            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.attributions.create}`, {
                 method: 'POST',
-                headers: apiConfig.headers,
-                body: JSON.stringify(assignments),
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(attributions),
                 credentials: 'include'
             });
             if (!response.ok) {
-                throw new Error('Erreur lors de la sauvegarde des affectations');
+                throw new Error('Erreur lors de la sauvegarde des gardes/vacations');
             }
         } catch (error) {
             console.error('Erreur API:', error);
@@ -94,7 +113,7 @@ export class ApiService {
         try {
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.planning.generate}`, {
                 method: 'POST',
-                headers: apiConfig.headers,
+                headers: this.getAuthHeaders(),
                 body: JSON.stringify(parameters),
                 credentials: 'include'
             });
@@ -120,12 +139,12 @@ export class ApiService {
     /**
      * Valide un planning
      */
-    async validatePlanning(assignments: Assignment[]): Promise<any> {
+    async validatePlanning(attributions: Attribution[]): Promise<any> {
         try {
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.planning.validate}`, {
                 method: 'POST',
-                headers: apiConfig.headers,
-                body: JSON.stringify(assignments),
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(attributions),
                 credentials: 'include'
             });
             if (!response.ok) {
@@ -141,12 +160,12 @@ export class ApiService {
     /**
      * Approuve un planning
      */
-    async approvePlanning(assignments: Assignment[]): Promise<void> {
+    async approvePlanning(attributions: Attribution[]): Promise<void> {
         try {
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.planning.approve}`, {
                 method: 'POST',
-                headers: apiConfig.headers,
-                body: JSON.stringify(assignments),
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(attributions),
                 credentials: 'include'
             });
             if (!response.ok) {
@@ -163,10 +182,16 @@ export class ApiService {
      */
     async getUserPreferences(): Promise<any> {
         try {
-            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.user.preferences}`, {
-                headers: apiConfig.headers,
-                credentials: 'include'
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondes de timeout
+            
+            const response = await fetch(this.getUrl(apiConfig.endpoints.user.preferences), {
+                headers: this.getAuthHeaders(),
+                credentials: 'include',
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`Erreur lors de la récupération des préférences (${response.status}): ${errorText}`);
@@ -185,9 +210,9 @@ export class ApiService {
      */
     async saveUserPreferences(preferences: any): Promise<{ success: boolean }> {
         try {
-            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.user.preferences}`, {
-                method: 'PUT',
-                headers: apiConfig.headers,
+            const response = await fetch(this.getUrl(apiConfig.endpoints.user.preferences), {
+                method: 'POST',
+                headers: this.getAuthHeaders(),
                 body: JSON.stringify(preferences),
                 credentials: 'include'
             });
@@ -203,19 +228,19 @@ export class ApiService {
 
     /**
      * Sauvegarde un lot d'assignations (création/mise à jour)
-     * @param assignments Tableau des assignations à sauvegarder
+     * @param attributions Tableau des assignations à sauvegarder
      * @returns Résultat du traitement par lot
      */
-    async saveAssignmentsBatch(assignments: Assignment[]): Promise<{ message: string; count?: number; errors?: any[]; successCount?: number }> {
+    async saveAssignmentsBatch(attributions: Attribution[]): Promise<{ message: string; count?: number; errors?: any[]; successCount?: number }> {
         try {
-            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.assignments.batch}`, {
+            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.attributions.batch}`, {
                 method: 'POST',
-                headers: apiConfig.headers,
-                body: JSON.stringify({ assignments }),
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify({ attributions }),
                 credentials: 'include'
             });
             if (!response.ok) {
-                throw new Error('Erreur lors de la sauvegarde des affectations par lots');
+                throw new Error('Erreur lors de la sauvegarde des gardes/vacations par lots');
             }
             return await response.json();
         } catch (error) {

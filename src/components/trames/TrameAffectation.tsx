@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePickerComponent } from '@/components/ui/date-picker';
 import { toast } from 'sonner';
 
-// Types pour le modèle de données
+// Types pour le template de données
 export type PeriodeType = 'HEBDOMADAIRE' | 'BI_HEBDOMADAIRE' | 'MENSUEL';
 
 export interface Affectation {
@@ -22,7 +22,7 @@ export interface Affectation {
 }
 
 export interface TrameAffectationProps {
-    onSave: (trame: Affectation[]) => void;
+    onSave: (trameModele: Affectation[]) => void;
     initialData?: Affectation[];
 }
 
@@ -55,13 +55,13 @@ export const TrameAffectation: React.FC<TrameAffectationProps> = ({ onSave, init
 
     const handleSave = () => {
         onSave(affectations);
-        toast.success('Trame d\'affectation sauvegardée avec succès');
+        toast.success('TrameModele d\'affectation sauvegardée avec succès');
     };
 
     return (
         <Card className="w-full">
             <CardHeader>
-                <CardTitle>Gestion des trames d'affectation</CardTitle>
+                <CardTitle>Gestion des trameModeles d'affectation</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
@@ -133,7 +133,7 @@ export const TrameAffectation: React.FC<TrameAffectationProps> = ({ onSave, init
                     </div>
 
                     <div className="flex justify-end mt-4">
-                        <Button onClick={handleSave}>Sauvegarder la trame</Button>
+                        <Button onClick={handleSave}>Sauvegarder la trameModele</Button>
                     </div>
                 </div>
             </CardContent>

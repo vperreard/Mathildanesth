@@ -14,7 +14,7 @@ import {
     CalendarViewType,
     UserCalendarSettings
 } from '../types/event';
-import { useCalendarStore } from '../store/calendarStore';
+import { useCalendarStore } from '../store/calendrierStore';
 import { EventRenderer } from './events/EventRenderer';
 import { CalendarLoadingOverlay } from './ui/CalendarLoadingOverlay';
 import DayGridView from './views/DayGridView';
@@ -24,7 +24,7 @@ import { holidayCalendarService } from '../services/holidayService';
 import { format } from 'date-fns';
 
 // Styles personnalisés pour le calendrier
-import './calendar.css';
+import './calendrier.css';
 
 interface BaseCalendarProps {
     events?: AnyCalendarEvent[];
@@ -574,7 +574,7 @@ const getEventBackgroundColor = (
         case CalendarEventType.ON_CALL:
             return colorScheme?.onCall || '#F59E0B';
         case CalendarEventType.ASSIGNMENT:
-            return colorScheme?.assignment || '#10B981';
+            return colorScheme?.attribution || '#10B981';
         case CalendarEventType.HOLIDAY:
             return colorScheme?.holiday || '#8B5CF6';
         default:
@@ -594,7 +594,7 @@ const getEventBorderColor = (
         case CalendarEventType.ON_CALL:
             return colorScheme?.onCall || '#D97706';
         case CalendarEventType.ASSIGNMENT:
-            return colorScheme?.assignment || '#059669';
+            return colorScheme?.attribution || '#059669';
         case CalendarEventType.HOLIDAY:
             return colorScheme?.holiday || '#7C3AED';
         default:

@@ -159,7 +159,7 @@ export default function ConfigurationEditPage() {
         const fetchConfiguration = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`/api/admin/team-configurations?id=${id}`);
+                const response = await fetch(`http://localhost:3000/api/admin/team-configurations?id=${id}`);
 
                 if (!response.ok) {
                     throw new Error('Erreur lors de la récupération de la configuration');

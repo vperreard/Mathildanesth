@@ -58,7 +58,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
     // Récupération des chirurgiens
     const fetchSurgeons = useCallback(async () => {
         try {
-            const response = await axios.get<Surgeon[]>('/api/surgeons');
+            const response = await axios.get<Surgeon[]>('/api/chirurgiens');
             setSurgeons(response.data);
         } catch (err: any) {
             console.error('Erreur lors du chargement des chirurgiens:', err);
@@ -128,7 +128,7 @@ const SpecialtiesConfigPanel: React.FC = () => {
         }
         setError(null);
         try {
-            await axios.delete(`/api/specialties/${id}`);
+            await axios.delete(`http://localhost:3000/api/specialties/${id}`);
             setSpecialties(prev => prev.filter(s => s.id !== id));
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);

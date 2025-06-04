@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 
-const prisma = new PrismaClient();
 
 /**
- * GET /api/leaves/quotas/carry-overs
+ * GET /api/conges/quotas/carry-overs
  * Récupère tous les reports de quotas (admin uniquement)
  */
 export async function GET(req: NextRequest) {
@@ -69,7 +68,7 @@ export async function GET(req: NextRequest) {
 }
 
 /**
- * POST /api/leaves/quotas/carry-overs
+ * POST /api/conges/quotas/carry-overs
  * Crée un nouveau report de quota
  */
 export async function POST(req: NextRequest) {

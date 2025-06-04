@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "user": {
+    "id": 1,
+    "email": "medecin@example.com",
+    "nom": "Martin",
+    "prenom": "Jean",
+    "role": "USER",
+    "professionalRole": "MAR",
+    "actif": true
+  },
+  "token": "cypress-test-token-auth",
+  "redirectUrl": "/tableau-de-bord"
+}

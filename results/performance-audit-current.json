@@ -1,0 +1,256 @@
+{
+  "timestamp": 1748557392865,
+  "audit": {
+    "bundle": {
+      "mainSize": 11454284,
+      "chunks": [
+        {
+          "name": "main-app.js",
+          "size": 6654058,
+          "sizeKB": "6498.10"
+        },
+        {
+          "name": "layout.js",
+          "size": 4085867,
+          "sizeKB": "3990.10"
+        },
+        {
+          "name": "page.js",
+          "size": 3785013,
+          "sizeKB": "3696.30"
+        },
+        {
+          "name": "_app-pages-browser_src_components_notifications_SimulationNotifications_tsx.js",
+          "size": 2843962,
+          "sizeKB": "2777.31"
+        },
+        {
+          "name": "_app-pages-browser_src_components_Header_tsx.js",
+          "size": 1623239,
+          "sizeKB": "1585.19"
+        },
+        {
+          "name": "app-pages-internals.js",
+          "size": 225180,
+          "sizeKB": "219.90"
+        },
+        {
+          "name": "polyfills.js",
+          "size": 112594,
+          "sizeKB": "109.96"
+        },
+        {
+          "name": "page.js",
+          "size": 77888,
+          "sizeKB": "76.06"
+        },
+        {
+          "name": "webpack.js",
+          "size": 56246,
+          "sizeKB": "54.93"
+        },
+        {
+          "name": "_app-pages-browser_src_components_Prefetcher_tsx.js",
+          "size": 37676,
+          "sizeKB": "36.79"
+        }
+      ],
+      "totalSize": 19603908,
+      "gzippedSize": 0
+    },
+    "api": {
+      "averageResponseTime": 6.9,
+      "slowestEndpoints": [
+        {
+          "endpoint": "/api/utilisateurs",
+          "duration": 29,
+          "status": 401
+        },
+        {
+          "endpoint": "/api/utilisateurs",
+          "duration": 22,
+          "status": 401
+        },
+        {
+          "endpoint": "/api/utilisateurs",
+          "duration": 11,
+          "status": 401
+        },
+        {
+          "endpoint": "/api/sectors",
+          "duration": 11,
+          "status": 401
+        },
+        {
+          "endpoint": "/api/notifications/preferences",
+          "duration": 11,
+          "status": 401
+        }
+      ],
+      "errorRate": 0,
+      "totalRequests": 40,
+      "realTime": [
+        {
+          "url": "http://localhost:3000/api/auth/me",
+          "duration": 1500,
+          "status": 500,
+          "success": false
+        },
+        {
+          "url": "http://localhost:3000/api/planning",
+          "duration": 7,
+          "status": 401,
+          "success": false
+        },
+        {
+          "url": "http://localhost:3000/api/conges",
+          "duration": 4,
+          "status": 401,
+          "success": false
+        }
+      ]
+    },
+    "database": {
+      "tablesCount": 66,
+      "indexesFound": [
+        "@@index([userId])",
+        "@@index([type])",
+        "@@index([status])",
+        "@@index([enabled])",
+        "@@index([priority])",
+        "@@index([effectiveDate])",
+        "@@index([tags])",
+        "@@index([contexts])",
+        "@@index([ruleId])",
+        "@@index([createdAt])",
+        "@@index([ruleId])",
+        "@@index([lastEvaluatedAt])",
+        "@@index([siteId])",
+        "@@index([operatingSectorId])",
+        "@@index([userId])",
+        "@@index([startDate, endDate])",
+        "@@index([typeCode])",
+        "@@index([parentId])",
+        "@@index([userId])",
+        "@@index([date])",
+        "@@index([locationId])",
+        "@@index([userId])",
+        "@@index([startDate])",
+        "@@index([endDate])",
+        "@@index([locationId])",
+        "@@index([date])",
+        "@@index([userId, date])",
+        "@@index([siteId, date])",
+        "@@index([siteId])",
+        "@@index([userId])",
+        "@@index([surgeonId])",
+        "@@index([trameId])",
+        "@@index([siteId])",
+        "@@index([dayOfWeek, period, weekType])",
+        "@@index([userId])",
+        "@@index([surgeonId])",
+        "@@index([startDate, endDate])",
+        "@@index([type, status])",
+        "@@index([userId, isRead])",
+        "@@index([userId])",
+        "@@index([endDate])",
+        "@@index([startDate])",
+        "@@index([userId])",
+        "@@index([userId, fromType, toType])",
+        "@@index([status])",
+        "@@index([userId, leaveType])",
+        "@@index([fromYear, toYear])",
+        "@@index([status])",
+        "@@index([entityType, entityId])",
+        "@@index([userId])",
+        "@@index([timestamp])",
+        "@@index([date])",
+        "@@index([user1Id, user2Id, type, startDate, endDate])",
+        "@@index([surgeon1Id, surgeon2Id, type, startDate, endDate])",
+        "@@index([user1Id, surgeon2Id, type, startDate, endDate])",
+        "@@index([userId, status])",
+        "@@index([requestTypeId, status])",
+        "@@index([assignedToId, status])",
+        "@@index([initiatorUserId])",
+        "@@index([targetUserId])",
+        "@@index([proposedAssignmentId])",
+        "@@index([requestedAssignmentId])",
+        "@@index([leaveId])",
+        "@@index([assignmentId])",
+        "@@index([contextDate])",
+        "@@index([requestId])",
+        "@@index([authorId])",
+        "@@index([userId])",
+        "@@index([action])",
+        "@@index([createdAt])",
+        "@@index([category])",
+        "@@index([isDefault])",
+        "@@index([type])",
+        "@@index([status])",
+        "@@index([priority])",
+        "@@index([requesterId])",
+        "@@index([assignedToId])",
+        "@@index([createdAt])",
+        "@@index([siteId])",
+        "@@index([requestId])",
+        "@@index([recipientId])",
+        "@@index([status])"
+      ],
+      "missingIndexes": [
+        "User.email"
+      ],
+      "recommendations": []
+    },
+    "lighthouse": {
+      "performanceScore": null,
+      "error": "Lighthouse non disponible",
+      "alternatives": "Utiliser les Core Web Vitals intégrés"
+    },
+    "vitals": {
+      "LCP": null,
+      "FID": null,
+      "CLS": null,
+      "status": "no-data",
+      "evaluation": {
+        "LCP": "NO_DATA",
+        "FID": "NO_DATA",
+        "CLS": "NO_DATA"
+      }
+    },
+    "recommendations": [
+      {
+        "type": "bundle",
+        "priority": "HIGH",
+        "title": "Bundle trop volumineux",
+        "description": "Bundle principal: 11185.82KB (objectif: <250KB)",
+        "actions": [
+          "Implémenter code splitting",
+          "Tree shaking",
+          "Lazy loading des composants"
+        ]
+      },
+      {
+        "type": "database",
+        "priority": "MEDIUM",
+        "title": "Indexes manquants",
+        "description": "1 indexes manquants détectés",
+        "actions": [
+          "Créer indexes sur colonnes fréquemment utilisées",
+          "Optimiser requêtes N+1"
+        ]
+      }
+    ],
+    "memory": {
+      "heapUsed": 8680344,
+      "heapTotal": 12697600,
+      "external": 3597866,
+      "rss": 74498048,
+      "heapUsagePercent": 68.36208417338709,
+      "formatted": {
+        "heapUsedMB": "8.28",
+        "heapTotalMB": "12.11",
+        "rssMB": "71.05"
+      }
+    }
+  }
+}

@@ -4,26 +4,23 @@ import { PrismaClient, User } from '@prisma/client';
 import { getServerSession } from "next-auth"; // Nouvel import
 // import { authOptions } from '@/lib/auth'; // <--- Chemin potentiellement incorrect, commenté temporairement
 
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 // Fonction pour vérifier si l'utilisateur est admin (copiée depuis l'autre route)
 const isAdmin = (user: User | null): boolean => {
     return !!user && (user.role === 'ADMIN_TOTAL' || user.role === 'ADMIN_PARTIEL');
 };
 
-interface RouteParams {
-    params: {
-        id: string; // L'ID vient de la partie dynamique [id] de l'URL
-    }
-}
-
 /**
  * PUT /api/admin/leave-types/{id}
  * Met à jour un paramètre de type de congé existant.
  * Réservé aux administrateurs.
  */
-export async function PUT(request: Request, { params }: RouteParams) {
-    const { id } = params; // Récupérer l'ID depuis les paramètres de la route
+export async function PUT(
+    request: Request, 
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params; // Récupérer l'ID depuis les paramètres de la route
 
     try {
         // --- Authentification commentée temporairement --- 
@@ -81,8 +78,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
  * Supprime (ou désactive) un paramètre de type de congé.
  * Réservé aux administrateurs.
  */
-export async function DELETE(request: Request, { params }: RouteParams) {
-    const { id } = params;
+export async function DELETE(
+    request: Request, 
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params;
 
     try {
         // --- Authentification commentée temporairement --- 

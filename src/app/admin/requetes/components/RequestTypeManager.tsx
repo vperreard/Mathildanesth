@@ -38,7 +38,7 @@ export default function RequestTypeManager() {
             setIsLoading(true);
             setError(null); // Clear previous errors
             try {
-                const response = await fetch('/api/request-types?includeInactive=true');
+                const response = await fetch('http://localhost:3000/api/request-types?includeInactive=true');
                 if (!response.ok) {
                     let errorMsg = `Erreur ${response.status} lors du chargement des types de requêtes.`;
                     try {
@@ -101,7 +101,7 @@ export default function RequestTypeManager() {
         try {
             if (isEditing && editingId) {
                 // Mise à jour d'un type existant
-                const response = await fetch('/api/request-types', {
+                const response = await fetch('http://localhost:3000/api/request-types', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -130,7 +130,7 @@ export default function RequestTypeManager() {
 
             } else {
                 // Création d'un nouveau type
-                const response = await fetch('/api/request-types', {
+                const response = await fetch('http://localhost:3000/api/request-types', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
@@ -173,7 +173,7 @@ export default function RequestTypeManager() {
         setError(null);
 
         try {
-            const response = await fetch(`/api/request-types?id=${id}`, {
+            const response = await fetch(`http://localhost:3000/api/request-types?id=${id}`, {
                 method: 'DELETE'
             });
 
@@ -215,7 +215,7 @@ export default function RequestTypeManager() {
         setError(null);
 
         try {
-            const response = await fetch('/api/request-types', {
+            const response = await fetch('http://localhost:3000/api/request-types', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

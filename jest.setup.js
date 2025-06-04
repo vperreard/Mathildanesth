@@ -1,51 +1,14 @@
-// jest.setup.js
-// import '@testing-library/jest-dom'; // Ancienne méthode
-import '@testing-library/jest-dom/jest-globals'; // Nouvelle tentative
-import 'whatwg-fetch'; // Polyfill fetch
-import { TextEncoder, TextDecoder } from 'util';
-import { fetch, Headers, Request, Response } from 'cross-fetch';
+// jest.setup.js - Minimal setup for Jest tests
+import '@testing-library/jest-dom';
 
-// Polyfills globaux
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
-global.fetch = fetch;
-global.Headers = Headers;
-global.Request = Request;
-global.Response = Response;
+// Mock console methods to reduce noise in tests
+global.console = {
+  ...console,
+  warn: jest.fn(),
+  error: jest.fn(),
+};
 
-// Mocks de Next.js
-jest.mock('next/font/google', () => ({
-  Inter: () => ({ className: 'mock-inter-font', style: { fontFamily: 'mock-inter' } }),
-  Roboto_Mono: () => ({
-    className: 'mock-roboto-mono-font',
-    style: { fontFamily: 'mock-roboto-mono' },
-  }),
-  Montserrat: () => ({
-    className: 'mock-montserrat-font',
-    style: { fontFamily: 'mock-montserrat' },
-  }),
-}));
-
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn(), refresh: jest.fn() })),
-  useSearchParams: jest.fn(() => new URLSearchParams()),
-  usePathname: jest.fn(() => ''),
-}));
-
-jest.mock('next/router', () => ({
-  useRouter: jest.fn().mockReturnValue({
-    push: jest.fn(),
-    pathname: '/',
-    query: {},
-    asPath: '/',
-    events: {
-      on: jest.fn(),
-      off: jest.fn(),
-    },
-  }),
-}));
-
-// Mock de window.matchMedia pour JSDOM (une seule définition)
+// Mock window.matchMedia if window is defined
 if (typeof window !== 'undefined') {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -53,96 +16,95 @@ if (typeof window !== 'undefined') {
       matches: false,
       media: query,
       onchange: null,
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
+      addListener: jest.fn(), // deprecated
+      removeListener: jest.fn(), // deprecated
       addEventListener: jest.fn(),
       removeEventListener: jest.fn(),
       dispatchEvent: jest.fn(),
     })),
   });
+
+  // Mock window.scrollTo if window is defined
+  window.scrollTo = jest.fn();
 }
 
-// Configuration pour MSW (Mock Service Worker)
-import { server } from './src/tests/mocks/server';
-
-// Hooks de cycle de vie pour MSW
-beforeAll(() => {
-  server.listen();
-});
-
-afterEach(() => {
-  server.resetHandlers();
-});
-
-afterAll(() => {
-  server.close();
-});
-
-// Gestion console.error pour supprimer les warnings non pertinents
-const originalConsoleError = console.error;
-console.error = (...args) => {
-  if (
-    typeof args[0] === 'string' &&
-    (args[0].includes('Warning: ReactDOM.render is no longer supported in React 18') ||
-      args[0].includes('Warning: An update to %s inside a test was not wrapped in act(...)') ||
-      args[0].includes('Warning: validateDOMNesting(...)') ||
-      args[0].includes('Warning: Received `%s` for a non-boolean attribute `%s`') ||
-      args[0].includes(
-        'Warning: Cannot update a component (`%s`) while rendering a different component'
-      ) ||
-      args[0].includes('[MSW]') ||
-      args[0].includes('Could not load canvas') ||
-      args[0].includes('Warning: React does not recognize the') ||
-      args[0].includes('forwardRef render functions accept exactly two parameters') ||
-      args[0].includes('Warning: React.createFactory() is deprecated'))
-  ) {
-    return;
-  }
-  originalConsoleError(...args);
-};
-
-// Mocks globaux supplémentaires
-class MockBroadcastChannel {
-  constructor(channel) {
-    this.channel = channel;
-    this.onmessage = null;
-  }
-  postMessage(message) { }
-  close() { }
-}
-
-global.BroadcastChannel = global.BroadcastChannel || MockBroadcastChannel;
-
-// Mock pour ResizeObserver
-global.ResizeObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}));
-
-// Configuration pour les tests de composants
-jest.setTimeout(10000);
-
-console.log('jest.setup.js loaded and mocks applied.');
-
-// Mock global pour PublicHolidayService pour éviter les appels API et calculs lourds par défaut
-jest.mock('@/modules/leaves/services/publicHolidayService', () => {
-  const actualPublicHolidayService = jest.requireActual('@/modules/leaves/services/publicHolidayService');
-  return {
-    publicHolidayService: {
-      // Conserver les autres méthodes non mockées si nécessaire, ou les mocker explicitement
-      // ...actualPublicHolidayService.publicHolidayService, // Ne pas faire ça si on veut surcharger des méthodes clés
-
-      getPublicHolidaysInRange: jest.fn().mockResolvedValue([]),
-      isPublicHoliday: jest.fn().mockResolvedValue(false),
-      getPublicHolidaysForYear: jest.fn().mockResolvedValue([]),
-      // Si preloadData est exporté et utilisé, sinon ce mock est inoffensif
-      // S'il n'est pas exporté, il ne peut pas être mocké directement ici de toute façon.
-      // On espère que mocker getPublicHolidaysForYear suffit à contrôler son comportement si preloadData l'appelle.
-      preloadData: jest.fn().mockResolvedValue(undefined), // Tentative, même si privé, le module pourrait l'exporter
-
-      // Conserver les constantes/enums exportés par le module s'il y en a
-      ...(actualPublicHolidayService.publicHolidayService ? {} : actualPublicHolidayService) // Pour conserver les exports non-objets
-    },
+// Mock global Request and Response if not defined (for Next.js server components/utils in Jest)
+if (typeof global.Request === 'undefined') {
+  global.Request = class Request {
+    constructor(input, options) {
+      this.url = typeof input === 'string' ? input : input.url;
+      this.method = options?.method || 'GET';
+      this.headers = new Headers(options?.headers);
+      // Add other properties or methods if needed by your tests or the code under test
+      this.clone = jest.fn().mockReturnValue(this); // Basic clone mock
+    }
   };
-});
+}
+
+if (typeof global.Response === 'undefined') {
+  global.Response = class Response {
+    constructor(body, options) {
+      this.body = body;
+      this.status = options?.status || 200;
+      this.ok = this.status >= 200 && this.status < 300;
+      this.headers = new Headers(options?.headers);
+      // Add other properties or methods if needed
+      this.json = jest.fn().mockResolvedValue(body);
+      this.text = jest.fn().mockResolvedValue(typeof body === 'string' ? body : JSON.stringify(body));
+      this.clone = jest.fn().mockReturnValue(this); // Basic clone mock
+    }
+
+    static redirect(url, status) {
+      const headers = new Headers();
+      headers.set('Location', url);
+      return new Response(null, { status: status || 302, headers });
+    }
+    // Add other static methods if needed e.g. Response.json()
+    static json(data, init) {
+      const body = JSON.stringify(data);
+      const headers = new Headers(init?.headers);
+      if (!headers.has('content-type')) {
+        headers.set('content-type', 'application/json');
+      }
+      return new Response(body, { ...init, headers });
+    }
+  };
+}
+
+// Mock Headers if not fully available or to add specific test functionalities
+if (typeof global.Headers === 'undefined') {
+  global.Headers = class Headers {
+    constructor(init) {
+      this._headers = {};
+      if (init) {
+        if (init instanceof Headers) {
+          init.forEach((value, name) => {
+            this.append(name, value);
+          });
+        } else if (Array.isArray(init)) {
+          init.forEach(([name, value]) => {
+            this.append(name, value);
+          });
+        } else {
+          for (const name in init) {
+            this.append(name, init[name]);
+          }
+        }
+      }
+    }
+    append(name, value) {
+      const lowerName = name.toLowerCase();
+      if (!this._headers[lowerName]) this._headers[lowerName] = [];
+      this._headers[lowerName].push(value);
+    }
+    delete(name) { delete this._headers[name.toLowerCase()]; }
+    get(name) { const values = this._headers[name.toLowerCase()]; return values ? values[0] : null; }
+    has(name) { return name.toLowerCase() in this._headers; }
+    set(name, value) { this._headers[name.toLowerCase()] = [value]; }
+    forEach(callback) {
+      for (const name in this._headers) {
+        this._headers[name].forEach(value => callback(value, name));
+      }
+    }
+  };
+}
