@@ -17,7 +17,7 @@ export const publicHolidayService = {
   calculateHolidayDays: jest.fn().mockReturnValue(0),
   getNextPublicHoliday: jest.fn().mockReturnValue(null),
   getDaysUntilNextHoliday: jest.fn().mockReturnValue(null),
-  convertZoneToUTC: jest.fn(date => date),
-  convertUTCToZone: jest.fn(date => date),
+  convertZoneToUTC: jest.fn((date: Date) => date),
+  convertUTCToZone: jest.fn((date: Date) => date),
   preloadData: jest.fn().mockResolvedValue(undefined),
 };
