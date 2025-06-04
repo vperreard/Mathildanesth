@@ -33,28 +33,33 @@ export const rateLimitConfigs = {
   auth: {
     interval: 60 * 1000, // 1 minute
     uniqueTokenPerInterval: 500,
-    maxRequests: process.env.NODE_ENV === 'test' || process.env.CYPRESS === 'true' ? 1000 : 5 // Much higher limit for tests
+    maxRequests:
+      process.env.NODE_ENV === 'test' || process.env.CYPRESS === 'true'
+        ? 1000
+        : process.env.NODE_ENV === 'development'
+          ? 15
+          : 8, // More permissive for dev, balanced for prod
   },
   public: {
     interval: 60 * 1000,
     uniqueTokenPerInterval: 500,
-    maxRequests: 20 // 20 requests per minute for public routes
+    maxRequests: 20, // 20 requests per minute for public routes
   },
   user: {
     interval: 60 * 1000,
     uniqueTokenPerInterval: 1000,
-    maxRequests: 100 // 100 requests per minute for authenticated users
+    maxRequests: 100, // 100 requests per minute for authenticated users
   },
   admin: {
     interval: 60 * 1000,
     uniqueTokenPerInterval: 1000,
-    maxRequests: 200 // 200 requests per minute for admins
+    maxRequests: 200, // 200 requests per minute for admins
   },
   sensitive: {
     interval: 60 * 1000,
     uniqueTokenPerInterval: 1000,
-    maxRequests: 50 // 50 requests per minute for sensitive operations
-  }
+    maxRequests: 50, // 50 requests per minute for sensitive operations
+  },
 };
 
 export async function rateLimit(
@@ -63,18 +68,19 @@ export async function rateLimit(
   identifier?: string
 ): Promise<RateLimitResult> {
   // Skip rate limiting in test/cypress environment
-  const isTestEnv = process.env.NODE_ENV === 'test' || 
-                   process.env.CYPRESS === 'true' ||
-                   request.headers.get('x-cypress-test') === 'true' ||
-                   request.headers.get('x-test-environment') === 'cypress' ||
-                   request.headers.get('x-disable-rate-limit') === 'true';
-  
+  const isTestEnv =
+    process.env.NODE_ENV === 'test' ||
+    process.env.CYPRESS === 'true' ||
+    request.headers.get('x-cypress-test') === 'true' ||
+    request.headers.get('x-test-environment') === 'cypress' ||
+    request.headers.get('x-disable-rate-limit') === 'true';
+
   if (isTestEnv) {
     return {
       success: true,
       limit: config.maxRequests,
       remaining: config.maxRequests - 1,
-      reset: Date.now() + config.interval
+      reset: Date.now() + config.interval,
     };
   }
   // Get identifier from IP or custom identifier
@@ -82,24 +88,24 @@ export async function rateLimit(
   const forwardedFor = headersList.get('x-forwarded-for');
   const realIp = headersList.get('x-real-ip');
   const ip = forwardedFor?.split(',')[0] || realIp || 'unknown';
-  
+
   const key = identifier ? `${identifier}:${ip}` : ip;
   const now = Date.now();
   const resetTime = now + config.interval;
 
   // Get or create rate limit entry
   let entry = rateLimitStore.get(key);
-  
+
   if (!entry || entry.resetTime < now) {
     // Create new entry or reset expired one
     entry = { count: 1, resetTime };
     rateLimitStore.set(key, entry);
-    
+
     return {
       success: true,
       limit: config.maxRequests,
       remaining: config.maxRequests - 1,
-      reset: resetTime
+      reset: resetTime,
     };
   }
 
@@ -109,7 +115,7 @@ export async function rateLimit(
       success: false,
       limit: config.maxRequests,
       remaining: 0,
-      reset: entry.resetTime
+      reset: entry.resetTime,
     };
   }
 
@@ -121,16 +127,16 @@ export async function rateLimit(
     success: true,
     limit: config.maxRequests,
     remaining: config.maxRequests - entry.count,
-    reset: entry.resetTime
+    reset: entry.resetTime,
   };
 }
 
 // Helper function to create rate limit middleware for API routes
 export function withRateLimit(
-  handler: Function,
+  handler: (request: NextRequest, context?: unknown) => Promise<Response>,
   configType: keyof typeof rateLimitConfigs = 'public'
 ) {
-  return async (request: NextRequest, context?: any) => {
+  return async (request: NextRequest, context?: unknown) => {
     const config = rateLimitConfigs[configType];
     const result = await rateLimit(request, config);
 
@@ -139,7 +145,7 @@ export function withRateLimit(
       let userId: number | undefined;
       const authHeader = request.headers.get('authorization');
       const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
-      
+
       if (token) {
         try {
           const authResult = await verifyAuthToken(token);
@@ -155,7 +161,7 @@ export function withRateLimit(
       const headersList = await headers();
       const forwardedFor = headersList.get('x-forwarded-for');
       const realIp = headersList.get('x-real-ip');
-      
+
       await auditService.logAction({
         action: AuditAction.RATE_LIMIT_EXCEEDED,
         entityId: request.url,
@@ -171,16 +177,16 @@ export function withRateLimit(
             limit: config.maxRequests,
             interval: config.interval,
             endpoint: request.url,
-            method: request.method
-          }
-        }
+            method: request.method,
+          },
+        },
       });
 
       return new Response(
         JSON.stringify({
           error: 'Too Many Requests',
           message: `Rate limit exceeded. Please try again after ${new Date(result.reset).toISOString()}`,
-          retryAfter: Math.ceil((result.reset - Date.now()) / 1000)
+          retryAfter: Math.ceil((result.reset - Date.now()) / 1000),
         }),
         {
           status: 429,
@@ -189,15 +195,15 @@ export function withRateLimit(
             'X-RateLimit-Limit': result.limit.toString(),
             'X-RateLimit-Remaining': result.remaining.toString(),
             'X-RateLimit-Reset': result.reset.toString(),
-            'Retry-After': Math.ceil((result.reset - Date.now()) / 1000).toString()
-          }
+            'Retry-After': Math.ceil((result.reset - Date.now()) / 1000).toString(),
+          },
         }
       );
     }
 
     // Add rate limit headers to successful responses
     const response = await handler(request, context);
-    
+
     if (response instanceof Response) {
       response.headers.set('X-RateLimit-Limit', result.limit.toString());
       response.headers.set('X-RateLimit-Remaining', result.remaining.toString());
@@ -209,8 +215,18 @@ export function withRateLimit(
 }
 
 // Specific rate limiters for different route types
-export const withAuthRateLimit = (handler: Function) => withRateLimit(handler, 'auth');
-export const withPublicRateLimit = (handler: Function) => withRateLimit(handler, 'public');
-export const withUserRateLimit = (handler: Function) => withRateLimit(handler, 'user');
-export const withAdminRateLimit = (handler: Function) => withRateLimit(handler, 'admin');
-export const withSensitiveRateLimit = (handler: Function) => withRateLimit(handler, 'sensitive');
+export const withAuthRateLimit = (
+  handler: (request: NextRequest, context?: unknown) => Promise<Response>
+) => withRateLimit(handler, 'auth');
+export const withPublicRateLimit = (
+  handler: (request: NextRequest, context?: unknown) => Promise<Response>
+) => withRateLimit(handler, 'public');
+export const withUserRateLimit = (
+  handler: (request: NextRequest, context?: unknown) => Promise<Response>
+) => withRateLimit(handler, 'user');
+export const withAdminRateLimit = (
+  handler: (request: NextRequest, context?: unknown) => Promise<Response>
+) => withRateLimit(handler, 'admin');
+export const withSensitiveRateLimit = (
+  handler: (request: NextRequest, context?: unknown) => Promise<Response>
+) => withRateLimit(handler, 'sensitive');

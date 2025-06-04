@@ -1,0 +1,56 @@
+{
+  "config": {
+    "iterations": 3,
+    "warmupRuns": 1,
+    "timeout": 5000,
+    "target": 1000,
+    "delayBetweenRequests": 15000
+  },
+  "rawResults": {
+    "login": [88.84537499999999, 99.50683299999946, 92.82066599999962],
+    "verify": [16.06316700000025, 19.826042000000598, 19.81679200000508],
+    "logout": [19.796332999998413, 24.26141700000153, 20.811166000014055],
+    "refresh": []
+  },
+  "report": {
+    "timestamp": "2025-06-04T20:37:14.321Z",
+    "target": 1000,
+    "results": {
+      "login": {
+        "avg": "93.72",
+        "min": "88.85",
+        "max": "99.51",
+        "median": "92.82",
+        "p95": "99.51",
+        "p99": "99.51",
+        "target": 1000,
+        "passesTarget": true
+      },
+      "verify": {
+        "avg": "18.57",
+        "min": "16.06",
+        "max": "19.83",
+        "median": "19.82",
+        "p95": "19.83",
+        "p99": "19.83",
+        "target": 1000,
+        "passesTarget": true
+      },
+      "logout": {
+        "avg": "21.62",
+        "min": "19.80",
+        "max": "24.26",
+        "median": "20.81",
+        "p95": "24.26",
+        "p99": "24.26",
+        "target": 1000,
+        "passesTarget": true
+      }
+    },
+    "summary": {
+      "totalEndpoints": 3,
+      "passingEndpoints": 3,
+      "totalIssues": 0
+    }
+  }
+}
