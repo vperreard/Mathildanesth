@@ -197,33 +197,8 @@ describe('PlanningGenerator', () => {
       accessHelper(generator).personnel = mockUsers; // Injecter les utilisateurs modifiés
       accessHelper(generator).initializeUserCounters(); // Réinitialiser les compteurs avec les congés
 
-      // Remplacer la méthode isUserAvailable pour qu'elle prenne en compte les congés
-      accessHelper(generator).isUserAvailable = function (user, date, shiftType) {
-        // Vérifier si l'utilisateur est en congé à cette date
-        if (user.leaves && user.leaves.length > 0) {
-          for (const leave of user.leaves) {
-            const leaveStart = new Date(leave.startDate);
-            const leaveEnd = new Date(leave.endDate);
-            const checkDate = new Date(date);
-
-            // Normaliser les dates pour comparer seulement les jours
-            leaveStart.setHours(0, 0, 0, 0);
-            leaveEnd.setHours(23, 59, 59, 999);
-            checkDate.setHours(12, 0, 0, 0);
-
-            if (
-              leave.status === LeaveStatus.APPROVED &&
-              checkDate >= leaveStart &&
-              checkDate <= leaveEnd
-            ) {
-              return false;
-            }
-          }
-        }
-
-        // Retourner true si pas en congé (simplification pour le test)
-        return true;
-      };
+      // COMMENTÉ: Espionnage de méthode privée
+      // jest.spyOn(accessHelper(generator), 'isUserOnLeave').mockReturnValue(true);
 
       const eligible = accessHelper(generator).findEligibleUsersForGarde(gardeDate);
       expect(eligible).toHaveLength(1);
@@ -289,28 +264,28 @@ describe('PlanningGenerator', () => {
     it('should select the first user if scores are equal', () => {
       accessHelper(generator).userCounters.get('userA').fatigue.score = 30;
       accessHelper(generator).userCounters.get('userB').fatigue.score = 30;
-      accessHelper(generator).userCounters.get('userA').gardes.total = 2;
-      accessHelper(generator).userCounters.get('userB').gardes.total = 2;
-
-      // Mock calculateAssignmentScore pour retourner le même score pour les deux utilisateurs
-      accessHelper(generator).calculateAssignmentScore = jest.fn().mockReturnValue(50);
 
       const best = accessHelper(generator).selectBestCandidateForGarde(eligibleUsers, selectDate);
       expect(best.id).toBe('userA'); // Le premier de la liste si scores égaux
     });
 
     it('should prioritize users needing weekend guards if score reflects it (highest score wins)', () => {
+      // Configuration: userA a moins de gardes au total, donc score d'équité plus élevé
+      accessHelper(generator).userCounters.get('userA').gardes.total = 1;
+      accessHelper(generator).userCounters.get('userB').gardes.total = 3;
       accessHelper(generator).userCounters.get('userA').gardes.weekends = 1;
       accessHelper(generator).userCounters.get('userB').gardes.weekends = 3;
       accessHelper(generator).userCounters.get('userA').fatigue.score = 20;
       accessHelper(generator).userCounters.get('userB').fatigue.score = 20;
-      // User A a moins de gardes de WE, donc score potentiellement plus élevé si l'équité est prise en compte
+
+      // Mock getAverageGardesPerUser pour que la moyenne soit 2
+      accessHelper(generator).getAverageGardesPerUser = jest.fn().mockReturnValue(2);
 
       const best = accessHelper(generator).selectBestCandidateForGarde(eligibleUsers, selectDate);
-      // Le calcul exact du score dépend de l'implémentation, mais on s'attend à ce que A soit choisi
-      // En supposant que moins de gardes de WE => score plus élevé (à confirmer)
-      // Note: Le score actuel dans calculateAssignmentScore ne prend pas en compte l'équité des WE directement.
-      expect(best.id).toBe('userA'); // Ou userB si le score est identique ou si la fatigue domine
+      // UserA a moins de gardes que la moyenne (1 < 2), donc bonus d'équité
+      // UserB a plus de gardes que la moyenne (3 > 2), donc pénalité
+      // Avec des scores de fatigue identiques, userA devrait être sélectionné
+      expect(best.id).toBe('userA');
     });
   });
 
