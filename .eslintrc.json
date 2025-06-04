@@ -16,25 +16,16 @@
     "no-console": [
       "warn",
       {
-        "allow": [
-          "warn",
-          "error"
-        ]
+        "allow": ["warn", "error"]
       }
     ]
   },
   "overrides": [
     {
-      "files": [
-        "**/__tests__/**/*.+(ts|tsx|js)",
-        "**/?(*.)+(spec|test).+(ts|tsx|js)"
-      ],
-      "extends": [
-        "plugin:jest/recommended"
-      ],
-      "plugins": [
-        "jest"
-      ],
+      "files": ["**/__tests__/**/*.+(ts|tsx|js)", "**/?(*.)+(spec|test).+(ts|tsx|js)"],
+      "excludedFiles": ["cypress/**/*.+(ts|tsx|js)"],
+      "extends": ["plugin:jest/recommended"],
+      "plugins": ["jest"],
       "env": {
         "jest/globals": true,
         "jest": true
@@ -44,6 +35,19 @@
         "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/ban-ts-comment": "off",
         "@typescript-eslint/no-unused-vars": "off"
+      }
+    },
+    {
+      "files": ["cypress/**/*.+(ts|tsx|js)"],
+      "env": {
+        "cypress/globals": true
+      },
+      "plugins": ["cypress"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "jest/expect-expect": "off",
+        "jest/valid-expect": "off"
       }
     }
   ]
