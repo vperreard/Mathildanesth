@@ -40,23 +40,7 @@ prisma.$transaction = jest.fn().mockImplementation(async fn => {
   return Promise.resolve(fn);
 });
 
-// Mock common database operations
-prisma.user.findUnique = jest.fn();
-prisma.user.findMany = jest.fn();
-prisma.user.create = jest.fn();
-prisma.user.update = jest.fn();
-prisma.user.delete = jest.fn();
-
-prisma.leave.findMany = jest.fn();
-prisma.leave.create = jest.fn();
-prisma.leave.update = jest.fn();
-prisma.leave.delete = jest.fn();
-
-prisma.leaveBalance.findFirst = jest.fn();
-prisma.leaveBalance.create = jest.fn();
-prisma.leaveBalance.update = jest.fn();
-
-// Note: mockReset should be called in individual test files' beforeEach if needed
+// Note: Les méthodes de modèle sont automatiquement mockées par mockDeep
 
 // Mock pour PrismaClient spécifique pour les tests
 export const PrismaClient = jest.fn().mockImplementation(() => {

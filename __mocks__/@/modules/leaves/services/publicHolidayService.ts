@@ -15,10 +15,9 @@ export const publicHolidayService = {
   }),
   getQuotaStatusOnDate: jest.fn().mockReturnValue('normal'),
   calculateHolidayDays: jest.fn().mockReturnValue(0),
-  isPublicHoliday: jest.fn().mockReturnValue(false),
   getNextPublicHoliday: jest.fn().mockReturnValue(null),
   getDaysUntilNextHoliday: jest.fn().mockReturnValue(null),
-  convertZoneToUTC: jest.fn((date) => date),
-  convertUTCToZone: jest.fn((date) => date),
+  convertZoneToUTC: jest.fn(date => date),
+  convertUTCToZone: jest.fn(date => date),
   preloadData: jest.fn().mockResolvedValue(undefined),
 };
