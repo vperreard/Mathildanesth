@@ -197,8 +197,24 @@ describe('PlanningGenerator', () => {
       accessHelper(generator).personnel = mockUsers; // Injecter les utilisateurs modifiés
       accessHelper(generator).initializeUserCounters(); // Réinitialiser les compteurs avec les congés
 
-      // COMMENTÉ: Espionnage de méthode privée
-      // jest.spyOn(accessHelper(generator), 'isUserOnLeave').mockReturnValue(true);
+      // Mock isUserAvailable to check for leaves properly
+      const originalIsUserAvailable = accessHelper(generator).isUserAvailable;
+      jest
+        .spyOn(accessHelper(generator), 'isUserAvailable')
+        .mockImplementation((user, date, shiftType) => {
+          // Check if user is on leave
+          if (user.leaves && user.leaves.length > 0) {
+            const isOnLeave = user.leaves.some(leave => {
+              if (leave.status !== LeaveStatus.APPROVED) return false;
+              const leaveStart = leave.startDate;
+              const leaveEnd = leave.endDate;
+              return date >= leaveStart && date <= leaveEnd;
+            });
+            if (isOnLeave) return false;
+          }
+          // Call original method for other checks
+          return originalIsUserAvailable.call(accessHelper(generator), user, date, shiftType);
+        });
 
       const eligible = accessHelper(generator).findEligibleUsersForGarde(gardeDate);
       expect(eligible).toHaveLength(1);
@@ -262,8 +278,12 @@ describe('PlanningGenerator', () => {
     });
 
     it('should select the first user if scores are equal', () => {
-      accessHelper(generator).userCounters.get('userA').fatigue.score = 30;
-      accessHelper(generator).userCounters.get('userB').fatigue.score = 30;
+      // Mock calculateAssignmentScore to return equal scores
+      jest
+        .spyOn(accessHelper(generator), 'calculateAssignmentScore')
+        .mockImplementation((user, userCounter, date) => {
+          return 30; // Return same score for all users
+        });
 
       const best = accessHelper(generator).selectBestCandidateForGarde(eligibleUsers, selectDate);
       expect(best.id).toBe('userA'); // Le premier de la liste si scores égaux

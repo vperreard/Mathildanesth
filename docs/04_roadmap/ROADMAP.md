@@ -1,6 +1,6 @@
 # 🎯 ROADMAP MATHILDANESTH - Document Unique Consolidé
 
-> **Dernière mise à jour** : 03 Juin 2025 - 22h15
+> **Dernière mise à jour** : 06 Janvier 2025 - 14h30
 > **Statut global** : Phase 1 COMPLÉTÉE ✅, Admin Panel Unifié ✅, Infrastructure Bulletproof ✅, Claude Workers Système ✅, **RÉPARATION TESTS MANUELLE RÉUSSIE** ✅, Architecture refactorée, 85% modules testés, Production Ready, 100% Sécurisé, Tests E2E opérationnels
 
 ## 📊 État Actuel du Projet
@@ -39,6 +39,11 @@
   - [x] Documentation complète : CLAUDE_WORKERS_GUIDE.md
   - [x] Commandes : `npm run claude:workers`, `npm run claude:analyze`
   - [x] Impact : 90% de temps gagné (45-60 min vs 3-4h manuelles)
+- **PlanningGenerator Tests** : Amélioration partielle ✅ PROGRESSION (06/01/2025)
+  - [x] Test de priorité week-end corrigé avec mock getAverageGardesPerUser
+  - [x] Suppression snapshot obsolète HeatMapChart
+  - [x] Infrastructure test améliorée
+  - [x] **Résultats : 7 tests sur 9 passent** (amélioration de 6/9 → 7/9)
 - **Phase 1 - Admin Tools** : Tous les outils administratifs prioritaires ✅ COMPLÉTÉ (28/05/2025)
   - Dashboard Command Center unifié
   - Assistant création planning intelligent
@@ -109,6 +114,23 @@
   - 9 test suites passantes sur 11 (82% de succès)
   - Méthodologie manuelle éprouvée et documentée
 - [x] **Travail Utilisateur Préservé** : Page SecteursAdmin.tsx avec drag & drop @dnd-kit intacte
+
+**🚧 Prochaines Priorités (TASKMASTER)**
+
+- **Tests PlanningGenerator - Finalisation** : Corriger les 2 tests restants ⚠️ PRIORITÉ (06/01/2025)
+  - [ ] **Test "should exclude users on leave"**
+    - **Problème** : Le mock `isUserAvailable` ne fonctionne pas correctement
+    - **Solution requise** : Implémenter vérification des congés dans `isUserAvailable` ou créer mock plus robuste
+    - **Impact** : Test critique pour fonctionnalité métier importante
+    - **Localisation** : `tests/unit/services/planningGenerator.test.ts:164-179`
+  - [ ] **Test "should select the first user if scores are equal"**
+    - **Problème** : `calculateAssignmentScore` non mocké, comportement `reduce` non déterministe
+    - **Solution requise** : Mock de `calculateAssignmentScore` pour garantir scores identiques
+    - **Impact** : Test de logique de sélection équitable
+    - **Localisation** : `tests/unit/services/planningGenerator.test.ts:260-271`
+  - [ ] **Objectif** : Atteindre 9/9 tests passants (100% PlanningGenerator)
+  - [ ] **Estimation** : 1-2h pour corriger les 2 tests restants
+  - [ ] **Contexte** : Infrastructure test stable, mocks partiels en place
 
 **🚧 En Cours**
 
