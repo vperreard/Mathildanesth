@@ -1,39 +1,53 @@
 // Mock du client Prisma pour les tests
-import { mockDeep, mockReset } from 'jest-mock-extended';
+import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
+
+// Types pour les modèles Prisma
+type ModelOperations = {
+  findUnique: jest.Mock;
+  findMany: jest.Mock;
+  findFirst: jest.Mock;
+  create: jest.Mock;
+  update: jest.Mock;
+  delete: jest.Mock;
+  deleteMany: jest.Mock;
+  count: jest.Mock;
+  aggregate: jest.Mock;
+  groupBy: jest.Mock;
+};
 
 // Mock type du client Prisma
-type PrismaClientMock = {
-  // Ajouter ici les méthodes et propriétés nécessaires aux tests
-  leave: any;
-  leaveBalance: any;
-  leaveTypeSetting: any;
-  user: any;
-  quotaCarryOver: any;
-  quotaTransfer: any;
-  notification: any;
-  notificationSetting: any;
-  planningRule: any;
-  planningRuleV2: any;
-  auditLog: any;
-  assignment: any;
-  blocPlanning: any;
-  operatingRoom: any;
-  operatingSector: any;
-  surgeon: any;
-  site: any;
-  $disconnect: () => Promise<void>;
-  $queryRawUnsafe: <T = any>(query: string, ...values: any[]) => Promise<T>;
-  $use: (middleware: any) => void;
-  $extends: (extension: any) => any;
-  $transaction: (fn: any) => Promise<any>;
-};
+interface PrismaClientMock {
+  // Modèles de base
+  leave: ModelOperations;
+  leaveBalance: ModelOperations;
+  leaveTypeSetting: ModelOperations;
+  user: ModelOperations;
+  quotaCarryOver: ModelOperations;
+  quotaTransfer: ModelOperations;
+  notification: ModelOperations;
+  notificationSetting: ModelOperations;
+  planningRule: ModelOperations;
+  planningRuleV2: ModelOperations;
+  auditLog: ModelOperations;
+  assignment: ModelOperations;
+  blocPlanning: ModelOperations;
+  operatingRoom: ModelOperations;
+  operatingSector: ModelOperations;
+  surgeon: ModelOperations;
+  site: ModelOperations;
+  // Méthodes utilitaires
+  $disconnect: jest.Mock<Promise<void>>;
+  $queryRawUnsafe: jest.Mock<Promise<unknown>>;
+  $use: jest.Mock<void>;
+  $extends: jest.Mock<DeepMockProxy<PrismaClientMock>>;
+  $transaction: jest.Mock<Promise<unknown>>;
+}
 
 // Créer un mock deep du client Prisma
 export const prisma = mockDeep<PrismaClientMock>();
 
-// Add mock for $use method
-prisma.$use = jest.fn();
-prisma.$transaction = jest.fn().mockImplementation(async fn => {
+// Configuration des méthodes spéciales qui nécessitent une implémentation
+(prisma.$transaction as jest.Mock).mockImplementation(async (fn: unknown) => {
   if (typeof fn === 'function') {
     return await fn(prisma);
   }
@@ -149,10 +163,55 @@ export enum ConflictSeverity {
   INFO = 'INFO',
 }
 
-// Export des types
-export type User = any;
-export type Leave = any;
-export type LeaveBalance = any;
-export type LeaveTypeSetting = any;
+// Types de base pour les modèles
+export interface User {
+  id: number;
+  email: string;
+  password: string;
+  nom: string;
+  prenom: string;
+  role: Role;
+  status: UserStatus;
+  professionalRole: ProfessionalRole;
+  sites?: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Leave {
+  id: number;
+  userId: number;
+  type: string;
+  startDate: Date;
+  endDate: Date;
+  status: LeaveStatus;
+  reason?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface LeaveBalance {
+  id: number;
+  userId: number;
+  type: string;
+  year: number;
+  initialBalance: number;
+  usedDays: number;
+  remainingDays: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface LeaveTypeSetting {
+  id: number;
+  type: string;
+  displayName: string;
+  defaultDays: number;
+  carryOverEnabled: boolean;
+  maxCarryOverDays?: number;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 // Note: The beforeEach is removed to avoid conflicts with test setup
