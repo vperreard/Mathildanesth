@@ -1,0 +1,4241 @@
+{
+  "timestamp": "2025-06-04T20:22:58.434Z",
+  "projectPath": "/Users/vincentperreard/Mathildanesth",
+  "summary": {
+    "total": 113,
+    "byCategory": {
+      "CRITICAL": 12,
+      "HIGH": 0,
+      "MEDIUM": 90,
+      "LOW": 11
+    },
+    "byType": {
+      "TODO": 107,
+      "FIXME": 2,
+      "HACK": 1,
+      "@todo": 1,
+      "@fixme": 1,
+      "@hack": 1
+    }
+  },
+  "criticalItems": [
+    {
+      "file": "scripts/autonomous-bug-fixer.js",
+      "line": 402,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// TODO: Implement actual authentication logic",
+      "context": [
+        {
+          "lineNumber": 400,
+          "content": "  try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 401,
+          "content": "    const body = await request.json();",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 402,
+          "content": "    // TODO: Implement actual authentication logic",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 403,
+          "content": "    return NextResponse.json({ success: true, message: 'Login endpoint placeholder' });",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 404,
+          "content": "  } catch (error) {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/contextual-messages/route.ts",
+      "line": 35,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DES TODO CRITIQUES : Vérifications de permissions fines",
+      "context": [
+        {
+          "lineNumber": 33,
+          "content": "): Promise<boolean> {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 34,
+          "content": "  try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 35,
+          "content": "    // 🔐 CORRECTION DES TODO CRITIQUES : Vérifications de permissions fines",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 36,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 37,
+          "content": "    if (assignmentId) {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/contextual-messages/route.ts",
+      "line": 109,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions fines",
+      "context": [
+        {
+          "lineNumber": 107,
+          "content": "    }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 108,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 109,
+          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions fines",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 110,
+          "content": "    const hasPermission = await verifyContextPermissions(",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 111,
+          "content": "      userId,",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/contextual-messages/route.ts",
+      "line": 294,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions de lecture",
+      "context": [
+        {
+          "lineNumber": 292,
+          "content": "    }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 293,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 294,
+          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions de lecture",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 295,
+          "content": "    const hasPermission = await verifyContextPermissions(",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 296,
+          "content": "      userId,",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/leaves/route.ts",
+      "line": 66,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
+      "context": [
+        {
+          "lineNumber": 64,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 65,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 66,
+          "content": "        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 67,
+          "content": "        const authHeader = request.headers.get('authorization');",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 68,
+          "content": "        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/simulations/[scenarioId]/route.ts",
+      "line": 120,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
+      "context": [
+        {
+          "lineNumber": 118,
+          "content": "    }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 119,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 120,
+          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 121,
+          "content": "    if (!existingScenario.createdBy) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 122,
+          "content": "      return NextResponse.json({ error: 'Scénario invalide.' }, { status: 400 });",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/simulations/[scenarioId]/route.ts",
+      "line": 182,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
+      "context": [
+        {
+          "lineNumber": 180,
+          "content": "    }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 181,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 182,
+          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 183,
+          "content": "    if (!existingScenario.createdBy) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 184,
+          "content": "      return NextResponse.json({ error: 'Scénario invalide.' }, { status: 400 });",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/trame-modeles/[trameModeleId]/affectations/route.ts",
+      "line": 24,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de trameModeles (déjà fait via withAuth)",
+      "context": [
+        {
+          "lineNumber": 22,
+          "content": "    console.log('\\n--- POST /api/trameModele-modeles/[trameModeleId]/affectations START ---');",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 23,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 24,
+          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de trameModeles (déjà fait via withAuth)",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 25,
+          "content": "    // Logger l'action de création",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 26,
+          "content": "    const auditService = new AuditService();",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/bloc-operatoire/_components/PermissionGuard.tsx",
+      "line": 94,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// TODO: Implémenter la logique de permissions granulaires",
+      "context": [
+        {
+          "lineNumber": 92,
+          "content": "  // Vérifier une permission spécifique (extensible pour le futur)",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 93,
+          "content": "  if (requiredPermission) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 94,
+          "content": "    // TODO: Implémenter la logique de permissions granulaires",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 95,
+          "content": "    // Pour l'instant, on considère que les ADMIN ont toutes les permissions",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 96,
+          "content": "    const isAdmin = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(user.role);",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/hooks/useAppearance.ts",
+      "line": 89,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// TODO: Réactiver une fois l'authentification stabilisée",
+      "context": [
+        {
+          "lineNumber": 87,
+          "content": "        setLoading(false);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 88,
+          "content": "        ",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 89,
+          "content": "        // TODO: Réactiver une fois l'authentification stabilisée",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 90,
+          "content": "        /*",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 91,
+          "content": "        async function loadPreferences() {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 1070,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION TODO CRITIQUE : Ajouter logique de permissions pour changements de statut",
+      "context": [
+        {
+          "lineNumber": 1068,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1069,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1070,
+          "content": "        // 🔐 CORRECTION TODO CRITIQUE : Ajouter logique de permissions pour changements de statut",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 1071,
+          "content": "        await this.verifyStatusChangePermissions(userId, planningId, status);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1072,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 1108,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION TODO CRITIQUE : Gérer le cas \"update\" si une affectation pour cet userId+role existe déjà pour ce blocRoomAssignmentId",
+      "context": [
+        {
+          "lineNumber": 1106,
+          "content": "        await this.verifyStaffModificationPermissions(initiatorUserId, roomAssignment.blocDayPlanning.siteId);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1107,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1108,
+          "content": "        // 🔐 CORRECTION TODO CRITIQUE : Gérer le cas \"update\" si une affectation pour cet userId+role existe déjà pour ce blocRoomAssignmentId",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 1109,
+          "content": "        // Logique d'update/replace améliorée avec gestion des erreurs",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1110,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    }
+  ],
+  "highPriorityItems": [],
+  "allItems": [
+    {
+      "file": "scripts/autonomous-bug-fixer.js",
+      "line": 402,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// TODO: Implement actual authentication logic",
+      "context": [
+        {
+          "lineNumber": 400,
+          "content": "  try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 401,
+          "content": "    const body = await request.json();",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 402,
+          "content": "    // TODO: Implement actual authentication logic",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 403,
+          "content": "    return NextResponse.json({ success: true, message: 'Login endpoint placeholder' });",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 404,
+          "content": "  } catch (error) {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/contextual-messages/route.ts",
+      "line": 35,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DES TODO CRITIQUES : Vérifications de permissions fines",
+      "context": [
+        {
+          "lineNumber": 33,
+          "content": "): Promise<boolean> {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 34,
+          "content": "  try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 35,
+          "content": "    // 🔐 CORRECTION DES TODO CRITIQUES : Vérifications de permissions fines",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 36,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 37,
+          "content": "    if (assignmentId) {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/contextual-messages/route.ts",
+      "line": 109,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions fines",
+      "context": [
+        {
+          "lineNumber": 107,
+          "content": "    }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 108,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 109,
+          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions fines",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 110,
+          "content": "    const hasPermission = await verifyContextPermissions(",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 111,
+          "content": "      userId,",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/contextual-messages/route.ts",
+      "line": 294,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions de lecture",
+      "context": [
+        {
+          "lineNumber": 292,
+          "content": "    }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 293,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 294,
+          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications de permissions de lecture",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 295,
+          "content": "    const hasPermission = await verifyContextPermissions(",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 296,
+          "content": "      userId,",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/leaves/route.ts",
+      "line": 66,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
+      "context": [
+        {
+          "lineNumber": 64,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 65,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 66,
+          "content": "        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 67,
+          "content": "        const authHeader = request.headers.get('authorization');",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 68,
+          "content": "        const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/simulations/[scenarioId]/route.ts",
+      "line": 120,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
+      "context": [
+        {
+          "lineNumber": 118,
+          "content": "    }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 119,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 120,
+          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 121,
+          "content": "    if (!existingScenario.createdBy) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 122,
+          "content": "      return NextResponse.json({ error: 'Scénario invalide.' }, { status: 400 });",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/simulations/[scenarioId]/route.ts",
+      "line": 182,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
+      "context": [
+        {
+          "lineNumber": 180,
+          "content": "    }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 181,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 182,
+          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérifier les permissions de l'utilisateur",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 183,
+          "content": "    if (!existingScenario.createdBy) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 184,
+          "content": "      return NextResponse.json({ error: 'Scénario invalide.' }, { status: 400 });",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/trame-modeles/[trameModeleId]/affectations/route.ts",
+      "line": 24,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de trameModeles (déjà fait via withAuth)",
+      "context": [
+        {
+          "lineNumber": 22,
+          "content": "    console.log('\\n--- POST /api/trameModele-modeles/[trameModeleId]/affectations START ---');",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 23,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 24,
+          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérification de rôle admin pour modifications de trameModeles (déjà fait via withAuth)",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 25,
+          "content": "    // Logger l'action de création",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 26,
+          "content": "    const auditService = new AuditService();",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/bloc-operatoire/_components/PermissionGuard.tsx",
+      "line": 94,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// TODO: Implémenter la logique de permissions granulaires",
+      "context": [
+        {
+          "lineNumber": 92,
+          "content": "  // Vérifier une permission spécifique (extensible pour le futur)",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 93,
+          "content": "  if (requiredPermission) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 94,
+          "content": "    // TODO: Implémenter la logique de permissions granulaires",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 95,
+          "content": "    // Pour l'instant, on considère que les ADMIN ont toutes les permissions",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 96,
+          "content": "    const isAdmin = ['ADMIN_TOTAL', 'ADMIN_PARTIEL'].includes(user.role);",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/hooks/useAppearance.ts",
+      "line": 89,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// TODO: Réactiver une fois l'authentification stabilisée",
+      "context": [
+        {
+          "lineNumber": 87,
+          "content": "        setLoading(false);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 88,
+          "content": "        ",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 89,
+          "content": "        // TODO: Réactiver une fois l'authentification stabilisée",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 90,
+          "content": "        /*",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 91,
+          "content": "        async function loadPreferences() {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 1070,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION TODO CRITIQUE : Ajouter logique de permissions pour changements de statut",
+      "context": [
+        {
+          "lineNumber": 1068,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1069,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1070,
+          "content": "        // 🔐 CORRECTION TODO CRITIQUE : Ajouter logique de permissions pour changements de statut",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 1071,
+          "content": "        await this.verifyStatusChangePermissions(userId, planningId, status);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1072,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 1108,
+      "type": "TODO",
+      "category": "CRITICAL",
+      "content": "// 🔐 CORRECTION TODO CRITIQUE : Gérer le cas \"update\" si une affectation pour cet userId+role existe déjà pour ce blocRoomAssignmentId",
+      "context": [
+        {
+          "lineNumber": 1106,
+          "content": "        await this.verifyStaffModificationPermissions(initiatorUserId, roomAssignment.blocDayPlanning.siteId);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1107,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1108,
+          "content": "        // 🔐 CORRECTION TODO CRITIQUE : Gérer le cas \"update\" si une affectation pour cet userId+role existe déjà pour ce blocRoomAssignmentId",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 1109,
+          "content": "        // Logique d'update/replace améliorée avec gestion des erreurs",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1110,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "scripts/audit-tech-debt.js",
+      "line": 8,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
+      "context": [
+        {
+          "lineNumber": 6,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 7,
+          "content": "// Patterns to search for",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 8,
+          "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 9,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 10,
+          "content": "// Directories to exclude",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "scripts/audit-tech-debt.js",
+      "line": 8,
+      "type": "FIXME",
+      "category": "MEDIUM",
+      "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
+      "context": [
+        {
+          "lineNumber": 6,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 7,
+          "content": "// Patterns to search for",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 8,
+          "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 9,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 10,
+          "content": "// Directories to exclude",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "scripts/audit-tech-debt.js",
+      "line": 8,
+      "type": "HACK",
+      "category": "MEDIUM",
+      "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
+      "context": [
+        {
+          "lineNumber": 6,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 7,
+          "content": "// Patterns to search for",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 8,
+          "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 9,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 10,
+          "content": "// Directories to exclude",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "scripts/audit-tech-debt.js",
+      "line": 8,
+      "type": "@todo",
+      "category": "MEDIUM",
+      "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
+      "context": [
+        {
+          "lineNumber": 6,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 7,
+          "content": "// Patterns to search for",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 8,
+          "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 9,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 10,
+          "content": "// Directories to exclude",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "scripts/audit-tech-debt.js",
+      "line": 8,
+      "type": "@fixme",
+      "category": "MEDIUM",
+      "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
+      "context": [
+        {
+          "lineNumber": 6,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 7,
+          "content": "// Patterns to search for",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 8,
+          "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 9,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 10,
+          "content": "// Directories to exclude",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "scripts/audit-tech-debt.js",
+      "line": 8,
+      "type": "@hack",
+      "category": "MEDIUM",
+      "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
+      "context": [
+        {
+          "lineNumber": 6,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 7,
+          "content": "// Patterns to search for",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 8,
+          "content": "const DEBT_PATTERNS = ['TODO', 'FIXME', 'HACK', '@todo', '@fixme', '@hack'];",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 9,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 10,
+          "content": "// Directories to exclude",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "scripts/audit-tech-debt.js",
+      "line": 187,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "- Total TODOs/FIXMEs: ${results.summary.total}",
+      "context": [
+        {
+          "lineNumber": 185,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 186,
+          "content": "## Summary",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 187,
+          "content": "- Total TODOs/FIXMEs: ${results.summary.total}",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 188,
+          "content": "- CRITICAL: ${results.summary.byCategory.CRITICAL}",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 189,
+          "content": "- HIGH: ${results.summary.byCategory.HIGH}",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "scripts/audit-tech-debt.js",
+      "line": 187,
+      "type": "FIXME",
+      "category": "MEDIUM",
+      "content": "- Total TODOs/FIXMEs: ${results.summary.total}",
+      "context": [
+        {
+          "lineNumber": 185,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 186,
+          "content": "## Summary",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 187,
+          "content": "- Total TODOs/FIXMEs: ${results.summary.total}",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 188,
+          "content": "- CRITICAL: ${results.summary.byCategory.CRITICAL}",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 189,
+          "content": "- HIGH: ${results.summary.byCategory.HIGH}",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "scripts/autonomous-bug-fixer.js",
+      "line": 413,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implement actual logout logic",
+      "context": [
+        {
+          "lineNumber": 411,
+          "content": "export async function POST(request: NextRequest) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 412,
+          "content": "  try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 413,
+          "content": "    // TODO: Implement actual logout logic",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 414,
+          "content": "    return NextResponse.json({ success: true, message: 'Logout endpoint placeholder' });",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 415,
+          "content": "  } catch (error) {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "scripts/autonomous-bug-fixer.js",
+      "line": 424,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implement actual user data retrieval",
+      "context": [
+        {
+          "lineNumber": 422,
+          "content": "export async function GET(request: NextRequest) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 423,
+          "content": "  try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 424,
+          "content": "    // TODO: Implement actual user data retrieval",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 425,
+          "content": "    return NextResponse.json({ user: null, message: 'User endpoint placeholder' });",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 426,
+          "content": "  } catch (error) {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "scripts/create-seed-from-export.js",
+      "line": 274,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "code += `    // TODO: Implémenter le seed spécifique pour ${tableName}\\n`;",
+      "context": [
+        {
+          "lineNumber": 272,
+          "content": "    code += `    // ⚠️  Seed générique pour ${tableName} - À adapter selon le modèle\\n`;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 273,
+          "content": "    code += `    console.log(\\`   ℹ️  ${tableName}: \\${${tableName}Data.length} entrées disponibles\\`);\\n`;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 274,
+          "content": "    code += `    // TODO: Implémenter le seed spécifique pour ${tableName}\\n`;",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 275,
+          "content": "    return code;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 276,
+          "content": "}",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "scripts/mass-fix-services-tests.js",
+      "line": 57,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Add specific tests for ${serviceName}",
+      "context": [
+        {
+          "lineNumber": 55,
+          "content": "  });",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 56,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 57,
+          "content": "  // TODO: Add specific tests for ${serviceName}",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 58,
+          "content": "  // Tests will be preserved from original file where possible",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 59,
+          "content": "});",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/activity-types/[id]/route.ts",
+      "line": 181,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Ajouter les handlers GET (pour un ID) ici",
+      "context": [
+        {
+          "lineNumber": 179,
+          "content": "}",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 180,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 181,
+          "content": "// TODO: Ajouter les handlers GET (pour un ID) ici ",
+          "isTarget": true
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/admin/leaves/[id]/approve/route.ts",
+      "line": 82,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Déterminer le lien exact vers la demande de congé ou la liste des congés de l'utilisateur",
+      "context": [
+        {
+          "lineNumber": 80,
+          "content": "            const adminFullName = `${admin.prenom} ${admin.nom}`.trim();",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 81,
+          "content": "            const notificationMessage = `Votre demande de congé du ${new Date(updatedLeave.startDate).toLocaleDateString('fr-FR')} au ${new Date(updatedLeave.endDate).toLocaleDateString('fr-FR')} a été approuvée par ${adminFullName}.`;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 82,
+          "content": "            // TODO: Déterminer le lien exact vers la demande de congé ou la liste des congés de l'utilisateur",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 83,
+          "content": "            const linkToLeave = `/mes-conges?leaveId=${updatedLeave.id}`; // Exemple de lien",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 84,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/admin/leaves/[id]/reject/route.ts",
+      "line": 95,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Déterminer le lien exact vers la demande de congé ou la liste des congés de l'utilisateur",
+      "context": [
+        {
+          "lineNumber": 93,
+          "content": "                notificationMessage += ` Motif : ${updatedLeave.comment}`;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 94,
+          "content": "            }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 95,
+          "content": "            // TODO: Déterminer le lien exact vers la demande de congé ou la liste des congés de l'utilisateur",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 96,
+          "content": "            const linkToLeave = `/mes-conges?leaveId=${updatedLeave.id}`; // Exemple de lien",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 97,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/contextual-messages/[messageId]/route.ts",
+      "line": 110,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérification du rôle administrateur",
+      "context": [
+        {
+          "lineNumber": 108,
+          "content": ") {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 109,
+          "content": "  try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 110,
+          "content": "    // 🔐 CORRECTION DU TODO CRITIQUE : Vérification du rôle administrateur",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 111,
+          "content": "    const session = await requireMessagePermission('delete');",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 112,
+          "content": "    const userId = session.user.id;",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/contextual-messages/route.ts",
+      "line": 409,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Ici, après la création en BDD, émettre l'événement WebSocket",
+      "context": [
+        {
+          "lineNumber": 407,
+          "content": "            },",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 408,
+          "content": "        });",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 409,
+          "content": "        // TODO: Ici, après la création en BDD, émettre l'événement WebSocket",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 410,
+          "content": "        // Exemple: global.io.to(socketRoomForUser(args.userId)).emit('new_notification', notification);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 411,
+          "content": "        return notification;",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/operating-rooms/[id]/route.ts",
+      "line": 165,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// 🔐 CORRECTION TODO CRITIQUE : Vérifier si la salle est utilisée dans des plannings existants",
+      "context": [
+        {
+          "lineNumber": 163,
+          "content": "      }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 164,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 165,
+          "content": "      // 🔐 CORRECTION TODO CRITIQUE : Vérifier si la salle est utilisée dans des plannings existants",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 166,
+          "content": "      const connectedPlannings = await prisma.blocRoomAssignment.findMany({",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 167,
+          "content": "        where: { operatingRoomId: roomId },",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/planning/quick-replacement/route.ts",
+      "line": 91,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "const workloadAverage = 15; // TODO: Calculer la vraie moyenne",
+      "context": [
+        {
+          "lineNumber": 89,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 90,
+          "content": "                const workloadCurrent = currentMonthAssignments.length;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 91,
+          "content": "                const workloadAverage = 15; // TODO: Calculer la vraie moyenne",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 92,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 93,
+          "content": "                // Calculer le score de fatigue",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/planning/quick-replacement/route.ts",
+      "line": 208,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter la vérification des compétences selon le type de shift",
+      "context": [
+        {
+          "lineNumber": 206,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 207,
+          "content": "function checkRequiredSkills(competencies: any[], shiftType: string): boolean {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 208,
+          "content": "    // TODO: Implémenter la vérification des compétences selon le type de shift",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 209,
+          "content": "    return true;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 210,
+          "content": "}",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/simulations/[scenarioId]/run/route.ts",
+      "line": 124,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Logique de filtrage par siteId à implémenter si nécessaire",
+      "context": [
+        {
+          "lineNumber": 122,
+          "content": "        const userQueryWhere: Prisma.UserWhereInput = { actif: true };",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 123,
+          "content": "        if (simParams.siteId) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 124,
+          "content": "          // TODO: Logique de filtrage par siteId à implémenter si nécessaire",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 125,
+          "content": "          // userQueryWhere.sites = { some: { siteId: simParams.siteId } };",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 126,
+          "content": "        }",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/simulations/route.ts",
+      "line": 64,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Ajouter pagination, filtres, tri si nécessaire",
+      "context": [
+        {
+          "lineNumber": 62,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 63,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 64,
+          "content": "        // TODO: Ajouter pagination, filtres, tri si nécessaire",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 65,
+          "content": "        const scenarios = await prisma.simulationScenario.findMany({",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 66,
+          "content": "            orderBy: {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/trame-modeles/[trameModeleId]/apply/route.ts",
+      "line": 86,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter la logique d'application de la trameModele",
+      "context": [
+        {
+          "lineNumber": 84,
+          "content": "        });",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 85,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 86,
+          "content": "        // TODO: Implémenter la logique d'application de la trameModele",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 87,
+          "content": "        // Ceci est un placeholder - la logique réelle dépend de votre implémentation",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 88,
+          "content": "        const result = {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/utilisateurs/[id]/route.ts",
+      "line": 259,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Ajouter GET (pour récupérer un seul utilisateur)",
+      "context": [
+        {
+          "lineNumber": 257,
+          "content": "}",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 258,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 259,
+          "content": "// TODO: Ajouter GET (pour récupérer un seul utilisateur) ",
+          "isTarget": true
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/utilisateurs/route.ts",
+      "line": 205,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Ajouter les fonctions PUT, DELETE",
+      "context": [
+        {
+          "lineNumber": 203,
+          "content": "}",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 204,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 205,
+          "content": "// TODO: Ajouter les fonctions PUT, DELETE ",
+          "isTarget": true
+        }
+      ]
+    },
+    {
+      "file": "src/app/bloc-operatoire/_components/OptimizedProvider.tsx",
+      "line": 33,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Intégrer avec le système de notifications",
+      "context": [
+        {
+          "lineNumber": 31,
+          "content": "      onError: (error: any) => {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 32,
+          "content": "        console.error('Mutation error:', error);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 33,
+          "content": "        // TODO: Intégrer avec le système de notifications",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 34,
+          "content": "      },",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 35,
+          "content": "    },",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/conges/page.tsx",
+      "line": 309,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "{/* TODO: Ajouter peut-être un lien vers la gestion des quotas */}",
+      "context": [
+        {
+          "lineNumber": 307,
+          "content": "                                Solde de congés payés pour {leaveBalance.year} : <span className=\"font-semibold\">{leaveBalance.balances?.ANNUAL?.remaining || 0}</span> jours restants sur {leaveBalance.balances?.ANNUAL?.initial || 0}",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 308,
+          "content": "                            </p>",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 309,
+          "content": "                            {/* TODO: Ajouter peut-être un lien vers la gestion des quotas */}",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 310,
+          "content": "                        </div>",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 311,
+          "content": "                    )}",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/parametres/trames/EditeurTramesHebdomadaires.tsx",
+      "line": 418,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO IMPORTANT: La sauvegarde des affectations doit se faire via une API dédiée,",
+      "context": [
+        {
+          "lineNumber": 416,
+          "content": "            console.log('[DEBUG] handleSaveAffectation - Updated TrameModele for State (local affectations):', updatedTrameForState);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 417,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 418,
+          "content": "            // TODO IMPORTANT: La sauvegarde des affectations doit se faire via une API dédiée,",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 419,
+          "content": "            // par exemple /api/trameModele-modeles/{trameId}/affectations.",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 420,
+          "content": "            // TrameHebdomadaireService.updateTrame ne gère probablement pas la mise à jour des affectations.",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/parametres/trames/EditeurTramesHebdomadaires.tsx",
+      "line": 449,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Afficher un message indiquant que les détails de la trameModele sont sauvegardés,",
+      "context": [
+        {
+          "lineNumber": 447,
+          "content": "            setIsAffectationModalOpen(false);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 448,
+          "content": "            setEditingCellInfo(null);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 449,
+          "content": "            // TODO: Afficher un message indiquant que les détails de la trameModele sont sauvegardés,",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 450,
+          "content": "            // mais que la sauvegarde individuelle des affectations est un TODO ou se fait autrement.",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 451,
+          "content": "            // toast.success('Détails de la trameModele sauvegardés. Sauvegarde des affectations à implémenter via API dédiée.');",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/parametres/trames/EditeurTramesHebdomadaires.tsx",
+      "line": 450,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// mais que la sauvegarde individuelle des affectations est un TODO ou se fait autrement.",
+      "context": [
+        {
+          "lineNumber": 448,
+          "content": "            setEditingCellInfo(null);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 449,
+          "content": "            // TODO: Afficher un message indiquant que les détails de la trameModele sont sauvegardés,",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 450,
+          "content": "            // mais que la sauvegarde individuelle des affectations est un TODO ou se fait autrement.",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 451,
+          "content": "            // toast.success('Détails de la trameModele sauvegardés. Sauvegarde des affectations à implémenter via API dédiée.');",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 452,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/parametres/trames/EditeurTramesHebdomadaires.tsx",
+      "line": 477,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO IMPORTANT: La suppression d'affectation doit aussi se faire via une API dédiée.",
+      "context": [
+        {
+          "lineNumber": 475,
+          "content": "            };",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 476,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 477,
+          "content": "            // TODO IMPORTANT: La suppression d'affectation doit aussi se faire via une API dédiée.",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 478,
+          "content": "            // Par exemple DELETE /api/trameModele-modeles/{trameId}/affectations/{affectationId}",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 479,
+          "content": "            // Pour l'instant, on met à jour uniquement l'état local.",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/parametres/trames/TrameModelesConfigPanel.tsx",
+      "line": 405,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// ✅ Validation du formulaire d'affectation avec Zod (TODO complété)",
+      "context": [
+        {
+          "lineNumber": 403,
+          "content": "            return;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 404,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 405,
+          "content": "        // ✅ Validation du formulaire d'affectation avec Zod (TODO complété)",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 406,
+          "content": "        setAffectationFormErrors(null); // Réinitialiser les erreurs",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 407,
+          "content": "        const validationResult = affectationModeleSchema.safeParse(affectationFormData);",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/planning/equipe/page.tsx",
+      "line": 78,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Remplacer par un appel API réel",
+      "context": [
+        {
+          "lineNumber": 76,
+          "content": "            setLoading(true);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 77,
+          "content": "            // Simuler le chargement des données",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 78,
+          "content": "            // TODO: Remplacer par un appel API réel",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 79,
+          "content": "            await new Promise(resolve => setTimeout(resolve, 1000));",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 80,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/planning/validation/page.tsx",
+      "line": 92,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter la logique complète",
+      "context": [
+        {
+          "lineNumber": 90,
+          "content": "        if (assignmentIndex !== -1) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 91,
+          "content": "            // Logique de mise à jour selon le type de déplacement",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 92,
+          "content": "            // TODO: Implémenter la logique complète",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 93,
+          "content": "            updatedAssignments[assignmentIndex] = {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 94,
+          "content": "                ...updatedAssignments[assignmentIndex],",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/planning/validation/page.tsx",
+      "line": 124,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter la résolution automatique",
+      "context": [
+        {
+          "lineNumber": 122,
+          "content": "    // Résoudre une violation",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 123,
+          "content": "    const handleResolveViolation = (violation: RuleViolation, assignmentIds?: string[]) => {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 124,
+          "content": "        // TODO: Implémenter la résolution automatique",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 125,
+          "content": "        toast({",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 126,
+          "content": "            title: \"Résolution en cours\",",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/planning/validation/page.tsx",
+      "line": 352,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "{/* TODO: Implémenter le calendrier drag & drop */}",
+      "context": [
+        {
+          "lineNumber": 350,
+          "content": "                        <CardContent>",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 351,
+          "content": "                            <DragDropContext onDragEnd={handleDragEnd}>",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 352,
+          "content": "                                {/* TODO: Implémenter le calendrier drag & drop */}",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 353,
+          "content": "                                <Alert>",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 354,
+          "content": "                                    <AlertCircle className=\"h-4 w-4\" />",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/planning/validation/page.tsx",
+      "line": 373,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "{/* TODO: Implémenter la vue liste */}",
+      "context": [
+        {
+          "lineNumber": 371,
+          "content": "                        </CardHeader>",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 372,
+          "content": "                        <CardContent>",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 373,
+          "content": "                            {/* TODO: Implémenter la vue liste */}",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 374,
+          "content": "                            <Alert>",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 375,
+          "content": "                                <AlertCircle className=\"h-4 w-4\" />",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/requetes/echange-garde/page.tsx",
+      "line": 63,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Appel API pour créer la demande d'échange",
+      "context": [
+        {
+          "lineNumber": 61,
+          "content": "        setLoading(true);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 62,
+          "content": "        try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 63,
+          "content": "            // TODO: Appel API pour créer la demande d'échange",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 64,
+          "content": "            await new Promise(resolve => setTimeout(resolve, 1500));",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 65,
+          "content": "            ",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/components/absences/AbsenceForm.tsx",
+      "line": 12,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "userId: 0, // TODO: Récupérer l'ID de l'utilisateur connecté",
+      "context": [
+        {
+          "lineNumber": 10,
+          "content": "export const AbsenceForm: React.FC<AbsenceFormProps> = ({ onSubmit, onCancel }) => {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 11,
+          "content": "    const [formData, setFormData] = useState<AbsenceCreateInput>({",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 12,
+          "content": "        userId: 0, // TODO: Récupérer l'ID de l'utilisateur connecté",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 13,
+          "content": "        startDate: new Date(),",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 14,
+          "content": "        endDate: new Date(),",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/components/bloc-operatoire/RoomAssignmentPanel/RoomAssignmentPanel.tsx",
+      "line": 431,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "onEdit={() => {/* TODO: Implémenter l'édition */ }}",
+      "context": [
+        {
+          "lineNumber": 429,
+          "content": "                                        room={room}",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 430,
+          "content": "                                        supervisor={supervisor}",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 431,
+          "content": "                                        onEdit={() => {/* TODO: Implémenter l'édition */ }}",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 432,
+          "content": "                                        onDelete={() => attribution.id && handleDeleteAssignment(attribution.id)}",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 433,
+          "content": "                                        readOnly={readOnly}",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/components/ServiceWorkerRegistration.tsx",
+      "line": 8,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Réactiver après résolution des conflits avec Next.js",
+      "context": [
+        {
+          "lineNumber": 6,
+          "content": "const ServiceWorkerRegistration: React.FC = () => {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 7,
+          "content": "    // TEMPORAIRE: Désactiver complètement le service worker pour résoudre les erreurs MIME",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 8,
+          "content": "    // TODO: Réactiver après résolution des conflits avec Next.js",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 9,
+          "content": "    return null;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 10,
+          "content": "    const {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/components/trames/BlocPlanningTemplateEditor.tsx",
+      "line": 189,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Déterminer typeActivite plus finement basé sur la description/nom de la trameModele ou affDto",
+      "context": [
+        {
+          "lineNumber": 187,
+          "content": "                    if (affDto.chirurgienId) nomAffichage += ` / Chir ${affDto.chirurgienId}`;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 188,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 189,
+          "content": "                    // TODO: Déterminer typeActivite plus finement basé sur la description/nom de la trameModele ou affDto",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 190,
+          "content": "                    // Par exemple, si affDto.salleId est null et chirId est null, ça pourrait être GARDE/ASTREINTE.",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 191,
+          "content": "                    // Pour l'instant, c'est une initialisation basique.",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/components/trames/BlocPlanningTemplateEditor.tsx",
+      "line": 332,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "marId: null, // TODO: A gérer si on veut préserver cette info",
+      "context": [
+        {
+          "lineNumber": 330,
+          "content": "                    // marId et iadeId de AffectationTrameDTO ne sont pas directement dans detailedAff",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 331,
+          "content": "                    // On pourrait les déduire ou les laisser null pour cette transformation temporaire",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 332,
+          "content": "                    marId: null, // TODO: A gérer si on veut préserver cette info",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 333,
+          "content": "                    iadeId: null, // TODO: A gérer",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 334,
+          "content": "                };",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/components/trames/BlocPlanningTemplateEditor.tsx",
+      "line": 333,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "iadeId: null, // TODO: A gérer",
+      "context": [
+        {
+          "lineNumber": 331,
+          "content": "                    // On pourrait les déduire ou les laisser null pour cette transformation temporaire",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 332,
+          "content": "                    marId: null, // TODO: A gérer si on veut préserver cette info",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 333,
+          "content": "                    iadeId: null, // TODO: A gérer",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 334,
+          "content": "                };",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 335,
+          "content": "            });",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/components/ui/sheet.tsx",
+      "line": 2,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter ou installer le vrai composant Sheet",
+      "context": [
+        {
+          "lineNumber": 1,
+          "content": "// Composant factice pour débloquer le build",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 2,
+          "content": "// TODO: Implémenter ou installer le vrai composant Sheet",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 3,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 4,
+          "content": "import React from 'react';",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/generated/prisma/runtime/library.d.ts",
+      "line": 2246,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "count = \"count\",// TODO: count does not actually exist in DMMF",
+      "context": [
+        {
+          "lineNumber": 2244,
+          "content": "    deleteMany = \"deleteMany\",\r",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 2245,
+          "content": "    groupBy = \"groupBy\",\r",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 2246,
+          "content": "    count = \"count\",// TODO: count does not actually exist in DMMF\r",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 2247,
+          "content": "    aggregate = \"aggregate\",\r",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 2248,
+          "content": "    findRaw = \"findRaw\",\r",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/generated/prisma/runtime/library.d.ts",
+      "line": 2735,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "/** TODO what is this */",
+      "context": [
+        {
+          "lineNumber": 2733,
+          "content": "    /** The action that is being handled */\r",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 2734,
+          "content": "    action: Action;\r",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 2735,
+          "content": "    /** TODO what is this */\r",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 2736,
+          "content": "    dataPath: string[];\r",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 2737,
+          "content": "    /** TODO what is this */\r",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/generated/prisma/runtime/library.d.ts",
+      "line": 2737,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "/** TODO what is this */",
+      "context": [
+        {
+          "lineNumber": 2735,
+          "content": "    /** TODO what is this */\r",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 2736,
+          "content": "    dataPath: string[];\r",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 2737,
+          "content": "    /** TODO what is this */\r",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 2738,
+          "content": "    runInTransaction: boolean;\r",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 2739,
+          "content": "    args?: UserArgs_2;\r",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/hooks/useDateValidation.ts",
+      "line": 426,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// 🔐 CORRECTION TODO CRITIQUE : Ajouter la vérification minAdvanceNotice/maxAdvanceBooking",
+      "context": [
+        {
+          "lineNumber": 424,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 425,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 426,
+          "content": "        // 🔐 CORRECTION TODO CRITIQUE : Ajouter la vérification minAdvanceNotice/maxAdvanceBooking",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 427,
+          "content": "        const { minAdvanceNotice, maxAdvanceBooking } = options;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 428,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/hooks/useDateValidation.ts",
+      "line": 447,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// 🔐 CORRECTION TODO CRITIQUE : Ajouter la vérification customValidation",
+      "context": [
+        {
+          "lineNumber": 445,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 446,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 447,
+          "content": "        // 🔐 CORRECTION TODO CRITIQUE : Ajouter la vérification customValidation",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 448,
+          "content": "        const { customValidation } = options;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 449,
+          "content": "        if (customValidation && typeof customValidation === 'function') {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/hooks/useNotificationsWebSocket.ts",
+      "line": 136,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Réactiver quand l'API notifications sera implémentée",
+      "context": [
+        {
+          "lineNumber": 134,
+          "content": "        if (process.env.NODE_ENV === 'development') {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 135,
+          "content": "            console.log('[WebSocket] Désactivé en développement - serveur Socket.IO non configuré');",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 136,
+          "content": "            // TODO: Réactiver quand l'API notifications sera implémentée",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 137,
+          "content": "            // fetchNotifications();",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 138,
+          "content": "            return;",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/lib/logger.ts",
+      "line": 142,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter l'écriture dans un fichier si enableFile est true",
+      "context": [
+        {
+          "lineNumber": 140,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 141,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 142,
+          "content": "        // TODO: Implémenter l'écriture dans un fichier si enableFile est true",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 143,
+          "content": "        // Cela nécessiterait un module comme 'fs' ou une bibliothèque de logging",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 144,
+          "content": "    }",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/analytics/services/analyticsService.ts",
+      "line": 95,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Cette valeur devrait provenir d'une configuration globale de l'application ou par site.",
+      "context": [
+        {
+          "lineNumber": 93,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 94,
+          "content": "export class AnalyticsService {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 95,
+          "content": "    // TODO: Cette valeur devrait provenir d'une configuration globale de l'application ou par site.",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 96,
+          "content": "    private DEFAULT_STANDARD_OPERATIONAL_HOURS_PER_DAY = 10;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 97,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/analytics/services/analyticsService.ts",
+      "line": 380,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Ajouter filtre par siteId si pertinent et si le modèle Leave a une relation avec Site",
+      "context": [
+        {
+          "lineNumber": 378,
+          "content": "            status: { notIn: [LeaveStatus.REJECTED, LeaveStatus.CANCELLED] }, // On ne compte que les congés valides/en attente",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 379,
+          "content": "            type: leaveTypes && leaveTypes.length > 0 ? { in: leaveTypes } : undefined,",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 380,
+          "content": "            // TODO: Ajouter filtre par siteId si pertinent et si le modèle Leave a une relation avec Site",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 381,
+          "content": "            // user: siteId ? { sites: { some: { id: siteId } } } : undefined, // Exemple si User a une relation many-to-many avec Site",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 382,
+          "content": "        };",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/calendar/components/CalendarExport.tsx",
+      "line": 187,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Afficher un message d'erreur",
+      "context": [
+        {
+          "lineNumber": 185,
+          "content": "        } catch (error) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 186,
+          "content": "            console.error('Erreur lors de l\\'export:', error);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 187,
+          "content": "            // TODO: Afficher un message d'erreur",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 188,
+          "content": "        } finally {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 189,
+          "content": "            setIsLoading(false);",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/integration/LeavePlanningIntegration.ts",
+      "line": 148,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter l'appel API réel",
+      "context": [
+        {
+          "lineNumber": 146,
+          "content": "     */",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 147,
+          "content": "    private async fetchLeaveDetails(leaveId: string): Promise<Leave> {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 148,
+          "content": "        // TODO: Implémenter l'appel API réel",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 149,
+          "content": "        // Simuler un appel API pour l'exemple",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 150,
+          "content": "        return {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/integration/LeavePlanningIntegration.ts",
+      "line": 169,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter l'appel API réel",
+      "context": [
+        {
+          "lineNumber": 167,
+          "content": "    private async createPlanningEventFromLeave(leave: Leave): Promise<void> {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 168,
+          "content": "        try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 169,
+          "content": "            // TODO: Implémenter l'appel API réel",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 170,
+          "content": "            console.log(`LeavePlanningIntegration: Creating planning event for leave ${leave.id}`);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 171,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/integration/LeavePlanningIntegration.ts",
+      "line": 187,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Appeler l'API du planning pour créer l'événement",
+      "context": [
+        {
+          "lineNumber": 185,
+          "content": "            };",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 186,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 187,
+          "content": "            // TODO: Appeler l'API du planning pour créer l'événement",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 188,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 189,
+          "content": "            // Notifier le succès via l'adaptateur d'événements",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/integration/LeavePlanningIntegration.ts",
+      "line": 214,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter l'appel API réel",
+      "context": [
+        {
+          "lineNumber": 212,
+          "content": "    private async updatePlanningEventFromLeave(leave: Leave): Promise<void> {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 213,
+          "content": "        try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 214,
+          "content": "            // TODO: Implémenter l'appel API réel",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 215,
+          "content": "            console.log(`LeavePlanningIntegration: Updating planning event for leave ${leave.id}`);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 216,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/integration/LeavePlanningIntegration.ts",
+      "line": 231,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Appeler l'API du planning pour mettre à jour l'événement",
+      "context": [
+        {
+          "lineNumber": 229,
+          "content": "            };",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 230,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 231,
+          "content": "            // TODO: Appeler l'API du planning pour mettre à jour l'événement",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 232,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 233,
+          "content": "            // Simuler un objet planning pour l'exemple",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/integration/LeavePlanningIntegration.ts",
+      "line": 257,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter l'appel API réel",
+      "context": [
+        {
+          "lineNumber": 255,
+          "content": "    private async removePlanningEventForLeave(leave: Leave): Promise<void> {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 256,
+          "content": "        try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 257,
+          "content": "            // TODO: Implémenter l'appel API réel",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 258,
+          "content": "            console.log(`LeavePlanningIntegration: Removing planning event for leave ${leave.id}`);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 259,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/integration/LeavePlanningIntegration.ts",
+      "line": 274,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Appeler l'API du planning pour supprimer l'événement",
+      "context": [
+        {
+          "lineNumber": 272,
+          "content": "            };",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 273,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 274,
+          "content": "            // TODO: Appeler l'API du planning pour supprimer l'événement",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 275,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 276,
+          "content": "            // Simuler un objet planning pour l'exemple",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/integration/LeavePlanningIntegration.ts",
+      "line": 341,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Notifier le module de congés du conflit",
+      "context": [
+        {
+          "lineNumber": 339,
+          "content": "            // Notifier le module de congés pour chaque congé concerné",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 340,
+          "content": "            for (const leaveId of leaveIds) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 341,
+          "content": "                // TODO: Notifier le module de congés du conflit",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 342,
+          "content": "                console.log(`LeavePlanningIntegration: Notifying leave module about conflict for leave ${leaveId}`);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 343,
+          "content": "            }",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/leaves/services/conflictDetectionService.ts",
+      "line": 664,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Récupérer les réunions récurrentes de l'utilisateur",
+      "context": [
+        {
+          "lineNumber": 662,
+          "content": "        conflicts: LeaveConflict[]",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 663,
+          "content": "    ): Promise<void> {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 664,
+          "content": "        // TODO: Récupérer les réunions récurrentes de l'utilisateur",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 665,
+          "content": "        // Pour l'exemple, nous utilisons des réunions fictives",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 666,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/leaves/services/leaveService.ts",
+      "line": 458,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "* 🔐 CORRECTION TODO CRITIQUE : Adapter pour vérifier les conflits avec les occurrences de congés récurrents",
+      "context": [
+        {
+          "lineNumber": 456,
+          "content": "/**",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 457,
+          "content": " * Vérifier les conflits potentiels pour une période de congés",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 458,
+          "content": " * 🔐 CORRECTION TODO CRITIQUE : Adapter pour vérifier les conflits avec les occurrences de congés récurrents",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 459,
+          "content": " */",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 460,
+          "content": "export const checkLeaveConflicts = async (",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/leaves/services/leaveService.ts",
+      "line": 514,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "* 🔐 CORRECTION TODO CRITIQUE : Adapter pour vérifier les quotas en prenant en compte les occurrences de congés récurrents",
+      "context": [
+        {
+          "lineNumber": 512,
+          "content": "/**",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 513,
+          "content": " * Vérifier si l'utilisateur a assez de jours de congés disponibles",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 514,
+          "content": " * 🔐 CORRECTION TODO CRITIQUE : Adapter pour vérifier les quotas en prenant en compte les occurrences de congés récurrents",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 515,
+          "content": " */",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 516,
+          "content": "export const checkLeaveAllowance = async (",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/leaves/services/leaveService.ts",
+      "line": 564,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "* TODO: Adapter le calcul pour potentiellement utiliser une logique différente pour les congés récurrents (si nécessaire)",
+      "context": [
+        {
+          "lineNumber": 562,
+          "content": "/**",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 563,
+          "content": " * Calculer le nombre de jours de congés à partir des dates et du planning de travail",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 564,
+          "content": " * TODO: Adapter le calcul pour potentiellement utiliser une logique différente pour les congés récurrents (si nécessaire)",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 565,
+          "content": " */",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 566,
+          "content": "export const calculateLeaveDays = (",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/leaves/utils/recurringLeavesUtils.ts",
+      "line": 64,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "* TODO: Intégrer le calcul réel des jours décomptés (`countedDays`) pour chaque occurrence en utilisant `leaveCalculator` et le planning de l'utilisateur.",
+      "context": [
+        {
+          "lineNumber": 62,
+          "content": " * @param options Options de génération",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 63,
+          "content": " * @returns Les occurrences générées et des statistiques",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 64,
+          "content": " * TODO: Intégrer le calcul réel des jours décomptés (`countedDays`) pour chaque occurrence en utilisant `leaveCalculator` et le planning de l'utilisateur.",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 65,
+          "content": " * TODO: Améliorer la gestion des conflits pendant la génération des occurrences.",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 66,
+          "content": " */",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/leaves/utils/recurringLeavesUtils.ts",
+      "line": 65,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "* TODO: Améliorer la gestion des conflits pendant la génération des occurrences.",
+      "context": [
+        {
+          "lineNumber": 63,
+          "content": " * @returns Les occurrences générées et des statistiques",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 64,
+          "content": " * TODO: Intégrer le calcul réel des jours décomptés (`countedDays`) pour chaque occurrence en utilisant `leaveCalculator` et le planning de l'utilisateur.",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 65,
+          "content": " * TODO: Améliorer la gestion des conflits pendant la génération des occurrences.",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 66,
+          "content": " */",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 67,
+          "content": "export function generateRecurringDates(",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/leaves/utils/recurringLeavesUtils.ts",
+      "line": 180,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "countedDays: 0 // TODO: Remplacer par le calcul réel des jours décomptés",
+      "context": [
+        {
+          "lineNumber": 178,
+          "content": "            reason: baseRequest.reason,",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 179,
+          "content": "            comment: baseRequest.comment,",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 180,
+          "content": "            countedDays: 0 // TODO: Remplacer par le calcul réel des jours décomptés",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 181,
+          "content": "        };",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 182,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/notifications/api/notificationSettingsApi.ts",
+      "line": 15,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: À remplacer par un appel API réel",
+      "context": [
+        {
+          "lineNumber": 13,
+          "content": "export const getUserNotificationSettings = async (userId: string): Promise<NotificationSettings> => {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 14,
+          "content": "    try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 15,
+          "content": "        // TODO: À remplacer par un appel API réel",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 16,
+          "content": "        console.log(`Chargement des préférences pour l'utilisateur ${userId}`);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 17,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/notifications/api/notificationSettingsApi.ts",
+      "line": 52,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: À remplacer par un appel API réel",
+      "context": [
+        {
+          "lineNumber": 50,
+          "content": "export const saveUserNotificationSettings = async (userId: string, settings: NotificationSettings): Promise<void> => {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 51,
+          "content": "    try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 52,
+          "content": "        // TODO: À remplacer par un appel API réel",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 53,
+          "content": "        console.log(`Enregistrement des préférences pour l'utilisateur ${userId}`, settings);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 54,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/notifications/api/notificationSettingsApi.ts",
+      "line": 72,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: À remplacer par un appel API réel",
+      "context": [
+        {
+          "lineNumber": 70,
+          "content": "export const resetUserNotificationSettings = async (userId: string): Promise<void> => {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 71,
+          "content": "    try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 72,
+          "content": "        // TODO: À remplacer par un appel API réel",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 73,
+          "content": "        console.log(`Réinitialisation des préférences pour l'utilisateur ${userId}`);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 74,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 152,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Gestion des conflits de trameModeles pour la même salle/période",
+      "context": [
+        {
+          "lineNumber": 150,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 151,
+          "content": "                        if (existingAssignmentForRoomPeriod) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 152,
+          "content": "                            // TODO: Gestion des conflits de trameModeles pour la même salle/période",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 153,
+          "content": "                            // Options: Priorité de trameModele, première arrivée, fusion manuelle, ou générer un conflit.",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 154,
+          "content": "                            // Pour V1: Générer un conflit d'avertissement.",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 199,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Gérer autres typeAffectation (CONSULTATION, GARDE, ASTREINTE)",
+      "context": [
+        {
+          "lineNumber": 197,
+          "content": "                        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 198,
+          "content": "                    }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 199,
+          "content": "                    // TODO: Gérer autres typeAffectation (CONSULTATION, GARDE, ASTREINTE)",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 200,
+          "content": "                    // Ces affectations ne vont pas dans BlocRoomAssignment mais pourraient générer des contraintes",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 201,
+          "content": "                    // ou être stockées dans un autre template (GeneralAssignment)",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 408,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Remplacer par une méthode fiable (champ dédié sur OperatingRoom ou via allowedSpecialties/supervisionRules)",
+      "context": [
+        {
+          "lineNumber": 406,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 407,
+          "content": "                    // Début Solution Palliative pour isFivOrConsultation (R2)",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 408,
+          "content": "                    // TODO: Remplacer par une méthode fiable (champ dédié sur OperatingRoom ou via allowedSpecialties/supervisionRules)",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 409,
+          "content": "                    let isSpecialOrConsultation = false;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 410,
+          "content": "                    if (user && assignmentsForUser.some(a => {",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 613,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter les autres règles (R4 à R8)",
+      "context": [
+        {
+          "lineNumber": 611,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 612,
+          "content": "        // Fin Règle 3 (et une partie de R8 intégrée)",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 613,
+          "content": "        // TODO: Implémenter les autres règles (R4 à R8)",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 614,
+          "content": "        // R4: Cohérence Secteurs et Contiguïté",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 615,
+          "content": "        // R5: Incompatibilités et Préférences Utilisateurs",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 913,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Remplacer par une méthode fiable (champ dédié sur OperatingSector ou propriété structurée dans sector.rules)",
+      "context": [
+        {
+          "lineNumber": 911,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 912,
+          "content": "            // Début Solution Palliative pour sectorType (R8)",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 913,
+          "content": "            // TODO: Remplacer par une méthode fiable (champ dédié sur OperatingSector ou propriété structurée dans sector.rules)",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 914,
+          "content": "            const sectorNameLower = sector.name.toLowerCase();",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 915,
+          "content": "            let sectorType = 'STANDARD';",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 1073,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Tracer l'historique des changements de statut si nécessaire (nouveau template ?)",
+      "context": [
+        {
+          "lineNumber": 1071,
+          "content": "        await this.verifyStatusChangePermissions(userId, planningId, status);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1072,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1073,
+          "content": "        // TODO: Tracer l'historique des changements de statut si nécessaire (nouveau template ?)",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 1074,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1075,
+          "content": "        return prisma.blocDayPlanning.update({",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 1105,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// 🔐 CORRECTION TODO CRITIQUE : Vérifier si l'utilisateur a les droits de faire cette modification",
+      "context": [
+        {
+          "lineNumber": 1103,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1104,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1105,
+          "content": "        // 🔐 CORRECTION TODO CRITIQUE : Vérifier si l'utilisateur a les droits de faire cette modification",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 1106,
+          "content": "        await this.verifyStaffModificationPermissions(initiatorUserId, roomAssignment.blocDayPlanning.siteId);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1107,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 1149,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// 🔐 CORRECTION TODO CRITIQUE : Vérifier si l'utilisateur a les droits de faire cette suppression",
+      "context": [
+        {
+          "lineNumber": 1147,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1148,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1149,
+          "content": "        // 🔐 CORRECTION TODO CRITIQUE : Vérifier si l'utilisateur a les droits de faire cette suppression",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 1150,
+          "content": "        await this.verifyStaffModificationPermissions(initiatorUserId, staffAssignment.blocRoomAssignment.blocDayPlanning.siteId);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1151,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 1152,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Vérifier si l'utilisateur (initiatorUserId) a les droits de faire cette suppression.",
+      "context": [
+        {
+          "lineNumber": 1150,
+          "content": "        await this.verifyStaffModificationPermissions(initiatorUserId, staffAssignment.blocRoomAssignment.blocDayPlanning.siteId);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1151,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1152,
+          "content": "        // TODO: Vérifier si l'utilisateur (initiatorUserId) a les droits de faire cette suppression.",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 1153,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1154,
+          "content": "        await prisma.blocStaffAssignment.delete({ where: { id: staffAssignmentId } });",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/planning/bloc-operatoire/services/blocPlanningService.ts",
+      "line": 1385,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Affiner avec les periodes de l'absence si elles sont disponibles et nécessaires.",
+      "context": [
+        {
+          "lineNumber": 1383,
+          "content": "            // Sans les Period de l'absence, on assume que si c'est le même jour, c'est pour toute la journée.",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1384,
+          "content": "            if (planningDateTime.getTime() === normAbsenceStartDate.getTime() || planningDateTime.getTime() === normAbsenceEndDate.getTime()) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1385,
+          "content": "                // TODO: Affiner avec les periodes de l'absence si elles sont disponibles et nécessaires.",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 1386,
+          "content": "                // Pour l'instant, on simplifie : si c'est le même jour, c'est un conflit pour la période planifiée.",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 1387,
+          "content": "                // Cela pourrait être trop restrictif si une absence se termine le matin et le planning est l'après-midi.",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/rules/services/RuleBasedPlanningGeneratorService.ts",
+      "line": 276,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter une logique plus fine pour lier violations et gardes/vacations.",
+      "context": [
+        {
+          "lineNumber": 274,
+          "content": "        // pour identifier les gardes/vacations spécifiques qui causent la violation.",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 275,
+          "content": "        console.log(`Identification des gardes/vacations problématiques pour ${violatedRuleIds.size} règles violées... (Simplifié)`);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 276,
+          "content": "        // TODO: Implémenter une logique plus fine pour lier violations et gardes/vacations.",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 277,
+          "content": "        return attributions.filter((attribution, index) => index < 5); // Limiter pour tester",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 278,
+          "content": "    }",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/services/planningGenerator.ts",
+      "line": 706,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter la détection des jours fériés",
+      "context": [
+        {
+          "lineNumber": 704,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 705,
+          "content": "  private isHoliday(date: Date): boolean {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 706,
+          "content": "    // TODO: Implémenter la détection des jours fériés",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 707,
+          "content": "    // Pour l'instant, retourner false",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 708,
+          "content": "    return false;",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/services/planningGenerator.ts",
+      "line": 846,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter la gestion des préférences",
+      "context": [
+        {
+          "lineNumber": 844,
+          "content": "    // 5. Considération des préférences (si activé)",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 845,
+          "content": "    if (this.parameters.appliquerPreferencesPersonnelles) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 846,
+          "content": "      // TODO: Implémenter la gestion des préférences",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 847,
+          "content": "      // Pour l'instant, bonus aléatoire pour simulation",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 848,
+          "content": "      score += Math.random() * 10;",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/services/TrameIntegrationService.ts",
+      "line": 336,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Implémenter la logique d'optimisation",
+      "context": [
+        {
+          "lineNumber": 334,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 335,
+          "content": "    // Appliquer l'optimisation (swap intelligent, rééquilibrage)",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 336,
+          "content": "    // TODO: Implémenter la logique d'optimisation",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 337,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 338,
+          "content": "    // Calculer le nouveau score",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/utils/prefetch.ts",
+      "line": 56,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Réactiver quand ces routes seront implémentées",
+      "context": [
+        {
+          "lineNumber": 54,
+          "content": "        prefetchData('/api/utilisateurs'),",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 55,
+          "content": "        prefetchData('/api/skills'),",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 56,
+          "content": "        // TODO: Réactiver quand ces routes seront implémentées",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 57,
+          "content": "        // prefetchData('/api/conges/types'),",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 58,
+          "content": "        // prefetchData('/api/notifications/preferences')",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/utils/prefetch.ts",
+      "line": 114,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "// TODO: Fix the API route to handle prefetch requests properly",
+      "context": [
+        {
+          "lineNumber": 112,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 113,
+          "content": "    // Pour l'instant, on ignore le prefetch de l'utilisateur car il cause des erreurs",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 114,
+          "content": "    // TODO: Fix the API route to handle prefetch requests properly",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 115,
+          "content": "    console.log(`Préchargement utilisateur ${userId} temporairement désactivé`);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 116,
+          "content": "    return;",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/utils/prefetch.ts",
+      "line": 120,
+      "type": "TODO",
+      "category": "MEDIUM",
+      "content": "//     // TODO: Réactiver quand ces routes seront implémentées",
+      "context": [
+        {
+          "lineNumber": 118,
+          "content": "    // Promise.allSettled([",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 119,
+          "content": "    //     prefetchData(`/api/utilisateurs/${userId}`),",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 120,
+          "content": "    //     // TODO: Réactiver quand ces routes seront implémentées",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 121,
+          "content": "    //     // prefetchData(`/api/utilisateurs/${userId}/skills`),",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 122,
+          "content": "    //     // prefetchData(`/api/utilisateurs/${userId}/conges`),",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/admin/leave-types/route.ts",
+      "line": 18,
+      "type": "TODO",
+      "category": "LOW",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifications admin requises",
+      "context": [
+        {
+          "lineNumber": 16,
+          "content": "export async function GET(request: Request) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 17,
+          "content": "    try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 18,
+          "content": "        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications admin requises",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 19,
+          "content": "        const session = await requireAdmin();",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 20,
+          "content": "        ",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/admin/leave-types/route.ts",
+      "line": 56,
+      "type": "TODO",
+      "category": "LOW",
+      "content": "// 🔐 CORRECTION DU TODO CRITIQUE : Vérifications admin requises",
+      "context": [
+        {
+          "lineNumber": 54,
+          "content": "export async function POST(request: Request) {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 55,
+          "content": "    try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 56,
+          "content": "        // 🔐 CORRECTION DU TODO CRITIQUE : Vérifications admin requises",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 57,
+          "content": "        const session = await requireAdmin();",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 58,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/planning/quick-replacement/route.ts",
+      "line": 111,
+      "type": "TODO",
+      "category": "LOW",
+      "content": "averageResponseTime: 2, // TODO: Calculer depuis l'historique",
+      "context": [
+        {
+          "lineNumber": 109,
+          "content": "                    metrics: {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 110,
+          "content": "                        replacementsThisMonth: countReplacementsThisMonth(user.attributions),",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 111,
+          "content": "                        averageResponseTime: 2, // TODO: Calculer depuis l'historique",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 112,
+          "content": "                        reliability: 95 // TODO: Calculer depuis l'historique",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 113,
+          "content": "                    }",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/planning/quick-replacement/route.ts",
+      "line": 112,
+      "type": "TODO",
+      "category": "LOW",
+      "content": "reliability: 95 // TODO: Calculer depuis l'historique",
+      "context": [
+        {
+          "lineNumber": 110,
+          "content": "                        replacementsThisMonth: countReplacementsThisMonth(user.attributions),",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 111,
+          "content": "                        averageResponseTime: 2, // TODO: Calculer depuis l'historique",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 112,
+          "content": "                        reliability: 95 // TODO: Calculer depuis l'historique",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 113,
+          "content": "                    }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 114,
+          "content": "                };",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/app/planning/validation/page.tsx",
+      "line": 61,
+      "type": "TODO",
+      "category": "LOW",
+      "content": "// TODO: Charger depuis l'API",
+      "context": [
+        {
+          "lineNumber": 59,
+          "content": "        try {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 60,
+          "content": "            setIsLoading(true);",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 61,
+          "content": "            // TODO: Charger depuis l'API",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 62,
+          "content": "            const response = await fetch('http://localhost:3000/api/planning/current');",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 63,
+          "content": "            const data = await response.json();",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/analytics/services/analyticsService.ts",
+      "line": 428,
+      "type": "TODO",
+      "category": "LOW",
+      "content": "// TODO: Ajouter filtre par siteId/région si SchoolHolidayPeriod a cette information et si siteId est fourni",
+      "context": [
+        {
+          "lineNumber": 426,
+          "content": "                    { startDate: { lte: endDate }, endDate: { gte: startDate } },",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 427,
+          "content": "                ],",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 428,
+          "content": "                // TODO: Ajouter filtre par siteId/région si SchoolHolidayPeriod a cette information et si siteId est fourni",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 429,
+          "content": "            },",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 430,
+          "content": "        });",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/analytics/services/analyticsService.ts",
+      "line": 436,
+      "type": "TODO",
+      "category": "LOW",
+      "content": "// TODO: Ajouter filtre par siteId/région si PublicHoliday a cette information et si siteId est fourni",
+      "context": [
+        {
+          "lineNumber": 434,
+          "content": "            where: {",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 435,
+          "content": "                date: { gte: startDate, lte: endDate },",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 436,
+          "content": "                // TODO: Ajouter filtre par siteId/région si PublicHoliday a cette information et si siteId est fourni",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 437,
+          "content": "            },",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 438,
+          "content": "        });",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/leaves/services/conflictDetectionService.ts",
+      "line": 537,
+      "type": "TODO",
+      "category": "LOW",
+      "content": "// TODO: Récupérer les deadlines du projet depuis un service de projets",
+      "context": [
+        {
+          "lineNumber": 535,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 536,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 537,
+          "content": "        // TODO: Récupérer les deadlines du projet depuis un service de projets",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 538,
+          "content": "        // Pour l'exemple, nous utilisons une deadline fictive",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 539,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/leaves/services/conflictDetectionService.ts",
+      "line": 598,
+      "type": "TODO",
+      "category": "LOW",
+      "content": "// TODO: Récupérer les jours fériés depuis un service de calendrier",
+      "context": [
+        {
+          "lineNumber": 596,
+          "content": "        }",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 597,
+          "content": "",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 598,
+          "content": "        // TODO: Récupérer les jours fériés depuis un service de calendrier",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 599,
+          "content": "        // Pour l'exemple, nous utilisons des jours fériés fictifs",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 600,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/templates/services/templateService.ts",
+      "line": 112,
+      "type": "TODO",
+      "category": "LOW",
+      "content": "// TODO: Ajouter d'autres champs si nécessaire depuis Prisma.PersonnelRequisModeleCreateInput",
+      "context": [
+        {
+          "lineNumber": 110,
+          "content": "        nombreRequis: number;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 111,
+          "content": "        notes?: string;",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 112,
+          "content": "        // TODO: Ajouter d'autres champs si nécessaire depuis Prisma.PersonnelRequisModeleCreateInput",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 113,
+          "content": "        // professionalRoleId?: string; // Exemple: code du ProfessionalRoleConfig",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 114,
+          "content": "        // specialtyId?: number;",
+          "isTarget": false
+        }
+      ]
+    },
+    {
+      "file": "src/modules/templates/services/TrameHebdomadaireService.ts",
+      "line": 173,
+      "type": "TODO",
+      "category": "LOW",
+      "content": "// siteId: 'default_site_id', // TODO: Le siteId est requis par TrameModele, à gérer",
+      "context": [
+        {
+          "lineNumber": 171,
+          "content": "            joursSemaineActifs: [1, 2, 3, 4, 5], // Valeurs par défaut (Lundi à Vendredi)",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 172,
+          "content": "            typeSemaine: typeSemaineApi,",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 173,
+          "content": "            // siteId: 'default_site_id', // TODO: Le siteId est requis par TrameModele, à gérer",
+          "isTarget": true
+        },
+        {
+          "lineNumber": 174,
+          "content": "        };",
+          "isTarget": false
+        },
+        {
+          "lineNumber": 175,
+          "content": "",
+          "isTarget": false
+        }
+      ]
+    }
+  ]
+}
