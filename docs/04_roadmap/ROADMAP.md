@@ -221,6 +221,22 @@
 - [ ] **Nettoyer 65 fichiers TODO/FIXME** : Éliminer @ts-ignore, corriger types
 - [ ] **Améliorer couverture** : 12% → 70% minimum sur modules critiques
 
+### 0.1.1 Tâches Sécurité & Nettoyage (Ajouté 04/06/2025)
+
+**Issues identifiées par Instance 3** :
+
+- [ ] **Résoudre vulnérabilité tar-fs** (HIGH) : 16 vulnérabilités dont tar-fs critique
+  - Conflit avec React 18 dans @cypress-audit/lighthouse
+  - Options : remplacer le package ou accepter le risque (dev only)
+- [ ] **Nettoyer 942 console.log** (MEDIUM) : Approche manuelle par module
+  - Commencer par auth et leaves
+  - Script créé mais avec erreurs de syntaxe
+- [ ] **Implémenter API affectations trames** (HIGH) : EditeurTramesHebdomadaires
+  - Endpoint /api/trame-modeles/{trameId}/affectations
+  - Gérer sauvegarde et suppression individuelle
+- [ ] **Documenter services critiques** (MEDIUM) : JSDoc pour fonctions exportées
+- [ ] **Compléter calculs quick-replacement** (MEDIUM) : Moyennes et historiques réels
+
 **Critères de sortie** :
 
 - ✅ 95% tests passants (vs 80% actuel)
