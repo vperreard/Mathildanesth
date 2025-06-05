@@ -903,7 +903,7 @@ const BlocPlanningTemplateEditor = React.forwardRef<BlocPlanningTemplateEditorHa
                 setError(`Tableau de service avec id ${id} non trouvée.`);
             }
         } catch (err: unknown) {
-            logger.error(`[BlocEditor loadTrames] Erreur:`, err);
+            logger.error(`[BlocEditor loadTrames] Erreur:`, { error: err });
             setError(err instanceof Error ? err.message : 'Erreur inconnue lors du chargement');
         } finally {
             setIsLoading(false);
